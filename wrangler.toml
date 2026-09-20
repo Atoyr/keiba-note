@@ -1,0 +1,25 @@
+#:schema ./node_modules/wrangler/config-schema.json
+name = "keiba-note"
+main = ".svelte-kit/cloudflare/_worker.js"
+
+# 初期化時の日付で固定する。上げるときは意図的に上げること。
+compatibility_date = "2026-09-20"
+# nodejs_compat は付けない（起動コストとバンドルが増える）。
+# nodejs_als は SvelteKit の adapter-cloudflare が AsyncLocalStorage を使うために必要な別物。
+compatibility_flags = ["nodejs_als"]
+
+workers_dev = true
+preview_urls = true
+
+[assets]
+binding = "ASSETS"
+directory = ".svelte-kit/cloudflare"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "keiba-note"
+database_id = "__REPLACE_WITH_D1_DATABASE_ID__"
+migrations_dir = "drizzle"
