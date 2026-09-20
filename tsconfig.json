@@ -3,7 +3,10 @@
 	"compilerOptions": {
 		"rewriteRelativeImportExtensions": true,
 		"allowJs": true,
-		"checkJs": true,
+		// 生成物は型検査しない。worker-configuration.d.ts が wrangler.toml の main
+		// （.svelte-kit/cloudflare/_worker.js）を import するため、checkJs を有効に
+		// すると svelte-check がビルド成果物まで検査してしまう。
+		"checkJs": false,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,

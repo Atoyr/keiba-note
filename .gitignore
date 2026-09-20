@@ -27,3 +27,6 @@ test-results
 # Cloudflare
 .dev.vars
 .dev.vars.*
+# `wrangler types` の生成物。wrangler.toml の main がビルド済みかどうかで
+# 内容が変わるため、コミットせず prepare / build で毎回生成する。
+worker-configuration.d.ts
