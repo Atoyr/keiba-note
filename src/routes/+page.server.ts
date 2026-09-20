@@ -3,8 +3,8 @@ import { createDb } from '$lib/server/db';
 import type { PageServerLoad } from './$types';
 
 /**
- * Phase 0 の疎通確認。D1 バインディングに触れて往復できるかだけを見る。
  * Phase 4 でダッシュボード（最近のメモ / 直近のレース）に置き換える。
+ * 今は D1 の疎通結果だけを出す。
  */
 export const load: PageServerLoad = async ({ platform }) => {
 	if (!platform?.env?.DB) {

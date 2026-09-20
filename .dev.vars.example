@@ -1,0 +1,15 @@
+# ローカル開発用のシークレット。`.dev.vars` にコピーして使う（.gitignore 済み）。
+# 本番は `wrangler secret put <NAME>` で設定する。
+
+# Google Cloud Console > APIs & Services > Credentials で作った
+# OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）の値。
+# 承認済みのリダイレクト URI に以下の2つを登録すること:
+#   http://localhost:5173/auth/google/callback
+#   https://keiba-note.<subdomain>.workers.dev/auth/google/callback
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+# 最初の1人（owner）になる Google アカウントのメールアドレス。
+# user テーブルが空のときに限り、このアドレスだけ招待なしで登録できる。
+# 2人目以降は必ず招待が要る（user が空でなくなるので、この口は自動的に閉じる）。
+OWNER_EMAIL=""

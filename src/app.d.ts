@@ -4,18 +4,27 @@ declare global {
 	namespace App {
 		interface Platform {
 			/**
-			 * Worker のバインディング。`Env` は wrangler.toml から
-			 * `wrangler types` が worker-configuration.d.ts に生成する。
-			 * 現時点の中身は `DB: D1Database`（D1 バインディング）。
+			 * Worker のバインディングとシークレット。
+			 *
+			 * `Env` は wrangler.toml から `wrangler types` が
+			 * worker-configuration.d.ts に生成する（現時点では `DB: D1Database`）。
+			 * シークレットは wrangler.toml に書かない（本番は `wrangler secret put`、
+			 * ローカルは `.dev.vars`）ので生成物には現れない。ここで足しておく。
 			 */
-			env: Env;
+			env: Env & {
+				GOOGLE_CLIENT_ID: string;
+				GOOGLE_CLIENT_SECRET: string;
+				OWNER_EMAIL: string;
+			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;
 			cf?: IncomingRequestCfProperties;
 		}
 
-		// Phase 1（認証）で locals.user を足す。docs/design.md 第4章を参照。
-		// interface Locals {}
+		interface Locals {
+			/** hooks.server.ts が埋める。未ログインなら null。 */
+			user: import('$lib/server/auth/session').SessionUser | null;
+		}
 
 		// interface Error {}
 		// interface PageData {}

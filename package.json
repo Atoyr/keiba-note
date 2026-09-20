@@ -50,7 +50,11 @@
 		"wrangler": "^4.97.0"
 	},
 	"dependencies": {
+		"@oslojs/crypto": "^1.0.1",
+		"@oslojs/encoding": "^1.1.0",
+		"arctic": "^3.7.0",
 		"drizzle-orm": "^0.45.2",
+		"ulidx": "^2.4.1",
 		"valibot": "^1.5.0"
 	}
 }
