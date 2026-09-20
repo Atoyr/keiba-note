@@ -1,6 +1,8 @@
+import { dev } from '$app/environment';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { createDb } from '$lib/server/db';
 import { SESSION_COOKIE, validateSession } from '$lib/server/auth/session';
+import { MOCK_USER_COOKIE, ensureMockUser, isMockUserKey } from '$lib/server/auth/mock';
 import { safeRedirect } from '$lib/utils/redirect';
 
 /**
@@ -18,12 +20,25 @@ function isPublic(pathname: string): boolean {
  * どの認証方式を使っているかを知っているのはこのファイルだけ。
  */
 export const handle: Handle = async ({ event, resolve }) => {
+	event.locals.user = null;
+	event.locals.mockAuth = false;
+
+	const db = event.platform?.env?.DB ? createDb(event.platform.env) : null;
+
+	// --- 開発用のモック認証 --------------------------------------------------
+	// `dev` は本番ビルドで静的に false になり、この分岐はバンドルから消える。
+	// したがってデプロイした Worker でモックが有効になることはない。
+	if (dev && event.platform?.env?.MOCK_AUTH && db) {
+		const key = event.cookies.get(MOCK_USER_COOKIE);
+		event.locals.user = await ensureMockUser(db, isMockUserKey(key) ? key : 'owner');
+		event.locals.mockAuth = true;
+		return resolve(event);
+	}
+	// -------------------------------------------------------------------------
+
 	const token = event.cookies.get(SESSION_COOKIE);
 
-	event.locals.user = null;
-
-	if (token && event.platform?.env?.DB) {
-		const db = createDb(event.platform.env);
+	if (token && db) {
 		const result = await validateSession(db, token);
 
 		if (result) {

@@ -15,6 +15,11 @@ declare global {
 				GOOGLE_CLIENT_ID: string;
 				GOOGLE_CLIENT_SECRET: string;
 				OWNER_EMAIL: string;
+				/**
+				 * 開発用のモック認証を有効にする。`.dev.vars` にだけ置く。
+				 * 本番で設定しても `dev` ガードにより無視される（分岐がビルドに残らない）。
+				 */
+				MOCK_AUTH?: string;
 			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;
@@ -24,6 +29,8 @@ declare global {
 		interface Locals {
 			/** hooks.server.ts が埋める。未ログインなら null。 */
 			user: import('$lib/server/auth/session').SessionUser | null;
+			/** 開発用のモック認証で入っているか。本番では常に false。 */
+			mockAuth: boolean;
 		}
 
 		// interface Error {}

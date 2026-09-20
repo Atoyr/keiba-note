@@ -22,6 +22,13 @@
       "when": 1789914342203,
       "tag": "0002_drop_phase0_probe",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789915561073,
+      "tag": "0003_races_horses_notes",
+      "breakpoints": true
     }
   ]
 }

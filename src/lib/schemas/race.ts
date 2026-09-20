@@ -1,0 +1,97 @@
+import * as v from 'valibot';
+
+/**
+ * フォームは未入力を `''` で送ってくる。DB 側は NULL なので、ここで寄せる。
+ * 入力は常に string、出力は `string | null`。
+ */
+const optionalText = v.pipe(
+	v.string(),
+	v.trim(),
+	v.transform((s): string | null => (s === '' ? null : s))
+);
+
+/** 選択肢のどれでもなければ null。不正な値でフォーム全体を落とさない。 */
+const optionalPick = <const T extends readonly string[]>(options: T) =>
+	v.pipe(
+		v.string(),
+		v.trim(),
+		v.transform((s): T[number] | null =>
+			(options as readonly string[]).includes(s) ? (s as T[number]) : null
+		)
+	);
+
+const optionalInt = (min: number, max: number) =>
+	v.pipe(
+		v.string(),
+		v.trim(),
+		v.transform((s): number | null => (s === '' ? null : Number(s))),
+		v.check(
+			(n) => n === null || (Number.isInteger(n) && n >= min && n <= max),
+			`${min}〜${max} の整数で入力してください`
+		)
+	);
+
+const optionalNumber = (min: number, max: number) =>
+	v.pipe(
+		v.string(),
+		v.trim(),
+		v.transform((s): number | null => (s === '' ? null : Number(s))),
+		v.check(
+			(n) => n === null || (Number.isFinite(n) && n >= min && n <= max),
+			`${min}〜${max} で入力してください`
+		)
+	);
+
+export const GRADES = ['G1', 'G2', 'G3', 'L', 'OP'] as const;
+export const SURFACES = ['芝', 'ダート', '障害'] as const;
+export const DIRECTIONS = ['右', '左', '直線'] as const;
+export const TRACK_CONDITIONS = ['良', '稍重', '重', '不良'] as const;
+export const COURSES = [
+	'札幌',
+	'函館',
+	'福島',
+	'新潟',
+	'東京',
+	'中山',
+	'中京',
+	'京都',
+	'阪神',
+	'小倉'
+] as const;
+
+export const raceSchema = v.object({
+	date: v.pipe(
+		v.string(),
+		v.trim(),
+		v.regex(/^\d{4}-\d{2}-\d{2}$/, '日付は YYYY-MM-DD で入力してください')
+	),
+	course: v.pipe(v.string(), v.trim(), v.minLength(1, '競馬場は必須です')),
+	raceNumber: optionalInt(1, 12),
+	name: optionalText,
+	grade: optionalPick(GRADES),
+	className: optionalText,
+	surface: optionalPick(SURFACES),
+	distance: optionalInt(800, 5000),
+	direction: optionalPick(DIRECTIONS),
+	trackCondition: optionalPick(TRACK_CONDITIONS),
+	weather: optionalText
+});
+
+export type RaceInput = v.InferOutput<typeof raceSchema>;
+
+/** 出走馬1頭分。馬名だけが必須で、あとは全部あとから埋められる。 */
+export const entrySchema = v.object({
+	horseName: v.pipe(v.string(), v.trim()),
+	bracket: optionalInt(1, 8),
+	horseNumber: optionalInt(1, 18),
+	jockey: optionalText,
+	finishPosition: optionalInt(1, 18),
+	finishTime: optionalText,
+	margin: optionalText,
+	last3f: optionalNumber(20, 60),
+	popularity: optionalInt(1, 18)
+});
+
+export const entriesSchema = v.pipe(v.array(entrySchema), v.maxLength(18, '出走馬は18頭までです'));
+
+export type EntryInput = v.InferOutput<typeof entrySchema>;

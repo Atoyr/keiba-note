@@ -6,7 +6,8 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 - [docs/design.md](./docs/design.md) — 何を作るか（要件・データモデル・画面・フェーズ）
 - [docs/architecture.md](./docs/architecture.md) — どう動き、いくらかかり、なぜその技術か
 
-現在のフェーズ: **Phase 1（認証）完了**。馬・レースの CRUD は Phase 2、メモは Phase 3。
+現在のフェーズ: **メモの MVP まで到達**。レース登録 → 出走馬入力 → ふりかえり →
+馬タイムライン、が一通り動く。入力 UI の作り込み（馬名サジェスト等）は未着手。
 
 ## 技術スタック
 
@@ -51,6 +52,17 @@ https://keiba-note.<subdomain>.workers.dev/auth/google/callback
 | `GOOGLE_CLIENT_ID`     | OAuth クライアント ID            |
 | `GOOGLE_CLIENT_SECRET` | OAuth クライアントシークレット   |
 | `OWNER_EMAIL`          | 最初の1人（owner）になるアドレス |
+
+### 開発中は認証をモックできる
+
+メモの書き味を見るあいだは、Google OAuth を通さずに入れる。
+`.dev.vars` に `MOCK_AUTH="1"` を置くと、ログイン画面を飛ばして
+モックユーザー（owner / member の2人）として入る。画面上部に警告帯が出て、
+そこで2人を切り替えられる。公開範囲（shared / private）の確認に使う。
+
+**この経路は `dev` ガードの中にあり、本番ビルドには存在しない。**
+`$app/environment` の `dev` はサーバー側では静的に false になるため、
+分岐ごとバンドルから消える。本番で `MOCK_AUTH` を設定しても無視される。
 
 ### 最初のログイン
 
