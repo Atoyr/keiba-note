@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import LockIcon from '$lib/components/LockIcon.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -48,7 +49,11 @@
 							<span>{heading(n)}</span>
 						{/if}
 						{#if n.visibility === 'private'}
-							<span class="rounded bg-gray-200 px-1.5 text-xs text-gray-700">自分だけ</span>
+							<span
+								class="inline-flex items-center gap-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-700"
+							>
+								<LockIcon />非公開
+							</span>
 						{/if}
 					</div>
 					<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import LockIcon from '$lib/components/LockIcon.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -86,7 +87,7 @@
 					value="private"
 					checked={data.myRaceNote?.visibility === 'private'}
 				/>
-				自分だけ
+				<LockIcon />非公開
 			</label>
 
 			{#each data.othersRaceNotes as n (n.id)}
@@ -156,7 +157,7 @@
 										value="private"
 										checked={r.myNote?.visibility === 'private'}
 									/>
-									自分だけ
+									<LockIcon />非公開
 								</label>
 							</div>
 

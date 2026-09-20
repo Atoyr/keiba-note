@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import LockIcon from '$lib/components/LockIcon.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -147,7 +148,7 @@
 					</label>
 					<label class="flex items-center gap-1.5">
 						<input type="checkbox" name="visibility" value="private" />
-						自分だけ
+						<LockIcon />非公開
 					</label>
 					<button
 						type="submit"
@@ -175,7 +176,11 @@
 								<span class="text-gray-500">{heading(n)}</span>
 							{/if}
 							{#if n.visibility === 'private'}
-								<span class="rounded bg-gray-200 px-1.5 text-xs text-gray-700">自分だけ</span>
+								<span
+									class="inline-flex items-center gap-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-700"
+								>
+									<LockIcon />非公開
+								</span>
 							{/if}
 						</div>
 
