@@ -1,0 +1,22 @@
+# 改行コードを LF に固定する。
+#
+# prettier の既定が endOfLine: "lf" のため、作業ツリーが CRLF になると
+# `pnpm run lint` が全ファイルで「整形されていない」と判定されて失敗する。
+# core.autocrlf=true の環境ではチェックアウト時に CRLF へ変換されるため、
+# ここで明示的に打ち消しておく。
+* text=auto eol=lf
+
+# 画像・フォントなどのバイナリ。改行コード変換もテキスト差分も行わない。
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# SVG は実体としてはテキストだが、改行コードの変換対象からは外す。
+# （diff は通常どおり効かせたいので binary ではなく -text）
+*.svg -text
