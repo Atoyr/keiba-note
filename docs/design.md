@@ -274,7 +274,7 @@ declare global {
 
 | 変数 | 本番 | ローカル |
 | --- | --- | --- |
-| `GOOGLE_CLIENT_ID` | `wrangler secret put` | `.dev.vars`（`.gitignore` 済み） |
+| `GOOGLE_CLIENT_ID` | `pnpm exec wrangler secret put` | `.dev.vars`（`.gitignore` 済み） |
 | `GOOGLE_CLIENT_SECRET` | 同上 | 同上 |
 | `ADMIN_EMAIL` | 同上 | 同上 |
 
@@ -811,7 +811,9 @@ database_id = "..."
 ```
 
 ローカル開発は `vite dev`（`platformProxy` でローカル D1 に接続）。
-マイグレーションは `wrangler d1 migrations apply k-note --local` / `--remote`。
+マイグレーションは `pnpm run db:migrate:local` / `db:migrate:remote`
+（中身は `wrangler d1 migrations apply`。`wrangler` は devDependency なので、
+直接叩くなら `pnpm exec` を前に付ける）。
 
 ---
 

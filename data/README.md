@@ -170,7 +170,7 @@ SQL には含まれない。
 
 ```bash
 pnpm run data:sql:local -- --all
-wrangler d1 execute k-note --local --file .wrangler/import-races.sql
+pnpm exec wrangler d1 execute k-note --local --file .wrangler/import-races.sql
 ```
 
 ## 投入の性質

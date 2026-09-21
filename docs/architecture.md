@@ -415,7 +415,7 @@ Cloudflare 側の準備ができるまではスキップされる（→ [README]
 ### D1 の配置
 
 ```bash
-wrangler d1 create k-note --location apac
+pnpm exec wrangler d1 create k-note --location apac
 ```
 
 **`--location apac` を必ず付ける。** D1 は「プライマリが1箇所にある SQLite」であり、
@@ -621,10 +621,10 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 
 | 項目 | どうするか |
 | --- | --- |
-| **バックアップ** | D1 の Time Travel で過去7日間（Free）の任意の時点に復元できる。**別途バックアップの仕組みは作らない。** 節目で `wrangler d1 export` を手動実行して手元に置けば十分 |
+| **バックアップ** | D1 の Time Travel で過去7日間（Free）の任意の時点に復元できる。**別途バックアップの仕組みは作らない。** 節目で `pnpm exec wrangler d1 export` を手動実行して手元に置けば十分 |
 | **ログ** | Workers Logs が Free で 200,000 イベント/日・3日保持。設定不要で使える |
 | **メトリクス** | Cloudflare ダッシュボードの Worker / D1 メトリクス。rows read/written はここで実測を確認できる |
-| **シークレット** | `wrangler secret put`（本番）/ `.dev.vars`（ローカル、`.gitignore` 済み） |
+| **シークレット** | `pnpm exec wrangler secret put`（本番）/ `.dev.vars`（ローカル、`.gitignore` 済み） |
 | **マイグレーション** | `wrangler d1 migrations apply` を GitHub Actions のデプロイ前に実行 |
 | **暴走課金の防止** | Free plan にいる限り、上限を超えるとエラーになるだけで課金はされない。Paid に上げた場合は Worker の CPU Limits を設定する |
 
