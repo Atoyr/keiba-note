@@ -528,6 +528,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /races/[id]/preview           ★出馬表 + 馬柱 + 予想印（出走前メモ）
 /horses                       馬一覧・インクリメンタル検索
 /horses/[id]                  ★馬詳細＝プロフィール + タイムライン
+/settings/profile             プロフィール（自分の表示名を見るだけ）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
 
 ── admin のみ ────────────────────────────────────────────
@@ -540,6 +541,9 @@ WHERE id = ?1 AND visibility = 'unlisted';
 ```
 
 `/invite/[code]` と `/settings/members` は招待の廃止に伴って削除する（→ 第4章）。
+
+ヘッダの右端はアバター1つ（アカウントメニュー）にまとめる。プロフィール・共有中・
+管理・ログアウトはその中に畳む。出しっぱなしにするのは毎回踏む導線（今週・レース・馬）だけ。
 
 ### ★ `/races/[id]` — ふりかえり画面
 
