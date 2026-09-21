@@ -34,6 +34,10 @@
 							<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>
 							{#if r.grade}
 								<span class="rounded bg-gray-900 px-1.5 py-0.5 text-xs text-white">{r.grade}</span>
+							{:else if r.className}
+								<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
+									{r.className}
+								</span>
 							{/if}
 						</div>
 						<div class="mt-0.5 text-xs text-gray-500">
