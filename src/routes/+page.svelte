@@ -4,9 +4,12 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import NoteTag from '$lib/components/NoteTag.svelte';
 	import { noteHeading } from '$lib/utils/note';
+	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const admin = $derived(isAdmin(data.user));
 </script>
 
 <svelte:head><title>k-note</title></svelte:head>
@@ -17,10 +20,17 @@
 	{#if data.notes.length === 0}
 		<div class="mt-6 rounded-md border border-gray-200 p-4">
 			<p class="text-sm text-gray-600">まだメモがありません。</p>
-			<p class="mt-2 text-sm text-gray-500">
-				<a href={resolve('/races/new')} class="underline">レースを登録</a>
-				→ 出走馬を入力 → ふりかえり、の順で書けます。
-			</p>
+			{#if admin}
+				<p class="mt-2 text-sm text-gray-500">
+					<a href={resolve('/races/new')} class="underline">レースを登録</a>
+					→ 出走馬を入力 → ふりかえり、の順で書けます。
+				</p>
+			{:else}
+				<p class="mt-2 text-sm text-gray-500">
+					<a href={resolve('/races')} class="underline">レース</a>
+					から書きたいレースを開くと、その場でメモを書けます。
+				</p>
+			{/if}
 		</div>
 	{:else}
 		<ol class="mt-6 space-y-5">
@@ -55,7 +65,9 @@
 		<div class="flex items-center gap-3">
 			<h2 class="text-sm font-semibold text-gray-500">直近のレース</h2>
 			<span class="flex-1"></span>
-			<a href={resolve('/races/new')} class="text-sm text-gray-600 hover:underline">＋ 登録</a>
+			{#if admin}
+				<a href={resolve('/races/new')} class="text-sm text-gray-600 hover:underline">＋ 登録</a>
+			{/if}
 		</div>
 
 		{#if data.races.length === 0}

@@ -4,6 +4,7 @@
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { isAdmin } from '$lib/utils/role';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -50,7 +51,7 @@
 			<a href={resolve('/horses')} class="text-sm text-gray-600 hover:underline">馬</a>
 			<span class="flex-1"></span>
 			<a href={resolve('/settings/shares')} class="text-sm text-gray-600 hover:underline">共有中</a>
-			{#if data.user.role === 'admin'}
+			{#if isAdmin(data.user)}
 				<a href={resolve('/settings/admin')} class="text-sm text-gray-600 hover:underline">
 					管理
 				</a>

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const admin = $derived(isAdmin(data.user));
 </script>
 
 <svelte:head><title>レース — k-note</title></svelte:head>
@@ -11,17 +14,23 @@
 	<div class="flex flex-wrap items-center gap-3">
 		<h1 class="text-2xl font-bold tracking-tight">レース</h1>
 		<span class="flex-1"></span>
-		<a
-			href={resolve('/races/new')}
-			class="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
-		>
-			レースを登録
-		</a>
+		{#if admin}
+			<a
+				href={resolve('/races/new')}
+				class="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+			>
+				レースを登録
+			</a>
+		{/if}
 	</div>
 
 	{#if data.races.length === 0}
 		<p class="mt-8 text-sm text-gray-500">
-			まだレースがありません。まずは1つ登録してみてください。
+			{#if admin}
+				まだレースがありません。まずは1つ登録してみてください。
+			{:else}
+				まだレースがありません。
+			{/if}
 		</p>
 	{:else}
 		<ul class="mt-6 divide-y divide-gray-200 border-y border-gray-200">

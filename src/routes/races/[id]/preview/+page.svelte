@@ -13,10 +13,13 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { noteHeading } from '$lib/utils/note';
+	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	const admin = $derived(isAdmin(data.user));
 
 	// 下書きの置き場。レースとユーザーで分ける。
 	let formEl = $state<HTMLFormElement | null>(null);
@@ -57,13 +60,15 @@
 			{data.race.date} · {spec.join(' / ')}
 		</p>
 		<div class="mt-2 flex flex-wrap gap-2">
-			<Button
-				href={resolve('/races/[id]/entries', { id: data.race.id })}
-				variant="outline"
-				size="sm"
-			>
-				出走馬を編集
-			</Button>
+			{#if admin}
+				<Button
+					href={resolve('/races/[id]/entries', { id: data.race.id })}
+					variant="outline"
+					size="sm"
+				>
+					出走馬を編集
+				</Button>
+			{/if}
 			<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
 				ふりかえりを書く
 			</Button>
@@ -92,14 +97,16 @@
 	{#if data.rows.length === 0}
 		<div class="mt-6 rounded-xl border p-5">
 			<p class="text-sm text-muted-foreground">出走馬がまだ登録されていません。</p>
-			<Button
-				href={resolve('/races/[id]/entries', { id: data.race.id })}
-				variant="outline"
-				size="sm"
-				class="mt-3"
-			>
-				出走馬を入力する
-			</Button>
+			{#if admin}
+				<Button
+					href={resolve('/races/[id]/entries', { id: data.race.id })}
+					variant="outline"
+					size="sm"
+					class="mt-3"
+				>
+					出走馬を入力する
+				</Button>
+			{/if}
 		</div>
 	{:else}
 		<form

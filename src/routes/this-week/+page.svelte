@@ -4,11 +4,14 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { formatDateShort } from '$lib/utils/date';
+	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const admin = $derived(isAdmin(data.user));
 
 	/** 日付ごとにまとめる。土日で2つの塊になるのが普通。 */
 	const byDate = $derived(
@@ -60,11 +63,19 @@
 		<Card.Root class="mt-6">
 			<Card.Header>
 				<Card.Title class="text-base">この週に JRA の芝重賞はありません</Card.Title>
-				<Card.Description>レースを登録すると、条件に合うものがここに並びます。</Card.Description>
+				<Card.Description>
+					{#if admin}
+						レースを登録すると、条件に合うものがここに並びます。
+					{:else}
+						レースが登録されると、条件に合うものがここに並びます。
+					{/if}
+				</Card.Description>
 			</Card.Header>
-			<Card.Footer>
-				<Button href={resolve('/races/new')} variant="outline" size="sm">レースを登録</Button>
-			</Card.Footer>
+			{#if admin}
+				<Card.Footer>
+					<Button href={resolve('/races/new')} variant="outline" size="sm">レースを登録</Button>
+				</Card.Footer>
+			{/if}
 		</Card.Root>
 	{:else}
 		{#each byDate as [date, races] (date)}

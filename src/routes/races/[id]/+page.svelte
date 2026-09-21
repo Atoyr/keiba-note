@@ -3,9 +3,12 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	const admin = $derived(isAdmin(data.user));
 
 	// 下書きの置き場。レースとユーザーで分ける（同じ端末を2人で使う場合に混ざらないように）。
 	let formEl = $state<HTMLFormElement | null>(null);
@@ -52,12 +55,14 @@
 		>
 			予想（過去メモを見る）
 		</a>
-		<a
-			href={resolve('/races/[id]/entries', { id: data.race.id })}
-			class="text-gray-600 hover:underline"
-		>
-			出走馬を編集
-		</a>
+		{#if admin}
+			<a
+				href={resolve('/races/[id]/entries', { id: data.race.id })}
+				class="text-gray-600 hover:underline"
+			>
+				出走馬を編集
+			</a>
+		{/if}
 	</div>
 
 	{#if form && 'message' in form && form.message}
@@ -82,9 +87,11 @@
 	{#if data.rows.length === 0}
 		<p class="mt-8 rounded-md border border-gray-200 p-4 text-sm text-gray-500">
 			出走馬がまだ登録されていません。
-			<a href={resolve('/races/[id]/entries', { id: data.race.id })} class="underline">
-				出走馬を入力する
-			</a>
+			{#if admin}
+				<a href={resolve('/races/[id]/entries', { id: data.race.id })} class="underline">
+					出走馬を入力する
+				</a>
+			{/if}
 		</p>
 	{/if}
 
