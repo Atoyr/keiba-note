@@ -4,7 +4,7 @@
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { isAdmin } from '$lib/utils/role';
+	import AccountMenu from '$lib/components/AccountMenu.svelte';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -50,18 +50,8 @@
 			<a href={resolve('/races')} class="text-sm text-gray-600 hover:underline">レース</a>
 			<a href={resolve('/horses')} class="text-sm text-gray-600 hover:underline">馬</a>
 			<span class="flex-1"></span>
-			<a href={resolve('/settings/shares')} class="text-sm text-gray-600 hover:underline">共有中</a>
-			{#if isAdmin(data.user)}
-				<a href={resolve('/settings/admin')} class="text-sm text-gray-600 hover:underline">
-					管理
-				</a>
-			{/if}
-			<span class="text-sm text-gray-600">{data.user.displayName}</span>
-			{#if !data.mockAuth}
-				<form method="POST" action="/auth/logout">
-					<button type="submit" class="text-sm text-gray-600 hover:underline">ログアウト</button>
-				</form>
-			{/if}
+			<!-- 右側は1つだけ。共有中・管理・ユーザー名・ログアウトはこの中。 -->
+			<AccountMenu user={data.user} canLogout={!data.mockAuth} />
 		</nav>
 	</header>
 {/if}
