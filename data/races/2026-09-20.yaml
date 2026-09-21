@@ -19,6 +19,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021102800
+        trainer: 萱野浩二
+        sire: ゴールドシップ
+        dam: マイネランデブー
         finish: 2
         popularity: 6
         time: "2:16.9"
@@ -36,6 +39,9 @@ races:
         sex: 牡
         age: 8
         ref: nk-2018101660
+        trainer: 藤岡健一
+        sire: ルーラーシップ
+        dam: アンフィルージュ
         finish: 5
         popularity: 10
         time: "2:17.7"
@@ -53,6 +59,9 @@ races:
         sex: 牡
         age: 6
         ref: nk-2020105633
+        trainer: 矢作芳人
+        sire: キズナ
+        dam: ディルガ
         finish: 10
         popularity: 8
         time: "2:20.0"
@@ -70,6 +79,9 @@ races:
         sex: 牝
         age: 4
         ref: nk-2022104617
+        trainer: 武幸四郎
+        sire: サトノクラウン
+        dam: アルギュロス
         finish: 3
         popularity: 3
         time: "2:17.2"
@@ -87,6 +99,9 @@ races:
         sex: 牡
         age: 6
         ref: nk-2020101025
+        trainer: 梅田智之
+        sire: ハービンジャー
+        dam: ジャジャウマガール
         finish: 12
         popularity: 11
         time: "2:23.1"
@@ -104,6 +119,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021105155
+        trainer: 金成貴史
+        sire: ゴールドシップ
+        dam: ノッテビアンカ
         finish: 6
         popularity: 7
         time: "2:17.7"
@@ -121,6 +139,9 @@ races:
         sex: 牝
         age: 5
         ref: nk-2021105898
+        trainer: 木村哲也
+        sire: スワーヴリチャード
+        dam: ロカ
         finish: 4
         popularity: 1
         time: "2:17.4"
@@ -138,6 +159,9 @@ races:
         sex: 牡
         age: 7
         ref: nk-2019104092
+        trainer: 笹田和秀
+        sire: キズナ
+        dam: メイショウスズラン
         finish: 1
         popularity: 9
         time: "2:16.9"
@@ -154,6 +178,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021106787
+        trainer: 加藤士津八
+        sire: アルアイン
+        dam: サザンスピード
         finish: 11
         popularity: 2
         time: "2:21.9"
@@ -171,6 +198,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021106782
+        trainer: 小野次郎
+        sire: ゴールドシップ
+        dam: コスモバタフライ
         finish: 8
         popularity: 13
         time: "2:19.4"
@@ -188,6 +218,9 @@ races:
         sex: 牡
         age: 7
         ref: nk-2019102628
+        trainer: 千葉直人
+        sire: ミッキーアイル
+        dam: ゴールドグレース
         finish: 13
         popularity: 12
         time: "2:23.3"
@@ -205,6 +238,9 @@ races:
         sex: 牝
         age: 5
         ref: nk-2021105138
+        trainer: 武藤善則
+        sire: キタサンブラック
+        dam: デルマオギン
         finish: 9
         popularity: 5
         time: "2:19.9"
@@ -222,6 +258,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021100913
+        trainer: 武英智
+        sire: キズナ
+        dam: アドマイヤサブリナ
         finish: 7
         popularity: 4
         time: "2:18.1"

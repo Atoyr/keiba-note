@@ -19,6 +19,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023107089
+        trainer: 杉山晴紀
+        sire: ワールドプレミア
+        dam: ソングライティング
         finish: 1
         popularity: 1
         time: "2:25.9"
@@ -35,6 +38,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023105521
+        trainer: 中尾秀正
+        sire: サトノダイヤモンド
+        dam: トピカ２
         finish: 7
         popularity: 6
         time: "2:26.3"
@@ -52,6 +58,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023107056
+        trainer: 黒岩陽一
+        sire: キタサンブラック
+        dam: ジェットセッティング
         finish: 4
         popularity: 5
         time: "2:26.0"
@@ -69,6 +78,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023103480
+        trainer: 野中賢二
+        sire: イスラボニータ
+        dam: デジマノハナ
         finish: 2
         popularity: 3
         time: "2:25.9"
@@ -86,6 +98,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023104386
+        trainer: 浜田多実雄
+        sire: リオンディーズ
+        dam: クライミングローズ
         finish: 9
         popularity: 10
         time: "2:26.6"
@@ -103,6 +118,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023107127
+        trainer: 友道康夫
+        sire: キタサンブラック
+        dam: デルフィニア２
         finish: 5
         popularity: 8
         time: "2:26.0"
@@ -120,6 +138,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023106963
+        trainer: 高野友和
+        sire: コントレイル
+        dam: キラモサ
         finish: 6
         popularity: 4
         time: "2:26.2"
@@ -137,6 +158,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023101200
+        trainer: 吉岡辰弥
+        sire: モーリス
+        dam: フラワーバレイ
         finish: 3
         popularity: 11
         time: "2:26.0"
@@ -154,6 +178,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023105456
+        trainer: 上原佑紀
+        sire: スワーヴリチャード
+        dam: シンバル２
         finish: 8
         popularity: 2
         time: "2:26.3"
@@ -171,6 +198,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023103899
+        trainer: 矢作芳人
+        sire: ポエティックフレア
+        dam: パンデリング
         finish: 11
         popularity: 9
         time: "2:27.0"
@@ -188,6 +218,9 @@ races:
         sex: 牡
         age: 3
         ref: nk-2023103828
+        trainer: 渡辺薫彦
+        sire: レイデオロ
+        dam: ショウナンバーチ
         finish: 10
         popularity: 7
         time: "2:26.8"
