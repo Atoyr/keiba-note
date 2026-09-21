@@ -7,7 +7,7 @@
 	const prev = (k: string) => (form?.raw?.[k] as string | undefined) ?? '';
 </script>
 
-<svelte:head><title>レース登録 — keiba-note</title></svelte:head>
+<svelte:head><title>レース登録 — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-2xl px-6 py-8">
 	<h1 class="text-2xl font-bold tracking-tight">レースを登録</h1>

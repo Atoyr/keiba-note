@@ -1,4 +1,4 @@
-# keiba-note
+# k-note
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
@@ -50,7 +50,7 @@ OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）�
 
 ```
 http://localhost:5173/auth/google/callback
-https://keiba-note.<subdomain>.workers.dev/auth/google/callback
+https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
 得られた値を `.dev.vars`（ローカル）と `wrangler secret put`（本番）に入れる。
@@ -128,7 +128,7 @@ D1 は `--location apac` で作る。指定を忘れるとプライマリが米�
 
 ```bash
 wrangler login
-wrangler d1 create keiba-note --location apac
+wrangler d1 create k-note --location apac
 # 出力された database_id を wrangler.toml の [[d1_databases]] に書く
 ```
 

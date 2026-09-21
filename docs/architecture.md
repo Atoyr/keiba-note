@@ -1,4 +1,4 @@
-# keiba-note アーキテクチャ・コスト・技術選定
+# k-note アーキテクチャ・コスト・技術選定
 
 [design.md](./design.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
@@ -391,14 +391,14 @@ flowchart TB
         M --> DP["wrangler deploy"]
     end
 
-    DP --> W["keiba-note.xxxxx.workers.dev"]
+    DP --> W["k-note.xxxxx.workers.dev"]
     W --> D[("D1 / apac")]
 ```
 
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |
 | local | `vite dev`（Miniflare 経由） | ローカル SQLite（`.wrangler/state`） | 開発 |
-| production | `keiba-note` | `keiba-note` | 本番 |
+| production | `k-note` | `k-note` | 本番 |
 
 プレビュー環境は当面作らない。この規模のアプリに2系統は要らない。
 必要になったら `wrangler versions upload` によるプレビュー URL を使う。
@@ -406,7 +406,7 @@ flowchart TB
 ### D1 の配置
 
 ```bash
-wrangler d1 create keiba-note --location apac
+wrangler d1 create k-note --location apac
 ```
 
 **`--location apac` を必ず付ける。** D1 は「プライマリが1箇所にある SQLite」であり、

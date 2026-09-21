@@ -37,7 +37,7 @@ import {
 
 const DATA_DIR = 'data/races';
 const WRANGLER = join('node_modules', 'wrangler', 'bin', 'wrangler.js');
-const DB_NAME = 'keiba-note';
+const DB_NAME = 'k-note';
 
 const optional = <T extends readonly string[]>(options: T) =>
 	v.optional(v.picklist(options as unknown as string[]));

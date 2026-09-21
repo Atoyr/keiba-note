@@ -1,4 +1,4 @@
-# keiba-note 設計ドキュメント
+# k-note 設計ドキュメント
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers 上で動かす。
@@ -281,7 +281,7 @@ declare global {
 Google Cloud Console の OAuth クライアントには、リダイレクト URI を2つ登録する。
 
 - `http://localhost:5173/auth/google/callback`
-- `https://keiba-note.<subdomain>.workers.dev/auth/google/callback`
+- `https://k-note.<subdomain>.workers.dev/auth/google/callback`
 
 ### セキュリティ上の押さえどころ
 
@@ -752,7 +752,7 @@ ID は ULID（48ビットのタイムスタンプ + **80ビットの乱数**）�
 ## 7. ディレクトリ構成
 
 ```
-keiba-note/
+k-note/
 ├── docs/
 │   └── design.md
 ├── src/
@@ -798,7 +798,7 @@ keiba-note/
 `wrangler.toml` の要点:
 
 ```toml
-name = "keiba-note"
+name = "k-note"
 main = ".svelte-kit/cloudflare/_worker.js"
 compatibility_date = "2026-09-01"
 
@@ -806,12 +806,12 @@ assets = { directory = ".svelte-kit/cloudflare" }
 
 [[d1_databases]]
 binding = "DB"
-database_name = "keiba-note"
+database_name = "k-note"
 database_id = "..."
 ```
 
 ローカル開発は `vite dev`（`platformProxy` でローカル D1 に接続）。
-マイグレーションは `wrangler d1 migrations apply keiba-note --local` / `--remote`。
+マイグレーションは `wrangler d1 migrations apply k-note --local` / `--remote`。
 
 ---
 

@@ -5,7 +5,7 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>共有中のメモ — keiba-note</title></svelte:head>
+<svelte:head><title>共有中のメモ — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<h1 class="text-xl font-bold tracking-tight">共有中のメモ</h1>

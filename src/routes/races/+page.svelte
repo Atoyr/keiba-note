@@ -5,7 +5,7 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>レース — keiba-note</title></svelte:head>
+<svelte:head><title>レース — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<div class="flex flex-wrap items-center gap-3">
