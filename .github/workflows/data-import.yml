@@ -1,0 +1,49 @@
+name: レースデータ投入
+
+# data/races/ が main で変わったときだけ。
+# アプリのデプロイはしない（リリース publish 起点の deploy.yml の担当）。
+#
+# データはアプリと周期が違う。出馬表は開催前に入っている必要があり、
+# 1レースにつき 予定 → 枠確定 → 結果 の3回更新される。
+# これをリリースの単位に縛ると、毎週リリースを切ることになる。
+on:
+  push:
+    branches: [main]
+    paths: ['data/races/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  import:
+    name: 投入
+    runs-on: ubuntu-latest
+    # deploy.yml と同じ群。マイグレーションの最中に投入が当たらないようにする。
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # PR でも通っているが、main への直 push もありうるので二重に見る。
+      - name: 出走馬データの検証
+        run: pnpm run data:check
+
+      # 差分適用なので、内容が変わったファイルだけが流れる。
+      #
+      # db:migrate:remote は**意図的に入れていない。**
+      # スキーマは直前のリリースが持ち込んだものを使う。
+      # YAML に新しい項目を足すような変更は、スクリプトとスキーマの変更を伴うので、
+      # 先にアプリのリリースが要る（逆は自由。データ更新はアプリに影響しない）。
+      - name: レースデータの投入
+        run: pnpm run data:import:remote

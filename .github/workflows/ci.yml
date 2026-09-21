@@ -4,13 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  # デプロイ前の再検証として deploy.yml から呼ばれる。
+  workflow_call:
 
 # 同じブランチで新しい push があったら、走っている古い実行は打ち切る。
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# 既定は読み取りだけ。デプロイジョブも書き込みは Cloudflare 側にしか行わない。
+# checkout するだけなので読み取りで足りる。
 permissions:
   contents: read
 
@@ -62,48 +64,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-
-  deploy:
-    name: デプロイ
-    needs: [check, e2e]
-    # main への push だけ。fork からの PR では secrets が渡らないので、
-    # そもそもここには来ない（pull_request_target は使わない）。
-    #
-    # DEPLOY_ENABLED は「まだ Cloudflare を用意していないうちは回さない」ための栓。
-    # リポジトリ変数に true を入れるまでスキップされる。
-    if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      vars.DEPLOY_ENABLED == 'true'
-    runs-on: ubuntu-latest
-    # デプロイだけは同時に走らせない。打ち切りもしない（途中で止めるほうが危ない）。
-    concurrency:
-      group: deploy
-      cancel-in-progress: false
-    env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-
-      # **順番が大事。** マイグレーション → デプロイ → データ投入。
-      #
-      # 逆（デプロイが先）だと、新しいコードが古いスキーマに当たって壊れる。
-      # この順でも「古いコードが新しいスキーマに当たる」窓は数十秒開くので、
-      # 列を消すような破壊的なマイグレーションを流すときは承知の上で行うこと。
-      - name: 本番 D1 にマイグレーション
-        run: pnpm run db:migrate:remote
-
-      - name: デプロイ
-        run: pnpm run deploy
-
-      # 差分適用なので、data/ が変わっていなければ SELECT 1 を流すだけで終わる。
-      # paths フィルタで絞るより、毎回走らせて「入れ忘れ」を無くすほうを採る。
-      - name: レースデータの投入
-        run: pnpm run data:import:remote
