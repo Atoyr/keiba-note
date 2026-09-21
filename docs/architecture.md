@@ -384,16 +384,25 @@ load に到達する。**前提が他の全ルートと違う唯一の場所**�
 flowchart TB
     P["git push → main"] --> CI
 
-    subgraph CI["GitHub Actions"]
+    subgraph CI["GitHub Actions — .github/workflows/ci.yml"]
         direction TB
-        I["pnpm install"] --> T["svelte-check / vitest"]
+        I["pnpm install"] --> T["data:check / check / lint / test:unit / e2e"]
         T --> M["wrangler d1 migrations apply --remote"]
         M --> DP["wrangler deploy"]
+        DP --> IM["data:import:remote"]
     end
 
     DP --> W["k-note.xxxxx.workers.dev"]
     W --> D[("D1 / apac")]
 ```
+
+**マイグレーション → デプロイ → データ投入の順に固定している。**
+逆にすると新しいコードが古いスキーマに当たる。この順でも
+「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
+列を消すような破壊的なマイグレーションはそれを承知で流す（利用者が数人なので許容する）。
+
+デプロイは `DEPLOY_ENABLED` というリポジトリ変数が栓になっていて、
+Cloudflare 側の準備ができるまではスキップされる（→ [README](../README.md)）。
 
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |

@@ -219,6 +219,63 @@ pnpm exec wrangler deploy --dry-run    # 上げずにビルドだけ試す
 pnpm exec wrangler tail                # 本番のログを流す
 ```
 
+## デプロイ（GitHub Actions）
+
+`main` にマージされると `.github/workflows/ci.yml` が走る。
+
+```
+PR            → 検証（data:check / check / lint / test:unit）＋ E2E
+main への push → 検証 ＋ E2E ＋ マイグレーション → デプロイ → レースデータ投入
+```
+
+**順番が大事。** マイグレーション → デプロイ → データ投入の順にしてある。
+逆にすると新しいコードが古いスキーマに当たって壊れる。
+この順でも「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
+列を消すような破壊的なマイグレーションはそれを承知で流すこと。
+
+### 動かすのに必要な設定
+
+**1. Cloudflare の API トークンを作る**
+
+Cloudflare ダッシュボード > My Profile > API Tokens > Create Token。
+`Edit Cloudflare Workers` テンプレートを元に、権限を2つにする。
+
+| 種別    | 権限                   |
+| ------- | ---------------------- |
+| Account | Workers Scripts : Edit |
+| Account | D1 : Edit              |
+
+**2. リポジトリに登録する**
+
+Settings > Secrets and variables > Actions。
+
+| 種別     | 名前                    | 値                                     |
+| -------- | ----------------------- | -------------------------------------- |
+| Secret   | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                     |
+| Secret   | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID |
+| Variable | `DEPLOY_ENABLED`        | `true`                                 |
+
+`DEPLOY_ENABLED` はデプロイの栓。**これを入れるまで deploy ジョブはスキップされる**ので、
+Cloudflare 側の準備ができる前にワークフローだけ入れても空振りするだけで済む。
+
+**3. `wrangler.toml` の `database_id` を実値にする**
+
+`__REPLACE_WITH_D1_DATABASE_ID__` のままだと CI からもデプロイできない。
+`wrangler d1 create keiba-note --location apac` の出力を書く。
+これは機密ではないのでコミットしてよい。
+
+**4. アプリのシークレットは Cloudflare 側に1回だけ**
+
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` は
+`wrangler secret put` で Cloudflare に入れる。**GitHub 側には要らない。**
+毎回のデプロイで入れ直す必要もない。
+
+### このリポジトリは public なので
+
+- `pull_request_target` は**使わない**。fork からの PR にシークレットが渡ってしまう
+- `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
+- deploy は `main` への push 限定なので、PR からは絶対に走らない
+
 ### ランタイム上の約束
 
 - **`nodejs_compat` は付けない。** 起動コストとバンドルが増える。
