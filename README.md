@@ -237,13 +237,33 @@ main への push → 検証 ＋ E2E ＋ マイグレーション → デプロ�
 
 **1. Cloudflare の API トークンを作る**
 
-Cloudflare ダッシュボード > My Profile > API Tokens > Create Token。
-`Edit Cloudflare Workers` テンプレートを元に、権限を2つにする。
+Cloudflare ダッシュボード > Manage Account > Account API Tokens > Create Token。
+My Profile 配下のユーザートークンではなく、**アカウント所有トークン**を作る
+（作った人がアカウントを抜けても失効しない）。
 
-| 種別    | 権限                   |
-| ------- | ---------------------- |
-| Account | Workers Scripts : Edit |
-| Account | D1 : Edit              |
+| 対象    | 設定                                           |
+| ------- | ---------------------------------------------- |
+| Workers | Editor / スコープは Specified Workers → k-note |
+| Account | D1 : Edit                                      |
+
+- Account Resources はこのアカウントだけに絞る
+- Client IP Address Filtering は**設定しない**。GitHub の runner は IP が動的なので、絞ると壊れる
+
+`Workers: Editor` だけで `wrangler deploy`（Worker 本体・`[assets]`・シークレット）が通る。
+バインディングを持つ Worker をデプロイするだけなら、バインディング先の権限は要らない。
+`D1 : Edit` を別に付けるのは、`d1 migrations apply` と `d1 execute` で
+**D1 を直接叩いている**から。
+
+**新しい Worker を作るには Workers product スコープの Admin が要る。**
+Specified Workers は既にある Worker にしか付けられないので、
+まだ一度もデプロイしていないなら、先に手元から `pnpm run deploy` して Worker を作っておくこと。
+
+独自ドメインを当てるときは、対象ゾーンに Zone > `Workers Routes : Write` を足す。
+ルートを張った後の通常のデプロイには要らない（ルート自体を変えるときだけ必要）。
+
+旧来の `Edit Cloudflare Workers` テンプレート（`Workers Scripts : Edit`）でも動くが、
+2026-09-15 に Workers の権限が role ベースに変わり legacy 扱いになった（廃止日は未定）。
+新しく作るなら上の構成にする。
 
 **2. リポジトリに登録する**
 
