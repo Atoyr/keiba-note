@@ -11,3 +11,18 @@ export function ctx(locals: App.Locals, platform: App.Platform | undefined) {
 	if (!locals.user) error(401, 'ログインが必要です');
 	return { db: createDb(platform.env) as Db, user: locals.user };
 }
+
+/**
+ * マスタ（馬・レース・出走馬）を書き換えられるのは admin だけ。
+ *
+ * 登録を誰にでも開いた以上、**全ユーザー共通のマスタを全員に開けない**。
+ * `race_ident` の UNIQUE を他人に踏み荒らされると自分の記録も壊れる。
+ * 一般ユーザーができるのは自分のメモの読み書きだけ（design.md 第4章 / 第9章 #10）。
+ *
+ * 「操作の可否」はルート層で弾く。データの絞り込みはサービス層（architecture.md 3-6）。
+ */
+export function ctxAdmin(locals: App.Locals, platform: App.Platform | undefined) {
+	const c = ctx(locals, platform);
+	if (c.user.role !== 'admin') error(403, 'この操作は管理者だけが行えます');
+	return c;
+}

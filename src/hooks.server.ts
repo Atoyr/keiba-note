@@ -7,9 +7,14 @@ import { safeRedirect } from '$lib/utils/redirect';
 
 /**
  * ログイン不要で触れるパス。これ以外は全部弾く。
- * 招待リンク（/invite/[code]）は未ログインで踏まれる前提なので当然ここに入る。
+ *
+ * `/notes/` は共有ページ。未ログインで開ける唯一のルートだが、そこで出せるのは
+ * `visibility = 'unlisted'` の1行だけ（design.md 第6章）。
+ *
+ * `/robots.txt` はここに要らない。`static/` の実ファイルは Workers Static Assets が
+ * 直接返し、**Worker 自体が起動しない**ので hooks を通らない。
  */
-const PUBLIC_PATHS = ['/login', '/auth/', '/invite/'];
+const PUBLIC_PATHS = ['/login', '/auth/', '/notes/'];
 
 function isPublic(pathname: string): boolean {
 	return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
@@ -30,7 +35,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// したがってデプロイした Worker でモックが有効になることはない。
 	if (dev && event.platform?.env?.MOCK_AUTH && db) {
 		const key = event.cookies.get(MOCK_USER_COOKIE);
-		event.locals.user = await ensureMockUser(db, isMockUserKey(key) ? key : 'owner');
+		event.locals.user = await ensureMockUser(db, isMockUserKey(key) ? key : 'admin');
 		event.locals.mockAuth = true;
 		return resolve(event);
 	}

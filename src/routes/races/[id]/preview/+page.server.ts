@@ -2,7 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { previewNotesSchema } from '$lib/schemas/note';
 import { listHistoryForHorses, listRaceNotes, savePreviewNotes } from '$lib/server/services/notes';
-import { getRace, listEntriesForPreview } from '$lib/server/services/races';
+import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -12,8 +12,9 @@ import type { Actions, PageServerLoad } from './$types';
  * ふりかえり（/races/[id]）とは別画面。あちらは書く場、こちらは読む場。
  * ただし出走前に気づいたことはその場で書けるようにしてある（kind='preview'）。
  *
- * 読みは4クエリ（race / entries+horse / このレースのメモ / 出走馬の過去メモ）。
- * 16頭いても N+1 にしない。過去メモは horse_id の IN で一度に引く。
+ * 読みは5クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱）。
+ * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
+ * （D1 は1リクエスト50クエリが上限。architecture.md 7-1）。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
@@ -23,37 +24,27 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	const entries = await listEntriesForPreview(db, params.id);
 
-	const [thisRaceNotes, history] = await Promise.all([
+	const horseIds = entries.map((e) => e.horseId);
+
+	const [thisRaceNotes, history, pastRuns] = await Promise.all([
 		listRaceNotes(db, params.id, user.id),
-		listHistoryForHorses(
-			db,
-			entries.map((e) => e.horseId),
-			params.id,
-			user.id
-		)
+		listHistoryForHorses(db, horseIds, params.id, user.id),
+		// 馬柱。このレースより前の出走歴だけを見る。
+		listPastRuns(db, horseIds, race.date)
 	]);
 
-	// このレースに対する出走前メモ。自分のはフォームへ、他人のは読み取り専用で出す。
+	// 読めるのは自分のメモだけなので、著者での選り分けは要らない。
 	const myPreview = new Map(
-		thisRaceNotes
-			.filter((n) => n.kind === 'preview' && n.authorId === user.id)
-			.map((n) => [n.raceEntryId, n])
+		thisRaceNotes.filter((n) => n.kind === 'preview').map((n) => [n.raceEntryId, n])
 	);
-	const othersPreview = new Map<string, typeof thisRaceNotes>();
-	for (const n of thisRaceNotes) {
-		if (n.kind !== 'preview' || n.authorId === user.id || !n.raceEntryId) continue;
-		const list = othersPreview.get(n.raceEntryId) ?? [];
-		list.push(n);
-		othersPreview.set(n.raceEntryId, list);
-	}
 
 	return {
 		race,
 		rows: entries.map((e) => ({
 			...e,
 			myPreview: myPreview.get(e.entryId) ?? null,
-			othersPreview: othersPreview.get(e.entryId) ?? [],
-			history: history.get(e.horseId) ?? []
+			history: history.get(e.horseId) ?? [],
+			pastRuns: pastRuns.get(e.horseId) ?? []
 		}))
 	};
 };
@@ -77,8 +68,7 @@ export const actions: Actions = {
 				horseId: e.horseId,
 				body: form.get(`body.${e.entryId}`)?.toString() ?? '',
 				rating: form.get(`rating.${e.entryId}`)?.toString() ?? '',
-				mark: form.get(`mark.${e.entryId}`)?.toString() ?? '',
-				visibility: form.get(`visibility.${e.entryId}`)?.toString() ?? 'shared'
+				mark: form.get(`mark.${e.entryId}`)?.toString() ?? ''
 			}))
 		});
 

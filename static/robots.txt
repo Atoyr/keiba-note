@@ -1,3 +1,10 @@
-# allow crawling everything by default
+# メモは既定で非公開。アプリ本体はクロールさせない。
+#
+# **/notes/ を Disallow してはいけない。** クロールを止めるとクローラが
+# レスポンスの X-Robots-Tag: noindex を読めず、外部からリンクされた URL が
+# 「内容なしの URL だけ」の形でインデックスされうる。
+# 狙いはクロールの拒否ではなくインデックスの拒否なので、crawl は許して
+# noindex を読ませる（docs/design.md 第6章）。
 User-agent: *
-Disallow:
+Disallow: /
+Allow: /notes/

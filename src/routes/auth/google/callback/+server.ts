@@ -7,14 +7,12 @@ import {
 	createGoogleClient,
 	parseIdToken
 } from '$lib/server/auth/google';
-import { INVITE_COOKIE, consumeInvite, findUsableInvite } from '$lib/server/auth/invite';
 import {
 	SESSION_COOKIE,
 	SESSION_TTL_MS,
 	createSession,
 	createUser,
-	findUserByGoogleSub,
-	hasAnyUser
+	findUserByGoogleSub
 } from '$lib/server/auth/session';
 import { createDb } from '$lib/server/db';
 import { safeRedirect } from '$lib/utils/redirect';
@@ -24,7 +22,7 @@ import type { RequestHandler } from './$types';
 function clearTransientCookies(cookies: {
 	delete: (name: string, opts: { path: string }) => void;
 }) {
-	for (const name of [OAUTH_STATE_COOKIE, OAUTH_VERIFIER_COOKIE, REDIRECT_COOKIE, INVITE_COOKIE]) {
+	for (const name of [OAUTH_STATE_COOKIE, OAUTH_VERIFIER_COOKIE, REDIRECT_COOKIE]) {
 		cookies.delete(name, { path: '/' });
 	}
 }
@@ -36,7 +34,6 @@ export const GET: RequestHandler = async ({ cookies, url, platform }) => {
 	const state = url.searchParams.get('state');
 	const storedState = cookies.get(OAUTH_STATE_COOKIE);
 	const codeVerifier = cookies.get(OAUTH_VERIFIER_COOKIE);
-	const inviteCode = cookies.get(INVITE_COOKIE) ?? null;
 	const target = safeRedirect(cookies.get(REDIRECT_COOKIE));
 
 	// state の照合。不一致・欠落はすべて拒否する（CSRF / セッション固定対策）。
@@ -71,35 +68,16 @@ export const GET: RequestHandler = async ({ cookies, url, platform }) => {
 	if (existing) {
 		userId = existing.id;
 	} else {
-		// 未登録。ここから先は「招待があるか」だけが登録の門になる。
-		const bootstrap =
-			!(await hasAnyUser(db)) &&
-			identity.email.toLowerCase() === platform.env.OWNER_EMAIL?.toLowerCase();
+		// **登録に条件は無い。** メモが既定で非公開になった以上、入ってきた人に
+		// 見えるのは自分のメモだけで、守るべき「場」が存在しない（design.md 第4章）。
+		//
+		// ADMIN_EMAIL と一致したときだけ admin。「user テーブルが空なら」という
+		// 条件は付けない — 登録が開いている以上「最初の1人」が成立しないため。
+		const adminEmail = platform.env.ADMIN_EMAIL?.toLowerCase();
+		const role = adminEmail && identity.email.toLowerCase() === adminEmail ? 'admin' : 'user';
 
-		if (bootstrap) {
-			const created = await createUser(db, { ...identity, role: 'owner' });
-			userId = created.id;
-		} else {
-			const usable = inviteCode ? await findUsableInvite(db, inviteCode, identity.email) : null;
-
-			if (!usable) {
-				// 存在しない・使用済み・期限切れ・宛先不一致をすべて同じ扱いにする。
-				clearTransientCookies(cookies);
-				redirect(302, '/login?error=invite_required');
-			}
-
-			const created = await createUser(db, { ...identity, role: 'member' });
-
-			// 消費に失敗＝その招待は他の誰かに先に使われた。ユーザーは作ってしまった
-			// あとなので、ここで弾かずに通す方が害が大きい。招待は1回しか消費できない
-			// ことだけを DB 側で保証しておく。
-			const consumed = await consumeInvite(db, usable.id, created.id);
-			if (!consumed) {
-				console.warn('invite already consumed', usable.id);
-			}
-
-			userId = created.id;
-		}
+		const created = await createUser(db, { ...identity, role });
+		userId = created.id;
 	}
 
 	const token = await createSession(db, userId);

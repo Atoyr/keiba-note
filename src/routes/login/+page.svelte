@@ -52,5 +52,8 @@
 		</button>
 	</form>
 
-	<p class="mt-6 text-xs text-gray-500">招待制です。アカウントの作成には招待リンクが必要です。</p>
+	<p class="mt-6 text-xs text-gray-500">
+		Google アカウントがあればそのまま使えます。書いたメモは既定で非公開で、
+		共有したいものだけリンクを発行して渡します。
+	</p>
 </main>

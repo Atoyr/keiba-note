@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import LockIcon from '$lib/components/LockIcon.svelte';
+	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import PastRuns from '$lib/components/PastRuns.svelte';
+	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
 	import NoteTag from '$lib/components/NoteTag.svelte';
@@ -14,6 +17,13 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	// 下書きの置き場。レースとユーザーで分ける。
+	let formEl = $state<HTMLFormElement | null>(null);
+	let keeper = $state<DraftKeeper | null>(null);
+	const draftKey = $derived(
+		`keiba-note:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`
+	);
 
 	const spec = $derived(
 		[
@@ -94,7 +104,25 @@
 			</Button>
 		</div>
 	{:else}
-		<form method="POST" use:enhance class="mt-6">
+		<form
+			method="POST"
+			bind:this={formEl}
+			use:enhance={() =>
+				async ({ result, update }) => {
+					if (result.type === 'success') keeper?.clear();
+					// **reset: false が必須。** 既定の update() はフォームを reset() するが、
+					// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
+					// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
+					// メモが「変化なし」と判断されて描き直されない。
+					// 結果、保存した直後に中身が消えたように見える。
+					// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
+					// 保存すると本当に消える。表示はサーバーの data が正で、
+					// フォームの初期値ではない。
+					await update({ reset: false });
+				}}
+			class="mt-6"
+		>
+			<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
 			<ul class="grid gap-2">
 				{#each data.rows as r (r.entryId)}
 					<li
@@ -126,6 +154,12 @@
 							<MarkBadge mark={r.myPreview?.mark ?? null} />
 						</div>
 
+						<!-- 馬柱は薄い面に載せて、下に続く「自分のメモ」と見分けられるようにする。
+						     どちらも小さい文字の塊なので、囲いが無いと1つの塊に見える。 -->
+						<div class="mt-1.5 ml-7 rounded-md bg-muted/50 px-2.5 py-1">
+							<PastRuns runs={r.pastRuns} />
+						</div>
+
 						{#if r.history.length > 0}
 							<ol class="mt-2 ml-7 grid gap-2">
 								{#each r.history.slice(0, open === r.entryId ? undefined : 2) as n (n.id)}
@@ -136,7 +170,7 @@
 											<NoteTag tag={h.tag} />
 											<span>{h.label}</span>
 											<Stars rating={n.rating} />
-											{#if n.visibility === 'private'}<LockIcon />{/if}
+											<SharedBadge visibility={n.visibility} />
 										</p>
 										<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
 									</li>
@@ -187,30 +221,8 @@
 											{/each}
 										</select>
 									</label>
-									<label class="flex items-center gap-1.5">
-										<input
-											type="checkbox"
-											name="visibility.{r.entryId}"
-											value="private"
-											checked={r.myPreview?.visibility === 'private'}
-										/>
-										<LockIcon />非公開
-									</label>
 								</div>
 							</details>
-
-							{#each r.othersPreview as n (n.id)}
-								<div class="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
-									<p class="flex items-center gap-1.5 text-xs text-muted-foreground">
-										<MarkBadge mark={n.mark} />
-										{n.authorName}
-										<Stars rating={n.rating} />
-									</p>
-									{#if n.body}
-										<p class="mt-0.5 whitespace-pre-wrap">{n.body}</p>
-									{/if}
-								</div>
-							{/each}
 						</div>
 					</li>
 				{/each}

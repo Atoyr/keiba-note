@@ -11,21 +11,22 @@ import type { SessionUser } from './session';
  * `dev` は本番ビルドで静的に false になるため、分岐ごとバンドルから消える。
  * つまりデプロイした Worker にはモックの経路そのものが存在しない。
  *
- * 2人いるのは、あとで公開範囲（shared / private）を試すため。
- * 自分のメモと他人のメモが混ざった状態を作れないと、その挙動を確認できない。
+ * 2人いるのは、**「他人のメモが1件も出てこない」ことを確かめる**ため。
+ * 1人では「自分のメモしか見えない」が成立しているのか、
+ * そもそもメモが1つしかないのか区別が付かない。
  */
 export const MOCK_USERS = {
-	owner: {
-		googleSub: 'mock|owner',
-		email: 'owner@mock.local',
-		displayName: 'モック（owner）',
-		role: 'owner' as const
+	admin: {
+		googleSub: 'mock|admin',
+		email: 'admin@mock.local',
+		displayName: 'モック（admin）',
+		role: 'admin' as const
 	},
-	member: {
-		googleSub: 'mock|member',
-		email: 'member@mock.local',
-		displayName: 'モック（member）',
-		role: 'member' as const
+	user: {
+		googleSub: 'mock|user',
+		email: 'user@mock.local',
+		displayName: 'モック（user）',
+		role: 'user' as const
 	}
 };
 
@@ -34,7 +35,7 @@ export type MockUserKey = keyof typeof MOCK_USERS;
 export const MOCK_USER_COOKIE = 'mock_user';
 
 export function isMockUserKey(value: string | undefined): value is MockUserKey {
-	return value === 'owner' || value === 'member';
+	return value === 'admin' || value === 'user';
 }
 
 /**

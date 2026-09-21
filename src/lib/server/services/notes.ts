@@ -6,12 +6,18 @@ import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/sc
 /**
  * メモ。本アプリの中心。
  *
- * **可視性の判定は必ず SQL の WHERE 句に埋める**（architecture.md 3-6）。
- * UI 側でフィルタすると、見えてはいけない行が SSR の HTML や
- * データペイロードに乗ってしまう。DB から出さないのが唯一確実な方法。
+ * **ログイン中の読みは例外なく自分のメモだけに閉じる**（design.md 第2章 2-2）。
+ * `visibility` はここでは一切見ない。見てよいのは共有ページ `/notes/[id]` だけで、
+ * それは `getSharedNote` に分けてある。
+ *
+ * この形の弱点は「絞り忘れ＝全ユーザーに見える」になること。
+ * `shared` を混ぜていた頃は絞り忘れても他人の private までは出なかったが、
+ * いまは条件が1本抜けるだけで全員のメモが出る。
+ * **だから読み取り関数は viewerId を必須引数で受け取る。**
+ * 省略可能にしたり既定値を与えたりした時点で、この防波堤は消える。
  */
-function visibleTo(viewerId: string) {
-	return or(eq(note.visibility, 'shared'), eq(note.authorId, viewerId));
+function ownedBy(viewerId: string) {
+	return eq(note.authorId, viewerId);
 }
 
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -47,20 +53,19 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 		})
 		.from(note)
 		.innerJoin(user, eq(note.authorId, user.id))
-		.where(and(eq(note.raceId, raceId), visibleTo(viewerId)))
+		.where(and(eq(note.raceId, raceId), ownedBy(viewerId)))
 		.orderBy(desc(note.createdAt));
 }
 
 export type RaceReviewInput = {
 	raceId: string;
 	/** レース自体のメモ。空文字なら「書かない／消す」。 */
-	raceNote: { body: string; visibility: 'shared' | 'private' };
+	raceNote: { body: string };
 	entries: {
 		entryId: string;
 		horseId: string;
 		body: string;
 		rating: number | null;
-		visibility: 'shared' | 'private';
 	}[];
 };
 
@@ -95,7 +100,6 @@ export async function saveRaceReview(
 					kind: 'race',
 					raceId: input.raceId,
 					body: raceBody,
-					visibility: input.raceNote.visibility,
 					occurredAt
 				})
 				.onConflictDoUpdate({
@@ -103,7 +107,6 @@ export async function saveRaceReview(
 					targetWhere: sql`kind = 'race'`,
 					set: {
 						body: raceBody,
-						visibility: input.raceNote.visibility,
 						occurredAt,
 						updatedAt: nowSec()
 					}
@@ -137,7 +140,6 @@ export async function saveRaceReview(
 						raceEntryId: e.entryId,
 						body,
 						rating: e.rating,
-						visibility: e.visibility,
 						occurredAt
 					})
 					.onConflictDoUpdate({
@@ -146,7 +148,6 @@ export async function saveRaceReview(
 						set: {
 							body,
 							rating: e.rating,
-							visibility: e.visibility,
 							occurredAt,
 							updatedAt: nowSec()
 						}
@@ -201,7 +202,7 @@ export type TimelineItem = {
  * レース紐付きメモ（kind='entry'）も近況メモ（kind='horse'）も
  * `note.horse_id` で引ける。これが note を1テーブルにした狙い（design.md 第2章）。
  * マージ処理はいらない。レース名を並べたいので race / race_entry だけ LEFT JOIN する。
- * インデックスは note_horse_timeline (horse_id, occurred_at) が効く。
+ * インデックスは note_author_horse (author_id, horse_id, occurred_at) が効く。
  */
 export async function getHorseTimeline(
 	db: Db,
@@ -230,7 +231,7 @@ export async function getHorseTimeline(
 		.innerJoin(user, eq(note.authorId, user.id))
 		.leftJoin(race, eq(note.raceId, race.id))
 		.leftJoin(raceEntry, eq(note.raceEntryId, raceEntry.id))
-		.where(and(eq(note.horseId, horseId), visibleTo(viewerId)))
+		.where(and(eq(note.horseId, horseId), ownedBy(viewerId)))
 		.orderBy(desc(note.occurredAt), desc(note.createdAt))
 		.limit(200);
 }
@@ -242,11 +243,11 @@ export async function addHorseNote(
 		horseId: string;
 		body: string;
 		rating: number | null;
-		visibility: 'shared' | 'private';
 		occurredAt: string;
 	},
 	authorId: string
 ): Promise<void> {
+	// visibility は既定の private。共有は書いたあとの別操作（setNoteVisibility）。
 	await db.insert(note).values({
 		id: ulid(),
 		authorId,
@@ -254,7 +255,6 @@ export async function addHorseNote(
 		horseId: input.horseId,
 		body: input.body.trim(),
 		rating: input.rating,
-		visibility: input.visibility,
 		occurredAt: input.occurredAt
 	});
 }
@@ -296,7 +296,7 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 		.leftJoin(race, eq(note.raceId, race.id))
 		.leftJoin(horse, eq(note.horseId, horse.id))
 		.leftJoin(raceEntry, eq(note.raceEntryId, raceEntry.id))
-		.where(visibleTo(viewerId))
+		.where(ownedBy(viewerId))
 		.orderBy(desc(note.createdAt))
 		.limit(limit);
 }
@@ -344,7 +344,7 @@ export async function listHistoryForHorses(
 				inArray(note.horseId, horseIds),
 				// このレース自身のメモは履歴ではないので外す。
 				or(isNull(note.raceId), ne(note.raceId, excludeRaceId)),
-				visibleTo(viewerId)
+				ownedBy(viewerId)
 			)
 		)
 		.orderBy(desc(note.occurredAt), desc(note.createdAt))
@@ -368,7 +368,6 @@ export type PreviewNoteInput = {
 		body: string;
 		rating: number | null;
 		mark: '◎' | '○' | '▲' | '△' | '×' | null;
-		visibility: 'shared' | 'private';
 	}[];
 };
 
@@ -408,7 +407,6 @@ export async function savePreviewNotes(
 						body,
 						rating: e.rating,
 						mark: e.mark,
-						visibility: e.visibility,
 						occurredAt
 					})
 					.onConflictDoUpdate({
@@ -418,7 +416,6 @@ export async function savePreviewNotes(
 							body,
 							rating: e.rating,
 							mark: e.mark,
-							visibility: e.visibility,
 							updatedAt: nowSec()
 						}
 					})
@@ -445,4 +442,118 @@ export async function savePreviewNotes(
 	}
 
 	return { saved, cleared };
+}
+
+// ---------------------------------------------------------------------------
+// 共有
+// ---------------------------------------------------------------------------
+
+export type SharedNote = {
+	id: string;
+	kind: Note['kind'];
+	body: string;
+	rating: number | null;
+	mark: Note['mark'];
+	occurredAt: string;
+	authorName: string;
+	horseName: string | null;
+	raceDate: string | null;
+	raceName: string | null;
+	course: string | null;
+	raceNumber: number | null;
+	grade: string | null;
+	finishPosition: number | null;
+};
+
+/**
+ * 共有ページ `/notes/[id]` が読む1件。
+ *
+ * **このアプリで visibility を見る唯一の場所。** 他のすべての読みは
+ * `ownedBy(viewerId)` で自分のメモに閉じている（design.md 第2章 2-2）。
+ *
+ * 条件にログイン状態を入れないのが要点。著者が開いても第三者が開いても同じ行が出るので、
+ * 人に渡す前に自分で踏んで見え方を確かめられる。自分のメモでも private なら出ない。
+ * 呼び出し側は null を **404** にすること（403 にすると「その ID は在る」と漏れる）。
+ */
+export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote | null> {
+	const rows = await db
+		.select({
+			id: note.id,
+			kind: note.kind,
+			body: note.body,
+			rating: note.rating,
+			mark: note.mark,
+			occurredAt: note.occurredAt,
+			authorName: user.displayName,
+			horseName: horse.name,
+			raceDate: race.date,
+			raceName: race.name,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			grade: race.grade,
+			finishPosition: raceEntry.finishPosition
+		})
+		.from(note)
+		.innerJoin(user, eq(note.authorId, user.id))
+		.leftJoin(race, eq(note.raceId, race.id))
+		.leftJoin(horse, eq(note.horseId, horse.id))
+		.leftJoin(raceEntry, eq(note.raceEntryId, raceEntry.id))
+		.where(and(eq(note.id, noteId), eq(note.visibility, 'unlisted')))
+		.limit(1);
+
+	return rows.at(0) ?? null;
+}
+
+/**
+ * 共有を始める／やめる。
+ *
+ * `author_id` を条件に入れているので、他人のメモを勝手に共有することはできない。
+ * 該当が無ければ false（存在しないのか他人のものなのかは呼び出し側に教えない）。
+ *
+ * private に戻せば `/notes/[id]` は即 404 になる。ただし **URL は変わらない**ので、
+ * 再共有すると以前渡した相手がまた見られる（design.md 第9章 #11）。
+ */
+export async function setNoteVisibility(
+	db: Db,
+	noteId: string,
+	authorId: string,
+	visibility: Note['visibility']
+): Promise<boolean> {
+	const result = await db
+		.update(note)
+		.set({ visibility, updatedAt: nowSec() })
+		.where(and(eq(note.id, noteId), eq(note.authorId, authorId)))
+		.returning({ id: note.id });
+	return result.length > 0;
+}
+
+/** いま共有しているメモの一覧（/settings/shares）。取り消す場所。 */
+export async function listSharedNotes(db: Db, viewerId: string): Promise<RecentNote[]> {
+	return db
+		.select({
+			id: note.id,
+			kind: note.kind,
+			body: note.body,
+			rating: note.rating,
+			mark: note.mark,
+			visibility: note.visibility,
+			occurredAt: note.occurredAt,
+			authorId: note.authorId,
+			authorName: user.displayName,
+			raceId: race.id,
+			raceName: race.name,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			grade: race.grade,
+			finishPosition: raceEntry.finishPosition,
+			horseName: horse.name
+		})
+		.from(note)
+		.innerJoin(user, eq(note.authorId, user.id))
+		.leftJoin(race, eq(note.raceId, race.id))
+		.leftJoin(horse, eq(note.horseId, horse.id))
+		.leftJoin(raceEntry, eq(note.raceEntryId, raceEntry.id))
+		.where(and(ownedBy(viewerId), eq(note.visibility, 'unlisted')))
+		.orderBy(desc(note.updatedAt))
+		.limit(200);
 }

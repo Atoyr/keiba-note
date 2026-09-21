@@ -4,7 +4,6 @@ import type { PageServerLoad } from './$types';
 
 /** `?error=` で出し分けるメッセージ。状態を漏らさない粒度にとどめる。 */
 const ERROR_MESSAGES: Record<string, string> = {
-	invite_required: '招待が必要です。招待リンクからやり直してください。',
 	invalid_request: 'ログインの手続きが中断されました。もう一度お試しください。',
 	oauth_failed: 'Google との連携に失敗しました。もう一度お試しください。',
 	unavailable: '現在ログインを受け付けられません。時間をおいてお試しください。'

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import LockIcon from '$lib/components/LockIcon.svelte';
+	import ShareControl from '$lib/components/ShareControl.svelte';
+	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import NoteTag from '$lib/components/NoteTag.svelte';
 	import { noteHeading } from '$lib/utils/note';
 	import type { PageProps } from './$types';
@@ -36,18 +37,15 @@
 						{:else}
 							<span>{h.label}</span>
 						{/if}
-						{#if n.visibility === 'private'}
-							<span
-								class="inline-flex items-center gap-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-700"
-							>
-								<LockIcon />非公開
-							</span>
-						{/if}
+						<SharedBadge visibility={n.visibility} />
 					</div>
 					<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
-					<p class="mt-1 text-xs text-gray-500">
-						{n.authorName}{#if n.rating}<span class="ml-2">{'★'.repeat(n.rating)}</span>{/if}
-					</p>
+					{#if n.rating}
+						<p class="mt-1 text-xs text-amber-500">{'★'.repeat(n.rating)}</p>
+					{/if}
+					<div class="mt-2">
+						<ShareControl noteId={n.id} visibility={n.visibility} redirectTo="/" />
+					</div>
 				</li>
 			{/each}
 		</ol>

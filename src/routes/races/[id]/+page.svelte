@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import LockIcon from '$lib/components/LockIcon.svelte';
+	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	// 下書きの置き場。レースとユーザーで分ける（同じ端末を2人で使う場合に混ざらないように）。
+	let formEl = $state<HTMLFormElement | null>(null);
+	let keeper = $state<DraftKeeper | null>(null);
+	const draftKey = $derived(`keiba-note:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const header = $derived(
 		[data.race.date, `${data.race.course}${data.race.raceNumber ?? ''}R`, data.race.name ?? '']
@@ -81,29 +87,33 @@
 	{/if}
 
 	<!-- 1画面・1送信でレース1本分のふりかえりが完結する（design.md 第6章）。 -->
-	<form method="POST" use:enhance class="mt-8">
+	<form
+		method="POST"
+		bind:this={formEl}
+		use:enhance={() =>
+			async ({ result, update }) => {
+				// 保存が通ったときだけ下書きを捨てる。失敗したら残す
+				// （電波が悪くて落ちた場合、書いたものを失わないため）。
+				if (result.type === 'success') keeper?.clear();
+				// **reset: false が必須。** 既定の update() はフォームを reset() するが、
+				// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
+				// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
+				// メモが「変化なし」と判断されて描き直されない。
+				// 結果、保存した直後に中身が消えたように見える。
+				// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
+				// 保存すると本当に消える。表示はサーバーの data が正で、
+				// フォームの初期値ではない。
+				await update({ reset: false });
+			}}
+		class="mt-8"
+	>
+		<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
 		<section>
 			<h2 class="text-sm font-semibold text-gray-500">レースのメモ</h2>
 			<p class="text-xs text-gray-500">ペース、馬場、展開など「レースの性質」</p>
 			<textarea name="raceNoteBody" rows="3" placeholder="前半緩くて上がり勝負。内有利。" class={ta}
 				>{data.myRaceNote?.body ?? ''}</textarea
 			>
-			<label class="mt-1 flex items-center gap-1.5 text-xs text-gray-600">
-				<input
-					type="checkbox"
-					name="raceNoteVisibility"
-					value="private"
-					checked={data.myRaceNote?.visibility === 'private'}
-				/>
-				<LockIcon />非公開
-			</label>
-
-			{#each data.othersRaceNotes as n (n.id)}
-				<div class="mt-2 rounded-md bg-gray-50 px-3 py-2 text-sm">
-					<p class="text-xs text-gray-500">{n.authorName}</p>
-					<p class="mt-0.5 whitespace-pre-wrap">{n.body}</p>
-				</div>
-			{/each}
 		</section>
 
 		{#if data.rows.length > 0}
@@ -158,26 +168,7 @@
 										{/each}
 									</select>
 								</label>
-								<label class="flex items-center gap-1.5">
-									<input
-										type="checkbox"
-										name="visibility.{r.entryId}"
-										value="private"
-										checked={r.myNote?.visibility === 'private'}
-									/>
-									<LockIcon />非公開
-								</label>
 							</div>
-
-							{#each r.othersNotes as n (n.id)}
-								<div class="mt-2 rounded-md bg-gray-50 px-3 py-2 text-sm">
-									<p class="text-xs text-gray-500">
-										{n.authorName}
-										{#if n.rating}<span class="ml-1">{'★'.repeat(n.rating)}</span>{/if}
-									</p>
-									<p class="mt-0.5 whitespace-pre-wrap">{n.body}</p>
-								</div>
-							{/each}
 						</li>
 					{/each}
 				</ul>

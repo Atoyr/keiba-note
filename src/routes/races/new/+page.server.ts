@@ -4,17 +4,17 @@ import { raceSchema } from '$lib/schemas/race';
 import { isUniqueViolation } from '$lib/server/db/errors';
 import { createRace } from '$lib/server/services/races';
 import { todayJst } from '$lib/utils/date';
-import { ctx } from '$lib/server/util';
+import { ctxAdmin } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals, platform }) => {
-	ctx(locals, platform);
+	ctxAdmin(locals, platform);
 	return { today: todayJst() };
 };
 
 export const actions: Actions = {
 	default: async ({ locals, platform, request }) => {
-		const { db, user } = ctx(locals, platform);
+		const { db, user } = ctxAdmin(locals, platform);
 
 		const form = await request.formData();
 		const raw = Object.fromEntries(
