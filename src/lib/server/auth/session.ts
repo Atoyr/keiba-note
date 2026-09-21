@@ -134,15 +134,6 @@ export async function deleteExpiredSessions(db: Db, now = new Date()): Promise<v
 	await db.delete(session).where(lte(session.expiresAt, Math.floor(now.getTime() / 1000)));
 }
 
-/**
- * user テーブルが空かどうか。オーナーのブートストラップ判定に使う
- * （docs/design.md 第4章「最初のユーザー（オーナー）」）。
- */
-export async function hasAnyUser(db: Db): Promise<boolean> {
-	const rows = await db.select({ id: user.id }).from(user).limit(1);
-	return rows.length > 0;
-}
-
 /** google_sub で引く。email は変わりうるので引き当てキーには使わない。 */
 export async function findUserByGoogleSub(db: Db, googleSub: string): Promise<User | null> {
 	const rows = await db

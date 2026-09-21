@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import LockIcon from '$lib/components/LockIcon.svelte';
+	import ShareControl from '$lib/components/ShareControl.svelte';
+	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import NoteTag from '$lib/components/NoteTag.svelte';
 	import { noteHeading } from '$lib/utils/note';
 	import type { PageProps } from './$types';
@@ -136,10 +137,6 @@
 							{#each [1, 2, 3, 4, 5] as n (n)}<option value={n}>{'★'.repeat(n)}</option>{/each}
 						</select>
 					</label>
-					<label class="flex items-center gap-1.5">
-						<input type="checkbox" name="visibility" value="private" />
-						<LockIcon />非公開
-					</label>
 					<button
 						type="submit"
 						class="rounded-md bg-gray-900 px-3 py-1.5 text-white hover:bg-gray-700"
@@ -167,26 +164,27 @@
 							{:else}
 								<span class="text-gray-500">{h.label}</span>
 							{/if}
-							{#if n.visibility === 'private'}
-								<span
-									class="inline-flex items-center gap-1 rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-700"
-								>
-									<LockIcon />非公開
-								</span>
-							{/if}
+							<SharedBadge visibility={n.visibility} />
 						</div>
 
 						<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
 
 						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-							<span>{n.authorName}</span>
 							{#if n.rating}<span>{'★'.repeat(n.rating)}</span>{/if}
-							{#if n.authorId === data.viewerId && n.kind === 'horse'}
+							{#if n.kind === 'horse'}
 								<form method="POST" action="?/deleteNote" use:enhance>
 									<input type="hidden" name="noteId" value={n.id} />
 									<button type="submit" class="text-red-700 hover:underline">削除</button>
 								</form>
 							{/if}
+						</div>
+
+						<div class="mt-2">
+							<ShareControl
+								noteId={n.id}
+								visibility={n.visibility}
+								redirectTo="/horses/{data.horse.id}"
+							/>
 						</div>
 					</li>
 				{/each}

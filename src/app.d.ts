@@ -14,7 +14,8 @@ declare global {
 			env: Env & {
 				GOOGLE_CLIENT_ID: string;
 				GOOGLE_CLIENT_SECRET: string;
-				OWNER_EMAIL: string;
+				/** ここと一致した email でログインした人だけ role='admin' になる。 */
+				ADMIN_EMAIL: string;
 				/**
 				 * 開発用のモック認証を有効にする。`.dev.vars` にだけ置く。
 				 * 本番で設定しても `dev` ガードにより無視される（分岐がビルドに残らない）。

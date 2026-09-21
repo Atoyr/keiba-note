@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-export const VISIBILITIES = ['shared', 'private'] as const;
+export const VISIBILITIES = ['private', 'unlisted'] as const;
 
 /** 予想印。本命 → 消し の順。 */
 export const MARKS = ['◎', '○', '▲', '△', '×'] as const;
@@ -14,12 +14,27 @@ export const markSchema = v.pipe(
 	v.transform((s): Mark | null => ((MARKS as readonly string[]).includes(s) ? (s as Mark) : null))
 );
 
-/** 公開範囲。既定は shared（招待制の閉じた場なので共有が自然）。 */
+/**
+ * 公開範囲。**保存フォームはこれを運ばない。**
+ *
+ * 既定が非公開になったので、書くときに公開範囲を選ばせる意味がなくなった。
+ * ふりかえり画面に18頭ぶんのチェックボックスを並べても、ほぼ誰も触らず
+ * 「うっかり公開」の事故だけが残る。共有は書いたあとの明示的な操作にする
+ * （design.md 第6章「共有の操作をどこに置くか」）。
+ *
+ * ここを使うのは共有の切り替えフォームだけ。
+ */
 export const visibilitySchema = v.pipe(
-	v.optional(v.string(), 'shared'),
-	v.transform((s) => (s === 'private' ? 'private' : 'shared')),
+	v.optional(v.string(), 'private'),
+	v.transform((s) => (s === 'unlisted' ? 'unlisted' : 'private')),
 	v.picklist(VISIBILITIES)
 );
+
+/** 共有を始める／やめる。 */
+export const shareNoteSchema = v.object({
+	noteId: v.pipe(v.string(), v.minLength(1)),
+	visibility: visibilitySchema
+});
 
 /** 次走期待度 1–5。任意。 */
 export const ratingSchema = v.pipe(
@@ -40,8 +55,7 @@ export const entryNoteSchema = v.object({
 	entryId: v.pipe(v.string(), v.minLength(1)),
 	horseId: v.pipe(v.string(), v.minLength(1)),
 	body: bodySchema,
-	rating: ratingSchema,
-	visibility: visibilitySchema
+	rating: ratingSchema
 });
 
 /** 予想画面の1頭分。本文に加えて印を持つ。 */
@@ -50,8 +64,7 @@ export const previewEntrySchema = v.object({
 	horseId: v.pipe(v.string(), v.minLength(1)),
 	body: bodySchema,
 	rating: ratingSchema,
-	mark: markSchema,
-	visibility: visibilitySchema
+	mark: markSchema
 });
 
 /**
@@ -67,8 +80,7 @@ export type PreviewNotesFormInput = v.InferOutput<typeof previewNotesSchema>;
 /** ふりかえり画面の一括保存。レースのメモ + 出走馬ごとのメモ。 */
 export const raceReviewSchema = v.object({
 	raceNote: v.object({
-		body: bodySchema,
-		visibility: visibilitySchema
+		body: bodySchema
 	}),
 	entries: v.array(entryNoteSchema)
 });
@@ -79,7 +91,6 @@ export type RaceReviewFormInput = v.InferOutput<typeof raceReviewSchema>;
 export const horseNoteSchema = v.object({
 	body: v.pipe(bodySchema, v.trim(), v.minLength(1, 'メモを入力してください')),
 	rating: ratingSchema,
-	visibility: visibilitySchema,
 	occurredAt: v.pipe(
 		v.string(),
 		v.trim(),

@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import LockIcon from '$lib/components/LockIcon.svelte';
+	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
 	import NoteTag from '$lib/components/NoteTag.svelte';
@@ -136,7 +136,7 @@
 											<NoteTag tag={h.tag} />
 											<span>{h.label}</span>
 											<Stars rating={n.rating} />
-											{#if n.visibility === 'private'}<LockIcon />{/if}
+											<SharedBadge visibility={n.visibility} />
 										</p>
 										<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
 									</li>
@@ -187,30 +187,8 @@
 											{/each}
 										</select>
 									</label>
-									<label class="flex items-center gap-1.5">
-										<input
-											type="checkbox"
-											name="visibility.{r.entryId}"
-											value="private"
-											checked={r.myPreview?.visibility === 'private'}
-										/>
-										<LockIcon />非公開
-									</label>
 								</div>
 							</details>
-
-							{#each r.othersPreview as n (n.id)}
-								<div class="mt-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
-									<p class="flex items-center gap-1.5 text-xs text-muted-foreground">
-										<MarkBadge mark={n.mark} />
-										{n.authorName}
-										<Stars rating={n.rating} />
-									</p>
-									{#if n.body}
-										<p class="mt-0.5 whitespace-pre-wrap">{n.body}</p>
-									{/if}
-								</div>
-							{/each}
 						</div>
 					</li>
 				{/each}

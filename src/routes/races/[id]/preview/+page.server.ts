@@ -33,26 +33,16 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		)
 	]);
 
-	// このレースに対する出走前メモ。自分のはフォームへ、他人のは読み取り専用で出す。
+	// 読めるのは自分のメモだけなので、著者での選り分けは要らない。
 	const myPreview = new Map(
-		thisRaceNotes
-			.filter((n) => n.kind === 'preview' && n.authorId === user.id)
-			.map((n) => [n.raceEntryId, n])
+		thisRaceNotes.filter((n) => n.kind === 'preview').map((n) => [n.raceEntryId, n])
 	);
-	const othersPreview = new Map<string, typeof thisRaceNotes>();
-	for (const n of thisRaceNotes) {
-		if (n.kind !== 'preview' || n.authorId === user.id || !n.raceEntryId) continue;
-		const list = othersPreview.get(n.raceEntryId) ?? [];
-		list.push(n);
-		othersPreview.set(n.raceEntryId, list);
-	}
 
 	return {
 		race,
 		rows: entries.map((e) => ({
 			...e,
 			myPreview: myPreview.get(e.entryId) ?? null,
-			othersPreview: othersPreview.get(e.entryId) ?? [],
 			history: history.get(e.horseId) ?? []
 		}))
 	};
@@ -77,8 +67,7 @@ export const actions: Actions = {
 				horseId: e.horseId,
 				body: form.get(`body.${e.entryId}`)?.toString() ?? '',
 				rating: form.get(`rating.${e.entryId}`)?.toString() ?? '',
-				mark: form.get(`mark.${e.entryId}`)?.toString() ?? '',
-				visibility: form.get(`visibility.${e.entryId}`)?.toString() ?? 'shared'
+				mark: form.get(`mark.${e.entryId}`)?.toString() ?? ''
 			}))
 		});
 

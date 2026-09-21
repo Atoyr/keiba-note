@@ -23,31 +23,21 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	if (!race) error(404, 'レースが見つかりません');
 
-	// 自分のメモはフォームに、他人のメモは読み取り専用で出す。
-	// 他人のメモは編集できない（design.md 第9章 #3）。
-	const myRaceNote = notes.find((n) => n.kind === 'race' && n.authorId === user.id) ?? null;
-	const othersRaceNotes = notes.filter((n) => n.kind === 'race' && n.authorId !== user.id);
-
+	// `listRaceNotes` が返すのは **viewer 自身のメモだけ**（design.md 第2章 2-2）。
+	// 以前あった「他人のメモを読み取り専用で出す」分岐は、返ってこない行を
+	// 選り分けるだけの死にコードになったので落とした。
+	const myRaceNote = notes.find((n) => n.kind === 'race') ?? null;
 	const myEntryNotes = new Map(
-		notes.filter((n) => n.kind === 'entry' && n.authorId === user.id).map((n) => [n.raceEntryId, n])
+		notes.filter((n) => n.kind === 'entry').map((n) => [n.raceEntryId, n])
 	);
-	const othersEntryNotes = new Map<string, typeof notes>();
-	for (const n of notes) {
-		if (n.kind !== 'entry' || n.authorId === user.id || !n.raceEntryId) continue;
-		const list = othersEntryNotes.get(n.raceEntryId) ?? [];
-		list.push(n);
-		othersEntryNotes.set(n.raceEntryId, list);
-	}
 
 	return {
 		race,
 		rows: entries.map((e) => ({
 			...e,
-			myNote: myEntryNotes.get(e.entryId) ?? null,
-			othersNotes: othersEntryNotes.get(e.entryId) ?? []
+			myNote: myEntryNotes.get(e.entryId) ?? null
 		})),
-		myRaceNote,
-		othersRaceNotes
+		myRaceNote
 	};
 };
 
@@ -67,15 +57,13 @@ export const actions: Actions = {
 
 		const parsed = v.safeParse(raceReviewSchema, {
 			raceNote: {
-				body: form.get('raceNoteBody')?.toString() ?? '',
-				visibility: form.get('raceNoteVisibility')?.toString() ?? 'shared'
+				body: form.get('raceNoteBody')?.toString() ?? ''
 			},
 			entries: entries.map((e) => ({
 				entryId: e.entryId,
 				horseId: e.horseId,
 				body: form.get(`body.${e.entryId}`)?.toString() ?? '',
-				rating: form.get(`rating.${e.entryId}`)?.toString() ?? '',
-				visibility: form.get(`visibility.${e.entryId}`)?.toString() ?? 'shared'
+				rating: form.get(`rating.${e.entryId}`)?.toString() ?? ''
 			}))
 		});
 

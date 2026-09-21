@@ -50,6 +50,13 @@
       "when": 1789957061450,
       "tag": "0006_data_import_state",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1789967216890,
+      "tag": "0007_private_by_default",
+      "breakpoints": true
     }
   ]
 }

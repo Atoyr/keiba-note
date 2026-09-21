@@ -3,14 +3,14 @@ import * as v from 'valibot';
 import { entriesSchema } from '$lib/schemas/race';
 import { isUniqueViolation, violatedIndex } from '$lib/server/db/errors';
 import { getRace, listEntries, saveEntries } from '$lib/server/services/races';
-import { ctx } from '$lib/server/util';
+import { ctxAdmin } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
 /** 空行を含めて常にこの数だけ入力欄を出す。 */
 const MIN_ROWS = 10;
 
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
-	const { db } = ctx(locals, platform);
+	const { db } = ctxAdmin(locals, platform);
 
 	const [race, entries] = await Promise.all([getRace(db, params.id), listEntries(db, params.id)]);
 	if (!race) error(404, 'レースが見つかりません');
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 export const actions: Actions = {
 	default: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+		const { db, user } = ctxAdmin(locals, platform);
 
 		const race = await getRace(db, params.id);
 		if (!race) error(404, 'レースが見つかりません');

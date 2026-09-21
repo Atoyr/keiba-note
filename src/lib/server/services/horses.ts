@@ -23,8 +23,8 @@ export type HorseListItem = Pick<Horse, 'id' | 'name' | 'sex' | 'birthYear' | 't
  * `(SELECT count(*) FROM race_entry WHERE horse_id = id)` のように書くと
  * `id` が race_entry.id に束縛されて常に 0 件になる。
  *
- * メモ件数は viewer に見える分だけ数える。他人の private を数に含めると、
- * 本文を出していなくても「何か書かれている」ことが漏れる。
+ * メモ件数は **viewer 自身のメモだけ**を数える。他人の分を含めると、
+ * 本文を出していなくても「誰かが何か書いている」ことが漏れる。
  */
 export async function listHorses(db: Db, viewerId: string, q?: string): Promise<HorseListItem[]> {
 	const filter = q?.trim()
@@ -43,13 +43,7 @@ export async function listHorses(db: Db, viewerId: string, q?: string): Promise<
 		})
 		.from(horse)
 		.leftJoin(raceEntry, eq(raceEntry.horseId, horse.id))
-		.leftJoin(
-			note,
-			and(
-				eq(note.horseId, horse.id),
-				or(eq(note.visibility, 'shared'), eq(note.authorId, viewerId))
-			)
-		)
+		.leftJoin(note, and(eq(note.horseId, horse.id), eq(note.authorId, viewerId)))
 		.where(filter)
 		.groupBy(horse.id)
 		.orderBy(asc(horse.name))

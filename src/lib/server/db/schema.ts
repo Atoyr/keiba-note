@@ -30,14 +30,18 @@ export const user = sqliteTable('user', {
 	id: text('id').primaryKey(),
 	/** Google の `sub`。ログイン時の引き当てキー。email は変わりうるので使わない。 */
 	googleSub: text('google_sub').notNull().unique(),
-	/** 表示と招待の照合に使う。 */
+	/** 表示用。`ADMIN_EMAIL` との突き合わせにも使う。 */
 	email: text('email').notNull().unique(),
 	displayName: text('display_name').notNull(),
 	avatarUrl: text('avatar_url'),
-	/** `owner` / `member`。招待を出せるのは owner だけ。 */
-	role: text('role', { enum: ['owner', 'member'] })
+	/**
+	 * `admin` / `user`。admin はメンテ用の区分で、マスタ（馬・レース・出走馬）の
+	 * 修正とユーザーの凍結だけを行う。**admin でも他人のメモは読めない**
+	 * （サービス層が例外なく author_id で絞ることの帰結。design.md 第4章）。
+	 */
+	role: text('role', { enum: ['admin', 'user'] })
 		.notNull()
-		.default('member'),
+		.default('user'),
 	/** 退会は論理削除。NULL 以外はログイン不可（design.md 第9章 #8）。 */
 	deletedAt: integer('deleted_at'),
 	createdAt: createdAt(),
@@ -62,28 +66,6 @@ export const session = sqliteTable(
 		// 期限切れの一括削除用
 		index('session_expires').on(t.expiresAt)
 	]
-);
-
-export const invite = sqliteTable(
-	'invite',
-	{
-		id: text('id').primaryKey(),
-		/** URL に乗せる乱数（24バイト以上）。 */
-		code: text('code').notNull().unique(),
-		/** 宛先を固定する場合。NULL なら誰でも1回使える。 */
-		email: text('email'),
-		invitedBy: text('invited_by')
-			.notNull()
-			.references(() => user.id),
-		/** 既定7日。 */
-		expiresAt: integer('expires_at').notNull(),
-		/** NULL なら未使用。 */
-		usedAt: integer('used_at'),
-		/** 使った結果できた user。 */
-		usedBy: text('used_by').references(() => user.id),
-		createdAt: createdAt()
-	},
-	(t) => [index('invite_invited_by').on(t.invitedBy)]
 );
 
 export const horse = sqliteTable(
@@ -222,17 +204,28 @@ export const note = sqliteTable(
 		 * 本文が空でも印だけ残せる（「◎だけ付けておく」が成立する）。
 		 */
 		mark: text('mark', { enum: ['◎', '○', '▲', '△', '×'] }),
-		visibility: text('visibility', { enum: ['shared', 'private'] })
+		/**
+		 * `private`（既定・本人だけ）/ `unlisted`（リンクを知っている人だけ）。
+		 *
+		 * **この列を見てよいのは共有ページ `/notes/[id]` だけ。**
+		 * ログイン中の読みはすべて `author_id = :viewer` で閉じているので、
+		 * 公開範囲の判定がそもそも要らない（design.md 第2章 2-2）。
+		 */
+		visibility: text('visibility', { enum: ['private', 'unlisted'] })
 			.notNull()
-			.default('shared'),
+			.default('private'),
 		/** タイムライン用。レース紐付きならレース日、それ以外は記入日。`YYYY-MM-DD`。 */
 		occurredAt: text('occurred_at').notNull(),
 		createdAt: createdAt(),
 		updatedAt: updatedAt()
 	},
 	(t) => [
-		index('note_horse_timeline').on(t.horseId, t.occurredAt),
-		index('note_race').on(t.raceId),
+		// **インデックスは author_id で始める。** ログイン中の読みはすべて
+		// `WHERE author_id = :viewer` で絞られるので、先頭が race_id / horse_id の
+		// ままだと自分のメモを読むだけで他人の行までスキャンする。
+		// D1 はスキャンした行数で課金されるため、可視性の話であると同時にコストの話でもある。
+		index('note_author_horse').on(t.authorId, t.horseId, t.occurredAt),
+		index('note_author_race_id').on(t.authorId, t.raceId),
 		index('note_author').on(t.authorId, t.createdAt),
 		// 「1人・1出走馬・1種別につきメモは1本、編集＝上書き」を DB 側で保証する。
 		// これがあるので保存側は ON CONFLICT で upsert でき、
@@ -284,16 +277,11 @@ export const dataImport = sqliteTable('data_import', {
 });
 
 export const userRelations = relations(user, ({ many }) => ({
-	sessions: many(session),
-	invites: many(invite)
+	sessions: many(session)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
 	user: one(user, { fields: [session.userId], references: [user.id] })
-}));
-
-export const inviteRelations = relations(invite, ({ one }) => ({
-	invitedByUser: one(user, { fields: [invite.invitedBy], references: [user.id] })
 }));
 
 export type Horse = typeof horse.$inferSelect;
@@ -304,6 +292,5 @@ export type NoteKind = Note['kind'];
 export type NoteVisibility = Note['visibility'];
 export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
-export type Invite = typeof invite.$inferSelect;
 export type UserRole = User['role'];
 export type DataImport = typeof dataImport.$inferSelect;

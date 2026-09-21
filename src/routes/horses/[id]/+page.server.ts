@@ -23,7 +23,9 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	if (!horse) error(404, '馬が見つかりません');
 
-	return { horse, timeline, today: todayJst(), viewerId: user.id };
+	// viewerId は返さない。タイムラインに並ぶのは viewer 自身のメモだけなので、
+	// 画面側で「自分のメモか」を判定する必要がなくなった。
+	return { horse, timeline, today: todayJst() };
 };
 
 export const actions: Actions = {
@@ -38,7 +40,6 @@ export const actions: Actions = {
 		const parsed = v.safeParse(horseNoteSchema, {
 			body: form.get('body')?.toString() ?? '',
 			rating: form.get('rating')?.toString() ?? '',
-			visibility: form.get('visibility')?.toString() ?? 'shared',
 			occurredAt: form.get('occurredAt')?.toString() ?? todayJst()
 		});
 

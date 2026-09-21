@@ -1,4 +1,4 @@
-import { and, asc, between, countDistinct, desc, eq, inArray, or, sql } from 'drizzle-orm';
+import { and, asc, between, countDistinct, desc, eq, inArray, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
@@ -34,10 +34,7 @@ export async function listRaces(db: Db, viewerId: string): Promise<RaceListItem[
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
-		.leftJoin(
-			note,
-			and(eq(note.raceId, race.id), or(eq(note.visibility, 'shared'), eq(note.authorId, viewerId)))
-		)
+		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
 		.groupBy(race.id)
 		.orderBy(desc(race.date), desc(race.raceNumber))
 		.limit(100);
@@ -219,10 +216,7 @@ export async function listGradedRacesInWeek(
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
-		.leftJoin(
-			note,
-			and(eq(note.raceId, race.id), or(eq(note.visibility, 'shared'), eq(note.authorId, viewerId)))
-		)
+		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
 		.where(
 			and(
 				between(race.date, week.start, week.end),

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import LockIcon from '$lib/components/LockIcon.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -88,22 +87,6 @@
 			<textarea name="raceNoteBody" rows="3" placeholder="前半緩くて上がり勝負。内有利。" class={ta}
 				>{data.myRaceNote?.body ?? ''}</textarea
 			>
-			<label class="mt-1 flex items-center gap-1.5 text-xs text-gray-600">
-				<input
-					type="checkbox"
-					name="raceNoteVisibility"
-					value="private"
-					checked={data.myRaceNote?.visibility === 'private'}
-				/>
-				<LockIcon />非公開
-			</label>
-
-			{#each data.othersRaceNotes as n (n.id)}
-				<div class="mt-2 rounded-md bg-gray-50 px-3 py-2 text-sm">
-					<p class="text-xs text-gray-500">{n.authorName}</p>
-					<p class="mt-0.5 whitespace-pre-wrap">{n.body}</p>
-				</div>
-			{/each}
 		</section>
 
 		{#if data.rows.length > 0}
@@ -158,26 +141,7 @@
 										{/each}
 									</select>
 								</label>
-								<label class="flex items-center gap-1.5">
-									<input
-										type="checkbox"
-										name="visibility.{r.entryId}"
-										value="private"
-										checked={r.myNote?.visibility === 'private'}
-									/>
-									<LockIcon />非公開
-								</label>
 							</div>
-
-							{#each r.othersNotes as n (n.id)}
-								<div class="mt-2 rounded-md bg-gray-50 px-3 py-2 text-sm">
-									<p class="text-xs text-gray-500">
-										{n.authorName}
-										{#if n.rating}<span class="ml-1">{'★'.repeat(n.rating)}</span>{/if}
-									</p>
-									<p class="mt-0.5 whitespace-pre-wrap">{n.body}</p>
-								</div>
-							{/each}
 						</li>
 					{/each}
 				</ul>

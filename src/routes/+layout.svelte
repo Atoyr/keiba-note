@@ -24,9 +24,9 @@
 		<form method="POST" action="/dev/mock-user" class="flex items-center gap-1.5">
 			<input type="hidden" name="redirect" value={page.url.pathname + page.url.search} />
 			<span>切り替え:</span>
-			<button name="as" value="owner" class="underline hover:no-underline">owner</button>
+			<button name="as" value="admin" class="underline hover:no-underline">admin</button>
 			<span aria-hidden="true">/</span>
-			<button name="as" value="member" class="underline hover:no-underline">member</button>
+			<button name="as" value="user" class="underline hover:no-underline">user</button>
 		</form>
 	</div>
 {/if}
@@ -39,9 +39,10 @@
 			<a href={resolve('/races')} class="text-sm text-gray-600 hover:underline">レース</a>
 			<a href={resolve('/horses')} class="text-sm text-gray-600 hover:underline">馬</a>
 			<span class="flex-1"></span>
-			{#if data.user.role === 'owner'}
-				<a href={resolve('/settings/members')} class="text-sm text-gray-600 hover:underline">
-					メンバー
+			<a href={resolve('/settings/shares')} class="text-sm text-gray-600 hover:underline">共有中</a>
+			{#if data.user.role === 'admin'}
+				<a href={resolve('/settings/admin')} class="text-sm text-gray-600 hover:underline">
+					管理
 				</a>
 			{/if}
 			<span class="text-sm text-gray-600">{data.user.displayName}</span>
