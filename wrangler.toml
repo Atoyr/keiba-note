@@ -21,5 +21,5 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "k-note"
-database_id = "__REPLACE_WITH_D1_DATABASE_ID__"
+database_id = "ff841b63-5859-48de-b868-17c1df1144d0"
 migrations_dir = "drizzle"
