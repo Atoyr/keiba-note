@@ -4,6 +4,8 @@
 Cloudflare Workers 上で動かす。
 
 - 作成日: 2026-09-20
+- 更新日: 2026-09-21 — 公開範囲を「既定 private・共有は1メモずつ」に変更し、
+  招待コードとメンバー概念を廃止、サイト管理者（`admin`）だけを残した（→ 第2章 2-2 / 第4章 / 第8章 Phase 5）
 - ステータス: 確定（実装着手可）
 - 関連: [architecture.md](./architecture.md) — アーキテクチャ / コスト / 技術選定の根拠
 
@@ -15,11 +17,13 @@ Cloudflare Workers 上で動かす。
 
 | 項目 | 決定 |
 | --- | --- |
-| 利用者 | 少人数で共有（招待制）。不特定多数への公開はしない |
+| 利用者 | 1人1空間。メモは既定で本人だけのもの。グループ／メンバーの概念は持たない |
+| メモの公開範囲 | **既定は非公開。** 見せたいメモだけ1件ずつリンクを発行する（→ 第2章 2-2） |
 | データ入力 | 馬・レースとも手入力。将来の外部取り込みを阻害しない構造にする |
 | フロントエンド | SvelteKit (Svelte 5) |
 | 実行環境 | Cloudflare Workers |
-| 認証 | Google OAuth + 招待コード（自前セッション）。独自ドメインを持たないため |
+| 認証 | Google OAuth（自前セッション）。Google アカウントがあれば誰でも登録できる |
+| 特権 | サイト管理者（`admin`）だけ。メンテ作業用で、**他人のメモは読めない**（→ 第4章） |
 
 ### やりたいこと（優先度順）
 
@@ -27,10 +31,13 @@ Cloudflare Workers 上で動かす。
 2. **レース自体のメモ** — ペース、馬場、展開など「レースの性質」の記録
 3. **レース単位の観戦メモ** — そのレースで出走馬それぞれがどう走ったか
 4. **馬ごとのメモ蓄積・タイムライン** — 1頭を追いかけ、過去のメモを時系列で読み返す
+5. **見せたいメモだけ見せる** — 既定は非公開。共有したいメモに限ってリンクを発行して渡す
 
-### 今回はやらないこと（Phase 5 以降）
+### 今回はやらないこと（Phase 6 以降）
 
-- タグ・全文検索
+- グループ／チーム共有、メンバー招待、マルチテナント（**そもそも作らない**）
+- 公開タイムライン、フォロー、他人のメモの一覧・検索
+- タグ・全文検索（自分のメモに限れば将来やってよい。他人のメモは対象外）
 - 次走チェックリスト／通知
 - 外部データ（netkeiba / JRA 等）の自動取り込み
 - 馬券収支の管理
@@ -40,7 +47,12 @@ Cloudflare Workers 上で動かす。
 
 ## 2. 設計の中心となる考え方
 
-4つの要件を素直にテーブルへ落とすと「レースのメモ」と「馬のメモ」が別物になり、
+柱は2本ある。**メモを1テーブルに統一すること**と、**メモを既定で閉じておくこと**。
+前者が読みやすさを、後者が安全側の既定を決めている。
+
+### 2-1. メモの実体は1テーブル
+
+要件を素直にテーブルへ落とすと「レースのメモ」と「馬のメモ」が別物になり、
 **馬ごとのタイムラインを作るときに両方をマージする羽目になる**。
 
 そこで、メモの実体を **1つの `note` テーブル**に統一し、
@@ -57,6 +69,37 @@ Cloudflare Workers 上で動かす。
 1回の書き込みが、レース側からも馬側からも自然に読める。
 タイムラインは `WHERE horse_id = ? ORDER BY occurred_at DESC` の1クエリで済み、
 JOIN もマージもいらない。これが本アプリのデータモデルの肝。
+
+### 2-2. 既定は非公開。共有は1メモずつ
+
+メモは人に見せる前提で書くものではない。**既定は `private`、書いた本人しか読めない。**
+見せたくなったメモだけ、1件ずつ共有リンクを発行して渡す。
+
+| 値 | 意味 | 誰が読めるか |
+| --- | --- | --- |
+| `private`（既定） | 非公開 | 本人だけ |
+| `unlisted` | リンクを知っている人だけ | 本人 ＋ `/notes/[id]` を開いた人（**ログイン不要**） |
+
+共有が満たすべきことは3つ。
+
+1. **URL を渡せば、URL を知っている人は見られる** — ログインを要求しない。
+   相手にアカウントを作らせずに見せることが共有の目的なので、ここで認証を挟んだら意味がない
+2. **検索では辿り着けない** — サイト内の一覧にも検索にも出さず、検索エンジンにも載せない
+3. **他人のメモは「最近のメモ」に出ない** — ダッシュボードも馬のタイムラインも自分のメモだけ
+
+3 がいちばん効く。これは「ログイン中のアプリは `visibility` を一切見ない」という帰結を生む。
+
+```
+ログイン中のすべての読み取り   →  WHERE author_id = :viewer        （visibility を見ない）
+共有ページ /notes/[id] だけ    →  WHERE id = :id AND visibility = 'unlisted'
+```
+
+可視性の分岐が**アプリ全体で1箇所に閉じる**。
+「他人のどれが見えてどれが見えないか」を全クエリで正しく書き続ける必要がなくなり、
+漏れうる場所が共有ページ1つだけになる。第5章の主要クエリが軒並み単純なのはこのため。
+
+なお **馬・レース・出走馬（マスタ）は全ユーザー共通**で、メモだけが個人のものになる。
+「誰の馬か」は存在しない。これが「メンバー」概念を外しても破綻しない理由でもある。
 
 ---
 
@@ -86,12 +129,20 @@ JOIN もマージもいらない。これが本アプリのデータモデルの
 
 ---
 
-## 4. 認証 — Google OAuth + 招待コード
+## 4. 認証と権限 — Google OAuth
 
 独自ドメインを持たない（`*.workers.dev` で運用する）ため、Cloudflare Access は使えない。
-**Google OAuth でログインし、アカウント作成は招待コード経由に限定する**方式を採る。
+**Google OAuth でログインする**方式を採る。パスワードは一切保存しない。
 
-パスワードは一切保存しない。ユーザーが覚えるものはゼロ。
+### 招待コードは廃止する
+
+招待は「閉じた場に誰を入れるか」を決める仕組みだった。
+メモが既定で非公開になった以上、**入ってきた人に見えるのは自分のメモだけ**で、
+守るべき「場」が存在しない。門を残す理由がないので、まるごと畳む。
+
+- `invite` テーブル / `/invite/[code]` / `/settings/members` を削除
+- `role` は `owner` / `member` をやめ、**`admin` / `user`** の2値にする
+- Google アカウントがあれば誰でも登録できる
 
 ### 使うもの
 
@@ -116,28 +167,48 @@ GET /auth/google/callback?code=...&state=...
   ├ id_token から sub / email / name / picture を取り出す
   └ user を google_sub で検索
        ├ 既存 → セッション発行して /
-       └ 未登録 → 下の「新規登録の判定」へ
+       └ 未登録 → user を作成 → セッション発行して /
 ```
 
-### 新規登録の判定
+登録に条件はない。判定は `email === ADMIN_EMAIL` なら `role='admin'`、それ以外は `role='user'`。
 
-未登録ユーザーが callback に到達したとき、次の順で判定する。
+### サイト管理者（`admin`）
 
-1. **招待 Cookie があるか** — `/invite/[code]` を踏むと、招待コードを HttpOnly Cookie（30分）に入れてから `/auth/google` へ送る。これでリダイレクト往復をまたいで招待を持ち回る
-2. **招待が有効か** — `used_at IS NULL` かつ `expires_at > now`
-3. **宛先が一致するか** — `invite.email` が設定されていれば、Google から返った email と一致すること
-4. すべて満たせば `user` を作成し、`invite.used_at` / `used_by` を埋めてセッション発行
-5. 満たさなければ `/login?error=invite_required` へ。**ユーザーは作らない**
+メンテ作業のための区分を1つだけ置く。**メンバー管理のためではない。**
 
-招待コードの有無だけが登録の門になる。Google アカウントを持っている人が URL を知っても入れない。
+- Worker のシークレット `ADMIN_EMAIL` に自分のアドレスを入れる
+- ログインのたびに email と突き合わせ、一致すれば `admin`
+- `user` テーブルが空かどうかは条件にしない。登録が開いている以上
+  「最初の1人」という概念が成立しないため
 
-### 最初のユーザー（オーナー）
+| | admin | user |
+| --- | --- | --- |
+| 自分のメモの読み書き | ○ | ○ |
+| **他人のメモを読む** | **×** | **×** |
+| 馬・レース・出走馬（マスタ）の追加・修正・削除 | ○ | ×（→ 下記） |
+| ユーザー一覧の閲覧・凍結（`deleted_at` を立てる） | ○ | × |
 
-招待を出す人が最初はいないので、ブートストラップの口を1つ用意する。
+**admin でも他人のメモは読めない。** これは運用上の約束ではなく、
+サービス層が例外なく `author_id = :viewer` で絞っていることの帰結にする（→ 第2章 2-2）。
+メンテとは「マスタデータの直し」であって、メモを覗くことではない。
 
-- Worker のシークレット `OWNER_EMAIL` に自分のアドレスを入れておく
-- `user` テーブルが**空**で、かつログインした email が `OWNER_EMAIL` と一致する場合のみ、招待なしで `role='owner'` として作成する
-- 2人目以降は必ず招待が要る（`user` が空でなくなるため、この口は自動的に閉じる）
+ただし admin がレースを消せば `ON DELETE CASCADE` で他人のメモも消える。
+**読めないが消せる**という非対称は残る。削除操作には確認を1枚挟み、
+`race` / `horse` の物理削除は admin 画面からのみ可能にする。
+
+### マスタの書き込みを admin に寄せる理由
+
+登録を誰にでも開くと、**全ユーザー共通のマスタ（馬・レース・出走馬）を
+誰でも書き換えられる**状態になる。これは荒らしに弱く、
+`race_ident` / `horse_name_birth` の UNIQUE を他人に踏み荒らされると自分の記録も壊れる。
+
+一方で出走馬の投入はすでに画面ではなく [data/](../data/) の YAML の PR 経路に寄せてある。
+したがって**マスタへの書き込みは「投入スクリプト」と「admin」の2経路だけ**とし、
+一般ユーザーは読むだけにする。一般ユーザーができるのは自分のメモの読み書きに限られる。
+
+> 一般ユーザーにもレース登録をさせたくなったら、ここを緩めるのが最初の一手になる
+> （→ 第9章 #10）。緩めるなら「自分が作った行だけ編集可」＋「他人が参照している行は消せない」
+> の2条件を同時に足すこと。
 
 ### セッション
 
@@ -155,10 +226,11 @@ GET /auth/google/callback?code=...&state=...
 ### hooks.server.ts
 
 認証の判断はここに閉じ込め、ルートからは `event.locals.user` しか見ない。
+今回の変更点は、**公開パスから `/invite/` が消えて `/notes/` が入る**こと。
 
 ```ts
 // src/hooks.server.ts（骨子）
-const PUBLIC_PATHS = ['/login', '/auth/', '/invite/'];
+const PUBLIC_PATHS = ['/login', '/auth/', '/notes/'];
 
 export const handle: Handle = async ({ event, resolve }) => {
   const token = event.cookies.get('session');
@@ -173,19 +245,25 @@ export const handle: Handle = async ({ event, resolve }) => {
 };
 ```
 
+`/notes/` を公開にしても、そこで出せるのは `visibility = 'unlisted'` の1行だけ
+（→ 第6章）。ログイン済みでも未ログインでも、このルートの WHERE 句は変わらない。
+
+`robots.txt` はここに要らない。`static/` に置いた実ファイルは
+Workers Static Assets が直接返し、**Worker 自体が起動しない**ので `hooks` を通らない。
+
 ```ts
 // src/app.d.ts
 declare global {
   namespace App {
     interface Locals {
-      user: { id: string; email: string; displayName: string; role: 'owner' | 'member' } | null;
+      user: { id: string; email: string; displayName: string; role: 'admin' | 'user' } | null;
     }
     interface Platform {
       env: {
         DB: D1Database;
         GOOGLE_CLIENT_ID: string;
         GOOGLE_CLIENT_SECRET: string;
-        OWNER_EMAIL: string;
+        ADMIN_EMAIL: string;
       };
     }
   }
@@ -198,7 +276,7 @@ declare global {
 | --- | --- | --- |
 | `GOOGLE_CLIENT_ID` | `wrangler secret put` | `.dev.vars`（`.gitignore` 済み） |
 | `GOOGLE_CLIENT_SECRET` | 同上 | 同上 |
-| `OWNER_EMAIL` | 同上 | 同上 |
+| `ADMIN_EMAIL` | 同上 | 同上 |
 
 Google Cloud Console の OAuth クライアントには、リダイレクト URI を2つ登録する。
 
@@ -210,8 +288,9 @@ Google Cloud Console の OAuth クライアントには、リダイレクト URI
 - **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する（`csrf.checkOrigin`）。これを無効化しない
 - **state / PKCE** — Arctic が生成するものをそのまま使い、callback で必ず照合する
 - **オープンリダイレクト** — `?redirect=` は `/` で始まる相対パスのみ許可する（`//evil.com` を弾く）
-- **招待コード** — 推測不能な乱数（24バイト以上）。使用済み・期限切れは同じエラー文言にして状態を漏らさない
-- **期限切れセッション** — 検証時に見つけたら即削除する遅延クリーンアップ。取りこぼしは Phase 4 で Cron を足すか、放置してもよい（行が増えるだけ）
+- **共有ページ** — 未ログインで到達できる唯一のルート。`noindex` / `no-referrer` / `no-store` と
+  「`private` は 404」を守る（→ 第6章）
+- **期限切れセッション** — 検証時に見つけたら即削除する遅延クリーンアップ。取りこぼしは Cron を足すか、放置してもよい（行が増えるだけ）
 
 ---
 
@@ -221,7 +300,6 @@ Google Cloud Console の OAuth クライアントには、リダイレクト URI
 erDiagram
     user ||--o{ note : writes
     user ||--o{ session : has
-    user ||--o{ invite : creates
     horse ||--o{ race_entry : "runs in"
     race  ||--o{ race_entry : has
     race  ||--o{ note : "noted on"
@@ -235,10 +313,10 @@ erDiagram
 | --- | --- | --- |
 | id | text PK | ULID |
 | google_sub | text UNIQUE NOT NULL | Google の `sub`。**ログイン時の引き当てキー**。email は変わりうるので使わない |
-| email | text UNIQUE NOT NULL | 表示と招待の照合に使う |
+| email | text UNIQUE NOT NULL | 表示用。`ADMIN_EMAIL` との突き合わせにも使う |
 | display_name | text NOT NULL | Google の `name` を初期値に、あとから変更可 |
 | avatar_url | text | Google の `picture` |
-| role | text NOT NULL | `owner` / `member`。招待を出せるのは owner |
+| role | text NOT NULL | `admin` / `user`。既定は `user`（→ 第4章） |
 | deleted_at | integer | 退会は論理削除（→ 第9章 #8）。NULL 以外はログイン不可 |
 | created_at / updated_at | integer NOT NULL | unixepoch |
 
@@ -253,19 +331,6 @@ erDiagram
 
 - `INDEX session_user ON session(user_id)` — 「全端末からログアウト」用
 - `INDEX session_expires ON session(expires_at)` — 期限切れの一括削除用
-
-### invite
-
-| カラム | 型 | 備考 |
-| --- | --- | --- |
-| id | text PK | |
-| code | text UNIQUE NOT NULL | URL に乗せる乱数（24バイト以上） |
-| email | text | 宛先を固定する場合。NULL なら誰でも1回使える |
-| invited_by | text FK→user.id NOT NULL | |
-| expires_at | integer NOT NULL | 既定7日 |
-| used_at | integer | NULL なら未使用 |
-| used_by | text FK→user.id | 使った結果できた user |
-| created_at | integer NOT NULL | |
 
 ### horse
 
@@ -336,6 +401,24 @@ erDiagram
 - `UNIQUE INDEX entry_race_number ON race_entry(race_id, horse_number)`
 - `INDEX entry_horse ON race_entry(horse_id)`
 
+### data_import（YAML の適用状況）
+
+マスタの投入は `data/races/*.yaml` を PR で更新して行う（→ [data/README.md](../data/README.md)）。
+開催日ごとにファイルが増えるので、毎回すべてを再適用すると
+「今週ぶんを入れるために過去1年を流し直す」ことになる。適用済みを覚えておき、差分だけ流す。
+
+| カラム | 型 | 備考 |
+| --- | --- | --- |
+| file | text PK | `data/races/` からの相対ファイル名。`2026-09-26.yaml` |
+| hash | text NOT NULL | ファイル内容の SHA-256（hex） |
+| applied_at | integer NOT NULL | unixepoch |
+
+**置き場所を D1 にしているのが要点。** 適用状況は投入先ごとに違う（ローカル D1 と本番 D1 で
+進み方が別）ので、リポジトリ内のファイルでは片方しか表せない。
+状態をデータと同じ場所に置けば、ずれようがない。
+
+このテーブルだけはアプリから一切読まない。投入スクリプト専用。
+
 ### note（メモ — 本アプリの中心）
 
 | カラム | 型 | 備考 |
@@ -348,7 +431,7 @@ erDiagram
 | race_entry_id | text FK→race_entry.id ON DELETE CASCADE | 同上 |
 | body | text NOT NULL | Markdown |
 | rating | integer | 次走期待度 1–5。任意 |
-| visibility | text NOT NULL | `shared`（メンバー全員が読める）/ `private` |
+| visibility | text NOT NULL | **既定 `private`**（本人だけ）/ `unlisted`（リンクを知っている人だけ） |
 | occurred_at | text NOT NULL | タイムライン用。レース紐付きならレース日、それ以外は記入日 |
 | created_at / updated_at | integer NOT NULL | |
 
@@ -372,54 +455,85 @@ CHECK (
 これによって主要クエリがすべて単一テーブルのインデックススキャンで済む。
 整合性はサービス層（`race_entry` から値をコピーして INSERT する）で担保する。
 
-- `INDEX note_horse_timeline ON note(horse_id, occurred_at DESC)`
-- `INDEX note_race ON note(race_id)`
-- `INDEX note_author ON note(author_id, created_at DESC)`
+**インデックスは `author_id` で始める。** ログイン中の読みはすべて
+`WHERE author_id = :viewer` で絞られるので（→ 第2章 2-2）、
+先頭が `race_id` / `horse_id` のままだと自分のメモを読むだけで他人の行までスキャンする。
+D1 は**スキャンした行数**で課金されるため、これは可視性の話であると同時にコストの話でもある。
+
+- `INDEX note_author_horse ON note(author_id, horse_id, occurred_at DESC)` — 馬のタイムライン
+- `INDEX note_author_race_id ON note(author_id, race_id)` — レース詳細・ふりかえり・予想
+- `INDEX note_author ON note(author_id, created_at DESC)` — 最近のメモ／共有中のメモ一覧
+- 共有ページは主キーの1件引きなので追加のインデックスは要らない
+
+加えて upsert（編集＝上書き）のための UNIQUE が2本ある。名前が似ているが別物。
+
+- `UNIQUE note_author_entry_kind ON note(author_id, race_entry_id, kind) WHERE race_entry_id IS NOT NULL`
+- `UNIQUE note_author_race ON note(author_id, race_id) WHERE kind = 'race'`
 
 ### 主要クエリ
 
 ```sql
 -- 馬のタイムライン（レース観戦メモも近況メモも混ざって時系列で出る）
 SELECT * FROM note
-WHERE horse_id = ?1 AND (visibility = 'shared' OR author_id = ?2)
+WHERE author_id = ?1 AND horse_id = ?2
 ORDER BY occurred_at DESC, created_at DESC;
 
 -- レース詳細で出す全メモ（レース自体のメモ + 各馬のメモ）
 SELECT * FROM note
-WHERE race_id = ?1 AND (visibility = 'shared' OR author_id = ?2);
+WHERE author_id = ?1 AND race_id = ?2;
 
--- ダッシュボード: 最近のメモ
+-- ダッシュボード: 最近のメモ（他人のメモは出ない）
 SELECT * FROM note
-WHERE visibility = 'shared' OR author_id = ?1
+WHERE author_id = ?1
 ORDER BY created_at DESC LIMIT 20;
+
+-- 共有中のメモ一覧（/settings/shares）
+SELECT * FROM note
+WHERE author_id = ?1 AND visibility = 'unlisted'
+ORDER BY updated_at DESC;
+
+-- 共有ページ /notes/[id]。未ログインで通る唯一の読み
+SELECT * FROM note
+WHERE id = ?1 AND visibility = 'unlisted';
 ```
+
+**`visibility` が出てくるのは下の2本だけ。** 上の3本は viewer 自身の行しか触らないので、
+公開範囲の判定そのものが存在しない。ここが今回の要件変更でいちばん効いている箇所で、
+「他人の行を出さない」ことをクエリごとに間違えずに書き続ける必要がなくなった。
 
 ---
 
 ## 6. 画面とルーティング
 
 ```
-/                             ダッシュボード（最近のメモ / 直近のレース）
-
+── 公開（ログイン不要） ──────────────────────────────────
+/notes/[id]                   ★共有ページ。unlisted のメモ1件だけを出す
 /login                        ログイン（[Googleでログイン] のみ）
 /auth/google                  認可画面へリダイレクト（GET）
 /auth/google/callback         OAuth コールバック
-/auth/logout                  ログアウト（POST のみ）
-/invite/[code]                招待受諾 → Cookie に code を置いて /auth/google へ
+/robots.txt                   クロール制御
 
+── 要ログイン ────────────────────────────────────────────
+/                             ダッシュボード（**自分の**最近のメモ / 直近のレース）
+/auth/logout                  ログアウト（POST のみ）
+/this-week                    今週の重賞
 /races                        レース一覧（日付降順）
-/races/new                    レース登録
 /races/[id]                   ★レース詳細＝ふりかえりの主戦場
+/races/[id]/preview           ★出馬表 + 予想印（出走前メモ）
+/horses                       馬一覧・インクリメンタル検索
+/horses/[id]                  ★馬詳細＝プロフィール + タイムライン
+/settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
+
+── admin のみ ────────────────────────────────────────────
+/races/new                    レース登録
 /races/[id]/edit              レース情報編集
 /races/[id]/entries           出走馬の一括入力・編集
-
-/horses                       馬一覧・インクリメンタル検索
 /horses/new                   馬登録
-/horses/[id]                  ★馬詳細＝プロフィール + タイムライン
 /horses/[id]/edit             馬情報編集
-
-/settings/members             メンバー・招待管理（owner のみ）
+/settings/admin               ユーザー一覧・凍結、マスタの削除
 ```
+
+`/invite/[code]` と `/settings/members` は招待の廃止に伴って削除する（→ 第4章）。
 
 ### ★ `/races/[id]` — ふりかえり画面
 
@@ -477,6 +591,84 @@ ORDER BY created_at DESC LIMIT 20;
 
 レース紐付きメモと近況メモが同じ流れに並ぶ。これが `note` を1テーブルにした狙い。
 
+### ★ `/notes/[id]` — 共有ページ
+
+**未ログインで到達できる唯一のルート。** 出すのはメモ1件だけ。
+
+```sql
+SELECT ... FROM note WHERE id = ?1 AND visibility = 'unlisted'
+```
+
+- ヒットしなければ **404**。`private` でも「存在しない」でも同じ 404 にする。
+  403 を返すと「その ID のメモは在る」ことを教えてしまう
+- 条件にログイン状態を入れない。**著者が開いても第三者が開いても同じページ**になるので、
+  渡す前に自分で踏んで見え方を確かめられる。自分のメモでも `private` なら 404
+
+```
+┌──────────────────────────────────────────────┐
+│ 2026-09-20  中山11R オールカマー(G2)         │
+│ ホースA  1着                                 │
+│                                              │
+│ 直線で外に出してから一完歩が速い。           │
+│                                  ★★★★☆    │
+│                                              │
+│ — UCHIYAMA Ryota                             │
+└──────────────────────────────────────────────┘
+```
+
+出すもの: メモ本文、評価／印、日付、文脈（レース名・日付・馬名・着順）、著者の表示名。
+**出さないもの:** アプリ内へのリンク、同じ著者の他のメモ、前後のメモへの導線、一覧への戻り。
+1件で閉じていること自体が「検索で辿り着けない」を支えている。
+
+#### 検索に載せない
+
+要件の「検索することはできない」は、サイト内とサイト外の両方を指す。
+
+| 経路 | 対策 |
+| --- | --- |
+| サイト内の一覧・検索 | 他人のメモを返すクエリが存在しない（→ 第5章「主要クエリ」） |
+| 検索エンジン | `/notes/[id]` のレスポンスに `X-Robots-Tag: noindex, nofollow` |
+| Referer 経由の漏れ | `Referrer-Policy: no-referrer`。共有ページから外部リンクを踏んでも URL が渡らない |
+| 共有キャッシュ | `Cache-Control: private, no-store` |
+
+**`robots.txt` で `/notes/` を Disallow してはいけない。**
+クロールを止めるとクローラは `X-Robots-Tag: noindex` を読めず、
+外部からリンクされた URL が「内容なしの URL だけ」の形でインデックスされうる。
+狙いはクロールの拒否ではなくインデックスの拒否なので、**crawl は許して noindex を読ませる**。
+
+`static/robots.txt` を次の内容に差し替える（いまは全許可になっている）。
+
+```
+User-agent: *
+Disallow: /
+Allow: /notes/
+```
+
+#### URL の推測不能性
+
+ID は ULID（48ビットのタイムスタンプ + **80ビットの乱数**）。
+乱数部だけで 2^80 あり、総当たりは成立しない。共有トークンを別に持つ必要はない。
+
+ただし **`private` に戻してから再共有すると URL は同じもの**になる。
+一度渡した URL を持っている相手は、再共有した瞬間にまた見られる。
+取り消しを「渡した相手から確実に取り上げる」ことにしたくなったら、
+`share_token` 列を足して再共有のたびに振り直す（→ 第9章 #11）。今はやらない。
+
+### 共有の操作をどこに置くか
+
+**保存フォームからは公開範囲の入力を外す。** 保存は常に `private` で入る。
+ふりかえり画面で18頭分のチェックボックスを並べても、既定が非公開である以上ほぼ誰も触らず、
+「うっかり公開」の事故だけが残る。
+
+共有は書いたあとの別の操作にする。
+
+- 表示済みの各メモに `[共有リンクを作る]` — 押すと `unlisted` になり、URL とコピーボタンが出る
+- 共有中のメモには `[共有をやめる]`（`private` に戻す）と「共有中」バッジ
+- `/settings/shares` に共有中のメモを一覧し、まとめて取り消せる
+
+既定が非公開になったので、目印を付けるべきは**例外のほう**。
+`private` に鍵アイコンを出す現在の表示は逆になり、**「共有中」を出す**形に変わる。
+
 ---
 
 ## 7. ディレクトリ構成
@@ -496,8 +688,7 @@ keiba-note/
 │   │   │   │   └── index.ts       # D1 → Drizzle クライアント生成
 │   │   │   ├── auth/
 │   │   │   │   ├── session.ts     # 発行 / 検証 / 延長 / 破棄
-│   │   │   │   ├── google.ts      # Arctic クライアント
-│   │   │   │   └── invite.ts      # 発行 / 検証 / 消費
+│   │   │   │   └── google.ts      # Arctic クライアント
 │   │   │   └── services/          # ビジネスロジック（ルートから薄く呼ぶ）
 │   │   │       ├── notes.ts
 │   │   │       ├── races.ts
@@ -514,7 +705,7 @@ keiba-note/
 │       │   │   ├── +server.ts
 │       │   │   └── callback/+server.ts
 │       │   └── logout/+server.ts
-│       ├── invite/[code]/
+│       ├── notes/[id]/            # 共有ページ。ログイン不要で通る唯一のルート
 │       ├── races/
 │       ├── horses/
 │       └── settings/
@@ -557,13 +748,13 @@ database_id = "..."
 ### Phase 1 — 認証
 
 - Google Cloud Console で OAuth クライアント作成、リダイレクト URI を2つ登録
-- `user` / `session` / `invite` テーブルとマイグレーション
+- `user` / `session` テーブルとマイグレーション
 - Arctic で `/auth/google` → `/auth/google/callback`
 - セッション発行・検証・延長・破棄（`src/lib/server/auth/session.ts`）
 - `hooks.server.ts` で `locals.user` を埋め、未ログインを `/login` へ
-- `OWNER_EMAIL` によるオーナーのブートストラップ
-- 招待の発行と受諾（UI は Phase 4、この時点では最低限の画面でよい）
-- **完了条件: 自分がログインでき、招待した2人目もログインでき、招待なしの第三者は弾かれる**
+- `ADMIN_EMAIL` による admin 判定
+- **完了条件: 自分がログインでき、別の Google アカウントでもログインでき、
+  その2人のメモが互いに一切見えない**
 
 ### Phase 2 — 馬とレースの CRUD
 
@@ -576,41 +767,101 @@ database_id = "..."
 - レースふりかえり画面（`/races/[id]`）
 - 馬タイムライン（`/horses/[id]`）
 - 近況メモの追加
-- 公開範囲（shared / private）の切り替え
+- **メモはすべて `private` で保存する。** 共有は Phase 5 で足す
 
 ### Phase 4 — 仕上げ
 
-- ダッシュボード
-- メンバー招待 UI
+- ダッシュボード（自分の最近のメモ）
 - モバイル幅のレイアウト調整（競馬場で片手で打てること）
 
-### Phase 5 以降 — 今回のスコープ外
+### Phase 5 — 共有（今回の要件変更）
 
-- タグ・全文検索（D1 の FTS5 が使える）
+既存の実装は「招待制・既定 shared」を前提にしている。そこからの差分は次のとおり。
+
+**DB**
+
+- `note.visibility` を `shared` / `private` → **`private` / `unlisted`** に変更。
+  既存行の `shared` は**すべて `private` に倒す**（安全側に倒す。共有は本人が改めて選ぶ）
+- 既定値を `'private'` に変更
+- `user.role` を `owner` / `member` → `admin` / `user` に変更（`owner`→`admin`, `member`→`user`）
+- `invite` テーブルを削除
+- インデックスを `author_id` 先頭に張り替え（→ 第5章）
+
+**サーバー**
+
+- `notes.ts` の `visibleTo(viewerId)` を `eq(note.authorId, viewerId)` に置き換える。
+  `listRaceNotes` / `getHorseTimeline` / `listRecentNotes` / `listHorses` のメモ件数が対象
+- `auth/invite.ts`・`schemas/invite.ts` と `/invite/[code]` を削除
+- `/settings/members` を `/settings/admin` に、`requireOwner` を `requireAdmin` に
+- `OWNER_EMAIL` → `ADMIN_EMAIL`。「user テーブルが空なら」の条件を外す
+- マスタ書き込みルート（`/races/new`, `/races/[id]/edit`, `/races/[id]/entries`,
+  `/horses/new`, `/horses/[id]/edit`）に `requireAdmin` を付ける
+- モック認証の2人を `owner` / `member` から `admin` / `user` に改名
+
+**UI**
+
+- ふりかえり・予想・近況メモの各フォームから公開範囲のチェックボックスを外す
+- `LockIcon`（private を示す鍵）を「共有中」バッジに置き換える
+- 各メモに `[共有リンクを作る]` / `[共有をやめる]` を足す
+- `/settings/shares`（共有中の一覧）を追加
+
+**新規ルート・静的ファイル**
+
+- `/notes/[id]` — 共有ページ。`X-Robots-Tag` / `Referrer-Policy` / `Cache-Control` を付ける
+- `static/robots.txt` — **既存ファイルの差し替え。** いまは `Disallow:`（全許可）なので、
+  `Disallow: /` ＋ `Allow: /notes/` にする
+
+**完了条件:** ログアウトした状態で共有 URL が開け、共有を外すと 404 になり、
+別アカウントでログインしても他人のメモがどの画面にも1件も出てこない。
+
+### Phase 6 以降 — 今回のスコープ外
+
+- タグ・全文検索（D1 の FTS5 が使える。**自分のメモに限る**）
 - 次走チェックリストと通知（Workers Cron + Web Push）
 - 外部データ取り込み（`external_ref` を突き合わせキーにする）
+- 共有の取り消しを URL ごと無効化する（`share_token` の導入 → 第9章 #11）
 
 ---
 
 ## 9. 決めておきたいこと
 
-| # | 論点 | 現時点の案 |
+| # | 論点 | 決定 |
 | --- | --- | --- |
-| 1 | 認証方式 | **決定: Google OAuth + 招待コード**（→ 第4章） |
-| 2 | メモの既定公開範囲 | `shared`。招待制の閉じた場なので共有が自然 |
-| 3 | 他人のメモを編集できるか | **不可**。閲覧のみ。編集は作成者本人だけ |
+| 1 | 認証方式 | **Google OAuth のみ。招待コードは廃止**（→ 第4章） |
+| 2 | メモの既定公開範囲 | **`private`。** 共有は1メモずつリンクを発行する（→ 第2章 2-2） |
+| 3 | 他人のメモが見えるか | **見えない。** 共有リンクを踏んだときだけ、そのメモ1件が読める。編集・削除は本人のみ |
 | 4 | 着順・タイムまで入力するか | 任意入力。全部 NULL でもメモは書ける |
 | 5 | 馬の重複登録 | `(name, birth_year)` で UNIQUE。入力時にサジェストして衝突を避ける |
-| 6 | ID 形式 | ULID（時系列ソート可能、URL に出しても短い） |
+| 6 | ID 形式 | ULID。時系列ソート可能で、乱数80ビットあるので共有 URL にそのまま使える（→ 第6章） |
 | 7 | 日時の保持 | `occurred_at` は `YYYY-MM-DD` の文字列、その他は unixepoch 整数。JST 固定 |
-| 8 | 退会・メンバー削除 | **論理削除**。`user.deleted_at` を立て、`session` を全削除してログイン不能にする。行自体は消さない（`note.author_id` が NOT NULL で、消すとふりかえりが虫食いになるため）。表示は「退会したメンバー」 |
-| 9 | Google アカウントの変更 | `google_sub` で引くので email 変更には追従する。別 Google アカウントへの移行は Phase 5 以降 |
+| 8 | 退会・ユーザーの凍結 | **論理削除**。`user.deleted_at` を立て、`session` を全削除してログイン不能にする。行自体は消さない（`note.author_id` が NOT NULL のため）。**同時に共有中のメモを `private` に倒す** — 退会した人の共有が残り続けないように |
+| 9 | Google アカウントの変更 | `google_sub` で引くので email 変更には追従する。別 Google アカウントへの移行は Phase 6 以降 |
+| 10 | マスタ（馬・レース・出走馬）を誰が書けるか | **admin と投入スクリプトだけ。** 登録を誰にでも開く以上、全員共通のマスタを全員に開けない（→ 第4章）。緩めるのは最初の一手として妥当だが、条件を2つ足すこと |
+| 11 | 共有の取り消しで URL ごと無効化するか | **しない。** `private` に戻せば即 404 だが、再共有すると同じ URL に戻る。必要になったら `share_token` 列を足して振り直す |
+| 12 | 共有ページに著者名を出すか | **出す。** 共有は本人の意思なので隠す理由がない。出すのは `display_name` だけで、email とアバターは出さない |
 
 ---
 
 ## 10. この設計のリスク
 
-- **手入力の負担** — 出走馬18頭の入力は現実的にしんどい。Phase 2 の一括入力 UI の出来がアプリの寿命を決める。ここに時間をかける価値がある
+- **共有 URL は渡したら戻らない** — `unlisted` は「知られていないこと」だけが守り。
+  渡した相手が転送すれば、その先の人も見られる。**取り消しても URL は同じ**なので、
+  再共有で過去の相手に再び見える（→ 第9章 #11）。
+  読ませたくないものは最初から共有しない、が唯一の運用
+- **既定を private にしても、共有ボタンの押し間違いは1クリックで起きる** —
+  だから共有の操作を保存フォームから切り離し、URL の表示を伴う明示的な操作にする（→ 第6章）。
+  加えて `/settings/shares` で「いま何を共有しているか」を常に一覧できるようにする
+- **`author_id` で絞り忘れたクエリが1本でもあれば要件が崩れる** — `visibility` を見ない設計は
+  単純さと引き換えに「絞り忘れ＝全員に見える」になる。
+  サービス層の全関数が `viewerId` を**必須引数**で受け取る形を崩さないこと。
+  既定引数や省略可能にした時点でこの防波堤は消える
+- **登録を開いたぶん、マスタと D1 の使用量が他人の手に握られる** — 一般ユーザーにマスタを
+  書かせないのはそのため（→ 第9章 #10）。それでもメモの書き込みは自由なので、
+  荒れたら1ユーザーあたりの行数制限を足す
+- **手入力の負担** — 出走馬18頭を毎週手で打つのは続かない。これは画面ではなく
+  `data/races/*.yaml` を PR で更新する経路に逃がした（→ [data/README.md](../data/README.md)）。
+  人でも AI でも同じ口から入れられることと、**枠が決まる前後で二度書ける**ことが効いている。
+  画面からの一括入力は admin の直し用に残す
 - **`note` の非正規化** — `race_entry` を削除・付け替えしたときに `note.horse_id` が置き去りになりうる。外部キーの `ON DELETE CASCADE` と、付け替えを「削除＋再作成」ではなく UPDATE で扱うルールで防ぐ
 - **D1 の制約** — **1リクエストあたりのクエリ数は Free plan で50**（Paid で1000）。18頭分を扱うふりかえり画面で N+1 を書くと現実的に到達する。読みは JOIN、書きは `batch()` にまとめ、**1リクエスト10クエリ以内**を設計ルールとする（→ [architecture.md 第6章](./architecture.md#6-制約とスケール限界)）
 - **セッション検証が全リクエストに乗る** — `hooks.server.ts` で毎回 D1 を1回引く。D1 は数ms なので実用上は問題ないが、遅いと感じたら KV にセッションキャッシュを置く（Phase 5）

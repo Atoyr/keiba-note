@@ -3,6 +3,7 @@
 [design.md](./design.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
 - 作成日: 2026-09-20
+- 更新日: 2026-09-21 — 招待制をやめて登録を開き、メモを既定非公開にした変更を反映（→ 3-6 / 第6章）
 - 料金・制限の出典: Cloudflare 公式ドキュメント（2026-09-20 時点で確認）
   - [Workers Pricing](https://developers.cloudflare.com/workers/platform/pricing/)
   - [D1 Limits](https://developers.cloudflare.com/d1/platform/limits/)
@@ -15,7 +16,7 @@
 
 ```mermaid
 flowchart TB
-    U["ブラウザ<br/>メンバー5人程度"]
+    U["ブラウザ<br/>ログインした本人 ＋ 共有 URL の閲覧者"]
 
     subgraph CF["Cloudflare Edge — ユーザーに最も近い拠点で実行"]
         A["Static Assets<br/>JS / CSS / フォント<br/>課金対象外・無制限"]
@@ -23,13 +24,14 @@ flowchart TB
     end
 
     subgraph APAC["D1 プライマリ — apac に固定"]
-        D[("D1 / SQLite<br/>user, session, invite<br/>horse, race, race_entry, note")]
+        D[("D1 / SQLite<br/>user, session<br/>horse, race, race_entry, note")]
     end
 
     G["Google<br/>OAuth 2.0 / OIDC"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
+    U -->|"/notes/[id] 共有ページ<br/>ログイン不要"| W
     W -->|"SQL / 1リクエスト10クエリ以内"| D
     W -->|"認可リダイレクト・トークン交換"| G
     W -->|"HTML"| U
@@ -40,7 +42,7 @@ flowchart TB
 
 ### なぜこの形になるか
 
-メンバー5人・週末中心という規模に対して、常時起動のサーバーは過剰。
+数人が週末に使う規模に対して、常時起動のサーバーは過剰。
 Workers はリクエストが来たときだけ実行され、来なければ何も動かない（＝何も課金されない）。
 一方で「ゼロから起動する」コールドスタートの待ち時間が実質ないため、
 月に数回しか触らないアプリでも初回アクセスが遅くならない。
@@ -69,8 +71,8 @@ flowchart TB
     end
 
     subgraph L4["④ サービス層 — 業務ロジック"]
-        S["lib/server/services/*.ts<br/>ルール・可視性フィルタ・batch の組み立て"]
-        AU["lib/server/auth/*.ts<br/>セッション / OAuth / 招待"]
+        S["lib/server/services/*.ts<br/>ルール・author_id での絞り込み・batch の組み立て"]
+        AU["lib/server/auth/*.ts<br/>セッション / OAuth"]
     end
 
     subgraph L5["⑤ データアクセス層"]
@@ -99,7 +101,7 @@ flowchart TB
 | ① UI | `+page.svelte`, `lib/components/` | 表示、フォームの組み立て | DB アクセス、認可判断 |
 | ② ルート | `+page.server.ts`, `+server.ts`, `hooks.server.ts` | HTTP の入出力、Cookie、リダイレクト | 業務ルール、SQL |
 | ③ 検証 | `lib/schemas/` | `FormData` / クエリ文字列を型付きの入力に変換 | DB アクセス |
-| ④ サービス | `lib/server/services/`, `lib/server/auth/` | 業務ルール、可視性フィルタ、`batch()` の構成 | HTTP を知ること |
+| ④ サービス | `lib/server/services/`, `lib/server/auth/` | 業務ルール、`author_id` での絞り込み、`batch()` の構成 | HTTP を知ること |
 | ⑤ データアクセス | `lib/server/db/` | Drizzle でのクエリ組み立て、型定義 | 業務ルール |
 | ⑥ ストレージ | D1 | 永続化、制約（FK・CHECK・UNIQUE） | — |
 
@@ -152,7 +154,6 @@ flowchart LR
     subgraph auth["src/lib/server/auth/"]
         AS["session.ts"]
         AG["google.ts"]
-        AI["invite.ts"]
     end
 
     subgraph db["src/lib/server/db/"]
@@ -170,13 +171,11 @@ flowchart LR
     HH --> SHO
     HH --> SN
     AC --> AG
-    AC --> AI
     AC --> AS
     SN --> DS
     SR --> DS
     SHO --> DS
     AS --> DS
-    AI --> DS
     DS --> DI
     DI --> D1
 ```
@@ -234,7 +233,7 @@ sequenceDiagram
     S->>Q: タイムライン
     Q->>D: SELECT ... FROM note WHERE horse_id = ? 【クエリ3】
     D-->>S: 行の集合
-    Note over S: 可視性フィルタは SQL の WHERE 句で適用済み
+    Note over S: WHERE author_id = viewer は SQL 側で適用済み
     S-->>L: HorseDetail
     L-->>B: SSR した HTML
 ```
@@ -243,7 +242,8 @@ sequenceDiagram
 [design.md](./design.md) のとおり `note` に `horse_id` を非正規化しているため。
 レース紐付きメモと近況メモをマージする処理が要らない。
 
-使うインデックスは `note_horse_timeline (horse_id, occurred_at DESC)`。
+使うインデックスは `note_author_horse (author_id, horse_id, occurred_at DESC)`。
+**先頭が `author_id`** なのは、読みが必ず viewer で絞られるため（→ 3-6）。
 D1 は**スキャンした行数**で課金されるので、インデックスが効いているかどうかが
 そのままコストに直結する。
 
@@ -306,8 +306,8 @@ sequenceDiagram
     alt 既存ユーザー
         W->>D: session を INSERT
     else 未登録ユーザー
-        Note over W: 招待 Cookie を検証<br/>期限切れ / 使用済み / email 不一致 は拒否
-        W->>D: user を INSERT + invite を消費 + session を INSERT
+        Note over W: 登録に条件はない<br/>email が ADMIN_EMAIL なら role=admin
+        W->>D: user を INSERT + session を INSERT
     end
 
     W-->>B: Set-Cookie session → 302 /
@@ -329,13 +329,13 @@ SvelteKit がビルドした JS/CSS はここに乗る。**この分は一切コ
 
 ### 3-6. 認可はどの層でかけるか
 
-**可視性（`shared` / `private`）の判定はサービス層の SQL に埋める。** UI では絞らない。
+**「誰のメモか」の絞り込みはサービス層の SQL に埋める。** UI では絞らない。
 
 ```ts
 // services/notes.ts — WHERE 句に必ず viewer の条件を入れる
 where(and(
   eq(note.horseId, horseId),
-  or(eq(note.visibility, 'shared'), eq(note.authorId, viewerId)),
+  eq(note.authorId, viewerId),
 ))
 ```
 
@@ -343,8 +343,38 @@ UI 側でフィルタすると、見えてはいけない行が
 SSR の HTML やデータペイロードに乗ってしまう。
 **DB から出さない**のが唯一確実な方法。
 
-一方「owner だけが招待できる」といった**操作の可否**はルート層で弾く。
+`visibility`（`private` / `unlisted`）を見るのは**共有ページ1本だけ**。
+ログイン中の読みはすべて `author_id = :viewer` で閉じているので、
+公開範囲の判定がそもそも要らない（→ [design.md 第2章 2-2](./design.md)）。
+
+```ts
+// routes/notes/[id]/+page.server.ts — ここだけが visibility を見る
+where(and(eq(note.id, id), eq(note.visibility, 'unlisted')))
+```
+
+**この形の弱点は「絞り忘れ＝全員に見える」になること。**
+`shared` を混ぜていた頃は、絞り忘れても他人の private までは出なかった。
+いまは `author_id` の条件が1本抜けるだけで全ユーザーのメモが出る。
+だから**サービス層の読み取り関数は `viewerId` を必須引数で受け取る**形を崩さない。
+省略可能にしたり既定値を与えたりした時点で、この防波堤は消える。
+
+一方「admin だけがマスタを編集できる」といった**操作の可否**はルート層で弾く。
 データの絞り込みはサービス層、操作の可否はルート層、と役割を分ける。
+
+### 3-7. 共有ページはこの経路の例外
+
+`/notes/[id]` は `hooks.server.ts` の公開パスに入るため、`locals.user` が null のまま
+load に到達する。**前提が他の全ルートと違う唯一の場所**なので、独立して覚えておく。
+
+| | 通常のルート | `/notes/[id]` |
+| --- | --- | --- |
+| `locals.user` | 必ず非 null | null でも通る |
+| WHERE 句 | `author_id = :viewer` | `id = :id AND visibility = 'unlisted'` |
+| 該当なし | — | **404**（403 にすると「その ID は在る」と漏れる） |
+| ヘッダ | 既定 | `X-Robots-Tag: noindex, nofollow` / `Referrer-Policy: no-referrer` / `Cache-Control: private, no-store` |
+
+未ログインの閲覧者はセッション Cookie を持たないので検証クエリが走らず、
+**主キー1件引きの1クエリだけ**で返る。通常ページより軽い。
 
 ---
 
@@ -370,7 +400,7 @@ flowchart TB
 | local | `vite dev`（Miniflare 経由） | ローカル SQLite（`.wrangler/state`） | 開発 |
 | production | `keiba-note` | `keiba-note` | 本番 |
 
-プレビュー環境は当面作らない。メンバー5人のアプリに2系統は要らない。
+プレビュー環境は当面作らない。この規模のアプリに2系統は要らない。
 必要になったら `wrangler versions upload` によるプレビュー URL を使う。
 
 ### D1 の配置
@@ -472,7 +502,12 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 
 ### 6-1. 無料枠と、このアプリの想定使用量
 
-前提: メンバー5人、開催日（土日）中心、1開催日あたり12レースをふりかえる。
+前提: 実利用者5人、開催日（土日）中心、1開催日あたり12レースをふりかえる。
+
+招待制をやめたので**人数の上限は仕組みとしては無くなった**が、
+検索にも一覧にも出ない以上、外から見つけて登録してくる人はいない。
+実質の利用者数は招待制だった頃と変わらない見込みで、試算もそれを前提に置く。
+外れたときに何が起きるかは 6-2 の表のとおりで、$5/月の Paid が天井になる。
 
 | 項目 | Free の上限 | 本アプリの想定 | 消費率 |
 | --- | --- | --- | --- |
@@ -592,7 +627,9 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 - **層は6つ、依存は一方向。** 要は「サービス層が SvelteKit を知らない」の1点。
   これだけでテストが書け、将来の API 追加にも耐える
 - **データアクセスは必ず ④→⑤→⑥ を通る。** ルートから直接 SQL を書かない。
-  可視性フィルタを SQL の WHERE 句に埋めるのも、この経路を1本に保てているから成立する
+  `author_id = :viewer` を SQL の WHERE 句に埋めるのも、この経路を1本に保てているから成立する
+- **公開範囲を見るのは共有ページ1本だけ。** ログイン中の読みは全部
+  「自分のメモ」に閉じているので、`visibility` の判定が散らばらない
 - **月額 ¥0。** 無料枠の消費率は最も高い項目でも 1.5%。25年分のストレージ余裕がある
 - **コストより先に「1リクエスト50クエリ」の制限に当たる。** JOIN と `batch()` で
   クエリ数を10以内に保つことが、性能・制限・コストのすべてに同時に効く
