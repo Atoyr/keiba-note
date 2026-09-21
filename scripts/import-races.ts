@@ -35,7 +35,15 @@ import {
 	TRACK_CONDITIONS
 } from '../src/lib/schemas/race.ts';
 
-const DATA_DIR = 'data/races';
+/**
+ * 既定の投入元。**ここには本番に入れてよいデータだけを置く。**
+ *
+ * 架空のサンプルは `data/examples/` にあり、既定では読まれない。
+ * マージのたびに GitHub Actions が `data:import:remote` を走らせるので、
+ * 投入対象の場所にサンプルを置くと、そのまま本番に入ってしまう。
+ * 手元でサンプルを流すときは `--dir data/examples` を付ける。
+ */
+const DEFAULT_DATA_DIR = 'data/races';
 const WRANGLER = join('node_modules', 'wrangler', 'bin', 'wrangler.js');
 const DB_NAME = 'k-note';
 
@@ -342,23 +350,32 @@ async function main() {
 	const outPath = outIndex >= 0 ? args[outIndex + 1] : null;
 	const targetIndex = args.indexOf('--target');
 	const target = targetIndex >= 0 ? args[targetIndex + 1] : null;
+	const dirIndex = args.indexOf('--dir');
+	const dataDir = dirIndex >= 0 ? args[dirIndex + 1] : DEFAULT_DATA_DIR;
 
 	if (!checkOnly && target !== 'local' && target !== 'remote') {
 		console.error('--target local | --target remote を指定してください（--check なら不要）。');
 		process.exit(1);
 	}
 
-	let files: string[];
+	// **ファイルが1つも無いのは失敗ではない。**
+	// 投入すべきレースがまだ無い状態は普通にあり、ここで落とすと
+	// GitHub Actions のデプロイが毎回失敗する。
+	let files: string[] = [];
 	try {
-		files = (await readdir(DATA_DIR)).filter((f) => /\.ya?ml$/.test(f)).sort();
+		files = (await readdir(dataDir)).filter((f) => /\.ya?ml$/.test(f)).sort();
 	} catch {
-		console.error(`${DATA_DIR} がありません。`);
-		process.exit(1);
+		console.log(`${dataDir} がありません。投入するものはありません。`);
 	}
 
 	if (files.length === 0) {
-		console.error(`${DATA_DIR} に .yaml がありません。`);
-		process.exit(1);
+		console.log(`${dataDir} に .yaml がありません。投入するものはありません。`);
+		if (!checkOnly && outPath) {
+			await mkdir(dirname(outPath), { recursive: true });
+			await writeFile(outPath, '-- 投入するファイルがありません。\nSELECT 1;\n', 'utf8');
+			console.log(`SQL を書き出しました: ${outPath}`);
+		}
+		return;
 	}
 
 	// 適用状況の突き合わせは検証の**あと**。壊れた YAML は差分の有無に関わらず落としたい。
@@ -376,7 +393,7 @@ async function main() {
 	let failed = false;
 
 	for (const f of files) {
-		const raw = await readFile(join(DATA_DIR, f), 'utf8');
+		const raw = await readFile(join(dataDir, f), 'utf8');
 		const parsed = v.safeParse(fileSchema, parse(raw));
 
 		if (!parsed.success) {

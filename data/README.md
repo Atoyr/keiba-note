@@ -2,6 +2,21 @@
 
 **出走馬の登録は画面からではなく、このディレクトリのファイルを PR で更新して行う。**
 
+> ## ⚠️ `data/races/` に置いたものは本番に入る
+>
+> `main` にマージされると GitHub Actions が `data:import:remote` を走らせる。
+> **ここに置いてよいのは本番に入れてよいデータだけ。**
+>
+> 書式を確かめたいだけの架空のデータは `data/examples/` にある。
+> こちらは既定では読まれない。手元で流すときだけ明示する。
+>
+> ```bash
+> pnpm run data:sql:local -- --dir data/examples
+> pnpm exec wrangler d1 execute k-note --local --file .wrangler/import-races.sql
+> ```
+>
+> `data/races/` が空でもエラーにはならない（投入するものが無いだけ）。
+
 予想に使うには開催前の時点で出馬表が入っている必要がある。16頭を毎週手で打つのは
 現実的ではないので、人でも AI でも同じ経路 — PR — でデータを入れられるようにしてある。
 
