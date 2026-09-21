@@ -8,7 +8,7 @@ import { findOrCreateHorse } from './horses';
 
 export type RaceListItem = Pick<
 	Race,
-	'id' | 'date' | 'course' | 'raceNumber' | 'name' | 'grade' | 'surface' | 'distance'
+	'id' | 'date' | 'course' | 'raceNumber' | 'name' | 'grade' | 'className' | 'surface' | 'distance'
 > & { entryCount: number; noteCount: number };
 
 /**
@@ -27,6 +27,7 @@ export async function listRaces(db: Db, viewerId: string): Promise<RaceListItem[
 			raceNumber: race.raceNumber,
 			name: race.name,
 			grade: race.grade,
+			className: race.className,
 			surface: race.surface,
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
@@ -209,6 +210,7 @@ export async function listGradedRacesInWeek(
 			raceNumber: race.raceNumber,
 			name: race.name,
 			grade: race.grade,
+			className: race.className,
 			surface: race.surface,
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
@@ -268,6 +270,8 @@ export type PastRun = {
 	raceNumber: number | null;
 	raceName: string | null;
 	grade: string | null;
+	/** 条件戦のクラス（`1勝クラス` 等）。重賞は格があるので普通は NULL。 */
+	className: string | null;
 	surface: string | null;
 	distance: number | null;
 	trackCondition: string | null;
@@ -307,6 +311,7 @@ export async function listPastRuns(
 			raceNumber: race.raceNumber,
 			raceName: race.name,
 			grade: race.grade,
+			className: race.className,
 			surface: race.surface,
 			distance: race.distance,
 			trackCondition: race.trackCondition,

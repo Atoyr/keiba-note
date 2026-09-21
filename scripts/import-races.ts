@@ -200,6 +200,15 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 		for (const e of race.entries) {
 			const ref = horseRef(e);
 
+			// **馬名を直せるのは ref で引き当てたときだけ。**
+			// 名前で引き当てている最中に名前を書き換えるのは循環していて成立しない
+			// （引き当てが外れて別馬が1頭増えるだけになる）。
+			// 打ち間違いを直すには、先に ref を振ってから名前を変える2段階になる。
+			const rename = e.ref
+				? `
+  name = ${lit(e.name)},`
+				: '';
+
 			out.push(
 				// 引き当たらなければ作る。
 				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam, external_ref)
@@ -207,7 +216,7 @@ SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${li
 WHERE ${ref} IS NULL;`,
 				// 既存馬は空いている属性だけ埋める。**プロフィールメモには触らない**（利用者が書いたもの）。
 				// id で1行に固定しているので、同名の別馬を巻き添えにすることがない。
-				`UPDATE horse SET
+				`UPDATE horse SET${rename}
   sex = COALESCE(${lit(e.sex)}, sex),
   birth_year = COALESCE(${lit(e.birthYear)}, birth_year),
   trainer = COALESCE(${lit(e.trainer)}, trainer),
@@ -357,6 +366,10 @@ async function main() {
 		checkOnly || forceAll ? new Map<string, string>() : loadAppliedHashes(target as never);
 
 	const statements: string[] = [];
+	// ref → その ref に対して書かれている馬名。**ファイルをまたいで**集める。
+	// ref があると名前を上書きするので、食い違ったまま流すと
+	// 「最後に流したファイルが勝つ」になり、馬名が行ったり来たりする。
+	const namesByRef = new Map<string, Map<string, string[]>>();
 	let raceCount = 0;
 	let entryCount = 0;
 	let changedCount = 0;
@@ -400,6 +413,15 @@ async function main() {
 			continue;
 		}
 
+		for (const race of parsed.output.races) {
+			for (const e of race.entries) {
+				if (!e.ref) continue;
+				const byName = namesByRef.get(e.ref) ?? new Map<string, string[]>();
+				byName.set(e.name, [...(byName.get(e.name) ?? []), f]);
+				namesByRef.set(e.ref, byName);
+			}
+		}
+
 		const fileEntries = parsed.output.races.reduce((n, r) => n + r.entries.length, 0);
 		raceCount += parsed.output.races.length;
 		entryCount += fileEntries;
@@ -417,6 +439,17 @@ async function main() {
 		changedCount += 1;
 		statements.push(...statementsFor(parsed.output, f, hash));
 		console.log(`✓ ${f}  レース ${parsed.output.races.length} / 出走馬 ${fileEntries}`);
+	}
+
+	// 同じ ref に複数の名前が付いていたら、どれが正か機械には決められない。
+	for (const [ref, byName] of namesByRef) {
+		if (byName.size <= 1) continue;
+		failed = true;
+		console.error(`✗ ref "${ref}" に複数の馬名が付いています`);
+		for (const [name, files] of byName) {
+			console.error(`    ${name}  ← ${files.join(', ')}`);
+		}
+		console.error('    ref は馬の同一性そのものなので、名前を揃えてください。');
 	}
 
 	if (failed) process.exit(1);
