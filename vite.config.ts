@@ -16,6 +16,9 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
+	// @lucide/svelte は生の .svelte を配布しているため、SSR 時に Node が
+	// 直接読み込もうとして落ちる。バンドル対象に含めて解決させる。
+	ssr: { noExternal: ['@lucide/svelte'] },
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

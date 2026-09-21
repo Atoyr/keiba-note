@@ -8,6 +8,41 @@
       "when": 1789905351491,
       "tag": "0000_phase0_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789914340480,
+      "tag": "0001_auth",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789914342203,
+      "tag": "0002_drop_phase0_probe",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789915561073,
+      "tag": "0003_races_horses_notes",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1789920246404,
+      "tag": "0004_preview_notes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1789953637839,
+      "tag": "0005_prediction_mark",
+      "breakpoints": true
     }
   ]
 }

@@ -16,3 +16,9 @@ worker-configuration.d.ts
 
 # drizzle-kit の生成物
 /drizzle/
+
+# shadcn-svelte が生成したコンポーネント（手を入れないので対象外）
+/src/lib/components/ui/
+
+# data/ の CJK 表組みも prettier で崩れるため対象外
+/data/

@@ -6,7 +6,12 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 - [docs/design.md](./docs/design.md) — 何を作るか（要件・データモデル・画面・フェーズ）
 - [docs/architecture.md](./docs/architecture.md) — どう動き、いくらかかり、なぜその技術か
 
-現在のフェーズ: **Phase 0（土台）完了**。認証・CRUD・メモ機能は Phase 1 以降。
+現在のフェーズ: **予想と、ふりかえりの両方が動く**。
+
+- 事前 — 今週の重賞 → 出馬表に過去メモを並べて予想印を付ける
+- 事後 — ふりかえり（1画面・1送信）→ 馬タイムラインに蓄積
+
+出走馬の登録は画面からではなく [data/](./data/) の YAML を PR で更新して行う。
 
 ## 技術スタック
 
@@ -26,11 +31,51 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 
 ```bash
 pnpm install
-pnpm run db:migrate:local   # ローカル D1 にマイグレーションを適用
+cp .dev.vars.example .dev.vars   # Google OAuth の値を入れる（下記参照）
+pnpm run db:migrate:local        # ローカル D1 にマイグレーションを適用
 pnpm run dev
 ```
 
 `vite dev` は platformProxy 経由で `.wrangler/state` のローカル D1 に接続する。
+
+### Google OAuth の設定
+
+Google Cloud Console > APIs & Services > Credentials で
+OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）を作り、
+**承認済みのリダイレクト URI に2つ登録する。**
+
+```
+http://localhost:5173/auth/google/callback
+https://keiba-note.<subdomain>.workers.dev/auth/google/callback
+```
+
+得られた値を `.dev.vars`（ローカル）と `wrangler secret put`（本番）に入れる。
+
+| 変数                   | 用途                             |
+| ---------------------- | -------------------------------- |
+| `GOOGLE_CLIENT_ID`     | OAuth クライアント ID            |
+| `GOOGLE_CLIENT_SECRET` | OAuth クライアントシークレット   |
+| `OWNER_EMAIL`          | 最初の1人（owner）になるアドレス |
+
+### 開発中は認証をモックできる
+
+メモの書き味を見るあいだは、Google OAuth を通さずに入れる。
+`.dev.vars` に `MOCK_AUTH="1"` を置くと、ログイン画面を飛ばして
+モックユーザー（owner / member の2人）として入る。画面上部に警告帯が出て、
+そこで2人を切り替えられる。公開範囲（shared / private）の確認に使う。
+
+**この経路は `dev` ガードの中にあり、本番ビルドには存在しない。**
+`$app/environment` の `dev` はサーバー側では静的に false になるため、
+分岐ごとバンドルから消える。本番で `MOCK_AUTH` を設定しても無視される。
+
+### 最初のログイン
+
+`user` テーブルが**空のとき**に限り、`OWNER_EMAIL` と一致するアカウントだけが
+招待なしで `owner` として登録される。2人目以降は必ず招待が要る
+（`user` が空でなくなるので、この口は自動的に閉じる）。
+
+owner でログインしたら `/settings/members` から招待リンクを発行する。
+リンクは1回だけ使え、7日で期限切れになる。
 
 ## よく使うコマンド
 
@@ -45,6 +90,14 @@ pnpm run dev
 | `pnpm run db:migrate:local`         | ローカル D1 に適用                        |
 | `pnpm run db:migrate:remote`        | 本番 D1 に適用                            |
 | `pnpm run deploy`                   | ビルドして `wrangler deploy`              |
+
+## 出走馬データ
+
+**画面からではなく [data/races/](./data/races/) の YAML を PR で更新して投入する。**
+予想に使うには開催前に出馬表が入っている必要があり、毎週16頭を手で打つのは現実的でないため。
+人でも AI でも同じ経路で入れられる。書式と投入の性質は [data/README.md](./data/README.md)。
+
+投入スクリプトは冪等で、**メモ（note）には一切触れない。**
 
 ## DB マイグレーション
 
@@ -82,6 +135,10 @@ wrangler d1 create keiba-note --location apac
   複数リクエストで再利用されるため漏れる）。
 - 1リクエストあたりの D1 クエリは10以内（Free の上限は50）。
   超えそうなら JOIN か `batch()` にまとめる。
+- **セッショントークンは DB に入れない。** 保存するのは SHA-256 ハッシュだけ。
+- **CSRF 検証は本番ビルドでのみ有効**（SvelteKit の仕様）。
+  `vite dev` では cross-origin の form POST が通るので、
+  CSRF まわりの確認は `pnpm run build && pnpm run preview` で行うこと。
 
 ## ディレクトリ構成
 
@@ -90,11 +147,11 @@ wrangler d1 create keiba-note --location apac
 ```
 src/
 ├── app.d.ts                   # App.Platform['env'] の型（Env は wrangler types が生成）
-├── hooks.server.ts            # 認証。Phase 1 で追加
+├── hooks.server.ts            # 認証。ここだけが認証方式を知っている
 ├── lib/
 │   ├── server/
 │   │   ├── db/                # Drizzle スキーマとクライアント生成
-│   │   ├── auth/              # セッション / OAuth / 招待（Phase 1）
+│   │   ├── auth/              # セッション / OAuth / 招待
 │   │   └── services/          # 業務ロジック。SvelteKit を import しない
 │   ├── schemas/               # Valibot スキーマ
 │   ├── components/
