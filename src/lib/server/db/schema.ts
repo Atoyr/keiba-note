@@ -119,7 +119,10 @@ export const race = sqliteTable(
 		id: text('id').primaryKey(),
 		/** `YYYY-MM-DD`。JST 固定。 */
 		date: text('date').notNull(),
-		course: text('course').notNull(),
+		/** JRA の10場のみ。地方・海外は扱わない（今週の重賞を確実に引くため）。 */
+		course: text('course', {
+			enum: ['札幌', '函館', '福島', '新潟', '東京', '中山', '中京', '京都', '阪神', '小倉']
+		}).notNull(),
 		raceNumber: integer('race_number'),
 		name: text('name'),
 		grade: text('grade', { enum: ['G1', 'G2', 'G3', 'L', 'OP'] }),
@@ -191,7 +194,11 @@ export const note = sqliteTable(
 		authorId: text('author_id')
 			.notNull()
 			.references(() => user.id),
-		kind: text('kind', { enum: ['race', 'horse', 'entry'] }).notNull(),
+		/**
+		 * `preview` は出走前メモ。列の埋まり方は `entry` と同じで、
+		 * 「レース前にどう見ていたか」と「実際どうだったか」を別の行として残すために分ける。
+		 */
+		kind: text('kind', { enum: ['race', 'horse', 'entry', 'preview'] }).notNull(),
 		raceId: text('race_id').references(() => race.id, { onDelete: 'cascade' }),
 		horseId: text('horse_id').references(() => horse.id, { onDelete: 'cascade' }),
 		raceEntryId: text('race_entry_id').references(() => raceEntry.id, { onDelete: 'cascade' }),
@@ -211,11 +218,14 @@ export const note = sqliteTable(
 		index('note_horse_timeline').on(t.horseId, t.occurredAt),
 		index('note_race').on(t.raceId),
 		index('note_author').on(t.authorId, t.createdAt),
-		// 「1人・1レース・1頭につきメモは1本、編集＝上書き」を DB 側で保証する。
+		// 「1人・1出走馬・1種別につきメモは1本、編集＝上書き」を DB 側で保証する。
 		// これがあるので保存側は ON CONFLICT で upsert でき、
 		// 既存メモの id をフォームに持ち回す必要がない（＝競合で二重に増えない）。
-		uniqueIndex('note_author_entry')
-			.on(t.authorId, t.raceEntryId)
+		//
+		// **kind を含めているのが肝。** 含めないと、予想画面で書いた出走前メモが
+		// ふりかえりの保存で上書きされて消える。事前と事後は別の行として残す。
+		uniqueIndex('note_author_entry_kind')
+			.on(t.authorId, t.raceEntryId, t.kind)
 			.where(sql`race_entry_id IS NOT NULL`),
 		uniqueIndex('note_author_race')
 			.on(t.authorId, t.raceId)
@@ -227,7 +237,7 @@ export const note = sqliteTable(
 			sql`
 				(kind = 'race'  AND race_id IS NOT NULL AND horse_id IS NULL     AND race_entry_id IS NULL)
 				OR (kind = 'horse' AND race_id IS NULL     AND horse_id IS NOT NULL AND race_entry_id IS NULL)
-				OR (kind = 'entry' AND race_id IS NOT NULL AND horse_id IS NOT NULL AND race_entry_id IS NOT NULL)
+				OR (kind IN ('entry', 'preview') AND race_id IS NOT NULL AND horse_id IS NOT NULL AND race_entry_id IS NOT NULL)
 			`
 		),
 		check('note_rating_range', sql`rating IS NULL OR (rating >= 1 AND rating <= 5)`)

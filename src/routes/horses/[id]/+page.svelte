@@ -2,6 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import LockIcon from '$lib/components/LockIcon.svelte';
+	import NoteTag from '$lib/components/NoteTag.svelte';
+	import { noteHeading } from '$lib/utils/note';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -16,18 +18,6 @@
 			data.horse.trainer
 		].filter(Boolean)
 	);
-
-	/** レース紐付きのメモには見出しを出す。近況メモは「（近況メモ）」。 */
-	function heading(n: (typeof data.timeline)[number]): string {
-		if (n.kind === 'horse') return '（近況メモ）';
-		const parts = [
-			n.course ? `${n.course}${n.raceNumber ?? ''}R` : null,
-			n.raceName,
-			n.grade ? `(${n.grade})` : null,
-			n.finishPosition ? `${n.finishPosition}着` : null
-		].filter(Boolean);
-		return parts.join(' ') || '（レース）';
-	}
 
 	const input = 'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 </script>
@@ -165,15 +155,17 @@
 		{:else}
 			<ol class="mt-4 space-y-5">
 				{#each data.timeline as n (n.id)}
+					{@const h = noteHeading(n)}
 					<li class="border-l-2 border-gray-200 pl-4">
 						<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
 							<span class="font-mono text-gray-500">{n.occurredAt}</span>
+							<NoteTag tag={h.tag} />
 							{#if n.raceId}
 								<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
-									{heading(n)}
+									{h.label}
 								</a>
 							{:else}
-								<span class="text-gray-500">{heading(n)}</span>
+								<span class="text-gray-500">{h.label}</span>
 							{/if}
 							{#if n.visibility === 'private'}
 								<span

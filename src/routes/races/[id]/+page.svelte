@@ -37,12 +37,20 @@
 		{/if}
 	</div>
 	<p class="mt-1 text-sm text-gray-600">{spec.join(' / ')}</p>
-	<a
-		href={resolve('/races/[id]/entries', { id: data.race.id })}
-		class="mt-1 inline-block text-sm text-gray-600 hover:underline"
-	>
-		出走馬を編集
-	</a>
+	<div class="mt-1 flex flex-wrap gap-4 text-sm">
+		<a
+			href={resolve('/races/[id]/preview', { id: data.race.id })}
+			class="text-gray-600 hover:underline"
+		>
+			予想（過去メモを見る）
+		</a>
+		<a
+			href={resolve('/races/[id]/entries', { id: data.race.id })}
+			class="text-gray-600 hover:underline"
+		>
+			出走馬を編集
+		</a>
+	</div>
 
 	{#if form && 'message' in form && form.message}
 		<p

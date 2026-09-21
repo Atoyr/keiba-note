@@ -1,25 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import LockIcon from '$lib/components/LockIcon.svelte';
+	import NoteTag from '$lib/components/NoteTag.svelte';
+	import { noteHeading } from '$lib/utils/note';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
-
-	function heading(n: (typeof data.notes)[number]): string {
-		if (n.kind === 'horse') return `${n.horseName ?? ''}（近況メモ）`;
-		if (n.kind === 'race') {
-			return [n.course ? `${n.course}${n.raceNumber ?? ''}R` : null, n.raceName]
-				.filter(Boolean)
-				.join(' ');
-		}
-		return [
-			n.horseName,
-			n.course ? `${n.course}${n.raceNumber ?? ''}R` : null,
-			n.finishPosition ? `${n.finishPosition}着` : null
-		]
-			.filter(Boolean)
-			.join(' ');
-	}
 </script>
 
 <svelte:head><title>keiba-note</title></svelte:head>
@@ -38,15 +24,17 @@
 	{:else}
 		<ol class="mt-6 space-y-5">
 			{#each data.notes as n (n.id)}
+				{@const h = noteHeading(n)}
 				<li class="border-l-2 border-gray-200 pl-4">
 					<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
 						<span class="font-mono text-gray-500">{n.occurredAt}</span>
+						<NoteTag tag={h.tag} />
 						{#if n.raceId}
 							<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
-								{heading(n)}
+								{n.horseName ? `${n.horseName} ${h.label}` : h.label}
 							</a>
 						{:else}
-							<span>{heading(n)}</span>
+							<span>{h.label}</span>
 						{/if}
 						{#if n.visibility === 'private'}
 							<span

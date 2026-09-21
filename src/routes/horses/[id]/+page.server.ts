@@ -2,7 +2,8 @@ import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
-import { addHorseNote, deleteNote, getHorseTimeline, todayJst } from '$lib/server/services/notes';
+import { addHorseNote, deleteNote, getHorseTimeline } from '$lib/server/services/notes';
+import { todayJst } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 

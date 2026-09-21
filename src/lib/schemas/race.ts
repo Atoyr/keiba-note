@@ -46,6 +46,11 @@ export const GRADES = ['G1', 'G2', 'G3', 'L', 'OP'] as const;
 export const SURFACES = ['芝', 'ダート', '障害'] as const;
 export const DIRECTIONS = ['右', '左', '直線'] as const;
 export const TRACK_CONDITIONS = ['良', '稍重', '重', '不良'] as const;
+/**
+ * JRA の10場。**この10場だけを扱う**（地方・海外は対象外）。
+ *
+ * 自由入力にすると表記ゆれ1つで「今週の重賞」から落ちるため、選択式に縛る。
+ */
 export const COURSES = [
 	'札幌',
 	'函館',
@@ -59,13 +64,16 @@ export const COURSES = [
 	'小倉'
 ] as const;
 
+/** 重賞。`L` / `OP` は重賞ではないので「今週」の対象に含めない。 */
+export const GRADED = ['G1', 'G2', 'G3'] as const;
+
 export const raceSchema = v.object({
 	date: v.pipe(
 		v.string(),
 		v.trim(),
 		v.regex(/^\d{4}-\d{2}-\d{2}$/, '日付は YYYY-MM-DD で入力してください')
 	),
-	course: v.pipe(v.string(), v.trim(), v.minLength(1, '競馬場は必須です')),
+	course: v.picklist(COURSES, '競馬場を選んでください'),
 	raceNumber: optionalInt(1, 12),
 	name: optionalText,
 	grade: optionalPick(GRADES),

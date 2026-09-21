@@ -38,16 +38,16 @@
 
 		<label class="col-span-1 text-sm">
 			<span class="font-medium">競馬場 *</span>
-			<input
+			<select
 				name="course"
 				required
-				list="courses"
-				value={prev('course')}
 				class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2"
-			/>
-			<datalist id="courses">
-				{#each COURSES as c (c)}<option value={c}></option>{/each}
-			</datalist>
+			>
+				<option value="">—</option>
+				{#each COURSES as c (c)}
+					<option value={c} selected={prev('course') === c}>{c}</option>
+				{/each}
+			</select>
 		</label>
 
 		<label class="col-span-1 text-sm">

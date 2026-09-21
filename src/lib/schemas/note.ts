@@ -23,21 +23,32 @@ export const bodySchema = v.pipe(
 	v.maxLength(10000, 'メモが長すぎます')
 );
 
+/** 出走馬1頭分のメモ入力。ふりかえりと予想で共通の形。 */
+export const entryNoteSchema = v.object({
+	entryId: v.pipe(v.string(), v.minLength(1)),
+	horseId: v.pipe(v.string(), v.minLength(1)),
+	body: bodySchema,
+	rating: ratingSchema,
+	visibility: visibilitySchema
+});
+
+/**
+ * 予想画面の一括保存（出走前メモ）。
+ * レース自体のメモは無く、出走馬ごとのメモだけ。
+ */
+export const previewNotesSchema = v.object({
+	entries: v.array(entryNoteSchema)
+});
+
+export type PreviewNotesFormInput = v.InferOutput<typeof previewNotesSchema>;
+
 /** ふりかえり画面の一括保存。レースのメモ + 出走馬ごとのメモ。 */
 export const raceReviewSchema = v.object({
 	raceNote: v.object({
 		body: bodySchema,
 		visibility: visibilitySchema
 	}),
-	entries: v.array(
-		v.object({
-			entryId: v.pipe(v.string(), v.minLength(1)),
-			horseId: v.pipe(v.string(), v.minLength(1)),
-			body: bodySchema,
-			rating: ratingSchema,
-			visibility: visibilitySchema
-		})
-	)
+	entries: v.array(entryNoteSchema)
 });
 
 export type RaceReviewFormInput = v.InferOutput<typeof raceReviewSchema>;

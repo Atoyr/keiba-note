@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { raceSchema } from '$lib/schemas/race';
 import { isUniqueViolation } from '$lib/server/db/errors';
 import { createRace } from '$lib/server/services/races';
-import { todayJst } from '$lib/server/services/notes';
+import { todayJst } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 

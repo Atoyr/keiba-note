@@ -33,8 +33,9 @@
 
 {#if data.user}
 	<header class="border-b border-gray-200">
-		<nav class="mx-auto flex max-w-3xl flex-wrap items-center gap-4 px-6 py-3">
+		<nav class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:px-6">
 			<a href={resolve('/')} class="font-bold tracking-tight">keiba-note</a>
+			<a href={resolve('/this-week')} class="text-sm text-gray-600 hover:underline">今週</a>
 			<a href={resolve('/races')} class="text-sm text-gray-600 hover:underline">レース</a>
 			<a href={resolve('/horses')} class="text-sm text-gray-600 hover:underline">馬</a>
 			<span class="flex-1"></span>
