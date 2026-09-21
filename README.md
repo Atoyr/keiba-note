@@ -205,8 +205,8 @@ pnpm exec wrangler secret put ADMIN_EMAIL
 pnpm run data:import:remote
 ```
 
-ここまでで動く。以降は `main` にマージすれば GitHub Actions が
-マイグレーション → デプロイ → データ投入まで回す（下記）。
+ここまでで動く。以降は GitHub でリリースを publish すれば Actions が
+マイグレーション → デプロイまで回す。レースデータは `main` へのマージで入る（下記）。
 
 ### 確認に使うコマンド
 
@@ -221,14 +221,40 @@ pnpm exec wrangler tail                # 本番のログを流す
 
 ## デプロイ（GitHub Actions）
 
-`main` にマージされると `.github/workflows/ci.yml` が走る。
+ワークフローは3本。**アプリとレースデータは別系統で出る。**
 
 ```
-PR            → 検証（data:check / check / lint / test:unit）＋ E2E
-main への push → 検証 ＋ E2E ＋ マイグレーション → デプロイ → レースデータ投入
+PR / main への push        → ci.yml          検証（data:check / check / lint / test:unit）＋ E2E
+リリース publish           → deploy.yml      検証 ＋ E2E ＋ マイグレーション → デプロイ
+main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
 ```
 
-**順番が大事。** マイグレーション → デプロイ → データ投入の順にしてある。
+**アプリは `main` にマージしても本番には出ない。** 出るのはリリース publish のときだけ。
+**レースデータはリリースを待たない。** マージすればそのまま入る。
+
+分けてあるのは周期が違うから。出馬表は開催前に入っている必要があり、
+1レースにつき 予定 → 枠確定 → 結果 の3回更新される。
+これをリリースの単位に縛ると毎週リリースを切ることになり、版番号が意味を失う。
+
+順序の約束は1つだけ。**YAML に新しい項目を足す変更は、先にアプリのリリースが要る**
+（スクリプトとスキーマの変更を伴うため）。逆は自由で、データ更新はアプリに影響しない。
+`deploy.yml` はデータ投入をしない（タグ時点の古い YAML で枠順が巻き戻るため）。
+
+`main` は「次に出す候補」であって本番ではない。
+出したくなったら GitHub の Releases でタグを切って publish する。
+
+```bash
+gh release create v0.1.0 --generate-notes
+```
+
+リリースのタグは main の CI を通った commit のはずだが、
+任意の commit からタグを切ることもできるので、`deploy.yml` は
+出す前に `ci.yml` をもう一度呼んで回している（`workflow_call`）。
+
+Cloudflare 側の都合で失敗したときは、Actions から `デプロイ` を
+`workflow_dispatch` で手動リトライできる（実行するタグを選ぶ）。
+
+**順番が大事。** マイグレーション → デプロイの順にしてある。
 逆にすると新しいコードが古いスキーマに当たって壊れる。
 この順でも「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
 列を消すような破壊的なマイグレーションはそれを承知で流すこと。
@@ -269,14 +295,14 @@ Specified Workers は既にある Worker にしか付けられないので、
 
 Settings > Secrets and variables > Actions。
 
-| 種別     | 名前                    | 値                                     |
-| -------- | ----------------------- | -------------------------------------- |
-| Secret   | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                     |
-| Secret   | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID |
-| Variable | `DEPLOY_ENABLED`        | `true`                                 |
+| 種別   | 名前                    | 値                                     |
+| ------ | ----------------------- | -------------------------------------- |
+| Secret | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                     |
+| Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID |
 
-`DEPLOY_ENABLED` はデプロイの栓。**これを入れるまで deploy ジョブはスキップされる**ので、
-Cloudflare 側の準備ができる前にワークフローだけ入れても空振りするだけで済む。
+以前あった `DEPLOY_ENABLED` というリポジトリ変数の栓は廃止した。
+デプロイの入口がリリース publish に変わって、
+「うっかり出る」経路が無くなったので栓が要らなくなった。
 
 **3. `wrangler.toml` の `database_id` が実値であること**（設定済み）
 
@@ -294,7 +320,7 @@ Cloudflare 側の準備ができる前にワークフローだけ入れても空
 
 - `pull_request_target` は**使わない**。fork からの PR にシークレットが渡ってしまう
 - `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
-- deploy は `main` への push 限定なので、PR からは絶対に走らない
+- deploy はリリース publish 限定なので、PR からも main への push からも走らない
 
 ## ランタイム上の約束
 

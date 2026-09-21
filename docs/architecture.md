@@ -382,27 +382,52 @@ load に到達する。**前提が他の全ルートと違う唯一の場所**�
 
 ```mermaid
 flowchart TB
-    P["git push → main"] --> CI
+    P["PR / git push → main"] --> CI
+    R["release published"] --> DL
+    Q["main の data/races/** 変更"] --> DI
 
-    subgraph CI["GitHub Actions — .github/workflows/ci.yml"]
+    subgraph CI["GitHub Actions — ci.yml"]
         direction TB
         I["pnpm install"] --> T["data:check / check / lint / test:unit / e2e"]
-        T --> M["wrangler d1 migrations apply --remote"]
+    end
+
+    subgraph DL["GitHub Actions — deploy.yml"]
+        direction TB
+        V["ci.yml を workflow_call で再実行"] --> M["wrangler d1 migrations apply --remote"]
         M --> DP["wrangler deploy"]
-        DP --> IM["data:import:remote"]
+    end
+
+    subgraph DI["GitHub Actions — data-import.yml"]
+        direction TB
+        C["data:check"] --> IM["data:import:remote"]
     end
 
     DP --> W["k-note.xxxxx.workers.dev"]
+    IM --> D
     W --> D[("D1 / apac")]
 ```
 
-**マイグレーション → デプロイ → データ投入の順に固定している。**
+**アプリとレースデータは別系統で出る。**
+
+アプリは `main` へのマージでは本番に出ない。出るのはリリースを publish したときだけで、
+main は「次に出す候補」。どこを出すかはタグを切る側が決める。
+
+レースデータはリリースを待たずに `main` へのマージで入る。周期が違うためで、
+出馬表は開催前に入っている必要があり、1レースにつき 予定 → 枠確定 → 結果 の3回更新される。
+データ側に版番号は振っていない。**適用状況はファイル内容の SHA-256 を `data_import`
+テーブルに持つ形で表していて**、投入先（local / remote）ごとに別に進む。
+
+結合点は1つだけ。YAML に新しい項目を足す変更はスクリプトとスキーマの変更を伴うので、
+**先にアプリのリリースが要る**。逆は自由で、データ更新はアプリに影響しない。
+
+**マイグレーション → デプロイの順に固定している。**
 逆にすると新しいコードが古いスキーマに当たる。この順でも
 「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
 列を消すような破壊的なマイグレーションはそれを承知で流す（利用者が数人なので許容する）。
 
-デプロイは `DEPLOY_ENABLED` というリポジトリ変数が栓になっていて、
-Cloudflare 側の準備ができるまではスキップされる（→ [README](../README.md)）。
+リリースのタグは main の CI を通った commit のはずだが、任意の commit からも
+タグは切れるので、`deploy.yml` は出す前に `ci.yml` をもう一度呼んで回す
+（→ [README](../README.md)）。
 
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |
