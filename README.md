@@ -123,8 +123,9 @@ pnpm run db:migrate:remote
 
 ## Cloudflare に構築する
 
-**まだ一度も構築していない。** `wrangler.toml` の `database_id` は
-`__REPLACE_WITH_D1_DATABASE_ID__` のままで、D1 も Worker も存在しない。
+**構築済み。** D1 `k-note`（APAC）と Worker `k-note` は作成され、
+`wrangler.toml` の `database_id` にも実値が入っている。
+以下は**作り直すときの手順**として残してある。
 
 `wrangler` は devDependency なので、すべて `pnpm exec` を付けて叩く。
 
@@ -147,8 +148,7 @@ pnpm exec wrangler d1 create k-note --location apac
 ```
 
 出力に `database_id` が出るので、`wrangler.toml` の `[[d1_databases]]` にある
-`__REPLACE_WITH_D1_DATABASE_ID__` を置き換えてコミットする。
-これは機密ではない。
+`database_id` を書き換えてコミットする。これは機密ではない。
 
 ```toml
 [[d1_databases]]
@@ -258,16 +258,16 @@ Settings > Secrets and variables > Actions。
 `DEPLOY_ENABLED` はデプロイの栓。**これを入れるまで deploy ジョブはスキップされる**ので、
 Cloudflare 側の準備ができる前にワークフローだけ入れても空振りするだけで済む。
 
-**3. `wrangler.toml` の `database_id` を実値にする**
+**3. `wrangler.toml` の `database_id` が実値であること**（設定済み）
 
-`__REPLACE_WITH_D1_DATABASE_ID__` のままだと CI からもデプロイできない。
-`wrangler d1 create keiba-note --location apac` の出力を書く。
+プレースホルダのままだと CI からもデプロイできない。
+`pnpm exec wrangler d1 create k-note --location apac` の出力を書く。
 これは機密ではないのでコミットしてよい。
 
 **4. アプリのシークレットは Cloudflare 側に1回だけ**
 
 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` は
-`wrangler secret put` で Cloudflare に入れる。**GitHub 側には要らない。**
+`pnpm exec wrangler secret put` で Cloudflare に入れる。**GitHub 側には要らない。**
 毎回のデプロイで入れ直す必要もない。
 
 ### このリポジトリは public なので
@@ -276,7 +276,7 @@ Cloudflare 側の準備ができる前にワークフローだけ入れても空
 - `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
 - deploy は `main` への push 限定なので、PR からは絶対に走らない
 
-### ランタイム上の約束
+## ランタイム上の約束
 
 - **`nodejs_compat` は付けない。** 起動コストとバンドルが増える。
   採用ライブラリはすべて Web 標準 API だけで動く。
