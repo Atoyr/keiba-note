@@ -1,4 +1,4 @@
-import { and, asc, between, countDistinct, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, between, countDistinct, desc, eq, inArray, lt, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
@@ -257,4 +257,77 @@ export async function listEntriesForPreview(db: Db, raceId: string): Promise<Rac
 			asc(raceEntry.horseNumber),
 			asc(horse.name)
 		);
+}
+
+/** 馬柱1走ぶん。過去のレースの race_entry がそのまま材料になる。 */
+export type PastRun = {
+	horseId: string;
+	raceId: string;
+	date: string;
+	course: string;
+	raceNumber: number | null;
+	raceName: string | null;
+	grade: string | null;
+	surface: string | null;
+	distance: number | null;
+	trackCondition: string | null;
+	finishPosition: number | null;
+	popularity: number | null;
+	last3f: number | null;
+	margin: string | null;
+	jockey: string | null;
+};
+
+/**
+ * 馬柱の材料。出走馬たちの**このレースより前**の出走歴をまとめて返す。
+ *
+ * **1クエリ。** 16頭 × 5走を1頭ずつ引くと N+1 になり、D1 の
+ * 「1リクエストあたり50クエリ」（architecture.md 7-1）に近づく。
+ * `horse_id IN (...)` で一度に取り、頭ごとの件数制限は JS 側で切る。
+ * SQL で頭ごとに5走に絞るには窓関数が要るが、取ってから捨てるほうが単純で、
+ * この規模なら転送量も問題にならない。
+ *
+ * 並びは日付の降順。**着順が入っていない行も返す**（出走予定だけ登録して
+ * 結果が未入力のレースもある）。表示側で「—」を出すか落とすかを決める。
+ */
+export async function listPastRuns(
+	db: Db,
+	horseIds: string[],
+	beforeDate: string,
+	perHorse = 5
+): Promise<Map<string, PastRun[]>> {
+	if (horseIds.length === 0) return new Map();
+
+	const rows = await db
+		.select({
+			horseId: raceEntry.horseId,
+			raceId: race.id,
+			date: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			raceName: race.name,
+			grade: race.grade,
+			surface: race.surface,
+			distance: race.distance,
+			trackCondition: race.trackCondition,
+			finishPosition: raceEntry.finishPosition,
+			popularity: raceEntry.popularity,
+			last3f: raceEntry.last3f,
+			margin: raceEntry.margin,
+			jockey: raceEntry.jockey
+		})
+		.from(raceEntry)
+		.innerJoin(race, eq(raceEntry.raceId, race.id))
+		.where(and(inArray(raceEntry.horseId, horseIds), lt(race.date, beforeDate)))
+		.orderBy(desc(race.date), desc(race.raceNumber))
+		.limit(horseIds.length * perHorse * 3);
+
+	const byHorse = new Map<string, PastRun[]>();
+	for (const r of rows) {
+		const list = byHorse.get(r.horseId) ?? [];
+		if (list.length >= perHorse) continue;
+		list.push(r);
+		byHorse.set(r.horseId, list);
+	}
+	return byHorse;
 }

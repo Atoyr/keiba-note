@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import PastRuns from '$lib/components/PastRuns.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
@@ -124,6 +125,12 @@
 							{/if}
 							<span class="flex-1"></span>
 							<MarkBadge mark={r.myPreview?.mark ?? null} />
+						</div>
+
+						<!-- 馬柱は薄い面に載せて、下に続く「自分のメモ」と見分けられるようにする。
+						     どちらも小さい文字の塊なので、囲いが無いと1つの塊に見える。 -->
+						<div class="mt-1.5 ml-7 rounded-md bg-muted/50 px-2.5 py-1">
+							<PastRuns runs={r.pastRuns} />
 						</div>
 
 						{#if r.history.length > 0}

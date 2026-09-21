@@ -5,6 +5,10 @@
  * 予想に使うには金曜の時点で出馬表が入っている必要があり、16頭を手で打つのは
  * 現実的でないため。人でも AI でも、PR を出せば同じ経路で入る。
  *
+ * **レース後は同じファイルに結果を追記する。** 馬柱（予想画面に出す各馬の過去走）は
+ * 過去のレースの race_entry がそのまま材料になるので、結果が入っていないと
+ * 空欄の枠だけが並ぶ。出馬表と結果を同じ経路に載せておけば、蓄積が途切れない。
+ *
  * **流すのは内容が変わったファイルだけ。** 開催日ごとにファイルが増える設計なので、
  * 毎回すべてを再適用すると「今週ぶんを入れるために過去1年を流し直す」ことになる。
  * 適用済みのハッシュは D1 の `data_import` に覚えてあり、突き合わせて差分を出す。
@@ -58,7 +62,29 @@ const entrySchema = v.object({
 	age: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(20))),
 	trainer: v.optional(v.string()),
 	sire: v.optional(v.string()),
-	dam: v.optional(v.string())
+	dam: v.optional(v.string()),
+
+	// --- ここから下はレース後に追記する結果 --------------------------------
+	// 書かなければ既存の値を消さない（COALESCE で埋める）。
+	// 書けば上書きする。降着・失格の訂正が YAML から効くようにするため。
+	/** 着順。除外・中止なら書かない。 */
+	finish: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
+	popularity: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
+	/** `2:11.4` のような文字列のまま持つ。秒に直すのは読む側の仕事。 */
+	time: v.optional(v.string()),
+	/** 着差。`クビ` `1.1/2` など競馬の表記をそのまま。 */
+	margin: v.optional(v.string()),
+	/** 通過順。`5-5-4-2`。 */
+	passing: v.optional(v.string()),
+	/** 上がり3F。 */
+	last3f: v.optional(v.pipe(v.number(), v.minValue(20), v.maxValue(60))),
+	/** 斤量。 */
+	weight: v.optional(v.pipe(v.number(), v.minValue(40), v.maxValue(70))),
+	/** 馬体重。 */
+	horseWeight: v.optional(v.pipe(v.number(), v.integer(), v.minValue(300), v.maxValue(700))),
+	/** 前走からの増減。`-4` のように負もある。 */
+	horseWeightDiff: v.optional(v.pipe(v.number(), v.integer(), v.minValue(-50), v.maxValue(50))),
+	odds: v.optional(v.pipe(v.number(), v.minValue(1), v.maxValue(10000)))
 });
 
 const raceSchema = v.object({
@@ -192,12 +218,34 @@ WHERE ${ref} IS NULL;`,
 WHERE id = ${ref};`,
 				// 出走馬は (race_id, horse_id) で upsert。**削除も再作成もしない**ので、
 				// 紐づくメモが ON DELETE CASCADE で道連れになることがない。
-				`INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
-SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)}
+				//
+				// 枠・馬番・騎手は YAML が正なのでそのまま上書き（上で NULL に落としてある）。
+				// **結果は COALESCE。** 書いてあれば上書きし（降着の訂正が効く）、
+				// 書いていなければ既存を残す（画面から入れた値を YAML の再投入で消さない）。
+				`INSERT INTO race_entry (
+  id, race_id, horse_id, bracket, horse_number, jockey,
+  finish_position, popularity, finish_time, margin, passing, last_3f,
+  weight_carried, horse_weight, horse_weight_diff, odds
+)
+SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)},
+  ${lit(e.finish)}, ${lit(e.popularity)}, ${lit(e.time)}, ${lit(e.margin)}, ${lit(e.passing)}, ${lit(e.last3f)},
+  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}
 FROM race r
 WHERE ${raceKey('r.')} AND ${ref} IS NOT NULL
 ON CONFLICT (race_id, horse_id) DO UPDATE SET
-  bracket = excluded.bracket, horse_number = excluded.horse_number, jockey = excluded.jockey;`
+  bracket = excluded.bracket,
+  horse_number = excluded.horse_number,
+  jockey = excluded.jockey,
+  finish_position = COALESCE(excluded.finish_position, race_entry.finish_position),
+  popularity = COALESCE(excluded.popularity, race_entry.popularity),
+  finish_time = COALESCE(excluded.finish_time, race_entry.finish_time),
+  margin = COALESCE(excluded.margin, race_entry.margin),
+  passing = COALESCE(excluded.passing, race_entry.passing),
+  last_3f = COALESCE(excluded.last_3f, race_entry.last_3f),
+  weight_carried = COALESCE(excluded.weight_carried, race_entry.weight_carried),
+  horse_weight = COALESCE(excluded.horse_weight, race_entry.horse_weight),
+  horse_weight_diff = COALESCE(excluded.horse_weight_diff, race_entry.horse_weight_diff),
+  odds = COALESCE(excluded.odds, race_entry.odds);`
 			);
 		}
 	}
