@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -42,7 +43,7 @@
 							<span class="text-sm">{r.course}{r.raceNumber ?? ''}R</span>
 							<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>
 							{#if r.grade}
-								<span class="rounded bg-gray-900 px-1.5 py-0.5 text-xs text-white">{r.grade}</span>
+								<GradeBadge grade={r.grade} />
 							{:else if r.className}
 								<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
 									{r.className}
