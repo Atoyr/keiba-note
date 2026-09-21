@@ -4,7 +4,7 @@ import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
 import { addHorseNote, deleteNote, getHorseTimeline } from '$lib/server/services/notes';
 import { todayJst } from '$lib/utils/date';
-import { ctx } from '$lib/server/util';
+import { ctx, ctxAdmin } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -67,9 +67,14 @@ export const actions: Actions = {
 		return { deleted: true };
 	},
 
-	/** プロフィール欄。馬の属性と常設メモ。 */
+	/**
+	 * プロフィール欄。馬の属性と常設メモ。
+	 *
+	 * 全ユーザー共通のマスタを書き換えるので admin だけ（design.md 第4章 / 第9章 #10）。
+	 * 一般ユーザーが馬について書けるのはタイムラインの近況メモ（`addNote`）の方。
+	 */
 	saveProfile: async ({ locals, platform, params, request }) => {
-		const { db } = ctx(locals, platform);
+		const { db } = ctxAdmin(locals, platform);
 
 		const form = await request.formData();
 		const str = (k: string) => form.get(k)?.toString().trim() || null;

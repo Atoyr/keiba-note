@@ -5,9 +5,12 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import NoteTag from '$lib/components/NoteTag.svelte';
 	import { noteHeading } from '$lib/utils/note';
+	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	const admin = $derived(isAdmin(data.user));
 
 	let profileOpen = $state(false);
 
@@ -39,15 +42,19 @@
 		</p>
 	{/if}
 
-	<button
-		type="button"
-		onclick={() => (profileOpen = !profileOpen)}
-		class="mt-2 text-sm text-gray-600 hover:underline"
-	>
-		{profileOpen ? '閉じる' : 'プロフィールを編集'}
-	</button>
+	<!-- プロフィールは全ユーザー共通のマスタなので、書き換えられるのは admin だけ
+	     （design.md 第4章）。一般ユーザーにはタイムラインの近況メモだけを残す。 -->
+	{#if admin}
+		<button
+			type="button"
+			onclick={() => (profileOpen = !profileOpen)}
+			class="mt-2 text-sm text-gray-600 hover:underline"
+		>
+			{profileOpen ? '閉じる' : 'プロフィールを編集'}
+		</button>
+	{/if}
 
-	{#if profileOpen}
+	{#if admin && profileOpen}
 		<form
 			method="POST"
 			action="?/saveProfile"
