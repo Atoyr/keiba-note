@@ -11,7 +11,7 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),
 	// `wrangler types` の生成物。整形も lint もしない。
-	{ ignores: ['worker-configuration.d.ts', '.svelte-kit/', 'drizzle/'] },
+	{ ignores: ['worker-configuration.d.ts', '.svelte-kit/', 'drizzle/', 'src/lib/components/ui/'] },
 	js.configs.recommended,
 	ts.configs.recommended,
 	svelte.configs.recommended,

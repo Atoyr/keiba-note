@@ -1,14 +1,15 @@
 <script lang="ts">
+	import { Badge } from '$lib/components/ui/badge/index.js';
+
 	/** メモ種別の札。出走前メモをふりかえりメモと見分けるために出す。 */
 	let { tag }: { tag: '出走前' | '近況' | null } = $props();
 </script>
 
 {#if tag}
-	<span
-		class="rounded px-1.5 text-xs {tag === '出走前'
-			? 'bg-blue-100 text-blue-800'
-			: 'bg-gray-100 text-gray-600'}"
+	<Badge
+		variant="secondary"
+		class="px-1.5 py-0 text-[11px] font-normal {tag === '出走前' ? 'bg-sky-100 text-sky-900' : ''}"
 	>
 		{tag}
-	</span>
+	</Badge>
 {/if}
