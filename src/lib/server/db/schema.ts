@@ -206,6 +206,11 @@ export const note = sqliteTable(
 		body: text('body').notNull(),
 		/** 次走期待度 1–5。任意。 */
 		rating: integer('rating'),
+		/**
+		 * 予想印。`preview`（出走前メモ）にだけ付く。
+		 * 本文が空でも印だけ残せる（「◎だけ付けておく」が成立する）。
+		 */
+		mark: text('mark', { enum: ['◎', '○', '▲', '△', '×'] }),
 		visibility: text('visibility', { enum: ['shared', 'private'] })
 			.notNull()
 			.default('shared'),
@@ -240,7 +245,9 @@ export const note = sqliteTable(
 				OR (kind IN ('entry', 'preview') AND race_id IS NOT NULL AND horse_id IS NOT NULL AND race_entry_id IS NOT NULL)
 			`
 		),
-		check('note_rating_range', sql`rating IS NULL OR (rating >= 1 AND rating <= 5)`)
+		check('note_rating_range', sql`rating IS NULL OR (rating >= 1 AND rating <= 5)`),
+		// 印は出走前メモ専用。ふりかえりのメモに付いていたら整合していない。
+		check('note_mark_kind', sql`mark IS NULL OR kind = 'preview'`)
 	]
 );
 

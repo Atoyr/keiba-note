@@ -18,7 +18,15 @@ const nowSec = () => Math.floor(Date.now() / 1000);
 
 export type NoteView = Pick<
 	Note,
-	'id' | 'kind' | 'body' | 'rating' | 'visibility' | 'occurredAt' | 'raceEntryId' | 'horseId'
+	| 'id'
+	| 'kind'
+	| 'body'
+	| 'rating'
+	| 'mark'
+	| 'visibility'
+	| 'occurredAt'
+	| 'raceEntryId'
+	| 'horseId'
 > & { authorId: string; authorName: string };
 
 /** レース詳細で出す全メモ（レース自体のメモ + 各馬のメモ）。1クエリ。 */
@@ -29,6 +37,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 			kind: note.kind,
 			body: note.body,
 			rating: note.rating,
+			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
 			raceEntryId: note.raceEntryId,
@@ -172,6 +181,7 @@ export type TimelineItem = {
 	kind: Note['kind'];
 	body: string;
 	rating: number | null;
+	mark: Note['mark'];
 	visibility: Note['visibility'];
 	occurredAt: string;
 	authorId: string;
@@ -204,6 +214,7 @@ export async function getHorseTimeline(
 			kind: note.kind,
 			body: note.body,
 			rating: note.rating,
+			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
 			authorId: note.authorId,
@@ -267,6 +278,7 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 			kind: note.kind,
 			body: note.body,
 			rating: note.rating,
+			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
 			authorId: note.authorId,
@@ -310,6 +322,7 @@ export async function listHistoryForHorses(
 			kind: note.kind,
 			body: note.body,
 			rating: note.rating,
+			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
 			authorId: note.authorId,
@@ -354,6 +367,7 @@ export type PreviewNoteInput = {
 		horseId: string;
 		body: string;
 		rating: number | null;
+		mark: '◎' | '○' | '▲' | '△' | '×' | null;
 		visibility: 'shared' | 'private';
 	}[];
 };
@@ -378,7 +392,9 @@ export async function savePreviewNotes(
 	for (const e of input.entries) {
 		const body = e.body.trim();
 
-		if (body) {
+		// **印だけ付けて本文を書かない**のは普通の使い方なので、
+		// 本文が空でも印があれば行を残す。両方空のときだけ消す。
+		if (body || e.mark) {
 			statements.push(
 				db
 					.insert(note)
@@ -391,13 +407,20 @@ export async function savePreviewNotes(
 						raceEntryId: e.entryId,
 						body,
 						rating: e.rating,
+						mark: e.mark,
 						visibility: e.visibility,
 						occurredAt
 					})
 					.onConflictDoUpdate({
 						target: [note.authorId, note.raceEntryId, note.kind],
 						targetWhere: sql`race_entry_id IS NOT NULL`,
-						set: { body, rating: e.rating, visibility: e.visibility, updatedAt: nowSec() }
+						set: {
+							body,
+							rating: e.rating,
+							mark: e.mark,
+							visibility: e.visibility,
+							updatedAt: nowSec()
+						}
 					})
 			);
 			saved++;

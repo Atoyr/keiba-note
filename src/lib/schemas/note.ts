@@ -2,6 +2,18 @@ import * as v from 'valibot';
 
 export const VISIBILITIES = ['shared', 'private'] as const;
 
+/** 予想印。本命 → 消し の順。 */
+export const MARKS = ['◎', '○', '▲', '△', '×'] as const;
+
+export type Mark = (typeof MARKS)[number];
+
+/** 選択肢のどれでもなければ null。印なしが既定。 */
+export const markSchema = v.pipe(
+	v.optional(v.string(), ''),
+	v.trim(),
+	v.transform((s): Mark | null => ((MARKS as readonly string[]).includes(s) ? (s as Mark) : null))
+);
+
 /** 公開範囲。既定は shared（招待制の閉じた場なので共有が自然）。 */
 export const visibilitySchema = v.pipe(
 	v.optional(v.string(), 'shared'),
@@ -32,12 +44,22 @@ export const entryNoteSchema = v.object({
 	visibility: visibilitySchema
 });
 
+/** 予想画面の1頭分。本文に加えて印を持つ。 */
+export const previewEntrySchema = v.object({
+	entryId: v.pipe(v.string(), v.minLength(1)),
+	horseId: v.pipe(v.string(), v.minLength(1)),
+	body: bodySchema,
+	rating: ratingSchema,
+	mark: markSchema,
+	visibility: visibilitySchema
+});
+
 /**
  * 予想画面の一括保存（出走前メモ）。
  * レース自体のメモは無く、出走馬ごとのメモだけ。
  */
 export const previewNotesSchema = v.object({
-	entries: v.array(entryNoteSchema)
+	entries: v.array(previewEntrySchema)
 });
 
 export type PreviewNotesFormInput = v.InferOutput<typeof previewNotesSchema>;

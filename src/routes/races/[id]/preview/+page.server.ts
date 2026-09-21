@@ -77,6 +77,7 @@ export const actions: Actions = {
 				horseId: e.horseId,
 				body: form.get(`body.${e.entryId}`)?.toString() ?? '',
 				rating: form.get(`rating.${e.entryId}`)?.toString() ?? '',
+				mark: form.get(`mark.${e.entryId}`)?.toString() ?? '',
 				visibility: form.get(`visibility.${e.entryId}`)?.toString() ?? 'shared'
 			}))
 		});
