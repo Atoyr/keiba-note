@@ -5,15 +5,22 @@
  * 予想に使うには金曜の時点で出馬表が入っている必要があり、16頭を手で打つのは
  * 現実的でないため。人でも AI でも、PR を出せば同じ経路で入る。
  *
+ * **流すのは内容が変わったファイルだけ。** 開催日ごとにファイルが増える設計なので、
+ * 毎回すべてを再適用すると「今週ぶんを入れるために過去1年を流し直す」ことになる。
+ * 適用済みのハッシュは D1 の `data_import` に覚えてあり、突き合わせて差分を出す。
+ *
  * 生成する SQL は**冪等**で、メモ（note）には一切触れない。
  * 同じファイルを何度流しても結果は同じで、既存のメモは消えない。
  *
- *   node --experimental-strip-types scripts/import-races.ts --out out.sql
  *   node --experimental-strip-types scripts/import-races.ts --check
+ *   node --experimental-strip-types scripts/import-races.ts --target local  --out out.sql
+ *   node --experimental-strip-types scripts/import-races.ts --target remote --out out.sql --all
  */
 
-import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { parse } from 'yaml';
 import * as v from 'valibot';
 import {
@@ -25,17 +32,30 @@ import {
 } from '../src/lib/schemas/race.ts';
 
 const DATA_DIR = 'data/races';
+const WRANGLER = join('node_modules', 'wrangler', 'bin', 'wrangler.js');
+const DB_NAME = 'keiba-note';
 
 const optional = <T extends readonly string[]>(options: T) =>
 	v.optional(v.picklist(options as unknown as string[]));
 
 const entrySchema = v.object({
 	name: v.pipe(v.string(), v.trim(), v.minLength(1, '馬名は必須です')),
+	/**
+	 * 引き当て用の外部 ID（netkeiba の馬ID等）。**指定すればこれが最優先のキー**になり、
+	 * 同名馬でも取り違えない。分かるなら書いておくのが一番強い。
+	 */
+	ref: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 	bracket: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8))),
 	horseNumber: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
 	jockey: v.optional(v.string()),
 	sex: optional(['牡', '牝', 'セ'] as const),
 	birthYear: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1980), v.maxValue(2100))),
+	/**
+	 * 馬齢。出馬表の「性齢」欄（牡4 の 4）をそのまま書ける。
+	 * 生年は `開催年 - 馬齢` で導出する（2001年以降の満年齢表記）。
+	 * `birthYear` を直接書いてもよく、両方書くなら一致していること。
+	 */
+	age: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(20))),
 	trainer: v.optional(v.string()),
 	sire: v.optional(v.string()),
 	dam: v.optional(v.string())
@@ -61,6 +81,7 @@ const fileSchema = v.object({
 });
 
 type RaceFile = v.InferOutput<typeof fileSchema>;
+type Entry = v.InferOutput<typeof entrySchema>;
 
 /** SQL リテラル。ここを通さない値は SQL に入れない。 */
 function lit(value: string | number | null | undefined): string {
@@ -86,7 +107,45 @@ function newId(): string {
 	return ts + Array.from(bytes, (b) => ALPHABET[b % 32]).join('');
 }
 
-function statementsFor(file: RaceFile): string[] {
+/**
+ * 馬の引き当て式。**必ず1行以下**に絞れるスカラーサブクエリを返す。
+ *
+ * この式を「作る／埋める／出走馬に紐づける」の3箇所で使い回すのが肝。
+ * 3箇所で別々の条件を書くと、引き当てた馬と更新する馬が食い違う。
+ *
+ * **鍵は「後から足される」ことを前提にすること。** `ref` も生年も、
+ * 名前だけで登録したあとに追記される。追記のたびに新しい行を作ってしまっては
+ * 二段階で書ける意味がないので、どちらの条件も「まだ埋まっていない行」を拾う。
+ *
+ * 優先順位:
+ *   1. `external_ref` が一致する馬
+ *   2. **まだ ref の付いていない**同名馬（`ref` を後から足す経路）
+ *   3. 生年が一致する同名馬 → 無ければ生年未設定の同名馬（`age` を後から足す経路）
+ *   4. 名前だけなら同名の中から、生年未設定 → 生年が新しい順に1頭
+ */
+function horseRef(e: Entry): string {
+	// 名前（＋分かれば生年）での引き当て条件。
+	const byName = e.birthYear
+		? `name = ${lit(e.name)} AND (birth_year = ${lit(e.birthYear)} OR birth_year IS NULL)`
+		: `name = ${lit(e.name)}`;
+	// 生年が分かるなら一致を先に。分からないなら生年未設定 → 新しい順。
+	const order = e.birthYear ? 'birth_year IS NULL' : 'birth_year IS NULL DESC, birth_year DESC';
+
+	if (!e.ref) {
+		return `(SELECT id FROM horse WHERE ${byName} ORDER BY ${order} LIMIT 1)`;
+	}
+
+	// ref 一致を最優先しつつ、**ref がまだ無い同名馬**も拾う。
+	// これが無いと、既にいる馬に ref を追記した瞬間に「ref 一致なし」で
+	// もう1頭作ろうとし、horse_name_birth の UNIQUE に当たって落ちる。
+	return (
+		`(SELECT id FROM horse` +
+		` WHERE external_ref = ${lit(e.ref)} OR (external_ref IS NULL AND ${byName})` +
+		` ORDER BY external_ref IS NULL, ${order} LIMIT 1)`
+	);
+}
+
+function statementsFor(file: RaceFile, fileName: string, hash: string): string[] {
 	const out: string[] = [];
 	const { date } = file;
 
@@ -103,47 +162,134 @@ ON CONFLICT (date, course, race_number) DO UPDATE SET
   name = excluded.name, grade = excluded.grade, class_name = excluded.class_name,
   surface = excluded.surface, distance = excluded.distance, direction = excluded.direction,
   track_condition = excluded.track_condition, weather = excluded.weather,
-  updated_at = unixepoch();`
+  updated_at = unixepoch();`,
+			// 枠・馬番はいったん外してから入れ直す。
+			// 確定後に訂正が入ると（2頭の馬番が入れ替わる等）、1頭ずつ更新する途中で
+			// entry_race_number の UNIQUE (race_id, horse_number) に当たって実行ごと落ちる。
+			// **このレースの枠・馬番については YAML が正**、という割り切り。
+			`UPDATE race_entry SET bracket = NULL, horse_number = NULL
+WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 		);
 
 		for (const e of race.entries) {
-			// 馬は名前で引き当てる。無ければ作る。
-			// horse_name_birth は (name, birth_year) の UNIQUE だが、birth_year が NULL だと
-			// SQLite は NULL 同士を別物として扱い ON CONFLICT が発火しない。
-			// そのため ON CONFLICT ではなく WHERE NOT EXISTS で書く。
+			const ref = horseRef(e);
+
 			out.push(
-				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam)
-SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${lit(e.trainer)}, ${lit(e.sire)}, ${lit(e.dam)}
-WHERE NOT EXISTS (SELECT 1 FROM horse WHERE name = ${lit(e.name)});`,
-				// 既存馬は属性だけ更新する。**プロフィールメモには触らない**（利用者が書いたもの）。
+				// 引き当たらなければ作る。
+				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam, external_ref)
+SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${lit(e.trainer)}, ${lit(e.sire)}, ${lit(e.dam)}, ${lit(e.ref)}
+WHERE ${ref} IS NULL;`,
+				// 既存馬は空いている属性だけ埋める。**プロフィールメモには触らない**（利用者が書いたもの）。
+				// id で1行に固定しているので、同名の別馬を巻き添えにすることがない。
 				`UPDATE horse SET
   sex = COALESCE(${lit(e.sex)}, sex),
   birth_year = COALESCE(${lit(e.birthYear)}, birth_year),
   trainer = COALESCE(${lit(e.trainer)}, trainer),
   sire = COALESCE(${lit(e.sire)}, sire),
   dam = COALESCE(${lit(e.dam)}, dam),
+  external_ref = COALESCE(${lit(e.ref)}, external_ref),
   updated_at = unixepoch()
-WHERE name = ${lit(e.name)};`,
+WHERE id = ${ref};`,
 				// 出走馬は (race_id, horse_id) で upsert。**削除も再作成もしない**ので、
 				// 紐づくメモが ON DELETE CASCADE で道連れになることがない。
 				`INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
-SELECT ${lit(newId())}, r.id, h.id, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)}
-FROM race r, horse h
-WHERE ${raceKey('r.')} AND h.name = ${lit(e.name)}
+SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)}
+FROM race r
+WHERE ${raceKey('r.')} AND ${ref} IS NOT NULL
 ON CONFLICT (race_id, horse_id) DO UPDATE SET
   bracket = excluded.bracket, horse_number = excluded.horse_number, jockey = excluded.jockey;`
 			);
 		}
 	}
 
+	// **適用済みの記録は必ず最後。** 途中で落ちたらハッシュが残らず、次回もう一度流れる。
+	out.push(
+		`INSERT INTO data_import (file, hash, applied_at) VALUES (${lit(fileName)}, ${lit(hash)}, unixepoch())
+ON CONFLICT (file) DO UPDATE SET hash = excluded.hash, applied_at = unixepoch();`
+	);
+
 	return out;
+}
+
+/**
+ * 馬齢から生年を導出し、`birthYear` に寄せる。
+ * 出馬表には生年ではなく性齢（牡4）が載るので、書き写すだけで済むようにしておく。
+ */
+function normalizeEntry(e: Entry, date: string): { entry: Entry; error?: string } {
+	if (e.age === undefined) return { entry: e };
+
+	const derived = Number(date.slice(0, 4)) - e.age;
+	if (e.birthYear !== undefined && e.birthYear !== derived) {
+		return {
+			entry: e,
+			error: `${e.name}: age ${e.age}（生年 ${derived}）と birthYear ${e.birthYear} が食い違います`
+		};
+	}
+	return { entry: { ...e, birthYear: derived } };
+}
+
+/** 適用済みのファイル名 → ハッシュ。テーブルがまだ無い等で引けなければ空で返す。 */
+function loadAppliedHashes(target: 'local' | 'remote'): Map<string, string> {
+	const result = spawnSync(
+		process.execPath,
+		[
+			WRANGLER,
+			'd1',
+			'execute',
+			DB_NAME,
+			`--${target}`,
+			'--json',
+			'--command',
+			'SELECT file, hash FROM data_import'
+		],
+		{ encoding: 'utf8' }
+	);
+
+	const applied = new Map<string, string>();
+	const raw = result.stdout ?? '';
+	const start = raw.search(/[[{]/);
+
+	if (result.status !== 0 || start < 0) {
+		console.warn(
+			`! 適用状況を読めませんでした（${target}）。全ファイルを対象にします。\n` +
+				`  data_import が無いなら先に db:migrate:${target} を実行してください。`
+		);
+		return applied;
+	}
+
+	try {
+		const collect = (node: unknown): void => {
+			if (Array.isArray(node)) return node.forEach(collect);
+			if (!node || typeof node !== 'object') return;
+			const obj = node as Record<string, unknown>;
+			if (Array.isArray(obj.results)) return obj.results.forEach(collect);
+			if (typeof obj.file === 'string' && typeof obj.hash === 'string') {
+				applied.set(obj.file, obj.hash);
+			}
+		};
+		collect(JSON.parse(raw.slice(start)));
+	} catch {
+		console.warn(
+			`! 適用状況の JSON を解釈できませんでした（${target}）。全ファイルを対象にします。`
+		);
+	}
+
+	return applied;
 }
 
 async function main() {
 	const args = process.argv.slice(2);
 	const checkOnly = args.includes('--check');
+	const forceAll = args.includes('--all');
 	const outIndex = args.indexOf('--out');
 	const outPath = outIndex >= 0 ? args[outIndex + 1] : null;
+	const targetIndex = args.indexOf('--target');
+	const target = targetIndex >= 0 ? args[targetIndex + 1] : null;
+
+	if (!checkOnly && target !== 'local' && target !== 'remote') {
+		console.error('--target local | --target remote を指定してください（--check なら不要）。');
+		process.exit(1);
+	}
 
 	let files: string[];
 	try {
@@ -158,9 +304,14 @@ async function main() {
 		process.exit(1);
 	}
 
+	// 適用状況の突き合わせは検証の**あと**。壊れた YAML は差分の有無に関わらず落としたい。
+	const applied =
+		checkOnly || forceAll ? new Map<string, string>() : loadAppliedHashes(target as never);
+
 	const statements: string[] = [];
 	let raceCount = 0;
 	let entryCount = 0;
+	let changedCount = 0;
 	let failed = false;
 
 	for (const f of files) {
@@ -185,19 +336,58 @@ async function main() {
 			continue;
 		}
 
+		// 馬齢 → 生年。ここで食い違いを見つけたら落とす。
+		const errors: string[] = [];
+		for (const race of parsed.output.races) {
+			race.entries = race.entries.map((e) => {
+				const { entry, error } = normalizeEntry(e, parsed.output.date);
+				if (error) errors.push(error);
+				return entry;
+			});
+		}
+		if (errors.length > 0) {
+			failed = true;
+			console.error(`✗ ${f}`);
+			for (const e of errors) console.error(`    ${e}`);
+			continue;
+		}
+
+		const fileEntries = parsed.output.races.reduce((n, r) => n + r.entries.length, 0);
 		raceCount += parsed.output.races.length;
-		entryCount += parsed.output.races.reduce((n, r) => n + r.entries.length, 0);
-		statements.push(...statementsFor(parsed.output));
-		console.log(`✓ ${f}  レース ${parsed.output.races.length} / 出走馬 ${entryCount}`);
+		entryCount += fileEntries;
+
+		const hash = createHash('sha256').update(raw, 'utf8').digest('hex');
+		const unchanged = applied.get(f) === hash;
+
+		if (unchanged) {
+			console.log(
+				`- ${f}  レース ${parsed.output.races.length} / 出走馬 ${fileEntries}（変更なし）`
+			);
+			continue;
+		}
+
+		changedCount += 1;
+		statements.push(...statementsFor(parsed.output, f, hash));
+		console.log(`✓ ${f}  レース ${parsed.output.races.length} / 出走馬 ${fileEntries}`);
 	}
 
 	if (failed) process.exit(1);
-	console.log(`\n合計: レース ${raceCount} / 出走馬 ${entryCount}`);
+	console.log(
+		`\n合計: レース ${raceCount} / 出走馬 ${entryCount}` +
+			(checkOnly ? '' : ` — 流すファイル ${changedCount} / ${files.length}`)
+	);
 
 	if (checkOnly) return;
 
-	const sql = statements.join('\n') + '\n';
+	// 差分が無くても SQL は書き出す。ここで何も書かないと、続く
+	// `wrangler d1 execute --file` が前回の SQL を読んで流し直してしまう。
+	const sql =
+		changedCount === 0
+			? '-- 差分なし。適用するものはありません。\nSELECT 1;\n'
+			: statements.join('\n') + '\n';
+
 	if (outPath) {
+		await mkdir(dirname(outPath), { recursive: true });
 		await writeFile(outPath, sql, 'utf8');
 		console.log(`SQL を書き出しました: ${outPath}`);
 	} else {
