@@ -267,18 +267,35 @@ Cloudflare ダッシュボード > Manage Account > Account API Tokens > Create 
 My Profile 配下のユーザートークンではなく、**アカウント所有トークン**を作る
 （作った人がアカウントを抜けても失効しない）。
 
-| 対象    | 設定                                           |
-| ------- | ---------------------------------------------- |
-| Workers | Editor / スコープは Specified Workers → k-note |
-| Account | D1 : Edit                                      |
+| 対象    | 設定                                           | 何のために                             |
+| ------- | ---------------------------------------------- | -------------------------------------- |
+| Workers | Editor / スコープは Specified Workers → k-note | `wrangler deploy` の書き込み           |
+| Account | `D1 : Edit`                                    | `d1 migrations apply` / `d1 execute`   |
+| Account | `Workers Scripts : Read`                       | workers.dev のサブドメイン名の読み取り |
 
 - Account Resources はこのアカウントだけに絞る
 - Client IP Address Filtering は**設定しない**。GitHub の runner は IP が動的なので、絞ると壊れる
 
-`Workers: Editor` だけで `wrangler deploy`（Worker 本体・`[assets]`・シークレット）が通る。
-バインディングを持つ Worker をデプロイするだけなら、バインディング先の権限は要らない。
-`D1 : Edit` を別に付けるのは、`d1 migrations apply` と `d1 execute` で
-**D1 を直接叩いている**から。
+`Workers: Editor` が `wrangler deploy`（Worker 本体・`[assets]`・シークレット）の
+書き込みを担う。バインディングを持つ Worker をデプロイするだけなら、
+バインディング先の権限は要らない。`D1 : Edit` を別に付けるのは、
+`d1 migrations apply` と `d1 execute` で**D1 を直接叩いている**から。
+
+**`Workers Scripts : Read` は Workers: Editor では代用できない。**
+`wrangler deploy` は Worker を上げ終えたあと、結果に出す URL を組み立てるために
+`GET /accounts/{id}/workers/subdomain` を読む。これは**アカウント単位**の読み取りで、
+Specified Workers に絞ったスコープの外にある。付けずに CI から流すと、
+**アップロードは成功したのにコマンドが `Authentication error [code: 10000]` で
+非ゼロ終了する**（v0.1.0 のリリースで踏んだ）。
+
+厄介なのは、そこで throw して**直後の
+`POST /accounts/{id}/workers/scripts/k-note/subdomain` に到達しないこと**。
+workers.dev を実際に有効化しているのはこちらの Worker 単位の API なので、
+`wrangler.toml` の `workers_dev` と `preview_urls` を変えても反映されなくなる。
+既存の設定が残るぶんサイトは動き続けるので、気づきにくい。
+
+`workers_dev = false` にすれば読みに行かなくなるが、その POST が `enabled: false` を
+送って workers.dev ごと落ちる。独自ドメインが無いうちは取れない手。
 
 **新しい Worker を作るには Workers product スコープの Admin が要る。**
 Specified Workers は既にある Worker にしか付けられないので、
@@ -287,9 +304,14 @@ Specified Workers は既にある Worker にしか付けられないので、
 独自ドメインを当てるときは、対象ゾーンに Zone > `Workers Routes : Write` を足す。
 ルートを張った後の通常のデプロイには要らない（ルート自体を変えるときだけ必要）。
 
-旧来の `Edit Cloudflare Workers` テンプレート（`Workers Scripts : Edit`）でも動くが、
-2026-09-15 に Workers の権限が role ベースに変わり legacy 扱いになった（廃止日は未定）。
+旧来の `Edit Cloudflare Workers` テンプレート（`Workers Scripts : Edit`）でも動く。
+2026-09-15 に Workers の権限が role ベースに変わり legacy 扱いになった（廃止日は未定）ので、
 新しく作るなら上の構成にする。
+
+なお、上の subdomain の件が新しい構成でだけ顕在化するのは、legacy の
+`Workers Scripts : Edit` が**アカウント単位で、Worker を絞れない**ため。
+Specified Workers で絞れるようになった代わりに、アカウント単位の読み取りが
+別途要るようになった、という関係にある。
 
 **2. リポジトリに登録する**
 
