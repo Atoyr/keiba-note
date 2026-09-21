@@ -123,8 +123,9 @@ pnpm run db:migrate:remote
 
 ## Cloudflare に構築する
 
-**まだ一度も構築していない。** `wrangler.toml` の `database_id` は
-`__REPLACE_WITH_D1_DATABASE_ID__` のままで、D1 も Worker も存在しない。
+**構築済み。** D1 `k-note`（APAC）と Worker `k-note` は作成され、
+`wrangler.toml` の `database_id` にも実値が入っている。
+以下は**作り直すときの手順**として残してある。
 
 `wrangler` は devDependency なので、すべて `pnpm exec` を付けて叩く。
 
@@ -147,8 +148,7 @@ pnpm exec wrangler d1 create k-note --location apac
 ```
 
 出力に `database_id` が出るので、`wrangler.toml` の `[[d1_databases]]` にある
-`__REPLACE_WITH_D1_DATABASE_ID__` を置き換えてコミットする。
-これは機密ではない。
+`database_id` を書き換えてコミットする。これは機密ではない。
 
 ```toml
 [[d1_databases]]
@@ -219,7 +219,64 @@ pnpm exec wrangler deploy --dry-run    # 上げずにビルドだけ試す
 pnpm exec wrangler tail                # 本番のログを流す
 ```
 
-### ランタイム上の約束
+## デプロイ（GitHub Actions）
+
+`main` にマージされると `.github/workflows/ci.yml` が走る。
+
+```
+PR            → 検証（data:check / check / lint / test:unit）＋ E2E
+main への push → 検証 ＋ E2E ＋ マイグレーション → デプロイ → レースデータ投入
+```
+
+**順番が大事。** マイグレーション → デプロイ → データ投入の順にしてある。
+逆にすると新しいコードが古いスキーマに当たって壊れる。
+この順でも「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
+列を消すような破壊的なマイグレーションはそれを承知で流すこと。
+
+### 動かすのに必要な設定
+
+**1. Cloudflare の API トークンを作る**
+
+Cloudflare ダッシュボード > My Profile > API Tokens > Create Token。
+`Edit Cloudflare Workers` テンプレートを元に、権限を2つにする。
+
+| 種別    | 権限                   |
+| ------- | ---------------------- |
+| Account | Workers Scripts : Edit |
+| Account | D1 : Edit              |
+
+**2. リポジトリに登録する**
+
+Settings > Secrets and variables > Actions。
+
+| 種別     | 名前                    | 値                                     |
+| -------- | ----------------------- | -------------------------------------- |
+| Secret   | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                     |
+| Secret   | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID |
+| Variable | `DEPLOY_ENABLED`        | `true`                                 |
+
+`DEPLOY_ENABLED` はデプロイの栓。**これを入れるまで deploy ジョブはスキップされる**ので、
+Cloudflare 側の準備ができる前にワークフローだけ入れても空振りするだけで済む。
+
+**3. `wrangler.toml` の `database_id` が実値であること**（設定済み）
+
+プレースホルダのままだと CI からもデプロイできない。
+`pnpm exec wrangler d1 create k-note --location apac` の出力を書く。
+これは機密ではないのでコミットしてよい。
+
+**4. アプリのシークレットは Cloudflare 側に1回だけ**
+
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` は
+`pnpm exec wrangler secret put` で Cloudflare に入れる。**GitHub 側には要らない。**
+毎回のデプロイで入れ直す必要もない。
+
+### このリポジトリは public なので
+
+- `pull_request_target` は**使わない**。fork からの PR にシークレットが渡ってしまう
+- `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
+- deploy は `main` への push 限定なので、PR からは絶対に走らない
+
+## ランタイム上の約束
 
 - **`nodejs_compat` は付けない。** 起動コストとバンドルが増える。
   採用ライブラリはすべて Web 標準 API だけで動く。

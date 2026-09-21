@@ -384,16 +384,25 @@ load に到達する。**前提が他の全ルートと違う唯一の場所**�
 flowchart TB
     P["git push → main"] --> CI
 
-    subgraph CI["GitHub Actions"]
+    subgraph CI["GitHub Actions — .github/workflows/ci.yml"]
         direction TB
-        I["pnpm install"] --> T["svelte-check / vitest"]
+        I["pnpm install"] --> T["data:check / check / lint / test:unit / e2e"]
         T --> M["wrangler d1 migrations apply --remote"]
         M --> DP["wrangler deploy"]
+        DP --> IM["data:import:remote"]
     end
 
     DP --> W["k-note.xxxxx.workers.dev"]
     W --> D[("D1 / apac")]
 ```
+
+**マイグレーション → デプロイ → データ投入の順に固定している。**
+逆にすると新しいコードが古いスキーマに当たる。この順でも
+「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
+列を消すような破壊的なマイグレーションはそれを承知で流す（利用者が数人なので許容する）。
+
+デプロイは `DEPLOY_ENABLED` というリポジトリ変数が栓になっていて、
+Cloudflare 側の準備ができるまではスキップされる（→ [README](../README.md)）。
 
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |
@@ -406,7 +415,7 @@ flowchart TB
 ### D1 の配置
 
 ```bash
-wrangler d1 create k-note --location apac
+pnpm exec wrangler d1 create k-note --location apac
 ```
 
 **`--location apac` を必ず付ける。** D1 は「プライマリが1箇所にある SQLite」であり、
@@ -612,10 +621,10 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 
 | 項目 | どうするか |
 | --- | --- |
-| **バックアップ** | D1 の Time Travel で過去7日間（Free）の任意の時点に復元できる。**別途バックアップの仕組みは作らない。** 節目で `wrangler d1 export` を手動実行して手元に置けば十分 |
+| **バックアップ** | D1 の Time Travel で過去7日間（Free）の任意の時点に復元できる。**別途バックアップの仕組みは作らない。** 節目で `pnpm exec wrangler d1 export` を手動実行して手元に置けば十分 |
 | **ログ** | Workers Logs が Free で 200,000 イベント/日・3日保持。設定不要で使える |
 | **メトリクス** | Cloudflare ダッシュボードの Worker / D1 メトリクス。rows read/written はここで実測を確認できる |
-| **シークレット** | `wrangler secret put`（本番）/ `.dev.vars`（ローカル、`.gitignore` 済み） |
+| **シークレット** | `pnpm exec wrangler secret put`（本番）/ `.dev.vars`（ローカル、`.gitignore` 済み） |
 | **マイグレーション** | `wrangler d1 migrations apply` を GitHub Actions のデプロイ前に実行 |
 | **暴走課金の防止** | Free plan にいる限り、上限を超えるとエラーになるだけで課金はされない。Paid に上げた場合は Worker の CPU Limits を設定する |
 
