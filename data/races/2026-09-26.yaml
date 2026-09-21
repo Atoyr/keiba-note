@@ -16,13 +16,16 @@ races:
         name: ホースB
         jockey: 武豊
         sex: 牡
-        birthYear: 2021
+        age: 5 # 出馬表の性齢をそのまま。生年は 2026 - 5 = 2021 として扱う
       - horseNumber: 5
         bracket: 3
         name: ホースA
         jockey: ルメール
         sex: 牡
-        birthYear: 2022
+        birthYear: 2022 # age の代わりに生年を直接書いてもよい
+        ref: sample-horse-a # 外部ID。書いておくと同名馬がいても取り違えない
+      # 枠が決まる前の段階では、名前だけでも登録できる。
+      # あとから性齢・馬番を追記して同じファイルを更新すれば、同じ馬として埋まる。
       - horseNumber: 12
         bracket: 6
         name: ホースC

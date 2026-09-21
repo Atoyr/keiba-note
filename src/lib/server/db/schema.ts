@@ -109,6 +109,17 @@ export const horse = sqliteTable(
 	(t) => [
 		// 同名馬対策。世代が違えば別馬として登録できる。
 		uniqueIndex('horse_name_birth').on(t.name, t.birthYear),
+		// **birth_year が NULL の行は horse_name_birth では一意にならない。**
+		// SQLite は NULL 同士を別物として扱うため、生年不明の同名馬が何頭でも入ってしまう。
+		// 投入スクリプトは生年が分かる前に馬を作る（出走予定の段階では性齢が未公表）ので、
+		// この穴を塞いでおかないと「あとから生年を埋める」経路で重複が増える。
+		uniqueIndex('horse_name_no_birth')
+			.on(t.name)
+			.where(sql`birth_year IS NULL`),
+		// external_ref を引き当てキーに使うなら一意でなければ意味がない。
+		uniqueIndex('horse_external_ref')
+			.on(t.externalRef)
+			.where(sql`external_ref IS NOT NULL`),
 		index('horse_name').on(t.name)
 	]
 );
@@ -251,6 +262,27 @@ export const note = sqliteTable(
 	]
 );
 
+/**
+ * data/races/*.yaml の適用状況。
+ *
+ * 投入スクリプトは実行のたびに全ファイルを流し直していたが、開催日ごとに
+ * ファイルが増える設計なので、いずれ「今週ぶんを入れるために過去1年を再適用する」ことになる。
+ * ファイル内容のハッシュを覚えておき、**変わったファイルだけ**を流す。
+ *
+ * 置き場所を D1 にしているのは、適用状況が**投入先ごとに違う**から。
+ * ローカル D1 と本番 D1 では進み方が別で、リポジトリ内のファイルでは片方しか表せない。
+ * 状態をデータと同じ場所に置けば、ずれようがない。
+ */
+export const dataImport = sqliteTable('data_import', {
+	/** `data/races/` からの相対ファイル名。`2026-09-26.yaml` */
+	file: text('file').primaryKey(),
+	/** ファイル内容の SHA-256（hex）。 */
+	hash: text('hash').notNull(),
+	appliedAt: integer('applied_at')
+		.notNull()
+		.default(sql`(unixepoch())`)
+});
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session),
 	invites: many(invite)
@@ -274,3 +306,4 @@ export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Invite = typeof invite.$inferSelect;
 export type UserRole = User['role'];
+export type DataImport = typeof dataImport.$inferSelect;
