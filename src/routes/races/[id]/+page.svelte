@@ -10,7 +10,7 @@
 	// 下書きの置き場。レースとユーザーで分ける（同じ端末を2人で使う場合に混ざらないように）。
 	let formEl = $state<HTMLFormElement | null>(null);
 	let keeper = $state<DraftKeeper | null>(null);
-	const draftKey = $derived(`keiba-note:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
+	const draftKey = $derived(`k-note:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const header = $derived(
 		[data.race.date, `${data.race.course}${data.race.raceNumber ?? ''}R`, data.race.name ?? '']
@@ -35,7 +35,7 @@
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
 </script>
 
-<svelte:head><title>{data.race.name ?? data.race.course} — keiba-note</title></svelte:head>
+<svelte:head><title>{data.race.name ?? data.race.course} — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<div class="flex flex-wrap items-baseline gap-2">

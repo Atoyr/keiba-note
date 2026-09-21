@@ -1,4 +1,4 @@
-# keiba-note
+# k-note
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
@@ -50,7 +50,7 @@ OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）�
 
 ```
 http://localhost:5173/auth/google/callback
-https://keiba-note.<subdomain>.workers.dev/auth/google/callback
+https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
 得られた値を `.dev.vars`（ローカル）と `wrangler secret put`（本番）に入れる。
@@ -121,15 +121,102 @@ pnpm run db:migrate:remote
 `drizzle/meta/_journal.json` は drizzle-kit が採番に使うので、SQL を手書きせず
 必ず `db:generate` を通すこと。
 
-## Cloudflare の設定
+## Cloudflare に構築する
 
-D1 は `--location apac` で作る。指定を忘れるとプライマリが米国に置かれ、
-1クエリあたり 100ms 以上の往復が乗る（[architecture.md 第4章](./docs/architecture.md)）。
+**まだ一度も構築していない。** `wrangler.toml` の `database_id` は
+`__REPLACE_WITH_D1_DATABASE_ID__` のままで、D1 も Worker も存在しない。
+
+`wrangler` は devDependency なので、すべて `pnpm exec` を付けて叩く。
+
+### 1. ログイン
+
+ブラウザが開いて認可を求められる。
 
 ```bash
-wrangler login
-wrangler d1 create keiba-note --location apac
-# 出力された database_id を wrangler.toml の [[d1_databases]] に書く
+pnpm exec wrangler login
+```
+
+### 2. D1 を作る
+
+**`--location apac` を必ず付ける。** 指定を忘れるとプライマリが米国に置かれ、
+1クエリあたり 100ms 以上の往復が乗る。1ページ3〜5クエリなのでそのまま体感に出るし、
+**あとから移せない**（[architecture.md 第4章](./docs/architecture.md)）。
+
+```bash
+pnpm exec wrangler d1 create k-note --location apac
+```
+
+出力に `database_id` が出るので、`wrangler.toml` の `[[d1_databases]]` にある
+`__REPLACE_WITH_D1_DATABASE_ID__` を置き換えてコミットする。
+これは機密ではない。
+
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "k-note"
+database_id = "ここに貼る"
+migrations_dir = "drizzle"
+```
+
+### 3. テーブルを作る
+
+```bash
+pnpm run db:migrate:remote
+```
+
+### 4. 一度デプロイして URL を知る
+
+Google の設定にリダイレクト URI が要るが、その URL は
+デプロイして初めて確定する。先に上げてしまう。
+**シークレットがまだ無いのでログインはできない**が、それでよい。
+
+```bash
+pnpm run deploy
+```
+
+出力の `https://k-note.<subdomain>.workers.dev` を控える。
+
+### 5. Google OAuth クライアントを作る
+
+Google Cloud Console > APIs & Services > Credentials で
+OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）を作り、
+**承認済みのリダイレクト URI に2つ登録する。**
+
+```
+http://localhost:5173/auth/google/callback
+https://k-note.<subdomain>.workers.dev/auth/google/callback
+```
+
+### 6. シークレットを入れる
+
+3つとも、実行すると値の入力を求められる。**デプロイし直す必要はない。**
+
+```bash
+pnpm exec wrangler secret put GOOGLE_CLIENT_ID
+pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
+pnpm exec wrangler secret put ADMIN_EMAIL
+```
+
+`ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
+
+### 7. レースデータを投入する
+
+```bash
+pnpm run data:import:remote
+```
+
+ここまでで動く。以降は `main` にマージすれば GitHub Actions が
+マイグレーション → デプロイ → データ投入まで回す（下記）。
+
+### 確認に使うコマンド
+
+```bash
+pnpm exec wrangler whoami              # ログインできているか
+pnpm exec wrangler d1 list             # D1 ができたか
+pnpm exec wrangler d1 info k-note      # 場所（apac か）とサイズ
+pnpm exec wrangler secret list         # 入れたシークレットの名前（値は出ない）
+pnpm exec wrangler deploy --dry-run    # 上げずにビルドだけ試す
+pnpm exec wrangler tail                # 本番のログを流す
 ```
 
 ### ランタイム上の約束

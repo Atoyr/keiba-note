@@ -23,7 +23,7 @@
 	const input = 'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 </script>
 
-<svelte:head><title>{data.horse.name} — keiba-note</title></svelte:head>
+<svelte:head><title>{data.horse.name} — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>

@@ -5,10 +5,10 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>ログイン — keiba-note</title></svelte:head>
+<svelte:head><title>ログイン — k-note</title></svelte:head>
 
 <main class="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
-	<h1 class="text-2xl font-bold tracking-tight">keiba-note</h1>
+	<h1 class="text-2xl font-bold tracking-tight">k-note</h1>
 	<p class="mt-1 text-sm text-gray-600">競馬の観戦メモを、レース単位／馬単位でふりかえる。</p>
 
 	{#if data.errorMessage}

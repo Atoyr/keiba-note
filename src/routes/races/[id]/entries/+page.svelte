@@ -12,7 +12,7 @@
 	const cell = 'w-full rounded border border-gray-300 px-2 py-1.5 text-sm';
 </script>
 
-<svelte:head><title>出走馬の入力 — keiba-note</title></svelte:head>
+<svelte:head><title>出走馬の入力 — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-5xl px-6 py-8">
 	<a
