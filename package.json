@@ -19,7 +19,11 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate:local": "wrangler d1 migrations apply keiba-note --local",
 		"db:migrate:remote": "wrangler d1 migrations apply keiba-note --remote",
-		"deploy": "vite build && wrangler deploy"
+		"deploy": "vite build && wrangler deploy",
+		"data:check": "node --experimental-strip-types scripts/import-races.ts --check",
+		"data:sql": "node --experimental-strip-types scripts/import-races.ts --out .wrangler/import-races.sql",
+		"data:import:local": "pnpm run data:sql && wrangler d1 execute keiba-note --local --file .wrangler/import-races.sql",
+		"data:import:remote": "pnpm run data:sql && wrangler d1 execute keiba-note --remote --file .wrangler/import-races.sql"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
@@ -54,7 +58,8 @@
 		"vite": "^8.0.16",
 		"vitest": "^4.1.8",
 		"vitest-browser-svelte": "^2.1.1",
-		"wrangler": "^4.97.0"
+		"wrangler": "^4.97.0",
+		"yaml": "^2.9.1"
 	},
 	"dependencies": {
 		"@oslojs/crypto": "^1.0.1",

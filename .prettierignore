@@ -19,3 +19,6 @@ worker-configuration.d.ts
 
 # shadcn-svelte が生成したコンポーネント（手を入れないので対象外）
 /src/lib/components/ui/
+
+# data/ の CJK 表組みも prettier で崩れるため対象外
+/data/

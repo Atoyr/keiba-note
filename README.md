@@ -6,8 +6,12 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 - [docs/design.md](./docs/design.md) — 何を作るか（要件・データモデル・画面・フェーズ）
 - [docs/architecture.md](./docs/architecture.md) — どう動き、いくらかかり、なぜその技術か
 
-現在のフェーズ: **メモの MVP まで到達**。レース登録 → 出走馬入力 → ふりかえり →
-馬タイムライン、が一通り動く。入力 UI の作り込み（馬名サジェスト等）は未着手。
+現在のフェーズ: **予想と、ふりかえりの両方が動く**。
+
+- 事前 — 今週の重賞 → 出馬表に過去メモを並べて予想印を付ける
+- 事後 — ふりかえり（1画面・1送信）→ 馬タイムラインに蓄積
+
+出走馬の登録は画面からではなく [data/](./data/) の YAML を PR で更新して行う。
 
 ## 技術スタック
 
@@ -86,6 +90,14 @@ owner でログインしたら `/settings/members` から招待リンクを発�
 | `pnpm run db:migrate:local`         | ローカル D1 に適用                        |
 | `pnpm run db:migrate:remote`        | 本番 D1 に適用                            |
 | `pnpm run deploy`                   | ビルドして `wrangler deploy`              |
+
+## 出走馬データ
+
+**画面からではなく [data/races/](./data/races/) の YAML を PR で更新して投入する。**
+予想に使うには開催前に出馬表が入っている必要があり、毎週16頭を手で打つのは現実的でないため。
+人でも AI でも同じ経路で入れられる。書式と投入の性質は [data/README.md](./data/README.md)。
+
+投入スクリプトは冪等で、**メモ（note）には一切触れない。**
 
 ## DB マイグレーション
 
