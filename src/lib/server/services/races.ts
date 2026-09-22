@@ -399,3 +399,51 @@ export async function listPastRuns(
 	}
 	return byHorse;
 }
+
+/** 馬タイムラインに並べる1走ぶん。メモが無くても出す（design.md 第6章 `/horses/[id]`）。 */
+export type HorseRun = {
+	/** race_entry.id。同じ出走に対するメモと突き合わせる鍵。 */
+	entryId: string;
+	raceId: string;
+	date: string;
+	course: string;
+	raceNumber: number | null;
+	raceName: string | null;
+	grade: string | null;
+	className: string | null;
+	finishPosition: number | null;
+};
+
+/**
+ * 馬1頭の出走歴。**メモの有無を見ない。**
+ *
+ * タイムラインの骨組みになる。メモを書いた日だけが並ぶと、走ったのに何も書かなかった
+ * レースがタイムラインから消え、「前走から間隔が空いた」のか「書き忘れた」のかが
+ * 読めなくなる。走った事実は race_entry にあるので、それをそのまま骨にする。
+ *
+ * **未来の開催も落とさない。** 出馬表は開催前に入る（README「出走馬データ」）ので、
+ * 次走が決まった時点でタイムラインの先頭に出る。これが馬を追う理由そのもの。
+ *
+ * 全ユーザー共通のマスタなので viewerId を取らない。ここで返すのは誰が見ても同じ
+ * 「走った事実」で、メモは1行も混ざらない（混ぜるのは `mergeHorseTimeline`）。
+ * 索引は entry_horse (horse_id) が効く。
+ */
+export async function listRunsForHorse(db: Db, horseId: string, limit = 200): Promise<HorseRun[]> {
+	return db
+		.select({
+			entryId: raceEntry.id,
+			raceId: race.id,
+			date: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			raceName: race.name,
+			grade: race.grade,
+			className: race.className,
+			finishPosition: raceEntry.finishPosition
+		})
+		.from(raceEntry)
+		.innerJoin(race, eq(raceEntry.raceId, race.id))
+		.where(eq(raceEntry.horseId, horseId))
+		.orderBy(desc(race.date), desc(race.raceNumber))
+		.limit(limit);
+}

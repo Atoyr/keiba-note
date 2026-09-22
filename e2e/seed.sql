@@ -37,3 +37,71 @@ VALUES (
 	'private',
 	'2026-09-20'
 );
+
+-- 馬タイムライン用。**メモが無くても出走は並ぶ**ことを見るための行。
+--
+-- 出走は全ユーザー共通のマスタ（race / race_entry）なので、メモと違って
+-- author_id を持たない。ここに置いた3走のうちメモが付くのは1走だけで、
+-- 残り2走は「走ったが何も書かなかった」レースになる。
+
+-- 終わったレース（メモを書いた）。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEPAST0000000000000', '2026-06-14', '中山', 11, 'E2Eステークス', 'G3', '芝', 2000);
+
+-- 終わったレース（何も書かなかった）。格が無いのでクラスが識別子になる。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance)
+VALUES ('01JE2ERACEQUIET000000000000', '2026-08-16', '新潟', 10, 'E2E特別', '3勝クラス', '芝', 1800);
+
+-- これから走るレース。**タイムラインの先頭に出るのが正**（未来 → 過去）。
+-- 日付が固定でも未来であり続けるように 2099 年に置く。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEFUTURE00000000000', '2099-04-04', '東京', 11, 'E2E未来賞', 'G1', '芝', 2400);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position)
+VALUES (
+	'01JE2EENTRYPAST00000000000',
+	'01JE2ERACEPAST0000000000000',
+	'01JE2EHORSE000000000000000',
+	5, 'E2E騎手', 3
+);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position)
+VALUES (
+	'01JE2EENTRYQUIET0000000000',
+	'01JE2ERACEQUIET000000000000',
+	'01JE2EHORSE000000000000000',
+	8, 'E2E騎手', 5
+);
+
+-- 着順は未入力（まだ走っていない）。
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
+VALUES (
+	'01JE2EENTRYFUTURE000000000',
+	'01JE2ERACEFUTURE00000000000',
+	'01JE2EHORSE000000000000000',
+	3, 'E2E騎手'
+);
+
+-- 1走目のふりかえりメモ。**この出走は出走行を出さない**（同じレースが2行にならない）。
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EENTRYNOTE00000000000',
+	'01JE2EUSER0000000000000000',
+	'entry',
+	'01JE2ERACEPAST0000000000000',
+	'01JE2EHORSE000000000000000',
+	'01JE2EENTRYPAST00000000000',
+	'直線だけの競馬になった。',
+	'["不利"]',
+	'2026-06-14'
+);
+
+-- ログイン済みで開く画面を本番ビルドのまま確かめるためのセッション。
+-- id は Cookie に入るトークンの SHA-256（`hashSessionToken`）。生トークンは DB に無い。
+-- 期限は 2100-01-01（unixepoch 4102444800）。
+INSERT OR REPLACE INTO session (id, user_id, expires_at)
+VALUES (
+	'6237e10ca456454f7a9abd828ab21a219991af55ed12ad2cac1d564e5637aa0c',
+	'01JE2EUSER0000000000000000',
+	4102444800
+);

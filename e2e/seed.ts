@@ -20,3 +20,17 @@ export const SHARED_NOTE_ID = '01JE2ESHAREDNOTE0000000000';
 
 /** 非公開のメモ。存在するが `/notes/[id]` では 404 になる。 */
 export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';
+
+/** タイムラインを見る馬。出走3走のうち、メモが付いているのは1走だけ。 */
+export const HORSE_ID = '01JE2EHORSE000000000000000';
+
+/**
+ * ログイン済みで開くためのセッショントークン。**Cookie に入れる生の値。**
+ *
+ * DB には SHA-256 した値しか無い（`hashSessionToken`）ので、seed.sql の id と
+ * この文字列は見た目が一致しない。ここを変えるなら両方を直すこと。
+ *
+ * 本番ビルドにモック認証は存在しない（`dev` ガードで消える）ため、
+ * ログインが要る画面を E2E で見るにはセッションを1本置くしかない。
+ */
+export const SESSION_TOKEN = 'e2esessiontoken00000000000000000';
