@@ -13,7 +13,7 @@
 
 	const admin = $derived(isAdmin(data.user));
 
-	/** 日付ごとにまとめる。土日で2つの塊になるのが普通。 */
+	/** 日付ごとにまとめる。土日で2つの塊になるのが普通。連休は月曜・火曜も並ぶ。 */
 	const byDate = $derived(
 		Object.entries(
 			data.races.reduce<Record<string, typeof data.races>>((acc, r) => {

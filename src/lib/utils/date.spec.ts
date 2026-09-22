@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, currentWeek, formatDateShort, shiftWeek, todayJst } from './date';
+import {
+	addDays,
+	currentWeek,
+	formatDateShort,
+	shiftWeek,
+	todayJst,
+	weekLookupRange
+} from './date';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */
 const utc = (iso: string) => new Date(iso);
@@ -49,11 +56,111 @@ describe('currentWeek', () => {
 	});
 });
 
+describe('currentWeek（連休）', () => {
+	// 9/26(土) 9/27(日) に加えて、敬老の日のような連休で 9/28(月) にも開催がある週
+	const holiday = ['2026-09-26', '2026-09-27', '2026-09-28'];
+
+	it('月曜に開催がある週は、その月曜までが今週', () => {
+		// 9/25(金)。まだ開催前だが、範囲はもう月曜まで伸びている
+		expect(currentWeek(utc('2026-09-25T03:00:00Z'), holiday)).toEqual({
+			start: '2026-09-21',
+			end: '2026-09-28'
+		});
+	});
+
+	it('連休の月曜はまだ前の週のうち（次の週へ飛ばさない）', () => {
+		expect(currentWeek(utc('2026-09-28T03:00:00Z'), holiday)).toEqual({
+			start: '2026-09-21',
+			end: '2026-09-28'
+		});
+	});
+
+	it('火曜まで開催が続けば火曜までが今週', () => {
+		const silverWeek = [...holiday, '2026-09-29'];
+		expect(currentWeek(utc('2026-09-29T03:00:00Z'), silverWeek)).toEqual({
+			start: '2026-09-21',
+			end: '2026-09-29'
+		});
+	});
+
+	it('月曜に開催が無ければ火曜まで伸ばさない（土日から続いていない）', () => {
+		expect(currentWeek(utc('2026-09-25T03:00:00Z'), ['2026-09-27', '2026-09-29'])).toEqual({
+			start: '2026-09-21',
+			end: '2026-09-27'
+		});
+	});
+
+	it('延長した翌日から次の週。前の週に譲ったぶんは重ねない', () => {
+		expect(currentWeek(utc('2026-09-29T03:00:00Z'), holiday)).toEqual({
+			start: '2026-09-29',
+			end: '2026-10-04'
+		});
+	});
+
+	it('開催日を渡さなければ月曜〜日曜のまま', () => {
+		expect(currentWeek(utc('2026-09-28T03:00:00Z'))).toEqual({
+			start: '2026-09-28',
+			end: '2026-10-04'
+		});
+	});
+});
+
 describe('shiftWeek', () => {
+	const holiday = ['2026-09-26', '2026-09-27', '2026-09-28'];
+
 	it('前後の週へ動かせる', () => {
 		const w = { start: '2026-09-21', end: '2026-09-27' };
 		expect(shiftWeek(w, 1)).toEqual({ start: '2026-09-28', end: '2026-10-04' });
 		expect(shiftWeek(w, -1)).toEqual({ start: '2026-09-14', end: '2026-09-20' });
+	});
+
+	it('連休で伸びた週の次は、その翌日から始まる', () => {
+		const w = { start: '2026-09-21', end: '2026-09-28' };
+		expect(shiftWeek(w, 1, holiday)).toEqual({ start: '2026-09-29', end: '2026-10-04' });
+	});
+
+	it('そこから戻ると、伸びた週にそのまま戻る', () => {
+		const w = { start: '2026-09-29', end: '2026-10-04' };
+		expect(shiftWeek(w, -1, holiday)).toEqual({ start: '2026-09-21', end: '2026-09-28' });
+	});
+});
+
+describe('weekLookupRange', () => {
+	// 2026-09-22 は火曜。週の月曜は 9/21
+	const tuesday = utc('2026-09-22T03:00:00Z');
+
+	it('今週の前後1週ぶんを読む（前の週の延長と、今週の延長の判定）', () => {
+		expect(weekLookupRange(tuesday, 0)).toEqual({ from: '2026-09-14', to: '2026-09-29' });
+	});
+
+	it('週送りの先まで広げる', () => {
+		expect(weekLookupRange(tuesday, 2)).toEqual({ from: '2026-09-14', to: '2026-10-13' });
+		expect(weekLookupRange(tuesday, -2)).toEqual({ from: '2026-08-31', to: '2026-09-29' });
+	});
+
+	it('この範囲だけ読めば、全部の開催日を渡したときと同じ週になる', () => {
+		// 前後に連休（月曜・火曜まで開催）を置いた並び。9/22 当日も連休の中にいる
+		const dates = [
+			'2026-09-13',
+			'2026-09-14',
+			'2026-09-19',
+			'2026-09-20',
+			'2026-09-21',
+			'2026-09-22',
+			'2026-09-26',
+			'2026-09-27',
+			'2026-09-28',
+			'2026-09-29'
+		];
+
+		for (const offset of [-3, -1, 0, 1, 3]) {
+			const { from, to } = weekLookupRange(tuesday, offset);
+			const read = dates.filter((d) => d >= from && d <= to);
+
+			const limited = shiftWeek(currentWeek(tuesday, read), offset, read);
+			const everything = shiftWeek(currentWeek(tuesday, dates), offset, dates);
+			expect({ offset, ...limited }).toEqual({ offset, ...everything });
+		}
 	});
 });
 
