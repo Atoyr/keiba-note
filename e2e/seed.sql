@@ -105,3 +105,39 @@ VALUES (
 	'01JE2EUSER0000000000000000',
 	4102444800
 );
+
+-- 予想画面（/races/[id]/preview）専用の1レース。
+--
+-- **馬タイムライン用の行とは別に立てる。** あちらの「E2E未来賞」は
+-- 「メモを書かなかった出走」として出ることに意味があるので、そこに
+-- 出走前メモを足すと役目が入れ替わってしまう。
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース', 2021);
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200);
+
+-- 着順は未入力（まだ走っていない）。
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
+VALUES (
+	'01JE2EENTRYPREVIEW00000000',
+	'01JE2ERACEPREVIEW000000000',
+	'01JE2EHORSEB00000000000000',
+	2, 3, 'E2E騎手'
+);
+
+-- その出走に書いた出走前メモ。予想画面が**畳まずに本文と付けた札を出す**ことを
+-- 見るための行。札は1つだけにして、選んでいない札まで出ていないかも同時に確かめる。
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at)
+VALUES (
+	'01JE2EPREVIEWNOTE000000000',
+	'01JE2EUSER0000000000000000',
+	'preview',
+	'01JE2ERACEPREVIEW000000000',
+	'01JE2EHORSEB00000000000000',
+	'01JE2EENTRYPREVIEW00000000',
+	'今回は内枠が向きそう。',
+	'["次走買い"]',
+	'◎',
+	'2099-05-05'
+);

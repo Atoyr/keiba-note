@@ -24,6 +24,9 @@ export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';
 /** タイムラインを見る馬。出走3走のうち、メモが付いているのは1走だけ。 */
 export const HORSE_ID = '01JE2EHORSE000000000000000';
 
+/** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
+export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
+
 /**
  * ログイン済みで開くためのセッショントークン。**Cookie に入れる生の値。**
  *

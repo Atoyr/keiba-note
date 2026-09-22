@@ -131,6 +131,7 @@
 			<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
 			<ul class="grid gap-2">
 				{#each data.rows as r (r.entryId)}
+					{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
 					<li
 						class="rounded-xl border p-3 {r.myPreview?.mark === '◎'
 							? 'border-red-300 bg-red-50/40'
@@ -203,9 +204,41 @@
 						<div class="mt-3 ml-7">
 							<MarkPicker name="mark.{r.entryId}" value={r.myPreview?.mark ?? null} />
 
-							<details class="mt-2" open={!!r.myPreview?.body}>
-								<summary class="cursor-pointer text-xs text-muted-foreground">
-									{r.myPreview?.body ? '出走前メモ' : '＋ 出走前メモ'}
+							<!-- 書いた出走前メモは畳まない。**畳むのは書く側だけ**にする。
+							     16頭ぶん並ぶ画面で1頭ずつ開かないと自分の見解が読めないのでは、
+							     馬を見比べるという予想画面の用が足りない。
+							     開いていないときに出すのは本文と**付けた札だけ**で、
+							     選んでいない札（`TagPicker` の全選択肢）は伏せておく。
+							     `<details>` のままなのは JS 無効でも開けるため（design.md 第6章）。 -->
+							<details class="group mt-2">
+								<summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+									{#if hasPreview}
+										<!-- 開いている間は下の入力欄が正なので、同じ文を二重に見せない。 -->
+										<span class="block group-open:hidden">
+											<!-- 改行を保つので、テンプレート側の字下げを入れないよう1行で書く。 -->
+											{#if r.myPreview?.body}<span
+													class="block text-sm leading-relaxed whitespace-pre-wrap"
+													>{r.myPreview.body}</span
+												>{/if}
+											<TagBadges tags={r.myPreview?.tags ?? []} class="mt-1" />
+										</span>
+										<span
+											class="text-xs text-muted-foreground underline-offset-2 group-open:hidden hover:underline"
+										>
+											書き直す
+										</span>
+									{:else}
+										<span
+											class="text-xs text-muted-foreground underline-offset-2 group-open:hidden hover:underline"
+										>
+											＋ 出走前メモ
+										</span>
+									{/if}
+									<span
+										class="hidden text-xs text-muted-foreground underline-offset-2 group-open:inline hover:underline"
+									>
+										閉じる
+									</span>
 								</summary>
 								<Textarea
 									name="body.{r.entryId}"

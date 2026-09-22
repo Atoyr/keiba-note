@@ -1,0 +1,61 @@
+import { expect, test, type Page } from '@playwright/test';
+import { PREVIEW_RACE_ID, SESSION_TOKEN } from './seed';
+
+/** seed で用意したセッションを Cookie に載せる（本番ビルドにモック認証は無い）。 */
+async function login(page: Page) {
+	await page.context().addCookies([
+		{
+			name: 'session',
+			value: SESSION_TOKEN,
+			domain: 'localhost',
+			path: '/',
+			httpOnly: true,
+			sameSite: 'Lax'
+		}
+	]);
+}
+
+test('未ログインでは予想画面を開けない', async ({ page }) => {
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	await expect(page).toHaveURL(
+		`/login?redirect=${encodeURIComponent(`/races/${PREVIEW_RACE_ID}/preview`)}`
+	);
+	// 出走前メモの中身が1文字も漏れていないこと。
+	await expect(page.getByText('今回は内枠が向きそう。')).toHaveCount(0);
+});
+
+/**
+ * この画面の用は「16頭を見比べる」ことなので、**自分の出走前メモは開かずに読める**
+ * のが正。畳まれていた頃は1頭ずつ開かないと自分の見解が見えなかった。
+ */
+test('書いた出走前メモは、開かなくても本文と付けた札が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	// 何も開いていない状態で、本文と付けた札の両方が畳まれた見出しに出ていること。
+	// 札の名前は TagPicker 側にも（伏せた状態で）あるので、summary に絞って見る。
+	const summary = page.locator('main summary');
+	await expect(summary).toContainText('今回は内枠が向きそう。');
+	await expect(summary).toContainText('次走買い');
+
+	// 選んでいない札（TagPicker の全選択肢）は伏せたまま。
+	// こちらは TagBadges に出ないので、画面に1つしか無い＝そのまま見に行ける。
+	await expect(page.getByText('好上がり', { exact: true })).toBeHidden();
+	// 本文の入力欄も畳まれている（畳むのは書く側だけ）。
+	await expect(page.getByRole('textbox')).toBeHidden();
+});
+
+test('「書き直す」を開くと、本文欄と全部の札が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	await page.getByText('書き直す', { exact: true }).click();
+
+	// 入力欄には保存済みの本文が入っている。
+	await expect(page.getByRole('textbox')).toHaveValue('今回は内枠が向きそう。');
+	// 選んでいない札もここで初めて出る（付け足せる）。
+	await expect(page.getByText('好上がり', { exact: true })).toBeVisible();
+	// 付けた札はチェック済みで出る。
+	await expect(page.getByRole('checkbox', { name: '次走買い' })).toBeChecked();
+});
