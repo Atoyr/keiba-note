@@ -131,3 +131,21 @@ export function formatDateShort(date: string): string {
 	const w = WEEKDAYS[new Date(toEpoch(date)).getUTCDay()];
 	return `${m}/${d}(${w})`;
 }
+
+/**
+ * **今日を起点に「次に来るもの」から並べる**比較子。未来が先、過去が後で、
+ * どちらの側も今日に近いほど前に来る（未来は昇順、過去は降順）。
+ *
+ * 単純な降順にすると、いちばん先の予定が先頭に立ち、知りたい次走・次のレースが
+ * 未来の末尾＝過去との境目に埋もれる。**先頭は常に「次に来るもの」。**
+ *
+ * `today` と同じ日は過去側に置く。開催日の朝はまだ先でも、走り終えた夕方には
+ * 過去なので、日付だけでは決められない（design.md 第9章 #7）。
+ */
+export function compareNextFirst(a: string, b: string, today: string): number {
+	const au = a > today;
+	const bu = b > today;
+	if (au !== bu) return au ? -1 : 1; // 未来が先。
+	if (a === b) return 0;
+	return (a < b ? -1 : 1) * (au ? 1 : -1);
+}

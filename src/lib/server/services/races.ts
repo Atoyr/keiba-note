@@ -3,7 +3,13 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
 import { GRADED } from '$lib/schemas/race';
-import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
+import {
+	compareNextFirst,
+	currentWeek,
+	shiftWeek,
+	weekLookupRange,
+	type Week
+} from '$lib/utils/date';
 import { findOrCreateHorse } from './horses';
 
 export type RaceListItem = Pick<
@@ -12,14 +18,23 @@ export type RaceListItem = Pick<
 > & { entryCount: number; noteCount: number };
 
 /**
- * レース一覧。日付降順（design.md 第6章）。
+ * **今日を起点に「次のレース」から並べる。** 未来が先で近い順、そのあと過去が新しい順。
+ * 同じ日なら、未来は R の若い順（次に始まるレース）、過去は R の遅い順（最後の1本から）。
+ *
+ * 出走前の重賞は開催のずっと前に枠だけ登録するので、日付の降順にすると
+ * いちばん先の予定が先頭に立ち、**次のレースが未来の末尾＝過去との境目に埋もれる。**
+ * ダッシュボードは先頭5件しか出さないので、次のレースが一覧から溢れることさえあった。
+ *
+ * 並べ替えは JS 側（`compareNextFirst`）。SQL の ORDER BY で書くと未来・過去で
+ * 向きが変わる CASE が並び、読めるものにならない。**取ってくる窓は日付の降順のまま**で、
+ * 未来を含む新しい側から 100 件。ここを崩すと過去が先に切れる。
  *
  * 件数は LEFT JOIN + GROUP BY。相関サブクエリを raw な `sql` で書くと
  * Drizzle が列をテーブル修飾なしで展開し、内側のテーブルの同名列に
  * 束縛されて壊れる（horses.ts の listHorses に同じ注記あり）。
  */
-export async function listRaces(db: Db, viewerId: string): Promise<RaceListItem[]> {
-	return db
+export async function listRaces(db: Db, viewerId: string, today: string): Promise<RaceListItem[]> {
+	const rows = await db
 		.select({
 			id: race.id,
 			date: race.date,
@@ -39,6 +54,18 @@ export async function listRaces(db: Db, viewerId: string): Promise<RaceListItem[
 		.groupBy(race.id)
 		.orderBy(desc(race.date), desc(race.raceNumber))
 		.limit(100);
+
+	return rows.sort(byNextRaceFirst(today));
+}
+
+/** 「次のレース」から並べる比較子。日付は `compareNextFirst`、同日は R で割る。 */
+function byNextRaceFirst(today: string) {
+	return (a: RaceListItem, b: RaceListItem) => {
+		const byDate = compareNextFirst(a.date, b.date, today);
+		if (byDate !== 0) return byDate;
+		// 同じ日の中も今日に近い側から。未来は R の昇順、過去は降順。
+		return ((a.raceNumber ?? 0) - (b.raceNumber ?? 0)) * (a.date > today ? 1 : -1);
+	};
 }
 
 export async function getRace(db: Db, id: string): Promise<Race | null> {

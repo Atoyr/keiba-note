@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	addDays,
+	compareNextFirst,
 	currentWeek,
 	formatDateShort,
 	shiftWeek,
@@ -179,5 +180,31 @@ describe('formatDateShort', () => {
 	it('曜日つきで短く出す', () => {
 		expect(formatDateShort('2026-09-27')).toBe('9/27(日)');
 		expect(formatDateShort('2026-09-26')).toBe('9/26(土)');
+	});
+});
+
+describe('compareNextFirst', () => {
+	const today = '2026-09-22';
+	const sorted = (dates: string[]) => [...dates].sort((a, b) => compareNextFirst(a, b, today));
+
+	it('未来が先、過去が後。どちらも今日に近いほど前に来る', () => {
+		expect(sorted(['2026-06-14', '2026-12-27', '2026-09-20', '2026-10-25'])).toEqual([
+			'2026-10-25', // 次に来るもの
+			'2026-12-27',
+			'2026-09-20',
+			'2026-06-14'
+		]);
+	});
+
+	it('今日は過去側。未来の末尾ではなく過去の先頭に付く', () => {
+		expect(sorted(['2026-09-20', today, '2026-10-25'])).toEqual([
+			'2026-10-25',
+			today,
+			'2026-09-20'
+		]);
+	});
+
+	it('同じ日付は 0（呼び出し側の順を壊さない）', () => {
+		expect(compareNextFirst('2026-10-25', '2026-10-25', today)).toBe(0);
 	});
 });
