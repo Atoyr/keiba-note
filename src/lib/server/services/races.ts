@@ -3,13 +3,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
 import { GRADED } from '$lib/schemas/race';
-import {
-	compareNextFirst,
-	currentWeek,
-	shiftWeek,
-	weekLookupRange,
-	type Week
-} from '$lib/utils/date';
+import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
 import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '$lib/utils/race-filter';
 import { findOrCreateHorse } from './horses';
 
@@ -36,17 +30,7 @@ function raceFilterWhere(filter: RaceFilter) {
 }
 
 /**
- * レース一覧。**今日を起点に「次のレース」から並べる**（design.md 第6章）。
- * 未来が先で近い順、そのあと過去が新しい順。同じ日なら、未来は R の若い順
- * （次に始まるレース）、過去は R の遅い順（最後の1本から）。
- *
- * 重賞は開催のずっと前に枠だけ登録するので、日付の降順にすると先の予定が上を埋め、
- * **次のレースが未来の末尾＝過去との境目に埋もれる。** ダッシュボードは先頭5件しか
- * 出さないので、次のレースが一覧から溢れることさえあった。
- *
- * 並べ替えは JS 側（`compareNextFirst`）。SQL の ORDER BY で書くと未来・過去で
- * 向きが変わる CASE が並び、読めるものにならない。**取ってくる窓は日付の降順のまま**で、
- * 未来を含む新しい側から 100 件。ここを崩すと過去が先に切れる。
+ * レース一覧。日付降順（design.md 第6章）。
  *
  * 件数は LEFT JOIN + GROUP BY。相関サブクエリを raw な `sql` で書くと
  * Drizzle が列をテーブル修飾なしで展開し、内側のテーブルの同名列に
@@ -58,10 +42,9 @@ function raceFilterWhere(filter: RaceFilter) {
 export async function listRaces(
 	db: Db,
 	viewerId: string,
-	today: string,
 	filter: RaceFilter = EMPTY_RACE_FILTER
 ): Promise<RaceListItem[]> {
-	const rows = await db
+	return db
 		.select({
 			id: race.id,
 			date: race.date,
@@ -82,18 +65,46 @@ export async function listRaces(
 		.groupBy(race.id)
 		.orderBy(desc(race.date), desc(race.raceNumber))
 		.limit(100);
-
-	return rows.sort(byNextRaceFirst(today));
 }
 
-/** 「次のレース」から並べる比較子。日付は `compareNextFirst`、同日は R で割る。 */
-function byNextRaceFirst(today: string) {
-	return (a: RaceListItem, b: RaceListItem) => {
-		const byDate = compareNextFirst(a.date, b.date, today);
-		if (byDate !== 0) return byDate;
-		// 同じ日の中も今日に近い側から。未来は R の昇順、過去は降順。
-		return ((a.raceNumber ?? 0) - (b.raceNumber ?? 0)) * (a.date > today ? 1 : -1);
-	};
+/**
+ * 期間内のレース。ダッシュボードの「今週のレース」「過去のレース」が読む。
+ *
+ * **重賞に絞らない**（`/this-week` とはここが違う）。ダッシュボードは予想の入口ではなく
+ * 自分が書いたもの・これから書くものの置き場なので、条件戦が落ちると歯抜けに見える。
+ *
+ * `order` は日付の向き。今週は昇順（先に走るレースから）、過去は降順（最後に走ったレースから）。
+ * 件数は `listRaces` と同じで viewer 自身のメモだけを数える。
+ */
+export async function listRacesBetween(
+	db: Db,
+	viewerId: string,
+	range: { from: string; to: string },
+	order: 'asc' | 'desc' = 'asc'
+): Promise<RaceListItem[]> {
+	const dir = order === 'asc' ? asc : desc;
+
+	return db
+		.select({
+			id: race.id,
+			date: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			name: race.name,
+			grade: race.grade,
+			className: race.className,
+			surface: race.surface,
+			distance: race.distance,
+			entryCount: countDistinct(raceEntry.id),
+			noteCount: countDistinct(note.id)
+		})
+		.from(race)
+		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
+		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
+		.where(between(race.date, range.from, range.to))
+		.groupBy(race.id)
+		.orderBy(dir(race.date), dir(race.raceNumber))
+		.limit(100);
 }
 
 /**

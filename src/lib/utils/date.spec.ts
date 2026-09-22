@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
 	addDays,
-	compareNextFirst,
 	currentWeek,
 	formatDateShort,
 	shiftWeek,
 	todayJst,
-	weekLookupRange
+	weekLookupRange,
+	weeksBefore
 } from './date';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */
@@ -183,28 +183,22 @@ describe('formatDateShort', () => {
 	});
 });
 
-describe('compareNextFirst', () => {
-	const today = '2026-09-22';
-	const sorted = (dates: string[]) => [...dates].sort((a, b) => compareNextFirst(a, b, today));
+describe('weeksBefore', () => {
+	// 9/21(月)〜9/27(日) の週。手前の3週は 8/31(月)〜9/20(日)。
+	const week = { start: '2026-09-21', end: '2026-09-27' };
 
-	it('未来が先、過去が後。どちらも今日に近いほど前に来る', () => {
-		expect(sorted(['2026-06-14', '2026-12-27', '2026-09-20', '2026-10-25'])).toEqual([
-			'2026-10-25', // 次に来るもの
-			'2026-12-27',
-			'2026-09-20',
-			'2026-06-14'
-		]);
+	it('週の頭で切る。今週ぶんは含めない', () => {
+		expect(weeksBefore(week, 3)).toEqual({ from: '2026-08-31', to: '2026-09-20' });
 	});
 
-	it('今日は過去側。未来の末尾ではなく過去の先頭に付く', () => {
-		expect(sorted(['2026-09-20', today, '2026-10-25'])).toEqual([
-			'2026-10-25',
-			today,
-			'2026-09-20'
-		]);
+	it('連休で週の終わりが伸びていても、手前の窓は動かない', () => {
+		expect(weeksBefore({ start: '2026-09-21', end: '2026-09-29' }, 3)).toEqual({
+			from: '2026-08-31',
+			to: '2026-09-20'
+		});
 	});
 
-	it('同じ日付は 0（呼び出し側の順を壊さない）', () => {
-		expect(compareNextFirst('2026-10-25', '2026-10-25', today)).toBe(0);
+	it('1週なら直前の1週間だけ', () => {
+		expect(weeksBefore(week, 1)).toEqual({ from: '2026-09-14', to: '2026-09-20' });
 	});
 });

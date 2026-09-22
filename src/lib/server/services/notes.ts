@@ -3,7 +3,6 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
-import { compareNextFirst } from '$lib/utils/date';
 import type { HorseRun } from './races';
 
 /**
@@ -258,11 +257,11 @@ function rank(row: TimelineRow): number {
  * （1つの出走に出走前メモとふりかえりメモの2件が付くことがあるので、
  * 「1件でもあれば出走行は出さない」= 集合で持つ）。
  *
- * 並びは `compareNextFirst`（今日を起点に、未来は昇順・過去は降順）。**先頭は常に次走。**
+ * 並びは **未来 → 過去**（occurred_at の降順）。次走が先頭に来て、古い走りほど下に沈む。
  * メモの occurred_at はレース紐付きならレース日なので、メモ行と出走行は同じ軸で混ざる。
  *
- * `today` を引数で受けるのは、「出走予定」の判定と未来・過去の境目を呼び出し側の時計に
- * 寄せるため（JST の今日は `todayJst()`。design.md 第9章 #7）。**当日は「予定」にしない**：
+ * `today` を引数で受けるのは、「出走予定」の判定を呼び出し側の時計に寄せるため
+ * （JST の今日は `todayJst()`。design.md 第9章 #7）。**当日は「予定」にしない**：
  * 朝に開いたときは予定でも、走り終えた夕方には予定ではない。日付だけでは決められないので、
  * その日のうちは過去と同じ見せ方にして、着順が入った時点で着順が出るようにする。
  */
@@ -293,8 +292,8 @@ export function mergeHorseTimeline(
 
 	// sort は安定なので、同じ日付の中では元の並び（メモは occurred_at → created_at の降順、
 	// 出走は日付 → R の降順）がそのまま残る。
-	return rows.sort(
-		(a, b) => compareNextFirst(a.occurredAt, b.occurredAt, today) || rank(a) - rank(b)
+	return rows.sort((a, b) =>
+		a.occurredAt === b.occurredAt ? rank(a) - rank(b) : a.occurredAt < b.occurredAt ? 1 : -1
 	);
 }
 

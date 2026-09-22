@@ -5,13 +5,38 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import { noteHeading } from '$lib/utils/note';
+	import { formatDateShort } from '$lib/utils/date';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
+	import type { RaceListItem } from '$lib/server/services/races';
 
 	let { data }: PageProps = $props();
 
 	const admin = $derived(isAdmin(data.user));
+
+	const weekLabel = $derived(
+		`${formatDateShort(data.week.start)} 〜 ${formatDateShort(data.week.end)}`
+	);
 </script>
+
+<!-- 今週も過去も同じ行。違うのは並び順と、どの窓から取ってくるかだけ。 -->
+{#snippet raceList(races: RaceListItem[])}
+	<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
+		{#each races as r (r.id)}
+			<li>
+				<a
+					href={resolve('/races/[id]', { id: r.id })}
+					class="block py-2.5 text-sm hover:bg-gray-50"
+				>
+					<span class="font-mono text-gray-500">{r.date}</span>
+					<span class="ml-2">{r.course}{r.raceNumber ?? ''}R</span>
+					<span class="ml-2 font-medium">{r.name ?? ''}</span>
+					<span class="ml-2 text-xs text-gray-500">メモ {r.noteCount}</span>
+				</a>
+			</li>
+		{/each}
+	</ul>
+{/snippet}
 
 <svelte:head><title>k-note</title></svelte:head>
 
@@ -63,32 +88,36 @@
 	{/if}
 
 	<section class="mt-10">
-		<div class="flex items-center gap-3">
-			<h2 class="text-sm font-semibold text-gray-500">直近のレース</h2>
+		<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+			<h2 class="text-sm font-semibold text-gray-500">今週のレース</h2>
+			<span class="text-xs text-gray-500">{weekLabel}</span>
 			<span class="flex-1"></span>
 			{#if admin}
 				<a href={resolve('/races/new')} class="text-sm text-gray-600 hover:underline">＋ 登録</a>
 			{/if}
 		</div>
 
-		{#if data.races.length === 0}
-			<p class="mt-2 text-sm text-gray-500">まだありません。</p>
+		{#if data.thisWeek.length === 0}
+			<p class="mt-2 text-sm text-gray-500">今週のレースはまだ登録されていません。</p>
 		{:else}
-			<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
-				{#each data.races as r (r.id)}
-					<li>
-						<a
-							href={resolve('/races/[id]', { id: r.id })}
-							class="block py-2.5 text-sm hover:bg-gray-50"
-						>
-							<span class="font-mono text-gray-500">{r.date}</span>
-							<span class="ml-2">{r.course}{r.raceNumber ?? ''}R</span>
-							<span class="ml-2 font-medium">{r.name ?? ''}</span>
-							<span class="ml-2 text-xs text-gray-500">メモ {r.noteCount}</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
+			{@render raceList(data.thisWeek)}
 		{/if}
 	</section>
+
+	<section class="mt-8">
+		<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+			<h2 class="text-sm font-semibold text-gray-500">過去のレース</h2>
+			<span class="text-xs text-gray-500">直近{data.pastWeeks}週</span>
+		</div>
+
+		{#if data.past.length === 0}
+			<p class="mt-2 text-sm text-gray-500">直近{data.pastWeeks}週に終わったレースはありません。</p>
+		{:else}
+			{@render raceList(data.past)}
+		{/if}
+	</section>
+
+	<p class="mt-4 text-sm">
+		<a href={resolve('/races')} class="text-gray-600 hover:underline">すべてのレースを見る →</a>
+	</p>
 </main>

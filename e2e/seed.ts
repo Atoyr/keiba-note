@@ -21,8 +21,18 @@ export const SHARED_NOTE_ID = '01JE2ESHAREDNOTE0000000000';
 /** 非公開のメモ。存在するが `/notes/[id]` では 404 になる。 */
 export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';
 
-/** タイムラインを見る馬。出走4走（うち2走は未来）のうち、メモが付いているのは1走だけ。 */
+/** タイムラインを見る馬。出走3走のうち、メモが付いているのは1走だけ。 */
 export const HORSE_ID = '01JE2EHORSE000000000000000';
+
+/**
+ * ダッシュボードのレース欄に出るレース名。**日付は seed を流した日から決まる**
+ * （今日 / 10日前 / 40日前）。40日前のものは「直近3週」の窓の外に出る。
+ */
+export const DASHBOARD_RACES = {
+	thisWeek: 'E2E今週賞',
+	inWindow: 'E2E先週賞',
+	outOfWindow: 'E2E昔賞'
+} as const;
 
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';

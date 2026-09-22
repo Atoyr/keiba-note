@@ -40,22 +40,18 @@ test('メモを書かなかった出走もタイムラインに並ぶ', async ({
 	await expect(page.getByText('直線だけの競馬になった。')).toBeVisible();
 });
 
-test('タイムラインの先頭は今日から見た次走。その先の予定が下に続く', async ({ page }) => {
+test('タイムラインは未来から過去の順に並ぶ', async ({ page }) => {
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
 
 	const rows = page.locator(TIMELINE);
-	const dates = (await rows.allInnerTexts()).map((t) => t.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '');
 
-	// 先頭は**いちばん近い**出走予定（まだ走っていないので着順は出ない）。
+	// 先頭は出走予定（まだ走っていないので着順は出ない）。
 	await expect(rows.first()).toContainText('2099-04-04');
 	await expect(rows.first()).toContainText('出走予定');
 
-	// 未来は近い順。さらに先の予定は次走の下。
-	expect(dates.slice(0, 2)).toEqual(['2099-04-04', '2099-12-26']);
-
-	// 今日より後が尽きたら、あとは日付の降順。過去ほど下に沈む。
-	const past = dates.slice(2);
-	expect(past).toEqual([...past].sort().reverse());
-	expect(past.at(-1)).toBe('2026-06-14');
+	// 以降は日付の降順。過去ほど下に沈む。
+	const dates = (await rows.allInnerTexts()).map((t) => t.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '');
+	expect(dates).toEqual([...dates].sort().reverse());
+	expect(dates.at(-1)).toBe('2026-06-14');
 });

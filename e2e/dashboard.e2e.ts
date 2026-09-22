@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { SESSION_TOKEN } from './seed';
+import { DASHBOARD_RACES, SESSION_TOKEN } from './seed';
 
 /** seed で用意したセッションを Cookie に載せる（本番ビルドにモック認証は無い）。 */
 async function login(page: Page) {
@@ -15,53 +15,55 @@ async function login(page: Page) {
 	]);
 }
 
-/** JST の今日。サーバー側の `todayJst()` と同じ境目で見る。 */
-const todayJst = () =>
-	new Intl.DateTimeFormat('en-CA', {
-		timeZone: 'Asia/Tokyo',
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit'
-	}).format(new Date());
+/** 見出しの文字で枠を選ぶ。並び順ではなく**どの枠に出るか**を見たいので。 */
+const section = (page: Page, heading: string) =>
+	page.locator('main section').filter({ has: page.getByRole('heading', { name: heading }) });
 
-/**
- * 「直近のレース」は5件しか出さない。日付の降順だと、先に登録しただけの重賞が
- * 上を埋めて**次のレースが一覧から落ちる**。並びの規則そのものを押さえる
- * （seed 以外の行が入っていても崩れないように、件数や特定の日付には寄せない）。
- */
-test('ダッシュボードの「直近のレース」は次のレースから並ぶ', async ({ page }) => {
+test('今週のレースと過去のレースが別々の枠に出る', async ({ page }) => {
 	await login(page);
 	await page.goto('/');
 
-	const texts = await page.locator('main section ul > li').allInnerTexts();
-	const dates = texts.map((t) => t.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '');
-	expect(dates.length).toBeGreaterThan(0);
+	const thisWeek = section(page, '今週のレース');
+	const past = section(page, '過去のレース');
 
-	const today = todayJst();
-	const future = dates.filter((d) => d > today);
-	const past = dates.filter((d) => d <= today);
+	// 今日のレースは「今週」に出て、「過去」には出ない。
+	await expect(thisWeek.getByText(DASHBOARD_RACES.thisWeek)).toBeVisible();
+	await expect(past.getByText(DASHBOARD_RACES.thisWeek)).toHaveCount(0);
 
-	// 未来が先、過去が後。
-	expect(dates).toEqual([...future, ...past]);
-	// 未来は近い順。**先頭がいちばん近い予定＝次のレース。**
-	expect(future).toEqual([...future].sort());
-	// 過去は新しい順。
-	expect(past).toEqual([...past].sort().reverse());
+	// 10日前のレースは「過去」に出て、「今週」には出ない。
+	await expect(past.getByText(DASHBOARD_RACES.inWindow)).toBeVisible();
+	await expect(thisWeek.getByText(DASHBOARD_RACES.inWindow)).toHaveCount(0);
 });
 
-/** レース一覧もダッシュボードと同じ順で見える（読んでいるのは同じ `listRaces`）。 */
-test('レース一覧も次のレースから並ぶ', async ({ page }) => {
+/** 窓は3週で切る。ここが効かないと「過去のレース」が全履歴になる。 */
+test('3週より古いレースはどちらの枠にも出ない', async ({ page }) => {
 	await login(page);
-	await page.goto('/races');
+	await page.goto('/');
 
-	const texts = await page.locator('main ul > li').allInnerTexts();
-	const dates = texts.map((t) => t.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '');
+	await expect(page.getByText(DASHBOARD_RACES.outOfWindow)).toHaveCount(0);
+});
 
-	// seed に置いた3つの未来レースが、近い順に並んでいること。
-	const order = ['2099-04-04', '2099-05-05', '2099-12-26'].map((d) => dates.indexOf(d));
-	expect(order.every((i) => i >= 0)).toBe(true);
-	expect(order).toEqual([...order].sort((a, b) => a - b));
+/**
+ * 先に枠だけ登録した重賞（seed の 2099 年のレース）が**レースの枠**に紛れないこと。
+ * これを混ぜていたせいで、今週の開催が見えなくなっていた。
+ *
+ * 「最近のメモ」には出てよい（そのレースに出走前メモを書いてあるので、
+ * 書いたものが消えるほうがおかしい）。だから枠の中だけを見る。
+ */
+test('先の予定はレースの枠には出ない', async ({ page }) => {
+	await login(page);
+	await page.goto('/');
 
-	// 未来のあとに過去が来る。
-	expect(dates.indexOf('2026-06-14')).toBeGreaterThan(order[2]);
+	for (const heading of ['今週のレース', '過去のレース']) {
+		await expect(section(page, heading).getByText('E2E未来賞')).toHaveCount(0);
+		await expect(section(page, heading).getByText('E2E予想賞')).toHaveCount(0);
+	}
+});
+
+test('未ログインではダッシュボードを開けない', async ({ page }) => {
+	await page.goto('/');
+
+	await expect(page).toHaveURL(/\/login/);
+	// 今週のレースの中身が漏れていないこと。
+	await expect(page.getByText(DASHBOARD_RACES.thisWeek)).toHaveCount(0);
 });
