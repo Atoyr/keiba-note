@@ -1,0 +1,13 @@
+# 2026年11月1日（日） 芝重賞
+# 申し送り用の枠だけ先に置く。出馬表が出たら entries に追記する。
+date: 2026-11-01
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 天皇賞（秋）
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 左
+    entries: []
