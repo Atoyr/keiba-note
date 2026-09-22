@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -44,7 +45,7 @@
 	<div class="flex flex-wrap items-baseline gap-2">
 		<h1 class="text-xl font-bold tracking-tight">{header}</h1>
 		{#if data.race.grade}
-			<span class="rounded bg-gray-900 px-1.5 py-0.5 text-xs text-white">{data.race.grade}</span>
+			<GradeBadge grade={data.race.grade} />
 		{/if}
 	</div>
 	<p class="mt-1 text-sm text-gray-600">{spec.join(' / ')}</p>

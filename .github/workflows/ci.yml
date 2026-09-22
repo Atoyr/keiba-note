@@ -37,6 +37,11 @@ jobs:
         run: pnpm run check
       - name: 整形と lint
         run: pnpm run lint
+
+      # 単体テストのうち client プロジェクト（*.svelte.spec.ts）は
+      # vitest のブラウザモードで走るので chromium が要る。
+      - name: chromium の取得
+        run: pnpm exec playwright install chromium
       - name: 単体テスト
         run: pnpm run test:unit -- --run
 
