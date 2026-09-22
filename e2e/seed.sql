@@ -52,10 +52,14 @@ VALUES ('01JE2ERACEPAST0000000000000', '2026-06-14', '中山', 11, 'E2Eステー
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance)
 VALUES ('01JE2ERACEQUIET000000000000', '2026-08-16', '新潟', 10, 'E2E特別', '3勝クラス', '芝', 1800);
 
--- これから走るレース。**タイムラインの先頭に出るのが正**（未来 → 過去）。
--- 日付が固定でも未来であり続けるように 2099 年に置く。
+-- これから走るレース。**近いほうがタイムラインの先頭に出るのが正**
+-- （未来は近い順 → 過去は新しい順）。日付が固定でも未来であり続けるように 2099 年に置く。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEFUTURE00000000000', '2099-04-04', '東京', 11, 'E2E未来賞', 'G1', '芝', 2400);
+
+-- さらに先のレース。**次走より下に出る**こと（降順のままだとこれが先頭に立つ）の確認用。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEFARFUTURE00000000', '2099-12-26', '中山', 11, 'E2E未来記念', 'G1', '芝', 2500);
 
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position)
 VALUES (
@@ -80,6 +84,14 @@ VALUES (
 	'01JE2ERACEFUTURE00000000000',
 	'01JE2EHORSE000000000000000',
 	3, 'E2E騎手'
+);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
+VALUES (
+	'01JE2EENTRYFARFUTURE000000',
+	'01JE2ERACEFARFUTURE00000000',
+	'01JE2EHORSE000000000000000',
+	7, 'E2E騎手'
 );
 
 -- 1走目のふりかえりメモ。**この出走は出走行を出さない**（同じレースが2行にならない）。

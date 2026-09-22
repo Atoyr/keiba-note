@@ -21,7 +21,7 @@ export const SHARED_NOTE_ID = '01JE2ESHAREDNOTE0000000000';
 /** 非公開のメモ。存在するが `/notes/[id]` では 404 になる。 */
 export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';
 
-/** タイムラインを見る馬。出走3走のうち、メモが付いているのは1走だけ。 */
+/** タイムラインを見る馬。出走4走（うち2走は未来）のうち、メモが付いているのは1走だけ。 */
 export const HORSE_ID = '01JE2EHORSE000000000000000';
 
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */

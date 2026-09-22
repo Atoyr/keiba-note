@@ -257,11 +257,13 @@ function rank(row: TimelineRow): number {
  * （1つの出走に出走前メモとふりかえりメモの2件が付くことがあるので、
  * 「1件でもあれば出走行は出さない」= 集合で持つ）。
  *
- * 並びは **未来 → 過去**（occurred_at の降順）。次走が先頭に来て、古い走りほど下に沈む。
+ * 並びは **今日を起点に近い順**。未来を上・過去を下に置き、**どちらの側も今日に近いほど上**に
+ * 出す（未来は昇順、過去は降順）。全体を降順にすると、いちばん先の予定が先頭に立ち、
+ * 知りたい次走が未来ブロックの末尾＝過去との境目に埋もれる。**先頭は常に「次に走るレース」。**
  * メモの occurred_at はレース紐付きならレース日なので、メモ行と出走行は同じ軸で混ざる。
  *
- * `today` を引数で受けるのは、「出走予定」の判定を呼び出し側の時計に寄せるため
- * （JST の今日は `todayJst()`。design.md 第9章 #7）。**当日は「予定」にしない**：
+ * `today` を引数で受けるのは、「出走予定」の判定と未来・過去の境目を呼び出し側の時計に
+ * 寄せるため（JST の今日は `todayJst()`。design.md 第9章 #7）。**当日は「予定」にしない**：
  * 朝に開いたときは予定でも、走り終えた夕方には予定ではない。日付だけでは決められないので、
  * その日のうちは過去と同じ見せ方にして、着順が入った時点で着順が出るようにする。
  */
@@ -292,9 +294,14 @@ export function mergeHorseTimeline(
 
 	// sort は安定なので、同じ日付の中では元の並び（メモは occurred_at → created_at の降順、
 	// 出走は日付 → R の降順）がそのまま残る。
-	return rows.sort((a, b) =>
-		a.occurredAt === b.occurredAt ? rank(a) - rank(b) : a.occurredAt < b.occurredAt ? 1 : -1
-	);
+	return rows.sort((a, b) => {
+		const au = a.occurredAt > today;
+		const bu = b.occurredAt > today;
+		if (au !== bu) return au ? -1 : 1; // 未来が上。
+		if (a.occurredAt === b.occurredAt) return rank(a) - rank(b);
+		// 未来は昇順（次走が先頭）、過去は降順（直近の走りが先頭）。
+		return (a.occurredAt < b.occurredAt ? -1 : 1) * (au ? 1 : -1);
+	});
 }
 
 /** 近況メモ（レースに紐づかない馬のメモ）を足す。 */

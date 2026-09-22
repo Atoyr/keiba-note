@@ -155,7 +155,7 @@
 		{#if data.timeline.length === 0}
 			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>
 		{:else}
-			<!-- 未来 → 過去。次走が先頭、古い走りほど下に沈む（mergeHorseTimeline）。 -->
+			<!-- 今日を起点に近い順。次走が先頭で、その先の予定・過去の走りと下に続く（mergeHorseTimeline）。 -->
 			<ol class="mt-4 space-y-5">
 				{#each data.timeline as row (row.key)}
 					{#if row.type === 'run'}

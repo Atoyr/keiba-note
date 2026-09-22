@@ -207,6 +207,55 @@ describe('mergeHorseTimeline', () => {
 		]);
 	});
 
+	// 全体を降順にすると、いちばん先の予定が先頭に立ち、次走が未来の末尾に埋もれる。
+	it('未来は近い順。先頭は今日から見た次走になる', () => {
+		const rows = mergeHorseTimeline(
+			[],
+			[
+				run({ entryId: 'e3', date: '2026-12-27', raceName: '有馬記念', finishPosition: null }),
+				run({ entryId: 'e2', date: '2026-10-25', raceName: '天皇賞(秋)', finishPosition: null }),
+				run({ entryId: 'e1', date: '2026-09-20' })
+			],
+			'2026-09-27'
+		);
+
+		expect(rows.map((r) => r.occurredAt)).toEqual(['2026-10-25', '2026-12-27', '2026-09-20']);
+	});
+
+	// 未来の側にはメモも並ぶ（出走前メモの occurred_at はレース日）。
+	it('未来の出走前メモも近い順に並ぶ', () => {
+		const rows = mergeHorseTimeline(
+			[
+				memo({ id: 'n9', kind: 'preview', occurredAt: '2026-12-27', raceEntryId: 'e3' }),
+				memo({ id: 'n8', kind: 'preview', occurredAt: '2026-10-25', raceEntryId: 'e2' })
+			],
+			[
+				run({ entryId: 'e3', date: '2026-12-27', finishPosition: null }),
+				run({ entryId: 'e2', date: '2026-10-25', finishPosition: null })
+			],
+			'2026-09-27'
+		);
+
+		expect(rows.map((r) => r.key)).toEqual(['note:n8', 'note:n9']);
+	});
+
+	// 当日は未来に入れない（＝過去と同じ側）。先頭は次の開催であって今日ではない。
+	it('当日の出走は未来ブロックに入らない', () => {
+		const rows = mergeHorseTimeline(
+			[],
+			[
+				run({ entryId: 'e2', date: '2026-10-25', finishPosition: null }),
+				run({ entryId: 'e1', date: '2026-09-27' })
+			],
+			'2026-09-27'
+		);
+
+		expect(rows).toEqual([
+			expect.objectContaining({ occurredAt: '2026-10-25', upcoming: true }),
+			expect.objectContaining({ occurredAt: '2026-09-27', upcoming: false })
+		]);
+	});
+
 	// 「当日は予定にしない」— 朝は予定でも、走り終えた夕方には予定ではない。
 	it.each([
 		['2026-10-24', true],
