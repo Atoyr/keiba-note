@@ -1,0 +1,27 @@
+# 2025-06-15 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-06-15
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 宝塚記念
+    grade: G1
+    surface: 芝
+    distance: 2200
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - name: レガレイラ
+        ref: nk-2021105898
+        bracket: 8
+        horseNumber: 17
+        jockey: 戸崎圭太
+        finish: 11
+        popularity: 2
+        time: "2:12.6"
+        passing: "8-8-6-5"
+        last3f: 37
+        weight: 56
+        horseWeight: 478
+        horseWeightDiff: 10
+        odds: 4.9

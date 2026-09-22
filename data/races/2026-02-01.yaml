@@ -1,0 +1,73 @@
+# 2026-02-01 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-02-01
+
+races:
+  - course: 小倉
+    raceNumber: 1
+    name: "3歳未勝利"
+    className: 未勝利
+    surface: ダート
+    distance: 1700
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: エイシンインアウト
+        ref: nk-2023105521
+        bracket: 6
+        horseNumber: 12
+        jockey: 和田陽希
+        finish: 4
+        popularity: 6
+        time: "1:48.2"
+        passing: "12-12-11-12"
+        last3f: 38.5
+        weight: 54
+        horseWeight: 478
+        horseWeightDiff: -2
+        odds: 16.2
+  - course: 京都
+    raceNumber: 10
+    name: 八坂S
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2200
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: メイショウゲキリン
+        ref: nk-2019104092
+        bracket: 2
+        horseNumber: 2
+        jockey: 池添謙一
+        finish: 1
+        popularity: 7
+        time: "2:13.5"
+        passing: "2-2-1-1"
+        last3f: 34.3
+        weight: 58
+        horseWeight: 526
+        horseWeightDiff: 2
+        odds: 47.7
+  - course: 小倉
+    raceNumber: 11
+    name: 門司S
+    grade: OP
+    surface: ダート
+    distance: 1700
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: ヴーレヴー
+        ref: nk-2022104617
+        bracket: 5
+        horseNumber: 9
+        jockey: 浜中俊
+        finish: 11
+        popularity: 7
+        time: "1:46.2"
+        passing: "4-4-2-3"
+        last3f: 38.5
+        weight: 54
+        horseWeight: 500
+        horseWeightDiff: 6
+        odds: 8.7

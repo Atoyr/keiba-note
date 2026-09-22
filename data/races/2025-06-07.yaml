@@ -1,0 +1,27 @@
+# 2025-06-07 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-06-07
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 垂水S
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: エセルフリーダ
+        ref: nk-2021105138
+        bracket: 8
+        horseNumber: 15
+        jockey: 武藤雅
+        finish: 15
+        popularity: 2
+        time: "2:02.5"
+        passing: "3-2-3-4"
+        last3f: 39.3
+        weight: 56
+        horseWeight: 464
+        horseWeightDiff: -4
+        odds: 4.9

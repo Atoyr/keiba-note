@@ -1,0 +1,41 @@
+# 2026-04-12 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-04-12
+
+races:
+  - course: 福島
+    raceNumber: 11
+    name: 福島民報杯
+    grade: L
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: リビアングラス
+        ref: nk-2020105633
+        bracket: 3
+        horseNumber: 4
+        jockey: 古川奈穂
+        finish: 5
+        popularity: 7
+        time: "1:58.8"
+        passing: "7-7-5-3"
+        last3f: 35.3
+        weight: 58
+        horseWeight: 492
+        horseWeightDiff: -4
+        odds: 12.6
+      - name: アスクドゥポルテ
+        ref: nk-2020101025
+        bracket: 4
+        horseNumber: 6
+        jockey: 丸田恭介
+        finish: 12
+        popularity: 13
+        time: "2:00.1"
+        passing: "15-15-14-14"
+        last3f: 35.5
+        weight: 57
+        horseWeight: 474
+        horseWeightDiff: -12
+        odds: 62.6

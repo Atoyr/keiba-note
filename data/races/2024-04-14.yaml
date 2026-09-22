@@ -1,0 +1,27 @@
+# 2024-04-14 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2024-04-14
+
+races:
+  - course: 中山
+    raceNumber: 10
+    name: ドゥラメンテC
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2500
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: セイウンプラチナ
+        ref: nk-2019102628
+        bracket: 5
+        horseNumber: 8
+        jockey: 武豊
+        finish: 1
+        popularity: 8
+        time: "2:31.4"
+        passing: "1-1-1-1"
+        last3f: 35
+        weight: 55
+        horseWeight: 498
+        horseWeightDiff: -10
+        odds: 21.9

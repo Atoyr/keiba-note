@@ -1,0 +1,27 @@
+# 2026-03-07 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-03-07
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 中山牝馬S
+    grade: G3
+    surface: 芝
+    distance: 1800
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - name: エセルフリーダ
+        ref: nk-2021105138
+        bracket: 2
+        horseNumber: 3
+        jockey: 武藤雅
+        finish: 1
+        popularity: 6
+        time: "1:47.1"
+        passing: "2-2-2-2"
+        last3f: 35.9
+        weight: 53
+        horseWeight: 482
+        horseWeightDiff: -6
+        odds: 15.3

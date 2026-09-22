@@ -1,0 +1,41 @@
+# 2026-02-08 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-02-08
+
+races:
+  - course: 小倉
+    raceNumber: 11
+    name: 小倉日経賞
+    grade: OP
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: コスモブッドレア
+        ref: nk-2021106782
+        bracket: 1
+        horseNumber: 1
+        jockey: 菊沢一樹
+        finish: 11
+        popularity: 10
+        time: "2:01.3"
+        passing: "6-6-5-6"
+        last3f: 36.3
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: 8
+        odds: 30
+      - name: アスクドゥポルテ
+        ref: nk-2020101025
+        bracket: 8
+        horseNumber: 11
+        jockey: 西塚洸二
+        finish: 12
+        popularity: 5
+        time: "2:02.0"
+        passing: "12-12-11-10"
+        last3f: 36.3
+        weight: 57
+        horseWeight: 486
+        horseWeightDiff: 10
+        odds: 7.6

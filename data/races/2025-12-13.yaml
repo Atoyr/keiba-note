@@ -1,0 +1,27 @@
+# 2025-12-13 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-12-13
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: 中日新聞杯
+    grade: G3
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ジューンテイク
+        ref: nk-2021100913
+        bracket: 2
+        horseNumber: 3
+        jockey: 藤岡佑介
+        finish: 3
+        popularity: 5
+        time: "1:57.8"
+        passing: "12-11-7-6"
+        last3f: 33.6
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 10
+        odds: 9.5

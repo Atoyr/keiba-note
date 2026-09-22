@@ -1,0 +1,27 @@
+# 2025-06-08 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-06-08
+
+races:
+  - course: 東京
+    raceNumber: 5
+    name: "2歳新馬"
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: グリーンエナジー
+        ref: nk-2023105456
+        bracket: 6
+        horseNumber: 6
+        jockey: 戸崎圭太
+        finish: 3
+        popularity: 3
+        time: "1:47.7"
+        passing: "7-7-7"
+        last3f: 34.9
+        weight: 55
+        horseWeight: 482
+        horseWeightDiff: 0
+        odds: 9.5
