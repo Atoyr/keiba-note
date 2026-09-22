@@ -27,6 +27,9 @@ export const HORSE_ID = '01JE2EHORSE000000000000000';
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 
+/** ふりかえり画面を開くレース。出走2頭の枠は1枠（白）と8枠（桃）。 */
+export const REVIEW_RACE_ID = '01JE2ERACEREVIEW0000000000';
+
 /**
  * ログイン済みで開くためのセッショントークン。**Cookie に入れる生の値。**
  *
