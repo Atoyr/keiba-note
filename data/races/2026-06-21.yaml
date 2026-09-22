@@ -1,0 +1,27 @@
+# 2026-06-21 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-06-21
+
+races:
+  - course: 函館
+    raceNumber: 4
+    name: "3歳未勝利"
+    className: 未勝利
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 小雨
+    entries:
+      - name: エイシンインアウト
+        ref: nk-2023105521
+        bracket: 2
+        horseNumber: 4
+        jockey: 横山琉人
+        finish: 4
+        popularity: 4
+        time: "1:48.5"
+        passing: "11-11-12-12"
+        last3f: 35.1
+        weight: 57
+        horseWeight: 488
+        horseWeightDiff: 6
+        odds: 7.8

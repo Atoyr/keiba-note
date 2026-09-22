@@ -1,0 +1,27 @@
+# 2025-09-06 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-09-06
+
+races:
+  - course: 中山
+    raceNumber: 10
+    name: 白井特別
+    className: "2勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: パンジャ
+        ref: nk-2021105155
+        bracket: 8
+        horseNumber: 8
+        jockey: 戸崎圭太
+        finish: 1
+        popularity: 2
+        time: "1:58.2"
+        passing: "3-4-3-3"
+        last3f: 34
+        weight: 58
+        horseWeight: 484
+        horseWeightDiff: -4
+        odds: 3

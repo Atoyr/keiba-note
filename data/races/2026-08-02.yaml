@@ -1,0 +1,27 @@
+# 2026-08-02 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-08-02
+
+races:
+  - course: 札幌
+    raceNumber: 11
+    name: クイーンS
+    grade: G3
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ヴーレヴー
+        ref: nk-2022104617
+        bracket: 8
+        horseNumber: 14
+        jockey: 横山典弘
+        finish: 3
+        popularity: 4
+        time: "1:46.2"
+        passing: "2-2-2-2"
+        last3f: 35
+        weight: 55
+        horseWeight: 498
+        horseWeightDiff: 2
+        odds: 10.7

@@ -1,0 +1,64 @@
+# 2025-12-28 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-12-28
+
+races:
+  - course: 中山
+    raceNumber: 6
+    name: "2歳新馬"
+    className: 新馬
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: コンジェスタス
+        ref: nk-2023106963
+        bracket: 3
+        horseNumber: 6
+        jockey: C.デムーロ
+        finish: 1
+        popularity: 4
+        time: "2:03.6"
+        passing: "3-3-5-4"
+        last3f: 35.3
+        weight: 56
+        horseWeight: 530
+        horseWeightDiff: 0
+        odds: 8.3
+  - course: 中山
+    raceNumber: 11
+    name: 有馬記念
+    grade: G1
+    surface: 芝
+    distance: 2500
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: レガレイラ
+        ref: nk-2021105898
+        bracket: 3
+        horseNumber: 5
+        jockey: ルメール
+        finish: 4
+        popularity: 1
+        time: "2:31.7"
+        passing: "14-14-15-12"
+        last3f: 34.6
+        weight: 56
+        horseWeight: 482
+        horseWeightDiff: 2
+        odds: 3.3
+      - name: コスモキュランダ
+        ref: nk-2021106787
+        bracket: 5
+        horseNumber: 10
+        jockey: 横山武史
+        finish: 2
+        popularity: 12
+        time: "2:31.6"
+        passing: "2-3-2-2"
+        last3f: 35.5
+        weight: 58
+        horseWeight: 522
+        horseWeightDiff: 0
+        odds: 111.5

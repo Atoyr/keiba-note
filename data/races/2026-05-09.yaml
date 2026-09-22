@@ -1,0 +1,69 @@
+# 2026-05-09 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-05-09
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: 京都新聞杯
+    grade: G2
+    surface: 芝
+    distance: 2200
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: エムズビギン
+        ref: nk-2023107127
+        bracket: 1
+        horseNumber: 2
+        jockey: 川田将雅
+        finish: 7
+        popularity: 2
+        time: "2:10.6"
+        passing: "9-10-10-11"
+        last3f: 35.8
+        weight: 57
+        horseWeight: 508
+        horseWeightDiff: 0
+        odds: 4.6
+      - name: コンジェスタス
+        ref: nk-2023106963
+        bracket: 3
+        horseNumber: 5
+        jockey: 西村淳也
+        finish: 1
+        popularity: 6
+        time: "2:09.9"
+        passing: "6-7-9-7"
+        last3f: 35.3
+        weight: 57
+        horseWeight: 518
+        horseWeightDiff: -6
+        odds: 13.7
+      - name: カムアップローゼス
+        ref: nk-2023104386
+        bracket: 4
+        horseNumber: 7
+        jockey: 鮫島克駿
+        finish: 6
+        popularity: 10
+        time: "2:10.4"
+        passing: "6-7-6-7"
+        last3f: 35.8
+        weight: 57
+        horseWeight: 466
+        horseWeightDiff: 6
+        odds: 32.4
+      - name: カフジエメンタール
+        ref: nk-2023103899
+        bracket: 5
+        horseNumber: 9
+        jockey: 吉村誠之助
+        finish: 9
+        popularity: 11
+        time: "2:10.8"
+        passing: "11-10-10-11"
+        last3f: 35.9
+        weight: 57
+        horseWeight: 526
+        horseWeightDiff: -2
+        odds: 36.3

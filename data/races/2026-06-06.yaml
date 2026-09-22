@@ -1,0 +1,50 @@
+# 2026-06-06 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-06-06
+
+races:
+  - course: 阪神
+    raceNumber: 9
+    name: 城崎特別
+    className: "1勝クラス"
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: カフジエメンタール
+        ref: nk-2023103899
+        bracket: 3
+        horseNumber: 3
+        jockey: 坂井瑠星
+        finish: 1
+        popularity: 1
+        time: "1:45.5"
+        passing: "2-2"
+        last3f: 33.9
+        weight: 55
+        horseWeight: 526
+        horseWeightDiff: 0
+        odds: 1.6
+  - course: 阪神
+    raceNumber: 11
+    name: 垂水S
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: キャントウェイト
+        ref: nk-2021102800
+        bracket: 3
+        horseNumber: 3
+        jockey: 団野大成
+        finish: 5
+        popularity: 4
+        time: "1:59.2"
+        passing: "4-4-4-4"
+        last3f: 34.2
+        weight: 58
+        horseWeight: 478
+        horseWeightDiff: -2
+        odds: 6.7

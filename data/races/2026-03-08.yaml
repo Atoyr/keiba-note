@@ -1,0 +1,27 @@
+# 2026-03-08 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-03-08
+
+races:
+  - course: 阪神
+    raceNumber: 9
+    name: アルメリア賞
+    className: "1勝クラス"
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: カフジエメンタール
+        ref: nk-2023103899
+        bracket: 3
+        horseNumber: 3
+        jockey: 武豊
+        finish: 1
+        popularity: 2
+        time: "1:45.2"
+        passing: "4-4"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 526
+        horseWeightDiff: 4
+        odds: 3.9

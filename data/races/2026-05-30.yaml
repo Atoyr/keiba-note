@@ -1,0 +1,27 @@
+# 2026-05-30 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-05-30
+
+races:
+  - course: 京都
+    raceNumber: 4
+    name: "3歳未勝利"
+    className: 未勝利
+    surface: 芝
+    distance: 2400
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: シートゥサミット
+        ref: nk-2023101200
+        bracket: 7
+        horseNumber: 13
+        jockey: 酒井学
+        finish: 1
+        popularity: 1
+        time: "2:25.3"
+        passing: "13-13-1-1"
+        last3f: 35
+        weight: 57
+        horseWeight: 518
+        horseWeightDiff: 0
+        odds: 3.2

@@ -1,0 +1,78 @@
+# 2026-04-19 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-04-19
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 皐月賞
+    grade: G1
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ロブチェン
+        ref: nk-2023107089
+        bracket: 2
+        horseNumber: 4
+        jockey: 松山弘平
+        finish: 1
+        popularity: 1
+        time: "1:56.5"
+        passing: "1-1-1-1"
+        last3f: 34.2
+        weight: 57
+        horseWeight: 520
+        horseWeightDiff: 2
+        odds: 4
+      - name: アルトラムス
+        ref: nk-2023103480
+        bracket: 8
+        horseNumber: 16
+        jockey: 横山武史
+        finish: 18
+        popularity: 13
+        time: "1:58.8"
+        passing: "10-9-9-15"
+        last3f: 35.8
+        weight: 57
+        horseWeight: 468
+        horseWeightDiff: -6
+        odds: 50.2
+      - name: グリーンエナジー
+        ref: nk-2023105456
+        bracket: 6
+        horseNumber: 12
+        jockey: 戸崎圭太
+        finish: 7
+        popularity: 2
+        time: "1:57.0"
+        passing: "13-14-13-10"
+        last3f: 33.6
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 4.5
+  - course: 中山
+    raceNumber: 12
+    name: サンシャインS
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2200
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: パンジャ
+        ref: nk-2021105155
+        bracket: 4
+        horseNumber: 7
+        jockey: 戸崎圭太
+        finish: 1
+        popularity: 1
+        time: "2:10.7"
+        passing: "8-8-10-10"
+        last3f: 33.6
+        weight: 57
+        horseWeight: 492
+        horseWeightDiff: -2
+        odds: 5.7

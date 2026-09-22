@@ -1,0 +1,27 @@
+# 2026-05-10 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-05-10
+
+races:
+  - course: 東京
+    raceNumber: 10
+    name: メトロポリタンS
+    grade: L
+    surface: 芝
+    distance: 2400
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ワイドエンペラー
+        ref: nk-2018101660
+        bracket: 4
+        horseNumber: 4
+        jockey: M.ディー
+        finish: 11
+        popularity: 9
+        time: "2:25.2"
+        passing: "11-11-12-12"
+        last3f: 35
+        weight: 57
+        horseWeight: 492
+        horseWeightDiff: -4
+        odds: 49.7

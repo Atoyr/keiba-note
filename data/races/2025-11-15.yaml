@@ -1,0 +1,41 @@
+# 2025-11-15 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-11-15
+
+races:
+  - course: 京都
+    raceNumber: 10
+    name: アンドロメダS
+    grade: L
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: コスモブッドレア
+        ref: nk-2021106782
+        bracket: 1
+        horseNumber: 2
+        jockey: 幸英明
+        finish: 14
+        popularity: 14
+        time: "2:00.6"
+        passing: "1-1-1-1"
+        last3f: 36.8
+        weight: 57
+        horseWeight: 488
+        horseWeightDiff: 2
+        odds: 55.7
+      - name: リビアングラス
+        ref: nk-2020105633
+        bracket: 3
+        horseNumber: 6
+        jockey: 坂井瑠星
+        finish: 6
+        popularity: 1
+        time: "1:59.6"
+        passing: "5-5-5-3"
+        last3f: 35.3
+        weight: 58
+        horseWeight: 494
+        horseWeightDiff: 0
+        odds: 3.1

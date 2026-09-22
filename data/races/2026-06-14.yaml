@@ -1,0 +1,55 @@
+# 2026-06-14 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-06-14
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 宝塚記念
+    grade: G1
+    surface: 芝
+    distance: 2200
+    trackCondition: 重
+    weather: 雨
+    entries:
+      - name: レガレイラ
+        ref: nk-2021105898
+        bracket: 8
+        horseNumber: 17
+        jockey: ルメール
+        finish: 7
+        popularity: 5
+        time: "2:13.7"
+        passing: "11-12-10-9"
+        last3f: 35.9
+        weight: 56
+        horseWeight: 484
+        horseWeightDiff: 2
+        odds: 7.8
+      - name: ジューンテイク
+        ref: nk-2021100913
+        bracket: 5
+        horseNumber: 10
+        jockey: 松山弘平
+        finish: 8
+        popularity: 15
+        time: "2:13.7"
+        passing: "7-7-5-3"
+        last3f: 36.7
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: 2
+        odds: 222.6
+      - name: コスモキュランダ
+        ref: nk-2021106787
+        bracket: 5
+        horseNumber: 9
+        jockey: 横山武史
+        finish: 4
+        popularity: 8
+        time: "2:12.6"
+        passing: "1-1-1-1"
+        last3f: 36.1
+        weight: 58
+        horseWeight: 518
+        horseWeightDiff: -2
+        odds: 41.6

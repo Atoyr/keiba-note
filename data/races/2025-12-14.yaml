@@ -1,0 +1,27 @@
+# 2025-12-14 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-12-14
+
+races:
+  - course: 阪神
+    raceNumber: 9
+    name: オリオンS
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2200
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: メイショウゲキリン
+        ref: nk-2019104092
+        bracket: 3
+        horseNumber: 5
+        jockey: 西塚洸二
+        finish: 9
+        popularity: 11
+        time: "2:12.9"
+        passing: "1-1-1-1"
+        last3f: 36.5
+        weight: 58
+        horseWeight: 514
+        horseWeightDiff: -6
+        odds: 89

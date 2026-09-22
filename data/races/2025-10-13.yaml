@@ -1,0 +1,27 @@
+# 2025-10-13 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-10-13
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: オクトーバーS
+    grade: L
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: ワイドエンペラー
+        ref: nk-2018101660
+        bracket: 7
+        horseNumber: 15
+        jockey: 西村淳也
+        finish: 4
+        popularity: 10
+        time: "1:58.0"
+        passing: "11-13-11"
+        last3f: 33.7
+        weight: 55
+        horseWeight: 496
+        horseWeightDiff: -2
+        odds: 27.8

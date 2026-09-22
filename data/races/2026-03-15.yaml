@@ -1,0 +1,27 @@
+# 2026-03-15 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-03-15
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: 東海テレビ杯金鯱賞
+    grade: G2
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ジューンテイク
+        ref: nk-2021100913
+        bracket: 2
+        horseNumber: 2
+        jockey: 武豊
+        finish: 4
+        popularity: 5
+        time: "1:58.2"
+        passing: "7-6-3-3"
+        last3f: 34.8
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: -4
+        odds: 7.7

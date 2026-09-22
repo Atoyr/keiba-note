@@ -1,0 +1,41 @@
+# 2025-09-21 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-09-21
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 産経賞オールカマー
+    grade: G2
+    surface: 芝
+    distance: 2200
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: レガレイラ
+        ref: nk-2021105898
+        bracket: 4
+        horseNumber: 4
+        jockey: 戸崎圭太
+        finish: 1
+        popularity: 1
+        time: "2:10.2"
+        passing: "8-8-6-6"
+        last3f: 34
+        weight: 57
+        horseWeight: 472
+        horseWeightDiff: -6
+        odds: 3.3
+      - name: ワイドエンペラー
+        ref: nk-2018101660
+        bracket: 8
+        horseNumber: 11
+        jockey: 佐々木大輔
+        finish: 7
+        popularity: 11
+        time: "2:11.0"
+        passing: "11-11-11-11"
+        last3f: 34.1
+        weight: 57
+        horseWeight: 498
+        horseWeightDiff: -6
+        odds: 181.1

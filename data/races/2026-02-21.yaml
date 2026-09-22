@@ -1,0 +1,50 @@
+# 2026-02-21 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-02-21
+
+races:
+  - course: 阪神
+    raceNumber: 2
+    name: "3歳未勝利"
+    className: 未勝利
+    surface: ダート
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: エイシンインアウト
+        ref: nk-2023105521
+        bracket: 1
+        horseNumber: 1
+        jockey: 団野大成
+        finish: 5
+        popularity: 2
+        time: "1:56.1"
+        passing: "8-8-4-5"
+        last3f: 37.9
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: 4
+        odds: 3.5
+  - course: 東京
+    raceNumber: 9
+    name: フリージア賞
+    className: "1勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: カムアップローゼス
+        ref: nk-2023104386
+        bracket: 5
+        horseNumber: 5
+        jockey: 三浦皇成
+        finish: 3
+        popularity: 5
+        time: "1:58.9"
+        passing: "4-4-4"
+        last3f: 33.7
+        weight: 57
+        horseWeight: 460
+        horseWeightDiff: -18
+        odds: 13.2

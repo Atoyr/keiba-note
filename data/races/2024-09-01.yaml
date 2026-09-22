@@ -1,0 +1,27 @@
+# 2024-09-01 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2024-09-01
+
+races:
+  - course: 札幌
+    raceNumber: 11
+    name: タイランドC
+    grade: OP
+    surface: 芝
+    distance: 2600
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - name: セイウンプラチナ
+        ref: nk-2019102628
+        bracket: 6
+        horseNumber: 10
+        jockey: 大野拓弥
+        finish: 10
+        popularity: 10
+        time: "2:43.8"
+        passing: "1-1-1-2"
+        last3f: 40.2
+        weight: 55
+        horseWeight: 488
+        horseWeightDiff: -10
+        odds: 30

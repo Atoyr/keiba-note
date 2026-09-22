@@ -1,0 +1,27 @@
+# 2025-10-19 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-10-19
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: 秋華賞
+    grade: G1
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: ヴーレヴー
+        ref: nk-2022104617
+        bracket: 6
+        horseNumber: 12
+        jockey: 菱田裕二
+        finish: 12
+        popularity: 16
+        time: "1:59.4"
+        passing: "11-15-11-10"
+        last3f: 35.5
+        weight: 55
+        horseWeight: 494
+        horseWeightDiff: 6
+        odds: 122.6

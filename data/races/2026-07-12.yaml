@@ -1,0 +1,27 @@
+# 2026-07-12 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-07-12
+
+races:
+  - course: 函館
+    raceNumber: 11
+    name: 巴賞
+    grade: OP
+    surface: 芝
+    distance: 1800
+    trackCondition: 重
+    weather: 雨
+    entries:
+      - name: ヴーレヴー
+        ref: nk-2022104617
+        bracket: 6
+        horseNumber: 10
+        jockey: 吉田隼人
+        finish: 1
+        popularity: 8
+        time: "1:47.1"
+        passing: "2-2-2-2"
+        last3f: 35.4
+        weight: 55
+        horseWeight: 496
+        horseWeightDiff: 0
+        odds: 11.1

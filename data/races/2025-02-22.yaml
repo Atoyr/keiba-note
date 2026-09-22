@@ -1,0 +1,27 @@
+# 2025-02-22 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-02-22
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: ダイヤモンドS
+    grade: G3
+    surface: 芝
+    distance: 3400
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: セイウンプラチナ
+        ref: nk-2019102628
+        bracket: 2
+        horseNumber: 4
+        jockey: 内田博幸
+        finish: 8
+        popularity: 11
+        time: "3:34.3"
+        passing: "1-1-1-2"
+        last3f: 36.9
+        weight: 54
+        horseWeight: 506
+        horseWeightDiff: -6
+        odds: 85.7

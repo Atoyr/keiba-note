@@ -1,0 +1,27 @@
+# 2026-06-13 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-06-13
+
+races:
+  - course: 函館
+    raceNumber: 9
+    name: 奥尻特別
+    className: "1勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - name: カムアップローゼス
+        ref: nk-2023104386
+        bracket: 8
+        horseNumber: 10
+        jockey: 鮫島克駿
+        finish: 4
+        popularity: 1
+        time: "2:00.1"
+        passing: "6-6-7-10"
+        last3f: 35.5
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: -6
+        odds: 2.6
