@@ -1,19 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
-import { PREVIEW_RACE_ID, SESSION_TOKEN } from './seed';
-
-/** seed で用意したセッションを Cookie に載せる（本番ビルドにモック認証は無い）。 */
-async function login(page: Page) {
-	await page.context().addCookies([
-		{
-			name: 'session',
-			value: SESSION_TOKEN,
-			domain: 'localhost',
-			path: '/',
-			httpOnly: true,
-			sameSite: 'Lax'
-		}
-	]);
-}
+import { expect, test } from '@playwright/test';
+import { login } from './login';
+import { PREVIEW_RACE_ID } from './seed';
 
 test('未ログインでは予想画面を開けない', async ({ page }) => {
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);

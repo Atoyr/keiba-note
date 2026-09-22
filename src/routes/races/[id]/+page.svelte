@@ -6,6 +6,7 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
+	import { raceReviewSaveLabel } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -34,6 +35,10 @@
 			data.race.weather ?? ''
 		].filter(Boolean)
 	);
+
+	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄はレースのメモ1つだけ。
+	// 「まとめて保存」「（N 件）」は、並んでいる馬の数だけ意味を持つ言い方なので出さない。
+	const bulk = $derived(data.rows.length > 0);
 
 	const ta =
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
@@ -74,7 +79,7 @@
 			<p
 				class="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
 			>
-				保存しました（{form.saved} 件）
+				保存しました{bulk ? `（${form.saved} 件）` : ''}
 			</p>
 		{/key}
 	{/if}
@@ -174,7 +179,7 @@
 				type="submit"
 				class="w-full rounded-md bg-gray-900 px-4 py-2.5 font-medium text-white hover:bg-gray-700"
 			>
-				まとめて保存
+				{raceReviewSaveLabel(data.rows.length)}
 			</button>
 		</div>
 	</form>

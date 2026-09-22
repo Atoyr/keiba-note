@@ -5,7 +5,8 @@ import {
 	formatDateShort,
 	shiftWeek,
 	todayJst,
-	weekLookupRange
+	weekLookupRange,
+	weeksBefore
 } from './date';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */
@@ -179,5 +180,25 @@ describe('formatDateShort', () => {
 	it('曜日つきで短く出す', () => {
 		expect(formatDateShort('2026-09-27')).toBe('9/27(日)');
 		expect(formatDateShort('2026-09-26')).toBe('9/26(土)');
+	});
+});
+
+describe('weeksBefore', () => {
+	// 9/21(月)〜9/27(日) の週。手前の3週は 8/31(月)〜9/20(日)。
+	const week = { start: '2026-09-21', end: '2026-09-27' };
+
+	it('週の頭で切る。今週ぶんは含めない', () => {
+		expect(weeksBefore(week, 3)).toEqual({ from: '2026-08-31', to: '2026-09-20' });
+	});
+
+	it('連休で週の終わりが伸びていても、手前の窓は動かない', () => {
+		expect(weeksBefore({ start: '2026-09-21', end: '2026-09-29' }, 3)).toEqual({
+			from: '2026-08-31',
+			to: '2026-09-20'
+		});
+	});
+
+	it('1週なら直前の1週間だけ', () => {
+		expect(weeksBefore(week, 1)).toEqual({ from: '2026-09-14', to: '2026-09-20' });
 	});
 });
