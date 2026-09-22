@@ -39,7 +39,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const parsed = v.safeParse(horseNoteSchema, {
 			body: form.get('body')?.toString() ?? '',
-			rating: form.get('rating')?.toString() ?? '',
+			tags: form.getAll('tags').map(String),
 			occurredAt: form.get('occurredAt')?.toString() ?? todayJst()
 		});
 

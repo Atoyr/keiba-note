@@ -1,7 +1,7 @@
 <script lang="ts">
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import Stars from '$lib/components/Stars.svelte';
+	import TagBadges from '$lib/components/TagBadges.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -49,7 +49,7 @@
 		{/if}
 
 		<div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500">
-			<Stars rating={n.rating} />
+			<TagBadges tags={n.tags} />
 			<span>— {n.authorName}</span>
 		</div>
 	</article>

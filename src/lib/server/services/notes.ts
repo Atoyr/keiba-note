@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/schema';
+import type { NoteTag } from '$lib/schemas/note';
 
 /**
  * メモ。本アプリの中心。
@@ -24,15 +25,7 @@ const nowSec = () => Math.floor(Date.now() / 1000);
 
 export type NoteView = Pick<
 	Note,
-	| 'id'
-	| 'kind'
-	| 'body'
-	| 'rating'
-	| 'mark'
-	| 'visibility'
-	| 'occurredAt'
-	| 'raceEntryId'
-	| 'horseId'
+	'id' | 'kind' | 'body' | 'tags' | 'mark' | 'visibility' | 'occurredAt' | 'raceEntryId' | 'horseId'
 > & { authorId: string; authorName: string };
 
 /** レース詳細で出す全メモ（レース自体のメモ + 各馬のメモ）。1クエリ。 */
@@ -42,7 +35,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 			id: note.id,
 			kind: note.kind,
 			body: note.body,
-			rating: note.rating,
+			tags: note.tags,
 			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
@@ -65,7 +58,7 @@ export type RaceReviewInput = {
 		entryId: string;
 		horseId: string;
 		body: string;
-		rating: number | null;
+		tags: NoteTag[];
 	}[];
 };
 
@@ -76,7 +69,7 @@ export type RaceReviewInput = {
  * 「1リクエストあたりのクエリ数上限」（Free で50）を食う。
  * `batch()` で1往復・1トランザクションにまとめる。
  *
- * 空欄の馬はスキップし、既存メモがあれば消す（＝メモを消す操作になる）。
+ * 本文も札も空の馬はスキップし、既存メモがあれば消す（＝メモを消す操作になる）。
  * `race_entry` から race_id / horse_id をコピーして note に持たせるのはここ。
  */
 export async function saveRaceReview(
@@ -127,7 +120,9 @@ export async function saveRaceReview(
 	for (const e of input.entries) {
 		const body = e.body.trim();
 
-		if (body) {
+		// **札だけ付けて本文を書かない**のは普通の使い方（「不利」だけ残す）なので、
+		// 本文が空でも札があれば行を残す。両方空のときだけ消す。
+		if (body || e.tags.length > 0) {
 			statements.push(
 				db
 					.insert(note)
@@ -139,7 +134,7 @@ export async function saveRaceReview(
 						horseId: e.horseId,
 						raceEntryId: e.entryId,
 						body,
-						rating: e.rating,
+						tags: e.tags,
 						occurredAt
 					})
 					.onConflictDoUpdate({
@@ -147,7 +142,7 @@ export async function saveRaceReview(
 						targetWhere: sql`race_entry_id IS NOT NULL`,
 						set: {
 							body,
-							rating: e.rating,
+							tags: e.tags,
 							occurredAt,
 							updatedAt: nowSec()
 						}
@@ -181,7 +176,7 @@ export type TimelineItem = {
 	id: string;
 	kind: Note['kind'];
 	body: string;
-	rating: number | null;
+	tags: NoteTag[];
 	mark: Note['mark'];
 	visibility: Note['visibility'];
 	occurredAt: string;
@@ -214,7 +209,7 @@ export async function getHorseTimeline(
 			id: note.id,
 			kind: note.kind,
 			body: note.body,
-			rating: note.rating,
+			tags: note.tags,
 			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
@@ -242,7 +237,7 @@ export async function addHorseNote(
 	input: {
 		horseId: string;
 		body: string;
-		rating: number | null;
+		tags: NoteTag[];
 		occurredAt: string;
 	},
 	authorId: string
@@ -254,7 +249,7 @@ export async function addHorseNote(
 		kind: 'horse',
 		horseId: input.horseId,
 		body: input.body.trim(),
-		rating: input.rating,
+		tags: input.tags,
 		occurredAt: input.occurredAt
 	});
 }
@@ -277,7 +272,7 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 			id: note.id,
 			kind: note.kind,
 			body: note.body,
-			rating: note.rating,
+			tags: note.tags,
 			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
@@ -321,7 +316,7 @@ export async function listHistoryForHorses(
 			id: note.id,
 			kind: note.kind,
 			body: note.body,
-			rating: note.rating,
+			tags: note.tags,
 			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
@@ -366,7 +361,7 @@ export type PreviewNoteInput = {
 		entryId: string;
 		horseId: string;
 		body: string;
-		rating: number | null;
+		tags: NoteTag[];
 		mark: '◎' | '○' | '▲' | '△' | '×' | null;
 	}[];
 };
@@ -391,9 +386,9 @@ export async function savePreviewNotes(
 	for (const e of input.entries) {
 		const body = e.body.trim();
 
-		// **印だけ付けて本文を書かない**のは普通の使い方なので、
-		// 本文が空でも印があれば行を残す。両方空のときだけ消す。
-		if (body || e.mark) {
+		// **印や札だけ付けて本文を書かない**のは普通の使い方なので、
+		// 本文が空でもどちらかがあれば行を残す。すべて空のときだけ消す。
+		if (body || e.mark || e.tags.length > 0) {
 			statements.push(
 				db
 					.insert(note)
@@ -405,7 +400,7 @@ export async function savePreviewNotes(
 						horseId: e.horseId,
 						raceEntryId: e.entryId,
 						body,
-						rating: e.rating,
+						tags: e.tags,
 						mark: e.mark,
 						occurredAt
 					})
@@ -414,7 +409,7 @@ export async function savePreviewNotes(
 						targetWhere: sql`race_entry_id IS NOT NULL`,
 						set: {
 							body,
-							rating: e.rating,
+							tags: e.tags,
 							mark: e.mark,
 							updatedAt: nowSec()
 						}
@@ -452,7 +447,7 @@ export type SharedNote = {
 	id: string;
 	kind: Note['kind'];
 	body: string;
-	rating: number | null;
+	tags: NoteTag[];
 	mark: Note['mark'];
 	occurredAt: string;
 	authorName: string;
@@ -481,7 +476,7 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
 			id: note.id,
 			kind: note.kind,
 			body: note.body,
-			rating: note.rating,
+			tags: note.tags,
 			mark: note.mark,
 			occurredAt: note.occurredAt,
 			authorName: user.displayName,
@@ -534,7 +529,7 @@ export async function listSharedNotes(db: Db, viewerId: string): Promise<RecentN
 			id: note.id,
 			kind: note.kind,
 			body: note.body,
-			rating: note.rating,
+			tags: note.tags,
 			mark: note.mark,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,

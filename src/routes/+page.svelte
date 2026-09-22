@@ -2,7 +2,8 @@
 	import { resolve } from '$app/paths';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
-	import NoteTag from '$lib/components/NoteTag.svelte';
+	import KindBadge from '$lib/components/KindBadge.svelte';
+	import TagBadges from '$lib/components/TagBadges.svelte';
 	import { noteHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -39,7 +40,7 @@
 				<li class="border-l-2 border-gray-200 pl-4">
 					<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
 						<span class="font-mono text-gray-500">{n.occurredAt}</span>
-						<NoteTag tag={h.tag} />
+						<KindBadge label={h.kindLabel} />
 						{#if n.raceId}
 							<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
 								{n.horseName ? `${n.horseName} ${h.label}` : h.label}
@@ -49,10 +50,10 @@
 						{/if}
 						<SharedBadge visibility={n.visibility} />
 					</div>
-					<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
-					{#if n.rating}
-						<p class="mt-1 text-xs text-amber-500">{'★'.repeat(n.rating)}</p>
+					{#if n.body}
+						<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
 					{/if}
+					<TagBadges tags={n.tags} class="mt-1" />
 					<div class="mt-2">
 						<ShareControl noteId={n.id} visibility={n.visibility} redirectTo="/" />
 					</div>

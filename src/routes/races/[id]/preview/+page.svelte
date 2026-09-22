@@ -8,8 +8,9 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
-	import NoteTag from '$lib/components/NoteTag.svelte';
-	import Stars from '$lib/components/Stars.svelte';
+	import KindBadge from '$lib/components/KindBadge.svelte';
+	import TagBadges from '$lib/components/TagBadges.svelte';
+	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { noteHeading } from '$lib/utils/note';
@@ -172,12 +173,14 @@
 									<li class="border-l-2 pl-3">
 										<p class="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
 											<span class="font-mono">{n.occurredAt}</span>
-											<NoteTag tag={h.tag} />
+											<KindBadge label={h.kindLabel} />
 											<span>{h.label}</span>
-											<Stars rating={n.rating} />
 											<SharedBadge visibility={n.visibility} />
 										</p>
-										<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
+										{#if n.body}
+											<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
+										{/if}
+										<TagBadges tags={n.tags} class="mt-1" />
 									</li>
 								{/each}
 							</ol>
@@ -211,21 +214,8 @@
 									class="mt-1 text-sm"
 									value={r.myPreview?.body ?? ''}
 								/>
-								<div class="mt-1 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-									<label class="flex items-center gap-1.5">
-										期待度
-										<select
-											name="rating.{r.entryId}"
-											class="rounded-md border border-input px-1.5 py-0.5"
-										>
-											<option value="">—</option>
-											{#each [1, 2, 3, 4, 5] as n (n)}
-												<option value={n} selected={r.myPreview?.rating === n}>
-													{'★'.repeat(n)}
-												</option>
-											{/each}
-										</select>
-									</label>
+								<div class="mt-1.5">
+									<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
 								</div>
 							</details>
 						</div>

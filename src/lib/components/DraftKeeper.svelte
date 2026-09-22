@@ -30,51 +30,76 @@
 		storageKey: string;
 	} = $props();
 
-	type Draft = { savedAt: number; fields: Record<string, string> };
+	type Draft = { savedAt: number; fields: Record<string, string[]> };
 
 	/** 保存済み（＝サーバーから来た）状態。これとの差分が「未保存」。 */
-	let initial: Record<string, string> = {};
+	let initial: Record<string, string[]> = {};
 	let dirtyCount = $state(0);
 	/** 復元できる下書き。null なら出さない。 */
 	let restorable = $state<Draft | null>(null);
 	let timer: ReturnType<typeof setTimeout> | null = null;
 
 	/**
-	 * フォームの現在値。ラジオは選択中のものだけ、チェックボックスは入れない。
-	 * FormData を使うのは、name の付いた入力を漏れなく拾うため。
+	 * フォームの現在値。FormData を使うのは、name の付いた入力を漏れなく拾うため。
+	 *
+	 * **値は配列で持つ。** 札（`TagPicker`）が同じ name のチェックボックスを
+	 * 並べるので、1つの name に複数の値が乗る。文字列1つで持っていた頃は
+	 * 最後にチェックしたものだけが下書きに残り、復元すると他が外れていた。
+	 * ラジオは選択中のもの、チェックボックスはオンのものだけが乗る。
 	 */
-	function readValues(el: HTMLFormElement): Record<string, string> {
-		const out: Record<string, string> = {};
+	function readValues(el: HTMLFormElement): Record<string, string[]> {
+		const out: Record<string, string[]> = {};
 		for (const [k, v] of new FormData(el)) {
-			if (typeof v === 'string') out[k] = v;
+			if (typeof v !== 'string') continue;
+			(out[k] ??= []).push(v);
 		}
 		return out;
 	}
 
-	function changedFields(el: HTMLFormElement): Record<string, string> {
+	/**
+	 * 同じ値かどうか。JSON にして比べる。
+	 *
+	 * 区切り文字で連結して比べる手もあるが、本文（textarea）には何でも入るので
+	 * 安全な区切りが無い。並び順は DOM の順で安定しているので JSON で足りる。
+	 */
+	const same = (a: string[] | undefined, b: string[] | undefined) =>
+		JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
+
+	function changedFields(el: HTMLFormElement): Record<string, string[]> {
 		const now = readValues(el);
-		const diff: Record<string, string> = {};
+		const diff: Record<string, string[]> = {};
 		for (const k of new Set([...Object.keys(now), ...Object.keys(initial)])) {
-			const a = now[k] ?? '';
-			const b = initial[k] ?? '';
-			if (a !== b) diff[k] = a;
+			if (!same(now[k], initial[k])) diff[k] = now[k] ?? [];
 		}
 		return diff;
 	}
 
-	/** localStorage は private モードや設定次第で投げる。ここで握り潰す。 */
+	/**
+	 * localStorage は private モードや設定次第で投げる。ここで握り潰す。
+	 *
+	 * **値が文字列で入っている古い下書きも受ける。** 札を入れる前は
+	 * `Record<string, string>` で書いていたので、端末に残っているものがある。
+	 */
 	function readDraft(): Draft | null {
 		try {
 			const raw = localStorage.getItem(storageKey);
 			if (!raw) return null;
-			const parsed = JSON.parse(raw) as Draft;
-			return parsed && typeof parsed === 'object' && parsed.fields ? parsed : null;
+			const parsed = JSON.parse(raw) as { savedAt?: number; fields?: Record<string, unknown> };
+			if (!parsed || typeof parsed !== 'object' || !parsed.fields) return null;
+
+			const fields: Record<string, string[]> = {};
+			for (const [k, value] of Object.entries(parsed.fields)) {
+				if (typeof value === 'string') fields[k] = value === '' ? [] : [value];
+				else if (Array.isArray(value))
+					fields[k] = value.filter((x): x is string => typeof x === 'string');
+			}
+			return { savedAt: parsed.savedAt ?? 0, fields };
 		} catch {
 			return null;
 		}
 	}
 
-	function writeDraft(fields: Record<string, string>) {
+	function writeDraft(fields: Record<string, string[]>) {
 		try {
 			if (Object.keys(fields).length === 0) localStorage.removeItem(storageKey);
 			else localStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), fields }));
@@ -106,18 +131,24 @@
 
 	function restore() {
 		if (!form || !restorable) return;
-		for (const [name, value] of Object.entries(restorable.fields)) {
+		for (const [name, values] of Object.entries(restorable.fields)) {
 			const fields = form.elements.namedItem(name);
 			if (!fields) continue;
 
+			// 同じ name が複数あると RadioNodeList で来る。ラジオでも札の
+			// チェックボックス群でも、下書きに入っている値だけを on にすればよい。
 			if (fields instanceof RadioNodeList) {
 				for (const node of fields) {
-					if (node instanceof HTMLInputElement) node.checked = node.value === value;
+					if (node instanceof HTMLInputElement) node.checked = values.includes(node.value);
 				}
-			} else if (fields instanceof HTMLInputElement || fields instanceof HTMLTextAreaElement) {
-				fields.value = value;
-			} else if (fields instanceof HTMLSelectElement) {
-				fields.value = value;
+			} else if (fields instanceof HTMLInputElement) {
+				if (fields.type === 'checkbox' || fields.type === 'radio') {
+					fields.checked = values.includes(fields.value);
+				} else {
+					fields.value = values[0] ?? '';
+				}
+			} else if (fields instanceof HTMLTextAreaElement || fields instanceof HTMLSelectElement) {
+				fields.value = values[0] ?? '';
 			}
 		}
 		restorable = null;
@@ -140,7 +171,7 @@
 		const draft = readDraft();
 		if (draft) {
 			const now = readValues(el);
-			const differs = Object.entries(draft.fields).some(([k, v]) => (now[k] ?? '') !== v);
+			const differs = Object.entries(draft.fields).some(([k, v]) => !same(now[k], v));
 			if (differs) restorable = draft;
 			else writeDraft({});
 		}
