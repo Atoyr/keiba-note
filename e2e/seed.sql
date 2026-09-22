@@ -149,3 +149,20 @@ VALUES (
 -- 「まとめて保存」と名乗らないことをここで見る。**出走馬を足さないこと。**
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEEMPTY00000000000', '2099-06-06', '阪神', 11, 'E2E出馬表前賞', 'G3', '芝', 1800);
+
+-- ダッシュボードの「今週のレース」「過去のレース」用。**日付は流した日から決める。**
+--
+-- 固定日付にすると、いつか今週からも直近3週からも外れて、緑のまま何も見ていない
+-- テストになる。SQLite の `now` は UTC なので +9 時間して JST の日付にする。
+--
+-- 今週（今日）。週は月曜〜日曜なので、どの曜日に流しても必ず今週に入る。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACETHISWEEK00000000', date('now', '+9 hours'), '中京', 11, 'E2E今週賞', 'G3', '芝', 1600);
+
+-- 10日前。今週の頭より前で、かつ3週の窓の中（最短でも今週頭の4日前、最長で10日前）。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACELASTWEEK00000000', date('now', '+9 hours', '-10 days'), '福島', 10, 'E2E先週賞', 'G3', '芝', 2000);
+
+-- 40日前。**窓の外**（窓の下端は最も古くて今日の27日前）。ここに出ないことを見る。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEOLD000000000000', date('now', '+9 hours', '-40 days'), '小倉', 9, 'E2E昔賞', 'G3', '芝', 1800);

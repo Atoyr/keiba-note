@@ -30,6 +30,16 @@ export const REVIEW_RACE_ID = '01JE2ERACEPAST0000000000000';
 /** ふりかえり画面を開くレース。**出走馬が1頭も登録されていない。** */
 export const EMPTY_RACE_ID = '01JE2ERACEEMPTY00000000000';
 
+/**
+ * ダッシュボードのレース欄に出るレース名。**日付は seed を流した日から決まる**
+ * （今日 / 10日前 / 40日前）。40日前のものは「直近3週」の窓の外に出る。
+ */
+export const DASHBOARD_RACES = {
+	thisWeek: 'E2E今週賞',
+	inWindow: 'E2E先週賞',
+	outOfWindow: 'E2E昔賞'
+} as const;
+
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 

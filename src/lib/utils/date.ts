@@ -131,3 +131,15 @@ export function formatDateShort(date: string): string {
 	const w = WEEKDAYS[new Date(toEpoch(date)).getUTCDay()];
 	return `${m}/${d}(${w})`;
 }
+
+/**
+ * その週の**直前** `weeks` 週間ぶんの範囲（両端を含む）。
+ *
+ * ダッシュボードの「過去のレース」が読む窓。週の頭で切るので、
+ * 日曜に見ても月曜に見ても「先週・先々週」の中身が変わらない
+ * （今日から `-21日` で切ると、週の途中で古い開催が抜け落ちていく）。
+ * 今週ぶんは含めない。終わりは今週の前日。
+ */
+export function weeksBefore(week: Week, weeks: number): { from: string; to: string } {
+	return { from: addDays(week.start, -7 * weeks), to: addDays(week.start, -1) };
+}

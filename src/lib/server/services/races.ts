@@ -68,6 +68,46 @@ export async function listRaces(
 }
 
 /**
+ * 期間内のレース。ダッシュボードの「今週のレース」「過去のレース」が読む。
+ *
+ * **重賞に絞らない**（`/this-week` とはここが違う）。ダッシュボードは予想の入口ではなく
+ * 自分が書いたもの・これから書くものの置き場なので、条件戦が落ちると歯抜けに見える。
+ *
+ * `order` は日付の向き。今週は昇順（先に走るレースから）、過去は降順（最後に走ったレースから）。
+ * 件数は `listRaces` と同じで viewer 自身のメモだけを数える。
+ */
+export async function listRacesBetween(
+	db: Db,
+	viewerId: string,
+	range: { from: string; to: string },
+	order: 'asc' | 'desc' = 'asc'
+): Promise<RaceListItem[]> {
+	const dir = order === 'asc' ? asc : desc;
+
+	return db
+		.select({
+			id: race.id,
+			date: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			name: race.name,
+			grade: race.grade,
+			className: race.className,
+			surface: race.surface,
+			distance: race.distance,
+			entryCount: countDistinct(raceEntry.id),
+			noteCount: countDistinct(note.id)
+		})
+		.from(race)
+		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
+		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
+		.where(between(race.date, range.from, range.to))
+		.groupBy(race.id)
+		.orderBy(dir(race.date), dir(race.raceNumber))
+		.limit(100);
+}
+
+/**
  * 登録されているレースの開催年。絞り込みの選択肢に使う。新しい年が先。
  *
  * 選択肢を固定の範囲で作らない。データの無い年を出しても選ばせるだけ無駄で、
