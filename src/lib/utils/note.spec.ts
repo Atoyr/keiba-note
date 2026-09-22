@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { noteHeading, runHeading } from './note';
+import { noteHeading, raceReviewSaveLabel, runHeading } from './note';
 
 const race = {
 	course: '中山',
@@ -62,5 +62,23 @@ describe('runHeading', () => {
 
 	it('レース名も格も無ければ「レース」とだけ出す', () => {
 		expect(runHeading({ course: null, raceNumber: null }, false).label).toBe('レース');
+	});
+});
+
+/**
+ * ふりかえり画面の保存ボタン。**出走馬の数だけが文言を決める。**
+ * ここを取り違えると、入力欄が1つしか無い画面で「まとめて保存」と名乗ることになる。
+ */
+describe('raceReviewSaveLabel', () => {
+	it('出走馬がいなければ「まとめて」と言わない', () => {
+		// 入力欄はレースのメモ1つだけ。まとめる相手がいない。
+		expect(raceReviewSaveLabel(0)).toBe('レースのメモを保存');
+	});
+
+	it('出走馬が1頭でも並んでいればまとめて保存', () => {
+		// レースのメモ + 各馬のメモを1送信で保存する画面なので、
+		// 1頭でも並んでいれば「まとめて」が実態に合う。
+		expect(raceReviewSaveLabel(1)).toBe('まとめて保存');
+		expect(raceReviewSaveLabel(18)).toBe('まとめて保存');
 	});
 });

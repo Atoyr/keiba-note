@@ -117,3 +117,15 @@ export function runHeading(n: RunHeadingSource, upcoming: boolean): NoteHeading 
 
 	return { label: withResult || 'レース', kindLabel: '出走' };
 }
+
+/**
+ * ふりかえり画面（`/races/[id]`）の保存ボタンの文言。
+ *
+ * 出走馬がまだ登録されていないレース（これから組まれる重賞のプレースホルダなど）では、
+ * 入力欄は「レースのメモ」1つだけになる。それを「まとめて保存」と呼ぶと、
+ * 画面に出ていない何かも一緒に保存されるように読めてしまう。
+ * 1つしか無いときは、何を保存するのかをそのまま名乗る。
+ */
+export function raceReviewSaveLabel(entryCount: number): string {
+	return entryCount > 0 ? 'まとめて保存' : 'レースのメモを保存';
+}
