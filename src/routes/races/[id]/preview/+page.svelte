@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import BracketBadge from '$lib/components/BracketBadge.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
@@ -134,13 +135,9 @@
 							: ''}"
 					>
 						<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-							{#if r.bracket}
-								<span
-									class="inline-block w-5 rounded bg-muted text-center text-xs text-muted-foreground"
-								>
-									{r.bracket}
-								</span>
-							{/if}
+							<!-- 枠は色で出す。ふりかえり画面と同じ札にして、
+							     予想で見た枠と結果で見る枠が別物に見えないようにする。 -->
+							<BracketBadge bracket={r.bracket} />
 							<span class="w-6 text-right font-mono text-sm font-medium">
 								{r.horseNumber ?? '−'}
 							</span>

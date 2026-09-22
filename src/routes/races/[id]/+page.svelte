@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import BracketBadge from '$lib/components/BracketBadge.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
@@ -138,8 +139,11 @@
 								{#if r.finishPosition}
 									<span class="font-bold">{r.finishPosition}着</span>
 								{/if}
+								<!-- 枠は色、馬番は数字で出す。この画面の並びは着順なので、
+								     色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
+								<BracketBadge bracket={r.bracket} />
 								{#if r.horseNumber}
-									<span class="text-gray-500">{r.horseNumber}</span>
+									<span class="font-mono text-gray-500">{r.horseNumber}</span>
 								{/if}
 								<a
 									href={resolve('/horses/[id]', { id: r.horseId })}

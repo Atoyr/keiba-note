@@ -46,3 +46,21 @@ test('「書き直す」を開くと、本文欄と全部の札が出る', async
 	// 付けた札はチェック済みで出る。
 	await expect(page.getByRole('checkbox', { name: '次走買い' })).toBeChecked();
 });
+
+/**
+ * 枠は色で読む。ふりかえり画面と同じ札を使うので、**予想で見た枠と
+ * 結果で見る枠が別物に見えない**ことを、こちら側でも1本押さえておく。
+ */
+test('出走馬の枠番が枠の色で出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	const bracket = page.getByTitle('2枠');
+	await expect(bracket).toBeVisible();
+	await expect(bracket).toHaveText('2');
+	await expect(bracket).toHaveClass(/bg-gray-900/);
+
+	// 枠の色は馬番を置き換えるものではない。両方出ていること。
+	const row = page.locator('main > form > ul > li').first();
+	await expect(row).toContainText('3');
+});

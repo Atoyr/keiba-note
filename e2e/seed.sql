@@ -166,3 +166,35 @@ VALUES ('01JE2ERACELASTWEEK00000000', date('now', '+9 hours', '-10 days'), '福�
 -- 40日前。**窓の外**（窓の下端は最も古くて今日の27日前）。ここに出ないことを見る。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEOLD000000000000', date('now', '+9 hours', '-40 days'), '小倉', 9, 'E2E昔賞', 'G3', '芝', 1800);
+
+-- ふりかえり画面（/races/[id]）で**枠の色**を見るための1レース。
+--
+-- **馬タイムライン用の馬とは別の馬を立てる。** あちらは「3走ぶんが日付順に並ぶ」
+-- ことを見ているので、出走を足すと並びの端が変わってしまう。
+--
+-- 枠は白（1枠）と桃（8枠）の両端を置く。白は面が背景と同じで、
+-- 輪郭が無いと消えるため、色づけが壊れたときに最初に出るのがここ。
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSEC00000000000000', 'E2Eウチワク', 2021);
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSED00000000000000', 'E2Eソトワク', 2021);
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEBRACKET000000000', '2026-06-21', '阪神', 11, 'E2E枠色賞', 'G3', '芝', 1600);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES (
+	'01JE2EENTRYINNER0000000000',
+	'01JE2ERACEBRACKET000000000',
+	'01JE2EHORSEC00000000000000',
+	1, 1, 'E2E騎手', 1
+);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES (
+	'01JE2EENTRYOUTER0000000000',
+	'01JE2ERACEBRACKET000000000',
+	'01JE2EHORSED00000000000000',
+	8, 16, 'E2E騎手', 2
+);
