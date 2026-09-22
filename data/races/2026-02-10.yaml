@@ -1,0 +1,27 @@
+# 2026-02-10 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-02-10
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: きさらぎ賞
+    grade: G3
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: エムズビギン
+        ref: nk-2023107127
+        bracket: 2
+        horseNumber: 2
+        jockey: 川田将雅
+        finish: 2
+        popularity: 2
+        time: "1:48.0"
+        passing: "2-2"
+        last3f: 33.5
+        weight: 57
+        horseWeight: 508
+        horseWeightDiff: -6
+        odds: 3.7

@@ -1,0 +1,27 @@
+# 2025-10-25 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-10-25
+
+races:
+  - course: 新潟
+    raceNumber: 11
+    name: 魚沼S
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: キャントウェイト
+        ref: nk-2021102800
+        bracket: 8
+        horseNumber: 17
+        jockey: 野中悠太郎
+        finish: 8
+        popularity: 8
+        time: "1:59.0"
+        passing: "8-8"
+        last3f: 33.9
+        weight: 58
+        horseWeight: 476
+        horseWeightDiff: -2
+        odds: 22.3

@@ -1,0 +1,27 @@
+# 2025-11-24 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-11-24
+
+races:
+  - course: 東京
+    raceNumber: 3
+    name: "2歳未勝利"
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: エムズビギン
+        ref: nk-2023107127
+        bracket: 2
+        horseNumber: 3
+        jockey: C.デムーロ
+        finish: 1
+        popularity: 1
+        time: "2:00.1"
+        passing: "5-5-5"
+        last3f: 34.3
+        weight: 56
+        horseWeight: 514
+        horseWeightDiff: 10
+        odds: 1.3

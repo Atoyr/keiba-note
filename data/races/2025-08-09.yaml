@@ -1,0 +1,27 @@
+# 2025-08-09 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-08-09
+
+races:
+  - course: 新潟
+    raceNumber: 7
+    name: 関越S
+    grade: OP
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: アスクドゥポルテ
+        ref: nk-2020101025
+        bracket: 3
+        horseNumber: 3
+        jockey: 大野拓弥
+        finish: 4
+        popularity: 13
+        time: "1:46.6"
+        passing: "6-6"
+        last3f: 32.6
+        weight: 54
+        horseWeight: 480
+        horseWeightDiff: 2
+        odds: 127.4

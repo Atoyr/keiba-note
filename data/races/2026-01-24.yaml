@@ -1,0 +1,50 @@
+# 2026-01-24 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-01-24
+
+races:
+  - course: 京都
+    raceNumber: 9
+    name: 若駒S
+    grade: L
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ショウナンハヤナミ
+        ref: nk-2023103828
+        bracket: 5
+        horseNumber: 7
+        jockey: 吉村誠之助
+        finish: 1
+        popularity: 2
+        time: "2:01.2"
+        passing: "9-10-10-6"
+        last3f: 34.5
+        weight: 57
+        horseWeight: 452
+        horseWeightDiff: 2
+        odds: 5.4
+  - course: 中山
+    raceNumber: 11
+    name: 初富士S
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: エセルフリーダ
+        ref: nk-2021105138
+        bracket: 8
+        horseNumber: 16
+        jockey: 津村明秀
+        finish: 1
+        popularity: 2
+        time: "1:59.2"
+        passing: "3-4-6-3"
+        last3f: 34.4
+        weight: 55
+        horseWeight: 488
+        horseWeightDiff: 2
+        odds: 4.5

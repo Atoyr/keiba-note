@@ -1,0 +1,27 @@
+# 2026-08-01 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-08-01
+
+races:
+  - course: 札幌
+    raceNumber: 11
+    name: STV賞
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - name: キャントウェイト
+        ref: nk-2021102800
+        bracket: 4
+        horseNumber: 8
+        jockey: 丹内祐次
+        finish: 9
+        popularity: 4
+        time: "2:00.9"
+        passing: "9-9-7-7"
+        last3f: 36.2
+        weight: 56
+        horseWeight: 466
+        horseWeightDiff: -12
+        odds: 7.6

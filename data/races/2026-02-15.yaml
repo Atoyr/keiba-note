@@ -1,0 +1,64 @@
+# 2026-02-15 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-02-15
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: 京都記念
+    grade: G2
+    surface: 芝
+    distance: 2200
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: ジューンテイク
+        ref: nk-2021100913
+        bracket: 8
+        horseNumber: 12
+        jockey: 藤岡佑介
+        finish: 1
+        popularity: 6
+        time: "2:12.7"
+        passing: "2-2-2-2"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 504
+        horseWeightDiff: 4
+        odds: 15.9
+      - name: リビアングラス
+        ref: nk-2020105633
+        bracket: 7
+        horseNumber: 10
+        jockey: 田口貫太
+        finish: 6
+        popularity: 8
+        time: "2:13.2"
+        passing: "3-4-4-4"
+        last3f: 34.1
+        weight: 57
+        horseWeight: 494
+        horseWeightDiff: 0
+        odds: 43.8
+  - course: 東京
+    raceNumber: 11
+    name: 共同通信杯
+    grade: G3
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: ロブチェン
+        ref: nk-2023107089
+        bracket: 6
+        horseNumber: 6
+        jockey: 松山弘平
+        finish: 3
+        popularity: 3
+        time: "1:45.5"
+        passing: "4-4-4"
+        last3f: 33.4
+        weight: 57
+        horseWeight: 518
+        horseWeightDiff: 6
+        odds: 4.2

@@ -1,0 +1,21 @@
+# 2026年12月5日（土） 芝重賞
+# 申し送り用の枠だけ先に置く。出馬表が出たら entries に追記する。
+date: 2026-12-05
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: ステイヤーズS
+    grade: G2
+    surface: 芝
+    distance: 3600
+    direction: 右
+    entries: []
+  - course: 阪神
+    raceNumber: 11
+    name: 鳴尾記念
+    grade: G3
+    surface: 芝
+    distance: 1800
+    direction: 右
+    entries: []

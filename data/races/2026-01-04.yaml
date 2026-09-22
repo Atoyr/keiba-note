@@ -1,0 +1,27 @@
+# 2026-01-04 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-01-04
+
+races:
+  - course: 京都
+    raceNumber: 10
+    name: 寿S
+    className: "3勝クラス"
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: メイショウゲキリン
+        ref: nk-2019104092
+        bracket: 5
+        horseNumber: 5
+        jockey: 西塚洸二
+        finish: 5
+        popularity: 7
+        time: "2:01.4"
+        passing: "4-3-4-3"
+        last3f: 33.9
+        weight: 58
+        horseWeight: 524
+        horseWeightDiff: 10
+        odds: 20.4

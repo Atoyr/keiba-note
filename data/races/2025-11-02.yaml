@@ -1,0 +1,27 @@
+# 2025-11-02 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-11-02
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 天皇賞(秋)
+    grade: G1
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: コスモキュランダ
+        ref: nk-2021106787
+        bracket: 1
+        horseNumber: 1
+        jockey: 津村明秀
+        finish: 12
+        popularity: 14
+        time: "1:59.2"
+        passing: "2-3-3"
+        last3f: 33.3
+        weight: 58
+        horseWeight: 520
+        horseWeightDiff: 18
+        odds: 117

@@ -1,0 +1,27 @@
+# 2026-08-08 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-08-08
+
+races:
+  - course: 新潟
+    raceNumber: 7
+    name: 関越S
+    grade: OP
+    surface: 芝
+    distance: 1800
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: コスモブッドレア
+        ref: nk-2021106782
+        bracket: 8
+        horseNumber: 16
+        jockey: 石橋脩
+        finish: 16
+        popularity: 16
+        time: "1:46.8"
+        passing: "4-5"
+        last3f: 34.1
+        weight: 54
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 144.2

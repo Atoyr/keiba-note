@@ -1,0 +1,13 @@
+# 2026年10月10日（土） 芝重賞
+# 申し送り用の枠だけ先に置く。出馬表が出たら entries に追記する。
+date: 2026-10-10
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: サウジアラビアロイヤルC
+    grade: G3
+    surface: 芝
+    distance: 1600
+    direction: 左
+    entries: []

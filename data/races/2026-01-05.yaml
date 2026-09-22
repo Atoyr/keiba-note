@@ -1,0 +1,27 @@
+# 2026-01-05 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-01-05
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: 万葉S
+    grade: OP
+    surface: 芝
+    distance: 3000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: アスクドゥポルテ
+        ref: nk-2020101025
+        bracket: 3
+        horseNumber: 3
+        jockey: 西塚洸二
+        finish: 6
+        popularity: 5
+        time: "3:08.7"
+        passing: "9-9-9-9"
+        last3f: 34
+        weight: 54
+        horseWeight: 476
+        horseWeightDiff: -2
+        odds: 12.7

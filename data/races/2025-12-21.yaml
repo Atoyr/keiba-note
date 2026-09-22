@@ -1,0 +1,27 @@
+# 2025-12-21 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-12-21
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: ディセンバーS
+    grade: L
+    surface: 芝
+    distance: 1800
+    trackCondition: 重
+    weather: 曇
+    entries:
+      - name: コスモブッドレア
+        ref: nk-2021106782
+        bracket: 6
+        horseNumber: 12
+        jockey: 石川裕紀人
+        finish: 14
+        popularity: 10
+        time: "1:49.3"
+        passing: "3-5-5-7"
+        last3f: 36.8
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: -6
+        odds: 20.1

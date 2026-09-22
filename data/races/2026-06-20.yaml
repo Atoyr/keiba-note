@@ -1,0 +1,27 @@
+# 2026-06-20 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2026-06-20
+
+races:
+  - course: 阪神
+    raceNumber: 7
+    name: "3歳以上1勝クラス"
+    className: "1勝クラス"
+    surface: 芝
+    distance: 2400
+    trackCondition: 稍重
+    weather: 雨
+    entries:
+      - name: シートゥサミット
+        ref: nk-2023101200
+        bracket: 1
+        horseNumber: 2
+        jockey: 酒井学
+        finish: 2
+        popularity: 4
+        time: "2:26.1"
+        passing: "14-13-6-5"
+        last3f: 35.4
+        weight: 54
+        horseWeight: 520
+        horseWeightDiff: 2
+        odds: 8

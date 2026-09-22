@@ -1,4 +1,4 @@
-import { and, asc, between, countDistinct, desc, eq, inArray, lt, sql } from 'drizzle-orm';
+import { and, asc, between, countDistinct, desc, eq, inArray, like, lt, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
@@ -10,6 +10,7 @@ import {
 	weekLookupRange,
 	type Week
 } from '$lib/utils/date';
+import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '$lib/utils/race-filter';
 import { findOrCreateHorse } from './horses';
 
 export type RaceListItem = Pick<
@@ -18,12 +19,30 @@ export type RaceListItem = Pick<
 > & { entryCount: number; noteCount: number };
 
 /**
- * **今日を起点に「次のレース」から並べる。** 未来が先で近い順、そのあと過去が新しい順。
- * 同じ日なら、未来は R の若い順（次に始まるレース）、過去は R の遅い順（最後の1本から）。
+ * 絞り込み条件 → WHERE。指定の無い項目は `undefined` を渡して外す。
  *
- * 出走前の重賞は開催のずっと前に枠だけ登録するので、日付の降順にすると
- * いちばん先の予定が先頭に立ち、**次のレースが未来の末尾＝過去との境目に埋もれる。**
- * ダッシュボードは先頭5件しか出さないので、次のレースが一覧から溢れることさえあった。
+ * `and` は `undefined` を捨てるので、全部空なら `undefined`（＝絞らない）になる。
+ * 格付けは `IN` なので複数指定が OR になる。名前は部分一致で、
+ * `name` が NULL の行は LIKE が NULL を返して自然に落ちる（名前未設定のレースは
+ * 名前で探せない、で正しい）。
+ */
+function raceFilterWhere(filter: RaceFilter) {
+	const year = filter.year === null ? null : yearRange(filter.year);
+	return and(
+		year ? between(race.date, year.from, year.to) : undefined,
+		filter.grades.length > 0 ? inArray(race.grade, filter.grades) : undefined,
+		filter.q ? like(race.name, `%${filter.q}%`) : undefined
+	);
+}
+
+/**
+ * レース一覧。**今日を起点に「次のレース」から並べる**（design.md 第6章）。
+ * 未来が先で近い順、そのあと過去が新しい順。同じ日なら、未来は R の若い順
+ * （次に始まるレース）、過去は R の遅い順（最後の1本から）。
+ *
+ * 重賞は開催のずっと前に枠だけ登録するので、日付の降順にすると先の予定が上を埋め、
+ * **次のレースが未来の末尾＝過去との境目に埋もれる。** ダッシュボードは先頭5件しか
+ * 出さないので、次のレースが一覧から溢れることさえあった。
  *
  * 並べ替えは JS 側（`compareNextFirst`）。SQL の ORDER BY で書くと未来・過去で
  * 向きが変わる CASE が並び、読めるものにならない。**取ってくる窓は日付の降順のまま**で、
@@ -32,8 +51,16 @@ export type RaceListItem = Pick<
  * 件数は LEFT JOIN + GROUP BY。相関サブクエリを raw な `sql` で書くと
  * Drizzle が列をテーブル修飾なしで展開し、内側のテーブルの同名列に
  * 束縛されて壊れる（horses.ts の listHorses に同じ注記あり）。
+ *
+ * `filter` は年度・格付け・レース名の絞り込み（→ `$lib/utils/race-filter`）。
+ * **メモ件数は viewer 自身のぶんだけ**を数えるのは絞り込みの有無によらない。
  */
-export async function listRaces(db: Db, viewerId: string, today: string): Promise<RaceListItem[]> {
+export async function listRaces(
+	db: Db,
+	viewerId: string,
+	today: string,
+	filter: RaceFilter = EMPTY_RACE_FILTER
+): Promise<RaceListItem[]> {
 	const rows = await db
 		.select({
 			id: race.id,
@@ -51,6 +78,7 @@ export async function listRaces(db: Db, viewerId: string, today: string): Promis
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
 		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
+		.where(raceFilterWhere(filter))
 		.groupBy(race.id)
 		.orderBy(desc(race.date), desc(race.raceNumber))
 		.limit(100);
@@ -66,6 +94,19 @@ function byNextRaceFirst(today: string) {
 		// 同じ日の中も今日に近い側から。未来は R の昇順、過去は降順。
 		return ((a.raceNumber ?? 0) - (b.raceNumber ?? 0)) * (a.date > today ? 1 : -1);
 	};
+}
+
+/**
+ * 登録されているレースの開催年。絞り込みの選択肢に使う。新しい年が先。
+ *
+ * 選択肢を固定の範囲で作らない。データの無い年を出しても選ばせるだけ無駄で、
+ * 逆に範囲を決め打つと古い開催を入れたときに選べなくなる。
+ */
+export async function listRaceYears(db: Db): Promise<number[]> {
+	const rows = await db
+		.selectDistinct({ year: sql<string>`substr(${race.date}, 1, 4)`.as('year') })
+		.from(race);
+	return rows.map((r) => Number(r.year)).sort((a, b) => b - a);
 }
 
 export async function getRace(db: Db, id: string): Promise<Race | null> {

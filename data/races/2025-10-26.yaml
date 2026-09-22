@@ -1,0 +1,27 @@
+# 2025-10-26 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-10-26
+
+races:
+  - course: 京都
+    raceNumber: 5
+    name: "2歳新馬"
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - name: エムズビギン
+        ref: nk-2023107127
+        bracket: 1
+        horseNumber: 1
+        jockey: ルメール
+        finish: 2
+        popularity: 1
+        time: "1:50.9"
+        passing: "5-5"
+        last3f: 33.6
+        weight: 56
+        horseWeight: 504
+        horseWeightDiff: 0
+        odds: 1.4

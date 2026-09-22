@@ -1,0 +1,27 @@
+# 2025-11-08 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2025-11-08
+
+races:
+  - course: 東京
+    raceNumber: 3
+    name: "2歳未勝利"
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - name: グリーンエナジー
+        ref: nk-2023105456
+        bracket: 6
+        horseNumber: 8
+        jockey: 戸崎圭太
+        finish: 1
+        popularity: 1
+        time: "2:01.2"
+        passing: "2-2-2"
+        last3f: 32.9
+        weight: 56
+        horseWeight: 492
+        horseWeightDiff: 10
+        odds: 2.1

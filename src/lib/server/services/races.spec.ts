@@ -72,6 +72,7 @@ describe('resolveWeek', () => {
 type Chain = {
 	from: () => Chain;
 	leftJoin: () => Chain;
+	where: () => Chain;
 	groupBy: () => Chain;
 	orderBy: () => Chain;
 	limit: () => Promise<RaceListItem[]>;
@@ -81,6 +82,7 @@ function fakeRaceDb(rows: RaceListItem[]): Db {
 	const chain: Chain = {
 		from: () => chain,
 		leftJoin: () => chain,
+		where: () => chain,
 		groupBy: () => chain,
 		orderBy: () => chain,
 		limit: () => Promise.resolve(rows)

@@ -1,0 +1,27 @@
+# 2024-07-07 2026年オールカマー・神戸新聞杯 出走馬の過去走
+date: 2024-07-07
+
+races:
+  - course: 福島
+    raceNumber: 11
+    name: 七夕賞
+    grade: G3
+    surface: 芝
+    distance: 2000
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - name: セイウンプラチナ
+        ref: nk-2019102628
+        bracket: 8
+        horseNumber: 15
+        jockey: 原優介
+        finish: 14
+        popularity: 7
+        time: "1:59.8"
+        passing: "2-2-2-4"
+        last3f: 38.4
+        weight: 55
+        horseWeight: 498
+        horseWeightDiff: 0
+        odds: 19.7
