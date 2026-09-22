@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
@@ -50,16 +50,12 @@
 	</Button>
 
 	<header class="mt-2">
-		<div class="flex flex-wrap items-baseline gap-2">
-			<h1 class="text-lg font-bold tracking-tight sm:text-xl">
-				{data.race.course}{data.race.raceNumber ?? ''}R
-				{data.race.name ?? ''}
-			</h1>
-			<GradeBadge grade={data.race.grade} />
-		</div>
-		<p class="mt-1 text-sm text-muted-foreground">
-			{data.race.date} · {spec.join(' / ')}
-		</p>
+		<RaceHeading
+			meeting={`${data.race.course}${data.race.raceNumber ?? ''}R`}
+			name={data.race.name}
+			grade={data.race.grade}
+			spec={`${data.race.date} · ${spec.join(' / ')}`}
+		/>
 		<div class="mt-2 flex flex-wrap gap-2">
 			{#if admin}
 				<Button
