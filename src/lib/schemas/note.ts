@@ -36,12 +36,43 @@ export const shareNoteSchema = v.object({
 	visibility: visibilitySchema
 });
 
-/** 次走期待度 1–5。任意。 */
-export const ratingSchema = v.pipe(
-	v.optional(v.string(), ''),
-	v.trim(),
-	v.transform((s) => (s === '' ? null : Number(s))),
-	v.union([v.null(), v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5))])
+/**
+ * メモに付ける札。**選択肢は固定で、ユーザーは増やせない。**
+ *
+ * 「次走期待度 1–5」を置き換えたもの。★の数は書くときに迷わず付けられる代わりに、
+ * あとで読むと「なぜその数字なのか」が残らない。**理由の方を残したい**ので、
+ * 次走の判断に効く観点だけを名前の付いた札にした。
+ *
+ * 並びは画面の並びでもある。**結論（次走買い／消し）を先頭に、理由を後ろに置く。**
+ * 増やすときは末尾ではなくこの分類のどこに入るかで決めること。
+ */
+export const NOTE_TAGS = [
+	// 結論
+	'次走買い',
+	'次走消し',
+	// 負けた／勝った理由
+	'不利',
+	'馬場向かず',
+	'馬場一致',
+	'ペース合わず',
+	// レースの質
+	'ハイレベル戦',
+	'好ラップ',
+	'好上がり'
+] as const;
+
+export type NoteTag = (typeof NOTE_TAGS)[number];
+
+/**
+ * 付いた札。**選択肢にない値は黙って落とす。**
+ *
+ * 重複も落とし、並びは `NOTE_TAGS` の順に揃える。フォームから来る順序
+ * （＝チェックした順）に依存させると、同じ組み合わせでも保存のたびに
+ * JSON の中身が変わって差分に見えるため。
+ */
+export const tagsSchema = v.pipe(
+	v.optional(v.array(v.string()), () => []),
+	v.transform((xs) => NOTE_TAGS.filter((t) => xs.includes(t)))
 );
 
 export const bodySchema = v.pipe(
@@ -55,7 +86,7 @@ export const entryNoteSchema = v.object({
 	entryId: v.pipe(v.string(), v.minLength(1)),
 	horseId: v.pipe(v.string(), v.minLength(1)),
 	body: bodySchema,
-	rating: ratingSchema
+	tags: tagsSchema
 });
 
 /** 予想画面の1頭分。本文に加えて印を持つ。 */
@@ -63,7 +94,7 @@ export const previewEntrySchema = v.object({
 	entryId: v.pipe(v.string(), v.minLength(1)),
 	horseId: v.pipe(v.string(), v.minLength(1)),
 	body: bodySchema,
-	rating: ratingSchema,
+	tags: tagsSchema,
 	mark: markSchema
 });
 
@@ -90,7 +121,7 @@ export type RaceReviewFormInput = v.InferOutput<typeof raceReviewSchema>;
 /** 馬の近況メモ（レースに紐づかないメモ）。 */
 export const horseNoteSchema = v.object({
 	body: v.pipe(bodySchema, v.trim(), v.minLength(1, 'メモを入力してください')),
-	rating: ratingSchema,
+	tags: tagsSchema,
 	occurredAt: v.pipe(
 		v.string(),
 		v.trim(),

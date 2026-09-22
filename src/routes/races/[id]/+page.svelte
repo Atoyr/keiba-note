@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -130,7 +131,7 @@
 			<section class="mt-8">
 				<h2 class="text-sm font-semibold text-gray-500">出走馬</h2>
 				<p class="text-xs text-gray-500">
-					空欄のままにするとメモは保存されません（既存メモは消えます）
+					本文も札も空のままにするとメモは保存されません（既存メモは消えます）
 				</p>
 
 				<ul class="mt-2 space-y-5">
@@ -163,21 +164,8 @@
 								class={ta}>{r.myNote?.body ?? ''}</textarea
 							>
 
-							<div class="mt-1 flex flex-wrap items-center gap-4 text-xs text-gray-600">
-								<label class="flex items-center gap-1.5">
-									次走期待度
-									<select
-										name="rating.{r.entryId}"
-										class="rounded border border-gray-300 px-1.5 py-0.5"
-									>
-										<option value="">—</option>
-										{#each [1, 2, 3, 4, 5] as n (n)}
-											<option value={n} selected={r.myNote?.rating === n}>
-												{'★'.repeat(n)}
-											</option>
-										{/each}
-									</select>
-								</label>
+							<div class="mt-1.5">
+								<TagPicker name="tags.{r.entryId}" values={r.myNote?.tags ?? []} />
 							</div>
 						</li>
 					{/each}

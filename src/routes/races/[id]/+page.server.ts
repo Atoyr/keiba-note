@@ -63,7 +63,8 @@ export const actions: Actions = {
 				entryId: e.entryId,
 				horseId: e.horseId,
 				body: form.get(`body.${e.entryId}`)?.toString() ?? '',
-				rating: form.get(`rating.${e.entryId}`)?.toString() ?? ''
+				// 札は複数選択なので getAll。1つも選ばれていなければ空配列になる。
+				tags: form.getAll(`tags.${e.entryId}`).map(String)
 			}))
 		});
 

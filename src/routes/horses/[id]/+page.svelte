@@ -3,7 +3,9 @@
 	import { resolve } from '$app/paths';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
-	import NoteTag from '$lib/components/NoteTag.svelte';
+	import KindBadge from '$lib/components/KindBadge.svelte';
+	import TagBadges from '$lib/components/TagBadges.svelte';
+	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { noteHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -127,6 +129,9 @@
 					required
 					placeholder="北海道滞在。追い切りの動き良いとのこと。"
 					class={input}></textarea>
+				<div class="mt-2">
+					<TagPicker name="tags" />
+				</div>
 				<div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-600">
 					<label class="flex items-center gap-1.5">
 						日付
@@ -136,13 +141,6 @@
 							value={data.today}
 							class="rounded border border-gray-300 px-2 py-1"
 						/>
-					</label>
-					<label class="flex items-center gap-1.5">
-						期待度
-						<select name="rating" class="rounded border border-gray-300 px-1.5 py-1">
-							<option value="">—</option>
-							{#each [1, 2, 3, 4, 5] as n (n)}<option value={n}>{'★'.repeat(n)}</option>{/each}
-						</select>
 					</label>
 					<button
 						type="submit"
@@ -163,7 +161,7 @@
 					<li class="border-l-2 border-gray-200 pl-4">
 						<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
 							<span class="font-mono text-gray-500">{n.occurredAt}</span>
-							<NoteTag tag={h.tag} />
+							<KindBadge label={h.kindLabel} />
 							{#if n.raceId}
 								<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
 									{h.label}
@@ -174,10 +172,13 @@
 							<SharedBadge visibility={n.visibility} />
 						</div>
 
-						<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
+						{#if n.body}
+							<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
+						{/if}
+
+						<TagBadges tags={n.tags} class="mt-1" />
 
 						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-							{#if n.rating}<span>{'★'.repeat(n.rating)}</span>{/if}
 							{#if n.kind === 'horse'}
 								<form method="POST" action="?/deleteNote" use:enhance>
 									<input type="hidden" name="noteId" value={n.id} />
