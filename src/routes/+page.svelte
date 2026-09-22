@@ -41,51 +41,7 @@
 <svelte:head><title>k-note</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
-	<h1 class="text-2xl font-bold tracking-tight">最近のメモ</h1>
-
-	{#if data.notes.length === 0}
-		<div class="mt-6 rounded-md border border-gray-200 p-4">
-			<p class="text-sm text-gray-600">まだメモがありません。</p>
-			{#if admin}
-				<p class="mt-2 text-sm text-gray-500">
-					<a href={resolve('/races/new')} class="underline">レースを登録</a>
-					→ 出走馬を入力 → ふりかえり、の順で書けます。
-				</p>
-			{:else}
-				<p class="mt-2 text-sm text-gray-500">
-					<a href={resolve('/races')} class="underline">レース</a>
-					から書きたいレースを開くと、その場でメモを書けます。
-				</p>
-			{/if}
-		</div>
-	{:else}
-		<ol class="mt-6 space-y-5">
-			{#each data.notes as n (n.id)}
-				{@const h = noteHeading(n)}
-				<li class="border-l-2 border-gray-200 pl-4">
-					<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-						<span class="font-mono text-gray-500">{n.occurredAt}</span>
-						<KindBadge label={h.kindLabel} />
-						{#if n.raceId}
-							<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
-								{n.horseName ? `${n.horseName} ${h.label}` : h.label}
-							</a>
-						{:else}
-							<span>{h.label}</span>
-						{/if}
-						<SharedBadge visibility={n.visibility} />
-					</div>
-					{#if n.body}
-						<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
-					{/if}
-					<TagBadges tags={n.tags} class="mt-1" />
-					<div class="mt-2">
-						<ShareControl noteId={n.id} visibility={n.visibility} redirectTo="/" />
-					</div>
-				</li>
-			{/each}
-		</ol>
-	{/if}
+	<h1 class="text-2xl font-bold tracking-tight">ダッシュボード</h1>
 
 	<section class="mt-10">
 		<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -120,4 +76,52 @@
 	<p class="mt-4 text-sm">
 		<a href={resolve('/races')} class="text-gray-600 hover:underline">すべてのレースを見る →</a>
 	</p>
+
+	<section class="mt-10" aria-labelledby="recent-notes-heading">
+		<h2 id="recent-notes-heading" class="text-sm font-semibold text-gray-500">最近のメモ</h2>
+
+		{#if data.notes.length === 0}
+			<div class="mt-6 rounded-md border border-gray-200 p-4">
+				<p class="text-sm text-gray-600">まだメモがありません。</p>
+				{#if admin}
+					<p class="mt-2 text-sm text-gray-500">
+						<a href={resolve('/races/new')} class="underline">レースを登録</a>
+						→ 出走馬を入力 → ふりかえり、の順で書けます。
+					</p>
+				{:else}
+					<p class="mt-2 text-sm text-gray-500">
+						<a href={resolve('/races')} class="underline">レース</a>
+						から書きたいレースを開くと、その場でメモを書けます。
+					</p>
+				{/if}
+			</div>
+		{:else}
+			<ol class="mt-6 space-y-5">
+				{#each data.notes as n (n.id)}
+					{@const h = noteHeading(n)}
+					<li class="border-l-2 border-gray-200 pl-4">
+						<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
+							<span class="font-mono text-gray-500">{n.occurredAt}</span>
+							<KindBadge label={h.kindLabel} />
+							{#if n.raceId}
+								<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
+									{n.horseName ? `${n.horseName} ${h.label}` : h.label}
+								</a>
+							{:else}
+								<span>{h.label}</span>
+							{/if}
+							<SharedBadge visibility={n.visibility} />
+						</div>
+						{#if n.body}
+							<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
+						{/if}
+						<TagBadges tags={n.tags} class="mt-1" />
+						<div class="mt-2">
+							<ShareControl noteId={n.id} visibility={n.visibility} redirectTo="/" />
+						</div>
+					</li>
+				{/each}
+			</ol>
+		{/if}
+	</section>
 </main>
