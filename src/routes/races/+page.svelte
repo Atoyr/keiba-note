@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
+	import { hasRaceFilter } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
 	const admin = $derived(isAdmin(data.user));
+	const filtered = $derived(hasRaceFilter(data.filter));
 </script>
 
 <svelte:head><title>レース — k-note</title></svelte:head>
@@ -25,16 +28,21 @@
 		{/if}
 	</div>
 
+	<RaceFilterForm filter={data.filter} years={data.years} />
+
 	{#if data.races.length === 0}
 		<p class="mt-8 text-sm text-gray-500">
-			{#if admin}
+			{#if filtered}
+				条件に合うレースがありません。
+			{:else if admin}
 				まだレースがありません。まずは1つ登録してみてください。
 			{:else}
 				まだレースがありません。
 			{/if}
 		</p>
 	{:else}
-		<ul class="mt-6 divide-y divide-gray-200 border-y border-gray-200">
+		<p class="mt-6 text-xs text-gray-500">{data.races.length} 件</p>
+		<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
 			{#each data.races as r (r.id)}
 				<li>
 					<a href={resolve('/races/[id]', { id: r.id })} class="block py-3 hover:bg-gray-50">
