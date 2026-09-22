@@ -3,6 +3,8 @@
 ## プロジェクト構成
 
 このリポジトリは、Cloudflare Workers と D1 上で動作する SvelteKit 2 / Svelte 5 アプリです。
+着手前に `README.md` の「ランタイム上の約束」と `docs/design.md`、
+`docs/architecture.md` を確認してください。
 
 - `src/routes/`: ページ、レイアウト、サーバーハンドラー
 - `src/lib/server/`: DB、認証、サービス層。サービス層から SvelteKit を import しないこと
@@ -10,7 +12,7 @@
 - `src/lib/schemas/`: Valibot の検証スキーマ
 - `src/lib/server/db/schema.ts`: DB スキーマの正本
 - `drizzle/`: 生成済みマイグレーション
-- `e2e/`: Playwright テスト。単体テストは対象コードの隣に `*.spec.ts` として置く
+- `e2e/`: Playwright テスト。単体テストは対象コードと同じ `src/` 配下に置く
 - `data/races/`: レースデータの YAML。設計資料は `docs/` に置く
 
 ## ビルド・テスト・開発コマンド
@@ -33,7 +35,24 @@ TypeScript は strict モードです。Prettier の設定はタブ、シング�
 
 ## テスト方針
 
-単体テストは `*.spec.ts`、E2E テストは `e2e/*.e2e.ts` とします。認可境界、検証エラー、永続化の振る舞いを重点的に確認してください。PR 前に `pnpm run check`、`pnpm run lint`、`pnpm test` を実行します。`README.md` のモック認証を使い、他ユーザーのメモが表示されないことも確認してください。
+サーバー処理と純粋関数は `src/**/*.spec.ts`（Node）、Svelte コンポーネントは
+`src/**/*.svelte.test.ts`（Chromium）、E2E は `e2e/*.e2e.ts` とします。変更した分岐を
+最低1本は通し、特に権限条件、リダイレクト、日付境界をテストしてください。
+`expect.requireAssertions` が有効なため、アサーションのないテストは失敗します。
+
+画面、ルーティング、認可を変更した場合は E2E を追加または更新し、未ログイン状態や
+他ユーザーの ID でアクセスできないことを確認します。form POST は本番ビルド相当の E2E で
+CSRF を検証してください。`.only` や `test.skip` は残しません。コード変更後は次をすべて通します。
+
+```bash
+pnpm run check
+pnpm run lint
+pnpm run test:unit -- --run
+pnpm run test:e2e
+```
+
+CI も同じ検証を実行します。`data/` を変更した場合は `pnpm run data:check` も必要です。
+省略した検証がある場合は、その理由を PR 本文に明記してください。
 
 ## DB・データ・セキュリティ
 
@@ -41,4 +60,14 @@ TypeScript は strict モードです。Prettier の設定はタブ、シング�
 
 ## コミットとプルリクエスト
 
-コミットは履歴に合わせ、`feat:`、`fix:`、`docs:` などの Conventional Commits 接頭辞と簡潔な日本語の説明を使います。1コミットの変更目的を絞ってください。PR には変更内容、確認コマンド、関連 Issue を記載し、UI 変更にはスクリーンショットを添付します。スキーマ変更時は生成したマイグレーションもコミットしてください。
+コミットは履歴に合わせ、`feat:`、`fix:`、`docs:` などの Conventional Commits 接頭辞と
+簡潔な日本語の説明を使い、目的を1つに絞ります。スキーマ変更時は生成したマイグレーションも
+コミットしてください。
+
+PR は `.github/pull_request_template.md` を日本語で埋め、変更理由、レビュー観点、確認結果、
+関連 Issue を記載します。見た目や画面遷移の変更には変更後、既存画面の修正には before / after の
+画像を `docs/screenshots/<機能名>/` にコミットしてください。撮影には `MOCK_AUTH="1"` を使い、
+実在のメールアドレスや本番データを写さないでください。PR 本文にはブランチ名ではなくコミット
+SHA を含む GitHub raw URL で画像を貼ります。UI を変更しない場合は、テストやデータ検証の
+実行ログ、または CI run のリンクを証跡として添えます。`data/` の変更はリリースを待たず
+`data-import.yml` から本番反映されるため、その旨も明記してください。
