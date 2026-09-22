@@ -6,7 +6,7 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
-	import { noteHeading } from '$lib/utils/note';
+	import { noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -153,48 +153,68 @@
 		</details>
 
 		{#if data.timeline.length === 0}
-			<p class="mt-4 text-sm text-gray-500">まだメモがありません。</p>
+			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>
 		{:else}
+			<!-- 未来 → 過去。次走が先頭、古い走りほど下に沈む（mergeHorseTimeline）。 -->
 			<ol class="mt-4 space-y-5">
-				{#each data.timeline as n (n.id)}
-					{@const h = noteHeading(n)}
-					<li class="border-l-2 border-gray-200 pl-4">
-						<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-							<span class="font-mono text-gray-500">{n.occurredAt}</span>
-							<KindBadge label={h.kindLabel} />
-							{#if n.raceId}
-								<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
+				{#each data.timeline as row (row.key)}
+					{#if row.type === 'run'}
+						{@const h = runHeading(row.run, row.upcoming)}
+						<!-- メモの無い出走。走った事実だけの行なので、実線ではなく破線で
+						     「ここには何も書いていない」ことを見せる。 -->
+						<li class="border-l-2 border-dashed border-gray-300 pl-4">
+							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
+								<span class="font-mono text-gray-500">{row.occurredAt}</span>
+								<KindBadge label={h.kindLabel} />
+								<a
+									href={resolve('/races/[id]', { id: row.run.raceId })}
+									class="text-gray-600 hover:underline"
+								>
 									{h.label}
 								</a>
-							{:else}
-								<span class="text-gray-500">{h.label}</span>
+							</div>
+						</li>
+					{:else}
+						{@const n = row.note}
+						{@const h = noteHeading(n)}
+						<li class="border-l-2 border-gray-200 pl-4">
+							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
+								<span class="font-mono text-gray-500">{n.occurredAt}</span>
+								<KindBadge label={h.kindLabel} />
+								{#if n.raceId}
+									<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
+										{h.label}
+									</a>
+								{:else}
+									<span class="text-gray-500">{h.label}</span>
+								{/if}
+								<SharedBadge visibility={n.visibility} />
+							</div>
+
+							{#if n.body}
+								<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
 							{/if}
-							<SharedBadge visibility={n.visibility} />
-						</div>
 
-						{#if n.body}
-							<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
-						{/if}
+							<TagBadges tags={n.tags} class="mt-1" />
 
-						<TagBadges tags={n.tags} class="mt-1" />
+							<div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+								{#if n.kind === 'horse'}
+									<form method="POST" action="?/deleteNote" use:enhance>
+										<input type="hidden" name="noteId" value={n.id} />
+										<button type="submit" class="text-red-700 hover:underline">削除</button>
+									</form>
+								{/if}
+							</div>
 
-						<div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-							{#if n.kind === 'horse'}
-								<form method="POST" action="?/deleteNote" use:enhance>
-									<input type="hidden" name="noteId" value={n.id} />
-									<button type="submit" class="text-red-700 hover:underline">削除</button>
-								</form>
-							{/if}
-						</div>
-
-						<div class="mt-2">
-							<ShareControl
-								noteId={n.id}
-								visibility={n.visibility}
-								redirectTo="/horses/{data.horse.id}"
-							/>
-						</div>
-					</li>
+							<div class="mt-2">
+								<ShareControl
+									noteId={n.id}
+									visibility={n.visibility}
+									redirectTo="/horses/{data.horse.id}"
+								/>
+							</div>
+						</li>
+					{/if}
 				{/each}
 			</ol>
 		{/if}

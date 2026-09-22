@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Db } from '$lib/server/db';
 import type { NoteTag } from '$lib/schemas/note';
-import { saveRaceReview, savePreviewNotes } from './notes';
+import type { HorseRun } from './races';
+import { mergeHorseTimeline, saveRaceReview, savePreviewNotes, type TimelineNote } from './notes';
 
 type Op = { kind: 'insert'; values: Record<string, unknown> } | { kind: 'delete' };
 
@@ -122,5 +123,108 @@ describe('savePreviewNotes', () => {
 
 		expect(ops).toEqual([{ kind: 'delete' }]);
 		expect(result).toEqual({ saved: 0, cleared: 1 });
+	});
+});
+
+describe('mergeHorseTimeline', () => {
+	const run = (over: Partial<HorseRun> = {}): HorseRun => ({
+		entryId: 'e1',
+		raceId: 'r1',
+		date: '2026-09-20',
+		course: '中山',
+		raceNumber: 11,
+		raceName: 'オールカマー',
+		grade: 'G2',
+		className: null,
+		finishPosition: 1,
+		...over
+	});
+
+	const memo = (over: Partial<TimelineNote> = {}): TimelineNote => ({
+		id: 'n1',
+		kind: 'entry',
+		body: '直線で外に出してから一完歩が速い。',
+		tags: [],
+		mark: null,
+		visibility: 'private',
+		occurredAt: '2026-09-20',
+		authorId: 'u1',
+		authorName: 'わたし',
+		raceId: 'r1',
+		raceName: 'オールカマー',
+		course: '中山',
+		raceNumber: 11,
+		grade: 'G2',
+		finishPosition: 1,
+		raceEntryId: 'e1',
+		...over
+	});
+
+	it('メモを書かなかった出走もタイムラインに出る', () => {
+		const rows = mergeHorseTimeline([], [run()], '2026-09-27');
+
+		expect(rows).toEqual([
+			expect.objectContaining({ type: 'run', occurredAt: '2026-09-20', upcoming: false })
+		]);
+	});
+
+	it('メモのある出走は出走行を出さない（同じレースが2行にならない）', () => {
+		const rows = mergeHorseTimeline([memo()], [run()], '2026-09-27');
+
+		expect(rows).toEqual([expect.objectContaining({ type: 'note', key: 'note:n1' })]);
+	});
+
+	// 1つの出走に「出走前」と「ふりかえり」の2件が付く。片方でもあれば骨は要らない。
+	it('出走前メモだけでも出走行は出さない', () => {
+		const rows = mergeHorseTimeline(
+			[memo({ id: 'n2', kind: 'preview', mark: '◎' })],
+			[run()],
+			'2026-09-27'
+		);
+
+		expect(rows.map((r) => r.type)).toEqual(['note']);
+	});
+
+	it('未来が上、過去が下。近況メモも同じ流れに混ざる', () => {
+		const rows = mergeHorseTimeline(
+			[
+				memo({ id: 'n1', occurredAt: '2026-09-20', raceEntryId: 'e1' }),
+				memo({ id: 'n2', kind: 'horse', occurredAt: '2026-08-02', raceEntryId: null })
+			],
+			[
+				run({ entryId: 'e1', date: '2026-09-20' }),
+				run({ entryId: 'e2', date: '2026-10-25', raceName: '天皇賞(秋)', finishPosition: null }),
+				run({ entryId: 'e0', date: '2026-06-15' })
+			],
+			'2026-09-27'
+		);
+
+		expect(rows.map((r) => [r.occurredAt, r.key])).toEqual([
+			['2026-10-25', 'run:e2'],
+			['2026-09-20', 'note:n1'],
+			['2026-08-02', 'note:n2'],
+			['2026-06-15', 'run:e0']
+		]);
+	});
+
+	// 「当日は予定にしない」— 朝は予定でも、走り終えた夕方には予定ではない。
+	it.each([
+		['2026-10-24', true],
+		['2026-10-25', false],
+		['2026-10-26', false]
+	])('today=%s のとき 2026-10-25 の出走予定は %s', (today, upcoming) => {
+		const rows = mergeHorseTimeline([], [run({ date: '2026-10-25' })], today);
+
+		expect(rows[0]).toMatchObject({ type: 'run', upcoming });
+	});
+
+	it('同じ日付ならメモを先に、メモの無い出走を後に出す', () => {
+		const rows = mergeHorseTimeline(
+			[memo({ id: 'n3', kind: 'horse', occurredAt: '2026-09-20', raceEntryId: null })],
+			[run({ entryId: 'e9', date: '2026-09-20' })],
+			'2026-09-27'
+		);
+
+		expect(rows.map((r) => r.key)).toEqual(['note:n3', 'run:e9']);
 	});
 });

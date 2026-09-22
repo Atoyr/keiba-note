@@ -3,6 +3,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
+import type { HorseRun } from './races';
 
 /**
  * メモ。本アプリの中心。
@@ -191,19 +192,25 @@ export type TimelineItem = {
 	finishPosition: number | null;
 };
 
+/** タイムラインに出すメモ1件。出走行との突き合わせに race_entry_id が要る。 */
+export type TimelineNote = TimelineItem & { raceEntryId: string | null };
+
 /**
- * 馬のタイムライン。
+ * 馬のタイムラインに並ぶメモ。
  *
  * レース紐付きメモ（kind='entry'）も近況メモ（kind='horse'）も
  * `note.horse_id` で引ける。これが note を1テーブルにした狙い（design.md 第2章）。
- * マージ処理はいらない。レース名を並べたいので race / race_entry だけ LEFT JOIN する。
- * インデックスは note_author_horse (author_id, horse_id, occurred_at) が効く。
+ * メモ同士のマージ処理はいらない。レース名を並べたいので race / race_entry だけ
+ * LEFT JOIN する。インデックスは note_author_horse (author_id, horse_id, occurred_at)。
+ *
+ * **出走そのものはここには出てこない。** メモの無い出走を骨に足すのは
+ * `mergeHorseTimeline`（races.ts の `listRunsForHorse` と突き合わせる）。
  */
 export async function getHorseTimeline(
 	db: Db,
 	horseId: string,
 	viewerId: string
-): Promise<TimelineItem[]> {
+): Promise<TimelineNote[]> {
 	return db
 		.select({
 			id: note.id,
@@ -220,7 +227,8 @@ export async function getHorseTimeline(
 			course: race.course,
 			raceNumber: race.raceNumber,
 			grade: race.grade,
-			finishPosition: raceEntry.finishPosition
+			finishPosition: raceEntry.finishPosition,
+			raceEntryId: note.raceEntryId
 		})
 		.from(note)
 		.innerJoin(user, eq(note.authorId, user.id))
@@ -229,6 +237,64 @@ export async function getHorseTimeline(
 		.where(and(eq(note.horseId, horseId), ownedBy(viewerId)))
 		.orderBy(desc(note.occurredAt), desc(note.createdAt))
 		.limit(200);
+}
+
+export type TimelineRow =
+	| { key: string; occurredAt: string; type: 'note'; note: TimelineNote }
+	| { key: string; occurredAt: string; type: 'run'; upcoming: boolean; run: HorseRun };
+
+/** 同じ日付に並んだときの順。メモを先に、メモの無い出走を後ろに。 */
+function rank(row: TimelineRow): number {
+	return row.type === 'note' ? 0 : 1;
+}
+
+/**
+ * 馬タイムラインの組み立て。**メモと出走を1本の流れにする。**
+ *
+ * 骨は出走（`runs`）で、そこにメモ（`notes`）を重ねる。
+ * **メモのある出走は出走行を出さない。** メモ行がレース名も着順も持っているので、
+ * 同じレースが2行になるだけになる。突き合わせは race_entry_id で行う
+ * （1つの出走に出走前メモとふりかえりメモの2件が付くことがあるので、
+ * 「1件でもあれば出走行は出さない」= 集合で持つ）。
+ *
+ * 並びは **未来 → 過去**（occurred_at の降順）。次走が先頭に来て、古い走りほど下に沈む。
+ * メモの occurred_at はレース紐付きならレース日なので、メモ行と出走行は同じ軸で混ざる。
+ *
+ * `today` を引数で受けるのは、「出走予定」の判定を呼び出し側の時計に寄せるため
+ * （JST の今日は `todayJst()`。design.md 第9章 #7）。**当日は「予定」にしない**：
+ * 朝に開いたときは予定でも、走り終えた夕方には予定ではない。日付だけでは決められないので、
+ * その日のうちは過去と同じ見せ方にして、着順が入った時点で着順が出るようにする。
+ */
+export function mergeHorseTimeline(
+	notes: TimelineNote[],
+	runs: HorseRun[],
+	today: string
+): TimelineRow[] {
+	const noted = new Set(notes.map((n) => n.raceEntryId).filter((id) => id !== null));
+
+	const rows: TimelineRow[] = [
+		...notes.map((note) => ({
+			key: `note:${note.id}`,
+			occurredAt: note.occurredAt,
+			type: 'note' as const,
+			note
+		})),
+		...runs
+			.filter((run) => !noted.has(run.entryId))
+			.map((run) => ({
+				key: `run:${run.entryId}`,
+				occurredAt: run.date,
+				type: 'run' as const,
+				upcoming: run.date > today,
+				run
+			}))
+	];
+
+	// sort は安定なので、同じ日付の中では元の並び（メモは occurred_at → created_at の降順、
+	// 出走は日付 → R の降順）がそのまま残る。
+	return rows.sort((a, b) =>
+		a.occurredAt === b.occurredAt ? rank(a) - rank(b) : a.occurredAt < b.occurredAt ? 1 : -1
+	);
 }
 
 /** 近況メモ（レースに紐づかない馬のメモ）を足す。 */

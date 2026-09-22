@@ -2,7 +2,13 @@ import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
-import { addHorseNote, deleteNote, getHorseTimeline } from '$lib/server/services/notes';
+import {
+	addHorseNote,
+	deleteNote,
+	getHorseTimeline,
+	mergeHorseTimeline
+} from '$lib/server/services/notes';
+import { listRunsForHorse } from '$lib/server/services/races';
 import { todayJst } from '$lib/utils/date';
 import { ctx, ctxAdmin } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
@@ -11,21 +17,27 @@ import type { Actions, PageServerLoad } from './$types';
  * ★ 馬詳細＝プロフィール + タイムライン。
  *
  * レース紐付きメモも近況メモも同じ流れに並ぶ。これが note を
- * 1テーブルにした狙い（design.md 第2章）。読みは2クエリ。
+ * 1テーブルにした狙い（design.md 第2章）。
+ *
+ * **出走はメモが無くても並べる。** 骨は race_entry（誰が見ても同じ走った事実）で、
+ * そこに viewer 自身のメモを重ねる。読みは3クエリで、3本とも並行に投げる。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 
-	const [horse, timeline] = await Promise.all([
+	const today = todayJst();
+
+	const [horse, notes, runs] = await Promise.all([
 		getHorse(db, params.id),
-		getHorseTimeline(db, params.id, user.id)
+		getHorseTimeline(db, params.id, user.id),
+		listRunsForHorse(db, params.id)
 	]);
 
 	if (!horse) error(404, '馬が見つかりません');
 
-	// viewerId は返さない。タイムラインに並ぶのは viewer 自身のメモだけなので、
+	// viewerId は返さない。タイムラインに並ぶメモは viewer 自身のものだけなので、
 	// 画面側で「自分のメモか」を判定する必要がなくなった。
-	return { horse, timeline, today: todayJst() };
+	return { horse, timeline: mergeHorseTimeline(notes, runs, today), today };
 };
 
 export const actions: Actions = {

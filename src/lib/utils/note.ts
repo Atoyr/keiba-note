@@ -32,22 +32,45 @@ export const NOTE_TAG_GROUP: Record<NoteTag, NoteTagGroup> = {
 	好上がり: 'merit'
 };
 
-export type NoteHeadingSource = {
-	kind: 'race' | 'horse' | 'entry' | 'preview';
+export type RaceLabelSource = {
 	course?: string | null;
 	raceNumber?: number | null;
 	raceName?: string | null;
 	grade?: string | null;
+	/** 条件戦のクラス（`1勝クラス` 等）。格が無いレースはこれが識別子になる。 */
+	className?: string | null;
+};
+
+export type NoteHeadingSource = RaceLabelSource & {
+	kind: 'race' | 'horse' | 'entry' | 'preview';
 	finishPosition?: number | null;
 	horseName?: string | null;
 };
+
+/**
+ * 行の種別を示す小さな札。**アプリが決めるもの**で、ユーザーは選べない
+ * （ユーザーが付ける札は `NoteTag`）。表示は `KindBadge`。
+ */
+export type NoteKindLabel = '出走前' | '近況' | '出走' | '出走予定';
 
 export type NoteHeading = {
 	/** 「中山11R オールカマー (G2) 1着」のような見出し。 */
 	label: string;
 	/** 種別を示す小さな札。既定（レース後のメモ）は null。 */
-	kindLabel: '出走前' | '近況' | null;
+	kindLabel: NoteKindLabel | null;
 };
+
+/** 「中山11R オールカマー (G2)」。格が無ければクラスを代わりに出す（design.md 第6章）。 */
+function raceLabel(n: RaceLabelSource): string {
+	const tier = n.grade ?? n.className;
+	return [
+		n.course ? `${n.course}${n.raceNumber ?? ''}R` : null,
+		n.raceName,
+		tier ? `(${tier})` : null
+	]
+		.filter(Boolean)
+		.join(' ');
+}
 
 /**
  * 見出しと札を返す。
@@ -61,13 +84,7 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 		return { label: n.horseName ?? '', kindLabel: '近況' };
 	}
 
-	const race = [
-		n.course ? `${n.course}${n.raceNumber ?? ''}R` : null,
-		n.raceName,
-		n.grade ? `(${n.grade})` : null
-	]
-		.filter(Boolean)
-		.join(' ');
+	const race = raceLabel(n);
 
 	if (n.kind === 'preview') {
 		return { label: race || 'レース', kindLabel: '出走前' };
@@ -78,4 +95,25 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 		.join(' ');
 
 	return { label: withResult || 'レース', kindLabel: null };
+}
+
+export type RunHeadingSource = RaceLabelSource & { finishPosition?: number | null };
+
+/**
+ * **メモの無い出走**の見出し。タイムラインの骨になる行。
+ *
+ * `upcoming`（レース日がまだ来ていない）のときは着順を出さない。
+ * 未来のレースに着順は無いし、`finish_position` は出馬表の投入で
+ * あとから埋まる列なので、来ていれば「終わったレース」として着順を出す。
+ */
+export function runHeading(n: RunHeadingSource, upcoming: boolean): NoteHeading {
+	const race = raceLabel(n);
+
+	if (upcoming) return { label: race || 'レース', kindLabel: '出走予定' };
+
+	const withResult = [race, n.finishPosition ? `${n.finishPosition}着` : null]
+		.filter(Boolean)
+		.join(' ');
+
+	return { label: withResult || 'レース', kindLabel: '出走' };
 }
