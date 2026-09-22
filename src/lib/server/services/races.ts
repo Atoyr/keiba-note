@@ -3,7 +3,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
 import { GRADED } from '$lib/schemas/race';
-import type { Week } from '$lib/utils/date';
+import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
 import { findOrCreateHorse } from './horses';
 
 export type RaceListItem = Pick<
@@ -187,6 +187,35 @@ export async function saveEntries(
 	return { saved: keptHorseIds.size, removed: removed.length };
 }
 
+/** 一覧に出すレースの条件。JRA（course が10場の選択式）・重賞・芝。 */
+const gradedTurf = and(inArray(race.grade, [...GRADED]), eq(race.surface, '芝'));
+
+/**
+ * 開催日だけを返す。週の終わりが月曜・火曜まで伸びるかの判定に使う。
+ *
+ * 一覧と同じ条件で引く。画面に出ないレースで週を伸ばしても、伸ばした先に出るものが無い。
+ */
+async function listGradedRaceDates(db: Db, from: string, to: string): Promise<string[]> {
+	const rows = await db
+		.selectDistinct({ date: race.date })
+		.from(race)
+		.where(and(between(race.date, from, to), gradedTurf));
+	return rows.map((r) => r.date);
+}
+
+/**
+ * 表示する週を決める。`offset` は一覧の「前の週 / 次の週」ぶん。
+ *
+ * 連休は月曜・火曜まで開催があるので、週の終わりは登録済みの開催日を見て決まる
+ * （→ `$lib/utils/date` の `currentWeek`）。判定に要る日付は今週と移動先の前後に限られるので、
+ * まとめて1回で引いてから週を解決する。
+ */
+export async function resolveWeek(db: Db, offset: number, now: Date = new Date()): Promise<Week> {
+	const { from, to } = weekLookupRange(now, offset);
+	const dates = await listGradedRaceDates(db, from, to);
+	return shiftWeek(currentWeek(now, dates), offset, dates);
+}
+
 /**
  * 今週の重賞。予想の入口。
  *
@@ -195,6 +224,7 @@ export async function saveEntries(
  * - 重賞 — `G1` / `G2` / `G3` のみ。`L` / `OP` は重賞ではない
  * - 芝 — ダート・障害は対象外
  *
+ * 週の範囲（連休は火曜まで）は `resolveWeek` が決める。
  * 該当が無い週は空で返す。条件を緩めて埋めたりはしない。
  */
 export async function listGradedRacesInWeek(
@@ -219,13 +249,7 @@ export async function listGradedRacesInWeek(
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
 		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
-		.where(
-			and(
-				between(race.date, week.start, week.end),
-				inArray(race.grade, [...GRADED]),
-				eq(race.surface, '芝')
-			)
-		)
+		.where(and(between(race.date, week.start, week.end), gradedTurf))
 		.groupBy(race.id)
 		.orderBy(asc(race.date), asc(race.raceNumber));
 }
