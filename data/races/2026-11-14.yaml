@@ -1,0 +1,13 @@
+# 2026年11月14日（土） 芝重賞
+# 申し送り用の枠だけ先に置く。出馬表が出たら entries に追記する。
+date: 2026-11-14
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: デイリー杯2歳S
+    grade: G2
+    surface: 芝
+    distance: 1600
+    direction: 右
+    entries: []

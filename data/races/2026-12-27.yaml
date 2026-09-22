@@ -1,0 +1,13 @@
+# 2026年12月27日（日） 芝重賞
+# 申し送り用の枠だけ先に置く。出馬表が出たら entries に追記する。
+date: 2026-12-27
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 有馬記念
+    grade: G1
+    surface: 芝
+    distance: 2500
+    direction: 右
+    entries: []

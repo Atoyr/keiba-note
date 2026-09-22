@@ -1,0 +1,13 @@
+# 2026年12月20日（日） 芝重賞
+# 申し送り用の枠だけ先に置く。出馬表が出たら entries に追記する。
+date: 2026-12-20
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 朝日杯フューチュリティS
+    grade: G1
+    surface: 芝
+    distance: 1600
+    direction: 右
+    entries: []
