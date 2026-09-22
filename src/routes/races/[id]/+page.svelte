@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -17,10 +17,8 @@
 	let keeper = $state<DraftKeeper | null>(null);
 	const draftKey = $derived(`k-note:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
-	const header = $derived(
-		[data.race.date, `${data.race.course}${data.race.raceNumber ?? ''}R`, data.race.name ?? '']
-			.filter(Boolean)
-			.join('  ')
+	const meeting = $derived(
+		[data.race.date, `${data.race.course}${data.race.raceNumber ?? ''}R`].filter(Boolean).join(' ')
 	);
 
 	const spec = $derived(
@@ -43,13 +41,7 @@
 <svelte:head><title>{data.race.name ?? data.race.course} — k-note</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
-	<div class="flex flex-wrap items-baseline gap-2">
-		<h1 class="text-xl font-bold tracking-tight">{header}</h1>
-		{#if data.race.grade}
-			<GradeBadge grade={data.race.grade} />
-		{/if}
-	</div>
-	<p class="mt-1 text-sm text-gray-600">{spec.join(' / ')}</p>
+	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} spec={spec.join(' / ')} />
 	<div class="mt-1 flex flex-wrap gap-4 text-sm">
 		<a
 			href={resolve('/races/[id]/preview', { id: data.race.id })}
