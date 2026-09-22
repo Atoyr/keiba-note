@@ -100,15 +100,26 @@ export const previewEntrySchema = v.object({
 
 /**
  * 予想画面の一括保存（出走前メモ）。
- * レース自体のメモは無く、出走馬ごとのメモだけ。
+ *
+ * レースの見立て（`race_preview`）と、出走馬ごとの出走前メモ（`preview`）。
+ * **出走馬が1頭も登録されていなくても見立ては書ける**ので、`entries` は空になりうる。
+ * これから組まれる重賞は、出馬表が出る前に日付と格だけ先に登録される。
  */
 export const previewNotesSchema = v.object({
+	raceNote: v.object({
+		body: bodySchema
+	}),
 	entries: v.array(previewEntrySchema)
 });
 
 export type PreviewNotesFormInput = v.InferOutput<typeof previewNotesSchema>;
 
-/** ふりかえり画面の一括保存。レースのメモ + 出走馬ごとのメモ。 */
+/**
+ * ふりかえり画面の一括保存。レースのメモ + 出走馬ごとのメモ。
+ *
+ * 形は `previewNotesSchema` とほぼ同じだが、**印を運ばない**。
+ * 印は出走前に付けるもので、結果を見たあとに付け直せると意味が変わる。
+ */
 export const raceReviewSchema = v.object({
 	raceNote: v.object({
 		body: bodySchema

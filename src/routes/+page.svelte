@@ -5,7 +5,7 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import { noteHeading } from '$lib/utils/note';
-	import { formatDateShort } from '$lib/utils/date';
+	import { formatDateShort, isUpcoming } from '$lib/utils/date';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 	import type { RaceListItem } from '$lib/server/services/races';
@@ -24,8 +24,13 @@
 	<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
 		{#each races as r (r.id)}
 			<li>
+				<!-- 今週の枠には開催前のレースが普通に入る。まだ走っていないものは
+				     ふりかえりではなく予想画面へ送る（ふりかえり側も戻すが、
+				     一覧から1回余計に往復させない）。 -->
 				<a
-					href={resolve('/races/[id]', { id: r.id })}
+					href={isUpcoming(r.date, data.today)
+						? resolve('/races/[id]/preview', { id: r.id })
+						: resolve('/races/[id]', { id: r.id })}
 					class="block py-2.5 text-sm hover:bg-gray-50"
 				>
 					<span class="font-mono text-gray-500">{r.date}</span>
@@ -67,7 +72,13 @@
 						<span class="font-mono text-gray-500">{n.occurredAt}</span>
 						<KindBadge label={h.kindLabel} />
 						{#if n.raceId}
-							<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
+							<!-- レース紐付きのメモは occurred_at がレース日なので、それで振り分けられる。 -->
+							<a
+								href={isUpcoming(n.occurredAt, data.today)
+									? resolve('/races/[id]/preview', { id: n.raceId })
+									: resolve('/races/[id]', { id: n.raceId })}
+								class="hover:underline"
+							>
 								{n.horseName ? `${n.horseName} ${h.label}` : h.label}
 							</a>
 						{:else}
