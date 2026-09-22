@@ -38,6 +38,14 @@ jobs:
       - name: 整形と lint
         run: pnpm run lint
 
+      # 2つのジョブとも chromium だけを使うので、キャッシュは共用できる。
+      # playwright のバージョンが上がれば lock の hash が変わって引き直される。
+      - name: Playwright のブラウザをキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
       # 単体テストのうち client プロジェクト（*.svelte.spec.ts）は
       # vitest のブラウザモードで走るので chromium が要る。
       - name: chromium の取得
@@ -62,6 +70,14 @@ jobs:
       - name: ローカル D1 にマイグレーション
         run: pnpm run db:migrate:local
 
+      # 検証ジョブと同じ key。先に走ったほうが温める。
+      - name: Playwright のブラウザをキャッシュ
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      # ブラウザの取得は test:e2e が内部でやる（playwright install chromium）。
       - run: pnpm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
