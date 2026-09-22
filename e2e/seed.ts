@@ -24,6 +24,12 @@ export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';
 /** タイムラインを見る馬。出走3走のうち、メモが付いているのは1走だけ。 */
 export const HORSE_ID = '01JE2EHORSE000000000000000';
 
+/** ふりかえり画面を開くレース。出走1頭（着順まで入っている）。 */
+export const REVIEW_RACE_ID = '01JE2ERACEPAST0000000000000';
+
+/** ふりかえり画面を開くレース。**出走馬が1頭も登録されていない。** */
+export const EMPTY_RACE_ID = '01JE2ERACEEMPTY00000000000';
+
 /**
  * ダッシュボードのレース欄に出るレース名。**日付は seed を流した日から決まる**
  * （今日 / 10日前 / 40日前）。40日前のものは「直近3週」の窓の外に出る。

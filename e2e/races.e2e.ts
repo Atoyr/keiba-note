@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { login } from './login';
+import { EMPTY_RACE_ID, REVIEW_RACE_ID } from './seed';
 
 /**
  * レース一覧の絞り込みは GET クエリで表される。
@@ -19,4 +21,36 @@ test('絞り込み付きのレース一覧も未ログインでは開けず、�
 
 	// 一覧の中身が漏れていないこと。
 	await expect(page.getByRole('heading', { name: 'レース' })).toHaveCount(0);
+});
+
+/**
+ * ふりかえり画面の保存ボタン。
+ *
+ * この画面は「レースのメモ + 各馬のメモ」を1送信で保存するので「まとめて保存」だが、
+ * 出走馬がまだ登録されていないレースでは入力欄が1つしか無い。そこで「まとめて」と
+ * 名乗ると、画面に出ていない何かも一緒に保存されるように読める。
+ */
+test('出走馬がいないレースの保存ボタンは「まとめて」と名乗らない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${EMPTY_RACE_ID}`);
+
+	await expect(page.getByText('出走馬がまだ登録されていません。')).toBeVisible();
+	await expect(page.getByRole('button', { name: 'レースのメモを保存' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'まとめて保存' })).toHaveCount(0);
+});
+
+test('出走馬が並んでいれば「まとめて保存」のまま', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${REVIEW_RACE_ID}`);
+
+	await expect(page.getByRole('button', { name: 'まとめて保存' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'レースのメモを保存' })).toHaveCount(0);
+});
+
+test('ふりかえり画面は未ログインでは開けない', async ({ page }) => {
+	await page.goto(`/races/${EMPTY_RACE_ID}`);
+
+	await expect(page).toHaveURL(`/login?redirect=${encodeURIComponent(`/races/${EMPTY_RACE_ID}`)}`);
+	// レース名すら出ていないこと。
+	await expect(page.getByText('E2E出馬表前賞')).toHaveCount(0);
 });

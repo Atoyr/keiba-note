@@ -1,19 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
-import { DASHBOARD_RACES, SESSION_TOKEN } from './seed';
-
-/** seed で用意したセッションを Cookie に載せる（本番ビルドにモック認証は無い）。 */
-async function login(page: Page) {
-	await page.context().addCookies([
-		{
-			name: 'session',
-			value: SESSION_TOKEN,
-			domain: 'localhost',
-			path: '/',
-			httpOnly: true,
-			sameSite: 'Lax'
-		}
-	]);
-}
+import { login } from './login';
+import { DASHBOARD_RACES } from './seed';
 
 /** 見出しの文字で枠を選ぶ。並び順ではなく**どの枠に出るか**を見たいので。 */
 const section = (page: Page, heading: string) =>
