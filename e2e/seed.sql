@@ -356,3 +356,69 @@ VALUES (
 	'[]',
 	date('now', '+9 hours', '-10 days')
 );
+
+-- 予想画面（E2E予想賞・京都 芝2200m）で**同じ条件の過去のレースのメモ**を見るための行。
+--
+-- 同じ条件（京都・芝・2200m）のレースに自分のふりかえりを1本、他人のふりかえりを1本。
+-- 距離だけ違うレース（京都 芝1800m）にも自分のふりかえりを1本置き、条件で絞れているかを見る。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACESAMECOND0000000', '2026-04-26', '京都', 11, 'E2E同条件賞', 'G2', '芝', 2200);
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEOTHERDIST000000', '2026-05-03', '京都', 11, 'E2E別距離賞', 'G2', '芝', 1800);
+
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, body, tags, occurred_at)
+VALUES (
+	'01JE2ESAMECONDNOTE0000000',
+	'01JE2EUSER0000000000000000',
+	'race',
+	'01JE2ERACESAMECOND0000000',
+	'内が止まらない馬場だった。外差しは届かない。',
+	'[]',
+	'2026-04-26'
+);
+
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EOTHERSAMECOND000000',
+	'01JE2EOTHERUSER00000000000',
+	'race',
+	'01JE2ERACESAMECOND0000000',
+	'他人のレースメモ。見えてはいけない。',
+	'[]',
+	'2026-04-26'
+);
+
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EOTHERDISTNOTE000000',
+	'01JE2EUSER0000000000000000',
+	'race',
+	'01JE2ERACEOTHERDIST000000',
+	'距離が違うので出てはいけない。',
+	'[]',
+	'2026-05-03'
+);
+
+-- 予想画面の馬（E2Eプレビューホース）の**前走の結論**。同条件のレースを4着で走り、
+-- ふりかえりで「次走買い」「不利」を付けた。予想画面の行の見出しにこの札が出る。
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES (
+	'01JE2EENTRYSAMECOND000000',
+	'01JE2ERACESAMECOND0000000',
+	'01JE2EHORSEB00000000000000',
+	3, 5, 'E2E騎手', 4
+);
+
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at)
+VALUES (
+	'01JE2ESAMECONDENTRY000000',
+	'01JE2EUSER0000000000000000',
+	'entry',
+	'01JE2ERACESAMECOND0000000',
+	'01JE2EHORSEB00000000000000',
+	'01JE2EENTRYSAMECOND000000',
+	'直線で前が壁。脚は余していた。',
+	'["次走買い","不利"]',
+	'2026-04-26'
+);

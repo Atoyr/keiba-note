@@ -132,3 +132,12 @@ export const WATCH_HORSES = {
 
 /** 10日前のレース（E2E先週賞）。見立てだけ書いてあり、**ふりかえり待ち**に出る。 */
 export const LAST_WEEK_RACE_ID = '01JE2ERACELASTWEEK00000000';
+
+/** 予想画面（E2E予想賞）と同じ条件（京都 芝2200m）の過去のレースに、自分が書いたふりかえり。 */
+export const SAME_CONDITION_NOTE_BODY = '内が止まらない馬場だった。外差しは届かない。';
+
+/** 距離だけ違うレース（京都 芝1800m）に自分が書いたふりかえり。予想画面には出ない。 */
+export const OTHER_DISTANCE_NOTE_BODY = '距離が違うので出てはいけない。';
+
+/** 同じ条件のレースに**別のユーザー**が書いたふりかえり。どこにも出てはいけない。 */
+export const OTHER_USER_SAME_CONDITION_BODY = '他人のレースメモ。見えてはいけない。';
