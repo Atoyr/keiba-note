@@ -22,7 +22,7 @@
 	// 下書きの置き場。レースとユーザーで分ける（同じ端末を2人で使う場合に混ざらないように）。
 	let formEl = $state<HTMLFormElement | null>(null);
 	let keeper = $state<DraftKeeper | null>(null);
-	const draftKey = $derived(`k-note:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
+	const draftKey = $derived(`uma-memo:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const meeting = $derived(
 		[data.race.date, `${data.race.course}${data.race.raceNumber ?? ''}R`].filter(Boolean).join(' ')
@@ -62,7 +62,7 @@
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
 </script>
 
-<svelte:head><title>{data.race.name ?? data.race.course} — k-note</title></svelte:head>
+<svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} spec={spec.join(' / ')} />

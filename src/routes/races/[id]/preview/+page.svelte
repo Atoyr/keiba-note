@@ -27,7 +27,7 @@
 	// 下書きの置き場。レースとユーザーで分ける。
 	let formEl = $state<HTMLFormElement | null>(null);
 	let keeper = $state<DraftKeeper | null>(null);
-	const draftKey = $derived(`k-note:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`);
+	const draftKey = $derived(`uma-memo:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const spec = $derived(
 		[
@@ -64,7 +64,7 @@
 	const condition = $derived(conditionLabel(data.race));
 </script>
 
-<svelte:head><title>{data.race.name ?? data.race.course} 予想 — k-note</title></svelte:head>
+<svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
 	<Button href={resolve('/this-week')} variant="ghost" size="sm" class="-ml-2">

@@ -1,4 +1,4 @@
-# k-note の API — ルート・form action・サービス層の約束
+# uma-memo の API — ルート・form action・サービス層の約束
 
 このアプリの「外から呼べる口」と「中で呼ぶ口」の一覧と約束。
 外の口は SvelteKit のルート（`load`・form actions・`+server.ts`）、中の口はサービス層の関数。

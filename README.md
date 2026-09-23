@@ -1,7 +1,11 @@
-# k-note
+# uma-memo
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
-Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
+Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。URL は https://uma-memo.com
+（移行の途中。当てる手順は [docs/operations.md「独自ドメインへ移す」](./docs/operations.md#独自ドメインへ移す)）。
+
+旧名は k-note。リポジトリ（keiba-note）・Worker・D1・Google Cloud のプロジェクトは旧名のまま
+（→ [docs/operations.md「名前について」](./docs/operations.md#名前について)）。
 
 文書の目次は [AGENTS.md](./AGENTS.md) にある。何を作るかは [docs/product.md](./docs/product.md)、
 どう動くかは [docs/architecture.md](./docs/architecture.md) から読むとよい。
@@ -49,10 +53,11 @@ E2E は別の `.wrangler/e2e` を毎回空にして使うので、ここに入�
 
 Google Cloud Console > APIs & Services > Credentials で
 OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）を作り、
-**承認済みのリダイレクト URI に2つ登録する。**
+**承認済みのリダイレクト URI に3つ登録する。**
 
 ```
 http://localhost:5173/auth/google/callback
+https://uma-memo.com/auth/google/callback
 https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 

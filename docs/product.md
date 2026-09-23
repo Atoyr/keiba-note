@@ -1,4 +1,4 @@
-# k-note プロダクト仕様
+# uma-memo プロダクト仕様
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers 上で動かす。
@@ -10,6 +10,7 @@ Cloudflare Workers 上で動かす。
   ふりかえり画面は開催前には開けないようにした（→ 第5章 note / 第6章 `/races/[id]` と `/races/[id]/preview`）
 - 更新日: 2026-09-23 — design.md から改名した（design-system.md と取り違えないため）。
   「API の形」は api.md に移した
+- 更新日: 2026-09-23 — アプリ名を k-note から uma-memo に変え、独自ドメイン `uma-memo.com` を当てた（→ 第4章）
 - ステータス: 確定（実装着手可）
 - **読む場面:** 機能を足す・変えるとき。何を・なぜ作るか、画面に何を出すか、やらないと決めたことを確かめるとき
 - 関連: [architecture.md](./architecture.md) — アーキテクチャ / コスト / 技術選定の根拠
@@ -130,8 +131,9 @@ JOIN もマージもいらない。これが本アプリのデータモデルの
 
 ## 4. 認証と権限 — Google OAuth
 
-独自ドメインを持たない（`*.workers.dev` で運用する）ため、Cloudflare Access は使えない。
-**Google OAuth でログインする**方式を採る。パスワードは一切保存しない。
+**Google OAuth でログインする**方式を採る。
+作った当初は独自ドメインが無く（`*.workers.dev` で運用していた）、Cloudflare Access が使えなかったのが出発点。
+`uma-memo.com` を取った今も、誰でも登録できる仕組みなので Access は入れない。パスワードは一切保存しない。
 
 ### 招待コードは廃止する
 
@@ -283,10 +285,12 @@ declare global {
 | `GOOGLE_CLIENT_SECRET` | 同上 | 同上 |
 | `ADMIN_EMAIL` | 同上 | 同上 |
 
-Google Cloud Console の OAuth クライアントには、リダイレクト URI を2つ登録する。
+Google Cloud Console の OAuth クライアントには、リダイレクト URI を3つ登録する。
+リダイレクト URI は実行中のオリジンから組み立てるので、コード側に URL は書いていない。
 
 - `http://localhost:5173/auth/google/callback`
-- `https://k-note.<subdomain>.workers.dev/auth/google/callback`
+- `https://uma-memo.com/auth/google/callback`
+- `https://k-note.<subdomain>.workers.dev/auth/google/callback`（workers.dev を止めるまで）
 
 ### セキュリティ上の押さえどころ
 
@@ -1031,4 +1035,4 @@ database_id = "..."
 - **`note` の非正規化** — `race_entry` を削除・付け替えしたときに `note.horse_id` が置き去りになりうる。外部キーの `ON DELETE CASCADE` と、付け替えを「削除＋再作成」ではなく UPDATE で扱うルールで防ぐ
 - **D1 の制約** — **1リクエストあたりのクエリ数は Free plan で50**（Paid で1000）。18頭分を扱うふりかえり画面で N+1 を書くと現実的に到達する。読みは JOIN、書きは `batch()` にまとめ、**1リクエスト10クエリ以内**を設計ルールとする（→ [architecture.md 第7章](./architecture.md#7-制約とスケール限界)）
 - **セッション検証が全リクエストに乗る** — `hooks.server.ts` で毎回 D1 を1回引く。D1 は数ms なので実用上は問題ないが、遅いと感じたら KV にセッションキャッシュを置く（Phase 6 以降）
-- **`*.workers.dev` 運用** — Cookie は `Secure` で問題ないが、`workers.dev` は Public Suffix List に載っているため他の Worker と Cookie を共有しない。むしろ安全側。将来ドメインを取ったらリダイレクト URI の追加だけで移行できる
+- **独自ドメインと `*.workers.dev` の併存** — Cookie はホストごとなので、`uma-memo.com` と `k-note.<subdomain>.workers.dev` のセッションは別になる（両方でログインが要る）。コード側の移行はリダイレクト URI の追加だけで済む。workers.dev を止めるのは、独自ドメインで回ることを確かめ、旧 URL の共有リンクを救う手を打ってから（→ [operations.md](./operations.md#独自ドメインへ移す)）
