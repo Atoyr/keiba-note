@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated } from './hydration';
 import { login } from './login';
+import { VIEWPORTS } from './screens';
 import { HORSE_ID, TOGGLE_SHARE_NOTE_BODY, TOGGLE_SHARE_NOTE_ID } from './seed';
 
 /**
@@ -27,6 +29,78 @@ test('ダッシュボードでは、共有の操作はメニューを開くま�
 	const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
 	await note.getByTitle('メモの操作').click();
 	await expect(note.getByRole('button', { name: '共有リンクを作る' })).toBeVisible();
+});
+
+// 以前は `<details>` のままで、中の操作を押すまで開いたまま残っていた。
+test('ダッシュボードのメニューは、外側を押すと閉じる', async ({ page }) => {
+	await login(page);
+	// 閉じるのは JS の上乗せなので、hydration を待つ。
+	await gotoHydrated(page, '/');
+
+	const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
+	const share = note.getByRole('button', { name: '共有リンクを作る' });
+	await note.getByTitle('メモの操作').click();
+	await expect(share).toBeVisible();
+
+	await page.getByRole('heading', { name: '最近のメモ' }).click();
+	await expect(share).toHaveCount(0);
+
+	// Esc でも閉じる。
+	await note.getByTitle('メモの操作').click();
+	await expect(share).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(share).toHaveCount(0);
+});
+
+/**
+ * スマホ幅（iPhone 14 相当）で、指で触ったときの閉じ方。
+ * 外側の判定は pointerdown で見ている（NoteMenu.svelte）。iOS Safari は押せない要素の
+ * タップで click を window まで届けないことがあるため。chromium なので iOS の癖そのものは
+ * 再現できないが、タップの経路（pointerType が touch）はここで通る。
+ */
+test.describe('スマホ幅', () => {
+	test.use({ viewport: VIEWPORTS.mobile, hasTouch: true, isMobile: true });
+
+	test('メニューはタップで開き、外側をタップすると閉じる', async ({ page }) => {
+		await login(page);
+		await gotoHydrated(page, '/');
+
+		const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
+		const share = note.getByRole('button', { name: '共有リンクを作る' });
+		await note.getByTitle('メモの操作').tap();
+		await expect(share).toBeVisible();
+
+		// メニューの中の余白をタップしても閉じない。chromium のスマホ表示はタップを近くの
+		// ボタンに寄せるので、ボタンから離れた右下を押す（左上だと「共有リンクを作る」が押される）。
+		const menu = note.locator('details > div');
+		const box = (await menu.boundingBox())!;
+		await menu.tap({ position: { x: box.width - 4, y: box.height - 4 } });
+		await expect(share).toBeVisible();
+
+		await page.getByRole('heading', { name: '最近のメモ' }).tap();
+		await expect(share).toHaveCount(0);
+	});
+
+	// 最近のメモはページの末尾。一番下のメモのメニューが画面の外に切れないか。
+	test('一番下のメモのメニューも、横に切れずに最後まで見られる', async ({ page }) => {
+		await login(page);
+		await gotoHydrated(page, '/');
+
+		const last = page.getByRole('region', { name: '最近のメモ' }).locator('li').last();
+		await last.getByTitle('メモの操作').tap();
+		const menu = last.locator('details > div');
+		await expect(menu).toBeVisible();
+
+		// メニューの上に指を置いてスクロールするぶんには閉じない（押し始めが中なので）。
+		await menu.scrollIntoViewIfNeeded();
+		await expect(menu).toBeVisible();
+		const box = (await menu.boundingBox())!;
+		expect(box.x).toBeGreaterThanOrEqual(0);
+		expect(box.x + box.width).toBeLessThanOrEqual(VIEWPORTS.mobile.width);
+		// 末尾までスクロールすれば下端まで見える。スクロール量は整数に丸まるので 1px は許す。
+		expect(box.y).toBeGreaterThanOrEqual(0);
+		expect(box.y + box.height).toBeLessThanOrEqual(VIEWPORTS.mobile.height + 1);
+	});
 });
 
 /**

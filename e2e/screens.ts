@@ -24,6 +24,20 @@ export const SCREENS: Screen[] = [
 	{ name: 'privacy', path: '/privacy', auth: false },
 	{ name: 'terms', path: '/terms', auth: false },
 	{ name: 'dashboard', path: '/', auth: true },
+	{
+		// 最近のメモはページの末尾にある。一番下のメモの `⋯` を開いて、はみ出さないかを見る。
+		name: 'dashboard-note-menu',
+		path: '/',
+		auth: true,
+		prepare: async (page) => {
+			await page
+				.getByRole('region', { name: '最近のメモ' })
+				.locator('li')
+				.last()
+				.getByTitle('メモの操作')
+				.click();
+		}
+	},
 	{ name: 'this-week', path: '/this-week', auth: true },
 	{ name: 'races', path: '/races', auth: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
