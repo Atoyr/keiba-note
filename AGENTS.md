@@ -94,6 +94,7 @@ pnpm run test:e2e                       # E2E だけ（ビルドから走る）
 pnpm run screens <機能名> before|after   # PR 用キャプチャ（画面名を並べれば絞れる）
 pnpm run screens:pr <機能名>            # PR 本文に貼る Markdown
 pnpm run data:check                     # data/ を触ったとき
+pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.yaml を書く（data/README.md）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）
 ```
 
