@@ -37,6 +37,17 @@ export const SCREENS: Screen[] = [
 			await page.getByText('書き直す', { exact: true }).click();
 		}
 	},
+	{
+		// 「次走消し」の札（slate-700）と、保存ボタンのテーマカラー（紺）が並んだところ。
+		// 色が近いので、見分けがつくかを人が見る（docs/design-system.md 2-4）。
+		name: 'race-preview-editing-drop',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await page.getByText('書き直す', { exact: true }).click();
+			await page.getByRole('group', { name: 'メモの札' }).getByText('次走消し').click();
+		}
+	},
 	{ name: 'horses', path: '/horses', auth: true },
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
 	{

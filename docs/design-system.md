@@ -46,7 +46,7 @@ flowchart TB
 | 薄い面 | `bg-muted` / `bg-secondary` | `bg-gray-50` / `bg-gray-100` |
 | 取り消せない操作・エラー | `destructive`（`Button variant="destructive"`、`text-destructive`） | `bg-red-600` / `text-red-700` |
 | カード・浮く面 | `bg-card` / `bg-popover` | `bg-white` |
-| 主な操作（`Button` の既定）・リンクの色 | `bg-primary` / `text-primary`（紺） | — |
+| 主な操作（保存・追加）・リンクの色 | `bg-primary text-primary-foreground`（紺。`Button` の既定もこれ） | `bg-gray-900 text-white` |
 | フォーカスの輪 | `ring-ring` | — |
 | 角丸 | `rounded-sm` 〜 `rounded-xl`（`--radius` から算出） | — |
 
@@ -80,6 +80,10 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 `oklch(0.546 0.215 263)`）や4枠の青と同じ系統なので、**明るさと鮮やかさを大きく落として**見分けられるようにしている。
 テーマカラーを明るく・鮮やかにすると、「押せるもの」と「G1」「4枠」の見分けがつかなくなる。
 値を変えるときは、G1 の青と並べて見分けがつくことを確かめる。
+
+**「次走消し」の札（`slate-700`）とは明るさがほぼ同じ**で、色味の差だけで分かれている。
+札は小さな文字の面、ボタンは幅いっぱいの面と形が違うので今は並べているが、
+どちらかの色を変えるときはこの2つを並べて確かめる（画面カタログの `race-preview-editing-drop`）。
 
 **ステージングでもテーマカラーは変えない。** ステージングはリリース前に本番と同じ見た目で確かめる場所なので、
 違うのは次の2つだけにする（`AppEnvMark`。`APP_ENV` が `staging` のときに出る）。
