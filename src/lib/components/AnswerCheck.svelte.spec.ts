@@ -19,7 +19,7 @@ const items = (root: HTMLElement) =>
 	[...root.querySelectorAll('li')].map((li) => li.textContent?.replace(/\s+/g, ' ').trim());
 
 describe('AnswerCheck', () => {
-	it('印の順に、着順と当たり外れを並べる', async () => {
+	it('印の順に、着順と馬券内／着外を並べる', async () => {
 		const screen = render(AnswerCheck, {
 			answers: answers([
 				[null, 1, 1],
@@ -31,23 +31,50 @@ describe('AnswerCheck', () => {
 
 		await expect.element(screen.getByRole('heading', { name: '答え合わせ' })).toBeInTheDocument();
 		expect(items(screen.container)).toEqual([
-			'◎ 5 ホース5 9着 外れ',
-			'○ 3 ホース3 1着 当たり',
-			'× 7 ホース7 2着 外れ'
+			'◎ 5 ホース5 9着 着外',
+			'○ 3 ホース3 1着 馬券内',
+			'× 7 ホース7 2着 馬券内'
 		]);
 	});
 
-	it('着順が決まった馬だけで当たりの数を数える', async () => {
+	// 「当たり／外れ」「的中」は使わない。的中は馬券に使う言葉で、このアプリは馬券を記録していない。
+	it('当たり・外れ・的中とは言わない', () => {
+		const screen = render(AnswerCheck, {
+			answers: answers([
+				['◎', 1, 1],
+				['○', 2, 9]
+			])
+		});
+
+		expect(screen.container.textContent).not.toMatch(/当たり|外れ|的中/);
+	});
+
+	it('着順が決まった ◎○▲△ だけで馬券内の頭数を数える', async () => {
 		const screen = render(AnswerCheck, {
 			answers: answers([
 				['◎', 1, 2],
 				['○', 2, 5],
-				['▲', 3, null]
+				['▲', 3, null],
+				['×', 4, 1]
 			])
 		});
 
-		await expect.element(screen.getByText('2頭中 1頭 当たり')).toBeInTheDocument();
-		expect(items(screen.container)).toContain('▲ 3 ホース3 — 結果待ち');
+		await expect.element(screen.getByText('◎○▲△ 2頭中 1頭 馬券内')).toBeInTheDocument();
+		expect(items(screen.container)).toContain('▲ 3 ホース3 — 未確定');
+	});
+
+	// 消した馬に来られたのは読み違い。言葉は「馬券内」のまま、色で目立たせる。
+	it('× が馬券内なら、読みどおりの馬券内とは別の色で出す', async () => {
+		const screen = render(AnswerCheck, {
+			answers: answers([
+				['◎', 1, 1],
+				['×', 2, 2]
+			])
+		});
+
+		await expect.element(screen.getByTitle('消した馬が馬券内')).toHaveClass(/text-amber-700/);
+		const labels = [...screen.container.querySelectorAll('li span.w-12')];
+		expect(labels[0]?.className).toMatch(/text-red-700/);
 	});
 
 	// 印を付けていないレースに空の枠が出ると、何かが壊れているように見える。
