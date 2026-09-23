@@ -28,7 +28,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 - DB とログインユーザーは `ctx(locals, platform)` で取り出す。admin だけの操作は `ctxAdmin`
   （`src/lib/server/util.ts`）。DB が無ければ 503、未ログインは 401、admin でなければ 403 になる
-- D1 クライアントはリクエストごとに作る。`ctx` が `createDb(platform.env)` で作って返すので、
+- D1 クライアントはリクエストごとに作る。`ctx` が `createDb(platform.env, locals.monitor.onQuery)` で作って返すので、
   自分でモジュールスコープに置かない（→ [architecture.md 3-1](./architecture.md)）
 - ルートは薄くする。画面に要る形への整形がサービス層で済むなら、そちらに寄せる
 - 「誰のメモか」の絞り込みはサービス層の SQL に任せ、ルートでは絞らない。ルートで見るのは

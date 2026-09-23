@@ -3,7 +3,7 @@
  *
  * Drizzle の D1 ドライバが使うのは `prepare` → `bind` → `all` / `run` / `raw` と `batch` だけなので、
  * そこを包む。ここは「測って渡す」だけで、ログに出すか・通知するかは知らない
- * （判断は `lib/server/monitoring/d1.ts`。db 層は monitoring を import しない）。
+ * （判断は `lib/server/monitoring/monitor.ts` の `classifyQuery`。db 層は monitoring を import しない）。
  *
  * バインドした値（メモの本文など）は observer に渡さない。渡すのは SQL の文だけ。
  */

@@ -4,8 +4,8 @@ name: 死活監視
 # Worker 自身は「自分が応答していない」ことを知らせられないので、外から見る。
 #
 # 通知するのは状態が変わったときだけ（落ちた / 戻った）。落ちているあいだ毎回送ると、
-# 30分ごとに同じ通知が積もる。前回の状態は、このワークフローの前回の実行の結果で見る
-# （落ちていたらジョブを失敗にしてある）。
+# 30分ごとに同じ通知が積もる。前回の状態は、確認が済んだ直近の実行の「結果」ジョブで見る
+# （落ちていたら「結果」を失敗にしてある）。
 #
 # 叩く先はリポジトリ変数 HEALTH_CHECK_URL。未設定なら何もしない
 # （/api/health の入ったリリースを出す前に叩くと、ログインへの 302 で「落ちた」になるため）。
@@ -67,15 +67,33 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           HEALTHY: ${{ steps.probe.outputs.healthy }}
+        # 前回の状態は、実行全体の結果ではなく「確認が最後まで済んだ直近の実行」の
+        # 「結果」ジョブで読む。実行全体の結果だと、GitHub 側の揺れ（API のエラー・ランナーの障害）や
+        # 取り消しで失敗・取り消しになった回を、本番が落ちた・正常だったと読み違える。
+        # ここが失敗しても確認のジョブは落とさない（前回が分からないだけにする）。
         run: |
-          set -euo pipefail
-          # 今の実行は終わっていないので、completed の先頭が前回。無ければ正常だったとみなす。
-          previous="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow health.yml \
-            --status completed --limit 1 --json conclusion --jq '.[0].conclusion // "success"')"
+          set -uo pipefail
+          previous=unknown
+          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow health.yml \
+            --status completed --limit 10 --json databaseId --jq '.[].databaseId')" || runs=''
+          for id in $runs; do
+            jobs="$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json jobs \
+              --jq '.jobs | map({ (.name): .conclusion }) | add')" || continue
+            [ "$(jq -r '.["確認"] // ""' <<<"$jobs")" = success ] || continue
+            if [ "$(jq -r '.["結果"] // ""' <<<"$jobs")" = failure ]; then
+              previous=down
+            else
+              previous=up
+            fi
+            break
+          done
           echo "前回: $previous / 今回: $HEALTHY"
-          if [ "$HEALTHY" = false ] && [ "$previous" != failure ]; then
+
+          # 前回が分からないときは、落ちていれば知らせ（取りこぼしより重複のほうがまし）、
+          # 正常なら何も送らない。
+          if [ "$HEALTHY" = false ] && [ "$previous" != down ]; then
             echo 'transition=down' >> "$GITHUB_OUTPUT"
-          elif [ "$HEALTHY" = true ] && [ "$previous" = failure ]; then
+          elif [ "$HEALTHY" = true ] && [ "$previous" = down ]; then
             echo 'transition=up' >> "$GITHUB_OUTPUT"
           fi
 

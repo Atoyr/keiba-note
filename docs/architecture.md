@@ -28,7 +28,7 @@
 - **メモを読む関数は `viewerId` を必須引数で受け取り、SQL の WHERE に `author_id = :viewer` を入れる。**
   省略可能にした時点で、絞り忘れが「全ユーザーに見える」に直結する。
   `visibility` を見てよいのは共有ページ `/notes/[id]` だけ（→ 3-6・3-7）
-- **D1 クライアントはリクエストごとに `createDb(platform.env)` で作る。** モジュールスコープに
+- **D1 クライアントはリクエストごとに `createDb(platform.env, locals.monitor.onQuery)` で作る。** モジュールスコープに
   接続やユーザー情報を持たせない。Workers の実行環境は複数のリクエストで使い回される（→ 3-1）
 - **認証の判断は `src/hooks.server.ts` に閉じる。** ルートは `locals.user` だけを見る。
   ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）
