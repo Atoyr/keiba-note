@@ -1,7 +1,7 @@
-import { and, between, desc, eq, inArray, isNull, like, lte, ne, or, sql } from 'drizzle-orm';
+import { and, between, desc, eq, inArray, isNull, like, lt, lte, ne, or, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
-import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/schema';
+import { horse, note, race, raceEntry, user, type Note, type Race } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
 import type { WatchSourceRow } from '$lib/utils/dashboard';
 import type { HorseRun } from './races';
@@ -441,6 +441,68 @@ export async function listWatchSources(
 		.where(between(race.date, range.from, range.to))
 		.orderBy(desc(note.occurredAt), desc(note.createdAt))
 		.limit(500);
+}
+
+export type SameConditionNote = {
+	id: string;
+	body: string;
+	occurredAt: string;
+	raceId: string;
+	raceName: string | null;
+	course: string;
+	raceNumber: number | null;
+	grade: string | null;
+};
+
+/**
+ * 予想画面の見立ての材料。**同じ条件（コース・馬場・距離）の過去のレースに、自分が書いたふりかえり**。
+ *
+ * 見立てを書くときに一番効くのは、同じ舞台で自分が前に何を見たか（内有利だった、差しが届かなかった）。
+ * レース名ではなく条件で束ねるので、去年の同じレースも、同じ舞台の別のレースも拾える。
+ *
+ * - **自分のメモだけ**（`ownedBy`）
+ * - レース全体のふりかえり（`kind='race'`）だけ。1頭のメモは馬の話で、舞台の話ではない
+ * - このレースより前に走ったレースだけ（先の日付のレースには、まだふりかえりが無いはず）
+ *
+ * 1クエリ。新しいレースから `limit` 件。
+ */
+export async function listSameConditionRaceNotes(
+	db: Db,
+	condition: {
+		course: Race['course'];
+		surface: NonNullable<Race['surface']>;
+		distance: number;
+		/** このレースの日付。これより前のレースだけを見る。 */
+		before: string;
+	},
+	viewerId: string,
+	limit = 5
+): Promise<SameConditionNote[]> {
+	return db
+		.select({
+			id: note.id,
+			body: note.body,
+			occurredAt: note.occurredAt,
+			raceId: race.id,
+			raceName: race.name,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			grade: race.grade
+		})
+		.from(note)
+		.innerJoin(race, eq(note.raceId, race.id))
+		.where(
+			and(
+				ownedBy(viewerId),
+				eq(note.kind, 'race'),
+				eq(race.course, condition.course),
+				eq(race.surface, condition.surface),
+				eq(race.distance, condition.distance),
+				lt(race.date, condition.before)
+			)
+		)
+		.orderBy(desc(race.date))
+		.limit(limit);
 }
 
 /**

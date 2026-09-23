@@ -1,6 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import type { Mark } from '$lib/schemas/note';
-import { answerCheck, asMarked, inTheMoneyCount, placing } from './answer';
+import { answerCheck, asMarked, byMark, inTheMoneyCount, placing } from './answer';
+
+describe('byMark', () => {
+	// 予想画面の「付けた印」と答え合わせで同じ並びにする。
+	it('印の無い馬を落とし、◎ → × の順、同じ印は馬番の順に並べる', () => {
+		const rows = [
+			{ mark: '△' as const, horseNumber: 9 },
+			{ mark: null, horseNumber: 1 },
+			{ mark: '◎' as const, horseNumber: 12 },
+			{ mark: '△' as const, horseNumber: 2 }
+		];
+
+		expect(byMark(rows)).toEqual([
+			{ mark: '◎', horseNumber: 12 },
+			{ mark: '△', horseNumber: 2 },
+			{ mark: '△', horseNumber: 9 }
+		]);
+	});
+});
 
 describe('placing', () => {
 	// 境界は3着（複勝圏）。

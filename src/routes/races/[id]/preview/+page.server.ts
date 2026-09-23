@@ -1,7 +1,12 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { previewNotesSchema } from '$lib/schemas/note';
-import { listHistoryForHorses, listRaceNotes, savePreviewNotes } from '$lib/server/services/notes';
+import {
+	listHistoryForHorses,
+	listRaceNotes,
+	listSameConditionRaceNotes,
+	savePreviewNotes
+} from '$lib/server/services/notes';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
@@ -20,7 +25,7 @@ import type { Actions, PageServerLoad } from './$types';
  * 日付と格だけ先に登録され、出馬表はその後に入る（README「出走馬データ」）。
  * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
- * 読みは5クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱）。
+ * 読みは6クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ）。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
  * （D1 は1リクエスト50クエリが上限。architecture.md 7-1）。
  */
@@ -34,11 +39,21 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	const horseIds = entries.map((e) => e.horseId);
 
-	const [thisRaceNotes, history, pastRuns] = await Promise.all([
+	const { surface, distance } = race;
+
+	const [thisRaceNotes, history, pastRuns, sameCondition] = await Promise.all([
 		listRaceNotes(db, params.id, user.id),
 		listHistoryForHorses(db, horseIds, params.id, user.id),
 		// 馬柱。このレースより前の出走歴だけを見る。
-		listPastRuns(db, horseIds, race.date)
+		listPastRuns(db, horseIds, race.date),
+		// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
+		surface && distance
+			? listSameConditionRaceNotes(
+					db,
+					{ course: race.course, surface, distance, before: race.date },
+					user.id
+				)
+			: Promise.resolve([])
 	]);
 
 	// 読めるのは自分のメモだけなので、著者での選り分けは要らない。
@@ -53,6 +68,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	return {
 		race,
 		myRaceNote,
+		sameCondition,
 		// 開催前はふりかえりへの導線を出さない（開いても戻されるだけなので）。
 		upcoming: isUpcoming(race.date, todayJst()),
 		rows: entries.map((e) => ({
