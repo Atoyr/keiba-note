@@ -64,6 +64,10 @@ pnpm exec wrangler preview secret put GOOGLE_CLIENT_SECRET --name staging
 pnpm exec wrangler preview secret put ADMIN_EMAIL --name staging
 ```
 
+障害の通知（→ [monitoring.md](./monitoring.md)）を staging からも受けたいときは、
+`DISCORD_WEBHOOK_URL` も同じように入れる。通知の `Environment` 欄は `staging` になる
+（`wrangler.toml` の `[previews.vars]`）。入れなければ staging からは通知しない。
+
 PR ごとの Preview も使うなら、`wrangler preview base-config secret put <NAME>` で
 新規 Preview 用の共通シークレットを別途設定する。
 Base 設定の変更は既存 Preview に反映されない。

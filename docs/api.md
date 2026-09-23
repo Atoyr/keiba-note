@@ -18,7 +18,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 - 読み: `+page.server.ts` の `load` がサービス層を呼ぶ
 - 書き: form actions。JavaScript が無効でも動く（プログレッシブエンハンスメント）
-- `+server.ts` は、フォームでも画面でもない HTTP（OAuth のリダイレクト、ログアウト）にだけ使う
+- `+server.ts` は、フォームでも画面でもない HTTP（OAuth のリダイレクト、ログアウト、死活監視）にだけ使う
 
 画面遷移ごとに API を叩く SPA にすると、リクエストが増え、実装も二重になる（→ [architecture.md 5-3](./architecture.md)）。
 将来モバイルクライアントなどが要るようになったら `/api/v1/*` を足す。そのときのために
@@ -30,7 +30,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | 誰が | 仕組み | 通らなかったとき |
 | --- | --- | --- |
-| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/privacy`・`/terms`）のパスと、その下。**`/` だけは完全一致** | — |
+| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/privacy`・`/terms`・`/api/health`）のパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
 | admin | `ctxAdmin(locals, platform)` | 403 |
@@ -57,6 +57,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みはダッシュボード（下の表） | — |
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
 | `/terms` | GET | — | 利用規約（同上） | — |
+| `/api/health` | GET | — | 死活監視。D1 に `select 1` が通れば `200 {"status":"ok"}`。状態以外は返さない。`Cache-Control: no-store`（→ [monitoring.md 第6章](./monitoring.md)） | `503 {"status":"error"}` |
 | `/notes/[id]` | GET | — | unlisted のメモ1件。`X-Robots-Tag: noindex, nofollow`・`Referrer-Policy: no-referrer`・`Cache-Control: private, no-store` | **404**（private でも存在しなくても同じ） |
 
 ### ログインした人
@@ -93,6 +94,7 @@ SvelteKit の `load` + form actions で完結させる。
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
 | `/dev/mock-user` | POST | `as`（`admin`\|`user`）・`redirect` | モックのユーザーに切り替えて `303` | 本番ビルドでは 404 |
+| `/dev/notify-test` | POST | — | Discord へ ERROR を1件送る（疎通確認。→ [monitoring.md 第6章](./monitoring.md)） | 本番ビルドでは 404 |
 
 ## 4. action を書くときの約束
 
@@ -108,6 +110,8 @@ SvelteKit の `load` + form actions で完結させる。
 - D1 の制約違反は `src/lib/server/db/errors.ts` の `isUniqueViolation` / `isCheckViolation` で見分け、
   UNIQUE は `fail(409)` に振り替える
 - 1リクエストの D1 クエリは10以内。読みは JOIN か `Promise.all`、書きは `batch()` にまとめる
+- DB は `createDb(platform.env, locals.monitor.onQuery)` で作る（`ctx()` を通せば済んでいる）。
+  ログは `console.*` ではなく `locals.monitor.log()` で出す（→ [monitoring.md 第2章](./monitoring.md)）
 
 ## 5. サービス層の関数の約束
 
