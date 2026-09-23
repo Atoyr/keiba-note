@@ -12,7 +12,7 @@ import {
 import type { NoteTag } from '../../schemas/note';
 
 /**
- * Drizzle スキーマ。docs/design.md 第5章に対応する。
+ * Drizzle スキーマ。docs/product.md 第5章に対応する。
  *
  * - ID は ULID（時系列ソート可能）
  * - 日時は unixepoch 整数。`occurred_at` は `YYYY-MM-DD` 文字列（JST 固定）
@@ -39,12 +39,12 @@ export const user = sqliteTable('user', {
 	/**
 	 * `admin` / `user`。admin はメンテ用の区分で、マスタ（馬・レース・出走馬）の
 	 * 修正とユーザーの凍結だけを行う。**admin でも他人のメモは読めない**
-	 * （サービス層が例外なく author_id で絞ることの帰結。design.md 第4章）。
+	 * （サービス層が例外なく author_id で絞ることの帰結。product.md 第4章）。
 	 */
 	role: text('role', { enum: ['admin', 'user'] })
 		.notNull()
 		.default('user'),
-	/** 退会は論理削除。NULL 以外はログイン不可（design.md 第9章 #8）。 */
+	/** 退会は論理削除。NULL 以外はログイン不可（product.md 第9章 #8）。 */
 	deletedAt: integer('deleted_at'),
 	createdAt: createdAt(),
 	updatedAt: updatedAt()
@@ -177,7 +177,7 @@ export const raceEntry = sqliteTable(
  * レースのメモも馬のメモも1テーブルに統一し、「どのレースの」「どの馬の」を
  * **非正規化して持つ**。これにより馬のタイムラインが
  * `WHERE horse_id = ? ORDER BY occurred_at DESC` の1クエリで済み、
- * レース側・馬側の両方から JOIN なしで読める（docs/design.md 第2章）。
+ * レース側・馬側の両方から JOIN なしで読める（docs/product.md 第2章）。
  *
  * `entry` のとき race_id / horse_id は race_entry から導出できるが、あえて持つ。
  * 整合性はサービス層（race_entry から値をコピーして INSERT する）で担保する。
@@ -224,7 +224,7 @@ export const note = sqliteTable(
 		 *
 		 * **この列を見てよいのは共有ページ `/notes/[id]` だけ。**
 		 * ログイン中の読みはすべて `author_id = :viewer` で閉じているので、
-		 * 公開範囲の判定がそもそも要らない（design.md 第2章 2-2）。
+		 * 公開範囲の判定がそもそも要らない（product.md 第2章 2-2）。
 		 */
 		visibility: text('visibility', { enum: ['private', 'unlisted'] })
 			.notNull()

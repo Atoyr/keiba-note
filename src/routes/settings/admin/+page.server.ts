@@ -9,7 +9,7 @@ import type { Actions, PageServerLoad } from './$types';
  * サイト管理者の画面。メンテ作業のための区分で、**メンバー管理ではない**。
  *
  * **他人のメモはここからも読めない。** admin にできるのはマスタの修正と
- * ユーザーの凍結だけで、メモを覗くことではない（design.md 第4章）。
+ * ユーザーの凍結だけで、メモを覗くことではない（product.md 第4章）。
  */
 const freezeSchema = v.object({ userId: v.pipe(v.string(), v.minLength(1)) });
 
@@ -39,7 +39,7 @@ export const actions: Actions = {
 	 * 凍結＝論理削除。行は消さない（note.author_id が NOT NULL のため）。
 	 *
 	 * セッションを全削除してログイン不能にし、**同時に共有中のメモを private に倒す。**
-	 * 退会した人の共有リンクがいつまでも開けるのは筋が悪い（design.md 第9章 #8）。
+	 * 退会した人の共有リンクがいつまでも開けるのは筋が悪い（product.md 第9章 #8）。
 	 * 触るのは可視性だけで、本文は読みも書きもしない。
 	 */
 	freeze: async ({ request, locals, platform }) => {

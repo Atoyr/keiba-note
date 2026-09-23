@@ -60,7 +60,7 @@ export async function getHorse(db: Db, id: string): Promise<Horse | null> {
  *
  * `(name, birth_year)` が UNIQUE なので、生年が分からないうちは
  * 同名馬を1頭にまとめてしまう。Phase 2 の本実装ではサジェストで
- * 既存馬を選ばせて衝突を避ける（design.md 第9章 #5）。
+ * 既存馬を選ばせて衝突を避ける（product.md 第9章 #5）。
  */
 export async function findOrCreateHorse(
 	db: Db,

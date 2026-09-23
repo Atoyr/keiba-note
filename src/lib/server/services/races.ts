@@ -30,7 +30,7 @@ function raceFilterWhere(filter: RaceFilter) {
 }
 
 /**
- * レース一覧。日付降順（design.md 第6章）。
+ * レース一覧。日付降順（product.md 第6章）。
  *
  * 件数は LEFT JOIN + GROUP BY。相関サブクエリを raw な `sql` で書くと
  * Drizzle が列をテーブル修飾なしで展開し、内側のテーブルの同名列に
@@ -226,7 +226,7 @@ export async function listEntries(db: Db, raceId: string): Promise<RaceEntryView
  *
  * 付け替えを「削除＋再作成」ではなく UPDATE で扱うのが肝。
  * race_entry を消すと、そこに紐づく note が ON DELETE CASCADE で道連れになる
- * （design.md 第10章「`note` の非正規化」のリスク）。
+ * （product.md 第10章「`note` の非正規化」のリスク）。
  * そのため既存の馬はそのまま UPDATE し、フォームから消えた行だけを削除する。
  */
 export async function saveEntries(
@@ -459,7 +459,7 @@ export async function listPastRuns(
 	return byHorse;
 }
 
-/** 馬タイムラインに並べる1走ぶん。メモが無くても出す（design.md 第6章 `/horses/[id]`）。 */
+/** 馬タイムラインに並べる1走ぶん。メモが無くても出す（product.md 第6章 `/horses/[id]`）。 */
 export type HorseRun = {
 	/** race_entry.id。同じ出走に対するメモと突き合わせる鍵。 */
 	entryId: string;

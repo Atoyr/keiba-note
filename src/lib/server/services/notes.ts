@@ -9,7 +9,7 @@ import type { HorseRun } from './races';
 /**
  * メモ。本アプリの中心。
  *
- * **ログイン中の読みは例外なく自分のメモだけに閉じる**（design.md 第2章 2-2）。
+ * **ログイン中の読みは例外なく自分のメモだけに閉じる**（product.md 第2章 2-2）。
  * `visibility` はここでは一切見ない。見てよいのは共有ページ `/notes/[id]` だけで、
  * それは `getSharedNote` に分けてある。
  *
@@ -220,7 +220,7 @@ export type TimelineNote = TimelineItem & { raceEntryId: string | null };
  * 馬のタイムラインに並ぶメモ。
  *
  * レース紐付きメモ（kind='entry'）も近況メモ（kind='horse'）も
- * `note.horse_id` で引ける。これが note を1テーブルにした狙い（design.md 第2章）。
+ * `note.horse_id` で引ける。これが note を1テーブルにした狙い（product.md 第2章）。
  * メモ同士のマージ処理はいらない。レース名を並べたいので race / race_entry だけ
  * LEFT JOIN する。インデックスは note_author_horse (author_id, horse_id, occurred_at)。
  *
@@ -282,7 +282,7 @@ function rank(row: TimelineRow): number {
  * メモの occurred_at はレース紐付きならレース日なので、メモ行と出走行は同じ軸で混ざる。
  *
  * `today` を引数で受けるのは、「出走予定」の判定を呼び出し側の時計に寄せるため
- * （JST の今日は `todayJst()`。design.md 第9章 #7）。**当日は「予定」にしない**：
+ * （JST の今日は `todayJst()`。product.md 第9章 #7）。**当日は「予定」にしない**：
  * 朝に開いたときは予定でも、走り終えた夕方には予定ではない。日付だけでは決められないので、
  * その日のうちは過去と同じ見せ方にして、着順が入った時点で着順が出るようにする。
  */
@@ -341,7 +341,7 @@ export async function addHorseNote(
 	});
 }
 
-/** 他人のメモは消せない。編集は作成者本人だけ（design.md 第9章 #3）。 */
+/** 他人のメモは消せない。編集は作成者本人だけ（product.md 第9章 #3）。 */
 export async function deleteNote(db: Db, noteId: string, authorId: string): Promise<boolean> {
 	const result = await db
 		.delete(note)
@@ -510,7 +510,7 @@ export async function listSameConditionRaceNotes(
  *
  * **このレース以外の** メモを馬ごとにまとめて返す。1クエリ。
  * `note.horse_id` を非正規化してあるおかげで、16頭分の過去メモが
- * `WHERE horse_id IN (...)` で一度に引ける（design.md 第2章の非正規化の回収）。
+ * `WHERE horse_id IN (...)` で一度に引ける（product.md 第2章の非正規化の回収）。
  */
 export async function listHistoryForHorses(
 	db: Db,
@@ -691,7 +691,7 @@ export type SharedNote = {
  * 共有ページ `/notes/[id]` が読む1件。
  *
  * **このアプリで visibility を見る唯一の場所。** 他のすべての読みは
- * `ownedBy(viewerId)` で自分のメモに閉じている（design.md 第2章 2-2）。
+ * `ownedBy(viewerId)` で自分のメモに閉じている（product.md 第2章 2-2）。
  *
  * 条件にログイン状態を入れないのが要点。著者が開いても第三者が開いても同じ行が出るので、
  * 人に渡す前に自分で踏んで見え方を確かめられる。自分のメモでも private なら出ない。
@@ -733,7 +733,7 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
  * 該当が無ければ false（存在しないのか他人のものなのかは呼び出し側に教えない）。
  *
  * private に戻せば `/notes/[id]` は即 404 になる。ただし **URL は変わらない**ので、
- * 再共有すると以前渡した相手がまた見られる（design.md 第9章 #11）。
+ * 再共有すると以前渡した相手がまた見られる（product.md 第9章 #11）。
  */
 export async function setNoteVisibility(
 	db: Db,

@@ -303,7 +303,7 @@
 							     馬を見比べるという予想画面の用が足りない。
 							     開いていないときに出すのは本文と**付けた札だけ**で、
 							     選んでいない札（`TagPicker` の全選択肢）は伏せておく。
-							     `<details>` のままなのは JS 無効でも開けるため（design.md 第6章）。 -->
+							     `<details>` のままなのは JS 無効でも開けるため（product.md 第6章）。 -->
 							<details class="group mt-2">
 								<summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
 									{#if hasPreview}

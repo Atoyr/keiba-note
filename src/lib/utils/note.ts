@@ -60,7 +60,7 @@ export type NoteHeading = {
 	kindLabel: NoteKindLabel | null;
 };
 
-/** 「中山11R オールカマー (G2)」。格が無ければクラスを代わりに出す（design.md 第6章）。 */
+/** 「中山11R オールカマー (G2)」。格が無ければクラスを代わりに出す（product.md 第6章）。 */
 function raceLabel(n: RaceLabelSource): string {
 	const tier = n.grade ?? n.className;
 	return [
