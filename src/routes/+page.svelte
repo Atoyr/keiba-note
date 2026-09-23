@@ -87,10 +87,11 @@
 	<LandingPage />
 {:else}
 	<main class="mx-auto max-w-3xl px-6 py-8">
-		<h1 class="text-2xl font-bold tracking-tight">ダッシュボード</h1>
+		<!-- トップを開けばここに来るのは自明なので、画面には出さない。見出しの段は読み上げのために残す。 -->
+		<h1 class="sr-only">ダッシュボード</h1>
 
 		<!-- 開いて最初に知りたいのは「今週どの馬を狙うか」。自分が付けた結論の札から組む。 -->
-		<section class="mt-10">
+		<section>
 			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 				<h2 class="text-sm font-semibold text-gray-500">今週出走する注目馬</h2>
 				<span class="text-xs text-gray-500">次走買い・次走消しを付けた馬</span>
