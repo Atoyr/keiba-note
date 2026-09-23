@@ -9,6 +9,21 @@ test('未ログインではトップに入れず、ログイン画面に飛ば�
 	await expect(page.getByText('メモは既定で非公開')).toBeVisible();
 });
 
+test('プライバシーポリシーと利用規約は未ログインで読め、ログイン画面から辿れる', async ({
+	page
+}) => {
+	// Google の同意画面に URL を登録するページ。ログインへ飛ばされると登録できない。
+	await page.goto('/login');
+	await page.getByRole('link', { name: 'プライバシーポリシー' }).click();
+	await expect(page).toHaveURL('/privacy');
+	await expect(page.getByRole('heading', { level: 1, name: 'プライバシーポリシー' })).toBeVisible();
+
+	await page.goto('/login');
+	await page.getByRole('link', { name: '利用規約' }).click();
+	await expect(page).toHaveURL('/terms');
+	await expect(page.getByRole('heading', { level: 1, name: '利用規約' })).toBeVisible();
+});
+
 /**
  * 認証は hooks.server.ts の `PUBLIC_PATHS` 以外を一律で弾く作り。画面ごとに
  * テストを分けても同じ分岐を通るだけなので、ここに1行ずつ足していく。

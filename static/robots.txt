@@ -5,6 +5,11 @@
 # 「内容なしの URL だけ」の形でインデックスされうる。
 # 狙いはクロールの拒否ではなくインデックスの拒否なので、crawl は許して
 # noindex を読ませる（docs/product.md 第6章）。
+#
+# /privacy と /terms は Google OAuth の同意画面に登録する公開ページ。
+# 誰に読まれてもよく、Google の確認で取りに来られるので止めない。
 User-agent: *
 Disallow: /
 Allow: /notes/
+Allow: /privacy
+Allow: /terms

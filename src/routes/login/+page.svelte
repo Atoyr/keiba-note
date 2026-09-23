@@ -56,4 +56,10 @@
 		Google アカウントがあればそのまま使えます。書いたメモは既定で非公開で、
 		共有したいものだけリンクを発行して渡します。
 	</p>
+
+	<!-- Google の同意画面が求める、ホームページからポリシーへのリンク（docs/operations.md）。 -->
+	<p class="mt-4 flex gap-4 text-xs text-gray-500">
+		<a href={resolve('/terms')} class="underline hover:no-underline">利用規約</a>
+		<a href={resolve('/privacy')} class="underline hover:no-underline">プライバシーポリシー</a>
+	</p>
 </main>
