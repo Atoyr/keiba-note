@@ -27,7 +27,7 @@
 	// 下書きの置き場。レースとユーザーで分ける。
 	let formEl = $state<HTMLFormElement | null>(null);
 	let keeper = $state<DraftKeeper | null>(null);
-	const draftKey = $derived(`k-note:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`);
+	const draftKey = $derived(`uma-memo:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const spec = $derived(
 		[
