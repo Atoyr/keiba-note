@@ -17,6 +17,6 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	const [races, years] = await Promise.all([listRaces(db, user.id, filter), listRaceYears(db)]);
 
-	// today はレースの行き先を決めるのに要る（開催前は予想画面 → `raceHref`）。
+	// today はレースの行き先を決めるのに要る（結果が出るまでは予想画面 → `isSettled`）。
 	return { races, years, filter, today: todayJst() };
 };

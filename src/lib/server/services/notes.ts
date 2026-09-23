@@ -4,7 +4,7 @@ import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note, type Race } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
 import type { WatchSourceRow } from '$lib/utils/dashboard';
-import type { HorseRun } from './races';
+import { raceResultCount, type HorseRun } from './races';
 
 /**
  * メモ。本アプリの中心。
@@ -213,8 +213,11 @@ export type TimelineItem = {
 	finishPosition: number | null;
 };
 
+/** リンク先を決める材料。レースの着順の入った出走の数で、レースに紐づかないメモは 0（→ `isSettled`）。 */
+type Linked = { resultCount: number };
+
 /** タイムラインに出すメモ1件。出走行との突き合わせに race_entry_id が要る。 */
-export type TimelineNote = TimelineItem & { raceEntryId: string | null };
+export type TimelineNote = TimelineItem & Linked & { raceEntryId: string | null };
 
 /**
  * 馬のタイムラインに並ぶメモ。
@@ -249,6 +252,7 @@ export async function getHorseTimeline(
 			raceNumber: race.raceNumber,
 			grade: race.grade,
 			finishPosition: raceEntry.finishPosition,
+			resultCount: raceResultCount(),
 			raceEntryId: note.raceEntryId
 		})
 		.from(note)
@@ -350,7 +354,7 @@ export async function deleteNote(db: Db, noteId: string, authorId: string): Prom
 	return result.length > 0;
 }
 
-export type RecentNote = TimelineItem & { horseName: string | null };
+export type RecentNote = TimelineItem & Linked & { horseName: string | null };
 
 /** ダッシュボード: 最近のメモ。 */
 export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Promise<RecentNote[]> {
@@ -371,6 +375,7 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 			raceNumber: race.raceNumber,
 			grade: race.grade,
 			finishPosition: raceEntry.finishPosition,
+			resultCount: raceResultCount(),
 			horseName: horse.name
 		})
 		.from(note)
@@ -411,6 +416,7 @@ export async function listWatchSources(
 			entryId: raceEntry.id,
 			raceId: race.id,
 			raceDate: race.date,
+			resultCount: raceResultCount(),
 			course: race.course,
 			raceNumber: race.raceNumber,
 			raceName: race.name,
@@ -768,6 +774,7 @@ export async function listSharedNotes(db: Db, viewerId: string): Promise<RecentN
 			raceNumber: race.raceNumber,
 			grade: race.grade,
 			finishPosition: raceEntry.finishPosition,
+			resultCount: raceResultCount(),
 			horseName: horse.name
 		})
 		.from(note)

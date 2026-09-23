@@ -1,7 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
-import { DASHBOARD_RACES, LAST_WEEK_RACE_ID, WATCH_HORSES } from './seed';
+import {
+	DASHBOARD_RACES,
+	LAST_WEEK_RACE_ID,
+	OTHER_DISTANCE_RACE_ID,
+	THIS_WEEK_RACES,
+	WATCH_HORSES
+} from './seed';
 
 /** 見出しの文字で枠を選ぶ。並び順ではなく**どの枠に出るか**を見たいので。 */
 const section = (page: Page, heading: string) =>
@@ -123,7 +129,7 @@ test('予想だけしたレースがふりかえり待ちに出て、ふりか�
 	await waitForHydration(page);
 
 	await page.locator('textarea[name="raceNoteBody"]').fill('見立てどおり前残り。');
-	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
+	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
 
 	await page.goto('/');
@@ -135,6 +141,32 @@ test('予想だけしたレースがふりかえり待ちに出て、ふりか�
 	// 後片付け。空で保存するとふりかえりは消え、宿題に戻る。
 	await gotoHydrated(page, `/races/${LAST_WEEK_RACE_ID}`);
 	await page.locator('textarea[name="raceNoteBody"]').fill('');
-	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
+	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
+});
+
+/**
+ * リンク先は結果が出たかで分ける（→ `opensReview`）。ダッシュボードの中でもずらさない。
+ * - 注目馬の出走（E2E今週賞・着順なし）→ 予想画面
+ * - 今週のレースで着順の入ったもの（E2E結果確定賞）→ ふりかえり
+ * - ふりかえりのメモ（E2E別距離賞のレースのメモ。出走0頭で着順なし）→ それが書いてあるふりかえり
+ */
+test('ダッシュボードのリンクは、結果が出たものとふりかえりのメモだけふりかえりへ行く', async ({
+	page
+}) => {
+	await login(page);
+	await page.goto('/');
+
+	const { settled, upcoming } = THIS_WEEK_RACES;
+	await expect(
+		section(page, '今週出走する注目馬')
+			.locator('li', { hasText: WATCH_HORSES.buy })
+			.getByRole('link', { name: new RegExp(upcoming.name) })
+	).toHaveAttribute('href', `/races/${upcoming.id}/preview`);
+	await expect(
+		section(page, '今週のレース').getByRole('link', { name: new RegExp(settled.name) })
+	).toHaveAttribute('href', `/races/${settled.id}`);
+	await expect(
+		section(page, '最近のメモ').getByRole('link', { name: /E2E別距離賞/ })
+	).toHaveAttribute('href', `/races/${OTHER_DISTANCE_RACE_ID}`);
 });

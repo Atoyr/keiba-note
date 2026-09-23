@@ -184,6 +184,14 @@ VALUES ('01JE2EENTRYSETTLED00000000', '01JE2ERACESETTLED000000000', '01JE2EHORSE
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACELASTWEEK00000000', date('now', '+9 hours', '-10 days'), '福島', 10, 'E2E先週賞', 'G3', '芝', 2000);
 
+-- E2E先週賞の結果。**着順が入っていないと「ふりかえり待ち」に出ない**（結果が出たかで分ける → isSettled）。
+-- 馬は他のテストと共有しない。
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSELASTWEEK0000000', 'E2Eセンシュウ', 2022);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYLASTWEEK0000000', '01JE2ERACELASTWEEK00000000', '01JE2EHORSELASTWEEK0000000', 4, 'E2E騎手', 3);
+
 -- 40日前。**窓の外**（窓の下端は最も古くて今日の27日前）。ここに出ないことを見る。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEOLD000000000000', date('now', '+9 hours', '-40 days'), '小倉', 9, 'E2E昔賞', 'G3', '芝', 1800);

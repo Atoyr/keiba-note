@@ -72,6 +72,11 @@ function raceLabel(n: RaceLabelSource): string {
 		.join(' ');
 }
 
+/** ふりかえりのメモ（走ったあとに書くもの）か。レース全体のメモと1頭ごとのメモ。 */
+export function isReviewNote(kind: NoteHeadingSource['kind']): boolean {
+	return kind === 'race' || kind === 'entry';
+}
+
 /**
  * 見出しと札を返す。
  *

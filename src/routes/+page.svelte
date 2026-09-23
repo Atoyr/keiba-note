@@ -6,9 +6,9 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
-	import { noteHeading } from '$lib/utils/note';
+	import { isReviewNote, noteHeading } from '$lib/utils/note';
 	import { raceProgress, type ProgressTone } from '$lib/utils/dashboard';
-	import { formatDateShort, isUpcoming } from '$lib/utils/date';
+	import { formatDateShort, opensReview } from '$lib/utils/date';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 	import type { RaceProgressItem } from '$lib/server/services/races';
@@ -27,11 +27,14 @@
 		data.landing ? '' : `${formatDateShort(data.week.start)} 〜 ${formatDateShort(data.week.end)}`
 	);
 
-	/** レースの行き先。まだ走っていないものはふりかえりではなく予想画面へ。 */
-	const raceHref = (id: string, date: string) =>
-		isUpcoming(date, today)
-			? resolve('/races/[id]/preview', { id })
-			: resolve('/races/[id]', { id });
+	/**
+	 * レースの行き先。結果が出たもの・ふりかえりを書いたものはふりかえりへ、
+	 * それ以外は予想画面へ（→ `opensReview`）。
+	 */
+	const raceHref = (id: string, race: { date: string; resultCount: number }, reviewed = false) =>
+		opensReview(race, today, reviewed)
+			? resolve('/races/[id]', { id })
+			: resolve('/races/[id]/preview', { id });
 
 	/** 進み具合の札の色。済んだものは緑、残っている宿題は黄、手つかずは地の色。 */
 	const PROGRESS_TONE: Record<ProgressTone, string> = {
@@ -49,11 +52,10 @@
 	<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
 		{#each races as r (r.id)}
 			<li>
-				<!-- 今週の枠には開催前のレースが普通に入る。まだ走っていないものは
-				     ふりかえりではなく予想画面へ送る（ふりかえり側も戻すが、
-				     一覧から1回余計に往復させない）。 -->
+				<!-- 今週の枠には開催前・結果待ちのレースが普通に入る。結果が出るまでは予想画面へ送る。
+				     ふりかえりを書いたレースは、札（ふりかえり済）と行き先をそろえてふりかえりへ。 -->
 				<a
-					href={raceHref(r.id, r.date)}
+					href={raceHref(r.id, r, r.reviewCount > 0)}
 					class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-2.5 text-sm hover:bg-gray-50"
 				>
 					<span class="font-mono text-gray-500">{r.date}</span>
@@ -117,7 +119,10 @@
 								>
 									{w.horseName}
 								</a>
-								<a href={raceHref(w.raceId, w.raceDate)} class="text-gray-600 hover:underline">
+								<a
+									href={raceHref(w.raceId, { date: w.raceDate, resultCount: w.resultCount })}
+									class="text-gray-600 hover:underline"
+								>
 									{formatDateShort(w.raceDate)}
 									{w.course}{w.raceNumber ?? ''}R {w.raceName ?? ''}
 									{#if w.horseNumber}<span class="font-mono">{w.horseNumber}番</span>{/if}
@@ -225,11 +230,14 @@
 								<span class="font-mono text-gray-500">{n.occurredAt}</span>
 								<KindBadge label={h.kindLabel} />
 								{#if n.raceId}
-									<!-- レース紐付きのメモは occurred_at がレース日なので、それで振り分けられる。 -->
+									<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
+									     ふりかえりのメモは、それが書いてあるふりかえりへ。 -->
 									<a
-										href={isUpcoming(n.occurredAt, data.today)
-											? resolve('/races/[id]/preview', { id: n.raceId })
-											: resolve('/races/[id]', { id: n.raceId })}
+										href={raceHref(
+											n.raceId,
+											{ date: n.occurredAt, resultCount: n.resultCount },
+											isReviewNote(n.kind)
+										)}
 										class="hover:underline"
 									>
 										{n.horseName ? `${n.horseName} ${h.label}` : h.label}

@@ -43,7 +43,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		listWatchSources(db, user.id, thisWeekRange)
 	]);
 
-	// today はレースの行き先と進み具合を決めるのに要る（開催前は予想画面）。
+	// today はレースの行き先と進み具合を決めるのに要る（結果が出るまでは予想画面 → `isSettled`）。
 	const today = todayJst();
 
 	return {

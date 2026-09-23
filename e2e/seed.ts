@@ -118,6 +118,19 @@ export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
  */
 export const SESSION_TOKEN = 'e2esessiontoken00000000000000000';
 
+/**
+ * 馬タイムライン（`HORSE_ID`）の、メモを書かなかった2走。リンク先を見る。
+ * - `quiet` — 着順が入っている（5着）。ふりかえりへ
+ * - `future` — 2099年の出走予定。予想画面へ
+ */
+export const TIMELINE_RUN_RACES = {
+	quiet: '01JE2ERACEQUIET000000000000',
+	future: '01JE2ERACEFUTURE00000000000'
+} as const;
+
+/** 枠の色を見るレースの8枠の馬（E2Eソトワク）。タイムラインに出走前メモ（◎）が1件ある。 */
+export const OUTER_HORSE_ID = '01JE2EHORSED00000000000000';
+
 /** 答え合わせで見る、自分の出走前メモの本文（E2E枠色賞のソトワク、印は◎・2着）。 */
 export const OUTER_PREVIEW_BODY = '外枠でも先行できれば。';
 
@@ -140,11 +153,17 @@ export const WATCH_HORSES = {
 	others: 'E2Eタニンノウマ'
 } as const;
 
-/** 10日前のレース（E2E先週賞）。見立てだけ書いてあり、**ふりかえり待ち**に出る。 */
+/** 10日前のレース（E2E先週賞）。着順が入っていて見立てだけ書いてあり、**ふりかえり待ち**に出る。 */
 export const LAST_WEEK_RACE_ID = '01JE2ERACELASTWEEK00000000';
 
 /** 予想画面（E2E予想賞）と同じ条件（京都 芝2200m）の過去のレースに、自分が書いたふりかえり。 */
 export const SAME_CONDITION_NOTE_BODY = '内が止まらない馬場だった。外差しは届かない。';
+
+/**
+ * 距離だけ違うレース（E2E別距離賞）。出走0頭（着順なし）で、自分のレースのメモが1件ある。
+ * **ふりかえりのメモは結果の投入前でもふりかえりへ向ける**ことを見るのにも使う。
+ */
+export const OTHER_DISTANCE_RACE_ID = '01JE2ERACEOTHERDIST000000';
 
 /** 距離だけ違うレース（京都 芝1800m）に自分が書いたふりかえり。予想画面には出ない。 */
 export const OTHER_DISTANCE_NOTE_BODY = '距離が違うので出てはいけない。';

@@ -4,6 +4,7 @@ import {
 	currentWeek,
 	formatDateShort,
 	isSettled,
+	opensReview,
 	isUpcoming,
 	shiftWeek,
 	todayJst,
@@ -203,6 +204,24 @@ describe('isSettled', () => {
 		'today=%s・着順 %i 頭のとき 2026-10-25 のレースは結果が出ているか → %s',
 		(today, resultCount, settled) => {
 			expect(isSettled({ date: '2026-10-25', resultCount }, today)).toBe(settled);
+		}
+	);
+});
+
+describe('opensReview', () => {
+	it.each([
+		// 結果が出ていればふりかえりへ。
+		['2026-10-26', 16, false, true],
+		// 結果の投入前は予想画面へ。
+		['2026-10-26', 0, false, false],
+		// 結果の投入前でも、ふりかえりを書いてあればそれがある画面へ。
+		['2026-10-26', 0, true, true],
+		// 開催前にふりかえりは無い（書けない）。あっても開けないので予想画面へ。
+		['2026-10-24', 0, true, false]
+	])(
+		'today=%s・着順 %i 頭・ふりかえり %s のとき 2026-10-25 のレースはふりかえりを開くか → %s',
+		(today, resultCount, reviewed, expected) => {
+			expect(opensReview({ date: '2026-10-25', resultCount }, today, reviewed)).toBe(expected);
 		}
 	);
 });

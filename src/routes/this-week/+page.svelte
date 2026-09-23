@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import { formatDateShort, isSettled } from '$lib/utils/date';
+	import { formatDateShort, isSettled, opensReview } from '$lib/utils/date';
 	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -84,9 +84,10 @@
 				<div class="grid gap-2">
 					{#each races as r (r.id)}
 						{@const settled = isSettled(r, data.today)}
-						<!-- 結果が出たレースはふりかえりへ。当日でも着順が入るまでは予想画面のまま。 -->
+						<!-- 結果が出たレース（とふりかえりを書いたレース）はふりかえりへ。
+						     当日でも着順が入るまでは予想画面のまま。 -->
 						<a
-							href={settled
+							href={opensReview(r, data.today, r.reviewCount > 0)
 								? resolve('/races/[id]', { id: r.id })
 								: resolve('/races/[id]/preview', { id: r.id })}
 							class="block rounded-xl border p-3 transition-colors hover:border-foreground/20 hover:bg-accent/40 sm:p-4"

@@ -4,6 +4,7 @@ import { login } from './login';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
+	OTHER_DISTANCE_RACE_ID,
 	OTHER_USER_PREVIEW_BODY,
 	OUTER_PREVIEW_BODY,
 	PAST_EMPTY_RACE_ID,
@@ -102,6 +103,31 @@ test('今週の重賞から、結果が出たレースはふりかえりへ、�
 	await page.getByRole('link', { name: new RegExp(settled.name) }).click();
 	await expect(page).toHaveURL(`/races/${settled.id}`);
 	await expect(page.getByText('ペース、馬場、展開など「レースの性質」')).toBeVisible();
+});
+
+/**
+ * レース一覧も同じ線引き（→ `opensReview`）。開催済みでも結果の投入前（E2E結果待ち賞）は
+ * 予想画面へ、着順の入ったレース（E2E枠色賞）と、ふりかえりを書いたレースはふりかえりへ。
+ */
+test('レース一覧から、結果が出たレースはふりかえりへ、結果の投入前は予想画面へ行く', async ({
+	page
+}) => {
+	await login(page);
+	await page.goto('/races');
+
+	await expect(page.getByRole('link', { name: /E2E枠色賞/ })).toHaveAttribute(
+		'href',
+		`/races/${BRACKET_RACE_ID}`
+	);
+	await expect(page.getByRole('link', { name: /E2E結果待ち賞/ })).toHaveAttribute(
+		'href',
+		`/races/${PAST_EMPTY_RACE_ID}/preview`
+	);
+	// 結果の投入前でも、ふりかえりを書いてあるレース（E2E別距離賞）はそれがあるふりかえりへ。
+	await expect(page.getByRole('link', { name: /E2E別距離賞/ })).toHaveAttribute(
+		'href',
+		`/races/${OTHER_DISTANCE_RACE_ID}`
+	);
 });
 
 /**

@@ -7,7 +7,7 @@
  */
 
 import type { NoteTag } from '$lib/schemas/note';
-import { isUpcoming } from './date';
+import { isSettled, isUpcoming } from './date';
 
 // ---------------------------------------------------------------------------
 // 今週出走する注目馬
@@ -24,6 +24,8 @@ export type WatchSourceRow = {
 	entryId: string;
 	raceId: string;
 	raceDate: string;
+	/** そのレースの着順の入った出走の数。リンク先を決める（→ `isSettled`）。 */
+	resultCount: number;
 	course: string;
 	raceNumber: number | null;
 	raceName: string | null;
@@ -88,6 +90,8 @@ export function pickWatchlist(rows: WatchSourceRow[]): WatchedRunner[] {
 /** レース1本ぶんの、自分のメモの件数（種類別）。 */
 export type RaceProgressSource = {
 	date: string;
+	/** 着順の入った出走の数。結果が出たか（→ `isSettled`）。 */
+	resultCount: number;
 	/** 見立て（`race_preview`）。0 か 1。 */
 	outlookCount: number;
 	/** 印を付けた出走前メモの数。 */
@@ -103,23 +107,28 @@ export type ProgressLabel = { label: string; tone: ProgressTone };
 /**
  * 一覧の行に添える進み具合。「メモ 3」では**何が済んでいて何が残っているか**が読めない。
  *
- * - 開催前 — 見立てと印。どちらも無ければ「未着手」
- * - 開催後（当日を含む）— ふりかえりが済んだか。予想だけして書いていなければ「ふりかえり待ち」
+ * - 結果が出る前（開催前・当日の朝・結果の投入前）— 見立てと印。開催前でどちらも無ければ「未着手」
+ * - 結果が出たあと — ふりかえりが済んだか。予想だけして書いていなければ「ふりかえり待ち」
  *
- * 開催後に何も書いていないレースには何も添えない。ダッシュボードは重賞以外も並べるので、
+ * 境目は日付ではなく `isSettled`（結果が出たか）。レースのリンク先と同じ線引きにしないと、
+ * 「ふりかえり待ち」と出ているのに押すと予想画面へ行く、という食い違いが出る。
+ * 結果の前にふりかえりを書いていれば、それは「ふりかえり済」のまま出す。
+ *
+ * 予想していない開催後のレースには何も添えない。ダッシュボードは重賞以外も並べるので、
  * 予想していないレースにまで「未着手」を付けると、全部が宿題に見える。
  */
 export function raceProgress(r: RaceProgressSource, today: string): ProgressLabel[] {
-	if (isUpcoming(r.date, today)) {
-		const labels: ProgressLabel[] = [];
-		if (r.outlookCount > 0) labels.push({ label: '見立て済', tone: 'done' });
-		if (r.markCount > 0) labels.push({ label: `印 ${r.markCount}頭`, tone: 'done' });
-		return labels.length > 0 ? labels : [{ label: '未着手', tone: 'none' }];
+	if (r.reviewCount > 0) return [{ label: 'ふりかえり済', tone: 'done' }];
+
+	if (isSettled(r, today)) {
+		return predicted(r) ? [{ label: 'ふりかえり待ち', tone: 'todo' }] : [];
 	}
 
-	if (r.reviewCount > 0) return [{ label: 'ふりかえり済', tone: 'done' }];
-	if (predicted(r)) return [{ label: 'ふりかえり待ち', tone: 'todo' }];
-	return [];
+	const labels: ProgressLabel[] = [];
+	if (r.outlookCount > 0) labels.push({ label: '見立て済', tone: 'done' });
+	if (r.markCount > 0) labels.push({ label: `印 ${r.markCount}頭`, tone: 'done' });
+	if (labels.length > 0) return labels;
+	return isUpcoming(r.date, today) ? [{ label: '未着手', tone: 'none' }] : [];
 }
 
 function predicted(r: RaceProgressSource): boolean {
@@ -127,7 +136,8 @@ function predicted(r: RaceProgressSource): boolean {
 }
 
 /**
- * ふりかえり待ち。**予想した（見立てか印がある）のに、走ったあとに何も書いていない**レース。
+ * ふりかえり待ち。**予想した（見立てか印がある）のに、結果が出たあとに何も書いていない**レース。
+ * 結果が出たかは `isSettled`（リンク先と同じ線引き）。当日の朝に予想した時点では並ばない。
  *
  * 「開催済みでふりかえりが無いレース」を全部出すと、データで入っている重賞が全部並んで
  * 宿題の山になる。予想したレースに絞れば、答え合わせをしに行くべきものだけが残る。
@@ -135,6 +145,6 @@ function predicted(r: RaceProgressSource): boolean {
  */
 export function awaitingReview<T extends RaceProgressSource>(races: T[], today: string): T[] {
 	return races
-		.filter((r) => !isUpcoming(r.date, today) && r.reviewCount === 0 && predicted(r))
+		.filter((r) => isSettled(r, today) && r.reviewCount === 0 && predicted(r))
 		.sort((a, b) => b.date.localeCompare(a.date));
 }

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { login } from './login';
-import { HORSE_ID } from './seed';
+import { BRACKET_RACE_ID, HORSE_ID, OUTER_HORSE_ID, TIMELINE_RUN_RACES } from './seed';
 
 const TIMELINE = 'main ol > li';
 
@@ -32,4 +32,31 @@ test('タイムラインは未来から過去の順に並ぶ', async ({ page }) 
 	const dates = (await rows.allInnerTexts()).map((t) => t.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '');
 	expect(dates).toEqual([...dates].sort().reverse());
 	expect(dates.at(-1)).toBe('2026-06-14');
+});
+
+/**
+ * タイムラインのリンク先も、ほかの画面と同じく結果が出たかで分ける（→ `opensReview`）。
+ * 出走行はレースの着順、メモ行はメモが付いたレースの着順で決まる。
+ */
+test('タイムラインから、結果が出たレースはふりかえりへ、出走予定は予想画面へ行く', async ({
+	page
+}) => {
+	await login(page);
+	await page.goto(`/horses/${HORSE_ID}`);
+
+	await expect(page.getByRole('link', { name: /E2E特別/ })).toHaveAttribute(
+		'href',
+		`/races/${TIMELINE_RUN_RACES.quiet}`
+	);
+	await expect(page.getByRole('link', { name: /E2E未来賞/ })).toHaveAttribute(
+		'href',
+		`/races/${TIMELINE_RUN_RACES.future}/preview`
+	);
+
+	// 出走前メモ（ふりかえりではない）でも、着順の入ったレースならふりかえりへ。
+	await page.goto(`/horses/${OUTER_HORSE_ID}`);
+	await expect(page.getByRole('link', { name: /E2E枠色賞/ }).first()).toHaveAttribute(
+		'href',
+		`/races/${BRACKET_RACE_ID}`
+	);
 });

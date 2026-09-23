@@ -26,6 +26,7 @@ const src = (over: Partial<WatchSourceRow> & { noteTags: NoteTag[] }): WatchSour
 	entryId: 'e1',
 	raceId: 'r1',
 	raceDate: '2026-09-27',
+	resultCount: 0,
 	course: '阪神',
 	raceNumber: 11,
 	raceName: '神戸新聞杯',
@@ -76,11 +77,16 @@ describe('pickWatchlist', () => {
 
 const race = (over: Partial<Parameters<typeof raceProgress>[0]> = {}) => ({
 	date: '2026-09-27',
+	resultCount: 0,
 	outlookCount: 0,
 	markCount: 0,
 	reviewCount: 0,
 	...over
 });
+
+/** 結果が出たレース（着順が入っている）。 */
+const settled = (over: Partial<Parameters<typeof raceProgress>[0]> = {}) =>
+	race({ resultCount: 16, ...over });
 
 describe('raceProgress', () => {
 	it('開催前は見立てと印の済み具合を出す', () => {
@@ -94,35 +100,57 @@ describe('raceProgress', () => {
 		expect(raceProgress(race(), TODAY)).toEqual([{ label: '未着手', tone: 'none' }]);
 	});
 
-	// 当日は開催前にしない（isUpcoming と同じ線引き）。夕方にはもう走り終えている。
-	it('当日は開催後として扱う', () => {
+	// 当日でも着順が入るまでは予想の途中。リンク先（予想画面）と札を食い違わせない。
+	it('当日でも結果が出るまでは見立てと印の済み具合を出す', () => {
 		expect(raceProgress(race({ date: TODAY, markCount: 2 }), TODAY)).toEqual([
+			{ label: '印 2頭', tone: 'done' }
+		]);
+	});
+
+	it('当日に結果が出たら「ふりかえり待ち」', () => {
+		expect(raceProgress(settled({ date: TODAY, markCount: 2 }), TODAY)).toEqual([
 			{ label: 'ふりかえり待ち', tone: 'todo' }
 		]);
 	});
 
-	it('開催後にふりかえりがあれば「ふりかえり済」', () => {
-		expect(raceProgress(race({ date: '2026-09-20', markCount: 2, reviewCount: 1 }), TODAY)).toEqual(
-			[{ label: 'ふりかえり済', tone: 'done' }]
-		);
+	it('ふりかえりがあれば「ふりかえり済」', () => {
+		expect(
+			raceProgress(settled({ date: '2026-09-20', markCount: 2, reviewCount: 1 }), TODAY)
+		).toEqual([{ label: 'ふりかえり済', tone: 'done' }]);
+	});
+
+	// 結果の投入より先にふりかえりを書くことはある。書いたものは済として出す。
+	it('結果の投入前でも、ふりかえりを書いていれば「ふりかえり済」', () => {
+		expect(raceProgress(race({ date: '2026-09-20', reviewCount: 1 }), TODAY)).toEqual([
+			{ label: 'ふりかえり済', tone: 'done' }
+		]);
 	});
 
 	// 予想していないレースにまで宿題の札を付けると、全部が宿題に見える。
-	it('開催後で予想もふりかえりも無ければ何も添えない', () => {
+	it('結果が出たあと予想もふりかえりも無ければ何も添えない', () => {
+		expect(raceProgress(settled({ date: '2026-09-20' }), TODAY)).toEqual([]);
+	});
+
+	// 走り終えたのに「未着手」は読めない。結果が入っていなくても開催後なら何も添えない。
+	it('結果の投入前の開催後のレースで何も書いていなければ何も添えない', () => {
 		expect(raceProgress(race({ date: '2026-09-20' }), TODAY)).toEqual([]);
 	});
 });
 
 describe('awaitingReview', () => {
-	it('予想したのにふりかえっていない開催済みのレースだけを、新しい順に返す', () => {
+	it('予想したのにふりかえっていない、結果の出たレースだけを新しい順に返す', () => {
 		const races = [
-			race({ date: '2026-09-13', outlookCount: 1 }),
-			race({ date: '2026-09-20', markCount: 2 }),
-			race({ date: TODAY, markCount: 1 }),
+			settled({ date: '2026-09-13', outlookCount: 1 }),
+			settled({ date: '2026-09-20', markCount: 2 }),
+			settled({ date: TODAY, markCount: 1 }),
+			// 当日で、まだ結果が出ていない
+			race({ date: TODAY, outlookCount: 1 }),
+			// 開催済みだが結果の投入前
+			race({ date: '2026-09-21', markCount: 1 }),
 			// ふりかえり済み
-			race({ date: '2026-09-19', markCount: 1, reviewCount: 3 }),
+			settled({ date: '2026-09-19', markCount: 1, reviewCount: 3 }),
 			// 予想していない
-			race({ date: '2026-09-21' }),
+			settled({ date: '2026-09-21' }),
 			// まだ走っていない
 			race({ date: '2026-09-27', outlookCount: 1 })
 		];
