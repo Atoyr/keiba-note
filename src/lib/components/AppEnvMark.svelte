@@ -23,7 +23,7 @@
 		rel="apple-touch-icon"
 		href={asset(staging ? '/apple-touch-icon-staging.png' : '/apple-touch-icon.png')}
 	/>
-	<meta name="theme-color" content="#7a4a1e" />
+	<meta name="theme-color" content="#1e3a5f" />
 </svelte:head>
 
 {#if staging}

@@ -11,7 +11,7 @@ const touchIconHref = () =>
 	document.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ?? '';
 
 describe('AppEnvMark', () => {
-	it('本番では帯を出さず、栗毛のアイコンにする', async () => {
+	it('本番では帯を出さず、紺のアイコンにする', async () => {
 		const screen = render(AppEnvMark, { staging: false });
 
 		await expect.element(screen.getByText(/ステージング/)).not.toBeInTheDocument();
