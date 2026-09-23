@@ -58,8 +58,10 @@
 		>
 			共有中
 		</span>
+		<!-- 最小幅を持たせて、狭いところ（メモの操作メニューの中など）では次の行に回す。
+		     潰れて「http」しか見えないと、何のリンクを渡すのか確かめられない。 -->
 		<input
-			class="min-w-0 flex-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700"
+			class="min-w-48 flex-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700"
 			value={url}
 			readonly
 			onfocus={(e) => e.currentTarget.select()}

@@ -36,6 +36,18 @@ export const SCREENS: Screen[] = [
 	},
 	{ name: 'horses', path: '/horses', auth: true },
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
+	{
+		// 共有と削除は `⋯` に畳んである。共有中の近況メモのメニューを開いた状態。
+		name: 'horse-timeline-note-menu',
+		path: `/horses/${HORSE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page
+				.locator('main ol > li', { hasText: '直線で外に出してから一完歩が速い。' })
+				.getByTitle('メモの操作')
+				.click();
+		}
+	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
 	{ name: 'settings-shares', path: '/settings/shares', auth: true }
