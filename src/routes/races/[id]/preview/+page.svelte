@@ -64,7 +64,7 @@
 	const condition = $derived(conditionLabel(data.race));
 </script>
 
-<svelte:head><title>{data.race.name ?? data.race.course} 予想 — k-note</title></svelte:head>
+<svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
 	<Button href={resolve('/this-week')} variant="ghost" size="sm" class="-ml-2">

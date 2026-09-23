@@ -64,7 +64,7 @@
 	</ul>
 {/snippet}
 
-<svelte:head><title>k-note</title></svelte:head>
+<svelte:head><title>uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<h1 class="text-2xl font-bold tracking-tight">ダッシュボード</h1>

@@ -20,7 +20,7 @@
 </script>
 
 <svelte:head>
-	<title>メモ — k-note</title>
+	<title>メモ — uma-memo</title>
 	<meta name="robots" content="noindex, nofollow" />
 	<meta name="referrer" content="no-referrer" />
 </svelte:head>

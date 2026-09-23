@@ -62,7 +62,7 @@
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
 </script>
 
-<svelte:head><title>{data.race.name ?? data.race.course} — k-note</title></svelte:head>
+<svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} spec={spec.join(' / ')} />

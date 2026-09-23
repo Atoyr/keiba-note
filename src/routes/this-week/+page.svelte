@@ -28,7 +28,7 @@
 	);
 </script>
 
-<svelte:head><title>今週の重賞 — k-note</title></svelte:head>
+<svelte:head><title>今週の重賞 — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
 	<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
