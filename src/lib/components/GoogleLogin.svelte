@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	/**
 	 * 「Google でログイン」のボタンと、規約への同意の一文。ログイン画面と紹介ページ（`/`）で使う。
@@ -21,10 +22,8 @@
 	{#if redirectTo !== '/'}
 		<input type="hidden" name="redirect" value={redirectTo} />
 	{/if}
-	<button
-		type="submit"
-		class="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-2.5 font-medium hover:bg-gray-50"
-	>
+	<!-- 画面の主な操作なので、押しやすい 44px の高さにする。 -->
+	<Button type="submit" variant="outline" size="lg" class="h-11 w-full gap-2">
 		<svg class="size-5" viewBox="0 0 24 24" aria-hidden="true">
 			<path
 				fill="#4285F4"
@@ -44,7 +43,7 @@
 			/>
 		</svg>
 		Google でログイン
-	</button>
+	</Button>
 </form>
 
 <p class="mt-3 text-xs text-muted-foreground">

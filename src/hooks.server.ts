@@ -12,7 +12,7 @@ import { safeRedirect } from '$lib/utils/redirect';
  * 下だけ。**`/` だけは完全一致。** 前方一致にすると全部のパスが開いてしまう。
  * `/` は未ログインだと紹介ページを出し、DB には触らない（`src/routes/+page.server.ts`）。
  *
- * `/notes/` は共有ページ。未ログインで開ける唯一のルートだが、そこで出せるのは
+ * `/notes/` は共有ページ。未ログインで DB の中身を出す唯一のルートだが、そこで出せるのは
  * `visibility = 'unlisted'` の1行だけ（product.md 第6章）。
  *
  * `/privacy` と `/terms` は Google OAuth の同意画面に URL を登録するページ。
