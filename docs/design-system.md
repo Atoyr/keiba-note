@@ -35,7 +35,8 @@ flowchart TB
 
 ### 2-1. 今使えるもの — shadcn のトークン
 
-`layout.css` に shadcn-svelte の base color `neutral` で入っている。
+`layout.css` に shadcn-svelte の base color `neutral` で入っている。`--primary` と `--ring` だけは
+テーマカラーの栗毛に替えてある（→ 2-4）。
 
 | 用途 | 使うもの | 置き換える前の書き方の例 |
 | --- | --- | --- |
@@ -45,6 +46,7 @@ flowchart TB
 | 薄い面 | `bg-muted` / `bg-secondary` | `bg-gray-50` / `bg-gray-100` |
 | 取り消せない操作・エラー | `destructive`（`Button variant="destructive"`、`text-destructive`） | `bg-red-600` / `text-red-700` |
 | カード・浮く面 | `bg-card` / `bg-popover` | `bg-white` |
+| 主な操作（`Button` の既定）・リンクの色 | `bg-primary` / `text-primary`（栗毛） | — |
 | フォーカスの輪 | `ring-ring` | — |
 | 角丸 | `rounded-sm` 〜 `rounded-xl`（`--radius` から算出） | — |
 
@@ -68,6 +70,21 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 ### 2-3. ダークモード
 
 今は作らない（`.dark` を付ける場所が無い）。トークン経由にしておけば、あとで `.dark` の値を埋めるだけで済む。
+
+### 2-4. テーマカラーと、環境の見分け
+
+**テーマカラーは栗毛**（`oklch(0.456 0.087 60)`、ファビコンの蹄鉄と同じ茶）。入れるのは `--primary` と
+`--ring` だけで、背景・罫線・文字は無彩色のまま。赤・青・緑・黄・橙はグレード・枠色・状態の色（2-2）で
+意味が決まっていて、テーマカラーをそれらに寄せると「押せるもの」と「G1」「4枠」の見分けがつかなくなる。
+テーマカラーを替えるときも、この5色の系統は避ける。
+
+**ステージングでもテーマカラーは変えない。** ステージングはリリース前に本番と同じ見た目で確かめる場所なので、
+違うのは次の2つだけにする（`AppEnvMark`。`APP_ENV` が `staging` のときに出る）。
+
+- タブのアイコンが灰色の蹄鉄になる（`src/lib/assets/favicon-staging.svg`）
+- ページの一番上に「ステージング環境（データは本番と別）」の細い帯が出る
+
+ローカル（`pnpm run dev`・E2E・キャプチャ）は本番と同じ見た目にする。PR に貼るキャプチャが本番の見た目であるために。
 
 ## 3. ② 部品 — shadcn-svelte
 
@@ -106,6 +123,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `RaceHeading` / `RaceFilterForm` / `PastRuns` | レースの見出し・絞り込み・馬柱 |
 | `NoteMenu` / `AnswerCheck` / `DraftKeeper` | メモの `⋯` メニュー・的中の確認・書きかけの保持 |
 | `AccountMenu` | ヘッダのアバター |
+| `AppEnvMark` | ファビコンと、ステージングの帯（→ 2-4） |
 | `LegalDocument` | プライバシーポリシーと利用規約の枠（見出し・制定日と改定日・戻り先） |
 | `GoogleLogin` / `LandingPage` | 「Google でログイン」と規約への同意の一文・未ログインのトップの紹介ページ |
 
