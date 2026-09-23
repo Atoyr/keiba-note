@@ -44,6 +44,8 @@ races:
         age: 4
         ref: nk-2022105291
         trainer: 福永祐一
+        sire: ロードカナロア
+        dam: キネオダンサー
         finish: 8
         popularity: 10
         time: "1:08.9"
@@ -134,6 +136,8 @@ races:
         age: 7
         ref: nk-2019105658
         trainer: 中竹和也
+        sire: リオンディーズ
+        dam: ルージュクール
         finish: 11
         popularity: 11
         time: "1:09.6"
@@ -152,6 +156,8 @@ races:
         age: 3
         ref: nk-2023107264
         trainer: 上村洋行
+        sire: マテラスカイ
+        dam: ミニーアイル
         finish: 10
         popularity: 2
         time: "1:09.0"
@@ -170,6 +176,8 @@ races:
         age: 4
         ref: nk-2022104957
         trainer: 斉藤崇史
+        sire: アメリカンファラオ
+        dam: パリスビキニ
         finish: 13
         popularity: 7
         time: "1:13.2"
@@ -224,6 +232,8 @@ races:
         age: 5
         ref: nk-2021106601
         trainer: 斉藤崇史
+        sire: イスラボニータ
+        dam: ヤマニンパピオネ
         finish: 9
         popularity: 5
         time: "1:09.0"

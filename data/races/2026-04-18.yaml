@@ -42,7 +42,9 @@ races:
         sex: 牝
         age: 5
         ref: nk-2021100016
-        trainer: 和田雄二
+        trainer: 佐々木洋一
+        sire: エイシンヒカリ
+        dam: ポリリズム
         finish: 10
         popularity: 9
         time: "5:16.9"
@@ -60,6 +62,8 @@ races:
         age: 5
         ref: nk-2021104800
         trainer: 西田雄一郎
+        sire: ブリックスアンドモルタル
+        dam: リープオブフェイス
         finish: 3
         popularity: 8
         time: "4:52.0"
@@ -94,6 +98,8 @@ races:
         age: 8
         ref: nk-2018100297
         trainer: 村田一誠
+        sire: ジョーカプチーノ
+        dam: ピントゥハティ
         finish: 6
         popularity: 5
         time: "4:53.5"
@@ -128,6 +134,8 @@ races:
         age: 7
         ref: nk-2019101614
         trainer: 岩戸孝樹
+        sire: キタサンブラック
+        dam: クラリネット
         finish: 1
         popularity: 1
         time: "4:49.0"
@@ -161,6 +169,8 @@ races:
         age: 5
         ref: nk-2021110022
         trainer: 昆貢
+        sire: Golden Horn
+        dam: Entertainment
         finish: 7
         popularity: 6
         time: "4:53.5"
@@ -177,7 +187,9 @@ races:
         sex: セ
         age: 8
         ref: nk-2018100752
-        trainer: 田村康仁
+        trainer: 吉井一良
+        sire: エイシンフラッシュ
+        dam: サトノサンシャイン
         finish: 9
         popularity: 10
         time: "4:58.6"
@@ -195,6 +207,8 @@ races:
         age: 7
         ref: nk-2019101507
         trainer: 辻野泰之
+        sire: ドゥラメンテ
+        dam: ラヴァリーノ
         finish: 2
         popularity: 3
         time: "4:51.0"
@@ -222,6 +236,8 @@ races:
         age: 6
         ref: nk-2020106565
         trainer: 斎藤誠
+        sire: ホッコータルマエ
+        dam: ヒラボクビジン
         finish: 6
         popularity: 2
         time: "1:51.3"
@@ -240,6 +256,8 @@ races:
         age: 6
         ref: nk-2020100061
         trainer: 寺島良
+        sire: ダノンレジェンド
+        dam: ジュピターズビコー
         finish: 2
         popularity: 7
         time: "1:50.5"
@@ -258,6 +276,8 @@ races:
         age: 4
         ref: nk-2022106553
         trainer: 西園翔太
+        sire: ヘニーヒューズ
+        dam: スペシャルディナー
         finish: 4
         popularity: 6
         time: "1:51.0"
@@ -276,6 +296,8 @@ races:
         age: 5
         ref: nk-2021103020
         trainer: 池江泰寿
+        sire: レイデオロ
+        dam: ラユロット
         finish: 1
         popularity: 1
         time: "1:50.3"
@@ -311,6 +333,8 @@ races:
         age: 5
         ref: nk-2021105630
         trainer: 矢作芳人
+        sire: リアルスティール
+        dam: ソーメニーウェイズ
         finish: 15
         popularity: 3
         time: "1:53.3"
@@ -329,6 +353,8 @@ races:
         age: 7
         ref: nk-2019104245
         trainer: 高木登
+        sire: エスポワールシチー
+        dam: リサプシュケ
         finish: 11
         popularity: 13
         time: "1:52.4"
@@ -347,6 +373,8 @@ races:
         age: 6
         ref: nk-2020104136
         trainer: 東田明士
+        sire: スズカコーズウェイ
+        dam: ファーストレディ
         finish: 5
         popularity: 5
         time: "1:51.2"
@@ -365,6 +393,8 @@ races:
         age: 4
         ref: nk-2022105979
         trainer: 鹿戸雄一
+        sire: アジアエクスプレス
+        dam: メジロカトリーヌ
         finish: 16
         popularity: 11
         time: "1:53.7"
@@ -383,6 +413,8 @@ races:
         age: 6
         ref: nk-2020103331
         trainer: 堀宣行
+        sire: ジャスタウェイ
+        dam: キラーグレイシス
         finish: 10
         popularity: 4
         time: "1:51.7"
@@ -401,6 +433,8 @@ races:
         age: 7
         ref: nk-2019100630
         trainer: 大久保龍志
+        sire: キズナ
+        dam: クイーンパイレーツ
         finish: 7
         popularity: 10
         time: "1:51.3"
@@ -437,6 +471,8 @@ races:
         age: 4
         ref: nk-2022100154
         trainer: 本田優
+        sire: ホッコータルマエ
+        dam: アクアブルーハート
         finish: 13
         popularity: 12
         time: "1:52.4"
@@ -473,6 +509,8 @@ races:
         age: 4
         ref: nk-2022100653
         trainer: 松下武士
+        sire: ミッキーアイル
+        dam: ベイコート
         finish: 9
         popularity: 15
         time: "1:51.6"

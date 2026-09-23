@@ -58,6 +58,8 @@ races:
         age: 6
         ref: nk-2020100116
         trainer: 池上昌和
+        sire: リオンディーズ
+        dam: シャプレドサクレ
         finish: 11
         popularity: 9
         time: "1:51.0"
@@ -76,6 +78,8 @@ races:
         age: 5
         ref: nk-2021103717
         trainer: 矢作芳人
+        sire: ロードカナロア
+        dam: クイーンマンボ
         finish: 10
         popularity: 8
         time: "1:50.9"
@@ -94,6 +98,8 @@ races:
         age: 4
         ref: nk-2022110083
         trainer: 堀宣行
+        sire: アメリカンファラオ
+        dam: Mary's Follies
         finish: 1
         popularity: 3
         time: "1:43.8"
@@ -111,6 +117,8 @@ races:
         age: 4
         ref: nk-2022103795
         trainer: 伊藤圭三
+        sire: キズナ
+        dam: レディマドンナ
         finish: 4
         popularity: 5
         time: "1:44.8"
@@ -129,6 +137,8 @@ races:
         age: 5
         ref: nk-2021102236
         trainer: 高柳大輔
+        sire: コパノリッキー
+        dam: テーオーレイチェル
         finish: 3
         popularity: 2
         time: "1:44.2"
@@ -147,6 +157,8 @@ races:
         age: 7
         ref: nk-2019102437
         trainer: 高木登
+        sire: マクフィ
+        dam: バイカターキン
         finish: 5
         popularity: 7
         time: "1:44.9"
@@ -165,6 +177,8 @@ races:
         age: 7
         ref: nk-2019101324
         trainer: 梅田智之
+        sire: ドレフォン
+        dam: エミネントシチー
         finish: 6
         popularity: 11
         time: "1:45.0"
@@ -183,6 +197,8 @@ races:
         age: 6
         ref: nk-2020110024
         trainer: 田中博康
+        sire: Maclean's Music
+        dam: Warrior Kat
         finish: 8
         popularity: 1
         time: "1:45.9"
@@ -201,6 +217,8 @@ races:
         age: 4
         ref: nk-2022103614
         trainer: 武英智
+        sire: ナダル
+        dam: グリントオブライト
         finish: 7
         popularity: 10
         time: "1:45.3"
@@ -219,6 +237,8 @@ races:
         age: 6
         ref: nk-2020102904
         trainer: 安田翔伍
+        sire: ロゴタイプ
+        dam: スタートアップ
         finish: 9
         popularity: 6
         time: "1:47.1"
@@ -237,6 +257,8 @@ races:
         age: 6
         ref: nk-2020101874
         trainer: 黒岩陽一
+        sire: ヘニーヒューズ
+        dam: ソフトライム
         finish: 2
         popularity: 4
         time: "1:44.0"

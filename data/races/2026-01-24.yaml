@@ -209,7 +209,9 @@ races:
         sex: 牝
         age: 7
         ref: nk-2019105824
-        trainer: 西園翔太
+        trainer: 藤野健太
+        sire: ブラックタイド
+        dam: リトルビスケット
         finish: 8
         popularity: 12
         time: "1:58.4"
@@ -246,6 +248,8 @@ races:
         age: 4
         ref: nk-2022104145
         trainer: 福永祐一
+        sire: ロードカナロア
+        dam: トレンドハンター
         finish: 6
         popularity: 7
         time: "1:58.3"
@@ -300,6 +304,8 @@ races:
         age: 5
         ref: nk-2021104510
         trainer: 武英智
+        sire: サトノダイヤモンド
+        dam: ダーリングバード
         finish: 18
         popularity: 18
         time: "2:02.5"
@@ -318,6 +324,8 @@ races:
         age: 7
         ref: nk-2019105448
         trainer: 国枝栄
+        sire: キングカメハメハ
+        dam: マルシアーノ
         finish: 14
         popularity: 15
         time: "1:58.6"
@@ -354,6 +362,8 @@ races:
         age: 6
         ref: nk-2020107030
         trainer: 吉田直弘
+        sire: リオンディーズ
+        dam: コスモプラチナ
         finish: 11
         popularity: 17
         time: "1:58.6"
@@ -443,6 +453,8 @@ races:
         age: 6
         ref: nk-2020103361
         trainer: 松永幹夫
+        sire: Gun Runner
+        dam: グローバルビューティ
         finish: 17
         popularity: 14
         time: "2:00.0"

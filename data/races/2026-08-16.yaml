@@ -20,6 +20,8 @@ races:
         age: 5
         ref: nk-2021105454
         trainer: 須貝尚介
+        sire: リオンディーズ
+        dam: オーサムウインド
         finish: 11
         popularity: 12
         time: "1:32.0"
@@ -38,6 +40,8 @@ races:
         age: 6
         ref: nk-2020106582
         trainer: 西村真幸
+        sire: ハービンジャー
+        dam: ルパンII
         finish: 16
         popularity: 13
         time: "1:32.9"
@@ -56,6 +60,8 @@ races:
         age: 5
         ref: nk-2021107098
         trainer: 中村直也
+        sire: シルバーステート
+        dam: ゴッドパイレーツ
         finish: 1
         popularity: 2
         time: "1:31.1"
@@ -73,6 +79,8 @@ races:
         age: 5
         ref: nk-2021105564
         trainer: 吉岡辰弥
+        sire: モーリス
+        dam: シャンボールフィズ
         finish: 4
         popularity: 8
         time: "1:31.3"
@@ -91,6 +99,8 @@ races:
         age: 4
         ref: nk-2022105230
         trainer: 杉山佳明
+        sire: エピファネイア
+        dam: イチオクノホシ
         finish: 2
         popularity: 5
         time: "1:31.2"
@@ -109,6 +119,8 @@ races:
         age: 5
         ref: nk-2021105119
         trainer: 中竹和也
+        sire: ロードカナロア
+        dam: ダンスアミーガ
         finish: 9
         popularity: 7
         time: "1:31.8"
@@ -127,6 +139,8 @@ races:
         age: 4
         ref: nk-2022104839
         trainer: 手塚貴久
+        sire: Frankel
+        dam: ジョイカネラ
         finish: 8
         popularity: 9
         time: "1:31.6"
@@ -145,6 +159,8 @@ races:
         age: 6
         ref: nk-2020103428
         trainer: 宮地貴稔
+        sire: ディープインパクト
+        dam: スイープトウショウ
         finish: 6
         popularity: 10
         time: "1:31.4"
@@ -163,6 +179,8 @@ races:
         age: 3
         ref: nk-2023105312
         trainer: 武幸四郎
+        sire: シルバーステート
+        dam: デサフィアンテ
         finish: 14
         popularity: 4
         time: "1:32.2"
@@ -199,6 +217,8 @@ races:
         age: 4
         ref: nk-2022105778
         trainer: 高野友和
+        sire: ロードカナロア
+        dam: キューティゴールド
         finish: 7
         popularity: 6
         time: "1:31.6"
@@ -217,6 +237,8 @@ races:
         age: 4
         ref: nk-2022101420
         trainer: 杉山晴紀
+        sire: キズナ
+        dam: スウィーティーガール
         finish: 3
         popularity: 1
         time: "1:31.3"
@@ -235,6 +257,8 @@ races:
         age: 4
         ref: nk-2022103793
         trainer: 榎屋充
+        sire: ブリックスアンドモルタル
+        dam: レコードチェイサー
         finish: 12
         popularity: 16
         time: "1:32.0"
@@ -271,6 +295,8 @@ races:
         age: 7
         ref: nk-2019105239
         trainer: 高野友和
+        sire: ディープインパクト
+        dam: シーヴ
         finish: 13
         popularity: 14
         time: "1:32.1"
@@ -289,6 +315,8 @@ races:
         age: 4
         ref: nk-2022103146
         trainer: 西園翔太
+        sire: ビッグアーサー
+        dam: コスモダリア
         finish: 10
         popularity: 15
         time: "1:31.9"
@@ -317,6 +345,8 @@ races:
         age: 7
         ref: nk-2019104756
         trainer: 小島茂之
+        sire: エイシンフラッシュ
+        dam: シャリオドール
         finish: 15
         popularity: 14
         time: "2:00.7"
@@ -335,6 +365,8 @@ races:
         age: 4
         ref: nk-2022100699
         trainer: 笹田和秀
+        sire: リアルスティール
+        dam: クリーミーボイス
         finish: 14
         popularity: 11
         time: "2:00.7"
@@ -353,6 +385,8 @@ races:
         age: 6
         ref: nk-2020106966
         trainer: 室井潔
+        sire: ダノンバラード
+        dam: オーミチェリッシュ
         finish: 13
         popularity: 16
         time: "2:00.0"
@@ -371,6 +405,8 @@ races:
         age: 4
         ref: nk-2022104772
         trainer: 須貝尚介
+        sire: キズナ
+        dam: コナブリュワーズ
         finish: 6
         popularity: 4
         time: "1:59.0"
@@ -389,6 +425,8 @@ races:
         age: 5
         ref: nk-2021101436
         trainer: 牧浦充徳
+        sire: ブラックタイド
+        dam: プティプランセス
         finish: 16
         popularity: 7
         time: "2:00.8"
@@ -407,6 +445,8 @@ races:
         age: 7
         ref: nk-2019105552
         trainer: 田中博康
+        sire: ハービンジャー
+        dam: レネットグルーヴ
         finish: 4
         popularity: 9
         time: "1:58.8"
@@ -425,6 +465,8 @@ races:
         age: 4
         ref: nk-2022104714
         trainer: 友道康夫
+        sire: サートゥルナーリア
+        dam: オーロトラジェ
         finish: 7
         popularity: 1
         time: "1:59.2"
@@ -443,6 +485,8 @@ races:
         age: 4
         ref: nk-2022104094
         trainer: 堀宣行
+        sire: サートゥルナーリア
+        dam: サクラレーヌ
         finish: 2
         popularity: 5
         time: "1:58.6"
@@ -461,6 +505,8 @@ races:
         age: 6
         ref: nk-2020105749
         trainer: 高木登
+        sire: ゴールドシップ
+        dam: ゲッカコウ
         finish: 8
         popularity: 12
         time: "1:59.3"
@@ -479,6 +525,8 @@ races:
         age: 5
         ref: nk-2021105369
         trainer: 友道康夫
+        sire: レイデオロ
+        dam: アドマイヤミヤビ
         finish: 9
         popularity: 2
         time: "1:59.4"
@@ -497,6 +545,8 @@ races:
         age: 9
         ref: nk-2017104756
         trainer: 和田勇介
+        sire: キングカメハメハ
+        dam: サンシャイン
         finish: 12
         popularity: 15
         time: "1:59.7"
@@ -515,6 +565,8 @@ races:
         age: 4
         ref: nk-2022106306
         trainer: 橋田宜長
+        sire: スマートオーディン
+        dam: オーガストウェイ
         finish: 11
         popularity: 13
         time: "1:59.5"
@@ -533,6 +585,8 @@ races:
         age: 7
         ref: nk-2019105302
         trainer: 中内田充正
+        sire: ハービンジャー
+        dam: ディアデラノビア
         finish: 5
         popularity: 6
         time: "1:58.9"
@@ -551,6 +605,8 @@ races:
         age: 4
         ref: nk-2022104416
         trainer: 昆貢
+        sire: スワーヴリチャード
+        dam: リトルシャンブルズ
         finish: 3
         popularity: 10
         time: "1:58.8"
@@ -569,6 +625,8 @@ races:
         age: 6
         ref: nk-2020103101
         trainer: 宮徹
+        sire: ハーツクライ
+        dam: ルンバロッカ
         finish: 1
         popularity: 3
         time: "1:58.2"
@@ -586,6 +644,8 @@ races:
         age: 6
         ref: nk-2020103941
         trainer: 奥村武
+        sire: マインドユアビスケッツ
+        dam: ホウオウサブリナ
         finish: 10
         popularity: 8
         time: "1:59.5"

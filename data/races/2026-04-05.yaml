@@ -164,6 +164,8 @@ races:
         age: 8
         ref: nk-2018105012
         trainer: 友道康夫
+        sire: ディープインパクト
+        dam: クロウキャニオン
         finish: 7
         popularity: 11
         time: "1:58.1"
@@ -182,6 +184,8 @@ races:
         age: 7
         ref: nk-2019104909
         trainer: 宮本博
+        sire: スクリーンヒーロー
+        dam: ボルドグザグ
         finish: 9
         popularity: 14
         time: "1:58.6"

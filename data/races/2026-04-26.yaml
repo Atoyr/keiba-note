@@ -20,6 +20,8 @@ races:
         age: 3
         ref: nk-2023107320
         trainer: 栗田徹
+        sire: エピファネイア
+        dam: リリーズキャンドル
         finish: 6
         popularity: 6
         time: "1:59.9"
@@ -38,6 +40,8 @@ races:
         age: 3
         ref: nk-2023103818
         trainer: 鹿戸雄一
+        sire: キズナ
+        dam: ラフォルス
         finish: 5
         popularity: 2
         time: "1:59.9"
@@ -63,6 +67,8 @@ races:
         age: 3
         ref: nk-2023102997
         trainer: 加藤公太
+        sire: シスキン
+        dam: ペイシャフェリス
         finish: 8
         popularity: 12
         time: "2:00.0"
@@ -98,6 +104,8 @@ races:
         age: 3
         ref: nk-2023105447
         trainer: 池江泰寿
+        sire: オルフェーヴル
+        dam: スパイラルステップ
         finish: 11
         popularity: 8
         time: "2:00.5"
@@ -134,6 +142,8 @@ races:
         age: 3
         ref: nk-2023105239
         trainer: 加藤征弘
+        sire: トーセンラー
+        dam: シャンデリアスピン
         finish: 7
         popularity: 7
         time: "2:00.0"
@@ -152,6 +162,8 @@ races:
         age: 3
         ref: nk-2023104678
         trainer: 昆貢
+        sire: シルバーステート
+        dam: ハーランズルビー
         finish: 12
         popularity: 11
         time: "2:00.8"
@@ -170,6 +182,8 @@ races:
         age: 3
         ref: nk-2023105484
         trainer: 今野貞一
+        sire: ルーラーシップ
+        dam: エイシンカラット
         finish: 4
         popularity: 9
         time: "1:59.9"
@@ -360,6 +374,8 @@ races:
         age: 5
         ref: nk-2021105117
         trainer: 上村洋行
+        sire: ロードカナロア
+        dam: ダンサーデスティネイション
         finish: 3
         popularity: 5
         time: "1:31.8"
@@ -396,6 +412,8 @@ races:
         age: 4
         ref: nk-2022105396
         trainer: 友道康夫
+        sire: モーリス
+        dam: ダイワズーム
         finish: 1
         popularity: 1
         time: "1:31.7"
@@ -431,6 +449,8 @@ races:
         age: 6
         ref: nk-2020107001
         trainer: 武市康男
+        sire: グレーターロンドン
+        dam: キョウエイポズナン
         finish: 10
         popularity: 17
         time: "1:32.1"
@@ -467,6 +487,8 @@ races:
         age: 7
         ref: nk-2019105482
         trainer: 金成貴史
+        sire: カレンブラックヒル
+        dam: ライクザウインド
         finish: 16
         popularity: 18
         time: "1:32.5"

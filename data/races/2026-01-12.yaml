@@ -38,6 +38,8 @@ races:
         age: 3
         ref: nk-2023103678
         trainer: 杉山晴紀
+        sire: エピファネイア
+        dam: イルーシヴキャット
         finish: 10
         popularity: 11
         time: "1:34.4"
@@ -109,6 +111,8 @@ races:
         age: 3
         ref: nk-2023103782
         trainer: 辻野泰之
+        sire: イスラボニータ
+        dam: サーティーンスクエアド
         finish: 16
         popularity: 7
         time: "1:36.1"
@@ -127,6 +131,8 @@ races:
         age: 3
         ref: nk-2023101405
         trainer: 小崎憲
+        sire: アドマイヤマーズ
+        dam: トウカイファイン
         finish: 11
         popularity: 14
         time: "1:34.5"
@@ -145,6 +151,8 @@ races:
         age: 3
         ref: nk-2023103101
         trainer: 清水久詞
+        sire: ヘンリーバローズ
+        dam: ラダームブランシェ
         finish: 12
         popularity: 10
         time: "1:34.6"
@@ -217,6 +225,8 @@ races:
         age: 3
         ref: nk-2023107183
         trainer: 奥村豊
+        sire: キタサンブラック
+        dam: フォースタークルック
         finish: 7
         popularity: 6
         time: "1:34.3"
@@ -235,6 +245,8 @@ races:
         age: 3
         ref: nk-2023107251
         trainer: 森一誠
+        sire: リアルスティール
+        dam: ミスエーニョ
         finish: 5
         popularity: 1
         time: "1:34.1"
@@ -253,6 +265,8 @@ races:
         age: 3
         ref: nk-2023103171
         trainer: 北出成人
+        sire: ディーマジェスティ
+        dam: ブリリン
         finish: 14
         popularity: 16
         time: "1:35.1"

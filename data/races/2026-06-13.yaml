@@ -74,6 +74,8 @@ races:
         age: 6
         ref: nk-2020106654
         trainer: 高橋義忠
+        sire: ハービンジャー
+        dam: スズカローラン
         finish: 1
         popularity: 3
         time: "3:22.3"
@@ -90,6 +92,8 @@ races:
         age: 5
         ref: nk-2021104590
         trainer: 秋山真一郎
+        sire: デクラレーションオブウォー
+        dam: ローザミスティカ
         finish: 7
         popularity: 10
         time: "3:25.3"
@@ -124,6 +128,8 @@ races:
         age: 5
         ref: nk-2021104943
         trainer: 石栗龍彦
+        sire: ルーラーシップ
+        dam: アラドヴァル
         finish: 9
         popularity: 9
         time: "3:28.6"
@@ -158,6 +164,8 @@ races:
         age: 6
         ref: nk-2020100850
         trainer: 加藤士津八
+        sire: ゴールドアクター
+        dam: マオノココロ
         finish: 6
         popularity: 7
         time: "3:25.1"
@@ -175,6 +183,8 @@ races:
         age: 6
         ref: nk-2020110020
         trainer: 戸田博文
+        sire: Collected
+        dam: ダンスウィズキトゥン
         finish: 4
         popularity: 6
         time: "3:23.2"
@@ -209,6 +219,8 @@ races:
         age: 5
         ref: nk-2021102980
         trainer: 蛯名正義
+        sire: サトノダイヤモンド
+        dam: シーサイドホーム
         finish: 8
         popularity: 4
         time: "3:25.4"
@@ -236,6 +248,8 @@ races:
         age: 4
         ref: nk-2022100490
         trainer: 矢作芳人
+        sire: モズアスコット
+        dam: グランプリエンゼル
         finish: 11
         popularity: 9
         time: "1:08.1"
@@ -361,6 +375,8 @@ races:
         age: 4
         ref: nk-2022105244
         trainer: 上原佑紀
+        sire: リオンディーズ
+        dam: ヴェルメンティーノ
         finish: 7
         popularity: 7
         time: "1:07.9"
@@ -442,6 +458,8 @@ races:
         age: 6
         ref: nk-2020103061
         trainer: 矢作芳人
+        sire: ロードカナロア
+        dam: マルセリーナ
         finish: 9
         popularity: 12
         time: "1:07.9"

@@ -178,6 +178,8 @@ races:
         age: 7
         ref: nk-2019101847
         trainer: 辻野泰之
+        sire: オルフェーヴル
+        dam: スターエンジェル
         finish: 13
         popularity: 12
         time: "3:34.8"
@@ -214,6 +216,8 @@ races:
         age: 7
         ref: nk-2019104742
         trainer: 中内田充正
+        sire: ディープインパクト
+        dam: サボールアトリウンフォ
         finish: 6
         popularity: 8
         time: "3:32.8"
@@ -232,6 +236,8 @@ races:
         age: 6
         ref: nk-2020103439
         trainer: 千葉直人
+        sire: ハーツクライ
+        dam: スノーパイン
         finish: 12
         popularity: 15
         time: "3:33.4"
@@ -264,10 +270,12 @@ races:
         bracket: 5
         name: シルブロン
         jockey: 三浦皇成
-        sex: 牡
+        sex: セ
         age: 8
         ref: nk-2018101348
-        trainer: 稲垣幸雄
+        trainer: 松尾卓哉
+        sire: トーセンジョーダン
+        dam: グレイシアブルー
         finish: 11
         popularity: 13
         time: "3:33.4"
@@ -286,6 +294,8 @@ races:
         age: 6
         ref: nk-2020100593
         trainer: 羽月友彦
+        sire: サトノクラウン
+        dam: ローザディアマント
         finish: 8
         popularity: 7
         time: "3:33.0"
@@ -304,6 +314,8 @@ races:
         age: 5
         ref: nk-2021105910
         trainer: 高野友和
+        sire: ルーラーシップ
+        dam: ローザブランカ
         finish: 10
         popularity: 9
         time: "3:33.3"
@@ -403,6 +415,8 @@ races:
         age: 5
         ref: nk-2021110160
         trainer: 中内田充正
+        sire: Night of Thunder
+        dam: Afdhaad
         finish: 1
         popularity: 1
         time: "1:18.9"
@@ -456,6 +470,8 @@ races:
         age: 5
         ref: nk-2021102888
         trainer: 長谷川浩大
+        sire: リアルインパクト
+        dam: サンクイーンII
         finish: 17
         popularity: 8
         time: "1:20.3"
@@ -564,6 +580,8 @@ races:
         age: 8
         ref: nk-2018105454
         trainer: 池江泰寿
+        sire: ディープインパクト
+        dam: リトルゲルダ
         finish: 11
         popularity: 11
         time: "1:20.1"
@@ -600,6 +618,8 @@ races:
         age: 4
         ref: nk-2022104751
         trainer: 須貝尚介
+        sire: モーリス
+        dam: クルミネイト
         finish: 6
         popularity: 16
         time: "1:19.7"
@@ -618,6 +638,8 @@ races:
         age: 4
         ref: nk-2022103051
         trainer: 上村洋行
+        sire: エピファネイア
+        dam: キャンディバローズ
         finish: 7
         popularity: 4
         time: "1:19.7"
@@ -654,6 +676,8 @@ races:
         age: 5
         ref: nk-2021104830
         trainer: 斉藤崇史
+        sire: リアルインパクト
+        dam: アンティフォナ
         finish: 12
         popularity: 10
         time: "1:20.1"
@@ -672,6 +696,8 @@ races:
         age: 9
         ref: nk-2017104172
         trainer: 本田優
+        sire: ロードカナロア
+        dam: ラルティスタ
         finish: 13
         popularity: 17
         time: "1:20.1"
@@ -690,6 +716,8 @@ races:
         age: 7
         ref: nk-2019103714
         trainer: 石橋守
+        sire: モーリス
+        dam: メイショウデイム
         finish: 18
         popularity: 15
         time: "1:20.4"

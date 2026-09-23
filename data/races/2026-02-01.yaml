@@ -152,6 +152,8 @@ races:
         age: 6
         ref: nk-2020100145
         trainer: 安田翔伍
+        sire: ロードカナロア
+        dam: オーシュペール
         finish: 1
         popularity: 6
         time: "1:23.3"
@@ -187,6 +189,8 @@ races:
         age: 7
         ref: nk-2019103529
         trainer: 佐々木晶三
+        sire: マジェスティックウォリアー
+        dam: ダイオプサイド
         finish: 13
         popularity: 12
         time: "1:24.5"
@@ -204,7 +208,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021103868
-        trainer: 中竹和也
+        trainer: 新子雅司
+        sire: リアルスティール
+        dam: ユニキャラ
         finish: 8
         popularity: 11
         time: "1:23.9"
@@ -277,6 +283,8 @@ races:
         age: 6
         ref: nk-2020101547
         trainer: 杉山晴紀
+        sire: ロードカナロア
+        dam: カラズマッチポイント
         finish: 6
         popularity: 1
         time: "1:23.8"
@@ -348,7 +356,9 @@ races:
         sex: 牡
         age: 9
         ref: nk-2017106642
-        trainer: 安達昭夫
+        trainer: 中西達也
+        sire: カジノドライヴ
+        dam: プレシャスエルフ
         finish: 14
         popularity: 15
         time: "1:24.6"
@@ -367,6 +377,8 @@ races:
         age: 6
         ref: nk-2020101301
         trainer: 荒山勝徳
+        sire: キズナ
+        dam: ドバウィディエティ
         finish: 15
         popularity: 14
         time: "1:25.6"
@@ -385,6 +397,8 @@ races:
         age: 5
         ref: nk-2021106935
         trainer: 荒山勝徳
+        sire: エピカリス
+        dam: リンガスウーノ
         finish: 10
         popularity: 7
         time: "1:24.2"
@@ -403,6 +417,8 @@ races:
         age: 6
         ref: nk-2020103616
         trainer: 藤田輝信
+        sire: リアルスティール
+        dam: マイティースルー
         finish: 12
         popularity: 10
         time: "1:24.4"
@@ -503,6 +519,8 @@ races:
         age: 6
         ref: nk-2020105203
         trainer: 矢嶋大樹
+        sire: スクリーンヒーロー
+        dam: コスモクリスタル
         finish: 14
         popularity: 13
         time: "1:08.7"
@@ -557,6 +575,8 @@ races:
         age: 6
         ref: nk-2020106914
         trainer: 長谷川浩大
+        sire: ビッグアーサー
+        dam: メイショウトモシビ
         finish: 7
         popularity: 12
         time: "1:08.3"
@@ -647,6 +667,8 @@ races:
         age: 6
         ref: nk-2020100105
         trainer: 吉村圭司
+        sire: ファインニードル
+        dam: エーシンパナギア
         finish: 11
         popularity: 5
         time: "1:08.5"

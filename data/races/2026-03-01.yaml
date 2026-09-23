@@ -98,6 +98,8 @@ races:
         age: 5
         ref: nk-2021105609
         trainer: 小島茂之
+        sire: スワーヴリチャード
+        dam: スパークオンアイス
         finish: 8
         popularity: 14
         time: "1:45.7"
@@ -258,7 +260,9 @@ races:
         sex: 牡
         age: 4
         ref: nk-2022106155
-        trainer: 千葉直人
+        trainer: 五十嵐冬樹
+        sire: イスラボニータ
+        dam: ビクトリアスマイル
         finish: 14
         popularity: 11
         time: "1:46.5"
@@ -322,7 +326,9 @@ races:
         sex: 牝
         age: 3
         ref: nk-2023105336
-        trainer: 上村洋行
+        trainer: 石坂公一
+        sire: モーリス
+        dam: モルガナイト
         finish: 14
         popularity: 13
         time: "1:35.2"
@@ -395,6 +401,8 @@ races:
         age: 3
         ref: nk-2023104373
         trainer: 橋口慎介
+        sire: キズナ
+        dam: アンラッシュ
         finish: 4
         popularity: 9
         time: "1:34.4"
@@ -413,6 +421,8 @@ races:
         age: 3
         ref: nk-2023104470
         trainer: 真島元徳
+        sire: トゥザワールド
+        dam: プロハンター
         finish: 11
         popularity: 12
         time: "1:34.9"
@@ -431,6 +441,8 @@ races:
         age: 3
         ref: nk-2023102996
         trainer: 坂口智康
+        sire: リオンディーズ
+        dam: ペイシャフェリシタ
         finish: 10
         popularity: 11
         time: "1:34.8"
@@ -449,6 +461,8 @@ races:
         age: 3
         ref: nk-2023102615
         trainer: 藤原英昭
+        sire: キズナ
+        dam: ボンオムトゥック
         finish: 15
         popularity: 7
         time: "1:35.6"
@@ -467,6 +481,8 @@ races:
         age: 3
         ref: nk-2023107283
         trainer: 中内田充正
+        sire: コントレイル
+        dam: ヤンキーローズ
         finish: 13
         popularity: 4
         time: "1:35.1"
@@ -485,6 +501,8 @@ races:
         age: 3
         ref: nk-2023103886
         trainer: 田中克典
+        sire: シルバーステート
+        dam: インザスポットライト
         finish: 5
         popularity: 10
         time: "1:34.4"
@@ -556,6 +574,8 @@ races:
         age: 3
         ref: nk-2023106127
         trainer: 牧田和弥
+        sire: ヴァンセンヌ
+        dam: カラオケスナック
         finish: 9
         popularity: 15
         time: "1:34.8"

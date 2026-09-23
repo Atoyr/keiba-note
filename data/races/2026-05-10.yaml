@@ -128,6 +128,8 @@ races:
         age: 3
         ref: nk-2023106916
         trainer: 上原佑紀
+        sire: イスラボニータ
+        dam: エディスバーグ
         finish: 16
         popularity: 18
         time: "1:33.4"
@@ -146,6 +148,8 @@ races:
         age: 3
         ref: nk-2023110065
         trainer: 森秀行
+        sire: アメリカンファラオ
+        dam: Limari
         finish: 17
         popularity: 16
         time: "1:33.5"
@@ -164,6 +168,8 @@ races:
         age: 3
         ref: nk-2023107288
         trainer: 宮田敬介
+        sire: サトノダイヤモンド
+        dam: ライフフォーセール
         finish: 14
         popularity: 15
         time: "1:32.5"
@@ -182,6 +188,8 @@ races:
         age: 3
         ref: nk-2023107153
         trainer: 吉岡辰弥
+        sire: サートゥルナーリア
+        dam: バラーディスト
         finish: 12
         popularity: 5
         time: "1:32.4"
@@ -200,6 +208,8 @@ races:
         age: 3
         ref: nk-2023107187
         trainer: 手塚貴久
+        sire: エピファネイア
+        dam: フロアクラフト
         finish: 11
         popularity: 14
         time: "1:32.3"
@@ -308,6 +318,8 @@ races:
         age: 3
         ref: nk-2023105311
         trainer: 友道康夫
+        sire: リアルスティール
+        dam: デイトライン
         finish: 3
         popularity: 6
         time: "1:31.7"
@@ -326,6 +338,8 @@ races:
         age: 3
         ref: nk-2023103752
         trainer: 中内田充正
+        sire: サートゥルナーリア
+        dam: アンドラステ
         finish: 8
         popularity: 8
         time: "1:32.2"
@@ -344,6 +358,8 @@ races:
         age: 3
         ref: nk-2023100797
         trainer: 武市康男
+        sire: ジョーカプチーノ
+        dam: クラウンハッピー
         finish: 18
         popularity: 17
         time: "1:33.7"
@@ -362,6 +378,8 @@ races:
         age: 3
         ref: nk-2023107241
         trainer: 松下武士
+        sire: キズナ
+        dam: マラコスタムブラダ
         finish: 10
         popularity: 9
         time: "1:32.3"
@@ -398,6 +416,8 @@ races:
         age: 3
         ref: nk-2023105267
         trainer: 藤原英昭
+        sire: ロードカナロア
+        dam: インピード
         finish: 2
         popularity: 4
         time: "1:31.5"
@@ -433,6 +453,8 @@ races:
         age: 3
         ref: nk-2023103418
         trainer: 加藤征弘
+        sire: イスラボニータ
+        dam: ザウェイアイアム
         finish: 15
         popularity: 12
         time: "1:33.1"

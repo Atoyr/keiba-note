@@ -146,6 +146,8 @@ races:
         age: 8
         ref: nk-2018101010
         trainer: 昆貢
+        sire: ノヴェリスト
+        dam: カネツスペシャル
         finish: 16
         popularity: 11
         time: "2:12.9"
@@ -181,6 +183,8 @@ races:
         age: 8
         ref: nk-2018102348
         trainer: 奥村武
+        sire: モーリス
+        dam: アメージングムーン
         finish: 8
         popularity: 9
         time: "2:11.6"
@@ -235,6 +239,8 @@ races:
         age: 8
         ref: nk-2018104913
         trainer: 手塚貴久
+        sire: モーリス
+        dam: アロマティコ
         finish: 10
         popularity: 12
         time: "2:11.9"
@@ -352,7 +358,9 @@ races:
         sex: 牡
         age: 6
         ref: nk-2020100960
-        trainer: 西園正都
+        trainer: 茶木太樹
+        sire: シニスターミニスター
+        dam: サニーロック
         finish: 11
         popularity: 15
         time: "1:52.1"
@@ -407,6 +415,8 @@ races:
         age: 7
         ref: nk-2019104678
         trainer: 新谷功一
+        sire: リーチザクラウン
+        dam: エミーズプライド
         finish: 15
         popularity: 13
         time: "1:53.6"
@@ -443,6 +453,8 @@ races:
         age: 7
         ref: nk-2019101198
         trainer: 安達昭夫
+        sire: キタサンブラック
+        dam: ヤマトマリオン
         finish: 16
         popularity: 16
         time: "1:53.8"
@@ -515,6 +527,8 @@ races:
         age: 6
         ref: nk-2020101694
         trainer: 大橋勇樹
+        sire: モーリス
+        dam: ペニーブラック
         finish: 13
         popularity: 6
         time: "1:52.3"
@@ -567,7 +581,9 @@ races:
         sex: 牡
         age: 6
         ref: nk-2020103400
-        trainer: 寺島良
+        trainer: 内田勝義
+        sire: ヘニーヒューズ
+        dam: シャンドランジュ
         finish: 5
         popularity: 7
         time: "1:51.5"

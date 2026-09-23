@@ -91,6 +91,8 @@ races:
         age: 6
         ref: nk-2020106851
         trainer: 杉山晴紀
+        sire: ドゥラメンテ
+        dam: アタブ
         finish: 3
         popularity: 1
         time: "1:07.1"
@@ -109,6 +111,8 @@ races:
         age: 10
         ref: nk-2016104668
         trainer: 戸田博文
+        sire: ジャスタウェイ
+        dam: レイズアンドコール
         finish: 10
         popularity: 15
         time: "1:07.4"
@@ -199,6 +203,8 @@ races:
         age: 4
         ref: nk-2022102434
         trainer: 加藤征弘
+        sire: アドマイヤマーズ
+        dam: レッドアネラ
         finish: 8
         popularity: 12
         time: "1:07.4"

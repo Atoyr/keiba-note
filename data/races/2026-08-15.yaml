@@ -19,6 +19,8 @@ races:
         age: 6
         ref: nk-2020103193
         trainer: 石坂公一
+        sire: サトノダイヤモンド
+        dam: アガルタ
         finish: 7
         popularity: 2
         time: "3:32.4"
@@ -36,6 +38,8 @@ races:
         age: 8
         ref: nk-2018110131
         trainer: 東田明士
+        sire: Tapit
+        dam: La Cloche
         finish: 6
         popularity: 8
         time: "3:32.3"
@@ -53,6 +57,8 @@ races:
         age: 5
         ref: nk-2021104112
         trainer: 武市康男
+        sire: リアルインパクト
+        dam: シェリレーヌ
         finish: 9
         popularity: 10
         time: "3:33.0"
@@ -70,6 +76,8 @@ races:
         age: 7
         ref: nk-2019105276
         trainer: 浅利英明
+        sire: ブラックタイド
+        dam: ソングライティング
         finish: 10
         popularity: 4
         time: "3:34.6"
@@ -87,6 +95,8 @@ races:
         age: 6
         ref: nk-2020100233
         trainer: 上原博之
+        sire: ハーツクライ
+        dam: シーソルティキッス
         finish: 4
         popularity: 7
         time: "3:30.3"
@@ -104,6 +114,8 @@ races:
         age: 7
         ref: nk-2019106330
         trainer: 菊川正達
+        sire: ホッコータルマエ
+        dam: サティーヌアロム
         finish: 3
         popularity: 1
         time: "3:30.0"
@@ -121,6 +133,8 @@ races:
         age: 5
         ref: nk-2021103578
         trainer: 粕谷昌央
+        sire: ロジャーバローズ
+        dam: アートオブビーン
         finish: 8
         popularity: 11
         time: "3:33.0"
@@ -138,6 +152,8 @@ races:
         age: 6
         ref: nk-2020101429
         trainer: 尾関知人
+        sire: サトノダイヤモンド
+        dam: ブロッサムレーン
         finish: 1
         popularity: 3
         time: "3:29.3"
@@ -154,6 +170,8 @@ races:
         age: 6
         ref: nk-2020105611
         trainer: 村田一誠
+        sire: ワンアンドオンリー
+        dam: ヴィクトリアアイ
         popularity: 6
         weight: 60
         horseWeight: 472
@@ -167,6 +185,8 @@ races:
         age: 6
         ref: nk-2020104328
         trainer: 堀内岳志
+        sire: シビルウォー
+        dam: ママノヨリミチ
         finish: 5
         popularity: 9
         time: "3:32.3"
@@ -184,6 +204,8 @@ races:
         age: 7
         ref: nk-2019104767
         trainer: 中舘英二
+        sire: キタサンブラック
+        dam: ジュエラー
         finish: 2
         popularity: 5
         time: "3:29.3"

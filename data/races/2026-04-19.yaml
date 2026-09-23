@@ -38,6 +38,8 @@ races:
         age: 3
         ref: nk-2023101449
         trainer: 斉藤崇史
+        sire: リアルスティール
+        dam: サウンドルチア
         finish: 6
         popularity: 17
         time: "1:57.0"
@@ -127,6 +129,8 @@ races:
         age: 3
         ref: nk-2023105818
         trainer: 吉岡辰弥
+        sire: キズナ
+        dam: プレミアムギフト
         finish: 17
         popularity: 15
         time: "1:58.0"
@@ -235,6 +239,8 @@ races:
         age: 3
         ref: nk-2023106978
         trainer: 奥村豊
+        sire: ロードカナロア
+        dam: クルミネイト
         finish: 16
         popularity: 16
         time: "1:58.0"
@@ -409,6 +415,8 @@ races:
         age: 7
         ref: nk-2019105768
         trainer: 小島茂之
+        sire: ベーカバド
+        dam: スマートシンパシー
         finish: 12
         popularity: 13
         time: "1:46.9"
@@ -445,6 +453,8 @@ races:
         age: 6
         ref: nk-2020103304
         trainer: 茶木太樹
+        sire: リアルスティール
+        dam: カシシ
         finish: 10
         popularity: 16
         time: "1:46.1"
@@ -463,6 +473,8 @@ races:
         age: 5
         ref: nk-2021106752
         trainer: 新谷功一
+        sire: サトノクラウン
+        dam: アルマミーア
         finish: 9
         popularity: 8
         time: "1:46.1"
@@ -481,6 +493,8 @@ races:
         age: 6
         ref: nk-2020103640
         trainer: 安田翔伍
+        sire: ミッキーロケット
+        dam: ミッキークイーン
         finish: 16
         popularity: 4
         time: "1:47.4"
@@ -535,6 +549,8 @@ races:
         age: 4
         ref: nk-2022100201
         trainer: 井上智史
+        sire: フォーウィールドライブ
+        dam: ボリード
         finish: 15
         popularity: 14
         time: "1:47.3"
@@ -624,6 +640,8 @@ races:
         age: 4
         ref: nk-2022105369
         trainer: 大竹正博
+        sire: ロードカナロア
+        dam: ジョイニキータ
         finish: 2
         popularity: 2
         time: "1:45.8"
@@ -660,6 +678,8 @@ races:
         age: 5
         ref: nk-2021104865
         trainer: 菊沢隆徳
+        sire: エピファネイア
+        dam: シャルール
         finish: 3
         popularity: 11
         time: "1:45.8"

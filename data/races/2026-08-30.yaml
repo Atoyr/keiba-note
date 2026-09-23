@@ -44,6 +44,8 @@ races:
         age: 7
         ref: nk-2019104658
         trainer: 牧光二
+        sire: ハーツクライ
+        dam: ウィンドハック
         finish: 7
         popularity: 11
         time: "2:00.0"
@@ -62,6 +64,8 @@ races:
         age: 6
         ref: nk-2020100734
         trainer: 中竹和也
+        sire: キズナ
+        dam: テイケイラピッド
         finish: 4
         popularity: 8
         time: "1:59.8"
@@ -80,6 +84,8 @@ races:
         age: 3
         ref: nk-2023107166
         trainer: 辻哲英
+        sire: サートゥルナーリア
+        dam: ビバリーヒルズ
         finish: 2
         popularity: 3
         time: "1:59.6"
@@ -98,6 +104,8 @@ races:
         age: 6
         ref: nk-2020103650
         trainer: 尾関知人
+        sire: ドゥラメンテ
+        dam: モアザンセイクリッド
         finish: 6
         popularity: 4
         time: "1:59.9"
@@ -116,6 +124,8 @@ races:
         age: 3
         ref: nk-2023106850
         trainer: 宮田敬介
+        sire: モーリス
+        dam: アルミレーナ
         finish: 1
         popularity: 2
         time: "1:59.6"
@@ -133,6 +143,8 @@ races:
         age: 5
         ref: nk-2021105643
         trainer: 木村哲也
+        sire: ハービンジャー
+        dam: チェッキーノ
         finish: 8
         popularity: 6
         time: "2:00.0"
@@ -151,6 +163,8 @@ races:
         age: 7
         ref: nk-2019105118
         trainer: 友道康夫
+        sire: ワールドエース
+        dam: エンプレスティアラ
         finish: 9
         popularity: 10
         time: "2:00.1"
@@ -169,6 +183,8 @@ races:
         age: 4
         ref: nk-2022104645
         trainer: 中内田充正
+        sire: キタサンブラック
+        dam: インクルードベティ
         finish: 3
         popularity: 1
         time: "1:59.6"
@@ -187,6 +203,8 @@ races:
         age: 5
         ref: nk-2021105436
         trainer: 武井亮
+        sire: スワーヴリチャード
+        dam: エッジースタイル
         finish: 5
         popularity: 7
         time: "1:59.9"
@@ -205,6 +223,8 @@ races:
         age: 7
         ref: nk-2019104850
         trainer: 梅田智之
+        sire: スピルバーグ
+        dam: パドパピヨン
         finish: 10
         popularity: 9
         time: "2:00.1"
@@ -223,6 +243,8 @@ races:
         age: 5
         ref: nk-2021105743
         trainer: 宮田敬介
+        sire: エピファネイア
+        dam: ブルークランズ
         finish: 11
         popularity: 5
         time: "2:00.7"
@@ -251,6 +273,8 @@ races:
         age: 2
         ref: nk-2024108326
         trainer: 森秀行
+        sire: Nashville
+        dam: Miss Vigilance
         finish: 8
         popularity: 8
         time: "1:20.9"
@@ -269,6 +293,8 @@ races:
         age: 2
         ref: nk-2024108273
         trainer: 森秀行
+        sire: Charlatan
+        dam: Wind and Hope
         finish: 6
         popularity: 5
         time: "1:20.7"
@@ -287,6 +313,8 @@ races:
         age: 2
         ref: nk-2024106654
         trainer: 須貝尚介
+        sire: エピファネイア
+        dam: モアナアネラ
         finish: 5
         popularity: 3
         time: "1:20.5"
@@ -305,6 +333,8 @@ races:
         age: 2
         ref: nk-2024106603
         trainer: 斉藤崇史
+        sire: シスキン
+        dam: ボンジュールココロ
         finish: 2
         popularity: 4
         time: "1:20.0"
@@ -323,6 +353,8 @@ races:
         age: 2
         ref: nk-2024101644
         trainer: 大橋勇樹
+        sire: ビッグアーサー
+        dam: オリーブジュエル
         finish: 7
         popularity: 6
         time: "1:20.9"
@@ -341,6 +373,8 @@ races:
         age: 2
         ref: nk-2024108325
         trainer: 森秀行
+        sire: Mitole
+        dam: Yako
         finish: 4
         popularity: 7
         time: "1:20.4"
@@ -359,6 +393,8 @@ races:
         age: 2
         ref: nk-2024106262
         trainer: 佐藤悠太
+        sire: マインドユアビスケッツ
+        dam: ガルデルスリール
         finish: 3
         popularity: 2
         time: "1:20.3"
@@ -377,6 +413,8 @@ races:
         age: 2
         ref: nk-2024108327
         trainer: 森秀行
+        sire: Jack Christopher
+        dam: Girl With a Dream
         finish: 9
         popularity: 9
         time: "1:21.7"
@@ -395,6 +433,8 @@ races:
         age: 2
         ref: nk-2024107165
         trainer: 前川恭子
+        sire: シスキン
+        dam: ベルカプリ
         finish: 1
         popularity: 1
         time: "1:19.7"

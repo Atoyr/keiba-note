@@ -92,6 +92,8 @@ races:
         age: 5
         ref: nk-2021104324
         trainer: 清水英克
+        sire: ディーマジェスティ
+        dam: ミスミーチャン
         finish: 7
         popularity: 10
         time: "1:58.4"
@@ -110,6 +112,8 @@ races:
         age: 5
         ref: nk-2021106738
         trainer: 藤原英昭
+        sire: キズナ
+        dam: ポウリナズラヴ
         finish: 6
         popularity: 3
         time: "1:58.2"
@@ -128,6 +132,8 @@ races:
         age: 6
         ref: nk-2020100254
         trainer: 上原博之
+        sire: ネロ
+        dam: ニシノアモーレ
         finish: 12
         popularity: 13
         time: "1:59.1"
@@ -281,6 +287,8 @@ races:
         age: 3
         ref: nk-2023100380
         trainer: 加藤誠一
+        sire: モズアスコット
+        dam: カワカミハナコ
         finish: 15
         popularity: 16
         time: "1:48.4"
@@ -317,6 +325,8 @@ races:
         age: 3
         ref: nk-2023102178
         trainer: 高野友和
+        sire: リオンディーズ
+        dam: タイキキララ
         finish: 11
         popularity: 11
         time: "1:46.8"
@@ -407,6 +417,8 @@ races:
         age: 3
         ref: nk-2023100207
         trainer: 武市康男
+        sire: リオンディーズ
+        dam: フォトジェニック
         finish: 8
         popularity: 13
         time: "1:46.6"
@@ -425,6 +437,8 @@ races:
         age: 3
         ref: nk-2023103875
         trainer: 角田晃一
+        sire: サトノアラジン
+        dam: ブリスフルデイズ
         finish: 13
         popularity: 15
         time: "1:47.6"
@@ -479,6 +493,8 @@ races:
         age: 3
         ref: nk-2023106925
         trainer: 栗田徹
+        sire: リオンディーズ
+        dam: エリスライト
         finish: 7
         popularity: 1
         time: "1:46.4"
@@ -497,6 +513,8 @@ races:
         age: 3
         ref: nk-2023101102
         trainer: 鹿戸雄一
+        sire: ベンバトル
+        dam: アドニータ
         finish: 9
         popularity: 3
         time: "1:46.6"

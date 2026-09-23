@@ -20,6 +20,8 @@ races:
         age: 3
         ref: nk-2023104909
         trainer: 杉浦宏昭
+        sire: ダノンスマッシュ
+        dam: レオフラッパー
         finish: 3
         popularity: 11
         time: "1:33.6"
@@ -38,6 +40,8 @@ races:
         age: 3
         ref: nk-2023103487
         trainer: 千葉直人
+        sire: エピファネイア
+        dam: トロワゼトワル
         finish: 10
         popularity: 1
         time: "1:34.4"
@@ -74,6 +78,8 @@ races:
         age: 3
         ref: nk-2023102054
         trainer: 堀内岳志
+        sire: アメリカンペイトリオット
+        dam: シルクナデシコ
         finish: 2
         popularity: 10
         time: "1:33.6"
@@ -91,7 +97,9 @@ races:
         sex: 牝
         age: 3
         ref: nk-2023104068
-        trainer: 小手川準
+        trainer: 矢野義幸
+        sire: ミスチヴィアスアレックス
+        dam: グッドレインボー
         finish: 16
         popularity: 16
         time: "1:34.8"
@@ -110,6 +118,8 @@ races:
         age: 3
         ref: nk-2023100935
         trainer: 竹内正洋
+        sire: ダノンスマッシュ
+        dam: ジャルディナージュ
         finish: 11
         popularity: 15
         time: "1:34.5"
@@ -128,6 +138,8 @@ races:
         age: 3
         ref: nk-2023105275
         trainer: 中舘英二
+        sire: モーリス
+        dam: オーサムウインド
         finish: 8
         popularity: 5
         time: "1:34.3"
@@ -200,6 +212,8 @@ races:
         age: 3
         ref: nk-2023104628
         trainer: 西田雄一郎
+        sire: シルバーステート
+        dam: トーセンハーディ
         finish: 15
         popularity: 12
         time: "1:34.7"
@@ -254,6 +268,8 @@ races:
         age: 3
         ref: nk-2023103356
         trainer: 中舘英二
+        sire: アドマイヤマーズ
+        dam: エレクトラレーン
         finish: 9
         popularity: 6
         time: "1:34.3"
@@ -289,6 +305,8 @@ races:
         age: 3
         ref: nk-2023107148
         trainer: 上原博之
+        sire: キズナ
+        dam: ハウメア
         finish: 4
         popularity: 8
         time: "1:33.8"

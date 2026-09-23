@@ -20,6 +20,8 @@ races:
         age: 3
         ref: nk-2023106076
         trainer: 奥村豊
+        sire: モーリス
+        dam: エリモハルカ
         finish: 15
         popularity: 10
         time: "1:41.1"
@@ -38,6 +40,8 @@ races:
         age: 3
         ref: nk-2023100002
         trainer: 高柳瑞樹
+        sire: マクフィ
+        dam: ジュエルメッセージ
         finish: 14
         popularity: 13
         time: "1:35.2"
@@ -73,6 +77,8 @@ races:
         age: 3
         ref: nk-2023105714
         trainer: 奥村武
+        sire: スクリーンヒーロー
+        dam: イプスウィッチ
         finish: 7
         popularity: 5
         time: "1:34.0"
@@ -109,6 +115,8 @@ races:
         age: 3
         ref: nk-2023104450
         trainer: 嘉藤貴行
+        sire: シスキン
+        dam: ラプソディーア
         finish: 13
         popularity: 8
         time: "1:34.8"
@@ -145,6 +153,8 @@ races:
         age: 3
         ref: nk-2023107078
         trainer: 小手川準
+        sire: キズナ
+        dam: スマイルミーティア
         finish: 8
         popularity: 11
         time: "1:34.1"
@@ -163,6 +173,8 @@ races:
         age: 3
         ref: nk-2023104650
         trainer: 森秀行
+        sire: フィエールマン
+        dam: ウルザブルン
         finish: 12
         popularity: 14
         time: "1:34.8"
@@ -181,6 +193,8 @@ races:
         age: 3
         ref: nk-2023102083
         trainer: 栗田徹
+        sire: オルフェーヴル
+        dam: ヴァンゴーゴー
         finish: 9
         popularity: 9
         time: "1:34.5"
@@ -217,6 +231,8 @@ races:
         age: 3
         ref: nk-2023105106
         trainer: 田中剛
+        sire: ナダル
+        dam: フクシア
         finish: 5
         popularity: 7
         time: "1:33.9"
@@ -388,6 +404,8 @@ races:
         age: 5
         ref: nk-2021105354
         trainer: 黒岩陽一
+        sire: ダイワメジャー
+        dam: アスコルティ
         finish: 10
         popularity: 2
         time: "1:33.7"
@@ -442,6 +460,8 @@ races:
         age: 5
         ref: nk-2021104153
         trainer: 新谷功一
+        sire: ヴィクトワールピサ
+        dam: ベストオブミー
         finish: 7
         popularity: 10
         time: "1:32.2"

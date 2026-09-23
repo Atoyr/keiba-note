@@ -126,6 +126,8 @@ races:
         age: 7
         ref: nk-2019107075
         trainer: 青木孝文
+        sire: マクフィ
+        dam: グローリールピナス
         finish: 9
         popularity: 13
         time: "2:00.9"
@@ -216,6 +218,8 @@ races:
         age: 5
         ref: nk-2021106766
         trainer: 鹿戸雄一
+        sire: ゴールドシップ
+        dam: アメリオラシオン
         finish: 10
         popularity: 8
         time: "2:00.9"
@@ -234,6 +238,8 @@ races:
         age: 8
         ref: nk-2018104225
         trainer: 藤野健太
+        sire: キングヘイロー
+        dam: ヒーリング
         finish: 7
         popularity: 14
         time: "2:00.6"
@@ -459,6 +465,8 @@ races:
         age: 8
         ref: nk-2018102020
         trainer: 斉藤崇史
+        sire: ディープインパクト
+        dam: ヤマニンパピオネ
         finish: 15
         popularity: 12
         time: "1:34.5"
@@ -531,6 +539,8 @@ races:
         age: 8
         ref: nk-2018103535
         trainer: 高木登
+        sire: ディープインパクト
+        dam: ビーコンターン
         finish: 13
         popularity: 15
         time: "1:34.2"

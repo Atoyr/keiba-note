@@ -20,6 +20,8 @@ races:
         age: 6
         ref: nk-2020103517
         trainer: 尾関知人
+        sire: レッドファルクス
+        dam: ハイドバウンド
         finish: 11
         popularity: 15
         time: "1:19.7"
@@ -56,6 +58,8 @@ races:
         age: 6
         ref: nk-2020101503
         trainer: 庄野靖志
+        sire: ビッグアーサー
+        dam: クェスタボルタ
         finish: 12
         popularity: 13
         time: "1:19.7"
@@ -110,6 +114,8 @@ races:
         age: 6
         ref: nk-2020102836
         trainer: 菊沢隆徳
+        sire: イスラボニータ
+        dam: クリスプウインド
         finish: 2
         popularity: 14
         time: "1:18.9"
@@ -146,6 +152,8 @@ races:
         age: 5
         ref: nk-2021100935
         trainer: 大竹正博
+        sire: カリフォルニアクローム
+        dam: ララプリムヴェール
         finish: 13
         popularity: 12
         time: "1:19.7"
@@ -164,6 +172,8 @@ races:
         age: 6
         ref: nk-2020103661
         trainer: 須貝尚介
+        sire: ルーラーシップ
+        dam: ライツェント
         finish: 14
         popularity: 16
         time: "1:19.8"
@@ -200,6 +210,8 @@ races:
         age: 6
         ref: nk-2020105154
         trainer: 斎藤誠
+        sire: キズナ
+        dam: アサカラヴァーズ
         finish: 18
         popularity: 10
         time: "1:20.6"
@@ -254,6 +266,8 @@ races:
         age: 4
         ref: nk-2022106768
         trainer: 宮徹
+        sire: ダノンバラード
+        dam: エントリーチケット
         finish: 3
         popularity: 7
         time: "1:19.2"
@@ -272,6 +286,8 @@ races:
         age: 6
         ref: nk-2020110155
         trainer: 鹿戸雄一
+        sire: Frankel
+        dam: Noyelles
         finish: 17
         popularity: 17
         time: "1:20.1"
@@ -353,6 +369,8 @@ races:
         age: 3
         ref: nk-2023102919
         trainer: 谷潔
+        sire: サトノアラジン
+        dam: ダノンエレガント
         finish: 12
         popularity: 9
         time: "2:00.2"
@@ -371,6 +389,8 @@ races:
         age: 3
         ref: nk-2023102769
         trainer: 加藤征弘
+        sire: エスポワールシチー
+        dam: ターフデザイナー
         finish: 3
         popularity: 5
         time: "1:58.3"
@@ -388,6 +408,8 @@ races:
         age: 3
         ref: nk-2023102462
         trainer: 高柳大輔
+        sire: クリソベリル
+        dam: ガウラミディ
         finish: 6
         popularity: 7
         time: "1:58.5"
@@ -406,6 +428,8 @@ races:
         age: 3
         ref: nk-2023107043
         trainer: 野中賢二
+        sire: ルヴァンスレーヴ
+        dam: シルバーポジー
         finish: 1
         popularity: 2
         time: "1:57.5"
@@ -437,10 +461,12 @@ races:
         bracket: 5
         name: ヴィエントデコラ
         jockey: 浜中俊
-        sex: 牡
+        sex: セ
         age: 3
         ref: nk-2023103677
         trainer: 寺島良
+        sire: ルヴァンスレーヴ
+        dam: イッツオンリーアクティングダッド
         finish: 11
         popularity: 10
         time: "1:59.9"
@@ -459,6 +485,8 @@ races:
         age: 3
         ref: nk-2023102477
         trainer: 相沢郁
+        sire: ヤマカツエース
+        dam: フラヴィニー
         finish: 9
         popularity: 8
         time: "1:59.3"
@@ -477,6 +505,8 @@ races:
         age: 3
         ref: nk-2023107258
         trainer: 安田翔伍
+        sire: クリソベリル
+        dam: ミセスワタナベ
         finish: 5
         popularity: 12
         time: "1:58.5"
@@ -495,6 +525,8 @@ races:
         age: 3
         ref: nk-2023102075
         trainer: 大根田裕之
+        sire: ナダル
+        dam: フェザーレイ
         finish: 4
         popularity: 3
         time: "1:58.3"
@@ -513,6 +545,8 @@ races:
         age: 3
         ref: nk-2023101132
         trainer: 小島茂之
+        sire: サンダースノー
+        dam: セイントヘレナ
         finish: 10
         popularity: 6
         time: "1:59.7"
@@ -549,6 +583,8 @@ races:
         age: 3
         ref: nk-2023106955
         trainer: 杉山佳明
+        sire: クリソベリル
+        dam: カーミングエフェクト
         finish: 8
         popularity: 11
         time: "1:59.2"

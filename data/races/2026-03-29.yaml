@@ -45,6 +45,8 @@ races:
         age: 6
         ref: nk-2020103148
         trainer: 大竹正博
+        sire: エスケンデレヤ
+        dam: ショウナンバーキン
         finish: 10
         popularity: 15
         time: "1:52.8"
@@ -63,6 +65,8 @@ races:
         age: 7
         ref: nk-2019105604
         trainer: 中舘英二
+        sire: アジアエクスプレス
+        dam: プレシャスフラワー
         finish: 3
         popularity: 7
         time: "1:51.8"
@@ -135,6 +139,8 @@ races:
         age: 5
         ref: nk-2021107001
         trainer: 竹内正洋
+        sire: ホッコータルマエ
+        dam: ピュアプレジャー
         finish: 14
         popularity: 12
         time: "1:53.3"
@@ -171,6 +177,8 @@ races:
         age: 5
         ref: nk-2021106610
         trainer: 渡辺薫彦
+        sire: マジェスティックウォリアー
+        dam: ウィッシュハピネス
         finish: 9
         popularity: 13
         time: "1:52.8"
@@ -207,6 +215,8 @@ races:
         age: 4
         ref: nk-2022102874
         trainer: 西園翔太
+        sire: ゴールドドリーム
+        dam: メイショウベーネ
         finish: 11
         popularity: 11
         time: "1:52.8"
@@ -225,6 +235,8 @@ races:
         age: 8
         ref: nk-2018105431
         trainer: 高橋亮
+        sire: ダノンレジェンド
+        dam: ヌチバナ
         finish: 5
         popularity: 10
         time: "1:52.1"
@@ -278,6 +290,8 @@ races:
         age: 6
         ref: nk-2020103043
         trainer: 中竹和也
+        sire: ジャスタウェイ
+        dam: ベガスナイト
         finish: 13
         popularity: 14
         time: "1:53.2"
@@ -450,6 +464,8 @@ races:
         age: 7
         ref: nk-2019101700
         trainer: 堀宣行
+        sire: ロードカナロア
+        dam: チリエージェ
         finish: 1
         popularity: 1
         time: "1:06.3"
@@ -521,6 +537,8 @@ races:
         age: 7
         ref: nk-2019103753
         trainer: 長谷川浩大
+        sire: ミッキーアイル
+        dam: サンクイーンII
         finish: 6
         popularity: 2
         time: "1:07.1"
@@ -593,6 +611,8 @@ races:
         age: 5
         ref: nk-2021102320
         trainer: 梅田智之
+        sire: キンシャサノキセキ
+        dam: ミラクルアスク
         finish: 10
         popularity: 11
         time: "1:07.4"
@@ -611,6 +631,8 @@ races:
         age: 5
         ref: nk-2021110099
         trainer: 武英智
+        sire: アメリカンファラオ
+        dam: Lap of Luxury
         finish: 17
         popularity: 6
         time: "1:08.6"

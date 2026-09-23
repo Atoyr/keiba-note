@@ -206,6 +206,8 @@ races:
         age: 3
         ref: nk-2023107069
         trainer: 手塚貴久
+        sire: サートゥルナーリア
+        dam: スカイダイヤモンズ
         finish: 12
         popularity: 6
         time: "1:32.8"
@@ -224,6 +226,8 @@ races:
         age: 3
         ref: nk-2023106399
         trainer: 田中克典
+        sire: ポエティックフレア
+        dam: ネヴァーハーツ
         finish: 8
         popularity: 14
         time: "1:32.3"
@@ -242,6 +246,8 @@ races:
         age: 3
         ref: nk-2023105825
         trainer: 杉山晴紀
+        sire: ロードカナロア
+        dam: レキシールー
         finish: 2
         popularity: 5
         time: "1:31.9"
@@ -260,6 +266,8 @@ races:
         age: 3
         ref: nk-2023101159
         trainer: 吉村圭司
+        sire: ファインニードル
+        dam: プリディカメント
         finish: 4
         popularity: 13
         time: "1:32.1"
@@ -314,6 +322,8 @@ races:
         age: 3
         ref: nk-2023105344
         trainer: 宮田敬介
+        sire: ロードカナロア
+        dam: ルールブリタニア
         finish: 14
         popularity: 15
         time: "1:33.0"
@@ -457,6 +467,8 @@ races:
         age: 3
         ref: nk-2023107008
         trainer: 武幸四郎
+        sire: キタサンブラック
+        dam: ゴールドチャリス
         finish: 15
         popularity: 10
         time: "1:33.5"
@@ -475,6 +487,8 @@ races:
         age: 3
         ref: nk-2023103503
         trainer: 笹田和秀
+        sire: パドトロワ
+        dam: パネットーネ
         finish: 16
         popularity: 18
         time: "1:33.6"

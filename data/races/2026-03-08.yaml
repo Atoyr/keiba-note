@@ -152,6 +152,8 @@ races:
         age: 3
         ref: nk-2023105433
         trainer: 萱野浩二
+        sire: ダノンプレミアム
+        dam: フルオブドリームズ
         finish: 5
         popularity: 10
         time: "2:00.5"
@@ -187,6 +189,8 @@ races:
         age: 3
         ref: nk-2023103814
         trainer: 加藤士津八
+        sire: サートゥルナーリア
+        dam: メガン
         finish: 9
         popularity: 7
         time: "2:01.2"
@@ -205,6 +209,8 @@ races:
         age: 3
         ref: nk-2023105354
         trainer: 武幸四郎
+        sire: キタサンブラック
+        dam: アンジュシュエット
         finish: 8
         popularity: 6
         time: "2:01.1"

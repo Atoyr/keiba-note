@@ -20,6 +20,8 @@ races:
         age: 5
         ref: nk-2021105143
         trainer: 安田翔伍
+        sire: エピファネイア
+        dam: トップデサイル
         finish: 3
         popularity: 3
         time: "2:12.6"
@@ -38,6 +40,8 @@ races:
         age: 4
         ref: nk-2022105081
         trainer: 高柳大輔
+        sire: リオンディーズ
+        dam: ミュージアムヒル
         finish: 9
         popularity: 4
         time: "2:13.7"
@@ -56,6 +60,8 @@ races:
         age: 5
         ref: nk-2021102224
         trainer: 清水久詞
+        sire: ドゥラメンテ
+        dam: シュガーハート
         finish: 17
         popularity: 17
         time: "2:15.3"
@@ -74,6 +80,8 @@ races:
         age: 4
         ref: nk-2022106120
         trainer: 林徹
+        sire: アドマイヤマーズ
+        dam: シルクヴィーナス
         finish: 12
         popularity: 9
         time: "2:14.5"
@@ -92,6 +100,8 @@ races:
         age: 4
         ref: nk-2022105102
         trainer: 斉藤崇史
+        sire: キタサンブラック
+        dam: ライジングクロス
         finish: 2
         popularity: 1
         time: "2:12.2"
@@ -110,6 +120,8 @@ races:
         age: 5
         ref: nk-2021105587
         trainer: 坂口智康
+        sire: エピファネイア
+        dam: ジャポニカーラ
         finish: 15
         popularity: 7
         time: "2:15.1"
@@ -127,6 +139,8 @@ races:
         age: 5
         ref: nk-2021100651
         trainer: 石坂公一
+        sire: リアルスティール
+        dam: プリオバーン
         finish: 6
         popularity: 18
         time: "2:13.5"
@@ -199,6 +213,8 @@ races:
         age: 5
         ref: nk-2021110048
         trainer: 矢作芳人
+        sire: Siyouni
+        dam: Starlet's Sister
         finish: 11
         popularity: 12
         time: "2:14.2"
@@ -217,6 +233,8 @@ races:
         age: 6
         ref: nk-2020105786
         trainer: 清水久詞
+        sire: ゴールドシップ
+        dam: マイネテレジア
         finish: 10
         popularity: 13
         time: "2:13.8"
@@ -253,6 +271,8 @@ races:
         age: 5
         ref: nk-2021105829
         trainer: 友道康夫
+        sire: キズナ
+        dam: ライフフォーセール
         finish: 13
         popularity: 14
         time: "2:14.8"
@@ -271,6 +291,8 @@ races:
         age: 4
         ref: nk-2022104902
         trainer: 武幸四郎
+        sire: レイデオロ
+        dam: チャーチクワイア
         popularity: 6
         passing: "10-10-14-18"
         weight: 58
@@ -285,6 +307,8 @@ races:
         age: 5
         ref: nk-2021103272
         trainer: 石橋守
+        sire: ゴールドシップ
+        dam: メイショウツバクロ
         finish: 1
         popularity: 2
         time: "2:12.1"
@@ -320,6 +344,8 @@ races:
         age: 8
         ref: nk-2018104638
         trainer: 小林真也
+        sire: ジャスタウェイ
+        dam: ジプシーハイウェイ
         finish: 16
         popularity: 16
         time: "2:15.2"

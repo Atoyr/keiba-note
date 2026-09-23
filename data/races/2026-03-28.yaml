@@ -146,6 +146,8 @@ races:
         age: 7
         ref: nk-2019105775
         trainer: 奥村武
+        sire: キングカメハメハ
+        dam: ツーデイズノーチス
         finish: 13
         popularity: 15
         time: "2:33.0"
@@ -182,6 +184,8 @@ races:
         age: 5
         ref: nk-2021110077
         trainer: 中内田充正
+        sire: Frankel
+        dam: スタセリタ
         finish: 5
         popularity: 5
         time: "2:31.2"
@@ -236,6 +240,8 @@ races:
         age: 6
         ref: nk-2020102870
         trainer: 本田優
+        sire: ドゥラメンテ
+        dam: シティイメージ
         finish: 12
         popularity: 13
         time: "2:32.9"
@@ -299,6 +305,8 @@ races:
         age: 3
         ref: nk-2023101577
         trainer: 清水久詞
+        sire: ドレフォン
+        dam: テーオーヴィーナス
         finish: 5
         popularity: 7
         time: "1:45.9"
@@ -388,6 +396,8 @@ races:
         age: 3
         ref: nk-2023107228
         trainer: 黒岩陽一
+        sire: エピファネイア
+        dam: ボージェスト
         finish: 4
         popularity: 4
         time: "1:45.7"
@@ -406,6 +416,8 @@ races:
         age: 3
         ref: nk-2023104414
         trainer: 松永幹夫
+        sire: キズナ
+        dam: ミコレジーナ
         finish: 7
         popularity: 5
         time: "1:46.1"

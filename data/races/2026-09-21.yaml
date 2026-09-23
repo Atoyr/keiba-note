@@ -40,7 +40,7 @@ races:
         ref: nk-2023105521
         trainer: 中尾秀正
         sire: サトノダイヤモンド
-        dam: トピカ２
+        dam: トピカII
         finish: 7
         popularity: 6
         time: "2:26.3"
@@ -120,7 +120,7 @@ races:
         ref: nk-2023107127
         trainer: 友道康夫
         sire: キタサンブラック
-        dam: デルフィニア２
+        dam: デルフィニアII
         finish: 5
         popularity: 8
         time: "2:26.0"
@@ -180,7 +180,7 @@ races:
         ref: nk-2023105456
         trainer: 上原佑紀
         sire: スワーヴリチャード
-        dam: シンバル２
+        dam: シンバルII
         finish: 8
         popularity: 2
         time: "2:26.3"

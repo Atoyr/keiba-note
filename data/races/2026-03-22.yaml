@@ -37,6 +37,8 @@ races:
         age: 8
         ref: nk-2018104942
         trainer: 清水久詞
+        sire: ディープインパクト
+        dam: ヴィアンローズ
         finish: 4
         popularity: 7
         time: "3:03.0"
@@ -109,6 +111,8 @@ races:
         age: 4
         ref: nk-2022105466
         trainer: 大竹正博
+        sire: キズナ
+        dam: フィオドラ
         finish: 7
         popularity: 3
         time: "3:03.8"
@@ -145,6 +149,8 @@ races:
         age: 7
         ref: nk-2019104091
         trainer: 本田優
+        sire: ゴールドシップ
+        dam: メイショウスイヅキ
         finish: 8
         popularity: 9
         time: "3:03.9"
@@ -181,6 +187,8 @@ races:
         age: 10
         ref: nk-2016102175
         trainer: 野中賢二
+        sire: マンハッタンカフェ
+        dam: ビューティーコンテスト
         finish: 10
         popularity: 10
         time: "3:05.4"
@@ -245,6 +253,8 @@ races:
         age: 7
         ref: nk-2019102273
         trainer: 鈴木伸尋
+        sire: モーリス
+        dam: グロリエッテ
         finish: 15
         popularity: 17
         time: "1:20.4"
@@ -263,6 +273,8 @@ races:
         age: 7
         ref: nk-2019104385
         trainer: 伊坂重信
+        sire: ジャスタウェイ
+        dam: エミレーツガール
         finish: 18
         popularity: 18
         time: "1:20.9"
@@ -335,6 +347,8 @@ races:
         age: 5
         ref: nk-2021102013
         trainer: 武英智
+        sire: シルバーステート
+        dam: ソルトドリーム
         finish: 2
         popularity: 5
         time: "1:19.6"
@@ -353,6 +367,8 @@ races:
         age: 5
         ref: nk-2021100019
         trainer: 藤野健太
+        sire: シルバーステート
+        dam: マサノジュエリー
         finish: 17
         popularity: 15
         time: "1:20.8"
@@ -442,7 +458,9 @@ races:
         sex: 牝
         age: 5
         ref: nk-2021105599
-        trainer: 萩原清
+        trainer: 浅利英明
+        sire: ロードカナロア
+        dam: スウィートリーズン
         finish: 16
         popularity: 16
         time: "1:20.7"

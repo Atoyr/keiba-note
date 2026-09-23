@@ -18,7 +18,9 @@ races:
         sex: 牡
         age: 5
         ref: nk-2021105654
-        trainer: 萩原清
+        trainer: 古賀大生
+        sire: キズナ
+        dam: ティファニーズオナー
         finish: 6
         popularity: 3
         time: "4:46.3"
@@ -35,7 +37,9 @@ races:
         sex: 牡
         age: 7
         ref: nk-2019105578
-        trainer: 松尾卓哉
+        trainer: 天間昭一
+        sire: ラブリーデイ
+        dam: ユメノトキメキ
         finish: 5
         popularity: 6
         time: "4:35.5"
@@ -53,6 +57,8 @@ races:
         age: 8
         ref: nk-2018105731
         trainer: 高橋義忠
+        sire: フェノーメノ
+        dam: ロジカルクィーン
         finish: 3
         popularity: 4
         time: "4:34.8"
@@ -70,6 +76,8 @@ races:
         age: 8
         ref: nk-2018103677
         trainer: 中竹和也
+        sire: キズナ
+        dam: ヴェルヴェットクイーン
         finish: 4
         popularity: 1
         time: "4:35.0"
@@ -103,6 +111,8 @@ races:
         age: 5
         ref: nk-2021102482
         trainer: 小笠倫弘
+        sire: ゴールドシップ
+        dam: ブリュメール
         finish: 2
         popularity: 5
         time: "4:34.1"
@@ -148,6 +158,8 @@ races:
         age: 9
         ref: nk-2017105194
         trainer: 友道康夫
+        sire: ディープインパクト
+        dam: アパパネ
         finish: 12
         popularity: 15
         time: "1:59.8"
@@ -201,6 +213,8 @@ races:
         age: 6
         ref: nk-2020106234
         trainer: 田島俊明
+        sire: リアルインパクト
+        dam: サマーティアラ
         finish: 9
         popularity: 14
         time: "1:59.6"
@@ -219,6 +233,8 @@ races:
         age: 7
         ref: nk-2019105556
         trainer: 宮田敬介
+        sire: ドゥラメンテ
+        dam: ロカ
         finish: 4
         popularity: 1
         time: "1:59.1"
@@ -237,6 +253,8 @@ races:
         age: 7
         ref: nk-2019104711
         trainer: 加藤征弘
+        sire: ディープインパクト
+        dam: カンビーナ
         finish: 6
         popularity: 8
         time: "1:59.3"
@@ -273,6 +291,8 @@ races:
         age: 4
         ref: nk-2022101329
         trainer: 竹内正洋
+        sire: ウインブライト
+        dam: ブルーエクセル
         finish: 3
         popularity: 9
         time: "1:59.0"
@@ -345,6 +365,8 @@ races:
         age: 7
         ref: nk-2019104447
         trainer: 堀宣行
+        sire: キングカメハメハ
+        dam: アンチュラス
         finish: 11
         popularity: 13
         time: "1:59.8"
@@ -362,6 +384,8 @@ races:
         age: 5
         ref: nk-2021105574
         trainer: 木村哲也
+        sire: レイデオロ
+        dam: シンハディーパ
         finish: 14
         popularity: 4
         time: "2:00.0"

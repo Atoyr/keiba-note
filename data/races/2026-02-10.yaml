@@ -55,6 +55,8 @@ races:
         age: 3
         ref: nk-2023105380
         trainer: 杉山晴紀
+        sire: エピファネイア
+        dam: ホエールキャプチャ
         finish: 8
         popularity: 9
         time: "1:48.9"
@@ -91,6 +93,8 @@ races:
         age: 3
         ref: nk-2023102224
         trainer: 四位洋文
+        sire: タリスマニック
+        dam: ジャポニウム
         finish: 5
         popularity: 7
         time: "1:48.2"
@@ -109,6 +113,8 @@ races:
         age: 3
         ref: nk-2023105965
         trainer: 佐藤悠太
+        sire: サートゥルナーリア
+        dam: ノーブルカリナン
         finish: 4
         popularity: 8
         time: "1:48.1"
@@ -316,6 +322,8 @@ races:
         age: 7
         ref: nk-2019100596
         trainer: 中村直也
+        sire: イスラボニータ
+        dam: ヤマニンエマイユ
         finish: 16
         popularity: 16
         time: "1:33.1"
@@ -442,6 +450,8 @@ races:
         age: 6
         ref: nk-2020103674
         trainer: 木村哲也
+        sire: ロードカナロア
+        dam: ラルケット
         finish: 7
         popularity: 11
         time: "1:32.5"

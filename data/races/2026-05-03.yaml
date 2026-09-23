@@ -128,6 +128,8 @@ races:
         age: 5
         ref: nk-2021105104
         trainer: 矢作芳人
+        sire: キズナ
+        dam: ソラリア
         finish: 11
         popularity: 13
         time: "3:15.6"
@@ -164,6 +166,8 @@ races:
         age: 5
         ref: nk-2021105433
         trainer: 四位洋文
+        sire: エピファネイア
+        dam: エイプリルミスト
         finish: 4
         popularity: 4
         time: "3:13.9"
@@ -181,7 +185,9 @@ races:
         sex: セ
         age: 6
         ref: nk-2020104881
-        trainer: 小林真也
+        trainer: 米田英世
+        sire: シルバーステート
+        dam: クインズミリセント
         finish: 12
         popularity: 14
         time: "3:15.7"
@@ -253,6 +259,8 @@ races:
         age: 4
         ref: nk-2022104859
         trainer: 伊坂重信
+        sire: ニューイヤーズデイ
+        dam: スプレンダークラン
         finish: 13
         popularity: 15
         time: "3:16.0"
@@ -271,6 +279,8 @@ races:
         age: 6
         ref: nk-2020105798
         trainer: 青木孝文
+        sire: ゴールドシップ
+        dam: マンバラ
         finish: 10
         popularity: 10
         time: "3:15.3"
@@ -307,6 +317,8 @@ races:
         age: 5
         ref: nk-2021105521
         trainer: 木村哲也
+        sire: ルーラーシップ
+        dam: コルコバード
         finish: 5
         popularity: 3
         time: "3:14.1"
@@ -343,6 +355,8 @@ races:
         age: 5
         ref: nk-2021104855
         trainer: 田島俊明
+        sire: ルーラーシップ
+        dam: ゴールデンハープ
         finish: 14
         popularity: 7
         time: "3:16.1"
@@ -361,6 +375,8 @@ races:
         age: 6
         ref: nk-2020103060
         trainer: 宮本博
+        sire: キタサンブラック
+        dam: マルカアイチャン
         finish: 2
         popularity: 12
         time: "3:13.7"

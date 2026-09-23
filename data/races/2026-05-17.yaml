@@ -20,6 +20,8 @@ races:
         age: 5
         ref: nk-2021104073
         trainer: 田島俊明
+        sire: ダンカーク
+        dam: ライトリーチューン
         finish: 17
         popularity: 17
         time: "1:32.0"
@@ -38,6 +40,8 @@ races:
         age: 5
         ref: nk-2021104434
         trainer: 藤原英昭
+        sire: カリフォルニアクローム
+        dam: ワイドサファイア
         finish: 15
         popularity: 18
         time: "1:32.0"
@@ -56,6 +60,8 @@ races:
         age: 4
         ref: nk-2022105467
         trainer: 和田勇介
+        sire: マインドユアビスケッツ
+        dam: フィルムフランセ
         finish: 9
         popularity: 14
         time: "1:31.6"
@@ -128,6 +134,8 @@ races:
         age: 5
         ref: nk-2021105414
         trainer: 中内田充正
+        sire: キズナ
+        dam: ウェイヴェルアベニュー
         finish: 3
         popularity: 3
         time: "1:31.4"
@@ -146,6 +154,8 @@ races:
         age: 4
         ref: nk-2022105402
         trainer: 友道康夫
+        sire: ブラックタイド
+        dam: ダンスアミーガ
         finish: 2
         popularity: 2
         time: "1:31.1"
@@ -218,6 +228,8 @@ races:
         age: 4
         ref: nk-2022105185
         trainer: 森一誠
+        sire: アドマイヤマーズ
+        dam: ロッテンマイヤー
         finish: 1
         popularity: 1
         time: "1:30.9"
@@ -235,6 +247,8 @@ races:
         age: 7
         ref: nk-2019105293
         trainer: 堀宣行
+        sire: ロードカナロア
+        dam: ティッカーテープ
         finish: 10
         popularity: 10
         time: "1:31.7"
@@ -253,6 +267,8 @@ races:
         age: 4
         ref: nk-2022104767
         trainer: 鹿戸雄一
+        sire: エピファネイア
+        dam: ケイティーズハート
         finish: 8
         popularity: 9
         time: "1:31.6"
@@ -271,6 +287,8 @@ races:
         age: 4
         ref: nk-2022103875
         trainer: 橋田宜長
+        sire: キズナ
+        dam: ウアジェト
         finish: 13
         popularity: 13
         time: "1:31.8"

@@ -92,6 +92,8 @@ races:
         age: 9
         ref: nk-2017103000
         trainer: 浜田多実雄
+        sire: ナカヤマフェスタ
+        dam: アートリョウコ
         finish: 12
         popularity: 9
         time: "2:14.8"
@@ -110,6 +112,8 @@ races:
         age: 4
         ref: nk-2022105099
         trainer: 中内田充正
+        sire: キズナ
+        dam: ヤングスター
         finish: 2
         popularity: 1
         time: "2:12.8"
@@ -164,6 +168,8 @@ races:
         age: 6
         ref: nk-2020103025
         trainer: 今野貞一
+        sire: デクラレーションオブウォー
+        dam: ブルックデイル
         finish: 9
         popularity: 11
         time: "2:13.8"
@@ -200,6 +206,8 @@ races:
         age: 7
         ref: nk-2019100792
         trainer: 手塚貴久
+        sire: スクリーンヒーロー
+        dam: マイネトゥインクル
         finish: 10
         popularity: 10
         time: "2:14.3"
@@ -263,6 +271,8 @@ races:
         age: 3
         ref: nk-2023102814
         trainer: 杉山晴紀
+        sire: キズナ
+        dam: エセンテペ
         finish: 8
         popularity: 9
         time: "1:46.5"
@@ -299,6 +309,8 @@ races:
         age: 3
         ref: nk-2023103452
         trainer: 堀宣行
+        sire: スワーヴリチャード
+        dam: ストロベリームーン
         finish: 5
         popularity: 5
         time: "1:45.9"
@@ -370,6 +382,8 @@ races:
         age: 3
         ref: nk-2023105238
         trainer: 友道康夫
+        sire: ロードカナロア
+        dam: コンテスティッド
         finish: 4
         popularity: 1
         time: "1:45.7"
@@ -388,6 +402,8 @@ races:
         age: 3
         ref: nk-2023105314
         trainer: 木村哲也
+        sire: ポエティックフレア
+        dam: トーセンソレイユ
         finish: 9
         popularity: 7
         time: "1:46.8"

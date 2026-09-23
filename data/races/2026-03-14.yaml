@@ -122,6 +122,8 @@ races:
         age: 7
         ref: nk-2019104983
         trainer: 松永幹夫
+        sire: ハーツクライ
+        dam: プラヤデシエルタ
         finish: 5
         popularity: 5
         time: "4:32.0"
@@ -173,6 +175,8 @@ races:
         age: 8
         ref: nk-2018102196
         trainer: 深山雅史
+        sire: トゥザワールド
+        dam: ゴールドジャパン
         finish: 9
         popularity: 7
         time: "4:33.5"
@@ -190,6 +194,8 @@ races:
         age: 7
         ref: nk-2019100788
         trainer: 水野貴広
+        sire: ゴールドシップ
+        dam: マイネソルシエール
         finish: 7
         popularity: 8
         time: "4:32.9"
