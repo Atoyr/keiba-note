@@ -274,3 +274,85 @@ VALUES (
 	'private',
 	'2026-06-01'
 );
+
+-- ダッシュボードの**今週出走する注目馬**用。今週のレース（E2E今週賞）に3頭を足す。
+--
+-- 日付は流した日から決める（今週のレースが今日なので、メモはそれより前に置く）。
+-- 注目馬は「その馬に付けた一番新しい結論の札」で決まるので、
+-- 買い → 消しと書き換えた馬を1頭混ぜて、古い札を拾っていないかを見る。
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSEWATCH0000000000', 'E2Eチュウモク', 2022);
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSEDROP00000000000', 'E2Eミカギリ', 2022);
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSEOTHERS000000000', 'E2Eタニンノウマ', 2022);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
+VALUES ('01JE2EENTRYWATCH0000000000', '01JE2ERACETHISWEEK00000000', '01JE2EHORSEWATCH0000000000', 3, 'E2E騎手');
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
+VALUES ('01JE2EENTRYDROP00000000000', '01JE2ERACETHISWEEK00000000', '01JE2EHORSEDROP00000000000', 7, 'E2E騎手');
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
+VALUES ('01JE2EENTRYOTHERS000000000', '01JE2ERACETHISWEEK00000000', '01JE2EHORSEOTHERS000000000', 9, 'E2E騎手');
+
+-- 買い。理由の札（不利）も添わること。
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EWATCHBUYNOTE00000000',
+	'01JE2EUSER0000000000000000',
+	'horse',
+	'01JE2EHORSEWATCH0000000000',
+	'前走は直線で詰まった。次は買い。',
+	'["次走買い","不利"]',
+	date('now', '+9 hours', '-20 days')
+);
+
+-- 買い → 消し。**新しい消しが正**で、古い買いの本文は注目馬に出てはいけない。
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EDROPOLDBUYNOTE000000',
+	'01JE2EUSER0000000000000000',
+	'horse',
+	'01JE2EHORSEDROP00000000000',
+	'昔は買いだと思っていた。',
+	'["次走買い"]',
+	date('now', '+9 hours', '-60 days')
+);
+
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EDROPNEWNOTE000000000',
+	'01JE2EUSER0000000000000000',
+	'horse',
+	'01JE2EHORSEDROP00000000000',
+	'距離が合わない。見限る。',
+	'["次走消し"]',
+	date('now', '+9 hours', '-15 days')
+);
+
+-- **別のユーザー**が付けた買い。自分の注目馬には出てはいけない。
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, occurred_at)
+VALUES (
+	'01JE2EOTHERSWATCHNOTE00000',
+	'01JE2EOTHERUSER00000000000',
+	'horse',
+	'01JE2EHORSEOTHERS000000000',
+	'他人の注目馬。見えてはいけない。',
+	'["次走買い"]',
+	date('now', '+9 hours', '-20 days')
+);
+
+-- **ふりかえり待ち**用。10日前のレース（E2E先週賞）に見立てだけ書いて、ふりかえりは書かない。
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, body, tags, occurred_at)
+VALUES (
+	'01JE2ELASTWEEKOUTLOOK00000',
+	'01JE2EUSER0000000000000000',
+	'race_preview',
+	'01JE2ERACELASTWEEK00000000',
+	'前残りの馬場とみる。',
+	'[]',
+	date('now', '+9 hours', '-10 days')
+);
