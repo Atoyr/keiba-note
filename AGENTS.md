@@ -85,8 +85,10 @@ UI に関わらない変更（サーバー内部・データ・CI・docs）は 2
 ## コマンド
 
 ```bash
-pnpm run verify                         # check / lint / test:unit / test:e2e を全部
-pnpm run test:unit -- --run             # 単体テストだけ
+pnpm run verify                         # check / lint / test（単体テスト + E2E）を全部
+pnpm test                               # 単体テストと E2E を順に実行
+pnpm run test:unit                      # 単体テストを1回
+pnpm run test:watch                     # 単体テストを監視して再実行
 pnpm run test:e2e                       # E2E だけ（ビルドから走る）
 pnpm run screens <機能名> before|after   # PR 用キャプチャ（画面名を並べれば絞れる）
 pnpm run screens:pr <機能名>            # PR 本文に貼る Markdown
