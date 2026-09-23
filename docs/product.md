@@ -892,7 +892,7 @@ ID は ULID（48ビットのタイムスタンプ + **80ビットの乱数**）�
 
 ```toml
 name = "k-note"
-main = ".svelte-kit/cloudflare/_worker.js"
+main = "src/worker.js"
 compatibility_date = "2026-09-01"
 
 assets = { directory = ".svelte-kit/cloudflare" }

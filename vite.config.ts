@@ -13,7 +13,8 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			// 書き出し先は wrangler.toml ではなく wrangler.adapter.toml から読ませる（src/worker.js）
+			adapter: adapter({ config: 'wrangler.adapter.toml' })
 		})
 	],
 	// @lucide/svelte は生の .svelte を配布しているため、SSR 時に Node が

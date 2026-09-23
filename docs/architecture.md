@@ -9,6 +9,8 @@
 - 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てた（→ 第4章 / 第6章）
 - 更新日: 2026-09-23 — 監視（`lib/server/monitoring/`）を足し、`createDb` が D1 の observer を受けるようにした
   （→ 第2章 / 3-1 / 第8章、詳細は [monitoring.md](./monitoring.md)）
+- 更新日: 2026-09-24 — Worker の入口を `src/worker.js` にし、見つからないアセットの 404 を
+  ブラウザに抱えさせないようにした（→ 3-5）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -194,6 +196,9 @@ monitoring が import してよいのは pure と db（`errors.ts` と observer 
 **db は monitoring を import しない。** `createDb` は observer を引数で受け、ルートが `locals.monitor.onQuery` を渡す。
 service と auth も monitoring を知らない（失敗は投げたままにし、ルートか `handleError` が拾う）。
 
+Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
+adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）だけ（→ 3-5）。
+
 - **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
   `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
   止めるが `import type` は通す
@@ -372,6 +377,17 @@ flowchart LR
 ```
 
 SvelteKit がビルドした JS/CSS はここに乗る。**この分は一切コストにならない。**
+
+見つからなかったときだけは Worker に落ちる。`/_app/immutable/*` には adapter の `_headers` で
+`Cache-Control: public, immutable, max-age=31536000` が付き、これは 404 にも付く。デプロイの
+切り替わりの間に新しいチャンクが 404 で返ると、ブラウザがその 404 を1年抱えて画面が JS 無しで固まる
+（2026-09-23 の v1.1.1 で起きた）。そこで Worker の入口 `src/worker.js` が adapter の Worker を包み、
+失敗に付いた `immutable` を `no-store` に差し替える（`src/lib/server/asset-cache.ts`）。
+adapter は自分の設定の main を消して書き出すので、adapter には `wrangler.adapter.toml` を読ませ、
+書き出し先（`.svelte-kit/cloudflare/_worker.js`）と wrangler の main（`src/worker.js`）を分けている。
+
+これは抱えるのを防ぐだけで、すでに 404 を抱えたブラウザには届かない（キャッシュから返るので Worker に来ない）。
+その人にはサイトデータの削除（Chrome ならアドレスバーの鍵 → サイトの設定 → データを削除）を頼む。
 
 ### 3-6. 認可はどの層でかけるか
 

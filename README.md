@@ -157,6 +157,7 @@ Cloudflare の構築手順・API トークンの権限・ワークフローの�
 src/
 ├── app.d.ts                   # App.Platform['env'] の型（Env は wrangler types が生成）
 ├── hooks.server.ts            # 認証。ここだけが認証方式を知っている
+├── worker.js                  # Worker の入口。adapter の Worker を包む（docs/architecture.md 3-5）
 ├── lib/
 │   ├── server/
 │   │   ├── db/                # Drizzle スキーマとクライアント生成
