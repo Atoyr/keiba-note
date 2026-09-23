@@ -4,7 +4,8 @@ k-note は競馬の観戦メモを残してふりかえる Web アプリ。Svelt
 Cloudflare Workers + D1 で動かしている。このファイルは、コードを変える人と AI エージェントが
 共通で従う約束と手順をまとめたもの。何を作っているかは [README.md](./README.md)、
 設計の理由は [docs/design.md](./docs/design.md) と [docs/architecture.md](./docs/architecture.md)、
-変更の確かめ方の仕組みは [docs/harness.md](./docs/harness.md) にある。
+エージェントを支える仕組み全体（構造の制約・デザインシステム・検証・評価）の設計は
+[docs/harness.md](./docs/harness.md) にある。
 
 ## 目指す状態
 

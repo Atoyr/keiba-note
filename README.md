@@ -3,14 +3,14 @@
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 
-| 文書                                           | 何が書いてあるか                                                |
-| ---------------------------------------------- | --------------------------------------------------------------- |
-| [docs/design.md](./docs/design.md)             | 何を作るか（要件・データモデル・画面・フェーズ）                |
-| [docs/architecture.md](./docs/architecture.md) | どう動き、いくらかかり、なぜその技術か                          |
-| [docs/harness.md](./docs/harness.md)           | 変更をどう確かめるか（単体テスト・E2E・画面キャプチャの仕組み） |
-| [docs/operations.md](./docs/operations.md)     | Cloudflare の構築と、GitHub Actions でのデプロイ                |
-| [AGENTS.md](./AGENTS.md)                       | コードを変えるときの約束と手順（人も AI エージェントも同じ）    |
-| [data/README.md](./data/README.md)             | 出走馬データ（YAML）の書式と投入                                |
+| 文書                                           | 何が書いてあるか                                                            |
+| ---------------------------------------------- | --------------------------------------------------------------------------- |
+| [docs/design.md](./docs/design.md)             | 何を作るか（要件・データモデル・画面・フェーズ）                            |
+| [docs/architecture.md](./docs/architecture.md) | どう動き、いくらかかり、なぜその技術か                                      |
+| [docs/harness.md](./docs/harness.md)           | ハーネスの設計（目的・構造の制約・デザインシステム・操作・検証・評価の6層） |
+| [docs/operations.md](./docs/operations.md)     | Cloudflare の構築と、GitHub Actions でのデプロイ                            |
+| [AGENTS.md](./AGENTS.md)                       | コードを変えるときの約束と手順（人も AI エージェントも同じ）                |
+| [data/README.md](./data/README.md)             | 出走馬データ（YAML）の書式と投入                                            |
 
 現在のフェーズ: **予想・ふりかえり・共有が動く**。
 
