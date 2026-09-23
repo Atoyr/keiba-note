@@ -41,7 +41,8 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}'],
+					// scripts/ は Node で動く道具（データ投入など）。ここの単体テストも Node で回す。
+					include: ['src/**/*.{test,spec}.{js,ts}', 'scripts/**/*.{test,spec}.ts'],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
 				}
 			}
