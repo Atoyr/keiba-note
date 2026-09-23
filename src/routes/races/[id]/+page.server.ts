@@ -48,14 +48,23 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	// 直せるようにすると「結果を見たあとで見立てを書き換える」ができてしまい、
 	// 事前と事後を別の行にした意味が無くなる。直すのは予想画面。
 	const myRacePreview = notes.find((n) => n.kind === 'race_preview') ?? null;
+	// 1頭ごとの出走前メモと印。**答え合わせの材料**で、見立てと同じく読むだけ。
+	// 印を付け直せると、結果を見てから予想を書き換えられてしまう。
+	const myPreviews = new Map(
+		notes.filter((n) => n.kind === 'preview').map((n) => [n.raceEntryId, n])
+	);
 
 	return {
 		race,
 		myRacePreview,
-		rows: entries.map((e) => ({
-			...e,
-			myNote: myEntryNotes.get(e.entryId) ?? null
-		})),
+		rows: entries.map((e) => {
+			const p = myPreviews.get(e.entryId);
+			return {
+				...e,
+				myNote: myEntryNotes.get(e.entryId) ?? null,
+				myPreview: p ? { mark: p.mark, body: p.body, tags: p.tags } : null
+			};
+		}),
 		myRaceNote
 	};
 };

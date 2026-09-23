@@ -92,6 +92,12 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 					expect(overflow, 'mobile で横にはみ出している（px）').toBeLessThanOrEqual(0);
 				}
 
+				// 末尾までスクロールしてから撮る。ふりかえり・予想画面の保存ボタンは
+				// `sticky bottom-0` で、先頭にいるまま全体を撮ると**いまの表示位置**
+				// （1画面ぶん下）に描かれ、その下の出走馬の行を覆い隠す。末尾にいれば
+				// 本来の置き場（フォームの最後）に収まる。
+				await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+
 				const file = `${screen.name}.${viewportName}.png`;
 				mkdirSync(OUT, { recursive: true });
 				const shot = await page.screenshot({

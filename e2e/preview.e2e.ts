@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { login } from './login';
-import { EMPTY_RACE_ID, PAST_EMPTY_RACE_ID, PREVIEW_RACE_ID } from './seed';
+import {
+	EMPTY_RACE_ID,
+	OTHER_DISTANCE_NOTE_BODY,
+	OTHER_USER_SAME_CONDITION_BODY,
+	PAST_EMPTY_RACE_ID,
+	PREVIEW_RACE_ID,
+	SAME_CONDITION_NOTE_BODY
+} from './seed';
 
 /**
  * この画面の用は「16頭を見比べる」ことなので、**自分の出走前メモは開かずに読める**
@@ -104,4 +111,69 @@ test('開催済みの予想画面には「ふりかえりを書く」が出る',
 	await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
 
 	await expect(page.getByRole('link', { name: 'ふりかえりを書く' })).toBeVisible();
+});
+
+/**
+ * ★ 見立てを書く手元に、**同じ条件（京都 芝2200m）で前に自分が書いたレースのメモ**が出る。
+ * 距離だけ違うレースのメモと、他人のメモは出ない。
+ */
+test('見立ての下に、同じ条件で前に書いた自分のレースのメモが出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	await expect(page.getByText('同じ条件（京都 芝2200m）で書いたレースのメモ')).toBeVisible();
+	await expect(page.getByText(SAME_CONDITION_NOTE_BODY)).toBeVisible();
+	// 押すとそのレースのふりかえりへ。
+	await expect(page.getByRole('link', { name: /E2E同条件賞/ })).toHaveAttribute(
+		'href',
+		/^\/races\/01JE2ERACESAMECOND/
+	);
+
+	// 条件が違う（距離が違う）レースのメモは出ない。
+	await expect(page.getByText(OTHER_DISTANCE_NOTE_BODY)).toHaveCount(0);
+	// ★ 同じ条件のレースでも、他人のメモは出ない。
+	await expect(page.getByText(OTHER_USER_SAME_CONDITION_BODY)).toHaveCount(0);
+});
+
+/**
+ * 16頭を見比べるときは本文まで読めない。**前回の結論の札**を行の見出しに上げる。
+ * seed では、この馬の前走のふりかえりに「次走買い」「不利」が付いている。
+ */
+test('出走馬の行の見出しに、前回付けた結論の札が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	const row = page.locator('main > form > ul > li').first();
+	const conclusion = row.getByTitle('2026-04-26 に付けた札');
+	await expect(conclusion).toContainText('前回');
+	await expect(conclusion).toContainText('次走買い');
+	await expect(conclusion).toContainText('不利');
+});
+
+/** 付けた印は画面の上にまとめて出る。押すとその馬の行へ飛ぶ。 */
+test('付けた印が画面の上にまとまって出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	const marks = page.locator('section', { has: page.getByRole('heading', { name: '付けた印' }) });
+	await expect(marks).toContainText('◎');
+	await expect(marks).toContainText('E2Eプレビューホース');
+
+	await marks.getByRole('link', { name: /E2Eプレビューホース/ }).click();
+	await expect(page).toHaveURL(/#entry-01JE2EENTRYPREVIEW/);
+});
+
+/** 印を1つも付けていないレースでは、空の「付けた印」の枠を出さない。 */
+test('印を付けていなければ「付けた印」の枠は出ない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${EMPTY_RACE_ID}/preview`);
+
+	await expect(page.getByRole('heading', { name: '付けた印' })).toHaveCount(0);
+});
+
+test('未ログインでは同じ条件のレースのメモも漏れない', async ({ page }) => {
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	await expect(page).toHaveURL(/\/login\?redirect=/);
+	await expect(page.getByText(SAME_CONDITION_NOTE_BODY)).toHaveCount(0);
 });

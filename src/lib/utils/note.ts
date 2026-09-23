@@ -146,3 +146,42 @@ export function raceReviewSaveLabel(entryCount: number): string {
 export function previewSaveLabel(entryCount: number): string {
 	return entryCount > 0 ? '出走前メモを保存' : 'レースの見立てを保存';
 }
+
+export type ConclusionSource = {
+	kind: NoteHeadingSource['kind'];
+	tags: NoteTag[];
+	occurredAt: string;
+};
+
+/**
+ * 予想画面の行の見出しに出す、**その馬について自分が最後に下した結論**。
+ *
+ * 過去メモは行の中に並ぶが、16頭を見比べるときに本文までは読めない。
+ * 「前走で次走買い・不利と書いた」が見出しに出ていれば、それだけで拾える。
+ *
+ * 拾うのは**走ったあとに書いたメモ**（ふりかえり `entry` と近況 `horse`）で、札が付いたもの。
+ * 出走前メモの札は「そのレースでどう見ていたか」で、結果を見たあとの結論ではない。
+ * `history` は新しいメモが先に並んでいる前提（`listHistoryForHorses` の並び）。
+ */
+export function latestConclusion<T extends ConclusionSource>(history: T[]): T | null {
+	return (
+		history.find((n) => (n.kind === 'entry' || n.kind === 'horse') && n.tags.length > 0) ?? null
+	);
+}
+
+export type RaceConditionSource = {
+	course: string;
+	surface: string | null;
+	distance: number | null;
+};
+
+/**
+ * 「京都 芝2200m」。同じ条件のレースを探す鍵を、そのまま見出しにしたもの。
+ *
+ * 馬場（芝・ダート）か距離が決まっていないレースでは null。コースだけで束ねると
+ * 芝もダートも短距離も長距離も混ざり、「同じ条件」と呼べなくなる。
+ */
+export function conditionLabel(r: RaceConditionSource): string | null {
+	if (!r.surface || !r.distance) return null;
+	return `${r.course} ${r.surface}${r.distance}m`;
+}

@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
+import { and, between, desc, eq, inArray, isNull, like, lt, lte, ne, or, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
-import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/schema';
+import { horse, note, race, raceEntry, user, type Note, type Race } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
+import type { WatchSourceRow } from '$lib/utils/dashboard';
 import type { HorseRun } from './races';
 
 /**
@@ -379,6 +380,128 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 		.leftJoin(raceEntry, eq(note.raceEntryId, raceEntry.id))
 		.where(ownedBy(viewerId))
 		.orderBy(desc(note.createdAt))
+		.limit(limit);
+}
+
+/**
+ * ダッシュボードの「今週出走する注目馬」の材料。
+ *
+ * **期間内の出走 × その馬に自分が付けた結論の札（次走買い／次走消し）付きのメモ**を、
+ * 新しいメモが先の順で返す。出走ごとに一番新しい結論だけを採るのは
+ * `$lib/utils/dashboard` の `pickWatchlist`（SQL で頭ごとに絞るには窓関数が要るので、
+ * 予想画面の馬柱と同じく取ってから JS で切る）。1クエリ。
+ *
+ * 拾うメモの条件:
+ * - **自分のメモだけ**（`ownedBy`）。他人が買いと書いた馬は出さない
+ * - 結論として書くメモ＝ふりかえり（`entry`）と近況（`horse`）だけ。出走前メモの札は
+ *   「そのレースで買う」の意味で、次走の結論ではない
+ * - その出走より前（当日まで）に書いたもの。先の日付のメモは次走の結論になりえない。
+ *   そのレース自身のふりかえりも除く
+ *
+ * 札は JSON の配列（`["次走買い","不利"]`）なので、引用符ごと LIKE で当てる。
+ * 札の選択肢は固定で、`次走買い` を部分に含む別の札は無い。
+ */
+export async function listWatchSources(
+	db: Db,
+	viewerId: string,
+	range: { from: string; to: string }
+): Promise<WatchSourceRow[]> {
+	return db
+		.select({
+			entryId: raceEntry.id,
+			raceId: race.id,
+			raceDate: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			raceName: race.name,
+			grade: race.grade,
+			horseId: horse.id,
+			horseName: horse.name,
+			horseNumber: raceEntry.horseNumber,
+			noteId: note.id,
+			noteBody: note.body,
+			noteTags: note.tags,
+			noteOccurredAt: note.occurredAt
+		})
+		.from(raceEntry)
+		.innerJoin(race, eq(raceEntry.raceId, race.id))
+		.innerJoin(horse, eq(raceEntry.horseId, horse.id))
+		.innerJoin(
+			note,
+			and(
+				eq(note.horseId, raceEntry.horseId),
+				ownedBy(viewerId),
+				inArray(note.kind, ['entry', 'horse']),
+				lte(note.occurredAt, race.date),
+				// そのレース自身のふりかえりは「次走」ではない（走ったあとに今週の枠へ出てこないように）。
+				or(isNull(note.raceId), ne(note.raceId, race.id)),
+				or(like(note.tags, '%"次走買い"%'), like(note.tags, '%"次走消し"%'))
+			)
+		)
+		.where(between(race.date, range.from, range.to))
+		.orderBy(desc(note.occurredAt), desc(note.createdAt))
+		.limit(500);
+}
+
+export type SameConditionNote = {
+	id: string;
+	body: string;
+	occurredAt: string;
+	raceId: string;
+	raceName: string | null;
+	course: string;
+	raceNumber: number | null;
+	grade: string | null;
+};
+
+/**
+ * 予想画面の見立ての材料。**同じ条件（コース・馬場・距離）の過去のレースに、自分が書いたふりかえり**。
+ *
+ * 見立てを書くときに一番効くのは、同じ舞台で自分が前に何を見たか（内有利だった、差しが届かなかった）。
+ * レース名ではなく条件で束ねるので、去年の同じレースも、同じ舞台の別のレースも拾える。
+ *
+ * - **自分のメモだけ**（`ownedBy`）
+ * - レース全体のふりかえり（`kind='race'`）だけ。1頭のメモは馬の話で、舞台の話ではない
+ * - このレースより前に走ったレースだけ（先の日付のレースには、まだふりかえりが無いはず）
+ *
+ * 1クエリ。新しいレースから `limit` 件。
+ */
+export async function listSameConditionRaceNotes(
+	db: Db,
+	condition: {
+		course: Race['course'];
+		surface: NonNullable<Race['surface']>;
+		distance: number;
+		/** このレースの日付。これより前のレースだけを見る。 */
+		before: string;
+	},
+	viewerId: string,
+	limit = 5
+): Promise<SameConditionNote[]> {
+	return db
+		.select({
+			id: note.id,
+			body: note.body,
+			occurredAt: note.occurredAt,
+			raceId: race.id,
+			raceName: race.name,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			grade: race.grade
+		})
+		.from(note)
+		.innerJoin(race, eq(note.raceId, race.id))
+		.where(
+			and(
+				ownedBy(viewerId),
+				eq(note.kind, 'race'),
+				eq(race.course, condition.course),
+				eq(race.surface, condition.surface),
+				eq(race.distance, condition.distance),
+				lt(race.date, condition.before)
+			)
+		)
+		.orderBy(desc(race.date))
 		.limit(limit);
 }
 

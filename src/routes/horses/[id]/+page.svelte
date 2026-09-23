@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -199,6 +200,30 @@
 									<span class="text-gray-500">{h.label}</span>
 								{/if}
 								<SharedBadge visibility={n.visibility} />
+								<!-- 共有と削除は読み返すあいだには使わない操作なので畳む。
+								     削除が出しっぱなしだと押し間違いの的にもなる。 -->
+								<div class="ms-auto self-center">
+									<NoteMenu>
+										<ShareControl
+											noteId={n.id}
+											visibility={n.visibility}
+											redirectTo="/horses/{data.horse.id}"
+										/>
+										{#if n.kind === 'horse'}
+											<form
+												method="POST"
+												action="?/deleteNote"
+												use:enhance
+												class="mt-2 border-t pt-2"
+											>
+												<input type="hidden" name="noteId" value={n.id} />
+												<button type="submit" class="text-xs text-red-700 hover:underline">
+													この近況メモを削除
+												</button>
+											</form>
+										{/if}
+									</NoteMenu>
+								</div>
 							</div>
 
 							{#if n.body}
@@ -206,23 +231,6 @@
 							{/if}
 
 							<TagBadges tags={n.tags} class="mt-1" />
-
-							<div class="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-								{#if n.kind === 'horse'}
-									<form method="POST" action="?/deleteNote" use:enhance>
-										<input type="hidden" name="noteId" value={n.id} />
-										<button type="submit" class="text-red-700 hover:underline">削除</button>
-									</form>
-								{/if}
-							</div>
-
-							<div class="mt-2">
-								<ShareControl
-									noteId={n.id}
-									visibility={n.visibility}
-									redirectTo="/horses/{data.horse.id}"
-								/>
-							</div>
 						</li>
 					{/if}
 				{/each}

@@ -107,3 +107,37 @@ export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
  * ログインが要る画面を E2E で見るにはセッションを1本置くしかない。
  */
 export const SESSION_TOKEN = 'e2esessiontoken00000000000000000';
+
+/** 答え合わせで見る、自分の出走前メモの本文（E2E枠色賞のソトワク、印は◎・2着）。 */
+export const OUTER_PREVIEW_BODY = '外枠でも先行できれば。';
+
+/** 別のユーザーが同じレースに書いた出走前メモ。**どの画面にも出てはいけない。** */
+export const OTHER_USER_PREVIEW_BODY = '他人の見立て。見えてはいけない。';
+
+/** 共有の切り替えを押して確かめる非公開メモ（E2Eウチワクの近況）。テストの最後に非公開へ戻す。 */
+export const TOGGLE_SHARE_NOTE_ID = '01JE2ETOGGLESHARENOTE00000';
+export const TOGGLE_SHARE_NOTE_BODY = '共有を切り替えて確かめるメモ。';
+
+/**
+ * ダッシュボードの「今週出走する注目馬」に出る／出ない馬（どれも E2E今週賞に出走）。
+ * - `buy` — 一番新しい結論が次走買い
+ * - `drop` — 買い → 消しと書き換えた。**消しで出る**（古い買いを拾っていたら壊れている）
+ * - `others` — 別のユーザーが買いを付けた馬。**出てはいけない**
+ */
+export const WATCH_HORSES = {
+	buy: 'E2Eチュウモク',
+	drop: 'E2Eミカギリ',
+	others: 'E2Eタニンノウマ'
+} as const;
+
+/** 10日前のレース（E2E先週賞）。見立てだけ書いてあり、**ふりかえり待ち**に出る。 */
+export const LAST_WEEK_RACE_ID = '01JE2ERACELASTWEEK00000000';
+
+/** 予想画面（E2E予想賞）と同じ条件（京都 芝2200m）の過去のレースに、自分が書いたふりかえり。 */
+export const SAME_CONDITION_NOTE_BODY = '内が止まらない馬場だった。外差しは届かない。';
+
+/** 距離だけ違うレース（京都 芝1800m）に自分が書いたふりかえり。予想画面には出ない。 */
+export const OTHER_DISTANCE_NOTE_BODY = '距離が違うので出てはいけない。';
+
+/** 同じ条件のレースに**別のユーザー**が書いたふりかえり。どこにも出てはいけない。 */
+export const OTHER_USER_SAME_CONDITION_BODY = '他人のレースメモ。見えてはいけない。';
