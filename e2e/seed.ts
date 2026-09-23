@@ -129,3 +129,6 @@ export const WATCH_HORSES = {
 	drop: 'E2Eミカギリ',
 	others: 'E2Eタニンノウマ'
 } as const;
+
+/** 10日前のレース（E2E先週賞）。見立てだけ書いてあり、**ふりかえり待ち**に出る。 */
+export const LAST_WEEK_RACE_ID = '01JE2ERACELASTWEEK00000000';

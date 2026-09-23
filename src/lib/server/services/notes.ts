@@ -1,8 +1,9 @@
-import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm';
+import { and, between, desc, eq, inArray, isNull, like, lte, ne, or, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
+import type { WatchSourceRow } from '$lib/utils/dashboard';
 import type { HorseRun } from './races';
 
 /**
@@ -380,6 +381,66 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 		.where(ownedBy(viewerId))
 		.orderBy(desc(note.createdAt))
 		.limit(limit);
+}
+
+/**
+ * ダッシュボードの「今週出走する注目馬」の材料。
+ *
+ * **期間内の出走 × その馬に自分が付けた結論の札（次走買い／次走消し）付きのメモ**を、
+ * 新しいメモが先の順で返す。出走ごとに一番新しい結論だけを採るのは
+ * `$lib/utils/dashboard` の `pickWatchlist`（SQL で頭ごとに絞るには窓関数が要るので、
+ * 予想画面の馬柱と同じく取ってから JS で切る）。1クエリ。
+ *
+ * 拾うメモの条件:
+ * - **自分のメモだけ**（`ownedBy`）。他人が買いと書いた馬は出さない
+ * - 結論として書くメモ＝ふりかえり（`entry`）と近況（`horse`）だけ。出走前メモの札は
+ *   「そのレースで買う」の意味で、次走の結論ではない
+ * - その出走より前（当日まで）に書いたもの。先の日付のメモは次走の結論になりえない。
+ *   そのレース自身のふりかえりも除く
+ *
+ * 札は JSON の配列（`["次走買い","不利"]`）なので、引用符ごと LIKE で当てる。
+ * 札の選択肢は固定で、`次走買い` を部分に含む別の札は無い。
+ */
+export async function listWatchSources(
+	db: Db,
+	viewerId: string,
+	range: { from: string; to: string }
+): Promise<WatchSourceRow[]> {
+	return db
+		.select({
+			entryId: raceEntry.id,
+			raceId: race.id,
+			raceDate: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			raceName: race.name,
+			grade: race.grade,
+			horseId: horse.id,
+			horseName: horse.name,
+			horseNumber: raceEntry.horseNumber,
+			noteId: note.id,
+			noteBody: note.body,
+			noteTags: note.tags,
+			noteOccurredAt: note.occurredAt
+		})
+		.from(raceEntry)
+		.innerJoin(race, eq(raceEntry.raceId, race.id))
+		.innerJoin(horse, eq(raceEntry.horseId, horse.id))
+		.innerJoin(
+			note,
+			and(
+				eq(note.horseId, raceEntry.horseId),
+				ownedBy(viewerId),
+				inArray(note.kind, ['entry', 'horse']),
+				lte(note.occurredAt, race.date),
+				// そのレース自身のふりかえりは「次走」ではない（走ったあとに今週の枠へ出てこないように）。
+				or(isNull(note.raceId), ne(note.raceId, race.id)),
+				or(like(note.tags, '%"次走買い"%'), like(note.tags, '%"次走消し"%'))
+			)
+		)
+		.where(between(race.date, range.from, range.to))
+		.orderBy(desc(note.occurredAt), desc(note.createdAt))
+		.limit(500);
 }
 
 /**
