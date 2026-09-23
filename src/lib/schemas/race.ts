@@ -64,6 +64,14 @@ export const COURSES = [
 	'小倉'
 ] as const;
 
+/**
+ * 1レースに登録できる出走馬の上限。**馬番（1〜18）の上限とは別。**
+ *
+ * 枠が決まる前は、特別登録の馬をそのまま候補として入れる（data/README.md「三段階で書ける」）。
+ * 登録は18頭を超えることがあり、枠が決まると出走しない候補は取り下げる。
+ */
+export const MAX_ENTRIES = 40;
+
 /** 重賞。`L` / `OP` は重賞ではないので「今週」の対象に含めない。 */
 export const GRADED = ['G1', 'G2', 'G3'] as const;
 
@@ -100,6 +108,9 @@ export const entrySchema = v.object({
 	popularity: optionalInt(1, 18)
 });
 
-export const entriesSchema = v.pipe(v.array(entrySchema), v.maxLength(18, '出走馬は18頭までです'));
+export const entriesSchema = v.pipe(
+	v.array(entrySchema),
+	v.maxLength(MAX_ENTRIES, `出走馬は${MAX_ENTRIES}頭までです`)
+);
 
 export type EntryInput = v.InferOutput<typeof entrySchema>;

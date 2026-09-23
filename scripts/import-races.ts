@@ -13,8 +13,9 @@
  * 毎回すべてを再適用すると「今週ぶんを入れるために過去1年を流し直す」ことになる。
  * 適用済みのハッシュは D1 の `data_import` に覚えてあり、突き合わせて差分を出す。
  *
- * 生成する SQL は**冪等**で、メモ（note）には一切触れない。
- * 同じファイルを何度流しても結果は同じで、既存のメモは消えない。
+ * 生成する SQL は**冪等**で、既存のメモは消えない。同じファイルを何度流しても結果は同じ。
+ * メモ（note）に触れるのは取り下げ（`withdrawn`）のときだけで、それも消さずに
+ * 近況メモへ移す（`withdrawStatements`）。
  *
  *   node --experimental-strip-types scripts/import-races.ts --check
  *   node --experimental-strip-types scripts/import-races.ts --target local  --out out.sql
@@ -31,6 +32,7 @@ import {
 	COURSES,
 	DIRECTIONS,
 	GRADES,
+	MAX_ENTRIES,
 	SURFACES,
 	TRACK_CONDITIONS
 } from '../src/lib/schemas/race.ts';
@@ -106,7 +108,25 @@ const raceSchema = v.object({
 	direction: optional(DIRECTIONS),
 	trackCondition: optional(TRACK_CONDITIONS),
 	weather: v.optional(v.string()),
-	entries: v.pipe(v.array(entrySchema), v.maxLength(18, '出走馬は18頭までです'))
+	entries: v.pipe(
+		v.array(entrySchema),
+		v.maxLength(MAX_ENTRIES, `出走馬は${MAX_ENTRIES}頭までです`)
+	),
+	/**
+	 * 取り下げる出走馬。**書いた馬の出走馬行を DB から消す。**
+	 * 枠が決まって出走しなかった候補や、登録を回避した馬を書く。
+	 *
+	 * 付いていたメモは消さずに近況メモ（kind='horse'）へ移してから消す（`withdrawStatements`）。
+	 * 引き当ては出走馬行と同じ `horseRef` なので、ref があれば書いておく。
+	 */
+	withdrawn: v.optional(
+		v.array(
+			v.object({
+				name: v.pipe(v.string(), v.trim(), v.minLength(1, '馬名は必須です')),
+				ref: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1)))
+			})
+		)
+	)
 });
 
 const fileSchema = v.object({
@@ -157,7 +177,7 @@ function newId(): string {
  *   3. 生年が一致する同名馬 → 無ければ生年未設定の同名馬（`age` を後から足す経路）
  *   4. 名前だけなら同名の中から、生年未設定 → 生年が新しい順に1頭
  */
-function horseRef(e: Entry): string {
+function horseRef(e: Pick<Entry, 'name' | 'ref' | 'birthYear'>): string {
 	// 名前（＋分かれば生年）での引き当て条件。
 	const byName = e.birthYear
 		? `name = ${lit(e.name)} AND (birth_year = ${lit(e.birthYear)} OR birth_year IS NULL)`
@@ -204,6 +224,10 @@ ON CONFLICT (date, course, race_number) DO UPDATE SET
 			`UPDATE race_entry SET bracket = NULL, horse_number = NULL
 WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 		);
+
+		for (const w of race.withdrawn ?? []) {
+			out.push(...withdrawStatements(date, race, w, raceKey()));
+		}
 
 		for (const e of race.entries) {
 			const ref = horseRef(e);
@@ -274,6 +298,70 @@ ON CONFLICT (file) DO UPDATE SET hash = excluded.hash, applied_at = unixepoch();
 	);
 
 	return out;
+}
+
+/**
+ * 取り下げ。出走馬行を消す**前に、付いていたメモを近況メモ（kind='horse'）へ移す。**
+ *
+ * 出走馬行を消すと、紐づくメモ（出走前メモ・ふりかえり）が ON DELETE CASCADE で道連れになる。
+ * 候補の段階で書いた見立ては、出走しなくてもその馬についての記録として残す価値がある。
+ *
+ * 移し方は note_kind_shape の CHECK に合わせる: race_id / race_entry_id を外し、
+ * 印（出走前メモ専用）も外す。どのレースのメモだったかは本文の先頭に書き残す。
+ * occurred_at はレースの日のままにして、馬のタイムラインでその週の位置に並ぶようにする。
+ *
+ * SET の右辺はどれも**更新前の行**を見る（SQLite の UPDATE の決まり）ので、
+ * 本文を作る式の中の kind / mark は元の値。
+ */
+function withdrawStatements(
+	date: string,
+	race: RaceFile['races'][number],
+	w: { name: string; ref?: string },
+	raceKey: string
+): string[] {
+	const ref = horseRef(w);
+	const entry = `SELECT id FROM race_entry WHERE race_id = (SELECT id FROM race WHERE ${raceKey}) AND horse_id = ${ref}`;
+	const where = `${date} ${race.course}${race.raceNumber}R ${race.name}`;
+	return [
+		`-- 取り下げ: ${w.name}`,
+		`UPDATE note SET
+  kind = 'horse',
+  race_id = NULL,
+  race_entry_id = NULL,
+  mark = NULL,
+  body = '（' || ${lit(where)} || ' に出走しなかったため、'
+    || CASE kind WHEN 'entry' THEN 'ふりかえり' ELSE '出走前メモ' END || 'から移しました'
+    || CASE WHEN mark IS NULL THEN '' ELSE '。印 ' || mark END || '）'
+    || CASE WHEN body = '' THEN '' ELSE char(10) || char(10) || body END,
+  updated_at = unixepoch()
+WHERE race_entry_id = (${entry});`,
+		`DELETE FROM race_entry WHERE id = (${entry});`
+	];
+}
+
+/** 同じレースの中で、馬番の重複と「出走馬にも取り下げにもいる馬」を見つける。 */
+function raceConflicts(race: RaceFile['races'][number]): string[] {
+	const errors: string[] = [];
+	const label = `${race.course}${race.raceNumber}R`;
+
+	const seen = new Map<number, string>();
+	for (const e of race.entries) {
+		if (e.horseNumber === undefined) continue;
+		const other = seen.get(e.horseNumber);
+		if (other)
+			errors.push(`${label}: 馬番 ${e.horseNumber} が ${other} と ${e.name} で重複しています`);
+		seen.set(e.horseNumber, e.name);
+	}
+
+	for (const w of race.withdrawn ?? []) {
+		const hit = race.entries.find((e) => (w.ref && e.ref ? w.ref === e.ref : w.name === e.name));
+		if (hit) {
+			errors.push(
+				`${label}: ${w.name} が entries と withdrawn の両方にいます。出走するなら withdrawn から外してください`
+			);
+		}
+	}
+	return errors;
 }
 
 /**
@@ -422,6 +510,7 @@ async function main() {
 				if (error) errors.push(error);
 				return entry;
 			});
+			errors.push(...raceConflicts(race));
 		}
 		if (errors.length > 0) {
 			failed = true;
