@@ -13,8 +13,9 @@
  * 毎回すべてを再適用すると「今週ぶんを入れるために過去1年を流し直す」ことになる。
  * 適用済みのハッシュは D1 の `data_import` に覚えてあり、突き合わせて差分を出す。
  *
- * 生成する SQL は**冪等**で、メモ（note）には一切触れない。
- * 同じファイルを何度流しても結果は同じで、既存のメモは消えない。
+ * 生成する SQL は**冪等**で、既存のメモは消えない。同じファイルを何度流しても結果は同じ。
+ * メモ（note）に触れるのは取り下げ（`withdrawn`）のときだけで、それも消さずに
+ * 近況メモへ移す（`withdrawStatements`）。
  *
  *   node --experimental-strip-types scripts/import-races.ts --check
  *   node --experimental-strip-types scripts/import-races.ts --target local  --out out.sql
@@ -25,12 +26,14 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parse } from 'yaml';
 import * as v from 'valibot';
 import {
 	COURSES,
 	DIRECTIONS,
 	GRADES,
+	MAX_ENTRIES,
 	SURFACES,
 	TRACK_CONDITIONS
 } from '../src/lib/schemas/race.ts';
@@ -106,7 +109,25 @@ const raceSchema = v.object({
 	direction: optional(DIRECTIONS),
 	trackCondition: optional(TRACK_CONDITIONS),
 	weather: v.optional(v.string()),
-	entries: v.pipe(v.array(entrySchema), v.maxLength(18, '出走馬は18頭までです'))
+	entries: v.pipe(
+		v.array(entrySchema),
+		v.maxLength(MAX_ENTRIES, `出走馬は${MAX_ENTRIES}頭までです`)
+	),
+	/**
+	 * 取り下げる出走馬。**書いた馬の出走馬行を DB から消す。**
+	 * 枠が決まって出走しなかった候補や、登録を回避した馬を書く。
+	 *
+	 * 付いていたメモは消さずに近況メモ（kind='horse'）へ移してから消す（`withdrawStatements`）。
+	 * 引き当ては出走馬行と同じ `horseRef` なので、ref があれば書いておく。
+	 */
+	withdrawn: v.optional(
+		v.array(
+			v.object({
+				name: v.pipe(v.string(), v.trim(), v.minLength(1, '馬名は必須です')),
+				ref: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1)))
+			})
+		)
+	)
 });
 
 const fileSchema = v.object({
@@ -157,7 +178,7 @@ function newId(): string {
  *   3. 生年が一致する同名馬 → 無ければ生年未設定の同名馬（`age` を後から足す経路）
  *   4. 名前だけなら同名の中から、生年未設定 → 生年が新しい順に1頭
  */
-function horseRef(e: Entry): string {
+function horseRef(e: Pick<Entry, 'name' | 'ref' | 'birthYear'>): string {
 	// 名前（＋分かれば生年）での引き当て条件。
 	const byName = e.birthYear
 		? `name = ${lit(e.name)} AND (birth_year = ${lit(e.birthYear)} OR birth_year IS NULL)`
@@ -179,7 +200,7 @@ function horseRef(e: Entry): string {
 	);
 }
 
-function statementsFor(file: RaceFile, fileName: string, hash: string): string[] {
+export function statementsFor(file: RaceFile, fileName: string, hash: string): string[] {
 	const out: string[] = [];
 	const { date } = file;
 
@@ -204,6 +225,10 @@ ON CONFLICT (date, course, race_number) DO UPDATE SET
 			`UPDATE race_entry SET bracket = NULL, horse_number = NULL
 WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 		);
+
+		for (const w of race.withdrawn ?? []) {
+			out.push(...withdrawStatements(date, race, w, raceKey()));
+		}
 
 		for (const e of race.entries) {
 			const ref = horseRef(e);
@@ -277,6 +302,70 @@ ON CONFLICT (file) DO UPDATE SET hash = excluded.hash, applied_at = unixepoch();
 }
 
 /**
+ * 取り下げ。出走馬行を消す**前に、付いていたメモを近況メモ（kind='horse'）へ移す。**
+ *
+ * 出走馬行を消すと、紐づくメモ（出走前メモ・ふりかえり）が ON DELETE CASCADE で道連れになる。
+ * 候補の段階で書いた見立ては、出走しなくてもその馬についての記録として残す価値がある。
+ *
+ * 移し方は note_kind_shape の CHECK に合わせる: race_id / race_entry_id を外し、
+ * 印（出走前メモ専用）も外す。どのレースのメモだったかは本文の先頭に書き残す。
+ * occurred_at はレースの日のままにして、馬のタイムラインでその週の位置に並ぶようにする。
+ *
+ * SET の右辺はどれも**更新前の行**を見る（SQLite の UPDATE の決まり）ので、
+ * 本文を作る式の中の kind / mark は元の値。
+ */
+function withdrawStatements(
+	date: string,
+	race: RaceFile['races'][number],
+	w: { name: string; ref?: string },
+	raceKey: string
+): string[] {
+	const ref = horseRef(w);
+	const entry = `SELECT id FROM race_entry WHERE race_id = (SELECT id FROM race WHERE ${raceKey}) AND horse_id = ${ref}`;
+	const where = `${date} ${race.course}${race.raceNumber}R ${race.name}`;
+	return [
+		`-- 取り下げ: ${w.name}`,
+		`UPDATE note SET
+  kind = 'horse',
+  race_id = NULL,
+  race_entry_id = NULL,
+  mark = NULL,
+  body = '（' || ${lit(where)} || ' に出走しなかったため、'
+    || CASE kind WHEN 'entry' THEN 'ふりかえり' ELSE '出走前メモ' END || 'から移しました'
+    || CASE WHEN mark IS NULL THEN '' ELSE '。印 ' || mark END || '）'
+    || CASE WHEN body = '' THEN '' ELSE char(10) || char(10) || body END,
+  updated_at = unixepoch()
+WHERE race_entry_id = (${entry});`,
+		`DELETE FROM race_entry WHERE id = (${entry});`
+	];
+}
+
+/** 同じレースの中で、馬番の重複と「出走馬にも取り下げにもいる馬」を見つける。 */
+function raceConflicts(race: RaceFile['races'][number]): string[] {
+	const errors: string[] = [];
+	const label = `${race.course}${race.raceNumber}R`;
+
+	const seen = new Map<number, string>();
+	for (const e of race.entries) {
+		if (e.horseNumber === undefined) continue;
+		const other = seen.get(e.horseNumber);
+		if (other)
+			errors.push(`${label}: 馬番 ${e.horseNumber} が ${other} と ${e.name} で重複しています`);
+		seen.set(e.horseNumber, e.name);
+	}
+
+	for (const w of race.withdrawn ?? []) {
+		const hit = race.entries.find((e) => (w.ref && e.ref ? w.ref === e.ref : w.name === e.name));
+		if (hit) {
+			errors.push(
+				`${label}: ${w.name} が entries と withdrawn の両方にいます。出走するなら withdrawn から外してください`
+			);
+		}
+	}
+	return errors;
+}
+
+/**
  * 馬齢から生年を導出し、`birthYear` に寄せる。
  * 出馬表には生年ではなく性齢（牡4）が載るので、書き写すだけで済むようにしておく。
  */
@@ -291,6 +380,43 @@ function normalizeEntry(e: Entry, date: string): { entry: Entry; error?: string 
 		};
 	}
 	return { entry: { ...e, birthYear: derived } };
+}
+
+/**
+ * 1ファイルを読んで検証し、馬齢を生年に寄せる。落ちる理由があれば全部返す。
+ * 投入（main）と単体テストが同じ道を通るよう、ここに切り出してある。
+ */
+export function readRaceFile(
+	raw: string,
+	fileName: string
+): { ok: true; output: RaceFile } | { ok: false; errors: string[] } {
+	const parsed = v.safeParse(fileSchema, parse(raw));
+	if (!parsed.success) {
+		return {
+			ok: false,
+			errors: parsed.issues.map(
+				(issue) => `${issue.path?.map((p) => String(p.key)).join('.') ?? ''}: ${issue.message}`
+			)
+		};
+	}
+
+	// ファイル名と中身の日付が食い違うと、どの週のデータか分からなくなる。
+	const expected = fileName.replace(/.ya?ml$/, '');
+	if (expected !== parsed.output.date) {
+		return { ok: false, errors: [`ファイル名と date（${parsed.output.date}）が一致しません`] };
+	}
+
+	// 馬齢 → 生年。ここで食い違いを見つけたら落とす。
+	const errors: string[] = [];
+	for (const race of parsed.output.races) {
+		race.entries = race.entries.map((e) => {
+			const { entry, error } = normalizeEntry(e, parsed.output.date);
+			if (error) errors.push(error);
+			return entry;
+		});
+		errors.push(...raceConflicts(race));
+	}
+	return errors.length > 0 ? { ok: false, errors } : { ok: true, output: parsed.output };
 }
 
 /** 適用済みのファイル名 → ハッシュ。テーブルがまだ無い等で引けなければ空で返す。 */
@@ -394,39 +520,11 @@ async function main() {
 
 	for (const f of files) {
 		const raw = await readFile(join(dataDir, f), 'utf8');
-		const parsed = v.safeParse(fileSchema, parse(raw));
-
-		if (!parsed.success) {
+		const parsed = readRaceFile(raw, f);
+		if (!parsed.ok) {
 			failed = true;
-			console.error(`✗ ${f}`);
-			for (const issue of parsed.issues) {
-				const path = issue.path?.map((p) => String(p.key)).join('.') ?? '';
-				console.error(`    ${path}: ${issue.message}`);
-			}
-			continue;
-		}
-
-		// ファイル名と中身の日付が食い違うと、どの週のデータか分からなくなる。
-		const expected = f.replace(/\.ya?ml$/, '');
-		if (expected !== parsed.output.date) {
-			failed = true;
-			console.error(`✗ ${f}: ファイル名と date（${parsed.output.date}）が一致しません`);
-			continue;
-		}
-
-		// 馬齢 → 生年。ここで食い違いを見つけたら落とす。
-		const errors: string[] = [];
-		for (const race of parsed.output.races) {
-			race.entries = race.entries.map((e) => {
-				const { entry, error } = normalizeEntry(e, parsed.output.date);
-				if (error) errors.push(error);
-				return entry;
-			});
-		}
-		if (errors.length > 0) {
-			failed = true;
-			console.error(`✗ ${f}`);
-			for (const e of errors) console.error(`    ${e}`);
+			console.error(`✗ ${f}${parsed.errors.length === 1 ? `: ${parsed.errors[0]}` : ''}`);
+			if (parsed.errors.length > 1) for (const e of parsed.errors) console.error(`    ${e}`);
 			continue;
 		}
 
@@ -493,4 +591,7 @@ async function main() {
 	}
 }
 
-await main();
+// 単体テストから import したときは走らせない。
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	await main();
+}

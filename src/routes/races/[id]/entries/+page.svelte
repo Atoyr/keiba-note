@@ -7,7 +7,11 @@
 	// 既存行 + 余白。行の追加はクライアント側で増やせるようにしておく。
 	// data.minRows は再訪で変わるので、増分だけを state に持って derive する。
 	let extraRows = $state(0);
-	const rowCount = $derived(Math.min(18, data.minRows + extraRows));
+	// 行の上限は18。ただし**登録済みの頭数より少なくはしない。** 枠が決まる前の候補は
+	// 18頭を超えることがあり、欄から溢れた馬は保存で「フォームから消えた」扱いになって
+	// メモごと削除されてしまう（saveEntries）。
+	const maxRows = $derived(Math.max(18, data.entries.length));
+	const rowCount = $derived(Math.min(maxRows, data.minRows + extraRows));
 
 	const cell = 'w-full rounded border border-gray-300 px-2 py-1.5 text-sm';
 </script>
@@ -147,7 +151,7 @@
 			<button
 				type="button"
 				onclick={() => (extraRows += 3)}
-				disabled={rowCount >= 18}
+				disabled={rowCount >= maxRows}
 				class="text-sm text-gray-600 hover:underline disabled:text-gray-300 disabled:no-underline"
 			>
 				行を増やす

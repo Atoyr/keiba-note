@@ -18,6 +18,7 @@ PR に貼るキャプチャの撮り方。
 | 整形・lint・文書の参照 | Prettier / ESLint / `scripts/check-docs.ts` | — | `pnpm run lint` |
 | サーバー・サービス層・純ロジック・権限の絞り込み・日付の境界 | Vitest（node） | `src/**/*.spec.ts` | `pnpm run test:unit` |
 | Svelte コンポーネントの表示と操作 | Vitest（実 chromium） | `src/**/*.svelte.spec.ts` | 同上 |
+| `scripts/` の道具（netkeiba の読み取り・YAML への当てはめなど） | Vitest（node） | `scripts/**/*.spec.ts` | 同上 |
 | 画面の振る舞い・認可・form POST（CSRF） | Playwright（本番ビルド + E2E 専用 D1） | `e2e/*.e2e.ts` | `pnpm run test:e2e` |
 | 全画面が開けること・実行時エラー・mobile ではみ出さないこと | 画面カタログ | `e2e/screens.ts`（1行足す） | 同上 |
 | PR 本文の欄（画面・評価など）が埋まっているか | `scripts/check-pr-body.ts` | `.github/workflows/pr-body.yml` | CI の「PR 本文」（手元では `pnpm run pr:check`） |

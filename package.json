@@ -30,6 +30,7 @@
 		"pr:check": "node --experimental-strip-types scripts/check-pr-body.ts",
 		"deploy:staging": "vite build && wrangler preview --name staging",
 		"data:check": "node --experimental-strip-types scripts/import-races.ts --check",
+		"data:fetch": "node --experimental-strip-types scripts/race-data.ts",
 		"data:sql:local": "node --experimental-strip-types scripts/import-races.ts --target local --out .wrangler/import-races.sql",
 		"data:sql:remote": "node --experimental-strip-types scripts/import-races.ts --target remote --out .wrangler/import-races.sql",
 		"data:sql:staging": "node --experimental-strip-types scripts/import-races.ts --target remote --all --out .wrangler/import-races-staging.sql",
