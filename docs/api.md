@@ -30,12 +30,14 @@ SvelteKit の `load` + form actions で完結させる。
 
 | 誰が | 仕組み | 通らなかったとき |
 | --- | --- | --- |
-| 誰でも | `PUBLIC_PATHS`（`/login`・`/auth/`・`/notes/`・`/privacy`・`/terms`）に前方一致するパス | — |
+| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/privacy`・`/terms`）のパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
 | admin | `ctxAdmin(locals, platform)` | 403 |
 
 - **ログイン不要のパスを増やすのは `PUBLIC_PATHS` だけ。** ルートの中で個別に通さない
+- `/` は未ログインでも開き、紹介ページを出す。`load` は `locals.user` が無ければ DB に触らず
+  `{ landing: true }` だけを返す。**ここで何か引くと、そのまま誰にでも見える**
 - `/notes/` は共有ページのための公開パス。**ログインが要る画面を `/notes/` の下に作らない**
   （共有の取り消しが `/settings/shares` にあるのはこのため）
 - 本番ビルドでは SvelteKit が POST の `Origin` を検証する（CSRF）。`vite dev` では効かないので、
@@ -52,6 +54,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/login` | GET | `redirect`・`error` | ログイン済みなら `302` で `redirect` へ | — |
 | `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | `302 /login?error=unavailable` |
 | `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable` |
+| `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みはダッシュボード（下の表） | — |
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
 | `/terms` | GET | — | 利用規約（同上） | — |
 | `/notes/[id]` | GET | — | unlisted のメモ1件。`X-Robots-Tag: noindex, nofollow`・`Referrer-Policy: no-referrer`・`Cache-Control: private, no-store` | **404**（private でも存在しなくても同じ） |

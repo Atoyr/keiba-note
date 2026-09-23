@@ -107,6 +107,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `NoteMenu` / `AnswerCheck` / `DraftKeeper` | メモの `⋯` メニュー・的中の確認・書きかけの保持 |
 | `AccountMenu` | ヘッダのアバター |
 | `LegalDocument` | プライバシーポリシーと利用規約の枠（見出し・制定日と改定日・戻り先） |
+| `GoogleLogin` / `LandingPage` | 「Google でログイン」と規約への同意の一文・未ログインのトップの紹介ページ |
 
 - 同じ意味のものは、画面ごとに作らずここの部品を使う
 - 見た目の分岐（グレードごと、印ごと）は1箇所の表に書く。新しく書くものは `tailwind-variants` の `tv()` にし、

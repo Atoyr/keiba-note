@@ -558,6 +558,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /login                        ログイン（[Googleでログイン] のみ）
 /auth/google                  認可画面へリダイレクト（GET）
 /auth/google/callback         OAuth コールバック
+/（未ログイン）                紹介ページ。データは出さない。Google の同意画面のホームページ
 /privacy                      プライバシーポリシー（Google の同意画面に登録する）
 /terms                        利用規約（同上）
 /robots.txt                   クロール制御
