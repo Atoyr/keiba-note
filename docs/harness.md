@@ -30,7 +30,7 @@
 | 型・Svelte の検査 | `svelte-check` | — | `pnpm run check` が落ちる |
 | 整形・lint | Prettier / ESLint | — | `pnpm run lint` が落ちる |
 | 純ロジック・サービス層・権限の絞り込み・日付の境界 | Vitest（node） | `src/**/*.spec.ts` | 単体テストが落ちる |
-| コンポーネントの表示と操作 | Vitest（実 chromium） | `src/**/*.svelte.test.ts` | 単体テストが落ちる |
+| コンポーネントの表示と操作 | Vitest（実 chromium） | `src/**/*.svelte.spec.ts` | 単体テストが落ちる |
 | 画面の振る舞い・未ログイン/他人の id で開けないこと・form POST（CSRF） | Playwright（本番ビルド） | `e2e/*.e2e.ts` | E2E が落ちる |
 | **全画面が開けること・実行時エラーが無いこと・mobile で横にはみ出さないこと** | 画面カタログ | `e2e/screens.ts` + `e2e/screens.e2e.ts` | E2E が落ちる |
 | 見た目が意図どおりか | **人**がキャプチャを見る | `docs/screenshots/<機能名>/` | PR で差し戻す |

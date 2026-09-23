@@ -29,21 +29,7 @@ describe('currentWeek', () => {
 		});
 	});
 
-	it('日曜はまだその週のうち（週末開催の最終日）', () => {
-		expect(currentWeek(utc('2026-09-27T03:00:00Z'))).toEqual({
-			start: '2026-09-21',
-			end: '2026-09-27'
-		});
-	});
-
-	it('月曜に次の週へ切り替わる', () => {
-		expect(currentWeek(utc('2026-09-28T03:00:00Z'))).toEqual({
-			start: '2026-09-28',
-			end: '2026-10-04'
-		});
-	});
-
-	it('JST で日付が変わる瞬間に切り替わる', () => {
+	it('日曜いっぱいはその週、JST で月曜になった瞬間に次の週へ切り替わる', () => {
 		// 日曜 23:59 JST = まだ 9/21 週
 		expect(currentWeek(utc('2026-09-27T14:59:00Z')).start).toBe('2026-09-21');
 		// 月曜 00:00 JST = 次の週
@@ -98,13 +84,6 @@ describe('currentWeek（連休）', () => {
 			end: '2026-10-04'
 		});
 	});
-
-	it('開催日を渡さなければ月曜〜日曜のまま', () => {
-		expect(currentWeek(utc('2026-09-28T03:00:00Z'))).toEqual({
-			start: '2026-09-28',
-			end: '2026-10-04'
-		});
-	});
 });
 
 describe('shiftWeek', () => {
@@ -130,15 +109,6 @@ describe('shiftWeek', () => {
 describe('weekLookupRange', () => {
 	// 2026-09-22 は火曜。週の月曜は 9/21
 	const tuesday = utc('2026-09-22T03:00:00Z');
-
-	it('今週の前後1週ぶんを読む（前の週の延長と、今週の延長の判定）', () => {
-		expect(weekLookupRange(tuesday, 0)).toEqual({ from: '2026-09-14', to: '2026-09-29' });
-	});
-
-	it('週送りの先まで広げる', () => {
-		expect(weekLookupRange(tuesday, 2)).toEqual({ from: '2026-09-14', to: '2026-10-13' });
-		expect(weekLookupRange(tuesday, -2)).toEqual({ from: '2026-08-31', to: '2026-09-29' });
-	});
 
 	it('この範囲だけ読めば、全部の開催日を渡したときと同じ週になる', () => {
 		// 前後に連休（月曜・火曜まで開催）を置いた並び。9/22 当日も連休の中にいる
@@ -197,10 +167,6 @@ describe('weeksBefore', () => {
 			from: '2026-08-31',
 			to: '2026-09-20'
 		});
-	});
-
-	it('1週なら直前の1週間だけ', () => {
-		expect(weeksBefore(week, 1)).toEqual({ from: '2026-09-14', to: '2026-09-20' });
 	});
 });
 

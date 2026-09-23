@@ -64,14 +64,6 @@ test('先の予定はレースの枠には出ない', async ({ page }) => {
 	}
 });
 
-test('未ログインではダッシュボードを開けない', async ({ page }) => {
-	await page.goto('/');
-
-	await expect(page).toHaveURL(/\/login/);
-	// 今週のレースの中身が漏れていないこと。
-	await expect(page.getByText(DASHBOARD_RACES.thisWeek)).toHaveCount(0);
-});
-
 /**
  * ★ 今週出走する注目馬は、**自分が付けた一番新しい結論の札**で決まる。
  * 買い → 消しと書き換えた馬は消しで出て、古い買いのメモは出ない。

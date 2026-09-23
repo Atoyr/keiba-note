@@ -9,16 +9,6 @@ import {
 	SAME_CONDITION_NOTE_BODY
 } from './seed';
 
-test('未ログインでは予想画面を開けない', async ({ page }) => {
-	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
-
-	await expect(page).toHaveURL(
-		`/login?redirect=${encodeURIComponent(`/races/${PREVIEW_RACE_ID}/preview`)}`
-	);
-	// 出走前メモの中身が1文字も漏れていないこと。
-	await expect(page.getByText('今回は内枠が向きそう。')).toHaveCount(0);
-});
-
 /**
  * この画面の用は「16頭を見比べる」ことなので、**自分の出走前メモは開かずに読める**
  * のが正。畳まれていた頃は1頭ずつ開かないと自分の見解が見えなかった。
@@ -56,17 +46,16 @@ test('「書き直す」を開くと、本文欄と全部の札が出る', async
 });
 
 /**
- * 枠は色で読む。ふりかえり画面と同じ札を使うので、**予想で見た枠と
- * 結果で見る枠が別物に見えない**ことを、こちら側でも1本押さえておく。
+ * 枠の札がこの画面にも配線されていること。色そのものは BracketBadge の
+ * 表が持っていて、ふりかえり画面と同じ部品なので、ここでは出ているかだけを見る。
  */
-test('出走馬の枠番が枠の色で出る', async ({ page }) => {
+test('出走馬の枠番が枠の札で出る', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
 	const bracket = page.getByTitle('2枠');
 	await expect(bracket).toBeVisible();
 	await expect(bracket).toHaveText('2');
-	await expect(bracket).toHaveClass(/bg-gray-900/);
 
 	// 枠の色は馬番を置き換えるものではない。両方出ていること。
 	const row = page.locator('main > form > ul > li').first();

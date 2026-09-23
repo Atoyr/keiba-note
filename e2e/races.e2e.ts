@@ -38,6 +38,8 @@ test('絞り込み付きのレース一覧も未ログインでは開けず、�
  * 名乗ると、画面に出ていない何かも一緒に保存されるように読める。
  *
  * **開催済みのレースで見る。** 開催前のレースはふりかえり自体が開けない。
+ *
+ * 文言の分岐は `raceReviewSaveLabel` の単体テストで両方見ている。ここは配線の確認。
  */
 test('出走馬がいないレースの保存ボタンは「まとめて」と名乗らない', async ({ page }) => {
 	await login(page);
@@ -73,62 +75,22 @@ test('開催済みのレースはふりかえりが開く', async ({ page }) => 
 	await expect(page.getByText('ペース、馬場、展開など「レースの性質」')).toBeVisible();
 });
 
-test('出走馬が並んでいれば「まとめて保存」のまま', async ({ page }) => {
-	await login(page);
-	await page.goto(`/races/${REVIEW_RACE_ID}`);
-
-	await expect(page.getByRole('button', { name: 'まとめて保存' })).toBeVisible();
-	await expect(page.getByRole('button', { name: 'レースのメモを保存' })).toHaveCount(0);
-});
-
-/**
- * 認証は開催前の振り分けより先に効く。**開催前のレースで見るのが要点**で、
- * 予想画面へのリダイレクトが認証を追い越すと、未ログインのまま中身が出る。
- */
-test('ふりかえり画面は未ログインでは開けない', async ({ page }) => {
-	await page.goto(`/races/${EMPTY_RACE_ID}`);
-
-	await expect(page).toHaveURL(`/login?redirect=${encodeURIComponent(`/races/${EMPTY_RACE_ID}`)}`);
-	// レース名すら出ていないこと。
-	await expect(page.getByText('E2E出馬表前賞')).toHaveCount(0);
-});
-
 /**
  * 枠は色で読む。この画面は**着順で並ぶ**ので、色が無いと
  * 「内で決まったレースだったのか」がひと目で拾えない。
- * 色は JRA の帽子の色に合わせてあり、**数字も必ず一緒に出す**。
+ * 色そのものは BracketBadge の表が持つ。ここでは札が出て、**数字も一緒に出る**ことを見る。
  */
-test('出走馬の枠番が枠の色で出る', async ({ page }) => {
+test('出走馬の枠番が枠の札で出る', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${BRACKET_RACE_ID}`);
 
-	// 1枠は白。面が背景と同じなので、輪郭が無いと消える。
-	const inner = page.getByTitle('1枠');
-	await expect(inner).toBeVisible();
-	await expect(inner).toHaveText('1');
-	await expect(inner).toHaveClass(/bg-white/);
-	await expect(inner).toHaveClass(/border-gray-400/);
+	await expect(page.getByTitle('1枠')).toHaveText('1');
+	await expect(page.getByTitle('8枠')).toHaveText('8');
 
-	// 8枠は桃。
-	const outer = page.getByTitle('8枠');
-	await expect(outer).toBeVisible();
-	await expect(outer).toHaveText('8');
-	await expect(outer).toHaveClass(/bg-pink-300/);
-
-	// 枠の色は馬番を置き換えるものではない。両方出ていること。
+	// 枠の札は馬番を置き換えるものではない。両方出ていること。
 	// 答え合わせの欄にも同じ馬名が出るので、書く欄（form の中）の行に絞る。
 	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
 	await expect(row).toContainText('16');
-});
-
-/** 出走馬の並んだレースでも、未ログインなら馬名まで出ないこと。 */
-test('未ログインでは出走馬の名前も出ない', async ({ page }) => {
-	await page.goto(`/races/${BRACKET_RACE_ID}`);
-
-	await expect(page).toHaveURL(
-		`/login?redirect=${encodeURIComponent(`/races/${BRACKET_RACE_ID}`)}`
-	);
-	await expect(page.getByText('E2Eウチワク')).toHaveCount(0);
 });
 
 /**

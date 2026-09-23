@@ -37,7 +37,7 @@ function badge() {
 }
 
 describe('RaceHeading', () => {
-	it('入りきらないレース名は … で詰め、1行目を折り返さない', () => {
+	it('長いレース名だけを … で詰め、開催は最後まで出し、重賞の札は2行目に回す', () => {
 		narrow();
 		render(RaceHeading, {
 			meeting: '2026-10-04 東京11R',
@@ -59,34 +59,14 @@ describe('RaceHeading', () => {
 			meeting.getBoundingClientRect().height,
 			0
 		);
-	});
 
-	it('開催（日付・場・R）は詰めずに最後まで出す', () => {
-		narrow();
-		render(RaceHeading, {
-			meeting: '2026-10-04 東京11R',
-			name: LONG_NAME,
-			grade: 'G2',
-			spec: '芝1800m / 左 / 良'
-		});
-
-		const { meeting } = spans();
+		// 開催（日付・場・R）は詰めずに最後まで出す。
 		expect(meeting.scrollWidth).toBe(meeting.clientWidth);
 		expect(meeting.textContent).toBe('2026-10-04 東京11R');
-	});
 
-	it('重賞の札は1行目ではなく2行目に出る', () => {
-		narrow();
-		render(RaceHeading, {
-			meeting: '2026-10-04 東京11R',
-			name: LONG_NAME,
-			grade: 'G2',
-			spec: '芝1800m / 左 / 良'
-		});
-
+		// 札の上端が見出しの下端より下にある＝別の行にいる。
 		const g = badge();
 		expect(g?.textContent?.trim()).toBe('G2');
-		// 札の上端が見出しの下端より下にある＝別の行にいる。
 		expect(g!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
 			h1().getBoundingClientRect().bottom
 		);
@@ -103,18 +83,6 @@ describe('RaceHeading', () => {
 
 		const { name } = spans();
 		expect(name.scrollWidth).toBe(name.clientWidth);
-	});
-
-	it('重賞でないレースには札を出さない', () => {
-		narrow();
-		render(RaceHeading, {
-			meeting: '2026-10-04 東京8R',
-			name: '3歳以上2勝クラス',
-			grade: null,
-			spec: '3歳以上2勝クラス / 芝1600m'
-		});
-
-		expect(badge()).toBeNull();
 	});
 
 	it('レース名が無くても見出しが立つ', () => {

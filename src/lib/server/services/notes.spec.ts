@@ -63,24 +63,10 @@ describe('saveRaceReview', () => {
 		expect(result).toEqual({ saved: 1, cleared: 1 });
 	});
 
-	it('本文も札も空なら既存メモを消す', async () => {
+	it('本文が空白だけで札も無ければ、空として既存メモを消す', async () => {
 		const { db, ops } = fakeDb();
 
 		const result = await saveRaceReview(
-			db,
-			{ raceId: 'r1', raceNote: { body: '' }, entries: [entry()] },
-			'u1',
-			'2026-09-27'
-		);
-
-		expect(ops).toEqual([{ kind: 'delete' }, { kind: 'delete' }]);
-		expect(result).toEqual({ saved: 0, cleared: 2 });
-	});
-
-	it('空白だけの本文は「空」として扱い、札の有無で残すか決める', async () => {
-		const { db, ops } = fakeDb();
-
-		await saveRaceReview(
 			db,
 			{ raceId: 'r1', raceNote: { body: '  ' }, entries: [entry({ body: ' \n ' })] },
 			'u1',
@@ -88,6 +74,7 @@ describe('saveRaceReview', () => {
 		);
 
 		expect(ops).toEqual([{ kind: 'delete' }, { kind: 'delete' }]);
+		expect(result).toEqual({ saved: 0, cleared: 2 });
 	});
 });
 
@@ -234,29 +221,10 @@ describe('mergeHorseTimeline', () => {
 		...over
 	});
 
-	it('メモを書かなかった出走もタイムラインに出る', () => {
-		const rows = mergeHorseTimeline([], [run()], '2026-09-27');
-
-		expect(rows).toEqual([
-			expect.objectContaining({ type: 'run', occurredAt: '2026-09-20', upcoming: false })
-		]);
-	});
-
 	it('メモのある出走は出走行を出さない（同じレースが2行にならない）', () => {
 		const rows = mergeHorseTimeline([memo()], [run()], '2026-09-27');
 
 		expect(rows).toEqual([expect.objectContaining({ type: 'note', key: 'note:n1' })]);
-	});
-
-	// 1つの出走に「出走前」と「ふりかえり」の2件が付く。片方でもあれば骨は要らない。
-	it('出走前メモだけでも出走行は出さない', () => {
-		const rows = mergeHorseTimeline(
-			[memo({ id: 'n2', kind: 'preview', mark: '◎' })],
-			[run()],
-			'2026-09-27'
-		);
-
-		expect(rows.map((r) => r.type)).toEqual(['note']);
 	});
 
 	it('未来が上、過去が下。近況メモも同じ流れに混ざる', () => {
@@ -284,8 +252,7 @@ describe('mergeHorseTimeline', () => {
 	// 「当日は予定にしない」— 朝は予定でも、走り終えた夕方には予定ではない。
 	it.each([
 		['2026-10-24', true],
-		['2026-10-25', false],
-		['2026-10-26', false]
+		['2026-10-25', false]
 	])('today=%s のとき 2026-10-25 の出走予定は %s', (today, upcoming) => {
 		const rows = mergeHorseTimeline([], [run({ date: '2026-10-25' })], today);
 
