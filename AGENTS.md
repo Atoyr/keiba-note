@@ -36,7 +36,7 @@ TypeScript は strict モードです。Prettier の設定はタブ、シング�
 ## テスト方針
 
 サーバー処理と純粋関数は `src/**/*.spec.ts`（Node）、Svelte コンポーネントは
-`src/**/*.svelte.test.ts`（Chromium）、E2E は `e2e/*.e2e.ts` とします。変更した分岐を
+`src/**/*.svelte.spec.ts`（Chromium）、E2E は `e2e/*.e2e.ts` とします。変更した分岐を
 最低1本は通し、特に権限条件、リダイレクト、日付境界をテストしてください。
 `expect.requireAssertions` が有効なため、アサーションのないテストは失敗します。
 

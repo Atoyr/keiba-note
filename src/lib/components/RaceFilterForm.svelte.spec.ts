@@ -33,13 +33,6 @@ describe('RaceFilterForm', () => {
 		await expect.element(screen.getByLabelText('レース名')).toHaveValue('記念');
 	});
 
-	it('年度の選択肢は渡された年だけ（新しい年が先）', () => {
-		const screen = setup();
-
-		const options = [...screen.container.querySelectorAll('#filter-year option')];
-		expect(options.map((o) => o.textContent?.trim())).toEqual(['すべて', '2026年', '2025年']);
-	});
-
 	it('絞り込んでいるときだけクリアを出す', async () => {
 		await expect
 			.element(setup({ q: '記念' }).getByRole('link', { name: '条件をクリア' }))

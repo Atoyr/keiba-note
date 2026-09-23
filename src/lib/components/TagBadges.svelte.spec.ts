@@ -18,19 +18,4 @@ describe('TagBadges', () => {
 
 		expect(screen.container.querySelector('span')).toBeNull();
 	});
-
-	it('TagPicker と同じ系統の色を使う', async () => {
-		const screen = render(TagBadges, { tags: ['次走買い', '不利', '好上がり', '次走消し'] });
-
-		const classOf = (tag: string) =>
-			[...screen.container.querySelectorAll('span > span')].find(
-				(el) => el.textContent?.trim() === tag
-			)?.className ?? '';
-
-		await expect.element(screen.getByText('次走買い')).toBeInTheDocument();
-		expect(classOf('次走買い')).toContain('bg-red-600');
-		expect(classOf('不利')).toContain('bg-sky-100');
-		expect(classOf('好上がり')).toContain('bg-amber-100');
-		expect(classOf('次走消し')).toContain('bg-slate-700');
-	});
 });

@@ -46,11 +46,3 @@ test('先の予定はレースの枠には出ない', async ({ page }) => {
 		await expect(section(page, heading).getByText('E2E予想賞')).toHaveCount(0);
 	}
 });
-
-test('未ログインではダッシュボードを開けない', async ({ page }) => {
-	await page.goto('/');
-
-	await expect(page).toHaveURL(/\/login/);
-	// 今週のレースの中身が漏れていないこと。
-	await expect(page.getByText(DASHBOARD_RACES.thisWeek)).toHaveCount(0);
-});

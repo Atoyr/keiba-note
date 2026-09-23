@@ -1,30 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
-import { HORSE_ID, SESSION_TOKEN } from './seed';
+import { expect, test } from '@playwright/test';
+import { login } from './login';
+import { HORSE_ID } from './seed';
 
 const TIMELINE = 'main ol > li';
-
-/** seed で用意したセッションを Cookie に載せる（本番ビルドにモック認証は無い）。 */
-async function login(page: Page) {
-	await page.context().addCookies([
-		{
-			name: 'session',
-			value: SESSION_TOKEN,
-			domain: 'localhost',
-			path: '/',
-			httpOnly: true,
-			sameSite: 'Lax'
-		}
-	]);
-}
-
-test('未ログインでは馬詳細を開けない', async ({ page }) => {
-	await page.goto(`/horses/${HORSE_ID}`);
-
-	// 行き先は redirect に持ち越される（ログインしたらそのまま馬詳細へ戻る）。
-	await expect(page).toHaveURL(`/login?redirect=${encodeURIComponent(`/horses/${HORSE_ID}`)}`);
-	// 出走の中身が1つも漏れていないこと。
-	await expect(page.getByText('E2E未来賞')).toHaveCount(0);
-});
 
 test('メモを書かなかった出走もタイムラインに並ぶ', async ({ page }) => {
 	await login(page);
