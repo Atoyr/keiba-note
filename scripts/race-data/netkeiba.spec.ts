@@ -476,7 +476,8 @@ describe('馬の基本情報', () => {
 			name: 'キャントウェイト',
 			sex: '牡',
 			birthYear: 2021,
-			trainer: '萱野浩二'
+			trainer: '萱野浩二',
+			trainerId: '01024'
 		});
 	});
 

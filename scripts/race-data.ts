@@ -296,6 +296,7 @@ async function main() {
 		case 'horses': {
 			const t = parseTarget(args);
 			const { file, race } = await loadRace(args, t);
+			const people = await peopleResolver();
 			const log: string[] = [];
 			for (const entry of selectEntries(args, file, race)) {
 				const ref = entry.get('ref') as string | undefined;
@@ -305,6 +306,13 @@ async function main() {
 					continue;
 				}
 				const profile = parseHorseProfile(await fetchPage(urls.horse(horseId)));
+				// プロフィール表の調教師名は途中で切れる。出馬表・結果と同じ名前に引き直す。
+				if (profile.trainer && profile.trainerId) {
+					profile.trainer = await people.resolve('trainer', {
+						id: profile.trainerId,
+						short: profile.trainer
+					});
+				}
 				const ped = JSON.parse(await fetchPage(urls.pedigree(horseId))) as { data?: string };
 				log.push(
 					...applyProfile(
@@ -316,6 +324,7 @@ async function main() {
 					)
 				);
 			}
+			await people.flush();
 			print(`${t.date} ${t.course}${t.raceNumber}R ${race.get('name')}`, log);
 			await saveAll([file]);
 			return;

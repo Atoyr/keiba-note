@@ -569,7 +569,9 @@ export type HorseProfile = {
 	name: string;
 	sex?: '牡' | '牝' | 'セ';
 	birthYear?: number;
+	/** プロフィール表の調教師名。4文字で切れる（`中内田充`）ので、`trainerId` があれば引き直す。 */
 	trainer?: string;
+	trainerId?: string;
 	sire?: string;
 	dam?: string;
 };
@@ -581,15 +583,18 @@ export function parseHorseProfile(html: string): HorseProfile {
 	const status = text(/class="txt_01">([\s\S]*?)<\/p>/.exec(titleBox)?.[1] ?? '');
 	const sexWord = /(牡|牝|セ|騸)/.exec(status)?.[1];
 
-	const prof = text(/class="db_prof_table[\s\S]*?<\/table>/.exec(html)?.[0] ?? '');
+	const profHtml = /class="db_prof_table[\s\S]*?<\/table>/.exec(html)?.[0] ?? '';
+	const prof = text(profHtml);
 	const birthYear = int(/生年月日\s*(\d{4})年/.exec(prof)?.[1]);
 	const trainer = /調教師\s*(\S+?)\s*\(/.exec(prof)?.[1];
+	const trainerId = /調教師[\s\S]*?\/trainer\/(?:result\/recent\/)?(\w+)\//.exec(profHtml)?.[1];
 
 	return {
 		name,
 		sex: sexWord === '騸' ? 'セ' : (sexWord as HorseProfile['sex']),
 		birthYear,
-		trainer: trainer && trainer !== '-' ? toHalfWidth(trainer) : undefined
+		trainer: trainer && trainer !== '-' ? toHalfWidth(trainer) : undefined,
+		trainerId: trainer && trainer !== '-' ? trainerId : undefined
 	};
 }
 
