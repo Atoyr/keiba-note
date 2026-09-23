@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -122,14 +123,17 @@
 								<span>{h.label}</span>
 							{/if}
 							<SharedBadge visibility={n.visibility} />
+							<!-- 共有は脇役なので畳む。共有中かどうかは左の札で分かる。 -->
+							<div class="ms-auto self-center">
+								<NoteMenu>
+									<ShareControl noteId={n.id} visibility={n.visibility} redirectTo="/" />
+								</NoteMenu>
+							</div>
 						</div>
 						{#if n.body}
 							<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
 						{/if}
 						<TagBadges tags={n.tags} class="mt-1" />
-						<div class="mt-2">
-							<ShareControl noteId={n.id} visibility={n.visibility} redirectTo="/" />
-						</div>
 					</li>
 				{/each}
 			</ol>
