@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mark } from '$lib/schemas/note';
-import { answerCheck, answerVerdict, byMark } from './answer';
+import { answerCheck, asMarked, byMark, inTheMoneyCount, placing } from './answer';
 
 describe('byMark', () => {
 	// 予想画面の「付けた印」と答え合わせで同じ並びにする。
@@ -20,26 +20,37 @@ describe('byMark', () => {
 	});
 });
 
-describe('answerVerdict', () => {
-	// 境界は3着。◎が2着でも本命としては仕事をしている。
-	it('◎○▲△ は3着以内なら当たり、4着以下なら外れ', () => {
+describe('placing', () => {
+	// 境界は3着（複勝圏）。
+	it('3着以内は馬券内、4着以下は着外', () => {
+		expect(placing(1)).toBe('in');
+		expect(placing(3)).toBe('in');
+		expect(placing(4)).toBe('out');
+	});
+
+	// 着順が入っていない馬を着外と出すと、結果の投入待ちなのに負けたように読める。
+	it('着順が無ければ未確定', () => {
+		expect(placing(null)).toBe('pending');
+	});
+});
+
+describe('asMarked', () => {
+	it('◎○▲△ は馬券内なら読みどおり', () => {
 		for (const mark of ['◎', '○', '▲', '△'] as Mark[]) {
-			expect(answerVerdict(mark, 1)).toBe('hit');
-			expect(answerVerdict(mark, 3)).toBe('hit');
-			expect(answerVerdict(mark, 4)).toBe('miss');
+			expect(asMarked(mark, 'in')).toBe(true);
+			expect(asMarked(mark, 'out')).toBe(false);
 		}
 	});
 
-	// × は「来ない」と読んだ印。3着以内に来たら読みが外れている。
-	it('× は当たり外れが逆になる', () => {
-		expect(answerVerdict('×', 3)).toBe('miss');
-		expect(answerVerdict('×', 4)).toBe('hit');
+	// × は「来ない」と読んだ印。馬券内に来たら読み違い。
+	it('× は着外なら読みどおり、馬券内なら読み違い', () => {
+		expect(asMarked('×', 'out')).toBe(true);
+		expect(asMarked('×', 'in')).toBe(false);
 	});
 
-	// 着順が入っていない馬を「外れ」と出すと、結果の投入待ちなのに予想が外れたように読める。
-	it('着順が無ければ当たりとも外れとも言わない', () => {
-		expect(answerVerdict('◎', null)).toBe('pending');
-		expect(answerVerdict('×', null)).toBe('pending');
+	it('未確定なら読みどおりとも読み違いとも言わない', () => {
+		expect(asMarked('◎', 'pending')).toBeNull();
+		expect(asMarked('×', 'pending')).toBeNull();
 	});
 });
 
@@ -66,7 +77,8 @@ describe('answerCheck', () => {
 		]);
 
 		expect(answers.map((a) => a.mark)).toEqual(['◎', '○', '▲', '△', '×']);
-		expect(answers.map((a) => a.verdict)).toEqual(['miss', 'hit', 'miss', 'hit', 'miss']);
+		expect(answers.map((a) => a.placing)).toEqual(['out', 'in', 'out', 'in', 'in']);
+		expect(answers.map((a) => a.asMarked)).toEqual([false, true, false, true, false]);
 	});
 
 	it('同じ印が複数あれば馬番の順。馬番が無い馬は後ろ', () => {
@@ -83,7 +95,32 @@ describe('answerCheck', () => {
 			horseNumber: 4,
 			finishPosition: 2,
 			horseName: '馬4',
-			verdict: 'hit'
+			placing: 'in',
+			asMarked: true
 		});
+	});
+});
+
+describe('inTheMoneyCount', () => {
+	it('着順が決まった ◎○▲△ のうち、馬券内の頭数を数える', () => {
+		const answers = answerCheck([
+			row('◎', 1, 9),
+			row('○', 2, 1),
+			row('▲', 3, 3),
+			row('△', 4, null)
+		]);
+
+		expect(inTheMoneyCount(answers)).toEqual({ in: 2, of: 3 });
+	});
+
+	// × を馬券内の数に混ぜると、消した馬に来られたことが「成績」に数えられてしまう。
+	it('× は数えない', () => {
+		const answers = answerCheck([row('◎', 1, 2), row('×', 2, 1)]);
+
+		expect(inTheMoneyCount(answers)).toEqual({ in: 1, of: 1 });
+	});
+
+	it('数える馬がいなければ null', () => {
+		expect(inTheMoneyCount(answerCheck([row('×', 1, 5), row('◎', 2, null)]))).toBeNull();
 	});
 });
