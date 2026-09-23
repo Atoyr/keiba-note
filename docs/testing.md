@@ -36,6 +36,10 @@ CI（`.github/workflows/ci.yml`）も同じものを回し、画面カタログ�
   他人の id で開けないことを見る。未ログインの確認は `e2e/auth.e2e.ts` の `PROTECTED` に1行足す
   （認証は hooks で一律に効くので、画面ごとに別のテストを書かない）
 - **form POST を足したら E2E で確かめる。** CSRF の検証は本番ビルドでしか効かない（`vite dev` では通ってしまう）
+- **E2E で入力欄に書く・送信する前は hydration を待つ。** `gotoHydrated` か `waitForHydration`
+  （`e2e/hydration.ts`）を使う。`page.goto` が待つのは load までで、hydration はそのあとに走る。
+  先に書いた値は hydration が SSR の値で上書きし、空のまま保存される。並列で回したときだけ落ちるので、
+  1ファイルだけ回しても気づけない。印はルートレイアウトの onMount が `<html data-hydrated>` に立てる
 - `expect.requireAssertions` が有効。アサーションの無いテストは落ちる
 - `.only` と `test.skip` は残さない
 - コンポーネントのテストは対象の隣に置く（`GradeBadge.svelte` → `GradeBadge.svelte.spec.ts`）
@@ -58,6 +62,10 @@ before / after の比較も成り立たない。
 3. `e2e/seed.sql` を流す
 
 これで E2E は `pnpm run test:e2e` だけで完結する。事前の `db:migrate:local` は要らない。
+
+プレビューサーバーのポートは既定で 4173。**同じマシンで別の worktree も E2E を回すときは
+`E2E_PORT` を変える。** 同じポートを取り合うと相手のサーバー（相手の D1）に当たり、
+前の実行の途中の行が見えたり、途中でつながらなくなったりして、テストと関係なく落ちる。
 
 ### 3-2. seed — `e2e/seed.sql` と `e2e/seed.ts`
 

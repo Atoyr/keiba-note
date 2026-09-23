@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import { DASHBOARD_RACES, LAST_WEEK_RACE_ID, WATCH_HORSES } from './seed';
 
@@ -118,6 +119,8 @@ test('予想だけしたレースがふりかえり待ちに出て、ふりか�
 	// 押すとふりかえり画面へ（予想画面ではない）。
 	await awaiting.getByRole('link', { name: new RegExp(DASHBOARD_RACES.inWindow) }).click();
 	await expect(page).toHaveURL(`/races/${LAST_WEEK_RACE_ID}`);
+	// '/' の hydration 前に押すと、クライアント側の遷移ではなく読み込み直しになる。
+	await waitForHydration(page);
 
 	await page.locator('textarea[name="raceNoteBody"]').fill('見立てどおり前残り。');
 	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
@@ -130,7 +133,7 @@ test('予想だけしたレースがふりかえり待ちに出て、ふりか�
 	).toContainText('ふりかえり済');
 
 	// 後片付け。空で保存するとふりかえりは消え、宿題に戻る。
-	await page.goto(`/races/${LAST_WEEK_RACE_ID}`);
+	await gotoHydrated(page, `/races/${LAST_WEEK_RACE_ID}`);
 	await page.locator('textarea[name="raceNoteBody"]').fill('');
 	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
