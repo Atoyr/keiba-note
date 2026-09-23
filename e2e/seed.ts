@@ -113,3 +113,7 @@ export const OUTER_PREVIEW_BODY = '外枠でも先行できれば。';
 
 /** 別のユーザーが同じレースに書いた出走前メモ。**どの画面にも出てはいけない。** */
 export const OTHER_USER_PREVIEW_BODY = '他人の見立て。見えてはいけない。';
+
+/** 共有の切り替えを押して確かめる非公開メモ（E2Eウチワクの近況）。テストの最後に非公開へ戻す。 */
+export const TOGGLE_SHARE_NOTE_ID = '01JE2ETOGGLESHARENOTE00000';
+export const TOGGLE_SHARE_NOTE_BODY = '共有を切り替えて確かめるメモ。';

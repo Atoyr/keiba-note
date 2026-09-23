@@ -258,3 +258,19 @@ VALUES (
 	'×',
 	'2026-06-21'
 );
+
+-- **共有の切り替え**を E2E で押すための非公開メモ。ダッシュボードの「最近のメモ」に出る。
+--
+-- `PRIVATE_NOTE_ID` を使わないのは、あちらは「非公開なら 404」を見るテストが読むため。
+-- 並列に走ると、共有した瞬間に向こうが 200 を見て落ちる。
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, visibility, occurred_at)
+VALUES (
+	'01JE2ETOGGLESHARENOTE00000',
+	'01JE2EUSER0000000000000000',
+	'horse',
+	'01JE2EHORSEC00000000000000',
+	'共有を切り替えて確かめるメモ。',
+	'[]',
+	'private',
+	'2026-06-01'
+);
