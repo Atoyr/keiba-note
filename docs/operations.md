@@ -139,6 +139,12 @@ workers.dev は当面残す。止めるのは独自ドメインで回ると確�
 `wrangler.toml` の `workers_dev` / `preview_urls` を `false` にし、
 Google のリダイレクト URI から workers.dev のものを消す（別の PR で）。
 
+**止めると、workers.dev で発行した共有リンクが全部切れる。** 共有リンクは開いている画面の
+オリジンから組み立てる（`ShareControl.svelte`）ので、移行前に配ったリンクも、
+workers.dev を残している間にそちらで発行したリンクも `https://k-note.<subdomain>.workers.dev/notes/<id>` になっている。
+止める前に、workers.dev への要求を同じパスのまま `https://uma-memo.com` へ 301 で送る仕組みを入れ、
+しばらく回してから止める。リダイレクトを入れずに止めるなら、リンクが切れてよいと決めたことを PR に書く。
+
 ### 確認に使うコマンド
 
 ```bash

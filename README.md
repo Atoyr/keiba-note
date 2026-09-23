@@ -1,7 +1,8 @@
 # uma-memo
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
-Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。https://uma-memo.com で動いている。
+Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。URL は https://uma-memo.com
+（移行の途中。当てる手順は [docs/operations.md「独自ドメインへ移す」](./docs/operations.md#独自ドメインへ移す)）。
 
 旧名は k-note。リポジトリ（keiba-note）・Worker・D1・Google Cloud のプロジェクトは旧名のまま
 （→ [docs/operations.md「名前について」](./docs/operations.md#名前について)）。
