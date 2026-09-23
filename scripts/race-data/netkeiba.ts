@@ -174,6 +174,13 @@ const GRADE_WORDS: Record<string, Grade> = {
 	'J.GI': 'G1',
 	'J.GII': 'G2',
 	'J.GIII': 'G3',
+	// netkeiba の障害重賞は点が無い（`中山グランドジャンプ(JG1)`・`新潟ジャンプS(JGIII)`）
+	JG1: 'G1',
+	JG2: 'G2',
+	JG3: 'G3',
+	JGI: 'G1',
+	JGII: 'G2',
+	JGIII: 'G3',
 	L: 'L',
 	OP: 'OP'
 };

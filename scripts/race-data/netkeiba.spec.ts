@@ -94,6 +94,18 @@ describe('splitRaceName', () => {
 		expect(splitRaceName('UHB賞(OP)')).toMatchObject({ name: 'UHB賞', grade: 'OP' });
 	});
 
+	it('障害重賞の格は点が無くても読む', () => {
+		expect(splitRaceName('中山グランドジャンプ(JG1)')).toEqual({
+			name: '中山グランドジャンプ',
+			grade: 'G1'
+		});
+		expect(splitRaceName('新潟ジャンプS(JGIII)')).toMatchObject({
+			name: '新潟ジャンプS',
+			grade: 'G3'
+		});
+		expect(splitRaceName('阪神スプリングJ(J.GII)')).toMatchObject({ grade: 'G2' });
+	});
+
 	it('条件戦はクラスを className に分ける', () => {
 		expect(splitRaceName('木更津特別(2勝)')).toEqual({
 			name: '木更津特別',
