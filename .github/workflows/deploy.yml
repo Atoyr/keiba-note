@@ -69,11 +69,13 @@ jobs:
     if: success()
     uses: ./.github/workflows/discord-notify.yml
     with:
+      channel: deploy
       level: success
       title: 本番にデプロイした
       description: マイグレーションとデプロイが終わりました。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
 
   notify-failure:
     name: 失敗を通知
@@ -81,6 +83,7 @@ jobs:
     if: failure()
     uses: ./.github/workflows/discord-notify.yml
     with:
+      channel: deploy
       level: error
       title: 本番へのデプロイが落ちた
       description: >-
@@ -88,3 +91,4 @@ jobs:
         マイグレーションだけ当たってデプロイが落ちた可能性もあるので、リンクから実行を開いて確かめてください。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

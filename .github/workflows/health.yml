@@ -103,6 +103,7 @@ jobs:
     if: needs.probe.outputs.transition == 'down'
     uses: ./.github/workflows/discord-notify.yml
     with:
+      channel: alerts
       level: error
       title: 本番が応答しない（/api/health）
       description: ${{ needs.probe.outputs.detail }}。Workers Logs の d1.query.failed / request.unhandled と、Cloudflare のステータスを確かめてください。
@@ -115,6 +116,7 @@ jobs:
     if: needs.probe.outputs.transition == 'up'
     uses: ./.github/workflows/discord-notify.yml
     with:
+      channel: alerts
       level: success
       title: 本番が応答を取り戻した（/api/health）
     secrets:

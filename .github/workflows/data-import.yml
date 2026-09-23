@@ -56,8 +56,10 @@ jobs:
     if: failure()
     uses: ./.github/workflows/discord-notify.yml
     with:
+      channel: deploy
       level: error
       title: 本番へのレースデータ投入が落ちた
       description: data/races の検証か、本番 D1 への投入で止まっています。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

@@ -8,6 +8,7 @@ GitHub Actions の結果の通知、外からの死活監視。
 - **ここに無いもの:** Cloudflare とシークレットの構築手順は [operations.md](./operations.md)、
   層と依存の向きは [architecture.md](./architecture.md)
 - 作成日: 2026-09-23
+- 更新日: 2026-09-23 — Discord のチャンネルを「障害」と「デプロイ」の2つに分けた（→ 第7章・第8章）
 
 ---
 
@@ -16,13 +17,13 @@ GitHub Actions の結果の通知、外からの死活監視。
 ```
 Worker（hooks.server.ts が1リクエストに1つ monitor を作る）
  ├─ 構造化ログ ─────────────→ Workers Logs（Observability。全部ここに残る）
- └─ ERROR（と通知すると決めた WARN）→ 連投の抑制 → Discord
+ └─ ERROR（と通知すると決めた WARN）→ 連投の抑制 → Discord「障害」
 
-GitHub Actions
- ├─ main の CI の失敗 ────────────────┐
- ├─ 本番デプロイの成功・失敗 ─────────┤
- ├─ 本番へのレースデータ投入の失敗 ───┼→ discord-notify.yml → Discord
- └─ health.yml（30分ごとに /api/health）─ 落ちた・戻ったときだけ ┘
+GitHub Actions（discord-notify.yml）
+ ├─ health.yml（30分ごとに /api/health）落ちた・戻ったときだけ → Discord「障害」
+ ├─ main の CI の失敗 ──────────────┐
+ ├─ 本番デプロイの成功・失敗 ───────┼→ Discord「デプロイ」
+ └─ 本番へのレースデータ投入の失敗 ─┘
 ```
 
 外部の監視サービスは足していない。Cloudflare Observability（`wrangler.toml` の `[observability]`）と
@@ -88,8 +89,7 @@ Discord と GitHub Actions で組む。
 
 - **Webhook を叩くのは2か所だけ。** Worker は `src/lib/server/monitoring/discord.ts`、
   Actions は `.github/workflows/discord-notify.yml`。各所の catch から直接 fetch しない
-- Webhook の URL はシークレット `DISCORD_WEBHOOK_URL` に置く（Cloudflare と GitHub の両方。→ 第7章）。
-  コード・`wrangler.toml`・ログに出さない
+- Webhook の URL はシークレットに置く（→ 第8章）。コード・`wrangler.toml`・ログに出さない
 - 送信は `waitUntil` に載せる。応答は待たない。**送信に失敗しても投げない**（本来のリクエストを壊さない）
 - 埋め込み（embed）で送り、赤が ERROR・黄が WARNING・緑が成功。`allowed_mentions` を空にして、
   エラー文に `@everyone` が混ざっても誰にもメンションしない
@@ -151,14 +151,20 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 
 ## 7. GitHub Actions からの通知
 
-| ワークフロー | 送るとき | 色 |
-| --- | --- | --- |
-| `ci.yml` | **main への push で**落ちたとき（PR の失敗は書いた人が見ているので送らない） | 赤 |
-| `deploy.yml` | 本番デプロイが成功したとき・落ちたとき（取り消しは送らない） | 緑 / 赤 |
-| `data-import.yml` | 本番へのレースデータ投入が落ちたとき（成功は開催のたびに流れるので送らない） | 赤 |
-| `health.yml` | `/api/health` が落ちたとき・戻ったとき | 赤 / 緑 |
+| ワークフロー | 送るとき | 色 | チャンネル |
+| --- | --- | --- | --- |
+| `ci.yml` | **main への push で**落ちたとき（PR の失敗は書いた人が見ているので送らない） | 赤 | デプロイ |
+| `deploy.yml` | 本番デプロイが成功したとき・落ちたとき（取り消しは送らない） | 緑 / 赤 | デプロイ |
+| `data-import.yml` | 本番へのレースデータ投入が落ちたとき（成功は開催のたびに流れるので送らない） | 赤 | デプロイ |
+| `health.yml` | `/api/health` が落ちたとき・戻ったとき | 赤 / 緑 | 障害 |
 
-どれも `discord-notify.yml` を `workflow_call` で呼ぶ。ステージングへの反映（`staging.yml`）は送っていない。
+どれも `discord-notify.yml` を `workflow_call` で呼び、`channel`（`alerts` / `deploy`）で送り先を選ぶ。
+ステージングへの反映（`staging.yml`）は送っていない。
+
+**チャンネルは2つに分けている。** 「障害」は本番が壊れている知らせ（Worker の ERROR と死活監視）で、
+見たらすぐ動くもの。「デプロイ」は CI/CD の結果で、自分が起こした操作の返事。混ぜると、
+デプロイの成功通知に障害の通知が埋もれる。「デプロイ」の Webhook が未設定なら「障害」に送る
+（通知が黙って消えないように。Actions の実行に注記が残る）。
 
 ## 8. 設定する値
 
@@ -166,11 +172,12 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 | --- | --- | --- | --- |
 | Cloudflare（Worker `k-note`） | `DISCORD_WEBHOOK_URL` | シークレット | Webhook の URL（`pnpm exec wrangler secret put DISCORD_WEBHOOK_URL`） |
 | Cloudflare（Preview `staging`） | `DISCORD_WEBHOOK_URL` | シークレット | 任意。入れれば staging の ERROR も届く（`Environment: staging`）。別のチャンネルにしてもよい |
-| GitHub（Settings > Secrets and variables > Actions） | `DISCORD_WEBHOOK_URL` | Secret | 同じ Webhook の URL |
+| GitHub（Settings > Secrets and variables > Actions） | `DISCORD_WEBHOOK_URL` | Secret | 「障害」のチャンネルの Webhook。Cloudflare と同じもの |
+| 同上 | `DISCORD_DEPLOY_WEBHOOK_URL` | Secret | 「デプロイ」のチャンネルの Webhook。無ければ「障害」に送る |
 | 同上 | `HEALTH_CHECK_URL` | Variable | `https://uma-memo.com/api/health`。`/api/health` の入ったリリースを出してから入れる |
 | `wrangler.toml` | `APP_ENV` | vars | `production`（`[previews.vars]` は `staging`）。シークレットではない |
 
-**Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す。** URL が漏れたら、Discord の
+**「障害」の Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す。** URL が漏れたら、Discord の
 チャンネル設定から Webhook を消して作り直す（URL を知っている人は誰でも書き込める）。
 
 ## 9. これから
