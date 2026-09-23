@@ -1,0 +1,71 @@
+name: ステージング
+
+# main の CI が成功したコミットだけを固定名 staging の Workers Preview に出す。
+# レースデータの本番投入（data-import.yml）と本番リリース（deploy.yml）は独立。
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: ステージングへ反映
+    # workflow_run は PR や workflow_call の完了時にも通知される。
+    # Secrets を使うので、同一リポジトリの main push の成功だけに限定する。
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # CI 後に新しいコミットが入った場合、古い内容で Preview を上書きしない。
+      - name: 最新の main か確認
+        id: current
+        env:
+          CI_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          latest_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$latest_sha" = "$CI_HEAD_SHA" ]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo '新しい main コミットがあるため、古い CI 実行をスキップします。'
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.current.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.current.outputs.ready == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+        if: steps.current.outputs.ready == 'true'
+
+      - name: ステージング D1 にマイグレーション
+        if: steps.current.outputs.ready == 'true'
+        run: pnpm run db:migrate:staging
+
+      - name: ステージング D1 にレースデータを反映
+        if: steps.current.outputs.ready == 'true'
+        run: pnpm run data:import:staging
+
+      - name: 固定 Preview にデプロイ
+        if: steps.current.outputs.ready == 'true'
+        run: pnpm run deploy:staging

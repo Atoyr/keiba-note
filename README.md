@@ -138,6 +138,7 @@ PR までの手順と、コードを変えるときの約束の目次は [AGENTS
 
 ## デプロイと運用
 
+`main` の CI 成功後に [ステージング環境](./docs/staging.md) へ反映する。
 アプリはリリースの publish で、レースデータは `main` へのマージで本番に出る（別系統）。
 Cloudflare の構築手順・API トークンの権限・ワークフローの中身は
 [docs/operations.md](./docs/operations.md)。

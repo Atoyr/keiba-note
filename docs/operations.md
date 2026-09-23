@@ -201,15 +201,17 @@ pnpm exec wrangler tail                # 本番のログを流す
 
 ## デプロイ（GitHub Actions）
 
-ワークフローは3本。**アプリとレースデータは別系統で出る。**
+ワークフローは4本。**アプリとレースデータは別系統で出る。**
 
 ```
 PR / main への push        → ci.yml          検証（data:check / check / lint / test:unit）＋ E2E
+main の CI 成功            → staging.yml     ステージング D1 更新 → Preview にデプロイ
 リリース publish           → deploy.yml      検証 ＋ E2E ＋ マイグレーション → デプロイ
 main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
 ```
 
 **アプリは `main` にマージしても本番には出ない。** 出るのはリリース publish のときだけ。
+ステージングには `main` の CI が成功したコミットを反映する（[ステージング環境](./staging.md)）。
 **レースデータはリリースを待たない。** マージすればそのまま入る。
 
 分けてあるのは周期が違うから。出馬表は開催前に入っている必要があり、
@@ -324,4 +326,3 @@ Settings > Secrets and variables > Actions。
 - `pull_request_target` は**使わない**。fork からの PR にシークレットが渡ってしまう
 - `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
 - deploy はリリース publish 限定なので、PR からも main への push からも走らない
-
