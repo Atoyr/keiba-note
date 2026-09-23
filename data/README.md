@@ -215,7 +215,7 @@ pnpm exec wrangler d1 execute k-note --local --file .wrangler/import-races.sql
 
 ### 馬名を直す
 
-**馬名の訂正はここから行う。画面には編集手段を置いていない**（→ [design.md 第9章 #13](../docs/design.md)）。
+**馬名の訂正はここから行う。画面には編集手段を置いていない**（→ [product.md 第9章 #13](../docs/product.md)）。
 
 ただし**直せるのは `ref` を書いた馬だけ**。名前で引き当てている最中に名前を書き換えるのは
 循環していて成立せず、引き当てが外れて別馬が1頭増えるだけになる。
@@ -255,7 +255,7 @@ pnpm exec wrangler d1 execute k-note --local --file .wrangler/import-races.sql
 そのレースの枠順については YAML が正、という割り切り。
 
 出走馬を削除・再作成しないのは、`race_entry` を消すと紐づくメモが
-`ON DELETE CASCADE` で道連れになるため（docs/design.md 第10章）。
+`ON DELETE CASCADE` で道連れになるため（docs/product.md 第10章）。
 
 馬の属性は `COALESCE(<YAML の値>, <既存の値>)` で更新する。**結果欄と同じ挙動**で、
 書けば上書き、書かなければ既存を残す。YAML に書かなかった項目が NULL で消えることはない。

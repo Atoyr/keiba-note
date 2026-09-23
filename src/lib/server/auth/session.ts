@@ -10,7 +10,7 @@ export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * スライディング更新の閾値。残りがこれを切ったアクセスで 30日に延長する。
- * 毎回 UPDATE しないための仕組み（docs/design.md 第4章）。
+ * 毎回 UPDATE しないための仕組み（docs/product.md 第4章）。
  */
 export const SESSION_RENEW_THRESHOLD_MS = 15 * 24 * 60 * 60 * 1000;
 

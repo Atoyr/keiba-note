@@ -17,7 +17,7 @@ export function ctx(locals: App.Locals, platform: App.Platform | undefined) {
  *
  * 登録を誰にでも開いた以上、**全ユーザー共通のマスタを全員に開けない**。
  * `race_ident` の UNIQUE を他人に踏み荒らされると自分の記録も壊れる。
- * 一般ユーザーができるのは自分のメモの読み書きだけ（design.md 第4章 / 第9章 #10）。
+ * 一般ユーザーができるのは自分のメモの読み書きだけ（product.md 第4章 / 第9章 #10）。
  *
  * 「操作の可否」はルート層で弾く。データの絞り込みはサービス層（architecture.md 3-6）。
  */
