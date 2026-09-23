@@ -227,7 +227,8 @@ const FEATURES = ['horses', 'races', 'notes', 'share', 'dashboard'];
 - **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない。
   機能どうしをつなぐのはルートだけ、という形にする
 - 並びの根拠は今のコードの向き。`services/races.ts` は `findOrCreateHorse` を使い、
-  `services/notes.ts` は `races` の型を使っている。逆向きの import は今は無い
+  `services/notes.ts` は `races` の型を使っている。service どうしで逆向きの import は無い
+  （utils をまたいだ1件は 2-5）
 
 **機能はディレクトリで表す。** ファイル名から機能を推すのは規則に書けないので、
 component と utils は機能ごとのディレクトリに移す。service はもともと1機能1ファイルなのでそのまま。
@@ -311,8 +312,8 @@ rules: {
 | `src/routes/settings/admin/+page.server.ts:2` | endpoint が `drizzle-orm` で直接 SQL を組む | ユーザー凍結を service（`services/users.ts`）に移す |
 | `src/lib/server/services/notes.ts:6` | notes → dashboard（`WatchSourceRow` の型） | 型を notes 側に置き、dashboard から使う向きにする |
 
-architecture.md 第2章の「モジュール依存図」は手で描いたもので、すでに実物とずれている
-（`schemas/horse.ts` は無い）。規則を入れたら、図の正は `eslint.config.js` だと書き換える。
+architecture.md 第2章にあった手描きの「モジュール依存図」は、実物とずれていた
+（`schemas/horse.ts` は無い）ので消した。依存の向きの正は、この層と `eslint.config.js` だけにする。
 
 ### 2-6. ランタイム上の約束との関係
 
@@ -612,6 +613,10 @@ after のときは、同名の before と画素単位で比べ、**見た目が�
 8/255 ほど揺れるので完全一致では比べられない。一方で gray-500 → gray-600 程度の色替えでも
 30 前後は動くので、その間を取っている。
 
+**キャプチャは PR のためだけに置き、溜めない。** PR 本文の画像は SHA で組んだ URL なので、
+あとのコミットで `docs/screenshots/` から消しても PR の表示は壊れない。マージされた機能の
+キャプチャは次の PR で消してよい（2026-09-23 に、それまでの66枚・6.7MB を消した）。
+
 この性質は第3層の置き換えにも使う。**同じ値のトークンへの置き換えなら、残る画像は0枚になる。**
 
 #### PR 本文 — `pnpm run screens:pr <機能名>`
@@ -774,7 +779,7 @@ PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかっ
 
 | # | PR | 層 | 中身 | 画面への影響 |
 | --- | --- | --- | --- | --- |
-| 1 | 依存の規則 | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の4件を直す。architecture.md の依存図を差し替える | なし（キャプチャ0枚を確かめる） |
+| 1 | 依存の規則 | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の4件を直す | なし（キャプチャ0枚を確かめる） |
 | 2 | 操作と即時の手応え | 4 | `.claude/settings.json`（deny と hook）、`preview:e2e`、`.claude/launch.json` | なし |
 | 3 | トークンと手引き | 3 | 3-2 のトークンを足す。`docs/design-system.md`。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |

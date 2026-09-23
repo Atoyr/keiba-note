@@ -878,49 +878,8 @@ ID は ULID（48ビットのタイムスタンプ + **80ビットの乱数**）�
 
 ## 7. ディレクトリ構成
 
-```
-k-note/
-├── docs/
-│   └── design.md
-├── src/
-│   ├── app.d.ts
-│   ├── app.html
-│   ├── hooks.server.ts            # 認証。ここだけが認証方式を知っている
-│   ├── lib/
-│   │   ├── server/
-│   │   │   ├── db/
-│   │   │   │   ├── schema.ts      # Drizzle スキーマ
-│   │   │   │   └── index.ts       # D1 → Drizzle クライアント生成
-│   │   │   ├── auth/
-│   │   │   │   ├── session.ts     # 発行 / 検証 / 延長 / 破棄
-│   │   │   │   └── google.ts      # Arctic クライアント
-│   │   │   └── services/          # ビジネスロジック（ルートから薄く呼ぶ）
-│   │   │       ├── notes.ts
-│   │   │       ├── races.ts
-│   │   │       └── horses.ts
-│   │   ├── schemas/               # Valibot スキーマ（フォーム入出力）
-│   │   ├── components/
-│   │   └── utils/
-│   └── routes/
-│       ├── +layout.svelte
-│       ├── +page.server.ts
-│       ├── login/
-│       ├── auth/
-│       │   ├── google/
-│       │   │   ├── +server.ts
-│       │   │   └── callback/+server.ts
-│       │   └── logout/+server.ts
-│       ├── notes/[id]/            # 共有ページ。ログイン不要で通る唯一のルート
-│       ├── races/
-│       ├── horses/
-│       └── settings/
-├── drizzle/                       # 生成されたマイグレーション SQL
-├── drizzle.config.ts
-├── wrangler.toml
-├── svelte.config.js
-├── vite.config.ts
-└── package.json
-```
+置き場所の一覧は [README の「ディレクトリ構成」](../README.md)、どこに何を書いてよいか
+（層と機能の依存の向き）は [harness.md 第2層](./harness.md)にある。
 
 `wrangler.toml` の要点:
 

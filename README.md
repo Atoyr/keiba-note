@@ -146,7 +146,7 @@ Cloudflare の構築手順・API トークンの権限・ワークフローの�
 
 ## ディレクトリ構成
 
-[docs/design.md 第7章](./docs/design.md)のとおり。
+どこに何を書いてよいか（層と機能の依存の向き）は [docs/harness.md 第2層](./docs/harness.md)にある。
 
 ```
 src/

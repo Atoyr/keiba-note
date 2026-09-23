@@ -127,58 +127,11 @@ export async function getHorseTimeline(event: RequestEvent) { ... }
    必要になったとき `+server.ts` から同じサービス関数を呼ぶだけで済む
 3. **移植性** — 万一 Cloudflare から離れることになっても、business logic は素の TypeScript のまま残る
 
-### モジュール依存図
+### 依存の向きをどう守るか
 
-実際のファイル間の依存。**矢印が逆向きになったらレイヤ違反。**
-
-```mermaid
-flowchart LR
-    subgraph routes["src/routes/"]
-        RH["races/[id]/+page.server.ts"]
-        HH["horses/[id]/+page.server.ts"]
-        AC["auth/google/callback/+server.ts"]
-    end
-
-    HK["src/hooks.server.ts"]
-
-    subgraph schemas["src/lib/schemas/"]
-        SC["note.ts / race.ts / horse.ts"]
-    end
-
-    subgraph services["src/lib/server/services/"]
-        SN["notes.ts"]
-        SR["races.ts"]
-        SHO["horses.ts"]
-    end
-
-    subgraph auth["src/lib/server/auth/"]
-        AS["session.ts"]
-        AG["google.ts"]
-    end
-
-    subgraph db["src/lib/server/db/"]
-        DS["schema.ts"]
-        DI["index.ts"]
-    end
-
-    D1[("D1 binding<br/>platform.env.DB")]
-
-    HK --> AS
-    RH --> SC
-    HH --> SC
-    RH --> SN
-    RH --> SR
-    HH --> SHO
-    HH --> SN
-    AC --> AG
-    AC --> AS
-    SN --> DS
-    SR --> DS
-    SHO --> DS
-    AS --> DS
-    DS --> DI
-    DI --> D1
-```
+どの層・どの機能からどこを import してよいかは、[harness.md 第2層](./harness.md)で決め、
+ESLint の規則として `pnpm run lint` で止める。ファイル単位の依存図は手で描くとすぐ実物とずれるので、
+ここには置かない。
 
 ---
 
