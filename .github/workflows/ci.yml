@@ -52,7 +52,7 @@ jobs:
       - name: chromium の取得
         run: pnpm exec playwright install chromium
       - name: 単体テスト
-        run: pnpm test
+        run: pnpm run test:unit
 
   e2e:
     name: E2E

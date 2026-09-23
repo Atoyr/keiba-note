@@ -333,7 +333,7 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 | 目的 | コマンド | 所要 |
 | --- | --- | --- |
 | 全部確かめる | `pnpm run verify` | 数分 |
-| 部分だけ | `pnpm run check` / `pnpm run lint` / `pnpm run test:unit -- --run` / `pnpm run test:e2e` | 数秒〜数分 |
+| 部分だけ | `pnpm run check` / `pnpm run lint` / `pnpm run test:unit` / `pnpm run test:e2e` | 数秒〜数分 |
 | 直す | `pnpm run format` | 数秒 |
 | 撮る・比べる | `pnpm run screens <機能名> before\|after [画面名...]` / `pnpm run screens:pr <機能名>` | 数分 |
 | 触って見る（開発データ） | `.dev.vars` に `MOCK_AUTH="1"` を置いて `pnpm run dev` | — |
