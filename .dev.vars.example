@@ -3,8 +3,9 @@
 
 # Google Cloud Console > APIs & Services > Credentials で作った
 # OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）の値。
-# 承認済みのリダイレクト URI に以下の2つを登録すること:
+# 承認済みのリダイレクト URI に以下の3つを登録すること:
 #   http://localhost:5173/auth/google/callback
+#   https://uma-memo.com/auth/google/callback
 #   https://k-note.<subdomain>.workers.dev/auth/google/callback
 GOOGLE_CLIENT_ID=""
 GOOGLE_CLIENT_SECRET=""
