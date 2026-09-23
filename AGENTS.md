@@ -55,6 +55,9 @@ UI に関わらない変更（サーバー内部・データ・CI・docs）は 2
   他人の id で開けないことを見る。未ログインの確認は `e2e/auth.e2e.ts` の `PROTECTED` に1行足す
   （認証は hooks で一律に効くので、画面ごとに別のテストを書かない）
 - form POST を足したら E2E で確かめる。CSRF 検証は本番ビルドでしか効かない（`vite dev` では通ってしまう）
+- E2E で入力欄に書く・送信する前は、`gotoHydrated` か `waitForHydration`（`e2e/hydration.ts`）で
+  hydration を待つ。待たずに書くと、hydration が SSR の値で上書きして空のまま保存される。
+  並列で回したときだけ落ちるので、1ファイルだけ回しても気づけない
 - `expect.requireAssertions` が有効。アサーションの無いテストは落ちる
 - `.only` と `test.skip` は残さない
 - E2E は `.wrangler/e2e` の専用 D1 を毎回空にして seed から作り直す。開発用 D1 の中身は関係しない

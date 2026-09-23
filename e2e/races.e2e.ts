@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
 	BRACKET_RACE_ID,
@@ -107,13 +108,13 @@ test('開催前に書いた見立ては、ふりかえりを保存しても残�
 	await login(page);
 
 	// 事前 — 予想画面で見立てを書く。
-	await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}/preview`);
 	await page.locator('textarea[name="raceNoteBody"]').fill('前残りを狙いたい。');
 	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
 
 	// 事後 — ふりかえりを書く。上に見立てが読み取り専用で出ている。
-	await page.goto(`/races/${PAST_EMPTY_RACE_ID}`);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}`);
 	await expect(page.getByText('前残りを狙いたい。')).toBeVisible();
 	await page.locator('textarea[name="raceNoteBody"]').fill('実際は差し決着だった。');
 	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
@@ -125,14 +126,14 @@ test('開催前に書いた見立ては、ふりかえりを保存しても残�
 	await expect(page.locator('textarea[name="raceNoteBody"]')).toHaveValue('実際は差し決着だった。');
 
 	// 予想画面に戻っても、見立てはふりかえりで上書きされていない。
-	await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}/preview`);
 	await expect(page.locator('textarea[name="raceNoteBody"]')).toHaveValue('前残りを狙いたい。');
 
 	// 後片付け。どちらも空で保存すると消える。
 	await page.locator('textarea[name="raceNoteBody"]').fill('');
 	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
-	await page.goto(`/races/${PAST_EMPTY_RACE_ID}`);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}`);
 	await page.locator('textarea[name="raceNoteBody"]').fill('');
 	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
@@ -200,7 +201,7 @@ test('他人が同じレースに付けた印と出走前メモは出ない', as
  */
 test('ふりかえりを保存しても、出走前の印とメモは消えない', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${BRACKET_RACE_ID}`);
+	await gotoHydrated(page, `/races/${BRACKET_RACE_ID}`);
 
 	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
 	await row.locator('textarea').fill('結局外を回して届かず。');
@@ -213,6 +214,7 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
 
 	// 後片付け。空で保存するとふりかえりのメモは消える。
+	await waitForHydration(page);
 	await row.locator('textarea').fill('');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();

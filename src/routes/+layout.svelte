@@ -1,6 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { onMount } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -8,6 +9,19 @@
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
+
+	/**
+	 * hydration が済んだ印。E2E はこれを待ってから入力する（e2e/hydration.ts）。
+	 *
+	 * **済む前に入力欄へ書いた値は、hydration が SSR の値で上書きする**
+	 * （Svelte 5 は `<textarea>{値}</textarea>` を `.value` の代入で合わせにいく）。
+	 * 並列で走らせて JS の配信が遅れると、書いた見立てが空に戻ったまま送信され、
+	 * 「空欄＝消す」で保存された。onMount は子から先に走るので、ここに来た時点で
+	 * ページの入力欄の値合わせも `use:enhance` の取り付けも済んでいる。
+	 */
+	onMount(() => {
+		document.documentElement.dataset.hydrated = '';
+	});
 
 	/**
 	 * 共有ページ（/notes/[id]）にはアプリの枠を出さない。

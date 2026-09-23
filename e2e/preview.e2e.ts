@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
 	EMPTY_RACE_ID,
@@ -73,7 +74,7 @@ test('出走馬の枠番が枠の札で出る', async ({ page }) => {
  */
 test('出走馬がいない未来のレースでも、レースの見立てを書いて保存できる', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${EMPTY_RACE_ID}/preview`);
+	await gotoHydrated(page, `/races/${EMPTY_RACE_ID}/preview`);
 
 	// 出走馬はいないが、見立ての欄はある。
 	await expect(page.getByText('出走馬がまだ登録されていません。')).toBeVisible();
@@ -92,6 +93,7 @@ test('出走馬がいない未来のレースでも、レースの見立てを�
 	);
 
 	// 後片付け。空で保存すると消える仕様なので、それで元に戻す。
+	await waitForHydration(page);
 	await page.getByRole('textbox').fill('');
 	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();

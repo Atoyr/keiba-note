@@ -131,6 +131,9 @@ after のときは、同名の before と画素単位で比べ、**見た目が�
   キャプチャを見比べない
 - アニメーションは止め（`animations: 'disabled'`）、キャレットは隠し、`networkidle` と
   `document.fonts.ready` を待ってから撮る
+- **入力する前に hydration を待つ**（`e2e/hydration.ts`）。`page.goto` が待つのは load までで、
+  hydration はそのあとに走る。先に書いた値は SSR の値で上書きされるので、並列で JS の配信が
+  遅れたときだけ「保存したのに空」で落ちる。印はルートレイアウトが `<html data-hydrated>` に立てる
 - 時刻に依存する表示は、seed を流した日の中では変わらない。日付をまたいで before / after を
   撮ると差が出うる
 
