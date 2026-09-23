@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated } from './hydration';
 import { login } from './login';
 import { HORSE_ID, TOGGLE_SHARE_NOTE_BODY, TOGGLE_SHARE_NOTE_ID } from './seed';
 
@@ -27,6 +28,27 @@ test('ダッシュボードでは、共有の操作はメニューを開くま�
 	const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
 	await note.getByTitle('メモの操作').click();
 	await expect(note.getByRole('button', { name: '共有リンクを作る' })).toBeVisible();
+});
+
+// 以前は `<details>` のままで、中の操作を押すまで開いたまま残っていた。
+test('ダッシュボードのメニューは、外側を押すと閉じる', async ({ page }) => {
+	await login(page);
+	// 閉じるのは JS の上乗せなので、hydration を待つ。
+	await gotoHydrated(page, '/');
+
+	const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
+	const share = note.getByRole('button', { name: '共有リンクを作る' });
+	await note.getByTitle('メモの操作').click();
+	await expect(share).toBeVisible();
+
+	await page.getByRole('heading', { name: '最近のメモ' }).click();
+	await expect(share).toHaveCount(0);
+
+	// Esc でも閉じる。
+	await note.getByTitle('メモの操作').click();
+	await expect(share).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(share).toHaveCount(0);
 });
 
 /**
