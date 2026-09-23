@@ -1,6 +1,6 @@
 import { listRecentNotes } from '$lib/server/services/notes';
 import { listRacesBetween, resolveWeek } from '$lib/server/services/races';
-import { weeksBefore } from '$lib/utils/date';
+import { todayJst, weeksBefore } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
 import type { PageServerLoad } from './$types';
 
@@ -30,5 +30,6 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		listRacesBetween(db, user.id, weeksBefore(week, PAST_WEEKS), 'desc')
 	]);
 
-	return { notes, week, thisWeek, past, pastWeeks: PAST_WEEKS };
+	// today はレースの行き先を決めるのに要る（開催前は予想画面 → `raceHref`）。
+	return { notes, week, thisWeek, past, pastWeeks: PAST_WEEKS, today: todayJst() };
 };

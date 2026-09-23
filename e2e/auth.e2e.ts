@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { BRACKET_RACE_ID, DASHBOARD_RACES, HORSE_ID, PREVIEW_RACE_ID } from './seed';
+import { BRACKET_RACE_ID, DASHBOARD_RACES, EMPTY_RACE_ID, HORSE_ID, PREVIEW_RACE_ID } from './seed';
 
 test('未ログインではトップに入れず、ログイン画面に飛ばされる', async ({ page }) => {
 	await page.goto('/');
@@ -21,6 +21,9 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: '/settings/shares', secret: null },
 	{ path: `/horses/${HORSE_ID}`, secret: 'E2E未来賞' },
 	{ path: `/races/${BRACKET_RACE_ID}`, secret: 'E2Eウチワク' },
+	// 開催前のレースは予想画面へ振り分けられる。**認証がその振り分けより先に効く**ことを見る
+	// （追い越されると redirect が /preview になり、未ログインのまま中身が出る）。
+	{ path: `/races/${EMPTY_RACE_ID}`, secret: 'E2E出馬表前賞' },
 	{ path: `/races/${PREVIEW_RACE_ID}/preview`, secret: '今回は内枠が向きそう。' }
 ];
 

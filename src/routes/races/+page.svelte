@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
+	import { isUpcoming } from '$lib/utils/date';
 	import { hasRaceFilter } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -45,7 +46,14 @@
 		<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
 			{#each data.races as r (r.id)}
 				<li>
-					<a href={resolve('/races/[id]', { id: r.id })} class="block py-3 hover:bg-gray-50">
+					<!-- 一覧は日付降順なので、上のほうには開催前の重賞が並ぶ。
+					     まだ走っていないものはふりかえりではなく予想画面へ送る。 -->
+					<a
+						href={isUpcoming(r.date, data.today)
+							? resolve('/races/[id]/preview', { id: r.id })
+							: resolve('/races/[id]', { id: r.id })}
+						class="block py-3 hover:bg-gray-50"
+					>
 						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
 							<span class="font-mono text-sm text-gray-500">{r.date}</span>
 							<span class="text-sm">{r.course}{r.raceNumber ?? ''}R</span>

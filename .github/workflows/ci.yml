@@ -65,11 +65,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      # 共有ページ（/notes/[id]）のテストが DB を引くので、先にテーブルを作る。
-      # ローカル D1 は .wrangler/state に作られる使い捨て。
-      - name: ローカル D1 にマイグレーション
-        run: pnpm run db:migrate:local
-
       # 検証ジョブと同じ key。先に走ったほうが温める。
       - name: Playwright のブラウザをキャッシュ
         uses: actions/cache@v4
@@ -78,7 +73,16 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       # ブラウザの取得は test:e2e が内部でやる（playwright install chromium）。
+      # E2E 専用の D1（.wrangler/e2e）のマイグレーションと seed は globalSetup がやる。
       - run: pnpm run test:e2e
+      # 画面カタログ（e2e/screens.ts）の全画面。PR に貼り忘れても、ここから見られる。
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens
+          path: test-results/screens/
+          retention-days: 7
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

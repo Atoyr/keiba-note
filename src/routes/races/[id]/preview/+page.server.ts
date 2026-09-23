@@ -3,14 +3,22 @@ import * as v from 'valibot';
 import { previewNotesSchema } from '$lib/schemas/note';
 import { listHistoryForHorses, listRaceNotes, savePreviewNotes } from '$lib/server/services/notes';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
+import { isUpcoming, todayJst } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
  * ★ 予想画面。出馬表の形で、各馬の過去メモを横に並べる。
  *
- * ふりかえり（/races/[id]）とは別画面。あちらは書く場、こちらは読む場。
- * ただし出走前に気づいたことはその場で書けるようにしてある（kind='preview'）。
+ * ふりかえり（/races/[id]）とは別画面。あちらは結果を見て書く場、こちらは
+ * **結果を見る前に書く場**。開催前に書けるのはこの画面だけで、
+ * ふりかえりは開催前には開けない（→ /races/[id] の load）。
+ *
+ * 書けるのは2つ。レース全体の見立て（kind='race_preview'）と、
+ * 1頭ごとの出走前メモ（kind='preview'）。
+ * **見立ては出走馬が1頭もいなくても書ける。** これから組まれる重賞は
+ * 日付と格だけ先に登録され、出馬表はその後に入る（README「出走馬データ」）。
+ * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
  * 読みは5クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱）。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
@@ -38,8 +46,15 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		thisRaceNotes.filter((n) => n.kind === 'preview').map((n) => [n.raceEntryId, n])
 	);
 
+	// ふりかえりの `race` ではなく `race_preview`。開催後にふりかえりを保存しても、
+	// ここで書いた見立ては別の行として残る（schema.ts の kind 別の部分ユニーク）。
+	const myRaceNote = thisRaceNotes.find((n) => n.kind === 'race_preview') ?? null;
+
 	return {
 		race,
+		myRaceNote,
+		// 開催前はふりかえりへの導線を出さない（開いても戻されるだけなので）。
+		upcoming: isUpcoming(race.date, todayJst()),
 		rows: entries.map((e) => ({
 			...e,
 			myPreview: myPreview.get(e.entryId) ?? null,
@@ -63,6 +78,9 @@ export const actions: Actions = {
 		const entries = await listEntriesForPreview(db, params.id);
 
 		const parsed = v.safeParse(previewNotesSchema, {
+			raceNote: {
+				body: form.get('raceNoteBody')?.toString() ?? ''
+			},
 			entries: entries.map((e) => ({
 				entryId: e.entryId,
 				horseId: e.horseId,
@@ -80,7 +98,7 @@ export const actions: Actions = {
 		// occurred_at はレース日。タイムラインでそのレースの位置に並ぶ。
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: params.id, entries: parsed.output.entries },
+			{ raceId: params.id, ...parsed.output },
 			user.id,
 			race.date
 		);

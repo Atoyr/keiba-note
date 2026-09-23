@@ -42,7 +42,7 @@ export type RaceLabelSource = {
 };
 
 export type NoteHeadingSource = RaceLabelSource & {
-	kind: 'race' | 'horse' | 'entry' | 'preview';
+	kind: 'race' | 'horse' | 'entry' | 'preview' | 'race_preview';
 	finishPosition?: number | null;
 	horseName?: string | null;
 };
@@ -51,7 +51,7 @@ export type NoteHeadingSource = RaceLabelSource & {
  * 行の種別を示す小さな札。**アプリが決めるもの**で、ユーザーは選べない
  * （ユーザーが付ける札は `NoteTag`）。表示は `KindBadge`。
  */
-export type NoteKindLabel = '出走前' | '近況' | '出走' | '出走予定';
+export type NoteKindLabel = '見立て' | '出走前' | '近況' | '出走' | '出走予定';
 
 export type NoteHeading = {
 	/** 「中山11R オールカマー (G2) 1着」のような見出し。 */
@@ -75,9 +75,11 @@ function raceLabel(n: RaceLabelSource): string {
 /**
  * 見出しと札を返す。
  *
- * **`preview`（出走前メモ）には着順を出さない。** 書いた時点では着順が無く、
+ * **開催前に書いたメモには着順を出さない。** 書いた時点では着順が無く、
  * あとから結果が入ると「出走前に書いたのに1着と書いてある」ように見えてしまう。
- * 代わりに「出走前」の札を付けて、同じレースのふりかえりメモと区別できるようにする。
+ * 代わりに札を付けて、同じレースのふりかえりメモと区別できるようにする。
+ * 札が2種類あるのは、対象がレースか1頭かで読み方が違うため
+ * （`race_preview` はレース全体の見立て、`preview` は1頭の見立て）。
  */
 export function noteHeading(n: NoteHeadingSource): NoteHeading {
 	if (n.kind === 'horse') {
@@ -85,6 +87,10 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 	}
 
 	const race = raceLabel(n);
+
+	if (n.kind === 'race_preview') {
+		return { label: race || 'レース', kindLabel: '見立て' };
+	}
 
 	if (n.kind === 'preview') {
 		return { label: race || 'レース', kindLabel: '出走前' };
@@ -121,11 +127,22 @@ export function runHeading(n: RunHeadingSource, upcoming: boolean): NoteHeading 
 /**
  * ふりかえり画面（`/races/[id]`）の保存ボタンの文言。
  *
- * 出走馬がまだ登録されていないレース（これから組まれる重賞のプレースホルダなど）では、
+ * 出走馬がまだ登録されていないレース（結果の投入がまだのレースなど）では、
  * 入力欄は「レースのメモ」1つだけになる。それを「まとめて保存」と呼ぶと、
  * 画面に出ていない何かも一緒に保存されるように読めてしまう。
  * 1つしか無いときは、何を保存するのかをそのまま名乗る。
  */
 export function raceReviewSaveLabel(entryCount: number): string {
 	return entryCount > 0 ? 'まとめて保存' : 'レースのメモを保存';
+}
+
+/**
+ * 予想画面（`/races/[id]/preview`）の保存ボタンの文言。
+ *
+ * 理由は `raceReviewSaveLabel` と同じ。**こちらのほうが出走馬0頭に当たりやすい**：
+ * これから組まれる重賞は日付と格だけ先に登録され、出馬表はその後に入る。
+ * その段階で書けるのは見立て1本だけなので、そう名乗る。
+ */
+export function previewSaveLabel(entryCount: number): string {
+	return entryCount > 0 ? '出走前メモを保存' : 'レースの見立てを保存';
 }
