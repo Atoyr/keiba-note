@@ -92,19 +92,20 @@ admin ができるのは馬・レース・出走馬（全員共通のマスタ�
 
 ## よく使うコマンド
 
-| コマンド                                   | 内容                                       |
-| ------------------------------------------ | ------------------------------------------ |
-| `pnpm run dev`                             | 開発サーバー                               |
-| `pnpm run check`                           | `wrangler types --check` + `svelte-check`  |
-| `pnpm run lint` / `pnpm run format`        | Prettier + ESLint                          |
-| `pnpm run test:unit`                       | Vitest                                     |
-| `pnpm run test:e2e`                        | Playwright（本番ビルド + E2E 専用 D1）     |
-| `pnpm run verify`                          | check / lint / test:unit / test:e2e を順に |
-| `pnpm run screens <機能名> <before/after>` | PR 用の画面キャプチャ（docs/testing.md）   |
-| `pnpm run db:generate`                     | `schema.ts` から `drizzle/*.sql` を生成    |
-| `pnpm run db:migrate:local`                | ローカル D1 に適用                         |
-| `pnpm run db:migrate:remote`               | 本番 D1 に適用                             |
-| `pnpm run deploy`                          | ビルドして `wrangler deploy`               |
+| コマンド                                   | 内容                                      |
+| ------------------------------------------ | ----------------------------------------- |
+| `pnpm run dev`                             | 開発サーバー                              |
+| `pnpm run check`                           | `wrangler types --check` + `svelte-check` |
+| `pnpm run lint` / `pnpm run format`        | Prettier + ESLint                         |
+| `pnpm test`                                | Vitest を1回実行                          |
+| `pnpm run test:unit`                       | Vitest の監視モード                       |
+| `pnpm run test:e2e`                        | Playwright（本番ビルド + E2E 専用 D1）    |
+| `pnpm run verify`                          | check / lint / test / test:e2e を順に     |
+| `pnpm run screens <機能名> <before/after>` | PR 用の画面キャプチャ（docs/testing.md）  |
+| `pnpm run db:generate`                     | `schema.ts` から `drizzle/*.sql` を生成   |
+| `pnpm run db:migrate:local`                | ローカル D1 に適用                        |
+| `pnpm run db:migrate:remote`               | 本番 D1 に適用                            |
+| `pnpm run deploy`                          | ビルドして `wrangler deploy`              |
 
 ## 出走馬データ
 
