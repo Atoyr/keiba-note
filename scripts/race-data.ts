@@ -15,6 +15,7 @@
  *   --race-id <id>     netkeiba の race_id を直接指定する（一覧から引けないとき）
  *   --count <n>        past: 何走さかのぼるか（既定 5）
  *   --horse <名前|ref> past / horses: 対象の馬を絞る（複数回書ける）
+ *   --interval <ms>    取得の間隔（既定 1000。500 まで縮められる）
  */
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -30,6 +31,7 @@ import {
 	COURSE_CODES,
 	fetchPage,
 	fromRef,
+	MIN_REQUEST_INTERVAL_MS,
 	parseHorseProfile,
 	parseHorseResults,
 	parsePedigree,
@@ -37,6 +39,7 @@ import {
 	parseRaceList,
 	parseResult,
 	parseShutuba,
+	setRequestInterval,
 	toHalfWidth,
 	urls,
 	type Course
@@ -54,6 +57,7 @@ type Args = {
 	raceId?: string;
 	count: number;
 	horses: string[];
+	interval?: number;
 };
 
 function parseArgs(argv: string[]): Args {
@@ -62,6 +66,7 @@ function parseArgs(argv: string[]): Args {
 	let dir = DEFAULT_DIR;
 	let raceId: string | undefined;
 	let count = 5;
+	let interval: number | undefined;
 	for (let i = 0; i < argv.length; i++) {
 		const a = argv[i];
 		if (a === '--') continue;
@@ -69,10 +74,11 @@ function parseArgs(argv: string[]): Args {
 		else if (a === '--race-id') raceId = argv[++i];
 		else if (a === '--count') count = Number(argv[++i]);
 		else if (a === '--horse') horses.push(argv[++i]);
+		else if (a === '--interval') interval = Number(argv[++i]);
 		else positional.push(a);
 	}
 	const [command = '', ...rest] = positional;
-	return { command, positional: rest, dir, raceId, count, horses };
+	return { command, positional: rest, dir, raceId, count, horses, interval };
 }
 
 /** 利用者に見せて止めるエラー。スタックは出さない。 */
@@ -217,6 +223,12 @@ async function saveAll(files: Iterable<RaceFile>) {
 
 async function main() {
 	const args = parseArgs(process.argv.slice(2));
+	if (args.interval !== undefined) {
+		if (!Number.isFinite(args.interval) || args.interval < MIN_REQUEST_INTERVAL_MS) {
+			fail(`--interval は ${MIN_REQUEST_INTERVAL_MS} 以上のミリ秒で指定してください`);
+		}
+		setRequestInterval(args.interval);
+	}
 
 	switch (args.command) {
 		case 'races': {
@@ -250,6 +262,7 @@ async function main() {
 			const t = parseTarget(args);
 			const { file, race } = await loadRace(args, t);
 			const files = new Map<string, RaceFile>([[t.date, file]]);
+			const people = await peopleResolver();
 			const openFile = async (date: string) => {
 				if (!files.has(date)) files.set(date, await RaceFile.load(args.dir, date, '過去走'));
 				return files.get(date)!;
@@ -266,12 +279,16 @@ async function main() {
 					continue;
 				}
 				const runs = parseHorseResults(await fetchPage(urls.horseResults(horseId)));
-				const log = await applyPastRuns(openFile, { name, ref }, runs, {
-					before: t.date,
-					count: args.count
-				});
+				const log = await applyPastRuns(
+					openFile,
+					{ name, ref },
+					runs,
+					{ before: t.date, count: args.count },
+					people.resolve
+				);
 				print(name, log);
 			}
+			await people.flush();
 			await saveAll(files.values());
 			return;
 		}
@@ -279,6 +296,7 @@ async function main() {
 		case 'horses': {
 			const t = parseTarget(args);
 			const { file, race } = await loadRace(args, t);
+			const people = await peopleResolver();
 			const log: string[] = [];
 			for (const entry of selectEntries(args, file, race)) {
 				const ref = entry.get('ref') as string | undefined;
@@ -288,6 +306,13 @@ async function main() {
 					continue;
 				}
 				const profile = parseHorseProfile(await fetchPage(urls.horse(horseId)));
+				// プロフィール表の調教師名は途中で切れる。出馬表・結果と同じ名前に引き直す。
+				if (profile.trainer && profile.trainerId) {
+					profile.trainer = await people.resolve('trainer', {
+						id: profile.trainerId,
+						short: profile.trainer
+					});
+				}
 				const ped = JSON.parse(await fetchPage(urls.pedigree(horseId))) as { data?: string };
 				log.push(
 					...applyProfile(
@@ -299,6 +324,7 @@ async function main() {
 					)
 				);
 			}
+			await people.flush();
 			print(`${t.date} ${t.course}${t.raceNumber}R ${race.get('name')}`, log);
 			await saveAll([file]);
 			return;
@@ -333,7 +359,7 @@ async function main() {
 					'  pnpm run data:fetch past    <日付> <場> <R> [--count 5] [--horse 馬名]',
 					'  pnpm run data:fetch horses  <日付> <場> <R> [--horse 馬名]',
 					'  pnpm run data:fetch result  <日付> <場> <R>',
-					'共通: --dir <書き込み先>  --race-id <netkeiba の race_id>'
+					'共通: --dir <書き込み先>  --race-id <netkeiba の race_id>  --interval <ms>'
 				].join('\n')
 			);
 	}

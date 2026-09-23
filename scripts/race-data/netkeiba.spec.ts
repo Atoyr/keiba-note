@@ -11,6 +11,7 @@ import {
 	parseSexAge,
 	parseShutuba,
 	parseTrackCondition,
+	setRequestInterval,
 	splitRaceName,
 	toHalfWidth
 } from './netkeiba.ts';
@@ -91,6 +92,23 @@ describe('splitRaceName', () => {
 			grade: 'G1'
 		});
 		expect(splitRaceName('UHB賞(OP)')).toMatchObject({ name: 'UHB賞', grade: 'OP' });
+	});
+
+	it('天皇賞の季節は全角の括弧に揃える', () => {
+		expect(splitRaceName('天皇賞(秋)(GI)')).toEqual({ name: '天皇賞（秋）', grade: 'G1' });
+		expect(splitRaceName('天皇賞（春）(G1)').name).toBe('天皇賞（春）');
+	});
+
+	it('障害重賞の格は点が無くても読む', () => {
+		expect(splitRaceName('中山グランドジャンプ(JG1)')).toEqual({
+			name: '中山グランドジャンプ',
+			grade: 'G1'
+		});
+		expect(splitRaceName('新潟ジャンプS(JGIII)')).toMatchObject({
+			name: '新潟ジャンプS',
+			grade: 'G3'
+		});
+		expect(splitRaceName('阪神スプリングJ(J.GII)')).toMatchObject({ grade: 'G2' });
 	});
 
 	it('条件戦はクラスを className に分ける', () => {
@@ -262,6 +280,17 @@ ${row({ rank: '取消', waku: 3, umaban: 5, id: '2020000000', name: 'トリケ�
 		});
 		expect(rows[1]).toMatchObject({ finish: undefined, status: '取消', time: undefined });
 	});
+
+	it('障害の上りは上がり3Fとして読まない', () => {
+		const html = `<title>中山グランドジャンプ(J.G1) 結果・払戻 | 2026年4月18日 中山11R</title>
+${raceData('15:40発走 / 障4250m (芝 右) / 天候:晴 / 馬場:良', '3回 中山 7日目 障害４歳以上 オープン')}
+<table summary="全着順" class="RaceTable01" id="All_Result_Table"><tbody>
+${row({ rank: '1', waku: 1, umaban: 1, id: '2019000001', name: 'ジャンパー', margin: '', weight: '480<small>(0)</small>' })}
+</tbody></table>`;
+		const { meta, rows } = parseResult(html);
+		expect(meta.surface).toBe('障害');
+		expect(rows[0].last3f).toBeUndefined();
+	});
 });
 
 describe('parseHorseResults', () => {
@@ -389,6 +418,7 @@ describe('parseHorseResults', () => {
 			finish: 2,
 			status: undefined,
 			jockey: '横山典弘',
+			jockeyId: '00660',
 			weight: 57,
 			time: '2:16.9',
 			passing: '6-6-7-5',
@@ -404,6 +434,38 @@ describe('parseHorseResults', () => {
 			jockey: 'M.デムーロ'
 		});
 	});
+
+	it('障害の上りは上がり3Fとして読まない', () => {
+		const runs = parseHorseResults(
+			table([
+				tr([
+					'2026/04/18',
+					'3中山7',
+					'晴',
+					'11',
+					'<a href="https://db.netkeiba.com/race/202606030711/">中山グランドジャンプ(J.GI)</a>',
+					'',
+					'12',
+					'1',
+					'1',
+					'2.0',
+					'1',
+					'1',
+					'騎手',
+					'63',
+					'障4250',
+					'良',
+					'4:45.0',
+					'0.0',
+					'1-1-1-1',
+					'13.3',
+					'480(0)'
+				])
+			])
+		);
+		expect(runs[0]).toMatchObject({ race: { grade: 'G1', surface: '障害' }, finish: 1 });
+		expect(runs[0].last3f).toBeUndefined();
+	});
 });
 
 describe('馬の基本情報', () => {
@@ -414,7 +476,8 @@ describe('馬の基本情報', () => {
 			name: 'キャントウェイト',
 			sex: '牡',
 			birthYear: 2021,
-			trainer: '萱野浩二'
+			trainer: '萱野浩二',
+			trainerId: '01024'
 		});
 	});
 
@@ -434,5 +497,17 @@ describe('馬の基本情報', () => {
 		expect(parsePersonName('<title>Ｃ．ルメールのプロフィール | 騎手データ</title>')).toBe(
 			'C.ルメール'
 		);
+	});
+});
+
+describe('setRequestInterval', () => {
+	it('0.5秒より短い間隔は受け付けない', () => {
+		expect(() => setRequestInterval(499)).toThrow(RangeError);
+		expect(() => setRequestInterval(Number.NaN)).toThrow(RangeError);
+	});
+
+	it('0.5秒以上なら受け付ける', () => {
+		expect(() => setRequestInterval(500)).not.toThrow();
+		setRequestInterval(1000);
 	});
 });

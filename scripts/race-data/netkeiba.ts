@@ -5,7 +5,7 @@
  * YAML への書き込み（yaml-file.ts）や手順（scripts/race-data.ts）は触らずに済む。
  *
  * 取り方の約束:
- * - 1リクエストごとに間を空ける（`REQUEST_INTERVAL_MS`）。まとめて叩かない
+ * - 1リクエストごとに間を空ける（既定 1秒、`setRequestInterval` で 0.5秒まで縮められる）。まとめて叩かない
  * - HTML は正規表現で切り出す。依存を増やさないためで、壊れたら**黙って空を返さず**
  *   呼び出し側が「0頭」「見つからない」と気づける形で返す
  */
@@ -38,16 +38,27 @@ const COURSE_NAMES = Object.values(COURSE_CODES);
 // 取得
 // ---------------------------------------------------------------------------
 
-const REQUEST_INTERVAL_MS = 1000;
+/** 既定の間隔。`setRequestInterval` で変えられるが、`MIN_REQUEST_INTERVAL_MS` より短くはしない。 */
+export const DEFAULT_REQUEST_INTERVAL_MS = 1000;
+export const MIN_REQUEST_INTERVAL_MS = 500;
+let requestIntervalMs = DEFAULT_REQUEST_INTERVAL_MS;
 const USER_AGENT = 'Mozilla/5.0 (uma-memo data entry; personal use)';
 let lastRequestAt = 0;
+
+/** リクエストの間隔（ミリ秒）を変える。`MIN_REQUEST_INTERVAL_MS` 未満は受け付けない。 */
+export function setRequestInterval(ms: number): void {
+	if (!Number.isFinite(ms) || ms < MIN_REQUEST_INTERVAL_MS) {
+		throw new RangeError(`取得の間隔は ${MIN_REQUEST_INTERVAL_MS}ms 以上にしてください: ${ms}`);
+	}
+	requestIntervalMs = ms;
+}
 
 /**
  * ページを取って文字列で返す。db.netkeiba.com は EUC-JP、race.netkeiba.com は UTF-8 なので、
  * ヘッダか meta の charset を見てデコードする。
  */
 export async function fetchPage(url: string): Promise<string> {
-	const wait = lastRequestAt + REQUEST_INTERVAL_MS - Date.now();
+	const wait = lastRequestAt + requestIntervalMs - Date.now();
 	if (wait > 0) await new Promise((r) => setTimeout(r, wait));
 	lastRequestAt = Date.now();
 
@@ -163,6 +174,13 @@ const GRADE_WORDS: Record<string, Grade> = {
 	'J.GI': 'G1',
 	'J.GII': 'G2',
 	'J.GIII': 'G3',
+	// netkeiba の障害重賞は点が無い（`中山グランドジャンプ(JG1)`・`新潟ジャンプS(JGIII)`）
+	JG1: 'G1',
+	JG2: 'G2',
+	JG3: 'G3',
+	JGI: 'G1',
+	JGII: 'G2',
+	JGIII: 'G3',
 	L: 'L',
 	OP: 'OP'
 };
@@ -182,6 +200,7 @@ const CLASS_PATTERNS: [RegExp, string][] = [
  * - `産経賞オールカマー(GII)` → name `産経賞オールカマー`・grade `G2`
  * - `木更津特別(2勝)` → name `木更津特別`・className `2勝クラス`
  * - `3歳以上1勝クラス` → name そのまま・className `1勝クラス`
+ * - `天皇賞(秋)(GI)` → name `天皇賞（秋）`・grade `G1`
  *
  * 冠（`産経賞` 等）は機械的には外せないので残す。既に YAML にあるレースは名前を書き換えない。
  */
@@ -200,7 +219,8 @@ export function splitRaceName(raw: string): { name: string; grade?: Grade; class
 		if (className && paren && /勝|新馬|未勝利/.test(paren[1]))
 			name = s.slice(0, paren.index).trim();
 	}
-	name = name.replace(/ステークス$/, 'S');
+	// 戦績表は `天皇賞(秋)` と半角で書く。出馬表と JRA の表記（`天皇賞（秋）`）に揃える。
+	name = name.replace(/ステークス$/, 'S').replace(/\((春|秋)\)$/, '（$1）');
 	return { name, grade, className };
 }
 
@@ -380,6 +400,14 @@ export function parseShutuba(html: string): { meta: RaceMeta; rows: ShutubaRow[]
 // 結果
 // ---------------------------------------------------------------------------
 
+/**
+ * 上がり3F。**障害は読まない。** netkeiba の障害の「上り」は1Fあたりの平均（13秒台）で、
+ * 平地の上がり3Fと並べられず、`last3f` の範囲（20〜60秒）にも入らない。
+ */
+function last3fOf(surface: Surface | undefined, cell: string | undefined): number | undefined {
+	return surface === '障害' ? undefined : num(text(cell ?? ''));
+}
+
 export type ResultRow = {
 	/** 着順。取消・除外・中止・失格なら undefined で、`status` に理由が入る。 */
 	finish?: number;
@@ -405,6 +433,7 @@ export type ResultRow = {
 export function parseResult(html: string): { meta: RaceMeta; rows: ResultRow[] } {
 	const table = tableAfter(html, 'id="All_Result_Table"') ?? '';
 	const rows: ResultRow[] = [];
+	const meta = parseRaceMeta(html);
 
 	// 結果の表は `<tr  class=...` と空白が2つ入る。
 	for (const m of table.matchAll(/<tr\s+class="[^"]*HorseList[^"]*"[\s\S]*?<\/tr>/g)) {
@@ -430,12 +459,12 @@ export function parseResult(html: string): { meta: RaceMeta; rows: ResultRow[] }
 			margin: margin || undefined,
 			popularity: int(text(tds[9] ?? '')),
 			odds: num(text(tds[10] ?? '')),
-			last3f: num(text(tds[11] ?? '')),
+			last3f: last3fOf(meta.surface, tds[11]),
 			passing: text(tds[12] ?? '') || undefined,
 			...parseHorseWeight(tds[14] ?? '')
 		});
 	}
-	return { meta: parseRaceMeta(html), rows };
+	return { meta, rows };
 }
 
 // ---------------------------------------------------------------------------
@@ -455,7 +484,9 @@ export type PastRun = {
 	finish?: number;
 	/** 着順が数字でないときの表記（`取` `除` `中` など）。 */
 	status?: string;
+	/** 戦績表の騎手名。4文字で切れている（`佐々木大`）ので、`jockeyId` があれば引き直す。 */
 	jockey?: string;
+	jockeyId?: string;
 	weight?: number;
 	time?: string;
 	passing?: string;
@@ -519,10 +550,11 @@ export function parseHorseResults(html: string): PastRun[] {
 			finish,
 			status: finish === undefined && finishText ? finishText : undefined,
 			jockey: toHalfWidth(text(at(tds, '騎手'))) || undefined,
+			jockeyId: person(at(tds, '騎手'), 'jockey')?.id,
 			weight: num(text(at(tds, '斤量'))),
 			time: text(at(tds, 'タイム')) || undefined,
 			passing: text(at(tds, '通過')) || undefined,
-			last3f: num(text(at(tds, '上り'))),
+			last3f: last3fOf(surface, at(tds, '上り')),
 			...parseHorseWeight(at(tds, '馬体重'))
 		});
 	}
@@ -537,7 +569,9 @@ export type HorseProfile = {
 	name: string;
 	sex?: '牡' | '牝' | 'セ';
 	birthYear?: number;
+	/** プロフィール表の調教師名。4文字で切れる（`中内田充`）ので、`trainerId` があれば引き直す。 */
 	trainer?: string;
+	trainerId?: string;
 	sire?: string;
 	dam?: string;
 };
@@ -549,15 +583,18 @@ export function parseHorseProfile(html: string): HorseProfile {
 	const status = text(/class="txt_01">([\s\S]*?)<\/p>/.exec(titleBox)?.[1] ?? '');
 	const sexWord = /(牡|牝|セ|騸)/.exec(status)?.[1];
 
-	const prof = text(/class="db_prof_table[\s\S]*?<\/table>/.exec(html)?.[0] ?? '');
+	const profHtml = /class="db_prof_table[\s\S]*?<\/table>/.exec(html)?.[0] ?? '';
+	const prof = text(profHtml);
 	const birthYear = int(/生年月日\s*(\d{4})年/.exec(prof)?.[1]);
 	const trainer = /調教師\s*(\S+?)\s*\(/.exec(prof)?.[1];
+	const trainerId = /調教師[\s\S]*?\/trainer\/(?:result\/recent\/)?(\w+)\//.exec(profHtml)?.[1];
 
 	return {
 		name,
 		sex: sexWord === '騸' ? 'セ' : (sexWord as HorseProfile['sex']),
 		birthYear,
-		trainer: trainer && trainer !== '-' ? toHalfWidth(trainer) : undefined
+		trainer: trainer && trainer !== '-' ? toHalfWidth(trainer) : undefined,
+		trainerId: trainer && trainer !== '-' ? trainerId : undefined
 	};
 }
 

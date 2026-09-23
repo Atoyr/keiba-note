@@ -119,12 +119,14 @@ export async function applyShutuba(
  * - `before` より前の、JRA のレースだけ（地方・海外はパーサの時点で落ちている）
  * - 取消・除外（走っていない）は数えない
  * - 既にある値は書き換えない（`fill`）
+ * - 騎手は `resolve` があれば略さない名前に引き直す
  */
 export async function applyPastRuns(
 	openFile: (date: string) => Promise<RaceFile>,
 	horse: { name: string; ref: string },
 	runs: PastRun[],
-	opts: { before: string; count: number }
+	opts: { before: string; count: number },
+	resolve?: ResolvePerson
 ): Promise<string[]> {
 	const picked = runs
 		.filter((r) => r.date < opts.before && !/取|除/.test(r.status ?? ''))
@@ -145,7 +147,11 @@ export async function applyPastRuns(
 				ref: horse.ref,
 				bracket: run.bracket,
 				horseNumber: run.horseNumber,
-				jockey: run.jockey,
+				// 戦績表の騎手名は途中で切れる。ID があれば出馬表・結果と同じ名前に引き直す。
+				jockey:
+					run.jockey && run.jockeyId && resolve
+						? await resolve('jockey', { id: run.jockeyId, short: run.jockey })
+						: run.jockey,
 				finish: run.finish,
 				popularity: run.popularity,
 				time: run.time,
