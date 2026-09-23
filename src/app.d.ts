@@ -37,6 +37,8 @@ declare global {
 			user: import('$lib/server/auth/session').SessionUser | null;
 			/** 開発用のモック認証で入っているか。本番では常に false。 */
 			mockAuth: boolean;
+			/** 動いている環境（production / staging / local）。hooks.server.ts が埋める。 */
+			appEnv: string;
 			/** hooks.server.ts が作る、リクエストごとの監視の口（docs/monitoring.md）。 */
 			monitor: import('$lib/server/monitoring/monitor').Monitor;
 		}

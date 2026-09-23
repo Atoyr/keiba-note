@@ -1,11 +1,11 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 	import { onMount, tick } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
+	import AppEnvMark from '$lib/components/AppEnvMark.svelte';
 	import { replayEarlyInput, resetEarlyInput, takeEarlyInput } from '$lib/utils/early-input';
 	import type { LayoutProps } from './$types';
 
@@ -45,7 +45,7 @@
 	const bare = $derived(page.url.pathname.startsWith('/notes/'));
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<AppEnvMark staging={data.staging} />
 
 <!-- 認証をモックしていることを忘れないための帯。
      本番では data.mockAuth が常に false になる（hooks.server.ts のモック分岐が
