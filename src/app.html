@@ -4,6 +4,54 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<script>
+			// hydration の前に書かれた入力を覚えておく。書き戻すのはルートレイアウト
+			// （src/lib/utils/early-input.ts）。initial は SSR の値（default*）で、JS が届く前は
+			// これが SSR の HTML そのままなので確か。
+			//
+			// Svelte は hydration で入力欄の値を SSR の値に合わせにいくので、JS が届く前に
+			// 打った文字や付けた札は消える。フォームは「空欄＝そのメモを消す」ので、
+			// 気づかず保存すると書いたつもりのものが残らない。電波の悪い競馬場で起きやすい。
+			//
+			// **バンドルに入れず、ここに直に書く。** バンドルは hydration と一緒に届くので、
+			// それより前の入力を拾えない。記録の形を変えるときは early-input.ts の型も直す。
+			// kit.csp を入れるなら、この script に nonce（%sveltekit.nonce%）が要る。
+			(() => {
+				/** @type {Map<Element, object>} */
+				const touched = new Map();
+				const record = (e) => {
+					const el = e.target;
+					let snap;
+					if (el instanceof HTMLSelectElement) {
+						const picked = (key) =>
+							Array.from(el.options)
+								.filter((o) => o[key])
+								.map((o) => o.value);
+						snap = { el, selected: picked('selected'), initial: picked('defaultSelected') };
+					} else if (el instanceof HTMLTextAreaElement) {
+						snap = { el, value: el.value, initial: el.defaultValue };
+					} else if (el instanceof HTMLInputElement && el.type !== 'file') {
+						snap =
+							el.type === 'checkbox' || el.type === 'radio'
+								? { el, checked: el.checked, initial: el.defaultChecked }
+								: { el, value: el.value, initial: el.defaultValue };
+					} else return;
+					// 入れ直して末尾へ回す。ラジオは後から選んだものを最後に当てたいので、
+					// 触った順がそのまま書き戻す順になるようにする。
+					touched.delete(el);
+					touched.set(el, snap);
+				};
+				document.addEventListener('input', record, true);
+				document.addEventListener('change', record, true);
+				window.__kNoteEarlyInput = {
+					take() {
+						document.removeEventListener('input', record, true);
+						document.removeEventListener('change', record, true);
+						return Array.from(touched.values());
+					}
+				};
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

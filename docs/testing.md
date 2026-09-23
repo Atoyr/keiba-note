@@ -38,8 +38,9 @@ CI（`.github/workflows/ci.yml`）も同じものを回し、画面カタログ�
 - **form POST を足したら E2E で確かめる。** CSRF の検証は本番ビルドでしか効かない（`vite dev` では通ってしまう）
 - **E2E で入力欄に書く・送信する前は hydration を待つ。** `gotoHydrated` か `waitForHydration`
   （`e2e/hydration.ts`）を使う。`page.goto` が待つのは load までで、hydration はそのあとに走る。
-  先に書いた値は hydration が SSR の値で上書きし、空のまま保存される。並列で回したときだけ落ちるので、
-  1ファイルだけ回しても気づけない。印はルートレイアウトの onMount が `<html data-hydrated>` に立てる
+  先に書いた値は hydration のあとに書き戻される（[frontend.md 第4章](./frontend.md)）が、済む前に
+  送信すると `use:enhance` の無い送信になり、`DraftKeeper` もまだ動いていない。並列で JS の配信が
+  遅れたときだけ違う経路を通るので、待って揃える。印はルートレイアウトの onMount が `<html data-hydrated>` に立てる
 - `expect.requireAssertions` が有効。アサーションの無いテストは落ちる
 - `.only` と `test.skip` は残さない
 - コンポーネントのテストは対象の隣に置く（`GradeBadge.svelte` → `GradeBadge.svelte.spec.ts`）

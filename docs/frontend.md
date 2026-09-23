@@ -64,6 +64,13 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   名前に id を入れて送るが、どの `entryId` を読むかは DB から引いた出走馬の一覧で決める。
   フォームの id を鵜呑みにすると、他のレースの行に書き込めてしまう
 - 添字付きの行（出走馬の入力）は `horseName.0` のように名前を付け、`rowCount` で件数を送る
+- **hydration の前に書かれた入力は、hydration のあとに書き戻す。** Svelte は hydration で
+  非制御の入力欄（`<textarea>{値}</textarea>`・`checked={値}`）を SSR の値に戻すので、JS が届く前に
+  書いたものが消え、「空欄＝消す」フォームでは保存で消える。`src/app.html` のインラインスクリプトが
+  入力を覚え、ルートレイアウトの onMount が書き戻して `input` / `change` を投げる
+  （`src/lib/utils/early-input.ts`）。書き戻した値は `DraftKeeper` の「未保存」に数えられる。
+  `bind:value` の欄も同じ扱いになるので、フォームごとに何もしなくてよい。
+  `kit.csp` を入れるときは、このスクリプトに nonce が要る
 - フィールド名と action の一覧は [api.md 第3章](./api.md)
 
 ## 5. コンポーネント
