@@ -1,0 +1,28 @@
+# 2024年6月29日（土） 過去走
+date: 2024-06-29
+
+races:
+  - course: 小倉
+    raceNumber: 8
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 6
+        bracket: 5
+        name: カズミクラーシュ
+        jockey: 川田将雅
+        ref: nk-2021105564
+        finish: 1
+        popularity: 1
+        time: "1:47.9"
+        passing: "7-7-2-1"
+        last3f: 37
+        weight: 55
+        horseWeight: 492
+        horseWeightDiff: 10
+        odds: 1.3

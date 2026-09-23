@@ -1,0 +1,28 @@
+# 2023年4月16日（日） 過去走
+date: 2023-04-16
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 皐月賞
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 重
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 4
+        name: ファントムシーフ
+        jockey: ルメール
+        ref: nk-2020106582
+        finish: 3
+        popularity: 1
+        time: "2:01.1"
+        passing: "11-10-10-10"
+        last3f: 36.4
+        weight: 57
+        horseWeight: 494
+        horseWeightDiff: -8
+        odds: 3.8

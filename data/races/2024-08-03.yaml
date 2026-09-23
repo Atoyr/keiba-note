@@ -1,0 +1,28 @@
+# 2024年8月3日（土） 過去走
+date: 2024-08-03
+
+races:
+  - course: 札幌
+    raceNumber: 11
+    name: 札幌日経OP
+    grade: L
+    surface: 芝
+    distance: 2600
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 6
+        name: ショウナンバシット
+        jockey: 佐々木大輔
+        ref: nk-2020103333
+        finish: 1
+        popularity: 6
+        time: "2:38.9"
+        passing: "2-2-2-1"
+        last3f: 35.4
+        weight: 57
+        horseWeight: 498
+        horseWeightDiff: -2
+        odds: 8.4

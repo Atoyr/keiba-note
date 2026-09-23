@@ -1,0 +1,28 @@
+# 2024年3月23日（土） 過去走
+date: 2024-03-23
+
+races:
+  - course: 中京
+    raceNumber: 10
+    name: 熊野特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 2200
+    direction: 左
+    trackCondition: 重
+    weather: 小雨
+    entries:
+      - horseNumber: 10
+        bracket: 8
+        name: ホールネス
+        jockey: 西塚洸二
+        ref: nk-2020110060
+        finish: 1
+        popularity: 2
+        time: "2:15.8"
+        passing: "4-5-4-4"
+        last3f: 35.1
+        weight: 55
+        horseWeight: 524
+        horseWeightDiff: 6
+        odds: 4

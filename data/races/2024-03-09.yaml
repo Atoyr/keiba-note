@@ -1,0 +1,28 @@
+# 2024年3月9日（土） 過去走
+date: 2024-03-09
+
+races:
+  - course: 阪神
+    raceNumber: 10
+    name: 難波S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 7
+        bracket: 7
+        name: グランヴィノス
+        jockey: 川田将雅
+        ref: nk-2020103522
+        finish: 2
+        popularity: 1
+        time: "1:46.2"
+        passing: "2-2"
+        last3f: 33.9
+        weight: 58
+        horseWeight: 526
+        horseWeightDiff: 4
+        odds: 1.6

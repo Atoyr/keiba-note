@@ -1,0 +1,52 @@
+# 2023年10月29日（日） 過去走
+date: 2023-10-29
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 天皇賞（秋）
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ノースブリッジ
+        jockey: 岩田康誠
+        ref: nk-2018102348
+        finish: 10
+        popularity: 10
+        time: "1:58.0"
+        passing: "4-4-4"
+        last3f: 36.7
+        weight: 58
+        horseWeight: 492
+        horseWeightDiff: -8
+        odds: 167.9
+  - course: 東京
+    raceNumber: 10
+    name: ペルセウスS
+    grade: OP
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ヘリオス
+        jockey: 戸崎圭太
+        ref: nk-2016102370
+        finish: 1
+        popularity: 4
+        time: "1:23.6"
+        passing: "1-1"
+        last3f: 36.4
+        weight: 58.5
+        horseWeight: 480
+        horseWeightDiff: 0
+        odds: 6.2

@@ -389,7 +389,7 @@ races:
         sex: 牝
         age: 3
         ref: nk-2023107079
-        trainer: 大久保龍
+        trainer: 大久保龍志
         sire: エピファネイア
         dam: スマートレイアー
         finish: 6
@@ -524,7 +524,7 @@ races:
       - horseNumber: 10
         bracket: 7
         name: スウィートハピネス
-        jockey: 佐々木大
+        jockey: 佐々木大輔
         sex: 牝
         age: 3
         ref: nk-2023104475
@@ -544,7 +544,7 @@ races:
       - horseNumber: 11
         bracket: 8
         name: レイクラシック
-        jockey: 吉村誠之
+        jockey: 吉村誠之助
         sex: 牝
         age: 3
         ref: nk-2023103906

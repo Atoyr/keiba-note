@@ -1,0 +1,87 @@
+# 2025年1月6日（月） 過去走
+date: 2025-01-06
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: 万葉S
+    grade: OP
+    surface: 芝
+    distance: 3000
+    direction: 左
+    trackCondition: 稍重
+    weather: 雨
+    entries:
+      - horseNumber: 8
+        bracket: 4
+        name: サスツルギ
+        jockey: 松山弘平
+        ref: nk-2020103439
+        finish: 17
+        popularity: 6
+        time: "3:20.0"
+        passing: "4-4-7-13"
+        last3f: 46.1
+        weight: 56
+        horseWeight: 496
+        horseWeightDiff: 2
+        odds: 13.8
+  - course: 中山
+    raceNumber: 8
+    name: 中山新春ジャンプS
+    grade: OP
+    surface: 障害
+    distance: 3200
+    trackCondition: 良
+    weather: 小雨
+    entries:
+      - horseNumber: 4
+        bracket: 3
+        name: タンジェントアーク
+        jockey: 五十嵐雄祐
+        ref: nk-2018100752
+        finish: 9
+        popularity: 6
+        time: "3:39.3"
+        passing: "12-12-12-11"
+        weight: 60
+        horseWeight: 446
+        horseWeightDiff: 10
+        odds: 14.8
+      - horseNumber: 12
+        bracket: 7
+        name: オオキニ
+        jockey: 森一馬
+        ref: nk-2019100675
+        finish: 2
+        popularity: 1
+        time: "3:36.6"
+        passing: "2-2-3-3"
+        weight: 60
+        horseWeight: 462
+        horseWeightDiff: 10
+        odds: 2
+  - course: 中京
+    raceNumber: 4
+    name: 3歳1勝クラス
+    className: 1勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 6
+        name: ナルカミ
+        jockey: 坂井瑠星
+        ref: nk-2022101638
+        finish: 7
+        popularity: 1
+        time: "1:53.9"
+        passing: "1-1-1-1"
+        last3f: 39.4
+        weight: 57
+        horseWeight: 502
+        horseWeightDiff: 2
+        odds: 1.1

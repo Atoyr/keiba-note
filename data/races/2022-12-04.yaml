@@ -1,0 +1,52 @@
+# 2022年12月4日（日） 過去走
+date: 2022-12-04
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: チャンピオンズC
+    grade: G1
+    surface: ダート
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 5
+        name: クラウンプライド
+        jockey: 福永祐一
+        ref: nk-2019104678
+        finish: 2
+        popularity: 4
+        time: "1:51.9"
+        passing: "2-2-2-2"
+        last3f: 36.7
+        weight: 56
+        horseWeight: 500
+        horseWeightDiff: -1
+        odds: 14.3
+  - course: 阪神
+    raceNumber: 11
+    name: ギャラクシーS
+    grade: OP
+    surface: ダート
+    distance: 1400
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 5
+        name: ケイアイドリー
+        jockey: 藤岡康太
+        ref: nk-2017101560
+        finish: 5
+        popularity: 1
+        time: "1:24.2"
+        passing: "1-2"
+        last3f: 36.7
+        weight: 56.5
+        horseWeight: 514
+        horseWeightDiff: -6
+        odds: 2.2

@@ -1,0 +1,52 @@
+# 2024年7月27日（土） 過去走
+date: 2024-07-27
+
+races:
+  - course: 新潟
+    raceNumber: 7
+    name: 関越S
+    grade: OP
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: アルビージャ
+        jockey: 嶋田純次
+        ref: nk-2018104913
+        finish: 4
+        popularity: 9
+        time: "1:44.3"
+        passing: "7-5"
+        last3f: 34
+        weight: 57
+        horseWeight: 526
+        horseWeightDiff: 10
+        odds: 127.8
+  - course: 新潟
+    raceNumber: 6
+    name: 豊栄特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 17
+        bracket: 8
+        name: カズミクラーシュ
+        jockey: 幸英明
+        ref: nk-2021105564
+        finish: 18
+        popularity: 7
+        time: "1:34.2"
+        passing: "7-6"
+        last3f: 35.1
+        weight: 55
+        horseWeight: 488
+        horseWeightDiff: -4
+        odds: 12.4

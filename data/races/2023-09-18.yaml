@@ -1,0 +1,28 @@
+# 2023年9月18日（月） 過去走
+date: 2023-09-18
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: JRAアニバーサリー
+    className: 3勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 5
+        name: セラフィックコール
+        jockey: M.デムーロ
+        ref: nk-2020103400
+        finish: 1
+        popularity: 1
+        time: "1:52.4"
+        passing: "14-14-10-4"
+        last3f: 37.4
+        weight: 54
+        horseWeight: 530
+        horseWeightDiff: 10
+        odds: 2.1

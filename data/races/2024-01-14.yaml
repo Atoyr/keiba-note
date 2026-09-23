@@ -1,0 +1,56 @@
+# 2024年1月14日（日） 過去走
+date: 2024-01-14
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: 日経新春杯
+    grade: G2
+    surface: 芝
+    distance: 2400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 5
+        bracket: 4
+        name: レッドバリエンテ
+        jockey: 西村淳也
+        ref: nk-2019104742
+        finish: 6
+        popularity: 5
+        time: "2:24.7"
+        passing: "8-8-8-7"
+        last3f: 37
+        weight: 55
+        horseWeight: 480
+        horseWeightDiff: 2
+        odds: 6.9
+      - horseNumber: 7
+        bracket: 5
+        name: ハーツコンチェルト
+        jockey: 松山弘平
+        ref: nk-2020105681
+        finish: 4
+        popularity: 2
+        time: "2:24.3"
+        passing: "6-6-5-2"
+        last3f: 36.7
+        weight: 55
+        horseWeight: 504
+        horseWeightDiff: 6
+        odds: 4.3
+      - horseNumber: 14
+        bracket: 8
+        name: サトノグランツ
+        jockey: 川田将雅
+        ref: nk-2020103473
+        finish: 3
+        popularity: 3
+        time: "2:24.0"
+        passing: "5-5-5-2"
+        last3f: 36.5
+        weight: 57.5
+        horseWeight: 506
+        horseWeightDiff: 10
+        odds: 5.9

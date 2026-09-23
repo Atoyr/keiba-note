@@ -1,0 +1,66 @@
+# 2024年6月16日（日） 過去走
+date: 2024-06-16
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: マーメイドS
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 2
+        name: ミッキーゴージャス
+        jockey: 浜中俊
+        ref: nk-2020103640
+        finish: 13
+        popularity: 2
+        time: "1:58.6"
+        passing: "3-3-3-3"
+        last3f: 35.9
+        weight: 56.5
+        horseWeight: 452
+        horseWeightDiff: 8
+        odds: 7.5
+      - horseNumber: 6
+        bracket: 3
+        name: ホールネス
+        jockey: 西塚洸二
+        ref: nk-2020110060
+        finish: 3
+        popularity: 6
+        time: "1:57.6"
+        passing: "8-9-9-10"
+        last3f: 34.3
+        weight: 52
+        horseWeight: 522
+        horseWeightDiff: -2
+        odds: 11.6
+  - course: 東京
+    raceNumber: 9
+    name: 町田特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: ヘデントール
+        jockey: ルメール
+        ref: nk-2021105521
+        finish: 1
+        popularity: 1
+        time: "2:26.9"
+        passing: "6-2-2-2"
+        last3f: 33.6
+        weight: 54
+        horseWeight: 474
+        horseWeightDiff: 0
+        odds: 1.3

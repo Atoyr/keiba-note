@@ -1,0 +1,125 @@
+# 2024年11月16日（土） 過去走
+date: 2024-11-16
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: アンドロメダS
+    grade: L
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ケイアイセナ
+        jockey: 武豊
+        ref: nk-2019100318
+        finish: 8
+        popularity: 5
+        time: "2:00.2"
+        passing: "3-2-2-2"
+        last3f: 36.2
+        weight: 55
+        horseWeight: 480
+        horseWeightDiff: 0
+        odds: 8.2
+      - horseNumber: 9
+        bracket: 5
+        name: ホウオウノーサイド
+        jockey: 田口貫太
+        ref: nk-2019105775
+        finish: 13
+        popularity: 15
+        time: "2:00.5"
+        passing: "8-9-14-14"
+        last3f: 35.6
+        weight: 53
+        horseWeight: 478
+        horseWeightDiff: -14
+        odds: 312.8
+  - course: 福島
+    raceNumber: 5
+    name: 障害3歳以上OP
+    surface: 障害
+    distance: 3380
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ローディアマント
+        jockey: 金子光希
+        ref: nk-2020101429
+        finish: 2
+        popularity: 5
+        time: "3:46.2"
+        passing: "3-6-3-3"
+        weight: 60
+        horseWeight: 476
+        horseWeightDiff: -2
+        odds: 10.5
+  - course: 東京
+    raceNumber: 11
+    name: 東京スポーツ杯2歳S
+    grade: G2
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: クロワデュノール
+        jockey: 北村友一
+        ref: nk-2022105102
+        finish: 1
+        popularity: 1
+        time: "1:46.8"
+        passing: "3-3-2"
+        last3f: 33.3
+        weight: 56
+        horseWeight: 504
+        horseWeightDiff: 24
+        odds: 2.2
+      - horseNumber: 9
+        bracket: 8
+        name: サトノシャイニング
+        jockey: 松山弘平
+        ref: nk-2022101420
+        finish: 2
+        popularity: 3
+        time: "1:46.9"
+        passing: "1-1-1"
+        last3f: 33.5
+        weight: 56
+        horseWeight: 492
+        horseWeightDiff: 2
+        odds: 5.7
+  - course: 東京
+    raceNumber: 6
+    name: 2歳1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: エンブロイダリー
+        jockey: ルメール
+        ref: nk-2022105185
+        finish: 1
+        popularity: 1
+        time: "1:22.7"
+        passing: "6-4"
+        last3f: 33.1
+        weight: 55
+        horseWeight: 474
+        horseWeightDiff: -6
+        odds: 1.7

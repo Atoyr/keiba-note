@@ -1,0 +1,80 @@
+# 2024年5月26日（日） 過去走
+date: 2024-05-26
+
+races:
+  - course: 東京
+    raceNumber: 12
+    name: 目黒記念
+    grade: G2
+    surface: 芝
+    distance: 2500
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: サトノグランツ
+        jockey: 川田将雅
+        ref: nk-2020103473
+        finish: 4
+        popularity: 3
+        time: "2:32.5"
+        passing: "4-4-4-4"
+        last3f: 33.7
+        weight: 58.5
+        horseWeight: 498
+        horseWeightDiff: 0
+        odds: 5.3
+  - course: 東京
+    raceNumber: 11
+    name: 東京優駿
+    grade: G1
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 2
+        name: ビザンチンドリーム
+        jockey: 西村淳也
+        ref: nk-2021105587
+        finish: 17
+        popularity: 10
+        time: "2:25.8"
+        passing: "12-13-16-16"
+        last3f: 33.7
+        weight: 57
+        horseWeight: 458
+        horseWeightDiff: 2
+        odds: 61.2
+      - horseNumber: 11
+        bracket: 6
+        name: シュガークン
+        jockey: 武豊
+        ref: nk-2021102224
+        finish: 7
+        popularity: 8
+        time: "2:25.2"
+        passing: "2-2-2-1"
+        last3f: 34.7
+        weight: 57
+        horseWeight: 504
+        horseWeightDiff: 2
+        odds: 22
+      - horseNumber: 13
+        bracket: 7
+        name: シンエンペラー
+        jockey: 坂井瑠星
+        ref: nk-2021110048
+        finish: 3
+        popularity: 7
+        time: "2:24.9"
+        passing: "8-7-9-9"
+        last3f: 33.4
+        weight: 57
+        horseWeight: 486
+        horseWeightDiff: 4
+        odds: 17.8

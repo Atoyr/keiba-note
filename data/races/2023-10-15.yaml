@@ -1,0 +1,42 @@
+# 2023年10月15日（日） 過去走
+date: 2023-10-15
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: オクトーバーS
+    grade: L
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 重
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ヤマニンサルバム
+        jockey: 三浦皇成
+        ref: nk-2019100596
+        finish: 1
+        popularity: 4
+        time: "1:58.0"
+        passing: "1-1-1"
+        last3f: 34.6
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 2
+        odds: 7.4
+      - horseNumber: 6
+        bracket: 4
+        name: テーオーソラネル
+        jockey: 団野大成
+        ref: nk-2019103817
+        finish: 5
+        popularity: 3
+        time: "1:59.0"
+        passing: "3-3-3"
+        last3f: 34.6
+        weight: 57
+        horseWeight: 496
+        horseWeightDiff: 0
+        odds: 7.2

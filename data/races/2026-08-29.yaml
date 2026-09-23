@@ -1,0 +1,52 @@
+# 2026年8月29日（土） 過去走
+date: 2026-08-29
+
+races:
+  - course: 札幌
+    raceNumber: 3
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 7
+        name: イドム
+        jockey: 松本大輝
+        ref: nk-2024102908
+        finish: 2
+        popularity: 4
+        time: "1:52.8"
+        passing: "4-3-3-3"
+        last3f: 36.1
+        weight: 55
+        horseWeight: 436
+        horseWeightDiff: 10
+        odds: 18.3
+  - course: 札幌
+    raceNumber: 2
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ロゼハイスクール
+        jockey: 古川奈穂
+        ref: nk-2024105019
+        finish: 13
+        popularity: 11
+        time: "1:33.1"
+        passing: "12-12-13"
+        last3f: 38.1
+        weight: 53
+        horseWeight: 400
+        horseWeightDiff: -2
+        odds: 193.9

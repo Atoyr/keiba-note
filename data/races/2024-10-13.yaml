@@ -1,0 +1,167 @@
+# 2024年10月13日（日） 過去走
+date: 2024-10-13
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: オクトーバーS
+    grade: L
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: テーオーソラネル
+        jockey: 佐々木大輔
+        ref: nk-2019103817
+        finish: 15
+        popularity: 8
+        time: "1:59.3"
+        passing: "2-2-2"
+        last3f: 36.7
+        weight: 57
+        horseWeight: 504
+        horseWeightDiff: 10
+        odds: 24.6
+      - horseNumber: 5
+        bracket: 3
+        name: グランディア
+        jockey: 三浦皇成
+        ref: nk-2019105302
+        finish: 4
+        popularity: 1
+        time: "1:57.8"
+        passing: "6-7-7"
+        last3f: 34.1
+        weight: 58
+        horseWeight: 480
+        horseWeightDiff: 4
+        odds: 4.4
+      - horseNumber: 16
+        bracket: 8
+        name: ドゥラドーレス
+        jockey: 丸山元気
+        ref: nk-2019105556
+        finish: 11
+        popularity: 2
+        time: "1:58.1"
+        passing: "14-13-12"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 502
+        horseWeightDiff: 0
+        odds: 4.7
+  - course: 東京
+    raceNumber: 10
+    name: テレビ静岡賞
+    className: 3勝クラス
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 4
+        name: ロードフォンス
+        jockey: 横山和生
+        ref: nk-2020100145
+        finish: 1
+        popularity: 2
+        time: "1:22.7"
+        passing: "9-7"
+        last3f: 35.3
+        weight: 58
+        horseWeight: 490
+        horseWeightDiff: 8
+        odds: 5.5
+  - course: 東京
+    raceNumber: 9
+    name: 東京ハイジャンプ
+    surface: 障害
+    distance: 3110
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 8
+        name: ブラックボイス
+        jockey: 石神深一
+        ref: nk-2019105276
+        finish: 6
+        popularity: 5
+        time: "3:26.5"
+        passing: "7-7-8-8"
+        weight: 60
+        horseWeight: 512
+        horseWeightDiff: -8
+        odds: 8.2
+      - horseNumber: 9
+        bracket: 8
+        name: オールザワールド
+        jockey: 森一馬
+        ref: nk-2017105248
+        finish: 3
+        popularity: 4
+        time: "3:25.6"
+        passing: "2-2-2-2"
+        weight: 60
+        horseWeight: 472
+        horseWeightDiff: 2
+        odds: 7.5
+    grade: G2
+  - course: 京都
+    raceNumber: 11
+    name: 秋華賞
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 3
+        bracket: 2
+        name: クイーンズウォーク
+        jockey: 川田将雅
+        ref: nk-2021105414
+        finish: 15
+        popularity: 3
+        time: "1:59.6"
+        passing: "14-14-9-7"
+        last3f: 36.5
+        weight: 55
+        horseWeight: 524
+        horseWeightDiff: 2
+        odds: 6.8
+      - horseNumber: 8
+        bracket: 5
+        name: コガネノソラ
+        jockey: 坂井瑠星
+        ref: nk-2021106823
+        finish: 9
+        popularity: 9
+        time: "1:58.0"
+        passing: "5-5-4-4"
+        last3f: 35.2
+        weight: 55
+        horseWeight: 444
+        horseWeightDiff: -10
+        odds: 27.4
+      - horseNumber: 14
+        bracket: 8
+        name: ステレンボッシュ
+        jockey: 戸崎圭太
+        ref: nk-2021105743
+        finish: 3
+        popularity: 2
+        time: "1:57.5"
+        passing: "10-10-11-10"
+        last3f: 34.3
+        weight: 55
+        horseWeight: 468
+        horseWeightDiff: 10
+        odds: 3.9

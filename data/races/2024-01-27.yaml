@@ -1,0 +1,28 @@
+# 2024年1月27日（土） 過去走
+date: 2024-01-27
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 白富士S
+    grade: L
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 6
+        bracket: 5
+        name: バトルボーン
+        jockey: ルメール
+        ref: nk-2019105193
+        finish: 2
+        popularity: 2
+        time: "1:57.3"
+        passing: "2-2-3"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 494
+        horseWeightDiff: 6
+        odds: 3.5

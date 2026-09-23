@@ -1,0 +1,26 @@
+# 2024年3月16日（土） 過去走
+date: 2024-03-16
+
+races:
+  - course: 中山
+    raceNumber: 8
+    name: ペガサスジャンプS
+    grade: OP
+    surface: 障害
+    distance: 3350
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 12
+        bracket: 8
+        name: サンデイビス
+        jockey: 井上敏樹
+        ref: nk-2018100297
+        finish: 3
+        popularity: 7
+        time: "3:43.6"
+        passing: "4-4-4-6"
+        weight: 60
+        horseWeight: 494
+        horseWeightDiff: -10
+        odds: 22.9

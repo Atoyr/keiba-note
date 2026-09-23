@@ -1,0 +1,28 @@
+# 2023年5月28日（日） 過去走
+date: 2023-05-28
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 東京優駿
+    grade: G1
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 14
+        bracket: 7
+        name: ファントムシーフ
+        jockey: 武豊
+        ref: nk-2020106582
+        finish: 8
+        popularity: 3
+        time: "2:25.6"
+        passing: "12-10-9-9"
+        last3f: 33.5
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: -4
+        odds: 6.9

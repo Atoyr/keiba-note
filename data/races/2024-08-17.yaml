@@ -1,0 +1,28 @@
+# 2024年8月17日（土） 過去走
+date: 2024-08-17
+
+races:
+  - course: 新潟
+    raceNumber: 11
+    name: 日本海S
+    className: 3勝クラス
+    surface: 芝
+    distance: 2200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 8
+        name: ヘデントール
+        jockey: ルメール
+        ref: nk-2021105521
+        finish: 1
+        popularity: 1
+        time: "2:12.4"
+        passing: "4-3-3-3"
+        last3f: 33.6
+        weight: 55
+        horseWeight: 480
+        horseWeightDiff: 6
+        odds: 1.6

@@ -1,0 +1,28 @@
+# 2024年9月28日（土） 過去走
+date: 2024-09-28
+
+races:
+  - course: 中京
+    raceNumber: 9
+    name: ヤマボウシ賞
+    className: 1勝クラス
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 10
+        bracket: 8
+        name: ハッピーマン
+        jockey: 坂井瑠星
+        ref: nk-2022100140
+        finish: 4
+        popularity: 3
+        time: "1:24.2"
+        passing: "4-4"
+        last3f: 36.3
+        weight: 55
+        horseWeight: 458
+        horseWeightDiff: 2
+        odds: 3.8

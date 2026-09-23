@@ -1,0 +1,66 @@
+# 2024年3月10日（日） 過去走
+date: 2024-03-10
+
+races:
+  - course: 中京
+    raceNumber: 10
+    name: 昇竜S
+    grade: OP
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 6
+        bracket: 6
+        name: チカッパ
+        jockey: 三浦皇成
+        ref: nk-2021103868
+        finish: 1
+        popularity: 4
+        time: "1:25.4"
+        passing: "2-2"
+        last3f: 37
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: 0
+        odds: 5.1
+  - course: 中京
+    raceNumber: 11
+    name: 金鯱賞
+    grade: G2
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ドゥレッツァ
+        jockey: ルメール
+        ref: nk-2020103650
+        finish: 2
+        popularity: 1
+        time: "1:58.4"
+        passing: "9-8-6-5"
+        last3f: 35
+        weight: 59
+        horseWeight: 472
+        horseWeightDiff: 4
+        odds: 1.9
+      - horseNumber: 7
+        bracket: 5
+        name: ヤマニンサルバム
+        jockey: 三浦皇成
+        ref: nk-2019100596
+        finish: 10
+        popularity: 3
+        time: "2:00.0"
+        passing: "2-3-3-4"
+        last3f: 36.8
+        weight: 57
+        horseWeight: 512
+        horseWeightDiff: 10
+        odds: 10.2

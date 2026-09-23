@@ -1,0 +1,28 @@
+# 2022年10月22日（土） 過去走
+date: 2022-10-22
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: オータムリーフS
+    grade: OP
+    surface: ダート
+    distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 15
+        bracket: 8
+        name: ケイアイドリー
+        jockey: 藤岡康太
+        ref: nk-2017101560
+        finish: 2
+        popularity: 2
+        time: "1:23.6"
+        passing: "4-4"
+        last3f: 37.3
+        weight: 59
+        horseWeight: 520
+        horseWeightDiff: -4
+        odds: 4.6

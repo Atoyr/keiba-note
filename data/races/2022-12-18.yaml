@@ -1,0 +1,28 @@
+# 2022年12月18日（日） 過去走
+date: 2022-12-18
+
+races:
+  - course: 中京
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 2
+        name: ネオトキオ
+        jockey: 岩田望来
+        ref: nk-2020101301
+        finish: 17
+        popularity: 3
+        time: "1:25.5"
+        passing: "4-4"
+        last3f: 37.9
+        weight: 55
+        horseWeight: 454
+        horseWeightDiff: 0
+        odds: 5.9

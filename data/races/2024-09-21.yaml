@@ -1,0 +1,26 @@
+# 2024年9月21日（土） 過去走
+date: 2024-09-21
+
+races:
+  - course: 中山
+    raceNumber: 8
+    name: 清秋ジャンプS
+    grade: OP
+    surface: 障害
+    distance: 3210
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: オオキニ
+        jockey: 森一馬
+        ref: nk-2019100675
+        finish: 2
+        popularity: 3
+        time: "3:30.3"
+        passing: "4-4-2-2"
+        weight: 60
+        horseWeight: 452
+        horseWeightDiff: 4
+        odds: 5

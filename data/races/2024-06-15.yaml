@@ -1,0 +1,28 @@
+# 2024年6月15日（土） 過去走
+date: 2024-06-15
+
+races:
+  - course: 京都
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: ダート
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: ハッピーマン
+        jockey: 坂井瑠星
+        ref: nk-2022100140
+        finish: 1
+        popularity: 2
+        time: "1:13.4"
+        passing: "5-5"
+        last3f: 36.8
+        weight: 55
+        horseWeight: 456
+        horseWeightDiff: 0
+        odds: 3.8

@@ -1,0 +1,28 @@
+# 2024年7月21日（日） 過去走
+date: 2024-07-21
+
+races:
+  - course: 小倉
+    raceNumber: 11
+    name: 中京記念
+    grade: G3
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 6
+        bracket: 4
+        name: エピファニー
+        jockey: 杉原誠人
+        ref: nk-2019105532
+        finish: 2
+        popularity: 2
+        time: "1:47.2"
+        passing: "9-9-10-9"
+        last3f: 36.2
+        weight: 58
+        horseWeight: 502
+        horseWeightDiff: 4
+        odds: 4.6

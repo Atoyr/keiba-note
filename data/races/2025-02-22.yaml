@@ -8,9 +8,24 @@ races:
     grade: G3
     surface: 芝
     distance: 3400
+    direction: 左
     trackCondition: 良
     weather: 晴
     entries:
+      - horseNumber: 3
+        bracket: 2
+        name: サスツルギ
+        jockey: 北村宏司
+        ref: nk-2020103439
+        finish: 10
+        popularity: 13
+        time: "3:34.5"
+        passing: "9-9-10-11"
+        last3f: 36.1
+        weight: 56
+        horseWeight: 490
+        horseWeightDiff: -6
+        odds: 146.8
       - name: セイウンプラチナ
         ref: nk-2019102628
         bracket: 2
@@ -25,3 +40,188 @@ races:
         horseWeight: 506
         horseWeightDiff: -6
         odds: 85.7
+      - horseNumber: 8
+        bracket: 4
+        name: ヘデントール
+        jockey: 戸崎圭太
+        ref: nk-2021105521
+        finish: 1
+        popularity: 1
+        time: "3:32.2"
+        passing: "5-5-5-1"
+        last3f: 34.9
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: 10
+        odds: 1.9
+      - horseNumber: 11
+        bracket: 6
+        name: シュトルーヴェ
+        jockey: 鮫島克駿
+        ref: nk-2019104447
+        finish: 5
+        popularity: 3
+        time: "3:33.3"
+        passing: "7-7-7-8"
+        last3f: 35.3
+        weight: 59
+        horseWeight: 482
+        horseWeightDiff: 4
+        odds: 7.8
+      - horseNumber: 12
+        bracket: 6
+        name: コパノサントス
+        jockey: 石橋脩
+        ref: nk-2020102344
+        finish: 9
+        popularity: 7
+        time: "3:34.3"
+        passing: "4-4-4-5"
+        last3f: 36.6
+        weight: 56
+        horseWeight: 460
+        horseWeightDiff: -16
+        odds: 21.4
+      - horseNumber: 14
+        bracket: 7
+        name: マイネルケレリウス
+        jockey: 石川裕紀人
+        ref: nk-2020105781
+        finish: 11
+        popularity: 4
+        time: "3:34.6"
+        passing: "14-14-14-12"
+        last3f: 36.1
+        weight: 55
+        horseWeight: 436
+        horseWeightDiff: 8
+        odds: 11.4
+      - horseNumber: 16
+        bracket: 8
+        name: ショウナンバシット
+        jockey: 横山和生
+        ref: nk-2020103333
+        finish: 6
+        popularity: 6
+        time: "3:34.0"
+        passing: "2-2-3-5"
+        last3f: 36.3
+        weight: 57.5
+        horseWeight: 494
+        horseWeightDiff: 4
+        odds: 20.2
+  - course: 京都
+    raceNumber: 11
+    name: 阪急杯
+    grade: G3
+    surface: 芝
+    distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 17
+        bracket: 8
+        name: ダノンマッキンリー
+        jockey: 北村友一
+        ref: nk-2021105774
+        finish: 4
+        popularity: 4
+        time: "1:22.0"
+        passing: "7-8"
+        last3f: 34.5
+        weight: 58
+        horseWeight: 476
+        horseWeightDiff: 4
+        odds: 7.3
+  - course: 小倉
+    raceNumber: 4
+    name: 障害4歳以上OP
+    surface: 障害
+    distance: 3390
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 8
+        name: ローディアマント
+        jockey: 伴啓太
+        ref: nk-2020101429
+        finish: 2
+        popularity: 5
+        time: "3:49.1"
+        passing: "1-1-1-1"
+        weight: 60
+        horseWeight: 482
+        horseWeightDiff: 6
+        odds: 11.3
+  - course: 小倉
+    raceNumber: 5
+    name: 障害4歳以上未勝利
+    className: 未勝利
+    surface: 障害
+    distance: 2860
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 7
+        name: マイネルメサイア
+        jockey: 上野翔
+        ref: nk-2019100788
+        finish: 9
+        popularity: 3
+        time: "3:17.6"
+        passing: "2-2-1-2"
+        weight: 60
+        horseWeight: 490
+        horseWeightDiff: 4
+        odds: 5.2
+  - course: 東京
+    raceNumber: 10
+    name: 金蹄S
+    className: 3勝クラス
+    surface: ダート
+    distance: 2100
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 11
+        bracket: 8
+        name: マオノアラシ
+        jockey: 木幡巧也
+        ref: nk-2020100850
+        finish: 5
+        popularity: 9
+        time: "2:14.3"
+        passing: "6-7-7-7"
+        last3f: 37.2
+        weight: 58
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 74.5
+  - course: 東京
+    raceNumber: 9
+    name: フリージア賞
+    className: 1勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: ヴァルキリーバース
+        jockey: 横山武史
+        ref: nk-2022104764
+        finish: 1
+        popularity: 4
+        time: "2:00.5"
+        passing: "8-2-2"
+        last3f: 34.1
+        weight: 55
+        horseWeight: 440
+        horseWeightDiff: -10
+        odds: 11.3

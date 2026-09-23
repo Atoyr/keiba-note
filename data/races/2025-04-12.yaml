@@ -1,0 +1,177 @@
+# 2025年4月12日（土） 過去走
+date: 2025-04-12
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: サンスポ杯阪神牝馬S
+    grade: G2
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ビヨンドザヴァレー
+        jockey: 菱田裕二
+        ref: nk-2020103099
+        finish: 4
+        popularity: 6
+        time: "1:33.0"
+        passing: "5-4"
+        last3f: 33.3
+        weight: 55
+        horseWeight: 474
+        horseWeightDiff: 2
+        odds: 15.3
+      - horseNumber: 11
+        bracket: 7
+        name: サフィラ
+        jockey: 松山弘平
+        ref: nk-2021105541
+        finish: 1
+        popularity: 9
+        time: "1:32.8"
+        passing: "2-2"
+        last3f: 33.3
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 0
+        odds: 29.7
+      - horseNumber: 13
+        bracket: 8
+        name: ウンブライル
+        jockey: シュタル
+        ref: nk-2020103674
+        finish: 10
+        popularity: 10
+        time: "1:33.4"
+        passing: "12-13"
+        last3f: 33.1
+        weight: 55
+        horseWeight: 476
+        horseWeightDiff: -14
+        odds: 36.8
+  - course: 中山
+    raceNumber: 11
+    name: ニュージーランドT
+    grade: G2
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 6
+        bracket: 4
+        name: ルージュラナキラ
+        jockey: 岩田康誠
+        ref: nk-2022102434
+        finish: 7
+        popularity: 4
+        time: "1:33.1"
+        passing: "2-2-2"
+        last3f: 34.9
+        weight: 55
+        horseWeight: 468
+        horseWeightDiff: 0
+        odds: 14.5
+      - horseNumber: 7
+        bracket: 5
+        name: アドマイヤズーム
+        jockey: 川田将雅
+        ref: nk-2022105396
+        finish: 2
+        popularity: 1
+        time: "1:32.4"
+        passing: "4-4-3"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 476
+        horseWeightDiff: 8
+        odds: 1.7
+      - horseNumber: 13
+        bracket: 8
+        name: イミグラントソング
+        jockey: 石川裕紀人
+        ref: nk-2022104697
+        finish: 1
+        popularity: 2
+        time: "1:32.4"
+        passing: "10-9-9"
+        last3f: 33.1
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: -4
+        odds: 5.5
+  - course: 中山
+    raceNumber: 10
+    name: あけぼのS
+    className: 3勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 5
+        name: ポルカリズム
+        jockey: 津村明秀
+        ref: nk-2020103577
+        finish: 8
+        popularity: 4
+        time: "1:33.2"
+        passing: "7-9-9"
+        last3f: 34.4
+        weight: 56
+        horseWeight: 486
+        horseWeightDiff: -2
+        odds: 7.6
+  - course: 阪神
+    raceNumber: 10
+    name: 京橋S
+    className: 3勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 15
+        bracket: 8
+        name: アスクナイスショー
+        jockey: 幸英明
+        ref: nk-2021106954
+        finish: 9
+        popularity: 8
+        time: "1:59.4"
+        passing: "2-3-2-2"
+        last3f: 35.5
+        weight: 56
+        horseWeight: 488
+        horseWeightDiff: -6
+        odds: 22.7
+  - course: 中山
+    raceNumber: 4
+    name: 障害4歳以上OP
+    surface: 障害
+    distance: 3200
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: タンジェントアーク
+        jockey: 五十嵐雄祐
+        ref: nk-2018100752
+        finish: 6
+        popularity: 6
+        time: "3:37.9"
+        passing: "14-14-9-7"
+        weight: 60
+        horseWeight: 440
+        horseWeightDiff: -6
+        odds: 12.7

@@ -1,0 +1,28 @@
+# 2024年9月7日（土） 過去走
+date: 2024-09-07
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: エニフS
+    grade: L
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: エンペラーワケア
+        jockey: 川田将雅
+        ref: nk-2020101547
+        finish: 1
+        popularity: 1
+        time: "1:22.4"
+        passing: "3-3"
+        last3f: 35
+        weight: 59
+        horseWeight: 536
+        horseWeightDiff: 2
+        odds: 1.2

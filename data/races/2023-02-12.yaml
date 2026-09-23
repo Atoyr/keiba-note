@@ -1,0 +1,28 @@
+# 2023年2月12日（日） 過去走
+date: 2023-02-12
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 共同通信杯
+    grade: G3
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 6
+        name: ファントムシーフ
+        jockey: ルメール
+        ref: nk-2020106582
+        finish: 1
+        popularity: 3
+        time: "1:47.0"
+        passing: "3-2-2"
+        last3f: 34
+        weight: 56
+        horseWeight: 502
+        horseWeightDiff: 0
+        odds: 4.1

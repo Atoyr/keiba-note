@@ -1,0 +1,28 @@
+# 2023年12月23日（土） 過去走
+date: 2023-12-23
+
+races:
+  - course: 中山
+    raceNumber: 7
+    name: 2歳1勝クラス
+    className: 1勝クラス
+    surface: ダート
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 7
+        name: チカッパ
+        jockey: 横山武史
+        ref: nk-2021103868
+        finish: 1
+        popularity: 2
+        time: "1:11.6"
+        passing: "9-9"
+        last3f: 36.9
+        weight: 56
+        horseWeight: 482
+        horseWeightDiff: 4
+        odds: 3.6

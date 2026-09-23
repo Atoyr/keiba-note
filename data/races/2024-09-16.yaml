@@ -1,0 +1,28 @@
+# 2024年9月16日（月） 過去走
+date: 2024-09-16
+
+races:
+  - course: 中京
+    raceNumber: 10
+    name: 桑名特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 7
+        bracket: 5
+        name: ソンシ
+        jockey: 川田将雅
+        ref: nk-2021110160
+        finish: 1
+        popularity: 1
+        time: "1:20.7"
+        passing: "3-3"
+        last3f: 33.5
+        weight: 56
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 1.9
