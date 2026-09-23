@@ -90,3 +90,19 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # main で落ちたときだけ Discord へ知らせる（docs/monitoring.md）。
+  # PR の失敗は書いた人が画面で見ているので送らない（通知が埋もれる）。
+  # deploy.yml から workflow_call で呼ばれたときは event_name が release になるので、
+  # ここでは送らず deploy.yml の通知に任せる。
+  notify:
+    name: 失敗を通知
+    needs: [check, e2e]
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      level: error
+      title: main の CI が落ちた
+      description: 型・lint・単体テスト・E2E のどれかが落ちています。リンクから実行を開いてください。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

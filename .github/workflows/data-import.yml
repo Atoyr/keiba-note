@@ -47,3 +47,17 @@ jobs:
       # 先にアプリのリリースが要る（逆は自由。データ更新はアプリに影響しない）。
       - name: レースデータの投入
         run: pnpm run data:import:remote
+
+  # 本番 D1 への投入が落ちたら Discord へ知らせる（docs/monitoring.md）。
+  # 成功は送らない（開催のたびに何度も流れるので、通知が埋もれる）。
+  notify:
+    name: 失敗を通知
+    needs: [import]
+    if: failure()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      level: error
+      title: 本番へのレースデータ投入が落ちた
+      description: data/races の検証か、本番 D1 への投入で止まっています。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
