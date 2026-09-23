@@ -47,6 +47,18 @@ export function isUpcoming(date: string, today: string): boolean {
 	return date > today;
 }
 
+/**
+ * 結果が出ていて、ふりかえりを書く段になったレースか。**今週の重賞の行き先**を決める。
+ *
+ * 日付だけ（`isUpcoming`）で決めないのは、今週の重賞が予想の入口だから。当日の朝に
+ * 見立てを書こうと開いたレースがふりかえりへ飛ぶと、書きたい画面に着かない。
+ * 走り終えて着順が入れば、そこで初めてふりかえりへ向ける。
+ * 着順が1頭でも入っていれば結果が出たとみる（取消・除外の馬は着順が空のまま残る）。
+ */
+export function isSettled(race: { date: string; resultCount: number }, today: string): boolean {
+	return !isUpcoming(race.date, today) && race.resultCount > 0;
+}
+
 export type Week = { start: string; end: string };
 
 /** その日を含む週の月曜（JST）。週の基準。 */

@@ -3,6 +3,7 @@ import {
 	addDays,
 	currentWeek,
 	formatDateShort,
+	isSettled,
 	isUpcoming,
 	shiftWeek,
 	todayJst,
@@ -184,4 +185,24 @@ describe('isUpcoming', () => {
 	])('today=%s のとき 2026-10-25 のレースは開催前か → %s', (today, upcoming) => {
 		expect(isUpcoming('2026-10-25', today)).toBe(upcoming);
 	});
+});
+
+/** 今週の重賞の行き先。当日でも着順が入るまでは予想画面のまま。 */
+describe('isSettled', () => {
+	it.each([
+		// 当日の朝。日付では開催済みだが、見立てを書きに来ているので予想画面へ。
+		['2026-10-25', 0, false],
+		// 当日、走り終えて着順が入った。
+		['2026-10-25', 16, true],
+		// 開催済みでも結果の投入がまだ。
+		['2026-10-26', 0, false],
+		['2026-10-26', 1, true],
+		// 開催前に着順があるのはデータの誤り。ふりかえりは開けないので向けない。
+		['2026-10-24', 16, false]
+	])(
+		'today=%s・着順 %i 頭のとき 2026-10-25 のレースは結果が出ているか → %s',
+		(today, resultCount, settled) => {
+			expect(isSettled({ date: '2026-10-25', resultCount }, today)).toBe(settled);
+		}
+	);
 });

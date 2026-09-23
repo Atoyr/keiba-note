@@ -314,6 +314,9 @@ export async function resolveWeek(db: Db, offset: number, now: Date = new Date()
 	return shiftWeek(currentWeek(now, dates), offset, dates);
 }
 
+/** 今週の重賞の1行。`resultCount` は着順の入った出走の数で、行き先（予想かふりかえりか）を決める。 */
+export type GradedRaceItem = RaceListItem & { resultCount: number };
+
 /**
  * 今週の重賞。予想の入口。
  *
@@ -329,7 +332,7 @@ export async function listGradedRacesInWeek(
 	db: Db,
 	week: Week,
 	viewerId: string
-): Promise<RaceListItem[]> {
+): Promise<GradedRaceItem[]> {
 	return db
 		.select({
 			id: race.id,
@@ -342,7 +345,9 @@ export async function listGradedRacesInWeek(
 			surface: race.surface,
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
-			noteCount: countDistinct(note.id)
+			noteCount: countDistinct(note.id),
+			// メモとの JOIN で行が増えるので、着順の入った出走を DISTINCT で数える。
+			resultCount: sql<number>`count(DISTINCT CASE WHEN ${raceEntry.finishPosition} IS NOT NULL THEN ${raceEntry.id} END)`
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))

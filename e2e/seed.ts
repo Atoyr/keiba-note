@@ -91,6 +91,16 @@ export const DASHBOARD_RACES = {
 	outOfWindow: 'E2E昔賞'
 } as const;
 
+/**
+ * 今週の重賞の行き先を見る2レース（どちらも今日）。
+ * - `upcoming` — 着順が無い。予想画面へ行く（E2E今週賞）
+ * - `settled` — 着順が入っている。ふりかえりへ行く（E2E結果確定賞）
+ */
+export const THIS_WEEK_RACES = {
+	upcoming: { id: '01JE2ERACETHISWEEK00000000', name: 'E2E今週賞' },
+	settled: { id: '01JE2ERACESETTLED000000000', name: 'E2E結果確定賞' }
+} as const;
+
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 

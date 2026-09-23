@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import { formatDateShort } from '$lib/utils/date';
+	import { formatDateShort, isSettled } from '$lib/utils/date';
 	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
@@ -83,8 +83,12 @@
 				<h2 class="mb-2 text-sm font-medium text-muted-foreground">{formatDateShort(date)}</h2>
 				<div class="grid gap-2">
 					{#each races as r (r.id)}
+						{@const settled = isSettled(r, data.today)}
+						<!-- 結果が出たレースはふりかえりへ。当日でも着順が入るまでは予想画面のまま。 -->
 						<a
-							href={resolve('/races/[id]/preview', { id: r.id })}
+							href={settled
+								? resolve('/races/[id]', { id: r.id })
+								: resolve('/races/[id]/preview', { id: r.id })}
 							class="block rounded-xl border p-3 transition-colors hover:border-foreground/20 hover:bg-accent/40 sm:p-4"
 						>
 							<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -97,6 +101,9 @@
 							<div class="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
 								<span>{r.surface ?? ''}{r.distance ? `${r.distance}m` : ''}</span>
 								<span>出走 {r.entryCount} 頭</span>
+								{#if settled}
+									<span>結果あり</span>
+								{/if}
 								{#if r.noteCount > 0}
 									<span class="text-foreground">メモ {r.noteCount} 件</span>
 								{/if}
