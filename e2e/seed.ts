@@ -1,18 +1,54 @@
 import { execSync } from 'node:child_process';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /**
- * E2E の前にローカル D1 へ行を流す（playwright.config.ts の `globalSetup`）。
+ * E2E 専用のローカル D1 の置き場。開発用の `.wrangler/state` とは分けてある。
  *
- * `wrangler dev` も `wrangler d1 execute --local` も同じ `.wrangler/state` を見るので、
- * ここで入れた行はプレビューサーバーから読める。`db:migrate:local` の後に走る前提
- * （CI もその順。`.github/workflows/ci.yml`）。
+ * 同じ D1 を使うと、手元で `data:import:local` した本物の出馬表や `pnpm run dev` で
+ * 書いたメモが E2E とキャプチャに混ざり、人によって・日によって結果が変わる。
+ * プレビューサーバー（playwright.config.ts の webServer）も同じ場所を見る。
+ */
+export const E2E_STATE = '.wrangler/e2e';
+
+// 固定の文字列なので shell に渡して問題ない（pnpm は Windows では .cmd で、
+// shell 無しでは起動できない）。
+const wrangler = (args: string) =>
+	execSync(`pnpm exec wrangler ${args} --local --persist-to ${E2E_STATE}`, {
+		encoding: 'utf8',
+		stdio: ['ignore', 'pipe', 'inherit']
+	});
+
+/**
+ * E2E の前に、E2E 専用 D1 を「マイグレーション済み・seed.sql の行だけ」にする
+ * （playwright.config.ts の `globalSetup`）。
+ *
+ * 全テーブルを空にしてから流すので、前回のテストが書いた行は残らない。
+ * テーブル名はその場で引くので、テーブルを足しても ここを直す必要はない。
  */
 export default function seed() {
-	// 固定の文字列なので shell に渡して問題ない（pnpm は Windows では .cmd で、
-	// shell 無しでは起動できない）。
-	execSync('pnpm exec wrangler d1 execute k-note --local --file e2e/seed.sql', {
-		stdio: 'inherit'
-	});
+	wrangler('d1 migrations apply k-note');
+
+	const [{ results }] = JSON.parse(
+		wrangler(
+			`d1 execute k-note --json --command "SELECT name FROM sqlite_master WHERE type = 'table'"`
+		)
+	) as [{ results: { name: string }[] }];
+
+	// D1 / SQLite が内部で使う表（_cf_*, sqlite_*）と、適用済みマイグレーションの記録は残す。
+	const tables = results
+		.map(({ name }) => name)
+		.filter((name) => !/^(_cf_|sqlite_)/.test(name) && name !== 'd1_migrations');
+
+	const reset = [
+		'PRAGMA defer_foreign_keys = true;',
+		...tables.map((name) => `DELETE FROM "${name}";`)
+	].join('\n');
+
+	mkdirSync(E2E_STATE, { recursive: true });
+	const file = join(E2E_STATE, 'seed.sql');
+	writeFileSync(file, `${reset}\n\n${readFileSync('e2e/seed.sql', 'utf8')}`);
+	wrangler(`d1 execute k-note --file ${file}`);
 }
 
 /** 共有中のメモ。`/notes/[id]` で開ける。 */

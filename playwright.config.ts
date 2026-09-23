@@ -1,9 +1,13 @@
 import { defineConfig } from '@playwright/test';
+import { E2E_STATE } from './e2e/seed';
 
 export default defineConfig({
-	webServer: { command: 'npm run build && npm run preview', port: 4173 },
-	// 共有ページのテストが読む行をローカル D1 に入れる。
-	// テーブルは `pnpm run db:migrate:local` で先に作っておくこと。
+	// 本番ビルドで走らせる（CSRF 検証が効くのはここだけ）。D1 は開発用と分けた E2E 専用のもの。
+	webServer: {
+		command: `npm run build && pnpm exec wrangler dev .svelte-kit/cloudflare/_worker.js --port 4173 --persist-to ${E2E_STATE}`,
+		port: 4173
+	},
+	// E2E 専用 D1 をマイグレーションし、空にしてから e2e/seed.sql を流す。
 	globalSetup: './e2e/seed.ts',
 	testMatch: '**/*.e2e.{ts,js}'
 });
