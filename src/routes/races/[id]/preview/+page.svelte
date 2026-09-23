@@ -14,7 +14,8 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { noteHeading, previewSaveLabel } from '$lib/utils/note';
+	import { byMark } from '$lib/utils/answer';
+	import { conditionLabel, latestConclusion, noteHeading, previewSaveLabel } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import type { PageProps } from './$types';
@@ -46,6 +47,21 @@
 	const bulk = $derived(data.rows.length > 0);
 
 	const ta = 'mt-1 text-sm';
+
+	// 保存済みの印を印の順（◎ → ×）に。ふりかえりの答え合わせと同じ並び。
+	const marked = $derived(
+		byMark(
+			data.rows.map((r) => ({
+				entryId: r.entryId,
+				horseName: r.horseName,
+				horseNumber: r.horseNumber,
+				mark: r.myPreview?.mark ?? null
+			}))
+		)
+	);
+
+	// 「京都 芝2200m」。同じ条件の過去メモの見出しに使う。
+	const condition = $derived(conditionLabel(data.race));
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — k-note</title></svelte:head>
@@ -81,6 +97,25 @@
 			{/if}
 		</div>
 	</header>
+
+	<!-- 付けた印の一覧。16頭の中から「どれに◎を打ったか」を探さずに済むように。
+	     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。 -->
+	{#if marked.length > 0}
+		<section aria-labelledby="marks-heading" class="mt-4 rounded-lg border px-3 py-2">
+			<h2 id="marks-heading" class="text-xs font-semibold text-muted-foreground">付けた印</h2>
+			<ul class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+				{#each marked as m (m.entryId)}
+					<li>
+						<a href="#entry-{m.entryId}" class="flex items-center gap-1.5 text-sm hover:underline">
+							<MarkBadge mark={m.mark} />
+							<span class="font-mono text-xs text-muted-foreground">{m.horseNumber ?? '−'}</span>
+							{m.horseName}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
 
 	{#if form && 'message' in form && form.message}
 		<p
@@ -138,6 +173,30 @@
 				class={ta}
 				value={data.myRaceNote?.body ?? ''}
 			/>
+
+			<!-- 同じ舞台で前に自分が何を見たか。見立てを書く手元に置く。
+			     レース名ではなく条件で束ねるので、去年の同じレースも同じ舞台の別のレースも出る。 -->
+			{#if data.sameCondition.length > 0}
+				<div class="mt-3">
+					<h3 class="text-xs font-semibold text-muted-foreground">
+						同じ条件（{condition}）で書いたレースのメモ
+					</h3>
+					<ol class="mt-1 grid gap-2">
+						{#each data.sameCondition as n (n.id)}
+							{@const h = noteHeading({ kind: 'race', ...n })}
+							<li class="border-l-2 pl-3">
+								<p class="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+									<span class="font-mono">{n.occurredAt}</span>
+									<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
+										{h.label}
+									</a>
+								</p>
+								<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap">{n.body}</p>
+							</li>
+						{/each}
+					</ol>
+				</div>
+			{/if}
 		</section>
 
 		{#if data.rows.length === 0}
@@ -160,8 +219,10 @@
 			<ul class="mt-6 grid gap-2">
 				{#each data.rows as r (r.entryId)}
 					{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
+					{@const conclusion = latestConclusion(r.history)}
 					<li
-						class="rounded-xl border p-3 {r.myPreview?.mark === '◎'
+						id="entry-{r.entryId}"
+						class="scroll-mt-4 rounded-xl border p-3 {r.myPreview?.mark === '◎'
 							? 'border-red-300 bg-red-50/40'
 							: ''}"
 					>
@@ -180,6 +241,17 @@
 							</a>
 							{#if r.jockey}
 								<span class="text-sm text-muted-foreground">{r.jockey}</span>
+							{/if}
+							<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
+							     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->
+							{#if conclusion}
+								<span
+									class="flex items-center gap-1 text-[11px] text-muted-foreground"
+									title="{conclusion.occurredAt} に付けた札"
+								>
+									前回
+									<TagBadges tags={conclusion.tags} />
+								</span>
 							{/if}
 							<span class="flex-1"></span>
 							<MarkBadge mark={r.myPreview?.mark ?? null} />
@@ -221,8 +293,6 @@
 									{open === r.entryId ? '閉じる' : `もっと見る（残り ${r.history.length - 2} 件）`}
 								</Button>
 							{/if}
-						{:else}
-							<p class="mt-1 ml-7 text-xs text-muted-foreground/60">過去メモなし</p>
 						{/if}
 
 						<div class="mt-3 ml-7">

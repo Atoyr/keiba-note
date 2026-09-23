@@ -46,9 +46,20 @@ export type Answer<T extends AnswerSource> = T & { mark: Mark; verdict: AnswerVe
  * 同じ印が複数あるとき（△を3頭など）は馬番の順。
  */
 export function answerCheck<T extends AnswerSource>(rows: T[]): Answer<T>[] {
+	return byMark(rows).map((r) => ({ ...r, verdict: answerVerdict(r.mark, r.finishPosition) }));
+}
+
+/**
+ * 印を付けた馬だけを印の順（◎ → ×）に並べる。同じ印は馬番の順、馬番の無い馬は後ろ。
+ *
+ * 答え合わせと、予想画面の「付けた印」の一覧で同じ並びにする。
+ * 予想で見た並びと結果で見る並びが違うと、同じ予想に見えない。
+ */
+export function byMark<T extends { mark: Mark | null; horseNumber: number | null }>(
+	rows: T[]
+): (T & { mark: Mark })[] {
 	return rows
 		.filter((r): r is T & { mark: Mark } => r.mark !== null)
-		.map((r) => ({ ...r, verdict: answerVerdict(r.mark, r.finishPosition) }))
 		.sort(
 			(a, b) =>
 				MARKS.indexOf(a.mark) - MARKS.indexOf(b.mark) ||

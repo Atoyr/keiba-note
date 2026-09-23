@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { noteHeading, previewSaveLabel, raceReviewSaveLabel, runHeading } from './note';
+import {
+	conditionLabel,
+	latestConclusion,
+	noteHeading,
+	previewSaveLabel,
+	raceReviewSaveLabel,
+	runHeading
+} from './note';
 
 const race = {
 	course: '中山',
@@ -109,5 +116,44 @@ describe('previewSaveLabel', () => {
 	it('出走馬が並んでいれば出走前メモの保存', () => {
 		expect(previewSaveLabel(1)).toBe('出走前メモを保存');
 		expect(previewSaveLabel(18)).toBe('出走前メモを保存');
+	});
+});
+
+describe('latestConclusion', () => {
+	it('走ったあとに書いた、札の付いた一番新しいメモを返す', () => {
+		const history = [
+			// 札の無いふりかえりは結論ではない。
+			{ id: 'a', kind: 'entry' as const, tags: [], occurredAt: '2026-09-20' },
+			{ id: 'b', kind: 'horse' as const, tags: ['次走買い' as const], occurredAt: '2026-09-01' },
+			{ id: 'c', kind: 'entry' as const, tags: ['次走消し' as const], occurredAt: '2026-06-01' }
+		];
+
+		expect(latestConclusion(history)?.id).toBe('b');
+	});
+
+	// 出走前メモの札は「そのレースでどう見ていたか」。結果を見たあとの結論ではない。
+	it('出走前メモと見立ての札は拾わない', () => {
+		const history = [
+			{ id: 'p', kind: 'preview' as const, tags: ['次走買い' as const], occurredAt: '2026-09-20' },
+			{ id: 'o', kind: 'race_preview' as const, tags: ['不利' as const], occurredAt: '2026-09-20' }
+		];
+
+		expect(latestConclusion(history)).toBeNull();
+	});
+
+	it('過去メモが無ければ null', () => {
+		expect(latestConclusion([])).toBeNull();
+	});
+});
+
+describe('conditionLabel', () => {
+	it('コース・馬場・距離を1つの見出しにする', () => {
+		expect(conditionLabel({ course: '京都', surface: '芝', distance: 2200 })).toBe('京都 芝2200m');
+	});
+
+	// コースだけで束ねると、芝もダートも短距離も長距離も混ざる。
+	it('馬場か距離が決まっていなければ null', () => {
+		expect(conditionLabel({ course: '京都', surface: null, distance: 2200 })).toBeNull();
+		expect(conditionLabel({ course: '京都', surface: '芝', distance: null })).toBeNull();
 	});
 });
