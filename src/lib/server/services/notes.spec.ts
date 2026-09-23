@@ -97,18 +97,24 @@ describe('savePreviewNotes', () => {
 
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: 'r1', entries: [{ ...entry({ tags: ['馬場一致'] }), mark: null }] },
+			{
+				raceId: 'r1',
+				raceNote: { body: '' },
+				entries: [{ ...entry({ tags: ['馬場一致'] }), mark: null }]
+			},
 			'u1',
 			'2026-09-27'
 		);
 
+		// 見立ては空なので消える。出走馬のメモは札だけで残る。
 		expect(ops).toEqual([
+			{ kind: 'delete' },
 			{
 				kind: 'insert',
 				values: expect.objectContaining({ kind: 'preview', mark: null, tags: ['馬場一致'] })
 			}
 		]);
-		expect(result).toEqual({ saved: 1, cleared: 0 });
+		expect(result).toEqual({ saved: 1, cleared: 1 });
 	});
 
 	it('本文も印も札も無ければ消す', async () => {
@@ -116,7 +122,75 @@ describe('savePreviewNotes', () => {
 
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: 'r1', entries: [{ ...entry(), mark: null }] },
+			{ raceId: 'r1', raceNote: { body: '' }, entries: [{ ...entry(), mark: null }] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([{ kind: 'delete' }, { kind: 'delete' }]);
+		expect(result).toEqual({ saved: 0, cleared: 2 });
+	});
+
+	/**
+	 * 出馬表が出る前の重賞。**出走馬が1頭もいなくても見立てだけは保存される。**
+	 * ここが落ちると「未来のレースにメモを書けない」に戻る。
+	 */
+	it('出走馬が1頭もいなくても見立ては保存される', async () => {
+		const { db, ops } = fakeDb();
+
+		const result = await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: '開幕週で内有利になりそう。' }, entries: [] },
+			'u1',
+			'2099-06-06'
+		);
+
+		expect(ops).toEqual([
+			{
+				kind: 'insert',
+				values: expect.objectContaining({
+					kind: 'race_preview',
+					raceId: 'r1',
+					body: '開幕週で内有利になりそう。',
+					// occurred_at はレース日。タイムラインでそのレースの位置に並ぶ。
+					occurredAt: '2099-06-06'
+				})
+			}
+		]);
+		expect(result).toEqual({ saved: 1, cleared: 0 });
+	});
+
+	/**
+	 * 見立て（`race_preview`）とふりかえりのレースのメモ（`race`）は**別の行**。
+	 * kind が同じだと、開催後の保存で開催前に書いたものが黙って消える。
+	 */
+	it('見立てはふりかえりのレースのメモとは別の kind で入る', async () => {
+		const preview = fakeDb();
+		await savePreviewNotes(
+			preview.db,
+			{ raceId: 'r1', raceNote: { body: '内有利' }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+
+		const review = fakeDb();
+		await saveRaceReview(
+			review.db,
+			{ raceId: 'r1', raceNote: { body: '実際に内有利' }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(preview.ops[0]).toMatchObject({ values: { kind: 'race_preview' } });
+		expect(review.ops[0]).toMatchObject({ values: { kind: 'race' } });
+	});
+
+	it('空白だけの見立ては「空」として扱い、既存の見立てを消す', async () => {
+		const { db, ops } = fakeDb();
+
+		const result = await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: ' \n ' }, entries: [] },
 			'u1',
 			'2026-09-27'
 		);

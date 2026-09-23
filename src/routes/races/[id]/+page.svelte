@@ -118,6 +118,24 @@
 	>
 		<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
 		<section>
+			<!-- 開催前に書いた見立てを上に置く。**読むだけ。** 結果を見たあとで
+			     書き換えられると、事前と事後を別の行にした意味が無くなる。
+			     直したいときは予想画面へ戻る。 -->
+			{#if data.myRacePreview?.body}
+				<div class="mb-4 rounded-md border border-sky-200 bg-sky-50/60 px-3 py-2">
+					<p class="text-xs font-semibold text-sky-900">開催前の見立て</p>
+					<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap text-sky-950">
+						{data.myRacePreview.body}
+					</p>
+					<a
+						href={resolve('/races/[id]/preview', { id: data.race.id })}
+						class="mt-1 inline-block text-xs text-sky-800 underline-offset-2 hover:underline"
+					>
+						予想画面で直す
+					</a>
+				</div>
+			{/if}
+
 			<h2 class="text-sm font-semibold text-gray-500">レースのメモ</h2>
 			<p class="text-xs text-gray-500">ペース、馬場、展開など「レースの性質」</p>
 			<textarea name="raceNoteBody" rows="3" placeholder="前半緩くて上がり勝負。内有利。" class={ta}

@@ -34,6 +34,19 @@ export function addDays(date: string, days: number): string {
 	return toDateString(toEpoch(date) + days * DAY_MS);
 }
 
+/**
+ * そのレースがまだ開催されていないか。**当日は「開催前」にしない。**
+ *
+ * 朝に開いたときは開催前でも、走り終えた夕方には開催前ではない。日付だけでは
+ * 決められないので、その日のうちは開催済みと同じ扱いにする（design.md 第9章 #7）。
+ * 馬タイムラインの `[出走予定]`（`mergeHorseTimeline` の `upcoming`）と同じ線引きで、
+ * **画面ごとにずらさない**。ずらすと「タイムラインでは出走予定なのに
+ * ふりかえりが書ける」という読めない状態が出る。
+ */
+export function isUpcoming(date: string, today: string): boolean {
+	return date > today;
+}
+
 export type Week = { start: string; end: string };
 
 /** その日を含む週の月曜（JST）。週の基準。 */

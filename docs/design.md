@@ -6,6 +6,8 @@ Cloudflare Workers 上で動かす。
 - 作成日: 2026-09-20
 - 更新日: 2026-09-21 — 公開範囲を「既定 private・共有は1メモずつ」に変更し、
   招待コードとメンバー概念を廃止、サイト管理者（`admin`）だけを残した（→ 第2章 2-2 / 第4章 / 第8章 Phase 5）
+- 更新日: 2026-09-22 — 開催前のレースに「見立て」（`race_preview`）を書けるようにし、
+  ふりかえり画面は開催前には開けないようにした（→ 第5章 note / 第6章 `/races/[id]` と `/races/[id]/preview`）
 - ステータス: 確定（実装着手可）
 - 関連: [architecture.md](./architecture.md) — アーキテクチャ / コスト / 技術選定の根拠
 
@@ -431,7 +433,7 @@ erDiagram
 | --- | --- | --- |
 | id | text PK | |
 | author_id | text FK→user.id NOT NULL | |
-| kind | text NOT NULL | `race` / `horse` / `entry` |
+| kind | text NOT NULL | `race` / `race_preview` / `horse` / `entry` / `preview` |
 | race_id | text FK→race.id ON DELETE CASCADE | kind に応じて埋まる |
 | horse_id | text FK→horse.id ON DELETE CASCADE | 同上 |
 | race_entry_id | text FK→race_entry.id ON DELETE CASCADE | 同上 |
@@ -468,17 +470,25 @@ note を引けば一緒に来る形が要る。**札で横断検索する画面�
 
 | kind | race_id | horse_id | race_entry_id | 意味 |
 | --- | --- | --- | --- | --- |
-| `race` | ○ | NULL | NULL | レース自体のメモ（ペース、馬場、展開） |
+| `race_preview` | ○ | NULL | NULL | **開催前**のレースの見立て（馬場の想定、狙いどころ） |
+| `race` | ○ | NULL | NULL | **開催後**のレース自体のメモ（ペース、馬場、展開） |
 | `horse` | NULL | ○ | NULL | レースに紐づかない馬のメモ（調教、近況、印象） |
-| `entry` | ○ | ○ | ○ | **このレースでこの馬がどう走ったか** |
+| `preview` | ○ | ○ | ○ | **開催前**にこの馬をどう見ていたか（印はここだけ） |
+| `entry` | ○ | ○ | ○ | **開催後**にこのレースでこの馬がどう走ったか |
 
 ```sql
 CHECK (
-     (kind = 'race'  AND race_id IS NOT NULL AND horse_id IS NULL     AND race_entry_id IS NULL)
+     (kind IN ('race', 'race_preview') AND race_id IS NOT NULL AND horse_id IS NULL AND race_entry_id IS NULL)
   OR (kind = 'horse' AND race_id IS NULL     AND horse_id IS NOT NULL AND race_entry_id IS NULL)
-  OR (kind = 'entry' AND race_id IS NOT NULL AND horse_id IS NOT NULL AND race_entry_id IS NOT NULL)
+  OR (kind IN ('entry', 'preview') AND race_id IS NOT NULL AND horse_id IS NOT NULL AND race_entry_id IS NOT NULL)
 )
 ```
+
+**開催前と開催後は必ず別の行にする。** 列の埋まり方は同じなので1行にまとめたくなるが、
+まとめると走ったあとに書いた瞬間「走る前に何を考えていたか」が上書きで消える。
+事前の見立てと事後の結果を見比べられることがふりかえりを書く理由なので、
+ここを1行にすると機能そのものが成立しなくなる。`race_preview` / `race` と
+`preview` / `entry` の2組は、どちらも同じ理由で分かれている。
 
 `entry` のとき `race_id` / `horse_id` は `race_entry` から導出できるが、**あえて持つ**。
 これによって主要クエリがすべて単一テーブルのインデックススキャンで済む。
@@ -494,10 +504,17 @@ D1 は**スキャンした行数**で課金されるため、これは可視性�
 - `INDEX note_author ON note(author_id, created_at DESC)` — 最近のメモ／共有中のメモ一覧
 - 共有ページは主キーの1件引きなので追加のインデックスは要らない
 
-加えて upsert（編集＝上書き）のための UNIQUE が2本ある。名前が似ているが別物。
+加えて upsert（編集＝上書き）のための UNIQUE が3本ある。名前が似ているが別物。
 
 - `UNIQUE note_author_entry_kind ON note(author_id, race_entry_id, kind) WHERE race_entry_id IS NOT NULL`
 - `UNIQUE note_author_race ON note(author_id, race_id) WHERE kind = 'race'`
+- `UNIQUE note_author_race_preview ON note(author_id, race_id) WHERE kind = 'race_preview'`
+
+**レースのメモは kind ごとに別の部分ユニークで持つ。** 1本にまとめて
+`(author_id, race_id)` だけで一意にすると、見立てとふりかえりが同じ行に落ちる。
+出走馬側の `note_author_entry_kind` が `kind` を含んでいるのと同じ理由で、
+こちらは**索引そのものを分けている**（`kind` を索引の列に足すと、
+1人が同じレースに `horse` 以外の種別を何行でも作れるようになってしまう）。
 
 ### 主要クエリ
 
@@ -601,6 +618,18 @@ WHERE id = ?1 AND visibility = 'unlisted';
 
 このアプリで一番よく使う画面。**1画面・1送信でレース1本分のふりかえりが完結する**ことを目標にする。
 
+**まだ走っていないレースでは開けない。** 開催前にこの画面を開くと予想画面
+（`/races/[id]/preview`）へ 302 で送る。走る前に「どう走ったか」を訊く欄が出ていると、
+書く場所を間違えたのかと読ませてしまう。**入口ごとに塞ぐのではなく、この画面自身が
+行き先を持つ**：ダッシュボードもレース一覧も馬タイムラインも開催前のレースを普通に並べるので、
+どこか1つを直し忘れた時点で穴が開く。一覧側でもリンク先を分けてあるが、それは
+1回余計に往復しないためで、正しさを担保しているのはこの画面の振り分けのほう。
+
+開催前かどうかの線引きは `isUpcoming(date, today)`（`date > today`）で、
+**当日は「開催前」にしない**。朝は開催前でも走り終えた夕方には開催前ではなく、
+日付だけでは決められないので、その日のうちはふりかえりを書けるようにする。
+馬タイムラインの `[出走予定]` と同じ線引きで、**画面ごとにずらさない**。
+
 ```
 ┌──────────────────────────────────────────────┐
 │ 2026-09-20 中山11R  オールカマー (G2)        │
@@ -628,6 +657,9 @@ WHERE id = ?1 AND visibility = 'unlisted';
 └──────────────────────────────────────────────┘
 ```
 
+- 開催前に書いた見立て（`race_preview`）があれば、レースのメモの上に**読み取り専用**で出す。
+  ここから直せるようにすると「結果を見たあとで見立てを書き換える」ができてしまい、
+  事前と事後を別の行にした意味が無くなる。直すのは予想画面
 - 全馬分のテキストエリアを1つの `<form>` に入れ、1回の form action で保存
 - 本文も札も空の馬はスキップ（note を作らない）。**既存メモがあれば消える**＝これが削除操作
 - 既存メモがあればそこに表示され、編集＝上書き
@@ -711,8 +743,19 @@ Svelte はテキストエリアを `.value` で更新するので `defaultValue`
 
 ### ★ `/races/[id]/preview` — 予想画面
 
-出馬表の形で、各馬に**馬柱**と**自分の過去メモ**を並べる。書く場（ふりかえり）に対して、
-こちらは読んで印を付ける場。
+出馬表の形で、各馬に**馬柱**と**自分の過去メモ**を並べる。ふりかえりが結果を見て書く場なのに対して、
+こちらは**結果を見る前に書く場**。開催前に書けるのはこの画面だけ。
+
+書けるのは2つ。**レース全体の見立て**（`race_preview`）と、1頭ごとの出走前メモ（`preview`）。
+
+**見立ては出走馬が1頭もいなくても書ける。** これから組まれる重賞は日付と格だけ先に
+登録され、出馬表はその後に入る（→ [data/README.md](../data/README.md)）。
+この段階が「このレースを狙う」と思いつく時期そのものなのに、書き留める先がどこにも無かった。
+出走馬が0頭のときは保存ボタンも「レースの見立てを保存」と名乗る（書くものが1つしかないのに
+「出走前メモを保存」と言うと、画面に出ていない何かも保存されるように読める）。
+
+見出しをふりかえりの「レースのメモ」と別の名前（「レースの見立て」）にしてあるのは、
+**同じ名前だと同じ欄に見える**ため。実際には別の行で、どちらを保存してももう片方は消えない。
 
 ```
 ┌──────────────────────────────────────────────┐

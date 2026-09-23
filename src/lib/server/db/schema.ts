@@ -192,8 +192,11 @@ export const note = sqliteTable(
 		/**
 		 * `preview` は出走前メモ。列の埋まり方は `entry` と同じで、
 		 * 「レース前にどう見ていたか」と「実際どうだったか」を別の行として残すために分ける。
+		 *
+		 * `race_preview`（レースの見立て）と `race`（ふりかえり）も同じ関係。
+		 * 列の埋まり方は同じで、**開催前に書いたものが開催後の保存で消えない**ように分ける。
 		 */
-		kind: text('kind', { enum: ['race', 'horse', 'entry', 'preview'] }).notNull(),
+		kind: text('kind', { enum: ['race', 'horse', 'entry', 'preview', 'race_preview'] }).notNull(),
 		raceId: text('race_id').references(() => race.id, { onDelete: 'cascade' }),
 		horseId: text('horse_id').references(() => horse.id, { onDelete: 'cascade' }),
 		raceEntryId: text('race_entry_id').references(() => raceEntry.id, { onDelete: 'cascade' }),
@@ -251,12 +254,18 @@ export const note = sqliteTable(
 		uniqueIndex('note_author_race')
 			.on(t.authorId, t.raceId)
 			.where(sql`kind = 'race'`),
+		// 見立て（開催前のレースのメモ）も1人・1レースにつき1本。
+		// **`note_author_race` に相乗りさせない。** 同じ (author_id, race_id) で
+		// 事前と事後の2行が立つので、kind ごとに別の部分ユニークで持つ。
+		uniqueIndex('note_author_race_preview')
+			.on(t.authorId, t.raceId)
+			.where(sql`kind = 'race_preview'`),
 		// kind ごとにどの列が埋まるかを DB 側で強制する。
 		// サービス層のバグでちぐはぐな行が入るのを防ぐ最後の砦。
 		check(
 			'note_kind_shape',
 			sql`
-				(kind = 'race'  AND race_id IS NOT NULL AND horse_id IS NULL     AND race_entry_id IS NULL)
+				(kind IN ('race', 'race_preview') AND race_id IS NOT NULL AND horse_id IS NULL AND race_entry_id IS NULL)
 				OR (kind = 'horse' AND race_id IS NULL     AND horse_id IS NOT NULL AND race_entry_id IS NULL)
 				OR (kind IN ('entry', 'preview') AND race_id IS NOT NULL AND horse_id IS NOT NULL AND race_entry_id IS NOT NULL)
 			`

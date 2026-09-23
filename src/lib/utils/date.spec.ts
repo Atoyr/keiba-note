@@ -3,6 +3,7 @@ import {
 	addDays,
 	currentWeek,
 	formatDateShort,
+	isUpcoming,
 	shiftWeek,
 	todayJst,
 	weekLookupRange,
@@ -200,5 +201,21 @@ describe('weeksBefore', () => {
 
 	it('1週なら直前の1週間だけ', () => {
 		expect(weeksBefore(week, 1)).toEqual({ from: '2026-09-14', to: '2026-09-20' });
+	});
+});
+
+/**
+ * 開催前かどうか。**ふりかえりを書かせるかどうかがここで決まる**ので、
+ * 当日の扱いを取り違えると、走り終えたレースのふりかえりが書けなくなる。
+ * 線引きは馬タイムラインの `[出走予定]`（`mergeHorseTimeline`）と同じ。
+ */
+describe('isUpcoming', () => {
+	it.each([
+		['2026-10-24', true],
+		// 当日は「開催前」にしない。朝は開催前でも、走り終えた夕方には開催前ではない。
+		['2026-10-25', false],
+		['2026-10-26', false]
+	])('today=%s のとき 2026-10-25 のレースは開催前か → %s', (today, upcoming) => {
+		expect(isUpcoming('2026-10-25', today)).toBe(upcoming);
 	});
 });
