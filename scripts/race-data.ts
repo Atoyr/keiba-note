@@ -97,7 +97,23 @@ async function resolveRaceId(
 	args: Args,
 	t: { date: string; course: Course; raceNumber: number }
 ): Promise<string> {
-	if (args.raceId) return args.raceId;
+	if (args.raceId) {
+		// race_id には年・場・R が入っている。打ち間違えると別レースの馬が入り、
+		// 既存の行がすべて withdrawn に移る（data:check では止まらない）ので、ここで突き合わせる。
+		const id = args.raceId;
+		const matches =
+			/^\d{12}$/.test(id) &&
+			id.slice(0, 4) === t.date.slice(0, 4) &&
+			COURSE_CODES[id.slice(4, 6)] === t.course &&
+			Number(id.slice(10, 12)) === t.raceNumber;
+		if (!matches) {
+			fail(
+				`--race-id ${id} は ${t.date.slice(0, 4)}年 ${t.course}${t.raceNumber}R のものではありません` +
+					`（race_id は 年4桁・場2桁・回2桁・日2桁・R2桁）。`
+			);
+		}
+		return id;
+	}
 	const list = parseRaceList(await fetchPage(urls.raceList(t.date)));
 	const hit = list.find((r) => r.course === t.course && r.raceNumber === t.raceNumber);
 	if (!hit) {

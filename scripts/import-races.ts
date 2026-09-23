@@ -26,6 +26,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parse } from 'yaml';
 import * as v from 'valibot';
 import {
@@ -199,7 +200,7 @@ function horseRef(e: Pick<Entry, 'name' | 'ref' | 'birthYear'>): string {
 	);
 }
 
-function statementsFor(file: RaceFile, fileName: string, hash: string): string[] {
+export function statementsFor(file: RaceFile, fileName: string, hash: string): string[] {
 	const out: string[] = [];
 	const { date } = file;
 
@@ -381,6 +382,43 @@ function normalizeEntry(e: Entry, date: string): { entry: Entry; error?: string 
 	return { entry: { ...e, birthYear: derived } };
 }
 
+/**
+ * 1ファイルを読んで検証し、馬齢を生年に寄せる。落ちる理由があれば全部返す。
+ * 投入（main）と単体テストが同じ道を通るよう、ここに切り出してある。
+ */
+export function readRaceFile(
+	raw: string,
+	fileName: string
+): { ok: true; output: RaceFile } | { ok: false; errors: string[] } {
+	const parsed = v.safeParse(fileSchema, parse(raw));
+	if (!parsed.success) {
+		return {
+			ok: false,
+			errors: parsed.issues.map(
+				(issue) => `${issue.path?.map((p) => String(p.key)).join('.') ?? ''}: ${issue.message}`
+			)
+		};
+	}
+
+	// ファイル名と中身の日付が食い違うと、どの週のデータか分からなくなる。
+	const expected = fileName.replace(/.ya?ml$/, '');
+	if (expected !== parsed.output.date) {
+		return { ok: false, errors: [`ファイル名と date（${parsed.output.date}）が一致しません`] };
+	}
+
+	// 馬齢 → 生年。ここで食い違いを見つけたら落とす。
+	const errors: string[] = [];
+	for (const race of parsed.output.races) {
+		race.entries = race.entries.map((e) => {
+			const { entry, error } = normalizeEntry(e, parsed.output.date);
+			if (error) errors.push(error);
+			return entry;
+		});
+		errors.push(...raceConflicts(race));
+	}
+	return errors.length > 0 ? { ok: false, errors } : { ok: true, output: parsed.output };
+}
+
 /** 適用済みのファイル名 → ハッシュ。テーブルがまだ無い等で引けなければ空で返す。 */
 function loadAppliedHashes(target: 'local' | 'remote'): Map<string, string> {
 	const result = spawnSync(
@@ -482,40 +520,11 @@ async function main() {
 
 	for (const f of files) {
 		const raw = await readFile(join(dataDir, f), 'utf8');
-		const parsed = v.safeParse(fileSchema, parse(raw));
-
-		if (!parsed.success) {
+		const parsed = readRaceFile(raw, f);
+		if (!parsed.ok) {
 			failed = true;
-			console.error(`✗ ${f}`);
-			for (const issue of parsed.issues) {
-				const path = issue.path?.map((p) => String(p.key)).join('.') ?? '';
-				console.error(`    ${path}: ${issue.message}`);
-			}
-			continue;
-		}
-
-		// ファイル名と中身の日付が食い違うと、どの週のデータか分からなくなる。
-		const expected = f.replace(/\.ya?ml$/, '');
-		if (expected !== parsed.output.date) {
-			failed = true;
-			console.error(`✗ ${f}: ファイル名と date（${parsed.output.date}）が一致しません`);
-			continue;
-		}
-
-		// 馬齢 → 生年。ここで食い違いを見つけたら落とす。
-		const errors: string[] = [];
-		for (const race of parsed.output.races) {
-			race.entries = race.entries.map((e) => {
-				const { entry, error } = normalizeEntry(e, parsed.output.date);
-				if (error) errors.push(error);
-				return entry;
-			});
-			errors.push(...raceConflicts(race));
-		}
-		if (errors.length > 0) {
-			failed = true;
-			console.error(`✗ ${f}`);
-			for (const e of errors) console.error(`    ${e}`);
+			console.error(`✗ ${f}${parsed.errors.length === 1 ? `: ${parsed.errors[0]}` : ''}`);
+			if (parsed.errors.length > 1) for (const e of parsed.errors) console.error(`    ${e}`);
 			continue;
 		}
 
@@ -582,4 +591,7 @@ async function main() {
 	}
 }
 
-await main();
+// 単体テストから import したときは走らせない。
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	await main();
+}
