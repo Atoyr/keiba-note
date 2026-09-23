@@ -11,6 +11,7 @@ import {
 	parseSexAge,
 	parseShutuba,
 	parseTrackCondition,
+	setRequestInterval,
 	splitRaceName,
 	toHalfWidth
 } from './netkeiba.ts';
@@ -434,5 +435,17 @@ describe('馬の基本情報', () => {
 		expect(parsePersonName('<title>Ｃ．ルメールのプロフィール | 騎手データ</title>')).toBe(
 			'C.ルメール'
 		);
+	});
+});
+
+describe('setRequestInterval', () => {
+	it('0.5秒より短い間隔は受け付けない', () => {
+		expect(() => setRequestInterval(499)).toThrow(RangeError);
+		expect(() => setRequestInterval(Number.NaN)).toThrow(RangeError);
+	});
+
+	it('0.5秒以上なら受け付ける', () => {
+		expect(() => setRequestInterval(500)).not.toThrow();
+		setRequestInterval(1000);
 	});
 });

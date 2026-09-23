@@ -5,7 +5,7 @@
  * YAML への書き込み（yaml-file.ts）や手順（scripts/race-data.ts）は触らずに済む。
  *
  * 取り方の約束:
- * - 1リクエストごとに間を空ける（`REQUEST_INTERVAL_MS`）。まとめて叩かない
+ * - 1リクエストごとに間を空ける（既定 1秒、`setRequestInterval` で 0.5秒まで縮められる）。まとめて叩かない
  * - HTML は正規表現で切り出す。依存を増やさないためで、壊れたら**黙って空を返さず**
  *   呼び出し側が「0頭」「見つからない」と気づける形で返す
  */
@@ -38,16 +38,27 @@ const COURSE_NAMES = Object.values(COURSE_CODES);
 // 取得
 // ---------------------------------------------------------------------------
 
-const REQUEST_INTERVAL_MS = 1000;
+/** 既定の間隔。`setRequestInterval` で変えられるが、`MIN_REQUEST_INTERVAL_MS` より短くはしない。 */
+export const DEFAULT_REQUEST_INTERVAL_MS = 1000;
+export const MIN_REQUEST_INTERVAL_MS = 500;
+let requestIntervalMs = DEFAULT_REQUEST_INTERVAL_MS;
 const USER_AGENT = 'Mozilla/5.0 (uma-memo data entry; personal use)';
 let lastRequestAt = 0;
+
+/** リクエストの間隔（ミリ秒）を変える。`MIN_REQUEST_INTERVAL_MS` 未満は受け付けない。 */
+export function setRequestInterval(ms: number): void {
+	if (!Number.isFinite(ms) || ms < MIN_REQUEST_INTERVAL_MS) {
+		throw new RangeError(`取得の間隔は ${MIN_REQUEST_INTERVAL_MS}ms 以上にしてください: ${ms}`);
+	}
+	requestIntervalMs = ms;
+}
 
 /**
  * ページを取って文字列で返す。db.netkeiba.com は EUC-JP、race.netkeiba.com は UTF-8 なので、
  * ヘッダか meta の charset を見てデコードする。
  */
 export async function fetchPage(url: string): Promise<string> {
-	const wait = lastRequestAt + REQUEST_INTERVAL_MS - Date.now();
+	const wait = lastRequestAt + requestIntervalMs - Date.now();
 	if (wait > 0) await new Promise((r) => setTimeout(r, wait));
 	lastRequestAt = Date.now();
 
