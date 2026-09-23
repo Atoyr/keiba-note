@@ -150,6 +150,7 @@ ${raceData('15:40発走 / 芝1200m (右 外 C)', '4回 中山 9日目 サラ系�
 			)
 		);
 		expect(meta).toEqual({
+			date: '2026-09-27',
 			name: 'スプリンターズS',
 			grade: 'G1',
 			className: undefined,
@@ -233,6 +234,7 @@ ${row({ rank: '取消', waku: 3, umaban: 5, id: '2020000000', name: 'トリケ�
 </tbody></table>`;
 		const { meta, rows } = parseResult(html);
 		expect(meta).toMatchObject({
+			date: '2026-09-20',
 			name: 'オールカマー',
 			grade: 'G2',
 			trackCondition: '重',

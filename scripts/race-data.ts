@@ -75,9 +75,15 @@ function parseArgs(argv: string[]): Args {
 	return { command, positional: rest, dir, raceId, count, horses };
 }
 
+/** 利用者に見せて止めるエラー。スタックは出さない。 */
+class Failure extends Error {}
+
+/**
+ * 止める。process.exit はここでは呼ばない。fetch の接続が開いたまま exit すると、
+ * Windows の Node が libuv の assertion で落ちる（終了コードも 127 になる）。
+ */
 function fail(message: string): never {
-	console.error(message);
-	process.exit(1);
+	throw new Failure(message);
 }
 
 function parseTarget(args: Args): { date: string; course: Course; raceNumber: number } {
@@ -174,6 +180,20 @@ async function loadRace(args: Args, t: { date: string; course: Course; raceNumbe
 	return { file, race };
 }
 
+/**
+ * 取ってきたページが指定した開催日のものかを見る。race_id の回・日までは引数から
+ * 決められないので、ページの title の日付で突き合わせる（別の週の同じ場・R を防ぐ）。
+ */
+function assertSameDate(
+	meta: { date?: string; name: string },
+	t: { date: string },
+	raceId: string
+) {
+	if (meta.date && meta.date !== t.date) {
+		fail(`race_id ${raceId} は ${meta.date} の ${meta.name} です（指定は ${t.date}）。`);
+	}
+}
+
 /** --horse で絞る。名前か ref のどちらでも当てる。 */
 function selectEntries(args: Args, file: RaceFile, race: ReturnType<RaceFile['findRace']>) {
 	const all = file.entries(race!).items;
@@ -213,6 +233,7 @@ async function main() {
 			const t = parseTarget(args);
 			const raceId = await resolveRaceId(args, t);
 			const parsed = parseShutuba(await fetchPage(urls.shutuba(raceId)));
+			assertSameDate(parsed.meta, t, raceId);
 			if (parsed.rows.length === 0) {
 				fail(`出馬表に馬がいません（race_id ${raceId}）。登録前か、ページの構造が変わっています。`);
 			}
@@ -288,6 +309,7 @@ async function main() {
 			const { file, race } = await loadRace(args, t);
 			const raceId = await resolveRaceId(args, t);
 			const parsed = parseResult(await fetchPage(urls.result(raceId)));
+			assertSameDate(parsed.meta, t, raceId);
 			if (parsed.rows.length === 0) {
 				fail(`結果がまだ出ていません（race_id ${raceId}）。`);
 			}
@@ -317,4 +339,10 @@ async function main() {
 	}
 }
 
-await main();
+try {
+	await main();
+} catch (e) {
+	if (!(e instanceof Failure)) throw e;
+	console.error(e.message);
+	process.exitCode = 1;
+}

@@ -268,6 +268,8 @@ export function parseRaceList(html: string): RaceListItem[] {
 // ---------------------------------------------------------------------------
 
 export type RaceMeta = {
+	/** ページの title にある開催日（`YYYY-MM-DD`）。過去走の meta には無い。 */
+	date?: string;
 	name: string;
 	grade?: Grade;
 	className?: string;
@@ -297,6 +299,8 @@ export function parseRaceMeta(html: string): RaceMeta {
 	const title = /<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '';
 	const rawName = title.replace(/\s*(出馬表|結果・払戻|結果)[\s\S]*$/, '').trim();
 	const { name, grade } = splitRaceName(rawName);
+	const ymd = /(\d{4})年(\d{1,2})月(\d{1,2})日/.exec(title);
+	const date = ymd ? `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}` : undefined;
 
 	const data01 = text(/class="RaceData01"[^>]*>([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '');
 	const data02 = toHalfWidth(
@@ -316,6 +320,7 @@ export function parseRaceMeta(html: string): RaceMeta {
 	}
 
 	return {
+		date,
 		name,
 		grade: finalGrade,
 		className,
