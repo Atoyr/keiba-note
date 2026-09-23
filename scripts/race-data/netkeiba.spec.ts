@@ -94,6 +94,11 @@ describe('splitRaceName', () => {
 		expect(splitRaceName('UHB賞(OP)')).toMatchObject({ name: 'UHB賞', grade: 'OP' });
 	});
 
+	it('天皇賞の季節は全角の括弧に揃える', () => {
+		expect(splitRaceName('天皇賞(秋)(GI)')).toEqual({ name: '天皇賞（秋）', grade: 'G1' });
+		expect(splitRaceName('天皇賞（春）(G1)').name).toBe('天皇賞（春）');
+	});
+
 	it('障害重賞の格は点が無くても読む', () => {
 		expect(splitRaceName('中山グランドジャンプ(JG1)')).toEqual({
 			name: '中山グランドジャンプ',

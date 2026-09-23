@@ -200,6 +200,7 @@ const CLASS_PATTERNS: [RegExp, string][] = [
  * - `産経賞オールカマー(GII)` → name `産経賞オールカマー`・grade `G2`
  * - `木更津特別(2勝)` → name `木更津特別`・className `2勝クラス`
  * - `3歳以上1勝クラス` → name そのまま・className `1勝クラス`
+ * - `天皇賞(秋)(GI)` → name `天皇賞（秋）`・grade `G1`
  *
  * 冠（`産経賞` 等）は機械的には外せないので残す。既に YAML にあるレースは名前を書き換えない。
  */
@@ -218,7 +219,8 @@ export function splitRaceName(raw: string): { name: string; grade?: Grade; class
 		if (className && paren && /勝|新馬|未勝利/.test(paren[1]))
 			name = s.slice(0, paren.index).trim();
 	}
-	name = name.replace(/ステークス$/, 'S');
+	// 戦績表は `天皇賞(秋)` と半角で書く。出馬表と JRA の表記（`天皇賞（秋）`）に揃える。
+	name = name.replace(/ステークス$/, 'S').replace(/\((春|秋)\)$/, '（$1）');
 	return { name, grade, className };
 }
 
