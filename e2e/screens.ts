@@ -19,7 +19,10 @@ export type Screen = {
 };
 
 export const SCREENS: Screen[] = [
+	{ name: 'landing', path: '/', auth: false },
 	{ name: 'login', path: '/login', auth: false },
+	{ name: 'privacy', path: '/privacy', auth: false },
+	{ name: 'terms', path: '/terms', auth: false },
 	{ name: 'dashboard', path: '/', auth: true },
 	{ name: 'this-week', path: '/this-week', auth: true },
 	{ name: 'races', path: '/races', auth: true },

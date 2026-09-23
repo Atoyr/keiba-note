@@ -89,6 +89,50 @@ https://uma-memo.com/auth/google/callback
 https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
+同じ画面の **OAuth 同意画面**（Google Auth Platform > ブランディング / 対象）を埋めて、
+公開ステータスを「本番環境」にする。「テスト」のままだと、テストユーザーに登録した
+Google アカウント（100 件まで）しかログインできない。
+
+| 項目 | 値 |
+| --- | --- |
+| アプリ名 | `uma-memo` |
+| ユーザーサポートメール・デベロッパーの連絡先 | 運営者のアドレス（画面には出ない。Google からの連絡用） |
+| アプリのホームページ | `https://uma-memo.com/`（未ログインだと紹介ページ。ポリシーへのリンクがある） |
+| アプリのプライバシー ポリシー | `https://uma-memo.com/privacy` |
+| アプリの利用規約 | `https://uma-memo.com/terms` |
+| 承認済みドメイン | `uma-memo.com` |
+| ユーザーの種類 | 外部 |
+| スコープ | `openid`・`.../auth/userinfo.email`・`.../auth/userinfo.profile` |
+
+要求するスコープは機密でないものだけなので、本番環境にするのにスコープの審査は要らない。
+ロゴを載せるとブランドの確認が要るので、載せない。
+
+ポリシーと規約の本文は `src/routes/privacy/`・`src/routes/terms/` にある。取る情報や
+使う外部サービスを変えたら、本文と最終改定日も直す。
+
+### アカウントの削除を頼まれたら
+
+プライバシーポリシー第8章で、依頼があれば**アカウントの情報と書いたメモをすべて消す**と約束している。
+アプリの「凍結」（`/settings/admin`）は論理削除で行もメモも残るので、これとは別に**人が本番の D1 を直に消す。**
+
+1. Issue で依頼を受けたら、本人確認をする（Issue にメールアドレスを書かせない。依頼者の Google アカウントで
+   ログインしたまま `/settings/profile` の表示名を Issue に書いてもらう、など）
+2. 対象の `user.id` を引く
+
+   ```bash
+   pnpm exec wrangler d1 execute k-note --remote --command "SELECT id, display_name, created_at FROM user WHERE email = '<メールアドレス>'"
+   ```
+
+3. 次の順で消す（`note.author_id` が `user` を参照していて、`ON DELETE CASCADE` ではないため、メモを先に消す。
+   `session` は `user` と一緒に消える）。`horse` / `race` の `created_by` は admin が作った行にしか入らないが、
+   念のため外す
+
+   ```bash
+   pnpm exec wrangler d1 execute k-note --remote --command "UPDATE horse SET created_by = NULL WHERE created_by = '<id>'; UPDATE race SET created_by = NULL WHERE created_by = '<id>'; DELETE FROM note WHERE author_id = '<id>'; DELETE FROM user WHERE id = '<id>';"
+   ```
+
+4. Issue に削除したことを返して閉じる。同じ Google アカウントでもう一度ログインすると、新しい空のアカウントができる
+
 ### 6. シークレットを入れる
 
 3つとも、実行すると値の入力を求められる。**デプロイし直す必要はない。**

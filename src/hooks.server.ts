@@ -8,16 +8,26 @@ import { safeRedirect } from '$lib/utils/redirect';
 /**
  * ログイン不要で触れるパス。これ以外は全部弾く。
  *
- * `/notes/` は共有ページ。未ログインで開ける唯一のルートだが、そこで出せるのは
+ * そのパスと、その下（`/login` なら `/login/...`）が開く。`/auth/` のように `/` で終わるものは
+ * 下だけ。**`/` だけは完全一致。** 前方一致にすると全部のパスが開いてしまう。
+ * `/` は未ログインだと紹介ページを出し、DB には触らない（`src/routes/+page.server.ts`）。
+ *
+ * `/notes/` は共有ページ。未ログインで DB の中身を出す唯一のルートだが、そこで出せるのは
  * `visibility = 'unlisted'` の1行だけ（product.md 第6章）。
+ *
+ * `/privacy` と `/terms` は Google OAuth の同意画面に URL を登録するページ。
+ * ログインする前に読めなければ意味がない（docs/operations.md）。
  *
  * `/robots.txt` はここに要らない。`static/` の実ファイルは Workers Static Assets が
  * 直接返し、**Worker 自体が起動しない**ので hooks を通らない。
  */
-const PUBLIC_PATHS = ['/login', '/auth/', '/notes/'];
+const PUBLIC_PATHS = ['/', '/login', '/auth/', '/notes/', '/privacy', '/terms'];
 
 function isPublic(pathname: string): boolean {
-	return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
+	return PUBLIC_PATHS.some((p) => {
+		if (p === '/') return pathname === '/';
+		return pathname === p || pathname.startsWith(p.endsWith('/') ? p : `${p}/`);
+	});
 }
 
 /**

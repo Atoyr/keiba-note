@@ -26,6 +26,10 @@ const PAST_WEEKS = 3;
  * 画面の中で週の切り方が違うと、同じレースが今週に出たり出なかったりする。
  */
 export const load: PageServerLoad = async ({ locals, platform }) => {
+	// 未ログインは紹介ページ（hooks が `/` だけを完全一致で通している）。
+	// **DB に触らない。** ここで何か引くと、そのまま誰にでも見える。
+	if (!locals.user) return { landing: true as const };
+
 	const { db, user } = ctx(locals, platform);
 
 	// 週の解決そのものが1クエリ。残りの4本はそれに依存しないので並行に投げる（計5クエリ）。
@@ -43,6 +47,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 	const today = todayJst();
 
 	return {
+		landing: false as const,
 		notes,
 		week,
 		thisWeek,

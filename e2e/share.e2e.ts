@@ -86,7 +86,8 @@ test('馬タイムラインでも、共有と削除はメニューを開くま�
 test('未ログインではダッシュボードのメモも共有の操作も出ない', async ({ page }) => {
 	await page.goto('/');
 
-	await expect(page).toHaveURL(/\/login/);
+	// 未ログインの `/` は紹介ページ。ダッシュボードは描かれない。
+	await expect(page.getByRole('button', { name: 'Google でログイン' })).toBeVisible();
 	await expect(page.getByText(TOGGLE_SHARE_NOTE_BODY)).toHaveCount(0);
 	await expect(page.getByTitle('メモの操作')).toHaveCount(0);
 });
