@@ -25,7 +25,7 @@
 
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<h1 class="text-xl font-bold tracking-tight">{title}</h1>
-	<p class="mt-1 text-xs text-gray-500">
+	<p class="mt-1 text-xs text-muted-foreground">
 		制定: {enactedOn}{#if updatedOn !== enactedOn}／最終改定: {updatedOn}{/if}
 	</p>
 
@@ -33,7 +33,11 @@
 		{@render children()}
 	</div>
 
-	<p class="mt-10 border-t border-gray-200 pt-4 text-sm">
-		<a href={resolve('/')} class="text-gray-600 underline hover:no-underline">uma-memo へ戻る</a>
+	<p class="mt-10 border-t pt-4 text-sm">
+		<a
+			href={resolve('/')}
+			class="inline-flex min-h-6 items-center text-muted-foreground underline hover:no-underline"
+			>uma-memo へ戻る</a
+		>
 	</p>
 </main>

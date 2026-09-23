@@ -52,14 +52,16 @@
 		</button>
 	</form>
 
+	<!-- Google の同意画面が求める、ホームページからポリシーへのリンク（docs/operations.md）。
+	     規約はログインで同意したものとする（terms 冒頭）ので、ボタンのすぐ下で断る。 -->
+	<p class="mt-3 text-xs text-muted-foreground">
+		ログインすると、<a href={resolve('/terms')} class="underline hover:no-underline">利用規約</a
+		>と<a href={resolve('/privacy')} class="underline hover:no-underline">プライバシーポリシー</a
+		>に同意したことになります。
+	</p>
+
 	<p class="mt-6 text-xs text-gray-500">
 		Google アカウントがあればそのまま使えます。書いたメモは既定で非公開で、
 		共有したいものだけリンクを発行して渡します。
-	</p>
-
-	<!-- Google の同意画面が求める、ホームページからポリシーへのリンク（docs/operations.md）。 -->
-	<p class="mt-4 flex gap-4 text-xs text-gray-500">
-		<a href={resolve('/terms')} class="underline hover:no-underline">利用規約</a>
-		<a href={resolve('/privacy')} class="underline hover:no-underline">プライバシーポリシー</a>
 	</p>
 </main>
