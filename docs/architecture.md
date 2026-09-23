@@ -427,7 +427,7 @@ main は「次に出す候補」。どこを出すかはタグを切る側が決
 
 リリースのタグは main の CI を通った commit のはずだが、任意の commit からも
 タグは切れるので、`deploy.yml` は出す前に `ci.yml` をもう一度呼んで回す
-（→ [README](../README.md)）。
+（→ [operations.md](./operations.md)）。
 
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |
