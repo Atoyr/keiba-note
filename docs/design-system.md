@@ -81,7 +81,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 **ステージングでもテーマカラーは変えない。** ステージングはリリース前に本番と同じ見た目で確かめる場所なので、
 違うのは次の2つだけにする（`AppEnvMark`。`APP_ENV` が `staging` のときに出る）。
 
-- タブのアイコンが灰色の蹄鉄になる（`src/lib/assets/favicon-staging.svg`）
+- タブのアイコンが暗い地に灰色の蹄鉄になる（`src/lib/assets/favicon-staging.svg`）。色だけでなく明るさも本番と逆にして、色覚によらず見分けられるようにしている
 - ページの一番上に「ステージング環境（データは本番と別）」の細い帯が出る
 
 ローカル（`pnpm run dev`・E2E・キャプチャ）は本番と同じ見た目にする。PR に貼るキャプチャが本番の見た目であるために。
