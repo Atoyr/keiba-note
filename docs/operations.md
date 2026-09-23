@@ -311,7 +311,8 @@ Settings > Secrets and variables > Actions。
 | -------- | ----------------------- | ----------------------------------------------------------- |
 | Secret   | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                                          |
 | Secret   | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID                      |
-| Secret   | `DISCORD_WEBHOOK_URL`   | Discord の Webhook。無ければ Actions からの通知だけが止まる |
+| Secret   | `DISCORD_WEBHOOK_URL`   | Discord の「障害」チャンネルの Webhook。無ければ Actions からの通知だけが止まる |
+| Secret   | `DISCORD_DEPLOY_WEBHOOK_URL` | Discord の「デプロイ」チャンネルの Webhook。無ければ「障害」に送る |
 | Variable | `HEALTH_CHECK_URL`      | `https://uma-memo.com/api/health`。無ければ死活監視が止まる |
 
 以前あった `DEPLOY_ENABLED` というリポジトリ変数の栓は廃止した。

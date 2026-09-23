@@ -3,6 +3,11 @@ name: Discord 通知
 # 他のワークフローから呼ぶ部品（workflow_call）。Actions から Discord へ送るのはここだけ。
 # Worker からの通知は src/lib/server/monitoring/discord.ts（docs/monitoring.md）。
 #
+# 送り先のチャンネルは2つ（docs/monitoring.md 第7章）。
+#   alerts … 障害（死活監視）。Worker のエラーと同じチャンネル。Secret DISCORD_WEBHOOK_URL
+#   deploy … CI/CD の結果（デプロイ・main の CI・データ投入）。Secret DISCORD_DEPLOY_WEBHOOK_URL
+# deploy の Webhook が未設定なら alerts に送る（通知が黙って消えないように）。
+#
 # 送信に失敗してもジョブは落とさない。通知が落ちたことで、成功したデプロイが
 # 失敗に見えるのを避ける（警告の注記だけ残す）。
 on:
@@ -19,8 +24,15 @@ on:
         type: string
         required: false
         default: ''
+      channel:
+        description: 'alerts / deploy'
+        type: string
+        required: false
+        default: alerts
     secrets:
       DISCORD_WEBHOOK_URL:
+        required: false
+      DISCORD_DEPLOY_WEBHOOK_URL:
         required: false
 
 permissions: {}
@@ -34,7 +46,9 @@ jobs:
       # run の中に ${{ }} で埋め込むと、ブランチ名などがシェルとして解釈されうる。
       - name: Discord へ送る
         env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ALERTS_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          CHANNEL: ${{ inputs.channel }}
           LEVEL: ${{ inputs.level }}
           TITLE: ${{ inputs.title }}
           DESCRIPTION: ${{ inputs.description }}
@@ -46,8 +60,16 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
-          if [ -z "${DISCORD_WEBHOOK_URL}" ]; then
-            echo '::notice::DISCORD_WEBHOOK_URL が未設定なので送りません'
+          webhook_url="$ALERTS_WEBHOOK_URL"
+          if [ "$CHANNEL" = deploy ]; then
+            if [ -n "$DEPLOY_WEBHOOK_URL" ]; then
+              webhook_url="$DEPLOY_WEBHOOK_URL"
+            else
+              echo '::notice::DISCORD_DEPLOY_WEBHOOK_URL が未設定なので、障害のチャンネルに送ります'
+            fi
+          fi
+          if [ -z "$webhook_url" ]; then
+            echo '::notice::Discord の Webhook が未設定なので送りません'
             exit 0
           fi
 
@@ -87,6 +109,6 @@ jobs:
           if ! curl -sS --fail-with-body --max-time 10 \
             -H 'Content-Type: application/json; charset=utf-8' \
             --data-binary "$payload" \
-            "$DISCORD_WEBHOOK_URL" > /dev/null; then
+            "$webhook_url" > /dev/null; then
             echo '::warning::Discord への通知に失敗しました'
           fi

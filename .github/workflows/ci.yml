@@ -101,8 +101,10 @@ jobs:
     if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/discord-notify.yml
     with:
+      channel: deploy
       level: error
       title: main の CI が落ちた
       description: 型・lint・単体テスト・E2E のどれかが落ちています。リンクから実行を開いてください。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
