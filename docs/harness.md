@@ -7,9 +7,13 @@
 - 作成日: 2026-09-23
 - 更新日: 2026-09-23 — 検証の仕組みだけだった文書を6層の設計に組み直した。
   旧版の内容は第5層（→ 5章）にそのまま入っている
-- ステータス: 第5層は稼働中。それ以外は設計。実装は 8章の順に別 PR で入れる
-- 関連: [AGENTS.md](../AGENTS.md)（この仕組みを使う側の手順）/ [design.md](./design.md) /
-  [architecture.md](./architecture.md)
+- 更新日: 2026-09-23 — コンテキストの設計（第7章）を足した。AGENTS.md を知識の目次にし、
+  書くときに要る決まりを分野ごとの文書（architecture / frontend / design-system / testing / api）に移した。
+  この文書には、仕組みをなぜこう組むかと、これから入れるものだけを残す
+- ステータス: 第5層とコンテキスト（第7章）は稼働中。それ以外は設計。実装は 9章の順に別 PR で入れる
+- **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
+  日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
+- 関連: [AGENTS.md](../AGENTS.md)（目次）/ [product.md](./product.md) / [architecture.md](./architecture.md)
 
 ---
 
@@ -39,6 +43,7 @@
 
 上の3層は「書く前に知っておくこと」、下の3層は「書いたあとに確かめること」。
 第6層で見つかった指摘は、同じ指摘が二度と来ないように上の層の規則へ戻す（→ 6-4）。
+6層の知識を、エージェントがどの順でどこから読むかは第7章「コンテキストの設計」で決める。
 
 ```mermaid
 flowchart LR
@@ -52,7 +57,7 @@ flowchart LR
     end
     subgraph after["書いたあと"]
         L5["5 検証<br/>pnpm run verify / screens"]
-        L6["6 評価<br/>ルーブリック / 人 / 実利用"]
+        L6["6 評価<br/>Evaluator / 人 / 実利用"]
     end
     L1 --> L2 --> L3 --> L4 --> L5 --> L6
     L6 -. "同じ指摘が2回来たら規則に昇格" .-> L1
@@ -65,11 +70,11 @@ flowchart LR
 
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
-| 1 目的 | README / design.md | なし | 仕様はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない |
+| 1 目的 | README / product.md | なし | 仕様はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない |
 | 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反が4件ある（→ 2-5） |
-| 3 見せ方 | `layout.css` / `components/ui/` | なし | 生の色指定が約250箇所。shadcn のトークンが半分しか使われていない |
+| 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | 生の色指定が約250箇所。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」 | なし | 本番に触るコマンドの禁止は言葉だけ |
-| 5 検証 | この文書 5章 | `pnpm run verify` / CI | 稼働中 |
+| 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
 | 6 評価 | なし | なし | 人がキャプチャを見るだけ。指摘が規則に戻る道が無い |
 
 **機械の強制が無い層は、エージェントが読み落とした時点で破られる。** この設計の中心は、
@@ -91,29 +96,28 @@ flowchart LR
 | 文書 | 中身 | 状態 |
 | --- | --- | --- |
 | [README.md](../README.md) | 何のアプリか・いまのフェーズ | ある |
-| [design.md](./design.md) | 要件・データモデル・画面・やらないこと | ある |
-| **`docs/product.md`** | 誰が・どの場面で・何のために使うか。UX 原則。やらないと決めたこと | **足す** |
+| [product.md](./product.md)（旧 design.md） | 要件・データモデル・画面・やらないこと | ある |
+| product.md の冒頭 | 誰が・どの場面で・何のために使うか。UX 原則（1-3） | **足す** |
 | **`.github/ISSUE_TEMPLATE/`** | 変更の頼み方の型 | **足す** |
 
-`product.md` は1ページに収める。design.md は仕様の詳細で長いので、エージェントが
-毎回最初に読む入口を別に置く。
+product.md は仕様の詳細で長いので、UX 原則は冒頭の1画面に収め、エージェントが最初に読む入口にする。
 
 ### 1-3. UX 原則（草案）
 
-design.md とこれまでの PR で下された判断から拾った。番号は PR やルーブリック（→ 6-1）から
+product.md とこれまでの PR で下された判断から拾った。番号は PR や Evaluator の評価（→ 6-2）から
 `P3` のように引くためのもの。
 
 | # | 原則 | 根拠 |
 | --- | --- | --- |
-| P1 | **ふりかえりは1画面・1送信。** 全頭分を1画面で書き、1回で保存する | design.md 第6章 `/races/[id]` |
-| P2 | **既定は閉じる。** 他人のメモはどこにも出ない。共有は1件ずつ、明示の操作で | design.md 第2章 2-2 |
-| P3 | **時間で入口を分ける。** 開催前は予想、開催後はふりかえり。その時に要らない操作は出さない | design.md 第6章 `/races/[id]/preview` |
-| P4 | **毎回踏む導線だけ出しっぱなし。** それ以外は畳む（アカウントメニュー、`⋯`） | design.md 第6章 ヘッダ / 共有を `⋯` に畳んだ変更 |
+| P1 | **ふりかえりは1画面・1送信。** 全頭分を1画面で書き、1回で保存する | product.md 第6章 `/races/[id]` |
+| P2 | **既定は閉じる。** 他人のメモはどこにも出ない。共有は1件ずつ、明示の操作で | product.md 第2章 2-2 |
+| P3 | **時間で入口を分ける。** 開催前は予想、開催後はふりかえり。その時に要らない操作は出さない | product.md 第6章 `/races/[id]/preview` |
+| P4 | **毎回踏む導線だけ出しっぱなし。** それ以外は畳む（アカウントメニュー、`⋯`） | product.md 第6章 ヘッダ / 共有を `⋯` に畳んだ変更 |
 | P5 | **スマホで書ける。** 390px で横にはみ出さず、片手で押せる | 画面カタログの mobile 幅 |
 | P6 | **書きかけを失わない。** 送信前に画面を離れても戻せる | `DraftKeeper` |
 | P7 | **色だけに意味を持たせない。** 枠・印・グレードは必ず文字も出す | `BracketBadge` のコメント |
 
-これは草案で、正にするのは `product.md` を入れる PR で人が確かめてから。
+これは草案で、正にするのは product.md の冒頭に入れる PR で人が確かめてから。
 
 ### 1-4. 頼み方の型 — issue テンプレート
 
@@ -132,7 +136,7 @@ issue を次の型で書けば、そのまま PR の「なぜ」と第6層の評
 ### 1-5. 機械の強制
 
 この層は文章なので機械では止めない。代わりに、PR テンプレートの「なぜ」に
-関係する原則の番号を書かせ、第6層の自己評価と人のレビューで見る。
+関係する原則の番号を書かせ、第6層の Evaluator と人のレビューで見る。
 
 ---
 
@@ -146,91 +150,29 @@ issue を次の型で書けば、そのまま PR の「なぜ」と第6層の評
 
 依存の向きは **縦（層）と横（機能）の2軸**で決め、どちらも一方向にする。
 
-### 2-2. 縦の軸 — 層
+### 2-2. 規則の中身 — architecture.md 第2章
 
-```mermaid
-flowchart TB
-    PAGE["page<br/>+page.svelte / +layout.svelte"]
-    EP["endpoint<br/>+page.server.ts / +server.ts / hooks.server.ts"]
-    COMP["component<br/>lib/components/&lt;機能&gt;/"]
-    UI["ui<br/>lib/components/ui/（shadcn 生成物）"]
-    RH["route-helper<br/>lib/server/util.ts"]
-    SVC["service<br/>lib/server/services/"]
-    AUTH["auth<br/>lib/server/auth/"]
-    DB["db<br/>lib/server/db/"]
-    PURE["pure<br/>lib/schemas/ / lib/utils/"]
+**import してよい先の表は [architecture.md 第2章「依存の向き」](./architecture.md) を正にする。**
+エージェントが書くときに読むのはそちらで、この文書は「どう止めるか」だけを持つ。要点は3つ。
 
-    PAGE --> COMP --> UI
-    PAGE --> UI
-    EP --> SVC --> DB
-    EP --> AUTH --> DB
-    EP --> RH --> DB
-    PAGE --> PURE
-    COMP --> PURE
-    EP --> PURE
-    SVC --> PURE
-    DB --> PURE
-    UI --> PURE
-```
+- 縦（層）: 画面側はサーバーのコードを型ですら import しない。service は SvelteKit を知らない。
+  SQL（`drizzle-orm`）は db / service / auth にしか無い
+- 横（機能）: `horses ← races ← notes ← share ← dashboard` の順に並べ、右は左を使ってよいが左は右を使わない。
+  順位なので循環は起こりえない。並びは今のコードの向き（`services/races.ts` が `findOrCreateHorse` を、
+  `services/notes.ts` が `races` の型を使っている）に合わせた
+- ルート（`src/routes/`）は機能を組み合わせる場所なので、横の軸の制約は受けない
 
-| from ＼ to | component | ui | pure | service | auth | db | route-helper |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| page | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| component | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
-| ui | ✗ | ✓ | `utils.ts` だけ | ✗ | ✗ | ✗ | ✗ |
-| endpoint | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| service | ✗ | ✗ | ✓ | 機能の向きに従う（→ 2-3） | ✗ | ✓ | ✗ |
-| auth | ✗ | ✗ | ✓ | ✗ | ✓ | ✓ | ✗ |
-| db | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ | ✗ |
-| pure | ✗ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ |
-
-要点は3つ。
-
-- **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
-  `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
-  止めるが `import type` は通すので、ここは自分で止める必要がある
-- **service は SvelteKit を知らない**（architecture.md 第2章）。`@sveltejs/kit` と `$app/*` を禁じる
-- **SQL は db と service にしか無い。** `drizzle-orm` を import してよいのは db / service / auth だけ
-
-パッケージ単位の禁止は ESLint 標準の `no-restricted-imports` を `files` ごとに掛ける。
-
-| 対象 | 禁止する import |
-| --- | --- |
-| `src/lib/server/services/**` `src/lib/server/auth/**` `src/lib/server/db/**` `src/lib/schemas/**` `src/lib/utils/**` | `@sveltejs/kit`, `$app/*` |
-| `src/routes/**` `src/lib/components/**` `src/lib/schemas/**` `src/lib/utils/**` | `drizzle-orm`, `drizzle-orm/*` |
-| `src/lib/server/auth/**` 以外 | `arctic`, `@oslojs/*` |
-
-### 2-3. 横の軸 — 機能
-
-機能は下の順に並べ、**右は左を使ってよいが、左は右を使わない**。順位で並べるので、
-機能をまたぐ循環は起こりえない。
-
-```mermaid
-flowchart RL
-    DASH["dashboard<br/>ダッシュボード・今週"] --> SHARE["share<br/>共有リンク"]
-    SHARE --> NOTES["notes<br/>メモ・見立て・印・タグ・的中"]
-    NOTES --> RACES["races<br/>レース・出馬表・枠・グレード"]
-    RACES --> HORSES["horses<br/>馬"]
-    DASH -.-> NOTES
-    DASH -.-> RACES
-    NOTES -.-> HORSES
-```
+パッケージ単位の禁止（`@sveltejs/kit`・`drizzle-orm`・`arctic` を使ってよい場所）は ESLint 標準の
+`no-restricted-imports` を `files` ごとに掛ける。ファイル間の向きは次の 2-4 のプラグインで見る。
 
 ```ts
-// eslint.config.js（案）— 左ほど下。ここが機能の順序の唯一の正
+// eslint.config.js（案）— 左ほど下。機能の順序はここと architecture.md 第2章で揃える
 const FEATURES = ['horses', 'races', 'notes', 'share', 'dashboard'];
 ```
 
-- **機能を持たないもの（shared）**: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・
-  `lib/utils/` 直下（`date` / `redirect` / `role`）・`components/ui/`・`components/shell/`（ヘッダ周り）。
-  どの機能からも使ってよいが、shared から機能は使わない
-- **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない。
-  機能どうしをつなぐのはルートだけ、という形にする
-- 並びの根拠は今のコードの向き。`services/races.ts` は `findOrCreateHorse` を使い、
-  `services/notes.ts` は `races` の型を使っている。service どうしで逆向きの import は無い
-  （utils をまたいだ1件は 2-5）
+### 2-3. 機能をディレクトリで表す
 
-**機能はディレクトリで表す。** ファイル名から機能を推すのは規則に書けないので、
+ファイル名から機能を推すのは規則に書けないので、
 component と utils は機能ごとのディレクトリに移す。service はもともと1機能1ファイルなのでそのまま。
 
 ```
@@ -317,7 +259,7 @@ architecture.md 第2章にあった手描きの「モジュール依存図」は
 
 ### 2-6. ランタイム上の約束との関係
 
-AGENTS.md の「ランタイム上の約束」のうち、この層の規則で止まるようになるものと、残るもの。
+architecture.md 第0章「守ること」のうち、この層の規則で止まるようになるものと、残るもの。
 
 | 約束 | 止め方 |
 | --- | --- |
@@ -325,7 +267,7 @@ AGENTS.md の「ランタイム上の約束」のうち、この層の規則で�
 | 認証の判断は `hooks.server.ts` に閉じる | 一部。`auth` を import してよいのを endpoint に限る |
 | メモを読む関数は `viewerId` を必須で受け、WHERE に入れる | 規則では止まらない。単体テストと E2E（他人の id で開けない）で見る |
 | D1 クライアントはリクエストごとに作る | 規則では止まらない。`createDb` をモジュールスコープで呼ぶのを `no-restricted-syntax` で止めるのが候補 |
-| 1リクエストの D1 クエリは10以内 | 第5層で数える（→ 5-7） |
+| 1リクエストの D1 クエリは10以内 | 第5層で数える（→ 5-4） |
 
 ---
 
@@ -337,89 +279,24 @@ AGENTS.md の「ランタイム上の約束」のうち、この層の規則で�
 いまは `text-gray-500` のような生の色が約250箇所あり、画面ごとに少しずつ違う灰色や赤が
 使われている。エージェントは近くの画面を真似るので、揺れはそのまま増える。
 
-shadcn-svelte を前提にし、次の3段で組む。**下の段にあるもので済むなら、上の段を作らない。**
+shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ ドメイン部品」の3段で組み、
+**下の段にあるもので済むなら上の段を作らない。**
 
-```mermaid
-flowchart TB
-    T["① トークン — src/routes/layout.css<br/>shadcn の意味の色 + アプリ固有の色（枠・グレード・状態）"]
-    P["② 部品 — src/lib/components/ui/<br/>shadcn-svelte の生成物。手を入れない"]
-    D["③ ドメイン部品 — src/lib/components/&lt;機能&gt;/<br/>① と ② を組み合わせた、競馬の語彙を持つ部品"]
-    S["画面 — src/routes/**/+page.svelte<br/>③ と ② を並べるだけ"]
-    T --> P --> D --> S
-    T --> D
-    T --> S
-```
+### 3-2. 決まりの中身 — design-system.md
 
-### 3-2. ① トークン
+**トークンの表・部品の選び方・ドメイン部品の一覧・大きさと文言の決まりは
+[design-system.md](./design-system.md) を正にする。** この文書は、その決まりを
+どう止めるか（3-3）と、今の約250箇所をどう移すか（3-3 の後半）だけを持つ。
 
-**色は意味で呼ぶ。** 画面とドメイン部品では、パレットの色名（`gray-500`・`red-600`）を使わない。
+要点:
 
-shadcn のトークンで足りるもの:
+- 色は意味で呼ぶ。shadcn のトークン（`text-muted-foreground`・`border-border`・`bg-muted`・`destructive`）で足りないものは
+  アプリ固有のトークン（`--warning`・`--success`・`--info`・`--bracket-1〜8`・`--grade-g1〜g3`・`--text-2xs`）として足す
+- 枠色とグレードは外の世界で決まっている色なので、トークンにして1箇所に閉じ込める
+- `components/ui/` は `pnpm exec shadcn-svelte add` で入れ、手で直さない。素の `<button>` `<select>` `<textarea>` を書かない
+  （今は画面側に13箇所ある）
 
-| 用途 | 使うもの | 今使われている生の色の例 |
-| --- | --- | --- |
-| 補足の文字 | `text-muted-foreground` | `text-gray-500` / `text-gray-600` |
-| 罫線 | `border-border` | `border-gray-200` / `border-gray-300` |
-| 薄い面 | `bg-muted` | `bg-gray-50` / `bg-gray-100` |
-| 本文 | `text-foreground` | `text-gray-900` |
-| 取り消せない操作・エラー | `destructive`（`Button variant="destructive"` など） | `bg-red-600` / `text-red-700` |
-
-shadcn に無いので足すもの（`layout.css` の `:root` と `@theme inline` に、shadcn と同じ書式で）:
-
-| トークン | 用途 | 今の書き方 |
-| --- | --- | --- |
-| `--warning` / `--warning-foreground` | 注意（書きかけあり、未確定） | `bg-amber-100 text-amber-900` |
-| `--success` / `--success-foreground` | 済み・的中 | `bg-emerald-*` |
-| `--info` / `--info-foreground` | 案内・共有中 | `bg-sky-100 text-sky-900` |
-| `--bracket-1` 〜 `--bracket-8`（と `-foreground`） | 枠色。**JRA の帽子の色そのまま** | `BracketBadge` の中の表 |
-| `--grade-g1` / `--grade-g2` / `--grade-g3` | グレード | `GradeBadge` の中の表 |
-| `--text-2xs` | 11px の小さい文字 | `text-[11px]`（10箇所） |
-
-枠色とグレードは「見やすさで選んだ色」ではなく**外の世界で決まっている色**なので、
-トークンにして1箇所に閉じ込める。値は今の見た目と同じにする（→ 3-6 で「画面が変わらない」ことを機械で確かめる）。
-
-ダークモードは今は作らない（`.dark` を付ける場所が無い）。ただしトークン経由にしておけば、
-あとで `.dark` の値を埋めるだけで済む。
-
-### 3-3. ② 部品 — shadcn-svelte
-
-- 部品は `pnpm exec shadcn-svelte add <名前>` で入れる。バージョンは devDependencies の
-  `shadcn-svelte` に揃える（`pnpm dlx` で最新を引くと、既存の部品と書き方がずれる）
-- `src/lib/components/ui/` は手で直さない。見た目を変えたいときは、トークンを変えるか、
-  呼ぶ側で `class` を足すか、③ のドメイン部品で包む
-- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / select / separator / textarea
-- **素の `<button>` `<select>` `<textarea>` を画面に書かない。** いまは画面側に素の `<button>` `<select>` `<textarea>` が
-  13箇所あり、押せる大きさやフォーカスの見え方が部品ごとに違う。
-  shadcn に無い操作が要るときは、まず `shadcn-svelte add` で足せるものが無いかを見る
-
-どの部品を使うかの目安:
-
-| やりたいこと | 使う部品 |
-| --- | --- |
-| 押して何かが起きる | `Button`（主操作は既定、その他は `variant="outline"` / `"ghost"`、消すものは `"destructive"`） |
-| 状態や分類を小さく出す | `Badge`、または ③ のドメイン部品 |
-| ひとかたまりの情報 | `Card` |
-| 毎回は使わない操作を畳む（P4） | `DropdownMenu`（`⋯`） |
-| 入力 | `Input` / `Textarea` / `Select` + `Label` |
-
-### 3-4. ③ ドメイン部品
-
-`src/lib/components/<機能>/` に置く、競馬の語彙を持つ部品（`GradeBadge`・`BracketBadge`・`MarkPicker` など）。
-
-- 見た目の分岐（グレードごと、印ごと）は `tailwind-variants` の `tv()` で1箇所に書く。
-  今は各部品が `Record<…, string>` の表で持っているが、shadcn の部品と同じ書き方にそろえる
-- 色はトークンだけを使う
-- 1部品につき `*.svelte.spec.ts` を1本（表示と操作）
-
-### 3-5. 手引き — `docs/design-system.md`
-
-エージェントが画面を書く前に読む1ページを足す。中身は 3-2 〜 3-4 の表と、次の決まり。
-
-- 余白と大きさは Tailwind の既定の段（`gap-2` / `gap-4` / `p-4` …）だけを使う。`[...]` の任意値は使わない
-- 押せるものは mobile で 24px 四方以上（WCAG 2.2 の 2.5.8）。一覧の行のように主に押すものは 44px を目安にする
-- 文言: ボタンは動詞で終える（「保存する」「共有をやめる」）。確かめる文は、何が起きるかを先に書く
-
-### 3-6. 機械の強制
+### 3-3. 機械の強制
 
 | 決まり | 止め方 | 確認 |
 | --- | --- | --- |
@@ -433,7 +310,7 @@ shadcn に無いので足すもの（`layout.css` の `:root` と `@theme inline
 
 **置き換えは「見た目が変わらない」ことを機械で確かめながら進める。**
 生の色を同じ値のトークンに置き換える PR は、`pnpm run screens <機能名> after` で
-**残る画像が0枚**になるはず（→ 5-4。変わらなかった組は自動で消える）。1枚でも残れば
+**残る画像が0枚**になるはず（→ [testing.md 5-1](./testing.md)。変わらなかった組は自動で消える）。1枚でも残れば
 置き換えを間違えている。デザインの変更と置き換えを別の PR にするのはこのため。
 
 **既存の違反は ESLint の一括抑制で凍結してから直す。** 約250箇所を1つの PR で直すと
@@ -471,7 +348,7 @@ shadcn に無いので足すもの（`layout.css` の `:root` と `@theme inline
 
 ### 4-3. 叩いてはいけないもの — 言葉から権限へ
 
-いま本番に触るコマンドの禁止は AGENTS.md の文章だけ。これを Claude Code の権限設定で止める。
+いま本番に触るコマンドの禁止は architecture.md 第0章の文章だけ。これを Claude Code の権限設定で止める。
 
 ```jsonc
 // .claude/settings.json（コミットする。案）
@@ -490,7 +367,7 @@ shadcn に無いので足すもの（`layout.css` の `:root` と `@theme inline
 ```
 
 書式（途中の `*` が効くか、PowerShell 経由も止まるか）は入れる PR で実際に叩いて確かめる。
-Claude Code 以外のエージェントには効かないので、AGENTS.md の文章は残す。
+Claude Code 以外のエージェントには効かないので、文章の約束は残す。
 **最後の防波堤は構造のほう**で、Cloudflare の API トークンは手元にも PR のワークフローにも無く、
 `deploy.yml` と `data-import.yml` だけが持っている。
 
@@ -515,30 +392,22 @@ Claude Code 以外のエージェントには効かないので、AGENTS.md の�
 
 - Node 24 / pnpm 10（`packageManager`）。CI と同じ
 - Windows と Linux の両方で動くこと。script は `node --experimental-strip-types` で書き、シェルに依存しない
-- キャプチャは OS でフォントの描画が違う。before / after は同じマシンで撮る（→ 5-5）
+- キャプチャは OS でフォントの描画が違う。before / after は同じマシンで撮る（→ [testing.md 第6章](./testing.md)）
 
 ---
 
 ## 5. Verification — 正しく動くか
 
-旧版の harness.md の中身。稼働中。
+稼働中。**仕組みの説明と使い方は [testing.md](./testing.md) を正にする**（テストの置き場、E2E 専用の D1、seed、
+画面カタログ、キャプチャの撮り方と比べ方、決定性の約束、限界）。この文書は、なぜこう組んだかの要点と、これから足す検査だけを持つ。
 
-### 5-1. 何を、どこで確かめるか
+### 5-1. 組み方の要点
 
-| 確かめること | 仕組み | 置き場 | 失敗したら |
-| --- | --- | --- | --- |
-| 型・Svelte の検査 | `svelte-check` | — | `pnpm run check` が落ちる |
-| 整形・lint | Prettier / ESLint | — | `pnpm run lint` が落ちる |
-| **層と機能の依存の向き**（第2層） | ESLint（boundaries） | `eslint.config.js` | `pnpm run lint` が落ちる（**足す**） |
-| **トークンと部品の使い方**（第3層） | ESLint | `eslint.config.js` | `pnpm run lint` が落ちる（**足す**） |
-| 純ロジック・サービス層・権限の絞り込み・日付の境界 | Vitest（node） | `src/**/*.spec.ts` | 単体テストが落ちる |
-| コンポーネントの表示と操作 | Vitest（実 chromium） | `src/**/*.svelte.spec.ts` | 単体テストが落ちる |
-| 画面の振る舞い・未ログイン/他人の id で開けないこと・form POST（CSRF） | Playwright（本番ビルド） | `e2e/*.e2e.ts` | E2E が落ちる |
-| **全画面が開けること・実行時エラーが無いこと・mobile で横にはみ出さないこと** | 画面カタログ | `e2e/screens.ts` + `e2e/screens.e2e.ts` | E2E が落ちる |
-| 見た目が意図どおりか | **人**がキャプチャを見る | `docs/screenshots/<機能名>/` | PR で差し戻す |
-
-最後の行以外は全部 `pnpm run verify` に入っている。CI（`.github/workflows/ci.yml`）も同じものを回し、
-画面カタログのキャプチャを artifact `screens` として上げる。
+- **1コマンドで全部確かめられる。** `pnpm run verify` が green なら、型・整形・lint・単体テスト・
+  E2E（画面が開けること、認可、CSRF を含む）は通っている。CI も同じものを回す
+- **キャプチャは誰が撮っても同じになる。** E2E 専用の D1 を毎回 seed から作り直し、手元の開発データを写さない
+- **見せるのは変わった画面だけ。** after を before と画素で比べ、変わらなかった組は消す
+- 第2層・第3層の規則が入ると、`pnpm run lint` に「層と機能の依存の向き」「トークンと部品の使い方」が加わる
 
 ### 5-2. 全体の流れ
 
@@ -549,100 +418,13 @@ flowchart TB
     C --> D{"pnpm run verify"}
     D -- 落ちた --> C
     D -- green --> E["pnpm run screens 機能名 after<br/>見た目が同じ組は自動で消える"]
-    E --> F["残ったキャプチャをエージェント自身が見て確認<br/>（第6層のルーブリック）"]
+    E --> F["Evaluator が評価<br/>（第6層・evaluation.md）"]
     F -- 意図と違う --> C
     F --> G["commit / push → pnpm run screens:pr 機能名<br/>→ PR 本文に貼る"]
     G --> H["人: キャプチャを見て判断"]
 ```
 
-### 5-3. 部品
-
-#### E2E 専用の D1 — `.wrangler/e2e`
-
-E2E のプレビューサーバー（`playwright.config.ts` の webServer）は `wrangler dev --persist-to .wrangler/e2e`
-で上がり、開発用の `.wrangler/state` とは別の D1 を見る。
-
-以前は同じ D1 を共有していたため、手元で `data:import:local` した本物の出馬表や
-`pnpm run dev` で書いたメモが E2E とキャプチャに混ざっていた。これでは人によって結果が変わり、
-before / after の比較も成り立たない。
-
-`globalSetup`（`e2e/seed.ts`）が毎回、次の順で状態を作り直す。
-
-1. `wrangler d1 migrations apply --local --persist-to .wrangler/e2e`（冪等）
-2. 全テーブルを `DELETE`（テーブル名はその場で `sqlite_master` から引く。テーブルを足しても直さなくてよい）
-3. `e2e/seed.sql` を流す
-
-これで E2E は `pnpm run test:e2e` だけで完結する。事前の `db:migrate:local` は要らない。
-
-#### seed — `e2e/seed.sql` と `e2e/seed.ts`
-
-- 行の id は固定の ULID 風の文字列にし、テストから参照するものは `seed.ts` に定数で export する
-- ログインは seed のセッション（`SESSION_TOKEN`）を Cookie に載せて行う（`e2e/login.ts`）。
-  本番ビルドにはモック認証が無いので、これが唯一の経路
-- 日付に依存する画面（ダッシュボードの「今週」など）は `date('now', '+9 hours', ...)` で
-  seed を流した日から決める。未来であり続けてほしい行は 2099 年に置く
-
-#### 画面カタログ — `e2e/screens.ts`
-
-人がキャプチャで確かめる画面の一覧。1画面（または1状態）1行。
-
-```ts
-{ name: 'race-preview-editing', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true,
-  prepare: async (page) => { await page.getByText('書き直す', { exact: true }).click(); } }
-```
-
-- `name` はファイル名になる（英小文字とハイフン）
-- `prepare` で「開いた」「入力した」などの状態にしてから撮る。同じ URL の別状態は別の行にする
-- `screens.e2e.ts` がこれを desktop（1280px）と mobile（390px）の2幅で開き、
-  応答が 400 未満であること・ログイン画面に飛ばされないこと・`pageerror` と `console.error` が
-  無いこと・mobile で横にはみ出さないことを確かめてから、全体を撮る
-
-**画面を足した・見せたい状態が増えたときは、ここに1行足すのが変更の一部。**
-足さないと、その画面は機械の確認からもキャプチャからも漏れる。
-
-### 5-4. キャプチャ — `pnpm run screens <機能名> <before|after> [画面名...]`
-
-`scripts/screens.ts` が `screens.e2e.ts` だけを走らせ、
-`docs/screenshots/<機能名>/<before|after>/<画面名>.<desktop|mobile>.png` に置く。
-
-after のときは、同名の before と画素単位で比べ、**見た目が変わらなかった組は両方消す**。
-残るのは「この変更で見た目が変わった画面」と「before の無い（新しい）画面」だけになる。
-
-比較は chromium の canvas で行う（依存を増やさないため）。どれかのチャンネルが 16/255 を超えて
-ずれた画素が1つでもあれば「変わった」とみなす。同じコードを2回撮っても枠線の縁などが
-8/255 ほど揺れるので完全一致では比べられない。一方で gray-500 → gray-600 程度の色替えでも
-30 前後は動くので、その間を取っている。
-
-**キャプチャは PR のためだけに置き、溜めない。** PR 本文の画像は SHA で組んだ URL なので、
-あとのコミットで `docs/screenshots/` から消しても PR の表示は壊れない。マージされた機能の
-キャプチャは次の PR で消してよい（2026-09-23 に、それまでの66枚・6.7MB を消した）。
-
-この性質は第3層の置き換えにも使う。**同じ値のトークンへの置き換えなら、残る画像は0枚になる。**
-
-#### PR 本文 — `pnpm run screens:pr <機能名>`
-
-`scripts/pr-screens.ts` が、キャプチャの表（画面 / before / after）を Markdown で出す。
-画像の URL は `https://raw.githubusercontent.com/<owner>/<repo>/<コミットSHA>/...` で組む。
-
-ブランチ名ではなく SHA を使うのは、ブランチ名だとあとの push で PR に貼った画像まで差し替わり、
-ブランチを消すと画像ごと消えるから。そのため、キャプチャがコミット済みで push 済みでなければ
-エラーで止まる。
-
-### 5-5. 決定性のための約束
-
-キャプチャの比較が意味を持つのは、同じコードなら同じ画像になるときだけ。
-
-- **データは seed の行だけ。** 画面に出るものが足りなければ seed を足す。E2E のテストが行を
-  書くのは構わない（次の実行の前に消える）。`pnpm run screens` は `screens.e2e.ts` だけを
-  走らせるので、seed だけの状態で撮れる
-- **before と after は同じマシンで撮る。** フォントの描画は OS で違う。CI の artifact と手元の
-  キャプチャを見比べない
-- アニメーションは止め（`animations: 'disabled'`）、キャレットは隠し、`networkidle` と
-  `document.fonts.ready` を待ってから撮る
-- 時刻に依存する表示は、seed を流した日の中では変わらない。日付をまたいで before / after を
-  撮ると差が出うる
-
-### 5-6. 画面カタログに足す検査
+### 5-3. 画面カタログに足す検査
 
 `screens.e2e.ts` は全画面を2幅で開いているので、1画面ごとに見られる UI の品質はここに足すのが安い。
 
@@ -654,9 +436,9 @@ after のときは、同名の before と画素単位で比べ、**見た目が�
 どちらも初回は既存の違反が出るはずなので、画面ごとの許容リストを `screens.ts` に持たせて
 始め、減らしていく（第3層の一括抑制と同じ考え方）。
 
-### 5-7. 1リクエストの D1 クエリ数
+### 5-4. 1リクエストの D1 クエリ数
 
-AGENTS.md の「1リクエストの D1 クエリは10以内」はいま機械で見ていない。
+architecture.md 第0章の「1リクエストの D1 クエリは10以内」はいま機械で見ていない。
 E2E のビルドだけで、リクエストごとのクエリ数を応答ヘッダ（例: `x-k-note-queries`）に載せ、
 `screens.e2e.ts` で10以下を確かめる。
 
@@ -665,15 +447,31 @@ E2E のビルドだけで、リクエストごとのクエリ数を応答ヘッ�
 - ヘッダを付けるのは `wrangler dev --var E2E:1` のときだけ。`MOCK_AUTH` と同じく、
   本番のビルドでは分岐ごと消える形にする
 
-### 5-8. 限界
+### 5-5. CI の構成
 
-- **admin の画面はカタログに無い。** seed のユーザーは `role='user'` だけ。管理画面
-  （`/settings/admin`・`/races/new`・`/races/[id]/entries`）を撮るには admin のユーザーと
-  セッションを seed に足し、`Screen` に「誰として開くか」を持たせる
-- **開発サーバーにしか無い経路**（モック認証の警告帯・ユーザー切り替え）は本番ビルドに無いので撮れない
-- 見た目の回帰を自動で止める仕組み（`toHaveScreenshot` の基準画像のコミット）は入れていない。
-  OS ごとに基準画像が要り、見た目を変えるたびに更新の手間がかかる割に、この規模では
-  人が before / after を見るほうが安い。変わった画面だけを出す仕組みで代えている
+手元の `pnpm run verify` と CI は同じものを回す。**CI にしか無い検査を作らない**（手元で再現できないと直せない）。
+例外は PR 本文の検査だけで、これは PR が無いと意味が無い。
+
+| ワークフロー | ジョブ | 回すもの | 状態 |
+| --- | --- | --- | --- |
+| `ci.yml` | 検証 | `data:check` → `check` → `lint`（Prettier・ESLint・`docs:check`）→ 単体テスト | 稼働中。`docs:check` は今回 lint に入れた |
+| `ci.yml` | E2E | `test:e2e`（画面カタログを含む）。キャプチャを artifact `screens` に上げる | 稼働中 |
+| `pr-body.yml` | 欄が埋まっているか | `scripts/check-pr-body.ts`。「何を変えたか」「レビューで見てほしいところ」「なぜ」「画面」「評価」が空なら落ちる | **今回入れた** |
+| `deploy.yml` | — | リリース時に `ci.yml` を呼び直してからデプロイ | 稼働中（人がリリースする） |
+| `data-import.yml` | — | `main` の `data/races/**` の変更を本番 D1 に投入 | 稼働中 |
+
+これから lint と E2E に入るもの（ワークフローは変えずに、中身が増える）:
+
+| 層 | 入るもの | 入る場所 |
+| --- | --- | --- |
+| 2 | 層と機能の依存の向き（boundaries）・パッケージの禁止 | 検証 / lint |
+| 3 | パレットの色名・任意値・素の操作部品の禁止 | 検証 / lint |
+| 5 | axe・押せる大きさ・1リクエストの D1 クエリ数 | E2E |
+| 6 | Evaluator | **人が決める**（6-2 の最後） |
+
+**E2E に不安定なテストがある。** 全体を並列で回すと、レースのメモを保存して読み直すテスト
+（`races.e2e.ts`「開催前に書いた見立ては…」・`dashboard.e2e.ts`「予想だけしたレースが…」）が時々落ちる。
+2026-09-23 に main でも3回中1回落ちた。リトライで隠さず、原因を直す（別の作業に切り出した）。
 
 ---
 
@@ -681,42 +479,59 @@ E2E のビルドだけで、リクエストごとのクエリ数を応答ヘッ�
 
 ### 6-1. 役割
 
-第5層は「壊れていないか」までしか見ない。「使いやすいか」「意図に合っているか」は
-機械では決めきれないので、**判断の物差しを先に文にしておき**、エージェントの自己評価・
-人のレビュー・実際に使った感触の3段で見る。そして、繰り返し出る指摘を下の層の規則に戻す。
+第5層は「壊れていないか」までしか見ない。「使いやすいか」「頼まれたものか」は
+機械では決めきれないので、**判断の物差しを先に文にしておき**（[evaluation.md](./evaluation.md)）、
+Evaluator・人のレビュー・実際に使った感触の3段で見る。そして、繰り返し出る指摘を下の層の規則に戻す。
 
 ```mermaid
 flowchart LR
-    A["after のキャプチャ"] --> B["① エージェントの自己評価<br/>ルーブリックで点検"]
+    G["Generator<br/>実装・verify・キャプチャ"] --> B["① Evaluator<br/>別の文脈で evaluation.md の観点を判定"]
+    B -- "✗ があれば（2往復まで）" --> G
     B --> C["② 人のレビュー<br/>PR で判断"]
     C --> D["マージ → 週末に実際に使う"]
     D --> E["③ 使った感触<br/>issue に残す"]
     C -- 差し戻し --> F{"同じ指摘は<br/>2回目か"}
     E --> F
-    F -- はい --> G["規則に昇格<br/>原則 / lint / テスト / カタログ"]
+    F -- はい --> R["規則に昇格<br/>lint / テスト / 評価の観点 / 原則"]
     F -- いいえ --> H["その PR で直す"]
-    G --> A
+    R --> G
 ```
 
-### 6-2. ① エージェントの自己評価 — `docs/ux-rubric.md`
+### 6-2. ① Generator と Evaluator を分ける
 
-after のキャプチャを開いたとき（5-2 の F）に、エージェントが次の項目で点検する。
-項目は第1層の原則（P1〜P7）と第3層の決まりから作る。
+**書いたエージェントに、自分の成果物の合否を付けさせない。** 書いた本人は「こう作ったつもり」を
+知っているので、自分の画面を甘く読む。キャプチャを自分で見て確かめる（5-2）のは崩れを拾うためで、
+合否の判断ではない。合否は、別の文脈で動く Evaluator が付ける。
 
-| # | 見ること | 原則 |
+| | Generator | Evaluator |
 | --- | --- | --- |
-| R1 | その画面でいちばんよく使う操作が、mobile の最初の1画面に入っているか | P4 / P5 |
-| R2 | 使わない時期の操作が出ていないか（開催前にふりかえり、など） | P3 |
-| R3 | 他人のメモ・他人の名前が出ていないか。共有の状態が見て分かるか | P2 |
-| R4 | 書きかけが消える遷移を作っていないか | P6 |
-| R5 | 色だけで区別しているものが無いか | P7 |
-| R6 | 空のとき（メモ0件、出走馬0頭）に次に何をすればよいか分かるか | — |
-| R7 | エラーのとき、何が起きて何をすればよいかが文で出るか | — |
-| R8 | 同じ意味のものが画面ごとに違う見た目になっていないか | 第3層 |
-| R9 | 文言がボタンは動詞、確認は結果を先に、になっているか | 第3層 |
+| 受け取るもの | 指示・コード・文書 | **指示の原文**・差分・キャプチャ・evaluation.md だけ |
+| 受け取らないもの | — | Generator の説明や意図の解説 |
+| 書き換え | する | しない（読むだけ） |
+| 実体 | いま作業しているエージェント | Claude Code では `.claude/agents/evaluator.md` のサブエージェント。ほかのエージェントでは新しいセッション |
 
-PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかった項目と、迷った項目だけ**を書く
-（全部に ✓ を付けさせると読まれなくなる）。
+観点は4つに分け、項目と「機械が見ている部分」を [evaluation.md 第3章](./evaluation.md) に置く。
+
+| 観点 | 見ること |
+| --- | --- |
+| Functional | 操作できるか・error state・loading state・空の state |
+| Accessibility | keyboard 操作・label・contrast・focus・色だけに頼らない |
+| Design | hierarchy・spacing・consistency・density |
+| Product | goal を満たすか・不要な機能を足していないか・原則に反していないか |
+
+決めたこと:
+
+- **判定は `✓` `✗` `—` `?` の4つ。確かめていないものを `✓` にしない。** 見られなかったら `?` と、何を見れば確かめられるかを書かせる。
+  評価で一番まずいのは「見ていないのに通す」こと
+- **根拠（キャプチャのファイル名か `ファイル:行`）の無い指摘はしない。** 印象の指摘は直しようがない
+- **Generator は指摘をそのまま採らない。** 指摘ごとに事実を確かめてから直す。Evaluator も間違える
+- **やり取りは2往復まで。** 残った `✗` と `?` は PR 本文の「評価」に載せて人に回す。
+  エージェントどうしで延々と回すより、人が一度見るほうが早い
+- 機械で見られる項目（label・contrast・focus の一部）は、axe を入れたら（5-3）機械に移し、Evaluator からは外す
+
+**CI で Evaluator を回すか。** PR ごとに GitHub Actions から自動で回す形（`anthropics/claude-code-action` など）も取れるが、
+API キーをリポジトリのシークレットに置くことになり、料金もかかる。シークレットの扱いは人が決める約束
+（architecture.md 第0章）なので、今は手元で Generator が呼ぶ形にし、CI に載せるかは人が決める（第8章）。
 
 ### 6-3. ② 人のレビュー
 
@@ -729,7 +544,7 @@ PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかっ
 | `構造` | 置き場所・依存の向きがおかしい | 第2層 |
 | `見た目` | 揃っていない・トークンを外れている | 第3層 |
 | `壊れ` | 動かない・崩れている | 第5層（なぜ機械で止まらなかったか） |
-| `使い心地` | 動くが使いにくい | 第6層（ルーブリック） |
+| `使い心地` | 動くが使いにくい | 第6層（evaluation.md の観点） |
 
 ### 6-4. 指摘を規則に昇格する
 
@@ -738,8 +553,8 @@ PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかっ
 
 1. lint の規則にできるか（第2層・第3層）
 2. テストか画面カタログの検査にできるか（第5層）
-3. ルーブリックの項目にできるか（第6層）
-4. どれも無理なら原則か AGENTS.md の文章にする（第1層）
+3. evaluation.md の観点にできるか（第6層）
+4. どれも無理なら、原則（product.md）か、第7章の置き場に従って分野の文書の約束にする
 
 昇格したものはこの文書の末尾「昇格の記録」に1行ずつ残す（いつ・どの指摘が・どこに入ったか）。
 規則が増えすぎていないか、効いていない規則が無いかを見返せるようにするため。
@@ -752,7 +567,89 @@ PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかっ
 
 ---
 
-## 7. 決めたこと・決めていないこと
+## 7. コンテキストの設計 — AGENTS.md は知識の目次
+
+### 7-1. 役割
+
+エージェントは作業のたびに AGENTS.md を読む（Claude Code は CLAUDE.md から毎回読み込む）。
+ここに全部を書くと、毎回の読み込みが重くなり、関係の無い約束に埋もれて肝心の約束を読み落とす。
+逆に分けただけで入口が無いと、要る文書にたどり着けない。
+
+**AGENTS.md は知識の目次にし、詳細は分野ごとの文書に1つずつ置く。** エージェントは
+目次から「いま触る分野」の文書だけを開く。
+
+### 7-2. 形
+
+```
+AGENTS.md（目次。毎回読む）
+│
+├── architecture → docs/architecture.md   層・依存の向き・ランタイムの約束・DB とデータ・コスト
+├── frontend     → docs/frontend.md       ファイルの役割・Svelte の書き方・フォーム・コンポーネント
+├── design       → docs/design-system.md  トークン・shadcn の部品・ドメイン部品・大きさと文言
+├── testing      → docs/testing.md        テストの置き場・E2E・画面カタログ・キャプチャ
+├── api          → docs/api.md            ルートの一覧・action の約束・サービス層の関数の約束
+└── evaluation   → docs/evaluation.md     Generator と Evaluator の分け方・評価の観点
+│
+└── ほか          product.md（何を・なぜ）/ harness.md（この文書）/ operations.md（構築とデプロイ）/
+                  data/README.md（出走馬データ）
+```
+
+読む深さは3段にする。
+
+| 段 | 何を | いつ |
+| --- | --- | --- |
+| 1 | AGENTS.md — 目指す状態、止めてよいとき、手順の骨子、目次 | 毎回 |
+| 2 | 分野の文書 — 冒頭の「読む場面」で要否を決め、要る章だけ読む | 触る分野だけ |
+| 3 | コードのコメント — その場所に固有の理由（「なぜ 404 か」など） | そのファイルを触るとき |
+
+### 7-3. 書き方の約束
+
+| 約束 | 理由 |
+| --- | --- |
+| AGENTS.md には詳細を書かない。**120行以内** | 毎回読むものは短くないと読み落とされる |
+| 1つの知識は1つの文書にだけ書き、他からはリンクする | 写すと片方だけ直されてずれる |
+| どの文書も冒頭に「読む場面」と「ここに無いもの（どこにあるか）」を書く | 開く前に要否を決められ、開いたあと他所へ探しに行ける |
+| 約束は理由と一緒に書く | 理由が無いと、例外の場面で判断できない |
+| 「書くときに要る決まり」と「なぜそう組んだか・これから入れるもの」を分ける | 前者は frontend / design-system / testing / api / architecture 第0章、後者は product / architecture / harness。日々の作業で後者を読まずに済む |
+| まだ無いもの（予定のトークン・規則）は「まだ使えない」と書く | 書いてあるものは使えると読まれる |
+| 名前で取り違えない | design.md を product.md に改名したのは design-system.md と紛れるため |
+| 文書を足したら AGENTS.md の目次に足す | 目次に無い文書は読まれない |
+| CLAUDE.md は AGENTS.md を読み込み、Claude Code 固有のことだけを書く | 他のエージェントと同じ知識を見るため |
+
+### 7-4. 長く自走させるための書き方
+
+Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://claude.dev/blog/getting-the-most-out-of-opus-5-5/)）から、
+このリポジトリに当てはまるものを取り入れた。
+
+| 取り入れたこと | どこに |
+| --- | --- |
+| **完了の条件を先に書く。** 何がそろえば終わりかが分かれば、途中で確認を求めずに進められる | AGENTS.md「目指す状態」の4条件 |
+| **止まる条件を決める。** 入力が要るときと、取り消しにくい操作の前だけ止まる | AGENTS.md「目指す状態」 |
+| 取り消しにくい操作は権限の確認を残す | 第4層 4-3（deny） |
+| **長い作業は進み具合をファイルに残す。** 会話が要約されても続きを拾える | AGENTS.md「作業の手順」の `TASKS.md`（コミットしない） |
+| **サブエージェントの結果は確かめてから採る** | 第6層 6-2（Evaluator の指摘をそのまま採らない） |
+| **確かめていないものは確かめていないと書く** | evaluation.md の `?` |
+| 人のレビューの前にエージェントに差分を見させる | 第6層 6-2（Evaluator）。コードの誤りは `/code-review` も使える |
+| **人の判断が要ることを先に読ませる** | PR テンプレートの「レビューで見てほしいところ」を2番目に上げた |
+| デザインは「避けたいもの」を並べる | design-system.md 第6章 |
+| 「よく考えて」のような指示は書かない（モデルが自分で考える） | 文書と、Evaluator の定義（`.claude/agents/evaluator.md`） |
+
+### 7-5. 機械の強制 — `scripts/check-docs.ts`
+
+`pnpm run lint` の中で回る（＝ `verify` と CI で止まる）。
+
+- 文書の中の相対リンクの先が在る
+- `docs/*.md` がすべて AGENTS.md から張られている（目次に無い文書を作らない）
+- AGENTS.md が120行以内
+- コード・文書に出てくる `〇〇.md` という名前の文書が在る（改名したときの取り残しを拾う）。
+  `drizzle/` の生成物は手で直さない約束なので対象外
+
+見出しへのリンク（`#...`）の先までは見ない。日本語の見出しの anchor の作り方が GitHub 次第で、
+確かめる手間に見合わない。
+
+---
+
+## 8. 決めたこと・決めていないこと
 
 | 論点 | 決めたこと | 理由 |
 | --- | --- | --- |
@@ -760,7 +657,7 @@ PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかっ
 | 機能の表し方 | 層の下に機能のディレクトリ | SvelteKit の `$lib/server` の保護を保ったまま、規則を glob で書ける |
 | 既存違反の扱い（第2層） | 規則を入れる PR で全部直す | 4件しかない |
 | 既存違反の扱い（第3層） | 一括抑制で凍結して、画面ごとに減らす | 約250箇所。1つの PR で見比べられない |
-| 見た目の回帰テスト | 入れない | 5-8 |
+| 見た目の回帰テスト | 入れない | [testing.md 第7章](./testing.md) |
 
 決めていないこと（実装の PR で決める）:
 
@@ -769,21 +666,23 @@ PR 本文に「UX の自己評価」の欄を足し、**当てはまらなかっ
   `*.server.ts` の命名で守ることになる。今回は移動の少ない「層の下に機能」を選んだ
 - **share と dashboard を service で分けるか。** 今は `services/notes.ts` の中にある。
   分けるのは、機能の向きの規則が効き始めてから、違反の出方を見て決める
-- 第3層の lint を ESLint プラグインにするか、自前のスクリプトにするか（3-6 の確認次第）
+- 第3層の lint を ESLint プラグインにするか、自前のスクリプトにするか（3-3 の確認次第）
+- **Evaluator を CI で自動で回すか。** API キーをシークレットに置くことと、PR ごとの料金を人が決める（6-2）
 
 ---
 
-## 8. 入れる順番
+## 9. 入れる順番
 
 1つの PR で1つの層を入れる。前の PR の仕組みが次の PR の検証に効くよう、この順にする。
 
 | # | PR | 層 | 中身 | 画面への影響 |
 | --- | --- | --- | --- | --- |
+| 0 | コンテキストと評価（**済み**） | 5 / 6 / 7 | AGENTS.md を目次にし、architecture / frontend / design-system / testing / api / evaluation に分けた。`docs:check`・Evaluator のサブエージェント・`pr-body.yml` | なし |
 | 1 | 依存の規則 | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の4件を直す | なし（キャプチャ0枚を確かめる） |
 | 2 | 操作と即時の手応え | 4 | `.claude/settings.json`（deny と hook）、`preview:e2e`、`.claude/launch.json` | なし |
-| 3 | トークンと手引き | 3 | 3-2 のトークンを足す。`docs/design-system.md`。lint 規則と一括抑制 | なし |
+| 3 | トークンと lint | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |
-| 5 | 目的と評価の型 | 1 / 6 | `docs/product.md`、`docs/ux-rubric.md`、issue テンプレート、PR テンプレートに「UX の自己評価」 | なし |
+| 5 | 目的の型 | 1 | product.md の冒頭に UX 原則、issue テンプレート | なし |
 | 6 | 画面カタログの検査 | 5 | axe、押せる大きさ、D1 クエリ数、admin の画面 | なし |
 
 2 を 3 より先にするのは、hook があると置き換え中の違反がその場で分かり、4 以降の PR が速くなるため。

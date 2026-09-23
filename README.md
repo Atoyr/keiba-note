@@ -3,14 +3,8 @@
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 
-| 文書                                           | 何が書いてあるか                                                            |
-| ---------------------------------------------- | --------------------------------------------------------------------------- |
-| [docs/design.md](./docs/design.md)             | 何を作るか（要件・データモデル・画面・フェーズ）                            |
-| [docs/architecture.md](./docs/architecture.md) | どう動き、いくらかかり、なぜその技術か                                      |
-| [docs/harness.md](./docs/harness.md)           | ハーネスの設計（目的・構造の制約・デザインシステム・操作・検証・評価の6層） |
-| [docs/operations.md](./docs/operations.md)     | Cloudflare の構築と、GitHub Actions でのデプロイ                            |
-| [AGENTS.md](./AGENTS.md)                       | コードを変えるときの約束と手順（人も AI エージェントも同じ）                |
-| [data/README.md](./data/README.md)             | 出走馬データ（YAML）の書式と投入                                            |
+文書の目次は [AGENTS.md](./AGENTS.md) にある。何を作るかは [docs/product.md](./docs/product.md)、
+どう動くかは [docs/architecture.md](./docs/architecture.md) から読むとよい。
 
 現在のフェーズ: **予想・ふりかえり・共有が動く**。
 
@@ -21,7 +15,7 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。
 
 **メモは既定で非公開。** 見せたいメモだけ1件ずつ共有リンクを発行して渡す。
 共有ページ `/notes/[id]` はログイン不要で開けるが、検索にも一覧にも出ない。
-他人のメモはどの画面にも出てこない（→ [design.md 第2章 2-2](./docs/design.md)）。
+他人のメモはどの画面にも出てこない（→ [product.md 第2章 2-2](./docs/product.md)）。
 
 出走馬の登録は画面からではなく [data/](./data/) の YAML を PR で更新して行う。
 
@@ -89,7 +83,7 @@ https://k-note.<subdomain>.workers.dev/auth/google/callback
 ログインした email が `ADMIN_EMAIL` と一致したときだけ `role='admin'` になる。
 admin ができるのは馬・レース・出走馬（全員共通のマスタ）の修正と、
 ユーザーの凍結だけ。**admin でも他人のメモは読めない**
-（→ [design.md 第4章](./docs/design.md)）。
+（→ [product.md 第4章](./docs/product.md)）。
 
 ## よく使うコマンド
 
@@ -101,7 +95,7 @@ admin ができるのは馬・レース・出走馬（全員共通のマスタ�
 | `pnpm run test:unit`                       | Vitest                                     |
 | `pnpm run test:e2e`                        | Playwright（本番ビルド + E2E 専用 D1）     |
 | `pnpm run verify`                          | check / lint / test:unit / test:e2e を順に |
-| `pnpm run screens <機能名> <before/after>` | PR 用の画面キャプチャ（docs/harness.md）   |
+| `pnpm run screens <機能名> <before/after>` | PR 用の画面キャプチャ（docs/testing.md）   |
 | `pnpm run db:generate`                     | `schema.ts` から `drizzle/*.sql` を生成    |
 | `pnpm run db:migrate:local`                | ローカル D1 に適用                         |
 | `pnpm run db:migrate:remote`               | 本番 D1 に適用                             |
@@ -134,8 +128,7 @@ pnpm run db:migrate:remote
 
 ## 開発に参加する
 
-コードを変えるときの約束（`viewerId` の必須化、D1 クライアントの生成場所などの
-ランタイム上の約束を含む）と、PR までの手順は [AGENTS.md](./AGENTS.md) にある。
+PR までの手順と、コードを変えるときの約束の目次は [AGENTS.md](./AGENTS.md) にある。
 人も AI エージェントも同じものに従う。
 
 ## デプロイと運用
@@ -146,7 +139,7 @@ Cloudflare の構築手順・API トークンの権限・ワークフローの�
 
 ## ディレクトリ構成
 
-どこに何を書いてよいか（層と機能の依存の向き）は [docs/harness.md 第2層](./docs/harness.md)にある。
+どこに何を書いてよいか（層と機能の依存の向き）は [docs/architecture.md 第2章](./docs/architecture.md)にある。
 
 ```
 src/

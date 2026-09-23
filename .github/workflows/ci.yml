@@ -35,7 +35,8 @@ jobs:
 
       - name: 型
         run: pnpm run check
-      - name: 整形と lint
+      # lint には文書の目次とリンクの検査（docs:check）も入っている。
+      - name: 整形・lint・文書
         run: pnpm run lint
 
       # 2つのジョブとも chromium だけを使うので、キャッシュは共用できる。
