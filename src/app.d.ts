@@ -21,6 +21,11 @@ declare global {
 				 * 本番で設定しても `dev` ガードにより無視される（分岐がビルドに残らない）。
 				 */
 				MOCK_AUTH?: string;
+				/**
+				 * 障害を知らせる Discord の Webhook（docs/monitoring.md）。無ければ通知しない。
+				 * URL そのものが書き込みの鍵なので、ログにもコードにも出さない。
+				 */
+				DISCORD_WEBHOOK_URL?: string;
 			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;
@@ -32,6 +37,8 @@ declare global {
 			user: import('$lib/server/auth/session').SessionUser | null;
 			/** 開発用のモック認証で入っているか。本番では常に false。 */
 			mockAuth: boolean;
+			/** hooks.server.ts が作る、リクエストごとの監視の口（docs/monitoring.md）。 */
+			monitor: import('$lib/server/monitoring/monitor').Monitor;
 		}
 
 		// interface Error {}

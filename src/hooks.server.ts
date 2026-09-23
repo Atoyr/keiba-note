@@ -1,6 +1,8 @@
 import { dev } from '$app/environment';
-import { redirect, type Handle } from '@sveltejs/kit';
+import { redirect, type Handle, type HandleServerError, type RequestEvent } from '@sveltejs/kit';
 import { createDb } from '$lib/server/db';
+import { describeError } from '$lib/server/monitoring/log';
+import { createMonitor, type Monitor } from '$lib/server/monitoring/monitor';
 import { SESSION_COOKIE, validateSession } from '$lib/server/auth/session';
 import { MOCK_USER_COOKIE, ensureMockUser, isMockUserKey } from '$lib/server/auth/mock';
 import { safeRedirect } from '$lib/utils/redirect';
@@ -18,15 +20,32 @@ import { safeRedirect } from '$lib/utils/redirect';
  * `/privacy` と `/terms` は Google OAuth の同意画面に URL を登録するページ。
  * ログインする前に読めなければ意味がない（docs/operations.md）。
  *
+ * `/api/health` は死活監視（GitHub Actions の health.yml）が外から叩く。返すのは
+ * `{"status":"ok"}` か `{"status":"error"}` だけで、DB の中身は出さない（docs/monitoring.md）。
+ *
  * `/robots.txt` はここに要らない。`static/` の実ファイルは Workers Static Assets が
  * 直接返し、**Worker 自体が起動しない**ので hooks を通らない。
  */
-const PUBLIC_PATHS = ['/', '/login', '/auth/', '/notes/', '/privacy', '/terms'];
+const PUBLIC_PATHS = ['/', '/login', '/auth/', '/notes/', '/privacy', '/terms', '/api/health'];
 
 function isPublic(pathname: string): boolean {
 	return PUBLIC_PATHS.some((p) => {
 		if (p === '/') return pathname === '/';
 		return pathname === p || pathname.startsWith(p.endsWith('/') ? p : `${p}/`);
+	});
+}
+
+/**
+ * リクエストごとの監視の口（docs/monitoring.md）。request id は Cloudflare が振る `cf-ray` を使い、
+ * Workers Logs の同じリクエストの行と突き合わせられるようにする。ローカルには無いので作る。
+ */
+function createRequestMonitor(event: RequestEvent): Monitor {
+	const platform = event.platform;
+	return createMonitor({
+		requestId: event.request.headers.get('cf-ray') ?? crypto.randomUUID(),
+		environment: dev ? 'local' : (platform?.env?.APP_ENV ?? 'production'),
+		webhookUrl: platform?.env?.DISCORD_WEBHOOK_URL || undefined,
+		waitUntil: platform?.ctx ? (task) => platform.ctx.waitUntil(task) : undefined
 	});
 }
 
@@ -37,8 +56,11 @@ function isPublic(pathname: string): boolean {
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 	event.locals.mockAuth = false;
+	event.locals.monitor = createRequestMonitor(event);
 
-	const db = event.platform?.env?.DB ? createDb(event.platform.env) : null;
+	const db = event.platform?.env?.DB
+		? createDb(event.platform.env, event.locals.monitor.onQuery)
+		: null;
 
 	// --- 開発用のモック認証 --------------------------------------------------
 	// `dev` は本番ビルドで静的に false になり、この分岐はバンドルから消える。
@@ -81,4 +103,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	return resolve(event);
+};
+
+/**
+ * 想定外のエラー（`error()` で投げたもの以外）がここに来る。ログに出し、500 以上なら通知する。
+ *
+ * 404（無いパス）もここを通るが、bot の走査でいくらでも来るので通知しない。
+ * 画面に出す文言は SvelteKit の既定のまま（中身を利用者に見せない）。
+ */
+export const handleError: HandleServerError = ({ error, event, status }) => {
+	if (status < 500) return;
+
+	// handle より前で落ちたときは monitor がまだ無い。
+	const monitor = event.locals.monitor ?? createRequestMonitor(event);
+	const route = event.route.id ?? '(no route)';
+	monitor.log({
+		level: 'error',
+		event: 'request.unhandled',
+		message: 'リクエストの処理中に想定外のエラーが起きた',
+		method: event.request.method,
+		// パスではなくルートの形（/races/[id]）。クエリ文字列（検索語）は出さない。
+		route,
+		status,
+		error: describeError(error),
+		dedupeKey: `request.unhandled:${route}`
+	});
 };

@@ -9,7 +9,7 @@ import { createDb, type Db } from '$lib/server/db';
 export function ctx(locals: App.Locals, platform: App.Platform | undefined) {
 	if (!platform?.env?.DB) error(503, 'データベースに接続できません');
 	if (!locals.user) error(401, 'ログインが必要です');
-	return { db: createDb(platform.env) as Db, user: locals.user };
+	return { db: createDb(platform.env, locals.monitor.onQuery) as Db, user: locals.user };
 }
 
 /**

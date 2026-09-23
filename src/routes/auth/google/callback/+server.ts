@@ -15,6 +15,7 @@ import {
 	findUserByGoogleSub
 } from '$lib/server/auth/session';
 import { createDb } from '$lib/server/db';
+import { describeError } from '$lib/server/monitoring/log';
 import { safeRedirect } from '$lib/utils/redirect';
 import type { RequestHandler } from './$types';
 
@@ -27,7 +28,7 @@ function clearTransientCookies(cookies: {
 	}
 }
 
-export const GET: RequestHandler = async ({ cookies, url, platform }) => {
+export const GET: RequestHandler = async ({ cookies, url, platform, locals }) => {
 	if (!platform?.env?.DB) redirect(302, '/login?error=unavailable');
 
 	const code = url.searchParams.get('code');
@@ -49,8 +50,16 @@ export const GET: RequestHandler = async ({ cookies, url, platform }) => {
 		const tokens = await google.validateAuthorizationCode(code, codeVerifier);
 		identity = parseIdToken(tokens.idToken());
 	} catch (e) {
-		// 認可コードが無効・期限切れなど。中身はログにだけ出す。
-		console.error('google token exchange failed', e instanceof OAuth2RequestError ? e.code : e);
+		// 中身はログにだけ出す。認可コードの使い回し・期限切れ（invalid_grant）は戻るボタンや
+		// 二度押しで普通に起きるので warn に留める。それ以外（クライアントの設定の誤り・
+		// Google に届かない）は全員がログインできなくなる類なので error にして通知する。
+		const oauthError = e instanceof OAuth2RequestError ? e.code : null;
+		locals.monitor.log({
+			level: oauthError === 'invalid_grant' ? 'warn' : 'error',
+			event: 'auth.google.token_exchange.failed',
+			message: 'Google の認可コードをトークンに交換できなかった',
+			...(oauthError ? { oauthError } : { error: describeError(e) })
+		});
 		clearTransientCookies(cookies);
 		redirect(302, '/login?error=oauth_failed');
 	}
@@ -60,7 +69,7 @@ export const GET: RequestHandler = async ({ cookies, url, platform }) => {
 		redirect(302, '/login?error=oauth_failed');
 	}
 
-	const db = createDb(platform.env);
+	const db = createDb(platform.env, locals.monitor.onQuery);
 	const existing = await findUserByGoogleSub(db, identity.googleSub);
 
 	let userId: string;
