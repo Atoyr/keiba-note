@@ -102,7 +102,7 @@
 			<div class="col-span-2">
 				<button
 					type="submit"
-					class="rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white hover:bg-gray-700"
+					class="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/80"
 				>
 					保存
 				</button>
@@ -146,7 +146,7 @@
 					</label>
 					<button
 						type="submit"
-						class="rounded-md bg-gray-900 px-3 py-1.5 text-white hover:bg-gray-700"
+						class="rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:bg-primary/80"
 					>
 						追加
 					</button>

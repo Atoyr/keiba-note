@@ -238,7 +238,7 @@
 		<div class="sticky bottom-0 mt-8 border-t border-gray-200 bg-white/90 py-3 backdrop-blur">
 			<button
 				type="submit"
-				class="w-full rounded-md bg-gray-900 px-4 py-2.5 font-medium text-white hover:bg-gray-700"
+				class="w-full rounded-md bg-primary px-4 py-2.5 font-medium text-primary-foreground hover:bg-primary/80"
 			>
 				{raceReviewSaveLabel(data.rows.length)}
 			</button>
