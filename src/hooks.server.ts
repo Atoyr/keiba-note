@@ -36,6 +36,14 @@ function isPublic(pathname: string): boolean {
 }
 
 /**
+ * 動いている環境の名前。`wrangler.toml` の `APP_ENV`（本番は production、Workers Preview は staging）。
+ * 開発サーバーは local にする。通知の Environment 欄と、画面のステージングの印（AppEnvMark）が見る。
+ */
+function appEnv(platform: App.Platform | undefined): string {
+	return dev ? 'local' : (platform?.env?.APP_ENV ?? 'production');
+}
+
+/**
  * リクエストごとの監視の口（docs/monitoring.md）。request id は Cloudflare が振る `cf-ray` を使い、
  * Workers Logs の同じリクエストの行と突き合わせられるようにする。ローカルには無いので作る。
  */
@@ -43,7 +51,7 @@ function createRequestMonitor(event: RequestEvent): Monitor {
 	const platform = event.platform;
 	return createMonitor({
 		requestId: event.request.headers.get('cf-ray') ?? crypto.randomUUID(),
-		environment: dev ? 'local' : (platform?.env?.APP_ENV ?? 'production'),
+		environment: appEnv(platform),
 		webhookUrl: platform?.env?.DISCORD_WEBHOOK_URL || undefined,
 		waitUntil: platform?.ctx ? (task) => platform.ctx.waitUntil(task) : undefined
 	});
@@ -56,6 +64,7 @@ function createRequestMonitor(event: RequestEvent): Monitor {
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 	event.locals.mockAuth = false;
+	event.locals.appEnv = appEnv(event.platform);
 	event.locals.monitor = createRequestMonitor(event);
 
 	const db = event.platform?.env?.DB

@@ -5,6 +5,8 @@
 - URL: <https://staging-k-note.lessironglance.workers.dev>
 - D1: `k-note-staging`（APAC、ID `cb00f7c8-a0ed-4531-a39d-cde76b0d90bd`）
 - 本番: Worker `k-note` と D1 `k-note`。`wrangler.toml` のトップレベル設定を使う
+- 見分け方: タブのアイコンが暗い地に灰色の蹄鉄になり、ページの一番上に「ステージング環境」の帯が出る。
+  `[previews.vars]` の `APP_ENV = "staging"` を見ている（→ [design-system.md 2-4](./design-system.md)）
 
 `wrangler.toml` の `[[previews.d1_databases]]` がステージング D1 を `DB` にバインドする。
 `wrangler.preview-migrations.toml` は同じ D1 にマイグレーションを適用するための設定。

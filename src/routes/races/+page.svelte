@@ -22,7 +22,7 @@
 		{#if admin}
 			<a
 				href={resolve('/races/new')}
-				class="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700"
+				class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
 			>
 				レースを登録
 			</a>

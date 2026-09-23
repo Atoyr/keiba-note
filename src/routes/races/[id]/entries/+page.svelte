@@ -144,7 +144,7 @@
 		<div class="mt-4 flex flex-wrap items-center gap-3">
 			<button
 				type="submit"
-				class="rounded-md bg-gray-900 px-4 py-2 font-medium text-white hover:bg-gray-700"
+				class="rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/80"
 			>
 				保存してふりかえりへ
 			</button>
