@@ -117,3 +117,18 @@ export const OTHER_USER_PREVIEW_BODY = '他人の見立て。見えてはいけ�
 /** 共有の切り替えを押して確かめる非公開メモ（E2Eウチワクの近況）。テストの最後に非公開へ戻す。 */
 export const TOGGLE_SHARE_NOTE_ID = '01JE2ETOGGLESHARENOTE00000';
 export const TOGGLE_SHARE_NOTE_BODY = '共有を切り替えて確かめるメモ。';
+
+/**
+ * ダッシュボードの「今週出走する注目馬」に出る／出ない馬（どれも E2E今週賞に出走）。
+ * - `buy` — 一番新しい結論が次走買い
+ * - `drop` — 買い → 消しと書き換えた。**消しで出る**（古い買いを拾っていたら壊れている）
+ * - `others` — 別のユーザーが買いを付けた馬。**出てはいけない**
+ */
+export const WATCH_HORSES = {
+	buy: 'E2Eチュウモク',
+	drop: 'E2Eミカギリ',
+	others: 'E2Eタニンノウマ'
+} as const;
+
+/** 10日前のレース（E2E先週賞）。見立てだけ書いてあり、**ふりかえり待ち**に出る。 */
+export const LAST_WEEK_RACE_ID = '01JE2ERACELASTWEEK00000000';

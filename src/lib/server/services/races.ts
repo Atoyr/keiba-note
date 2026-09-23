@@ -68,6 +68,19 @@ export async function listRaces(
 }
 
 /**
+ * 期間内のレースに添える、自分のメモの種類別の件数。ダッシュボードの進み具合
+ * （見立て済・印 N頭・ふりかえり済 → `$lib/utils/dashboard` の `raceProgress`）の材料。
+ */
+export type RaceProgressItem = RaceListItem & {
+	/** 見立て（`race_preview`）。 */
+	outlookCount: number;
+	/** 印を付けた出走前メモ。 */
+	markCount: number;
+	/** ふりかえり（`race` と `entry`）。 */
+	reviewCount: number;
+};
+
+/**
  * 期間内のレース。ダッシュボードの「今週のレース」「過去のレース」が読む。
  *
  * **重賞に絞らない**（`/this-week` とはここが違う）。ダッシュボードは予想の入口ではなく
@@ -75,13 +88,16 @@ export async function listRaces(
  *
  * `order` は日付の向き。今週は昇順（先に走るレースから）、過去は降順（最後に走ったレースから）。
  * 件数は `listRaces` と同じで viewer 自身のメモだけを数える。
+ *
+ * 種類別の件数は `count(DISTINCT CASE ...)`。出走馬との JOIN で行が増えるので、
+ * 素の `sum(CASE ...)` だと出走馬の頭数ぶん水増しされる。
  */
 export async function listRacesBetween(
 	db: Db,
 	viewerId: string,
 	range: { from: string; to: string },
 	order: 'asc' | 'desc' = 'asc'
-): Promise<RaceListItem[]> {
+): Promise<RaceProgressItem[]> {
 	const dir = order === 'asc' ? asc : desc;
 
 	return db
@@ -96,7 +112,10 @@ export async function listRacesBetween(
 			surface: race.surface,
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
-			noteCount: countDistinct(note.id)
+			noteCount: countDistinct(note.id),
+			outlookCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'race_preview' THEN ${note.id} END)`,
+			markCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'preview' AND ${note.mark} IS NOT NULL THEN ${note.id} END)`,
+			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
