@@ -30,7 +30,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | 誰が | 仕組み | 通らなかったとき |
 | --- | --- | --- |
-| 誰でも | `PUBLIC_PATHS`（`/login`・`/auth/`・`/notes/`）に前方一致するパス | — |
+| 誰でも | `PUBLIC_PATHS`（`/login`・`/auth/`・`/notes/`・`/privacy`・`/terms`）に前方一致するパス | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
 | admin | `ctxAdmin(locals, platform)` | 403 |
@@ -52,6 +52,8 @@ SvelteKit の `load` + form actions で完結させる。
 | `/login` | GET | `redirect`・`error` | ログイン済みなら `302` で `redirect` へ | — |
 | `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | `302 /login?error=unavailable` |
 | `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable` |
+| `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
+| `/terms` | GET | — | 利用規約（同上） | — |
 | `/notes/[id]` | GET | — | unlisted のメモ1件。`X-Robots-Tag: noindex, nofollow`・`Referrer-Policy: no-referrer`・`Cache-Control: private, no-store` | **404**（private でも存在しなくても同じ） |
 
 ### ログインした人

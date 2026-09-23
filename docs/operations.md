@@ -89,6 +89,27 @@ https://uma-memo.com/auth/google/callback
 https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
+同じ画面の **OAuth 同意画面**（Google Auth Platform > ブランディング / 対象）を埋めて、
+公開ステータスを「本番環境」にする。「テスト」のままだと、テストユーザーに登録した
+Google アカウント（100 件まで）しかログインできない。
+
+| 項目 | 値 |
+| --- | --- |
+| アプリ名 | `uma-memo` |
+| ユーザーサポートメール・デベロッパーの連絡先 | 運営者のアドレス（画面には出ない。Google からの連絡用） |
+| アプリのホームページ | `https://uma-memo.com/login`（`/` は未ログインだとここへ飛ぶ。ポリシーへのリンクがある） |
+| アプリのプライバシー ポリシー | `https://uma-memo.com/privacy` |
+| アプリの利用規約 | `https://uma-memo.com/terms` |
+| 承認済みドメイン | `uma-memo.com` |
+| ユーザーの種類 | 外部 |
+| スコープ | `openid`・`.../auth/userinfo.email`・`.../auth/userinfo.profile` |
+
+要求するスコープは機密でないものだけなので、本番環境にするのにスコープの審査は要らない。
+ロゴを載せるとブランドの確認が要るので、載せない。
+
+ポリシーと規約の本文は `src/routes/privacy/`・`src/routes/terms/` にある。取る情報や
+使う外部サービスを変えたら、本文と最終改定日も直す。
+
 ### 6. シークレットを入れる
 
 3つとも、実行すると値の入力を求められる。**デプロイし直す必要はない。**
