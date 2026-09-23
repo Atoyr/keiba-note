@@ -107,3 +107,9 @@ export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
  * ログインが要る画面を E2E で見るにはセッションを1本置くしかない。
  */
 export const SESSION_TOKEN = 'e2esessiontoken00000000000000000';
+
+/** 答え合わせで見る、自分の出走前メモの本文（E2E枠色賞のソトワク、印は◎・2着）。 */
+export const OUTER_PREVIEW_BODY = '外枠でも先行できれば。';
+
+/** 別のユーザーが同じレースに書いた出走前メモ。**どの画面にも出てはいけない。** */
+export const OTHER_USER_PREVIEW_BODY = '他人の見立て。見えてはいけない。';
