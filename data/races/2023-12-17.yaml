@@ -1,0 +1,28 @@
+# 2023年12月17日（日） 過去走
+date: 2023-12-17
+
+races:
+  - course: 中京
+    raceNumber: 9
+    name: 寒椿賞
+    className: 1勝クラス
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 8
+        name: ラムジェット
+        jockey: 三浦皇成
+        ref: nk-2021106640
+        finish: 1
+        popularity: 2
+        time: "1:26.0"
+        passing: "8-6"
+        last3f: 36.5
+        weight: 56
+        horseWeight: 496
+        horseWeightDiff: -4
+        odds: 3.9

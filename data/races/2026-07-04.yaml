@@ -1,0 +1,104 @@
+# 2026年7月4日（土） 過去走
+date: 2026-07-04
+
+races:
+  - course: 函館
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: ダート
+    distance: 1000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ダマスク
+        jockey: 丹内祐次
+        ref: nk-2024104113
+        finish: 1
+        popularity: 1
+        time: "1:01.4"
+        passing: "2-2"
+        last3f: 36.5
+        weight: 55
+        horseWeight: 438
+        horseWeightDiff: 0
+        odds: 1.5
+      - horseNumber: 4
+        bracket: 4
+        name: ロゼハイスクール
+        jockey: 古川奈穂
+        ref: nk-2024105019
+        finish: 5
+        popularity: 4
+        time: "1:03.4"
+        passing: "5-4"
+        last3f: 37.8
+        weight: 53
+        horseWeight: 408
+        horseWeightDiff: 0
+        odds: 10.2
+  - course: 函館
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: アルテクィーン
+        jockey: 鮫島克駿
+        ref: nk-2024100255
+        finish: 2
+        popularity: 1
+        time: "1:08.8"
+        passing: "1-1"
+        last3f: 34.6
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 10
+        odds: 1.8
+      - horseNumber: 7
+        bracket: 7
+        name: ショウナンカノア
+        jockey: 池添謙一
+        ref: nk-2024106248
+        finish: 1
+        popularity: 3
+        time: "1:08.8"
+        passing: "3-3"
+        last3f: 34.3
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 6
+        odds: 7
+  - course: 福島
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: コスモハナミズキ
+        jockey: 木幡巧也
+        ref: nk-2024103590
+        finish: 1
+        popularity: 4
+        time: "1:48.1"
+        passing: "1-1-1-1"
+        last3f: 35.6
+        weight: 55
+        horseWeight: 420
+        horseWeightDiff: 0
+        odds: 17.8

@@ -1,0 +1,28 @@
+# 2023年2月19日（日） 過去走
+date: 2023-02-19
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 大和S
+    grade: OP
+    surface: ダート
+    distance: 1200
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: ケイアイドリー
+        jockey: 藤岡康太
+        ref: nk-2017101560
+        finish: 1
+        popularity: 2
+        time: "1:11.2"
+        passing: "4-3"
+        last3f: 35.6
+        weight: 59
+        horseWeight: 516
+        horseWeightDiff: 0
+        odds: 3.3

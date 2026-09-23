@@ -1,0 +1,155 @@
+# 2025年4月19日（土） 過去走
+date: 2025-04-19
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: アンタレスS
+    grade: G3
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: サンデーファンデー
+        jockey: 鮫島克駿
+        ref: nk-2020104136
+        finish: 8
+        popularity: 5
+        time: "1:52.8"
+        passing: "2-2-2-1"
+        last3f: 39.4
+        weight: 59
+        horseWeight: 530
+        horseWeightDiff: -6
+        odds: 16.1
+      - horseNumber: 3
+        bracket: 3
+        name: ミッキーヌチバナ
+        jockey: M.デムーロ
+        ref: nk-2018105431
+        finish: 4
+        popularity: 7
+        time: "1:52.1"
+        passing: "5-5-5-4"
+        last3f: 38.4
+        weight: 58
+        horseWeight: 520
+        horseWeightDiff: 2
+        odds: 19.6
+      - horseNumber: 4
+        bracket: 4
+        name: オメガギネス
+        jockey: 戸崎圭太
+        ref: nk-2020102904
+        finish: 6
+        popularity: 4
+        time: "1:52.2"
+        passing: "5-5-5-4"
+        last3f: 38.4
+        weight: 57
+        horseWeight: 504
+        horseWeightDiff: 10
+        odds: 10.2
+      - horseNumber: 6
+        bracket: 5
+        name: マーブルロック
+        jockey: 松山弘平
+        ref: nk-2020100960
+        finish: 10
+        popularity: 6
+        time: "1:53.1"
+        passing: "1-1-1-2"
+        last3f: 39.7
+        weight: 57
+        horseWeight: 520
+        horseWeightDiff: 0
+        odds: 18.2
+  - course: 中山
+    raceNumber: 11
+    name: 中山グランドジャンプ
+    surface: 障害
+    distance: 4260
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ネビーイーム
+        jockey: 小坂忠士
+        ref: nk-2018103677
+        finish: 2
+        popularity: 6
+        time: "4:51.8"
+        passing: "6-6-4-3"
+        weight: 63
+        horseWeight: 536
+        horseWeightDiff: 2
+        odds: 16.2
+      - horseNumber: 4
+        bracket: 4
+        name: ジューンベロシティ
+        jockey: 森一馬
+        ref: nk-2018103308
+        finish: 4
+        popularity: 2
+        time: "4:53.3"
+        passing: "1-2-2-3"
+        weight: 63
+        horseWeight: 470
+        horseWeightDiff: 2
+        odds: 3.8
+      - horseNumber: 7
+        bracket: 6
+        name: エコロデュエル
+        jockey: 草野太郎
+        ref: nk-2019101614
+        finish: 1
+        popularity: 5
+        time: "4:50.5"
+        passing: "2-1-1-1"
+        weight: 63
+        horseWeight: 476
+        horseWeightDiff: -2
+        odds: 6.2
+      - horseNumber: 12
+        bracket: 8
+        name: ピーターサイト
+        jockey: 伴啓太
+        ref: nk-2020105611
+        finish: 8
+        popularity: 12
+        time: "4:56.3"
+        passing: "4-4-9-8"
+        weight: 63
+        horseWeight: 476
+        horseWeightDiff: -4
+        odds: 263.2
+    grade: G1
+  - course: 阪神
+    raceNumber: 10
+    name: 丹波特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 5
+        bracket: 4
+        name: レディマリオン
+        jockey: 吉村誠之助
+        ref: nk-2021105752
+        finish: 1
+        popularity: 7
+        time: "1:20.0"
+        passing: "5-3"
+        last3f: 33.8
+        weight: 53
+        horseWeight: 448
+        horseWeightDiff: -2
+        odds: 15.6

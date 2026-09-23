@@ -8,14 +8,15 @@ races:
     className: "3勝クラス"
     surface: 芝
     distance: 2500
+    direction: 右
     trackCondition: 良
     weather: 晴
     entries:
-      - name: セイウンプラチナ
-        ref: nk-2019102628
+      - horseNumber: 8
         bracket: 5
-        horseNumber: 8
+        name: セイウンプラチナ
         jockey: 武豊
+        ref: nk-2019102628
         finish: 1
         popularity: 8
         time: "2:31.4"
@@ -25,3 +26,27 @@ races:
         horseWeight: 498
         horseWeightDiff: -10
         odds: 21.9
+  - course: 中山
+    raceNumber: 11
+    name: 皐月賞
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 14
+        bracket: 7
+        name: シンエンペラー
+        jockey: 坂井瑠星
+        ref: nk-2021110048
+        finish: 5
+        popularity: 5
+        time: "1:57.5"
+        passing: "8-8-7-6"
+        last3f: 34.8
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: 2
+        odds: 8.4

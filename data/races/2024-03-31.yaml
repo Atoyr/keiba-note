@@ -1,0 +1,42 @@
+# 2024年3月31日（日） 過去走
+date: 2024-03-31
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 大阪杯
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ミッキーゴージャス
+        jockey: M.デムーロ
+        ref: nk-2020103640
+        finish: 14
+        popularity: 10
+        time: "1:59.5"
+        passing: "9-10-14-15"
+        last3f: 34.9
+        weight: 56
+        horseWeight: 444
+        horseWeightDiff: -6
+        odds: 21.2
+      - horseNumber: 14
+        bracket: 7
+        name: エピファニー
+        jockey: 杉原誠人
+        ref: nk-2019105532
+        finish: 10
+        popularity: 13
+        time: "1:58.9"
+        passing: "14-15-11-12"
+        last3f: 34.6
+        weight: 58
+        horseWeight: 498
+        horseWeightDiff: -6
+        odds: 57

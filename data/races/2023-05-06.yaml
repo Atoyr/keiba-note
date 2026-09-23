@@ -1,0 +1,28 @@
+# 2023年5月6日（土） 過去走
+date: 2023-05-06
+
+races:
+  - course: 新潟
+    raceNumber: 11
+    name: 越後S
+    grade: OP
+    surface: ダート
+    distance: 1200
+    direction: 左
+    trackCondition: 稍重
+    weather: 雨
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: サンライズホーク
+        jockey: 国分優作
+        ref: nk-2019101681
+        finish: 6
+        popularity: 2
+        time: "1:11.3"
+        passing: "7-6"
+        last3f: 36.7
+        weight: 58
+        horseWeight: 498
+        horseWeightDiff: -2
+        odds: 3.6

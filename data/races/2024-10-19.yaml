@@ -1,0 +1,52 @@
+# 2024年10月19日（土） 過去走
+date: 2024-10-19
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 富士S
+    grade: G2
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 6
+        bracket: 3
+        name: ジェイパームス
+        jockey: 鮫島克駿
+        ref: nk-2020103331
+        finish: 12
+        popularity: 6
+        time: "1:33.0"
+        passing: "13-12"
+        last3f: 33.7
+        weight: 57
+        horseWeight: 508
+        horseWeightDiff: -4
+        odds: 18.9
+  - course: 東京
+    raceNumber: 12
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 7
+        bracket: 6
+        name: ニシノティアモ
+        jockey: 横山和生
+        ref: nk-2021100244
+        finish: 5
+        popularity: 3
+        time: "1:47.1"
+        passing: "2-2-2"
+        last3f: 34.2
+        weight: 54
+        horseWeight: 428
+        horseWeightDiff: -4
+        odds: 6.2

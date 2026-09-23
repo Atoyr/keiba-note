@@ -1,0 +1,235 @@
+# 2025年4月26日（土） 過去走
+date: 2025-04-26
+
+races:
+  - course: 東京
+    raceNumber: 9
+    name: 石和特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 8
+        name: ブエナオンダ
+        jockey: モレイラ
+        ref: nk-2021105454
+        finish: 1
+        popularity: 2
+        time: "1:45.8"
+        passing: "6-6-6"
+        last3f: 33.5
+        weight: 58
+        horseWeight: 452
+        horseWeightDiff: 2
+        odds: 2.6
+  - course: 東京
+    raceNumber: 11
+    name: テレビ東京杯青葉賞
+    grade: G2
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: ゲルチュタール
+        jockey: シュタル
+        ref: nk-2022104736
+        finish: 3
+        popularity: 4
+        time: "2:24.9"
+        passing: "5-5-5-5"
+        last3f: 34
+        weight: 57
+        horseWeight: 512
+        horseWeightDiff: -14
+        odds: 7.9
+      - horseNumber: 6
+        bracket: 5
+        name: ヤマニンブークリエ
+        jockey: 津村明秀
+        ref: nk-2022106611
+        finish: 8
+        popularity: 10
+        time: "2:25.3"
+        passing: "5-7-6-6"
+        last3f: 34.3
+        weight: 57
+        horseWeight: 512
+        horseWeightDiff: -4
+        odds: 74.1
+      - horseNumber: 9
+        bracket: 6
+        name: ファイアンクランツ
+        jockey: モレイラ
+        ref: nk-2022104720
+        finish: 2
+        popularity: 2
+        time: "2:24.9"
+        passing: "8-9-9-9"
+        last3f: 33.7
+        weight: 57
+        horseWeight: 454
+        horseWeightDiff: -2
+        odds: 2.9
+  - course: 京都
+    raceNumber: 10
+    name: 観月橋S
+    className: 3勝クラス
+    surface: ダート
+    distance: 1900
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ギャンブルルーム
+        jockey: 北村友一
+        ref: nk-2021105559
+        finish: 11
+        popularity: 4
+        time: "2:01.4"
+        passing: "1-1-1-1"
+        last3f: 39.8
+        weight: 58
+        horseWeight: 504
+        horseWeightDiff: 4
+        odds: 9.4
+      - horseNumber: 6
+        bracket: 5
+        name: サイモンザナドゥ
+        jockey: 浜中俊
+        ref: nk-2020104497
+        finish: 3
+        popularity: 6
+        time: "1:58.4"
+        passing: "10-10-7-10"
+        last3f: 36.2
+        weight: 58
+        horseWeight: 476
+        horseWeightDiff: 8
+        odds: 20.7
+  - course: 京都
+    raceNumber: 11
+    name: 天王山S
+    grade: OP
+    surface: ダート
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: エーティーマクフィ
+        jockey: 藤岡佑介
+        ref: nk-2019105859
+        finish: 6
+        popularity: 4
+        time: "1:11.2"
+        passing: "14-13"
+        last3f: 34.7
+        weight: 57
+        horseWeight: 476
+        horseWeightDiff: -10
+        odds: 8.4
+  - course: 京都
+    raceNumber: 4
+    name: 障害4歳以上OP
+    surface: 障害
+    distance: 3170
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: オールザワールド
+        jockey: 森一馬
+        ref: nk-2017105248
+        finish: 2
+        popularity: 1
+        time: "3:35.6"
+        passing: "2-2-2-2"
+        weight: 62
+        horseWeight: 484
+        horseWeightDiff: 12
+        odds: 2.2
+  - course: 福島
+    raceNumber: 9
+    name: 雪うさぎ賞
+    className: 1勝クラス
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 5
+        name: フリッカージャブ
+        jockey: 杉原誠人
+        ref: nk-2022102020
+        finish: 6
+        popularity: 2
+        time: "1:09.2"
+        passing: "3-3"
+        last3f: 34.6
+        weight: 57
+        horseWeight: 480
+        horseWeightDiff: 8
+        odds: 4.8
+  - course: 東京
+    raceNumber: 6
+    name: 3歳1勝クラス
+    className: 1勝クラス
+    surface: ダート
+    distance: 1600
+    direction: 左
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 9
+        bracket: 5
+        name: リアライズカミオン
+        jockey: モレイラ
+        ref: nk-2022105702
+        finish: 6
+        popularity: 1
+        time: "1:37.3"
+        passing: "9-10"
+        last3f: 35.9
+        weight: 57
+        horseWeight: 512
+        horseWeightDiff: 4
+        odds: 2.5
+  - course: 福島
+    raceNumber: 11
+    name: 福島中央テレビ杯
+    className: 2勝クラス
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 5
+        name: イツモニコニコ
+        jockey: 田中健
+        ref: nk-2021107063
+        finish: 9
+        popularity: 4
+        time: "1:09.0"
+        passing: "2-2"
+        last3f: 34.8
+        weight: 55
+        horseWeight: 494
+        horseWeightDiff: -2
+        odds: 7

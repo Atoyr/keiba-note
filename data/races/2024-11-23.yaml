@@ -1,0 +1,52 @@
+# 2024年11月23日（土） 過去走
+date: 2024-11-23
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: ラジオN杯京都2歳S
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 8
+        name: エリキング
+        jockey: 川田将雅
+        ref: nk-2022105099
+        finish: 1
+        popularity: 1
+        time: "2:00.9"
+        passing: "4-5-3-3"
+        last3f: 34.2
+        weight: 56
+        horseWeight: 498
+        horseWeightDiff: 0
+        odds: 1.9
+  - course: 東京
+    raceNumber: 9
+    name: カトレアS
+    grade: OP
+    surface: ダート
+    distance: 1600
+    direction: 左
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 12
+        bracket: 6
+        name: ナチュラルライズ
+        jockey: 横山武史
+        ref: nk-2022103795
+        finish: 1
+        popularity: 2
+        time: "1:36.4"
+        passing: "8-7"
+        last3f: 36.4
+        weight: 56
+        horseWeight: 490
+        horseWeightDiff: 14
+        odds: 3.6

@@ -1,0 +1,25 @@
+# 2024年2月3日（土） 過去走
+date: 2024-02-03
+
+races:
+  - course: 小倉
+    raceNumber: 4
+    name: 障害4歳以上OP
+    surface: 障害
+    distance: 3390
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 12
+        bracket: 7
+        name: サンデイビス
+        jockey: 上野翔
+        ref: nk-2018100297
+        finish: 1
+        popularity: 5
+        time: "3:45.7"
+        passing: "5-3-3-2"
+        weight: 60
+        horseWeight: 504
+        horseWeightDiff: -2
+        odds: 10.8

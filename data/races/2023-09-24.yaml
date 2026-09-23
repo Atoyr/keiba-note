@@ -1,0 +1,52 @@
+# 2023年9月24日（日） 過去走
+date: 2023-09-24
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 産経賞オールカマー
+    grade: G2
+    surface: 芝
+    distance: 2200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 11
+        bracket: 6
+        name: ノースブリッジ
+        jockey: 岩田康誠
+        ref: nk-2018102348
+        finish: 7
+        popularity: 6
+        time: "2:12.5"
+        passing: "2-2-3-3"
+        last3f: 35.8
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: 12
+        odds: 19.5
+  - course: 阪神
+    raceNumber: 11
+    name: 神戸新聞杯
+    grade: G2
+    surface: 芝
+    distance: 2400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 5
+        name: ファントムシーフ
+        jockey: 武豊
+        ref: nk-2020106582
+        finish: 3
+        popularity: 2
+        time: "2:23.6"
+        passing: "1-1-1-1"
+        last3f: 33.7
+        weight: 56
+        horseWeight: 502
+        horseWeightDiff: 12
+        odds: 4.3

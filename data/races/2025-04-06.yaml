@@ -1,0 +1,146 @@
+# 2025年4月6日（日） 過去走
+date: 2025-04-06
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: 大阪杯
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ボルドグフーシュ
+        jockey: 吉田隼人
+        ref: nk-2019104909
+        finish: 8
+        popularity: 12
+        time: "1:56.8"
+        passing: "12-11-11-12"
+        last3f: 34
+        weight: 58
+        horseWeight: 510
+        horseWeightDiff: 4
+        odds: 48.1
+      - horseNumber: 2
+        bracket: 2
+        name: ホウオウビスケッツ
+        jockey: 岩田康誠
+        ref: nk-2020103941
+        finish: 5
+        popularity: 5
+        time: "1:56.6"
+        passing: "2-2-2-2"
+        last3f: 34.8
+        weight: 58
+        horseWeight: 502
+        horseWeightDiff: -2
+        odds: 9.1
+      - horseNumber: 7
+        bracket: 4
+        name: ヨーホーレイク
+        jockey: 岩田望来
+        ref: nk-2018105012
+        finish: 3
+        popularity: 8
+        time: "1:56.5"
+        passing: "14-14-14-14"
+        last3f: 33.5
+        weight: 58
+        horseWeight: 526
+        horseWeightDiff: -8
+        odds: 13.6
+      - horseNumber: 10
+        bracket: 6
+        name: シックスペンス
+        jockey: 横山武史
+        ref: nk-2021105724
+        finish: 7
+        popularity: 1
+        time: "1:56.6"
+        passing: "3-3-3-3"
+        last3f: 34.6
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: -12
+        odds: 4.8
+      - horseNumber: 12
+        bracket: 7
+        name: ステレンボッシュ
+        jockey: モレイラ
+        ref: nk-2021105743
+        finish: 13
+        popularity: 3
+        time: "1:57.3"
+        passing: "11-11-11-10"
+        last3f: 34.5
+        weight: 56
+        horseWeight: 460
+        horseWeightDiff: -4
+        odds: 5.2
+      - horseNumber: 14
+        bracket: 8
+        name: エコロヴァルツ
+        jockey: M.デムーロ
+        ref: nk-2021101436
+        finish: 4
+        popularity: 10
+        time: "1:56.5"
+        passing: "8-8-10-10"
+        last3f: 33.8
+        weight: 58
+        horseWeight: 492
+        horseWeightDiff: 4
+        odds: 32.3
+  - course: 中山
+    raceNumber: 7
+    name: 3歳1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: ジョイフルニュース
+        jockey: 佐々木大輔
+        ref: nk-2022105369
+        finish: 1
+        popularity: 1
+        time: "1:34.2"
+        passing: "2-2-4"
+        last3f: 34.3
+        weight: 55
+        horseWeight: 450
+        horseWeightDiff: 8
+        odds: 1.9
+  - course: 阪神
+    raceNumber: 9
+    name: バイオレットS
+    grade: OP
+    surface: ダート
+    distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 11
+        bracket: 6
+        name: アメリカンビキニ
+        jockey: 西村淳也
+        ref: nk-2022104957
+        finish: 7
+        popularity: 3
+        time: "1:24.6"
+        passing: "1-1"
+        last3f: 38.7
+        weight: 55
+        horseWeight: 492
+        horseWeightDiff: -4
+        odds: 5.4

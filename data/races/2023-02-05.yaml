@@ -1,0 +1,28 @@
+# 2023年2月5日（日） 過去走
+date: 2023-02-05
+
+races:
+  - course: 小倉
+    raceNumber: 6
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 12
+        bracket: 6
+        name: ネオトキオ
+        jockey: 大久保友雅
+        ref: nk-2020101301
+        finish: 17
+        popularity: 15
+        time: "1:10.5"
+        passing: "5-9"
+        last3f: 36.6
+        weight: 53
+        horseWeight: 452
+        horseWeightDiff: -2
+        odds: 163.7

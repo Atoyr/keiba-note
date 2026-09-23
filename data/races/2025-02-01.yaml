@@ -1,0 +1,80 @@
+# 2025年2月1日（土） 過去走
+date: 2025-02-01
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 白富士S
+    grade: L
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ホウオウノーサイド
+        jockey: 石橋脩
+        ref: nk-2019105775
+        finish: 9
+        popularity: 13
+        time: "2:00.1"
+        passing: "11-11-12"
+        last3f: 34.2
+        weight: 57
+        horseWeight: 496
+        horseWeightDiff: 18
+        odds: 389.3
+      - horseNumber: 6
+        bracket: 5
+        name: マイネルモーント
+        jockey: 石川裕紀人
+        ref: nk-2020105749
+        finish: 2
+        popularity: 4
+        time: "1:59.3"
+        passing: "1-4-3"
+        last3f: 34.2
+        weight: 58
+        horseWeight: 470
+        horseWeightDiff: 4
+        odds: 6.6
+  - course: 京都
+    raceNumber: 11
+    name: 舞鶴S
+    className: 3勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 6
+        bracket: 5
+        name: ダブルハートボンド
+        jockey: 坂井瑠星
+        ref: nk-2021105700
+        finish: 1
+        popularity: 1
+        time: "1:52.2"
+        passing: "2-2-2-2"
+        last3f: 36.9
+        weight: 55
+        horseWeight: 476
+        horseWeightDiff: -2
+        odds: 1.6
+      - horseNumber: 7
+        bracket: 6
+        name: バスタードサフラン
+        jockey: 酒井学
+        ref: nk-2021106610
+        finish: 6
+        popularity: 5
+        time: "1:53.2"
+        passing: "1-1-1-1"
+        last3f: 38
+        weight: 55
+        horseWeight: 466
+        horseWeightDiff: -2
+        odds: 12.5

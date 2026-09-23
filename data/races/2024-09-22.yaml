@@ -1,0 +1,66 @@
+# 2024年9月22日（日） 過去走
+date: 2024-09-22
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 産経賞オールカマー
+    grade: G2
+    surface: 芝
+    distance: 2200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 6
+        bracket: 4
+        name: アルビージャ
+        jockey: 嶋田純次
+        ref: nk-2018104913
+        finish: 5
+        popularity: 9
+        time: "2:12.2"
+        passing: "10-10-8-8"
+        last3f: 34.3
+        weight: 57
+        horseWeight: 522
+        horseWeightDiff: -4
+        odds: 45.9
+      - horseNumber: 11
+        bracket: 6
+        name: サヴォーナ
+        jockey: 横山武史
+        ref: nk-2020100734
+        finish: 4
+        popularity: 3
+        time: "2:12.0"
+        passing: "3-3-2-3"
+        last3f: 34.6
+        weight: 57
+        horseWeight: 526
+        horseWeightDiff: -4
+        odds: 7.9
+  - course: 中京
+    raceNumber: 11
+    name: 神戸新聞杯
+    grade: G2
+    surface: 芝
+    distance: 2200
+    direction: 左
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 14
+        bracket: 8
+        name: ビザンチンドリーム
+        jockey: 幸英明
+        ref: nk-2021105587
+        finish: 6
+        popularity: 9
+        time: "2:12.9"
+        passing: "12-11-12-13"
+        last3f: 35.4
+        weight: 57
+        horseWeight: 458
+        horseWeightDiff: 0
+        odds: 17.9

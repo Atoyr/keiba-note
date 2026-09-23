@@ -1,0 +1,80 @@
+# 2024年10月27日（日） 過去走
+date: 2024-10-27
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 天皇賞（秋）
+    grade: G1
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 3
+        name: ノースブリッジ
+        jockey: 岩田康誠
+        ref: nk-2018102348
+        finish: 11
+        popularity: 10
+        time: "1:58.0"
+        passing: "12-13-13"
+        last3f: 33.3
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: -2
+        odds: 68.7
+      - horseNumber: 8
+        bracket: 5
+        name: キングズパレス
+        jockey: シュタル
+        ref: nk-2019104828
+        finish: 12
+        popularity: 11
+        time: "1:58.0"
+        passing: "8-8-8"
+        last3f: 33.6
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: 6
+        odds: 97
+      - horseNumber: 14
+        bracket: 8
+        name: レーベンスティール
+        jockey: ルメール
+        ref: nk-2020102078
+        finish: 8
+        popularity: 3
+        time: "1:57.8"
+        passing: "8-11-11"
+        last3f: 33.2
+        weight: 58
+        horseWeight: 480
+        horseWeightDiff: -4
+        odds: 4.7
+  - course: 京都
+    raceNumber: 10
+    name: 古都S
+    className: 3勝クラス
+    surface: 芝
+    distance: 3000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 7
+        bracket: 7
+        name: コパノサントス
+        jockey: M.デムーロ
+        ref: nk-2020102344
+        finish: 1
+        popularity: 3
+        time: "3:08.4"
+        passing: "4-4-4-4"
+        last3f: 34
+        weight: 58
+        horseWeight: 476
+        horseWeightDiff: 4
+        odds: 6.8

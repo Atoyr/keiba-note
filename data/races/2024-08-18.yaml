@@ -1,0 +1,66 @@
+# 2024年8月18日（日） 過去走
+date: 2024-08-18
+
+races:
+  - course: 新潟
+    raceNumber: 10
+    name: 阿賀野川特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 2200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 6
+        name: ピースワンデュック
+        jockey: 柴田善臣
+        ref: nk-2021101134
+        finish: 1
+        popularity: 2
+        time: "2:11.9"
+        passing: "6-6-5-5"
+        last3f: 34.5
+        weight: 55
+        horseWeight: 454
+        horseWeightDiff: 0
+        odds: 2.8
+  - course: 札幌
+    raceNumber: 11
+    name: 札幌記念
+    grade: G2
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: チャックネイト
+        jockey: 佐々木大輔
+        ref: nk-2018104609
+        finish: 8
+        popularity: 8
+        time: "2:00.5"
+        passing: "6-6-3-4"
+        last3f: 35.6
+        weight: 58
+        horseWeight: 470
+        horseWeightDiff: -6
+        odds: 59.2
+      - horseNumber: 12
+        bracket: 8
+        name: ノースブリッジ
+        jockey: 岩田康誠
+        ref: nk-2018102348
+        finish: 1
+        popularity: 5
+        time: "1:59.6"
+        passing: "2-2-2-2"
+        last3f: 35
+        weight: 58
+        horseWeight: 502
+        horseWeightDiff: 1
+        odds: 14.5

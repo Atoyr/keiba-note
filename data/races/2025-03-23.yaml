@@ -1,0 +1,156 @@
+# 2025年3月23日（日） 過去走
+date: 2025-03-23
+
+races:
+  - course: 阪神
+    raceNumber: 6
+    name: 3歳1勝クラス
+    className: 1勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 7
+        name: ヤマニンブークリエ
+        jockey: 武豊
+        ref: nk-2022106611
+        finish: 2
+        popularity: 2
+        time: "1:54.5"
+        passing: "7-7-11-11"
+        last3f: 38.3
+        weight: 57
+        horseWeight: 516
+        horseWeightDiff: -8
+        odds: 5.2
+  - course: 阪神
+    raceNumber: 9
+    name: 讃岐特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 7
+        name: ヤブサメ
+        jockey: 坂井瑠星
+        ref: nk-2021103116
+        finish: 1
+        popularity: 2
+        time: "1:20.2"
+        passing: "3-3"
+        last3f: 35.4
+        weight: 58
+        horseWeight: 484
+        horseWeightDiff: 2
+        odds: 4
+  - course: 中京
+    raceNumber: 11
+    name: 愛知杯
+    grade: G3
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 2
+        name: セントメモリーズ
+        jockey: 石川裕紀人
+        ref: nk-2021104894
+        finish: 14
+        popularity: 6
+        time: "1:21.4"
+        passing: "14-15"
+        last3f: 35.7
+        weight: 55
+        horseWeight: 484
+        horseWeightDiff: -8
+        odds: 10.4
+      - horseNumber: 9
+        bracket: 5
+        name: カピリナ
+        jockey: 戸崎圭太
+        ref: nk-2021104073
+        finish: 3
+        popularity: 1
+        time: "1:20.4"
+        passing: "6-8"
+        last3f: 35.3
+        weight: 55
+        horseWeight: 470
+        horseWeightDiff: -8
+        odds: 4.5
+      - horseNumber: 10
+        bracket: 5
+        name: モリノドリーム
+        jockey: 荻野極
+        ref: nk-2019102273
+        finish: 7
+        popularity: 14
+        time: "1:20.8"
+        passing: "10-11"
+        last3f: 35.5
+        weight: 55
+        horseWeight: 486
+        horseWeightDiff: -8
+        odds: 45
+      - horseNumber: 11
+        bracket: 6
+        name: クランフォード
+        jockey: 西村淳也
+        ref: nk-2021100139
+        finish: 15
+        popularity: 2
+        time: "1:21.7"
+        passing: "4-4"
+        last3f: 37
+        weight: 55
+        horseWeight: 466
+        horseWeightDiff: 8
+        odds: 5.1
+      - horseNumber: 16
+        bracket: 8
+        name: ワイドラトゥール
+        jockey: 北村友一
+        ref: nk-2021104434
+        finish: 1
+        popularity: 10
+        time: "1:20.2"
+        passing: "15-13"
+        last3f: 34.6
+        weight: 55
+        horseWeight: 426
+        horseWeightDiff: 0
+        odds: 25.5
+  - course: 阪神
+    raceNumber: 11
+    name: 阪神大賞典
+    grade: G2
+    surface: 芝
+    distance: 3000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: コパノサントス
+        jockey: 田口貫太
+        ref: nk-2020102344
+        finish: 10
+        popularity: 8
+        time: "3:06.7"
+        passing: "6-6-6-8"
+        last3f: 37.6
+        weight: 57
+        horseWeight: 468
+        horseWeightDiff: 8
+        odds: 39.9

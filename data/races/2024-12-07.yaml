@@ -1,0 +1,119 @@
+# 2024年12月7日（土） 過去走
+date: 2024-12-07
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: 中日新聞杯
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: マテンロウレオ
+        jockey: 横山典弘
+        ref: nk-2019102879
+        finish: 3
+        popularity: 6
+        time: "1:58.8"
+        passing: "9-8-10-9"
+        last3f: 35
+        weight: 58.5
+        horseWeight: 482
+        horseWeightDiff: 4
+        odds: 14.2
+      - horseNumber: 3
+        bracket: 2
+        name: キングズパレス
+        jockey: M.デムーロ
+        ref: nk-2019104828
+        finish: 5
+        popularity: 4
+        time: "1:58.9"
+        passing: "17-17-17-17"
+        last3f: 34.3
+        weight: 57.5
+        horseWeight: 502
+        horseWeightDiff: 2
+        odds: 6.5
+      - horseNumber: 12
+        bracket: 6
+        name: エヒト
+        jockey: 浜中俊
+        ref: nk-2017100464
+        finish: 9
+        popularity: 9
+        time: "1:59.7"
+        passing: "2-2-2-2"
+        last3f: 36.7
+        weight: 59
+        horseWeight: 474
+        horseWeightDiff: 0
+        odds: 28.7
+      - horseNumber: 14
+        bracket: 7
+        name: ドクタードリトル
+        jockey: 松山弘平
+        ref: nk-2020103025
+        finish: 10
+        popularity: 7
+        time: "1:59.7"
+        passing: "9-8-11-12"
+        last3f: 35.7
+        weight: 56
+        horseWeight: 462
+        horseWeightDiff: 2
+        odds: 18.8
+      - horseNumber: 15
+        bracket: 7
+        name: ジェイパームス
+        jockey: 鮫島克駿
+        ref: nk-2020103331
+        finish: 8
+        popularity: 8
+        time: "1:59.5"
+        passing: "5-5-7-7"
+        last3f: 35.8
+        weight: 56
+        horseWeight: 502
+        horseWeightDiff: -6
+        odds: 23.6
+      - horseNumber: 16
+        bracket: 8
+        name: クルゼイロドスル
+        jockey: ドイル
+        ref: nk-2020101813
+        finish: 7
+        popularity: 13
+        time: "1:59.4"
+        passing: "8-8-11-12"
+        last3f: 35.4
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 12
+        odds: 54.8
+  - course: 京都
+    raceNumber: 4
+    name: 障害3歳以上OP
+    surface: 障害
+    distance: 3170
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ゴールドブリーズ
+        jockey: 石神深一
+        ref: nk-2018102196
+        finish: 4
+        popularity: 6
+        time: "3:36.5"
+        passing: "1-1-1-1"
+        weight: 60
+        horseWeight: 514
+        horseWeightDiff: -2
+        odds: 15.9

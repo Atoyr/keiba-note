@@ -1,0 +1,28 @@
+# 2021年11月7日（日） 過去走
+date: 2021-11-07
+
+races:
+  - course: 阪神
+    raceNumber: 9
+    name: もちの木賞
+    className: 1勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 8
+        name: クラウンプライド
+        jockey: 幸英明
+        ref: nk-2019104678
+        finish: 1
+        popularity: 4
+        time: "1:53.5"
+        passing: "2-2-3-2"
+        last3f: 38.3
+        weight: 55
+        horseWeight: 488
+        horseWeightDiff: -6
+        odds: 7.2

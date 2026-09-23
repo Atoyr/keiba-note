@@ -1,0 +1,28 @@
+# 2024年6月30日（日） 過去走
+date: 2024-06-30
+
+races:
+  - course: 函館
+    raceNumber: 11
+    name: 巴賞
+    grade: OP
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 16
+        bracket: 8
+        name: ショウナンバシット
+        jockey: 佐々木大輔
+        ref: nk-2020103333
+        finish: 8
+        popularity: 9
+        time: "1:47.4"
+        passing: "7-9-9-9"
+        last3f: 35
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 6
+        odds: 21

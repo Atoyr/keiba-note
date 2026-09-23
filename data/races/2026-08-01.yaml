@@ -8,14 +8,15 @@ races:
     className: "3勝クラス"
     surface: 芝
     distance: 2000
+    direction: 右
     trackCondition: 稍重
     weather: 曇
     entries:
-      - name: キャントウェイト
-        ref: nk-2021102800
+      - horseNumber: 8
         bracket: 4
-        horseNumber: 8
+        name: キャントウェイト
         jockey: 丹内祐次
+        ref: nk-2021102800
         finish: 9
         popularity: 4
         time: "2:00.9"
@@ -25,3 +26,161 @@ races:
         horseWeight: 466
         horseWeightDiff: -12
         odds: 7.6
+  - course: 新潟
+    raceNumber: 2
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: テングカゼ
+        jockey: 木幡育也
+        ref: nk-2024105454
+        finish: 8
+        popularity: 8
+        time: "1:51.4"
+        passing: "7-7"
+        last3f: 34.8
+        weight: 55
+        horseWeight: 466
+        horseWeightDiff: 0
+        odds: 208.1
+  - course: 新潟
+    raceNumber: 11
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: ジワタネホ
+        jockey: 三浦皇成
+        ref: nk-2023107165
+        finish: 1
+        popularity: 2
+        time: "2:00.7"
+        passing: "17-16-1-1"
+        last3f: 35.5
+        weight: 55
+        horseWeight: 442
+        horseWeightDiff: 6
+        odds: 4.9
+  - course: 中京
+    raceNumber: 11
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: サムシングスイート
+        jockey: 団野大成
+        ref: nk-2023106219
+        finish: 1
+        popularity: 2
+        time: "1:58.5"
+        passing: "6-4-5-5"
+        last3f: 33.7
+        weight: 53
+        horseWeight: 488
+        horseWeightDiff: 0
+        odds: 4.8
+  - course: 新潟
+    raceNumber: 8
+    name: 燕特別
+    className: 1勝クラス
+    surface: 芝
+    distance: 2200
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: リアライズルミナス
+        jockey: 津村明秀
+        ref: nk-2023104830
+        finish: 3
+        popularity: 1
+        time: "2:13.3"
+        passing: "1-1-1-1"
+        last3f: 34.8
+        weight: 53
+        horseWeight: 502
+        horseWeightDiff: 10
+        odds: 1.4
+      - horseNumber: 12
+        bracket: 8
+        name: ティラーノ
+        jockey: 三浦皇成
+        ref: nk-2023101855
+        finish: 10
+        popularity: 6
+        time: "2:14.0"
+        passing: "12-10-9-9"
+        last3f: 34.5
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 0
+        odds: 30.9
+  - course: 札幌
+    raceNumber: 4
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 7
+        bracket: 6
+        name: ミリオンクラウン
+        jockey: 舟山瑠泉
+        ref: nk-2023100840
+        finish: 1
+        popularity: 4
+        time: "1:48.0"
+        passing: "1-1-1-1"
+        last3f: 35.4
+        weight: 54
+        horseWeight: 504
+        horseWeightDiff: -10
+        odds: 10
+  - course: 札幌
+    raceNumber: 10
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: アンディムジーク
+        jockey: 古川吉洋
+        ref: nk-2023103797
+        finish: 5
+        popularity: 10
+        time: "1:29.4"
+        passing: "10-8-8"
+        last3f: 34.3
+        weight: 53
+        horseWeight: 458
+        horseWeightDiff: 2
+        odds: 94.5

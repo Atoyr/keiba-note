@@ -8,9 +8,38 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
     trackCondition: 良
     weather: 曇
     entries:
+      - horseNumber: 4
+        bracket: 2
+        name: ジェイパームス
+        jockey: 佐々木大輔
+        ref: nk-2020103331
+        finish: 14
+        popularity: 11
+        time: "1:59.1"
+        passing: "7-6-6-6"
+        last3f: 35.9
+        weight: 56
+        horseWeight: 510
+        horseWeightDiff: 8
+        odds: 29.8
+      - horseNumber: 8
+        bracket: 4
+        name: エアファンディタ
+        jockey: 戸崎圭太
+        ref: nk-2017110138
+        finish: 8
+        popularity: 10
+        time: "1:58.7"
+        passing: "18-18-18-18"
+        last3f: 34.4
+        weight: 57.5
+        horseWeight: 470
+        horseWeightDiff: 4
+        odds: 26
       - name: セイウンプラチナ
         ref: nk-2019102628
         bracket: 5
@@ -25,3 +54,117 @@ races:
         horseWeight: 512
         horseWeightDiff: 24
         odds: 120.5
+      - horseNumber: 14
+        bracket: 7
+        name: リカンカブール
+        jockey: 津村明秀
+        ref: nk-2019103823
+        finish: 15
+        popularity: 5
+        time: "1:59.5"
+        passing: "16-16-16-16"
+        last3f: 35.5
+        weight: 58
+        horseWeight: 496
+        horseWeightDiff: 6
+        odds: 8.5
+      - horseNumber: 15
+        bracket: 7
+        name: クリスマスパレード
+        jockey: 石川裕紀人
+        ref: nk-2021105799
+        finish: 4
+        popularity: 1
+        time: "1:58.5"
+        passing: "1-1-1-1"
+        last3f: 36.1
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: -4
+        odds: 4.4
+  - course: 中山
+    raceNumber: 10
+    name: ジュニアC
+    grade: L
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 8
+        bracket: 5
+        name: シンフォーエバー
+        jockey: 戸崎圭太
+        ref: nk-2022110114
+        finish: 5
+        popularity: 3
+        time: "1:34.2"
+        passing: "2-2-2"
+        last3f: 35
+        weight: 57
+        horseWeight: 504
+        horseWeightDiff: 10
+        odds: 5.8
+      - horseNumber: 9
+        bracket: 5
+        name: ファンダム
+        jockey: 北村宏司
+        ref: nk-2022105836
+        finish: 1
+        popularity: 1
+        time: "1:33.5"
+        passing: "4-3-2"
+        last3f: 34.2
+        weight: 57
+        horseWeight: 470
+        horseWeightDiff: 12
+        odds: 1.8
+  - course: 中山
+    raceNumber: 9
+    name: 招福S
+    className: 3勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 7
+        name: テーオーパスワード
+        jockey: 戸崎圭太
+        ref: nk-2021102236
+        finish: 5
+        popularity: 1
+        time: "1:53.0"
+        passing: "5-6-6-6"
+        last3f: 37.4
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 3
+  - course: 中京
+    raceNumber: 11
+    name: スポニチ賞京都金杯
+    grade: G3
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 4
+        name: サクラトゥジュール
+        jockey: キング
+        ref: nk-2017103751
+        finish: 1
+        popularity: 6
+        time: "1:33.5"
+        passing: "13-10-10"
+        last3f: 34.6
+        weight: 58
+        horseWeight: 512
+        horseWeightDiff: 0
+        odds: 12

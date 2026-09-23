@@ -1,0 +1,126 @@
+# 2024年11月9日（土） 過去走
+date: 2024-11-09
+
+races:
+  - course: 東京
+    raceNumber: 11
+    name: 東京中日S杯武蔵野S
+    grade: G3
+    surface: ダート
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 5
+        name: ペイシャエス
+        jockey: 横山和生
+        ref: nk-2019104245
+        finish: 4
+        popularity: 3
+        time: "1:36.4"
+        passing: "3-3"
+        last3f: 37.1
+        weight: 57
+        horseWeight: 498
+        horseWeightDiff: -2
+        odds: 7.2
+      - horseNumber: 10
+        bracket: 6
+        name: エンペラーワケア
+        jockey: 川田将雅
+        ref: nk-2020101547
+        finish: 1
+        popularity: 1
+        time: "1:36.0"
+        passing: "5-4"
+        last3f: 36.5
+        weight: 57
+        horseWeight: 538
+        horseWeightDiff: 2
+        odds: 1.7
+      - horseNumber: 14
+        bracket: 8
+        name: サンライズホーク
+        jockey: M.デムーロ
+        ref: nk-2019101681
+        finish: 5
+        popularity: 8
+        time: "1:36.5"
+        passing: "5-4"
+        last3f: 37
+        weight: 57
+        horseWeight: 510
+        horseWeightDiff: -5
+        odds: 33.2
+  - course: 京都
+    raceNumber: 4
+    name: 2歳新馬
+    className: 新馬
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 3
+        name: ナルカミ
+        jockey: 坂井瑠星
+        ref: nk-2022101638
+        finish: 1
+        popularity: 1
+        time: "1:51.2"
+        passing: "1-1-1-1"
+        last3f: 36.3
+        weight: 56
+        horseWeight: 500
+        horseWeightDiff: 0
+        odds: 3
+  - course: 東京
+    raceNumber: 10
+    name: 奥多摩S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 5
+        name: セントメモリーズ
+        jockey: 石川裕紀人
+        ref: nk-2021104894
+        finish: 1
+        popularity: 3
+        time: "1:21.6"
+        passing: "4-4"
+        last3f: 33.7
+        weight: 55
+        horseWeight: 480
+        horseWeightDiff: 4
+        odds: 4.3
+  - course: 京都
+    raceNumber: 8
+    name: 京都ジャンプS
+    surface: 障害
+    distance: 3170
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: オオキニ
+        jockey: 森一馬
+        ref: nk-2019100675
+        finish: 3
+        popularity: 3
+        time: "3:34.9"
+        passing: "2-2-2-2"
+        weight: 60
+        horseWeight: 452
+        horseWeightDiff: 0
+        odds: 5.7
+    grade: G3

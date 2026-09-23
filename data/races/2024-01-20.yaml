@@ -1,0 +1,49 @@
+# 2024年1月20日（土） 過去走
+date: 2024-01-20
+
+races:
+  - course: 中山
+    raceNumber: 9
+    name: 初茜賞
+    className: 2勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 小雨
+    entries:
+      - horseNumber: 12
+        bracket: 6
+        name: フェブランシェ
+        jockey: ルメール
+        ref: nk-2020103616
+        finish: 2
+        popularity: 1
+        time: "1:53.5"
+        passing: "2-2-2-2"
+        last3f: 39.2
+        weight: 55
+        horseWeight: 530
+        horseWeightDiff: 4
+        odds: 3.2
+  - course: 小倉
+    raceNumber: 5
+    name: 障害4歳以上OP
+    surface: 障害
+    distance: 2860
+    trackCondition: 稍重
+    weather: 雨
+    entries:
+      - horseNumber: 9
+        bracket: 7
+        name: サンデイビス
+        jockey: 上野翔
+        ref: nk-2018100297
+        finish: 5
+        popularity: 11
+        time: "3:09.6"
+        passing: "6-7-7-6"
+        weight: 60
+        horseWeight: 506
+        horseWeightDiff: -2
+        odds: 37

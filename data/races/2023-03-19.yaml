@@ -1,0 +1,28 @@
+# 2023年3月19日（日） 過去走
+date: 2023-03-19
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: 名古屋城S
+    grade: OP
+    surface: ダート
+    distance: 1800
+    direction: 左
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 4
+        name: ウィルソンテソーロ
+        jockey: 鮫島克駿
+        ref: nk-2019102383
+        finish: 5
+        popularity: 1
+        time: "1:51.1"
+        passing: "5-5-5-5"
+        last3f: 37.1
+        weight: 58
+        horseWeight: 484
+        horseWeightDiff: -10
+        odds: 2

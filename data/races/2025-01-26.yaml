@@ -1,0 +1,212 @@
+# 2025年1月26日（日） 過去走
+date: 2025-01-26
+
+races:
+  - course: 中京
+    raceNumber: 12
+    name: 4歳以上2勝クラス
+    className: 2勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 6
+        name: マサノカナリア
+        jockey: 川田将雅
+        ref: nk-2021100019
+        finish: 1
+        popularity: 4
+        time: "1:21.4"
+        passing: "6-6"
+        last3f: 34.9
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: -8
+        odds: 6.4
+  - course: 中山
+    raceNumber: 11
+    name: アメリカジョッキーC
+    grade: G2
+    surface: 芝
+    distance: 2200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: レーベンスティール
+        jockey: ルメール
+        ref: nk-2020102078
+        finish: 12
+        popularity: 2
+        time: "2:13.2"
+        passing: "7-7-7-7"
+        last3f: 37.1
+        weight: 58
+        horseWeight: 492
+        horseWeightDiff: 12
+        odds: 2.9
+      - horseNumber: 4
+        bracket: 2
+        name: ボルドグフーシュ
+        jockey: 内田博幸
+        ref: nk-2019104909
+        finish: 4
+        popularity: 4
+        time: "2:12.6"
+        passing: "9-9-12-12"
+        last3f: 36.1
+        weight: 57
+        horseWeight: 506
+        horseWeightDiff: -10
+        odds: 8.2
+      - horseNumber: 7
+        bracket: 4
+        name: マイネルクリソーラ
+        jockey: 津村明秀
+        ref: nk-2019100792
+        finish: 9
+        popularity: 15
+        time: "2:13.0"
+        passing: "11-11-14-12"
+        last3f: 36.2
+        weight: 57
+        horseWeight: 462
+        horseWeightDiff: 6
+        odds: 191.9
+      - horseNumber: 8
+        bracket: 4
+        name: ダノンデサイル
+        jockey: 戸崎圭太
+        ref: nk-2021105143
+        finish: 1
+        popularity: 1
+        time: "2:12.1"
+        passing: "7-7-7-5"
+        last3f: 36
+        weight: 58
+        horseWeight: 516
+        horseWeightDiff: -4
+        odds: 2.6
+      - horseNumber: 10
+        bracket: 5
+        name: ビザンチンドリーム
+        jockey: ルメート
+        ref: nk-2021105587
+        finish: 6
+        popularity: 5
+        time: "2:12.8"
+        passing: "16-15-10-10"
+        last3f: 36.5
+        weight: 56
+        horseWeight: 460
+        horseWeightDiff: 4
+        odds: 17.4
+      - horseNumber: 11
+        bracket: 6
+        name: マテンロウレオ
+        jockey: 横山典弘
+        ref: nk-2019102879
+        finish: 2
+        popularity: 6
+        time: "2:12.2"
+        passing: "3-3-3-5"
+        last3f: 36.3
+        weight: 57
+        horseWeight: 480
+        horseWeightDiff: -2
+        odds: 24.3
+      - horseNumber: 15
+        bracket: 7
+        name: エヒト
+        jockey: 吉田豊
+        ref: nk-2017100464
+        finish: 8
+        popularity: 16
+        time: "2:12.9"
+        passing: "5-5-7-7"
+        last3f: 36.8
+        weight: 57
+        horseWeight: 470
+        horseWeightDiff: -4
+        odds: 212.4
+      - horseNumber: 16
+        bracket: 8
+        name: チャックネイト
+        jockey: キング
+        ref: nk-2018104609
+        finish: 13
+        popularity: 8
+        time: "2:13.4"
+        passing: "2-2-1-1"
+        last3f: 37.9
+        weight: 58
+        horseWeight: 498
+        horseWeightDiff: 28
+        odds: 28.6
+      - horseNumber: 17
+        bracket: 8
+        name: アウスヴァール
+        jockey: 横山和生
+        ref: nk-2018101010
+        finish: 18
+        popularity: 12
+        time: "2:14.2"
+        passing: "1-1-2-3"
+        last3f: 38.6
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 81.8
+  - course: 中京
+    raceNumber: 11
+    name: プロキオンS
+    grade: G2
+    surface: ダート
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 5
+        name: オメガギネス
+        jockey: 松山弘平
+        ref: nk-2020102904
+        finish: 7
+        popularity: 2
+        time: "1:51.2"
+        passing: "2-2-2-2"
+        last3f: 37.7
+        weight: 57
+        horseWeight: 494
+        horseWeightDiff: 0
+        odds: 4
+  - course: 小倉
+    raceNumber: 11
+    name: 壇之浦S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 6
+        name: エラトー
+        jockey: 佐々木大輔
+        ref: nk-2021105442
+        finish: 9
+        popularity: 6
+        time: "1:48.0"
+        passing: "3-6-6-5"
+        last3f: 35.6
+        weight: 55
+        horseWeight: 486
+        horseWeightDiff: -8
+        odds: 10.2

@@ -1,0 +1,28 @@
+# 2023年2月18日（土） 過去走
+date: 2023-02-18
+
+races:
+  - course: 阪神
+    raceNumber: 2
+    name: 3歳未勝利
+    className: 未勝利
+    surface: ダート
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 13
+        bracket: 7
+        name: ネオトキオ
+        jockey: 大久保友雅
+        ref: nk-2020101301
+        finish: 14
+        popularity: 3
+        time: "1:17.1"
+        passing: "12-13"
+        last3f: 39.4
+        weight: 53
+        horseWeight: 446
+        horseWeightDiff: -6
+        odds: 13.7

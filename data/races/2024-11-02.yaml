@@ -1,0 +1,66 @@
+# 2024年11月2日（土） 過去走
+date: 2024-11-02
+
+races:
+  - course: 東京
+    raceNumber: 4
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 稍重
+    weather: 小雨
+    entries:
+      - horseNumber: 8
+        bracket: 8
+        name: カネラフィーナ
+        jockey: 戸崎圭太
+        ref: nk-2022104839
+        finish: 1
+        popularity: 1
+        time: "1:49.2"
+        passing: "3-3-3"
+        last3f: 34
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 0
+        odds: 1.7
+  - course: 東京
+    raceNumber: 11
+    name: 京王杯2歳S
+    grade: G2
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 稍重
+    weather: 小雨
+    entries:
+      - horseNumber: 4
+        bracket: 3
+        name: ヤンキーバローズ
+        jockey: 岩田康誠
+        ref: nk-2022103051
+        finish: 3
+        popularity: 4
+        time: "1:21.5"
+        passing: "9-10"
+        last3f: 33.8
+        weight: 56
+        horseWeight: 472
+        horseWeightDiff: 6
+        odds: 7.6
+      - horseNumber: 7
+        bracket: 5
+        name: パンジャタワー
+        jockey: 松山弘平
+        ref: nk-2022101732
+        finish: 1
+        popularity: 8
+        time: "1:21.2"
+        passing: "7-7"
+        last3f: 33.8
+        weight: 56
+        horseWeight: 480
+        horseWeightDiff: 12
+        odds: 21

@@ -1,0 +1,28 @@
+# 2024年7月14日（日） 過去走
+date: 2024-07-14
+
+races:
+  - course: 函館
+    raceNumber: 11
+    name: 函館記念
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: サヴォーナ
+        jockey: 池添謙一
+        ref: nk-2020100734
+        finish: 4
+        popularity: 1
+        time: "1:59.9"
+        passing: "10-9-11-9"
+        last3f: 35.2
+        weight: 57.5
+        horseWeight: 530
+        horseWeightDiff: -2
+        odds: 4.5

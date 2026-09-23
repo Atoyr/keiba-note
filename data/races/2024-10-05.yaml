@@ -1,0 +1,52 @@
+# 2024年10月5日（土） 過去走
+date: 2024-10-05
+
+races:
+  - course: 東京
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 小雨
+    entries:
+      - horseNumber: 6
+        bracket: 6
+        name: カネラフィーナ
+        jockey: ルメール
+        ref: nk-2022104839
+        finish: 2
+        popularity: 1
+        time: "1:34.4"
+        passing: "5-5"
+        last3f: 35.2
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 6
+        odds: 1.5
+  - course: 京都
+    raceNumber: 11
+    name: 夕刊フジ杯オパールS
+    grade: L
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 14
+        bracket: 7
+        name: ビッグシーザー
+        jockey: 田口貫太
+        ref: nk-2020100896
+        finish: 1
+        popularity: 6
+        time: "1:07.4"
+        passing: "3-3"
+        last3f: 33.9
+        weight: 58
+        horseWeight: 518
+        horseWeightDiff: 2
+        odds: 8.7

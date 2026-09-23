@@ -1,0 +1,42 @@
+# 2024年4月28日（日） 過去走
+date: 2024-04-28
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: 天皇賞（春）
+    grade: G1
+    surface: 芝
+    distance: 3200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 5
+        name: サヴォーナ
+        jockey: 池添謙一
+        ref: nk-2020100734
+        finish: 6
+        popularity: 10
+        time: "3:14.9"
+        passing: "4-4-3-4"
+        last3f: 35.8
+        weight: 58
+        horseWeight: 532
+        horseWeightDiff: -4
+        odds: 45.7
+      - horseNumber: 12
+        bracket: 6
+        name: ドゥレッツァ
+        jockey: 戸崎圭太
+        ref: nk-2020103650
+        finish: 15
+        popularity: 2
+        time: "3:19.8"
+        passing: "3-3-3-5"
+        last3f: 40.5
+        weight: 58
+        horseWeight: 464
+        horseWeightDiff: -8
+        odds: 2.8

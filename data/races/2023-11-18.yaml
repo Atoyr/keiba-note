@@ -1,0 +1,28 @@
+# 2023年11月18日（土） 過去走
+date: 2023-11-18
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: アンドロメダS
+    grade: L
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 5
+        name: テーオーソラネル
+        jockey: 団野大成
+        ref: nk-2019103817
+        finish: 4
+        popularity: 5
+        time: "1:59.6"
+        passing: "8-7-7-5"
+        last3f: 34.9
+        weight: 56
+        horseWeight: 494
+        horseWeightDiff: -2
+        odds: 9.4

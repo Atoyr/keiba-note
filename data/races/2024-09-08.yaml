@@ -1,0 +1,76 @@
+# 2024年9月8日（日） 過去走
+date: 2024-09-08
+
+races:
+  - course: 中山
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 4
+        name: ファンダム
+        jockey: 北村宏司
+        ref: nk-2022105836
+        finish: 1
+        popularity: 3
+        time: "1:32.8"
+        passing: "3-2-2"
+        last3f: 33.4
+        weight: 55
+        horseWeight: 458
+        horseWeightDiff: 0
+        odds: 6.5
+  - course: 中京
+    raceNumber: 11
+    name: 産経賞セントウルS
+    grade: G2
+    surface: 芝
+    distance: 1200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 7
+        name: ピューロマジック
+        jockey: 横山和生
+        ref: nk-2021107058
+        finish: 13
+        popularity: 1
+        time: "1:08.4"
+        passing: "1-1"
+        last3f: 34.8
+        weight: 53
+        horseWeight: 456
+        horseWeightDiff: 4
+        odds: 3.9
+  - course: 中山
+    raceNumber: 11
+    name: 京成杯オータムH
+    grade: G3
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 10
+        bracket: 5
+        name: アスコリピチェーノ
+        jockey: ルメール
+        ref: nk-2021105354
+        finish: 1
+        popularity: 1
+        time: "1:30.8"
+        passing: "9-9-8"
+        last3f: 32.7
+        weight: 55.5
+        horseWeight: 480
+        horseWeightDiff: 0
+        odds: 1.5

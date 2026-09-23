@@ -1,0 +1,28 @@
+# 2023年7月9日（日） 過去走
+date: 2023-07-09
+
+races:
+  - course: 福島
+    raceNumber: 11
+    name: 七夕賞
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 14
+        bracket: 7
+        name: テーオーソラネル
+        jockey: 三浦皇成
+        ref: nk-2019103817
+        finish: 10
+        popularity: 5
+        time: "2:00.8"
+        passing: "2-2-2-2"
+        last3f: 35.9
+        weight: 56
+        horseWeight: 496
+        horseWeightDiff: -2
+        odds: 9.6

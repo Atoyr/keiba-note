@@ -1,0 +1,430 @@
+# 2025年7月6日（日） 過去走
+date: 2025-07-06
+
+races:
+  - course: 福島
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: ラディアントスター
+        jockey: 戸崎圭太
+        ref: nk-2023107250
+        finish: 2
+        popularity: 2
+        time: "2:08.8"
+        passing: "2-2-4-2"
+        last3f: 35.3
+        weight: 55
+        horseWeight: 506
+        horseWeightDiff: 0
+        odds: 2.4
+      - horseNumber: 7
+        bracket: 7
+        name: タイダルロック
+        jockey: 大野拓弥
+        ref: nk-2023106861
+        finish: 1
+        popularity: 1
+        time: "2:08.1"
+        passing: "3-3-3-2"
+        last3f: 34.8
+        weight: 55
+        horseWeight: 502
+        horseWeightDiff: 0
+        odds: 1.9
+  - course: 函館
+    raceNumber: 11
+    name: 大沼S
+    grade: L
+    surface: ダート
+    distance: 1700
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: テーオードレフォン
+        jockey: 丸山元気
+        ref: nk-2019101324
+        finish: 5
+        popularity: 2
+        time: "1:44.2"
+        passing: "4-3-6-4"
+        last3f: 37.6
+        weight: 59
+        horseWeight: 504
+        horseWeightDiff: 2
+        odds: 4.3
+      - horseNumber: 6
+        bracket: 6
+        name: ペリエール
+        jockey: 佐々木大輔
+        ref: nk-2020101874
+        finish: 1
+        popularity: 5
+        time: "1:43.3"
+        passing: "2-2-2-2"
+        last3f: 36.9
+        weight: 58
+        horseWeight: 484
+        horseWeightDiff: -6
+        odds: 7.6
+  - course: 福島
+    raceNumber: 11
+    name: ジュライS
+    grade: OP
+    surface: ダート
+    distance: 1700
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 13
+        bracket: 7
+        name: シゲルショウグン
+        jockey: 田辺裕信
+        ref: nk-2020101694
+        finish: 1
+        popularity: 2
+        time: "1:43.4"
+        passing: "1-1-1-1"
+        last3f: 37.3
+        weight: 56
+        horseWeight: 518
+        horseWeightDiff: 14
+        odds: 4.7
+  - course: 小倉
+    raceNumber: 11
+    name: TV西日本北九州記念
+    grade: G3
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: カリボール
+        jockey: 西塚洸二
+        ref: nk-2016104668
+        finish: 11
+        popularity: 17
+        time: "1:08.6"
+        passing: "10-10"
+        last3f: 35.5
+        weight: 56
+        horseWeight: 506
+        horseWeightDiff: 6
+        odds: 70.6
+      - horseNumber: 6
+        bracket: 3
+        name: メイショウソラフネ
+        jockey: 酒井学
+        ref: nk-2019103714
+        finish: 13
+        popularity: 4
+        time: "1:08.7"
+        passing: "10-10"
+        last3f: 35.6
+        weight: 57
+        horseWeight: 454
+        horseWeightDiff: 2
+        odds: 8.6
+      - horseNumber: 7
+        bracket: 4
+        name: クラスペディア
+        jockey: 小崎綾也
+        ref: nk-2022106394
+        finish: 17
+        popularity: 6
+        time: "1:09.5"
+        passing: "1-2"
+        last3f: 37
+        weight: 54
+        horseWeight: 500
+        horseWeightDiff: 4
+        odds: 11.1
+      - horseNumber: 9
+        bracket: 5
+        name: ヤマニンアルリフラ
+        jockey: 団野大成
+        ref: nk-2021106601
+        finish: 1
+        popularity: 1
+        time: "1:07.8"
+        passing: "10-7"
+        last3f: 34.7
+        weight: 55
+        horseWeight: 496
+        horseWeightDiff: 14
+        odds: 5.7
+      - horseNumber: 11
+        bracket: 6
+        name: ドロップオブライト
+        jockey: 小沢大仁
+        ref: nk-2019105806
+        finish: 6
+        popularity: 9
+        time: "1:08.2"
+        passing: "14-15"
+        last3f: 34.8
+        weight: 56
+        horseWeight: 436
+        horseWeightDiff: -2
+        odds: 19.1
+      - horseNumber: 13
+        bracket: 7
+        name: オタルエバー
+        jockey: 幸英明
+        ref: nk-2019105658
+        finish: 18
+        popularity: 14
+        time: "1:12.5"
+        passing: "9-10"
+        last3f: 39.6
+        weight: 57.5
+        horseWeight: 500
+        horseWeightDiff: 10
+        odds: 29.2
+      - horseNumber: 14
+        bracket: 7
+        name: アブキールベイ
+        jockey: 坂井瑠星
+        ref: nk-2022101623
+        finish: 3
+        popularity: 7
+        time: "1:07.9"
+        passing: "10-13"
+        last3f: 34.7
+        weight: 53
+        horseWeight: 408
+        horseWeightDiff: -12
+        odds: 14.3
+      - horseNumber: 15
+        bracket: 7
+        name: ロードフォアエース
+        jockey: 川田将雅
+        ref: nk-2021100130
+        finish: 9
+        popularity: 2
+        time: "1:08.4"
+        passing: "4-4"
+        last3f: 35.7
+        weight: 56.5
+        horseWeight: 552
+        horseWeightDiff: 8
+        odds: 5.8
+      - horseNumber: 18
+        bracket: 8
+        name: ヨシノイースター
+        jockey: 内田博幸
+        ref: nk-2018106055
+        finish: 2
+        popularity: 5
+        time: "1:07.9"
+        passing: "5-7"
+        last3f: 35.1
+        weight: 58
+        horseWeight: 488
+        horseWeightDiff: 2
+        odds: 9.7
+  - course: 函館
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ショウナンガルフ
+        jockey: 池添謙一
+        ref: nk-2023105332
+        finish: 1
+        popularity: 1
+        time: "1:51.1"
+        passing: "2-2-2-2"
+        last3f: 35.4
+        weight: 55
+        horseWeight: 474
+        horseWeightDiff: 0
+        odds: 1.3
+  - course: 函館
+    raceNumber: 9
+    name: 立待岬特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    entries:
+      - horseNumber: 7
+        bracket: 6
+        name: ルージュラナキラ
+        jockey: 横山武史
+        ref: nk-2022102434
+        finish: 1
+        popularity: 3
+        time: "1:09.4"
+        passing: "5-5"
+        last3f: 34.2
+        weight: 53
+        horseWeight: 462
+        horseWeightDiff: -6
+        odds: 4.4
+  - course: 福島
+    raceNumber: 10
+    name: 白河特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: ニシノティアモ
+        jockey: 津村明秀
+        ref: nk-2021100244
+        finish: 1
+        popularity: 1
+        time: "1:48.2"
+        passing: "4-3-5-5"
+        last3f: 35.4
+        weight: 56
+        horseWeight: 438
+        horseWeightDiff: -2
+        odds: 2.3
+  - course: 福島
+    raceNumber: 4
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: タイセイフレッサ
+        jockey: 戸崎圭太
+        ref: nk-2023100914
+        finish: 2
+        popularity: 1
+        time: "1:11.9"
+        passing: "3-2"
+        last3f: 35.7
+        weight: 55
+        horseWeight: 468
+        horseWeightDiff: 0
+        odds: 2.8
+  - course: 函館
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: タガノアラリア
+        jockey: 斎藤新
+        ref: nk-2023104313
+        finish: 1
+        popularity: 3
+        time: "1:10.2"
+        passing: "5-3"
+        last3f: 34.9
+        weight: 55
+        horseWeight: 434
+        horseWeightDiff: -2
+        odds: 4.5
+  - course: 函館
+    raceNumber: 6
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: ミクニインスパイア
+        jockey: 丹内祐次
+        ref: nk-2022106120
+        finish: 1
+        popularity: 1
+        time: "2:02.6"
+        passing: "2-2-3-3"
+        last3f: 35.2
+        weight: 57
+        horseWeight: 504
+        horseWeightDiff: -4
+        odds: 1.6
+  - course: 小倉
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: コロナドブリッジ
+        jockey: 亀田温心
+        ref: nk-2023107368
+        finish: 3
+        popularity: 5
+        time: "1:50.5"
+        passing: "2-1-1-2"
+        last3f: 37.7
+        weight: 55
+        horseWeight: 512
+        horseWeightDiff: 0
+        odds: 8.7
+  - course: 福島
+    raceNumber: 1
+    name: 障害3歳以上未勝利
+    className: 未勝利
+    surface: 障害
+    distance: 2750
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 6
+        bracket: 4
+        name: ビーンスターク
+        jockey: 田村太雅
+        ref: nk-2021103578
+        finish: 1
+        popularity: 8
+        time: "3:03.5"
+        passing: "10-10-9-4"
+        weight: 60
+        horseWeight: 482
+        horseWeightDiff: -8
+        odds: 21.5

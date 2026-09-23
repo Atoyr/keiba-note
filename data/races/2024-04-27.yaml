@@ -1,0 +1,52 @@
+# 2024年4月27日（土） 過去走
+date: 2024-04-27
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: ユニコーンS
+    grade: G3
+    surface: ダート
+    distance: 1900
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 3
+        name: ラムジェット
+        jockey: 三浦皇成
+        ref: nk-2021106640
+        finish: 1
+        popularity: 3
+        time: "1:58.6"
+        passing: "12-12-7-4"
+        last3f: 37.6
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 0
+        odds: 7.3
+  - course: 東京
+    raceNumber: 11
+    name: テレビ東京杯青葉賞
+    grade: G2
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 7
+        bracket: 4
+        name: シュガークン
+        jockey: 武豊
+        ref: nk-2021102224
+        finish: 1
+        popularity: 2
+        time: "2:24.2"
+        passing: "4-5-5-6"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 502
+        horseWeightDiff: 4
+        odds: 4.5

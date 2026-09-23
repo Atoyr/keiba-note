@@ -1,0 +1,28 @@
+# 2022年2月20日（日） 過去走
+date: 2022-02-20
+
+races:
+  - course: 東京
+    raceNumber: 9
+    name: ヒヤシンスS
+    grade: L
+    surface: ダート
+    distance: 1600
+    direction: 左
+    trackCondition: 重
+    weather: 曇
+    entries:
+      - horseNumber: 9
+        bracket: 6
+        name: クラウンプライド
+        jockey: M.デムーロ
+        ref: nk-2019104678
+        finish: 6
+        popularity: 3
+        time: "1:35.8"
+        passing: "12-8"
+        last3f: 35.6
+        weight: 56
+        horseWeight: 498
+        horseWeightDiff: 10
+        odds: 4.5

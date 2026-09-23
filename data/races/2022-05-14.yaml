@@ -1,0 +1,28 @@
+# 2022年5月14日（土） 過去走
+date: 2022-05-14
+
+races:
+  - course: 東京
+    raceNumber: 10
+    name: 緑風S
+    className: 3勝クラス
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 6
+        bracket: 5
+        name: アルビージャ
+        jockey: 横山武史
+        ref: nk-2018104913
+        finish: 1
+        popularity: 3
+        time: "2:24.3"
+        passing: "7-10-9-9"
+        last3f: 33.8
+        weight: 57
+        horseWeight: 516
+        horseWeightDiff: 4
+        odds: 4.5

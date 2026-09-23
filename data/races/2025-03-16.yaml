@@ -1,0 +1,246 @@
+# 2025年3月16日（日） 過去走
+date: 2025-03-16
+
+races:
+  - course: 中京
+    raceNumber: 11
+    name: 東海テレビ杯金鯱賞
+    grade: G2
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 重
+    weather: 小雨
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ライラック
+        jockey: 石川裕紀人
+        ref: nk-2019103588
+        finish: 8
+        popularity: 7
+        time: "2:03.1"
+        passing: "5-4-4-5"
+        last3f: 37.8
+        weight: 55
+        horseWeight: 446
+        horseWeightDiff: 2
+        odds: 25.4
+      - horseNumber: 4
+        bracket: 4
+        name: キングズパレス
+        jockey: 池添謙一
+        ref: nk-2019104828
+        finish: 3
+        popularity: 6
+        time: "2:01.6"
+        passing: "10-10-9-7"
+        last3f: 36
+        weight: 57
+        horseWeight: 502
+        horseWeightDiff: -4
+        odds: 23.9
+      - horseNumber: 6
+        bracket: 6
+        name: クイーンズウォーク
+        jockey: 川田将雅
+        ref: nk-2021105414
+        finish: 1
+        popularity: 4
+        time: "2:01.3"
+        passing: "3-3-3-3"
+        last3f: 36.3
+        weight: 55
+        horseWeight: 534
+        horseWeightDiff: 0
+        odds: 8.2
+      - horseNumber: 10
+        bracket: 8
+        name: マイネルモーント
+        jockey: 丹内祐次
+        ref: nk-2020105749
+        finish: 7
+        popularity: 8
+        time: "2:02.6"
+        passing: "4-4-7-7"
+        last3f: 37.1
+        weight: 57
+        horseWeight: 472
+        horseWeightDiff: 2
+        odds: 32.6
+  - course: 中山
+    raceNumber: 10
+    name: 東風S
+    grade: L
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 雨
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: サイルーン
+        jockey: ルメール
+        ref: nk-2019104838
+        finish: 1
+        popularity: 3
+        time: "1:37.2"
+        passing: "7-7-7"
+        last3f: 37.8
+        weight: 57
+        horseWeight: 488
+        horseWeightDiff: 2
+        odds: 5.5
+      - horseNumber: 3
+        bracket: 3
+        name: ダディーズビビッド
+        jockey: 横山典弘
+        ref: nk-2018105610
+        finish: 7
+        popularity: 11
+        time: "1:38.1"
+        passing: "7-7-10"
+        last3f: 38.8
+        weight: 59
+        horseWeight: 516
+        horseWeightDiff: 2
+        odds: 43.7
+      - horseNumber: 7
+        bracket: 6
+        name: キープカルム
+        jockey: 三浦皇成
+        ref: nk-2021105119
+        finish: 9
+        popularity: 1
+        time: "1:38.2"
+        passing: "7-7-4"
+        last3f: 38.9
+        weight: 57
+        horseWeight: 494
+        horseWeightDiff: 6
+        odds: 3.1
+      - horseNumber: 11
+        bracket: 8
+        name: ビーアストニッシド
+        jockey: 西村太一
+        ref: nk-2019101348
+        finish: 8
+        popularity: 7
+        time: "1:38.1"
+        passing: "4-6-3"
+        last3f: 38.9
+        weight: 58
+        horseWeight: 480
+        horseWeightDiff: 4
+        odds: 22.6
+  - course: 中山
+    raceNumber: 9
+    name: 房総特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 重
+    weather: 雨
+    entries:
+      - horseNumber: 15
+        bracket: 8
+        name: パレハ
+        jockey: 田辺裕信
+        ref: nk-2021106752
+        finish: 7
+        popularity: 4
+        time: "1:52.5"
+        passing: "12-12-5-5"
+        last3f: 38
+        weight: 56
+        horseWeight: 432
+        horseWeightDiff: 0
+        odds: 8.5
+  - course: 中京
+    raceNumber: 10
+    name: 昇竜S
+    grade: OP
+    surface: ダート
+    distance: 1400
+    direction: 左
+    trackCondition: 重
+    weather: 小雨
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: マテンロウコマンド
+        jockey: 松山弘平
+        ref: nk-2022103622
+        finish: 1
+        popularity: 2
+        time: "1:23.2"
+        passing: "6-5"
+        last3f: 36.1
+        weight: 57
+        horseWeight: 512
+        horseWeightDiff: 0
+        odds: 3
+  - course: 阪神
+    raceNumber: 11
+    name: 米子城S
+    grade: OP
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 重
+    weather: 雨
+    entries:
+      - horseNumber: 5
+        bracket: 3
+        name: ロードフォアエース
+        jockey: 浜中俊
+        ref: nk-2021100130
+        finish: 2
+        popularity: 1
+        time: "1:09.1"
+        passing: "2-2"
+        last3f: 35.1
+        weight: 56
+        horseWeight: 540
+        horseWeightDiff: -8
+        odds: 2.9
+      - horseNumber: 6
+        bracket: 3
+        name: オタルエバー
+        jockey: 古川吉洋
+        ref: nk-2019105658
+        finish: 15
+        popularity: 12
+        time: "1:10.6"
+        passing: "8-8"
+        last3f: 36
+        weight: 57
+        horseWeight: 494
+        horseWeightDiff: -6
+        odds: 50.4
+  - course: 中山
+    raceNumber: 11
+    name: スプリングS
+    grade: G2
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 重
+    weather: 小雨
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ダノンセンチュリー
+        jockey: 戸崎圭太
+        ref: nk-2022104814
+        finish: 10
+        popularity: 3
+        time: "1:52.3"
+        passing: "1-1-2-2"
+        last3f: 38.9
+        weight: 57
+        horseWeight: 460
+        horseWeightDiff: 0
+        odds: 5.3

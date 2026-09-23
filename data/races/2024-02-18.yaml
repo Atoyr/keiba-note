@@ -1,0 +1,80 @@
+# 2024年2月18日（日） 過去走
+date: 2024-02-18
+
+races:
+  - course: 東京
+    raceNumber: 9
+    name: ヒヤシンスS
+    grade: L
+    surface: ダート
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ラムジェット
+        jockey: 三浦皇成
+        ref: nk-2021106640
+        finish: 1
+        popularity: 5
+        time: "1:36.3"
+        passing: "10-9"
+        last3f: 36.1
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 4
+        odds: 13.9
+      - horseNumber: 4
+        bracket: 4
+        name: チカッパ
+        jockey: キング
+        ref: nk-2021103868
+        finish: 5
+        popularity: 6
+        time: "1:37.3"
+        passing: "3-3"
+        last3f: 37.9
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: 0
+        odds: 17
+  - course: 東京
+    raceNumber: 11
+    name: フェブラリーS
+    grade: G1
+    surface: ダート
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 9
+        bracket: 5
+        name: ペプチドナイル
+        jockey: 藤岡佑介
+        ref: nk-2018106084
+        finish: 1
+        popularity: 11
+        time: "1:35.7"
+        passing: "4-4"
+        last3f: 37.5
+        weight: 58
+        horseWeight: 528
+        horseWeightDiff: -6
+        odds: 38
+      - horseNumber: 14
+        bracket: 7
+        name: ウィルソンテソーロ
+        jockey: 松山弘平
+        ref: nk-2019102383
+        finish: 8
+        popularity: 2
+        time: "1:36.6"
+        passing: "2-2"
+        last3f: 38.5
+        weight: 58
+        horseWeight: 484
+        horseWeightDiff: -3
+        odds: 3.9

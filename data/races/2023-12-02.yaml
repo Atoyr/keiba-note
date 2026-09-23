@@ -1,0 +1,52 @@
+# 2023年12月2日（土） 過去走
+date: 2023-12-02
+
+races:
+  - course: 阪神
+    raceNumber: 11
+    name: チャレンジC
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: エヒト
+        jockey: 松山弘平
+        ref: nk-2017100464
+        finish: 13
+        popularity: 11
+        time: "2:00.3"
+        passing: "5-4-5-5"
+        last3f: 36.2
+        weight: 57
+        horseWeight: 470
+        horseWeightDiff: 8
+        odds: 74.4
+  - course: 阪神
+    raceNumber: 12
+    name: 3歳以上2勝クラス
+    className: 2勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: グランヴィノス
+        jockey: 川田将雅
+        ref: nk-2020103522
+        finish: 1
+        popularity: 1
+        time: "1:45.2"
+        passing: "8-9"
+        last3f: 33.6
+        weight: 57
+        horseWeight: 522
+        horseWeightDiff: 10
+        odds: 1.8

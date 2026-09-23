@@ -15,7 +15,7 @@ races:
       - horseNumber: 1
         bracket: 1
         name: フィーリウス
-        jockey: Ｍ．デム
+        jockey: M.デムーロ
         sex: 牡
         age: 4
         ref: nk-2022105175
@@ -95,7 +95,7 @@ races:
       - horseNumber: 5
         bracket: 3
         name: ピースワンデュック
-        jockey: 佐々木大
+        jockey: 佐々木大輔
         sex: 牡
         age: 5
         ref: nk-2021101134

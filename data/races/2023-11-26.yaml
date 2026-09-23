@@ -1,0 +1,28 @@
+# 2023年11月26日（日） 過去走
+date: 2023-11-26
+
+races:
+  - course: 東京
+    raceNumber: 9
+    name: アーモンドアイM
+    className: 2勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: オクタヴィアヌス
+        jockey: ビュイッ
+        ref: nk-2020103132
+        finish: 2
+        popularity: 1
+        time: "1:59.2"
+        passing: "7-7-7"
+        last3f: 33.7
+        weight: 55
+        horseWeight: 518
+        horseWeightDiff: 8
+        odds: 2.4

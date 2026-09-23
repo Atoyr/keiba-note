@@ -1,0 +1,28 @@
+# 2025年2月10日（月） 過去走
+date: 2025-02-10
+
+races:
+  - course: 京都
+    raceNumber: 10
+    name: エルフィンS
+    grade: L
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: カムニャック
+        jockey: 川田将雅
+        ref: nk-2022105402
+        finish: 4
+        popularity: 3
+        time: "1:36.1"
+        passing: "6-7"
+        last3f: 35.1
+        weight: 55
+        horseWeight: 482
+        horseWeightDiff: 6
+        odds: 3.8

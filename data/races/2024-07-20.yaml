@@ -1,0 +1,28 @@
+# 2024年7月20日（土） 過去走
+date: 2024-07-20
+
+races:
+  - course: 札幌
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: ダート
+    distance: 1700
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 3
+        name: ナチュラルライズ
+        jockey: 横山武史
+        ref: nk-2022103795
+        finish: 1
+        popularity: 1
+        time: "1:45.7"
+        passing: "4-4-4-2"
+        last3f: 36.9
+        weight: 55
+        horseWeight: 476
+        horseWeightDiff: 0
+        odds: 3

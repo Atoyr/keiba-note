@@ -1,0 +1,160 @@
+# 2025年1月19日（日） 過去走
+date: 2025-01-19
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: 京成杯
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 小雨
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ニシノエージェント
+        jockey: 津村明秀
+        ref: nk-2022106155
+        finish: 1
+        popularity: 11
+        time: "1:59.9"
+        passing: "10-10-11-6"
+        last3f: 35.4
+        weight: 57
+        horseWeight: 472
+        horseWeightDiff: 2
+        odds: 49.4
+  - course: 中京
+    raceNumber: 11
+    name: 日経新春杯
+    grade: G2
+    surface: 芝
+    distance: 2200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: マイネルエンペラー
+        jockey: 幸英明
+        ref: nk-2020105786
+        finish: 3
+        popularity: 7
+        time: "2:10.4"
+        passing: "5-5-4-4"
+        last3f: 36.3
+        weight: 55
+        horseWeight: 486
+        horseWeightDiff: 6
+        odds: 15
+      - horseNumber: 2
+        bracket: 1
+        name: バトルボーン
+        jockey: 横山武史
+        ref: nk-2019105193
+        finish: 8
+        popularity: 11
+        time: "2:11.2"
+        passing: "4-4-4-4"
+        last3f: 37.1
+        weight: 57
+        horseWeight: 500
+        horseWeightDiff: 8
+        odds: 35.6
+      - horseNumber: 4
+        bracket: 2
+        name: ケイアイサンデラ
+        jockey: 藤懸貴志
+        ref: nk-2020104881
+        finish: 15
+        popularity: 14
+        time: "2:13.2"
+        passing: "2-3-2-2"
+        last3f: 39.3
+        weight: 55
+        horseWeight: 450
+        horseWeightDiff: 6
+        odds: 96.1
+      - horseNumber: 6
+        bracket: 3
+        name: メイショウタバル
+        jockey: 浜中俊
+        ref: nk-2021103272
+        finish: 11
+        popularity: 2
+        time: "2:11.9"
+        passing: "1-1-1-1"
+        last3f: 39.5
+        weight: 57.5
+        horseWeight: 510
+        horseWeightDiff: 8
+        odds: 5.3
+      - horseNumber: 7
+        bracket: 4
+        name: ホールネス
+        jockey: 坂井瑠星
+        ref: nk-2020110060
+        finish: 14
+        popularity: 5
+        time: "2:12.8"
+        passing: "5-5-6-7"
+        last3f: 38.4
+        weight: 55
+        horseWeight: 534
+        horseWeightDiff: -2
+        odds: 8.2
+      - horseNumber: 9
+        bracket: 5
+        name: サトノグランツ
+        jockey: 松山弘平
+        ref: nk-2020103473
+        finish: 5
+        popularity: 10
+        time: "2:11.0"
+        passing: "12-13-12-12"
+        last3f: 36.1
+        weight: 58.5
+        horseWeight: 514
+        horseWeightDiff: 8
+        odds: 25.2
+      - horseNumber: 10
+        bracket: 5
+        name: キングズパレス
+        jockey: M.デムーロ
+        ref: nk-2019104828
+        finish: 6
+        popularity: 8
+        time: "2:11.1"
+        passing: "16-16-16-16"
+        last3f: 35.5
+        weight: 57.5
+        horseWeight: 506
+        horseWeightDiff: 4
+        odds: 17.6
+  - course: 中京
+    raceNumber: 2
+    name: 3歳未勝利
+    className: 未勝利
+    surface: ダート
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    entries:
+      - horseNumber: 9
+        bracket: 6
+        name: ドラゴンテイラー
+        jockey: 北村友一
+        ref: nk-2022110138
+        finish: 12
+        popularity: 2
+        time: "1:57.9"
+        passing: "1-1-2-2"
+        last3f: 41.3
+        weight: 57
+        horseWeight: 498
+        horseWeightDiff: -16
+        odds: 4.8

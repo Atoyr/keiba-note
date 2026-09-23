@@ -1,0 +1,28 @@
+# 2024年8月4日（日） 過去走
+date: 2024-08-04
+
+races:
+  - course: 札幌
+    raceNumber: 11
+    name: エルムS
+    grade: G3
+    surface: ダート
+    distance: 1700
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    entries:
+      - horseNumber: 9
+        bracket: 6
+        name: ペイシャエス
+        jockey: 横山和生
+        ref: nk-2019104245
+        finish: 1
+        popularity: 5
+        time: "1:44.0"
+        passing: "5-3-4-4"
+        last3f: 36.7
+        weight: 58
+        horseWeight: 500
+        horseWeightDiff: 0
+        odds: 9.8

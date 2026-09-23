@@ -1,0 +1,144 @@
+# 2024年11月30日（土） 過去走
+date: 2024-11-30
+
+races:
+  - course: 京都
+    raceNumber: 11
+    name: チャレンジC
+    grade: G3
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: エピファニー
+        jockey: 杉原誠人
+        ref: nk-2019105532
+        finish: 11
+        popularity: 7
+        time: "2:00.6"
+        passing: "9-9-10-10"
+        last3f: 37.2
+        weight: 57
+        horseWeight: 508
+        horseWeightDiff: 6
+        odds: 11.4
+      - horseNumber: 3
+        bracket: 2
+        name: バビット
+        jockey: 団野大成
+        ref: nk-2017103000
+        finish: 14
+        popularity: 10
+        time: "2:01.8"
+        passing: "2-2-2-2"
+        last3f: 39
+        weight: 57
+        horseWeight: 466
+        horseWeightDiff: -4
+        odds: 24.2
+      - horseNumber: 5
+        bracket: 3
+        name: アルビージャ
+        jockey: ルメール
+        ref: nk-2018104913
+        finish: 9
+        popularity: 5
+        time: "1:59.8"
+        passing: "4-5-4-6"
+        last3f: 36.7
+        weight: 57
+        horseWeight: 524
+        horseWeightDiff: 2
+        odds: 7.2
+      - horseNumber: 6
+        bracket: 4
+        name: コガネノソラ
+        jockey: 丹内祐次
+        ref: nk-2021106823
+        finish: 8
+        popularity: 8
+        time: "1:59.5"
+        passing: "6-7-7-10"
+        last3f: 36.2
+        weight: 53
+        horseWeight: 446
+        horseWeightDiff: 2
+        odds: 15.2
+      - horseNumber: 11
+        bracket: 6
+        name: セイウンハーデス
+        jockey: 幸英明
+        ref: nk-2019102632
+        finish: 5
+        popularity: 9
+        time: "1:59.1"
+        passing: "3-3-4-1"
+        last3f: 36.1
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: 14
+        odds: 16.5
+      - horseNumber: 13
+        bracket: 7
+        name: アウスヴァール
+        jockey: 古川吉洋
+        ref: nk-2018101010
+        finish: 15
+        popularity: 14
+        time: "2:01.9"
+        passing: "1-1-1-2"
+        last3f: 39.1
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: 8
+        odds: 87.8
+  - course: 中山
+    raceNumber: 11
+    name: ステイヤーズS
+    grade: G2
+    surface: 芝
+    distance: 3600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 6
+        bracket: 4
+        name: ミクソロジー
+        jockey: 西村淳也
+        ref: nk-2019101847
+        finish: 13
+        popularity: 4
+        time: "3:48.3"
+        passing: "2-2-2-2"
+        last3f: 36.8
+        weight: 57
+        horseWeight: 440
+        horseWeightDiff: -8
+        odds: 6.9
+  - course: 中山
+    raceNumber: 8
+    name: イルミネーションJS
+    grade: OP
+    surface: 障害
+    distance: 3570
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: タンジェントアーク
+        jockey: 土田真翔
+        ref: nk-2018100752
+        finish: 4
+        popularity: 7
+        time: "4:03.7"
+        passing: "11-11-10-8"
+        weight: 60
+        horseWeight: 436
+        horseWeightDiff: 4
+        odds: 21.7

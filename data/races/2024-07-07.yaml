@@ -8,14 +8,15 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
     trackCondition: 良
     weather: 晴
     entries:
-      - name: セイウンプラチナ
-        ref: nk-2019102628
+      - horseNumber: 15
         bracket: 8
-        horseNumber: 15
+        name: セイウンプラチナ
         jockey: 原優介
+        ref: nk-2019102628
         finish: 14
         popularity: 7
         time: "1:59.8"

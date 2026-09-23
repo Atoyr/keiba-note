@@ -1,0 +1,28 @@
+# 2022年3月6日（日） 過去走
+date: 2022-03-06
+
+races:
+  - course: 中山
+    raceNumber: 9
+    name: 湾岸S
+    className: 3勝クラス
+    surface: 芝
+    distance: 2200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    entries:
+      - horseNumber: 8
+        bracket: 4
+        name: アルビージャ
+        jockey: 戸崎圭太
+        ref: nk-2018104913
+        finish: 4
+        popularity: 4
+        time: "2:12.5"
+        passing: "14-14-3-3"
+        last3f: 35.8
+        weight: 56
+        horseWeight: 512
+        horseWeightDiff: -4
+        odds: 8.5
