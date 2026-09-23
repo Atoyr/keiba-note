@@ -60,3 +60,31 @@ jobs:
       #
       # マイグレーションで列が増えて入れ直したいときは、
       # data-import.yml を workflow_dispatch で流す。
+
+  # 本番デプロイの結果は、成功も失敗も Discord へ知らせる（docs/monitoring.md）。
+  # 取り消し（cancelled）は人が止めたものなので送らない。
+  notify-success:
+    name: 成功を通知
+    needs: [verify, deploy]
+    if: success()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      level: success
+      title: 本番にデプロイした
+      description: マイグレーションとデプロイが終わりました。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+  notify-failure:
+    name: 失敗を通知
+    needs: [verify, deploy]
+    if: failure()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      level: error
+      title: 本番へのデプロイが落ちた
+      description: >-
+        検証・マイグレーション・デプロイのどこかで止まっています。
+        マイグレーションだけ当たってデプロイが落ちた可能性もあるので、リンクから実行を開いて確かめてください。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

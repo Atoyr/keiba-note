@@ -135,13 +135,17 @@ Google アカウント（100 件まで）しかログインできない。
 
 ### 6. シークレットを入れる
 
-3つとも、実行すると値の入力を求められる。**デプロイし直す必要はない。**
+どれも、実行すると値の入力を求められる。**デプロイし直す必要はない。**
 
 ```bash
 pnpm exec wrangler secret put GOOGLE_CLIENT_ID
 pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
 pnpm exec wrangler secret put ADMIN_EMAIL
+pnpm exec wrangler secret put DISCORD_WEBHOOK_URL
 ```
+
+`DISCORD_WEBHOOK_URL` は障害を知らせる Discord の Webhook（→ [monitoring.md](./monitoring.md)）。
+入れなければ通知だけが止まり、アプリは動く。
 
 `ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
 
@@ -209,6 +213,9 @@ main の CI 成功            → staging.yml     ステージング D1 更新 �
 リリース publish           → deploy.yml      検証 ＋ E2E ＋ マイグレーション → デプロイ
 main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
 ```
+
+ほかに監視のためのものが2本ある。`health.yml`（30分ごとに本番の `/api/health` を叩く）と、
+Discord へ送る部品の `discord-notify.yml`（→ [monitoring.md 第7章](./monitoring.md)）。
 
 **アプリは `main` にマージしても本番には出ない。** 出るのはリリース publish のときだけ。
 ステージングには `main` の CI が成功したコミットを反映する（[ステージング環境](./staging.md)）。
@@ -300,10 +307,12 @@ Specified Workers で絞れるようになった代わりに、アカウント�
 
 Settings > Secrets and variables > Actions。
 
-| 種別   | 名前                    | 値                                     |
-| ------ | ----------------------- | -------------------------------------- |
-| Secret | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                     |
-| Secret | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID |
+| 種別     | 名前                    | 値                                                          |
+| -------- | ----------------------- | ----------------------------------------------------------- |
+| Secret   | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                                          |
+| Secret   | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID                      |
+| Secret   | `DISCORD_WEBHOOK_URL`   | Discord の Webhook。無ければ Actions からの通知だけが止まる |
+| Variable | `HEALTH_CHECK_URL`      | `https://uma-memo.com/api/health`。無ければ死活監視が止まる |
 
 以前あった `DEPLOY_ENABLED` というリポジトリ変数の栓は廃止した。
 デプロイの入口がリリース publish に変わって、
@@ -320,6 +329,9 @@ Settings > Secrets and variables > Actions。
 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` は
 `pnpm exec wrangler secret put` で Cloudflare に入れる。**GitHub 側には要らない。**
 毎回のデプロイで入れ直す必要もない。
+
+例外は `DISCORD_WEBHOOK_URL` で、Worker と Actions の両方が Discord に送るので**両方に入れる**。
+差し替えるときも両方（→ [monitoring.md 第8章](./monitoring.md)）。
 
 ### このリポジトリは public なので
 

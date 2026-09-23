@@ -1,0 +1,133 @@
+name: 死活監視
+
+# 本番の /api/health を外から定期的に叩く（docs/monitoring.md）。
+# Worker 自身は「自分が応答していない」ことを知らせられないので、外から見る。
+#
+# 通知するのは状態が変わったときだけ（落ちた / 戻った）。落ちているあいだ毎回送ると、
+# 30分ごとに同じ通知が積もる。前回の状態は、確認が済んだ直近の実行の「結果」ジョブで見る
+# （落ちていたら「結果」を失敗にしてある）。
+#
+# 叩く先はリポジトリ変数 HEALTH_CHECK_URL。未設定なら何もしない
+# （/api/health の入ったリリースを出す前に叩くと、ログインへの 302 で「落ちた」になるため）。
+on:
+  schedule:
+    # 毎時 7分と37分。0分ちょうどは GitHub 側が混んで遅れやすい。
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: health
+  cancel-in-progress: false
+
+permissions:
+  # 前回の実行の結果を読むため。
+  actions: read
+
+jobs:
+  probe:
+    name: 確認
+    runs-on: ubuntu-latest
+    outputs:
+      transition: ${{ steps.judge.outputs.transition }}
+      detail: ${{ steps.probe.outputs.detail }}
+      healthy: ${{ steps.probe.outputs.healthy }}
+    steps:
+      - name: /api/health を叩く
+        id: probe
+        env:
+          HEALTH_CHECK_URL: ${{ vars.HEALTH_CHECK_URL }}
+        run: |
+          set -uo pipefail
+          if [ -z "${HEALTH_CHECK_URL}" ]; then
+            echo '::notice::HEALTH_CHECK_URL が未設定なので確認しません'
+            echo 'healthy=skip' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # 一瞬の揺れで「落ちた」にしないよう、3回まで間を空けて試す。
+          for attempt in 1 2 3; do
+            # 届かなければ curl は 000 を出して非 0 で終わる。
+            status="$(curl -s -o body.json -w '%{http_code}' --max-time 15 "$HEALTH_CHECK_URL")" || true
+            status="${status:-000}"
+            if [ "$status" = 200 ] && jq -e '.status == "ok"' body.json > /dev/null 2>&1; then
+              echo "healthy=true" >> "$GITHUB_OUTPUT"
+              echo "detail=HTTP $status" >> "$GITHUB_OUTPUT"
+              echo "OK（$attempt 回目）"
+              exit 0
+            fi
+            echo "NG: HTTP $status（$attempt 回目）"
+            [ "$attempt" -lt 3 ] && sleep 20
+          done
+          echo "healthy=false" >> "$GITHUB_OUTPUT"
+          echo "detail=HTTP $status（3回とも）" >> "$GITHUB_OUTPUT"
+
+      - name: 前回と比べる
+        id: judge
+        if: steps.probe.outputs.healthy != 'skip'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEALTHY: ${{ steps.probe.outputs.healthy }}
+        # 前回の状態は、実行全体の結果ではなく「確認が最後まで済んだ直近の実行」の
+        # 「結果」ジョブで読む。実行全体の結果だと、GitHub 側の揺れ（API のエラー・ランナーの障害）や
+        # 取り消しで失敗・取り消しになった回を、本番が落ちた・正常だったと読み違える。
+        # ここが失敗しても確認のジョブは落とさない（前回が分からないだけにする）。
+        run: |
+          set -uo pipefail
+          previous=unknown
+          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow health.yml \
+            --status completed --limit 10 --json databaseId --jq '.[].databaseId')" || runs=''
+          for id in $runs; do
+            jobs="$(gh run view "$id" --repo "$GITHUB_REPOSITORY" --json jobs \
+              --jq '.jobs | map({ (.name): .conclusion }) | add')" || continue
+            [ "$(jq -r '.["確認"] // ""' <<<"$jobs")" = success ] || continue
+            if [ "$(jq -r '.["結果"] // ""' <<<"$jobs")" = failure ]; then
+              previous=down
+            else
+              previous=up
+            fi
+            break
+          done
+          echo "前回: $previous / 今回: $HEALTHY"
+
+          # 前回が分からないときは、落ちていれば知らせ（取りこぼしより重複のほうがまし）、
+          # 正常なら何も送らない。
+          if [ "$HEALTHY" = false ] && [ "$previous" != down ]; then
+            echo 'transition=down' >> "$GITHUB_OUTPUT"
+          elif [ "$HEALTHY" = true ] && [ "$previous" = down ]; then
+            echo 'transition=up' >> "$GITHUB_OUTPUT"
+          fi
+
+  notify-down:
+    name: 落ちたことを通知
+    needs: [probe]
+    if: needs.probe.outputs.transition == 'down'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      level: error
+      title: 本番が応答しない（/api/health）
+      description: ${{ needs.probe.outputs.detail }}。Workers Logs の d1.query.failed / request.unhandled と、Cloudflare のステータスを確かめてください。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+  notify-up:
+    name: 戻ったことを通知
+    needs: [probe]
+    if: needs.probe.outputs.transition == 'up'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      level: success
+      title: 本番が応答を取り戻した（/api/health）
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+  # 落ちている間はこの実行を失敗にしておく。次の実行が「前回は落ちていた」を読むため。
+  # 通知のジョブより後に置き、通知が済んでから落とす。
+  result:
+    name: 結果
+    needs: [probe, notify-down, notify-up]
+    if: always() && needs.probe.outputs.healthy == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo '本番が応答していません'
+          exit 1

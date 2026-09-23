@@ -7,6 +7,8 @@
 - 更新日: 2026-09-23 — AGENTS.md の「ランタイム上の約束」「DB とデータ」を第0章に移し、
   依存の向きの表（第2章）をここを正にした
 - 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てた（→ 第4章 / 第6章）
+- 更新日: 2026-09-23 — 監視（`lib/server/monitoring/`）を足し、`createDb` が D1 の observer を受けるようにした
+  （→ 第2章 / 3-1 / 第8章、詳細は [monitoring.md](./monitoring.md)）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -26,7 +28,7 @@
 - **メモを読む関数は `viewerId` を必須引数で受け取り、SQL の WHERE に `author_id = :viewer` を入れる。**
   省略可能にした時点で、絞り忘れが「全ユーザーに見える」に直結する。
   `visibility` を見てよいのは共有ページ `/notes/[id]` だけ（→ 3-6・3-7）
-- **D1 クライアントはリクエストごとに `createDb(platform.env)` で作る。** モジュールスコープに
+- **D1 クライアントはリクエストごとに `createDb(platform.env, locals.monitor.onQuery)` で作る。** モジュールスコープに
   接続やユーザー情報を持たせない。Workers の実行環境は複数のリクエストで使い回される（→ 3-1）
 - **認証の判断は `src/hooks.server.ts` に閉じる。** ルートは `locals.user` だけを見る。
   ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）
@@ -187,6 +189,11 @@ export async function getHorseTimeline(event: RequestEvent) { ... }
 
 route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin`）。
 
+monitoring（`lib/server/monitoring/`。ログと Discord への通知）は endpoint からだけ使う。
+monitoring が import してよいのは pure と db（`errors.ts` と observer の型）だけ。
+**db は monitoring を import しない。** `createDb` は observer を引数で受け、ルートが `locals.monitor.onQuery` を渡す。
+service と auth も monitoring を知らない（失敗は投げたままにし、ルートか `handleError` が拾う）。
+
 - **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
   `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
   止めるが `import type` は通す
@@ -210,7 +217,7 @@ horses ← races ← notes ← share ← dashboard
          出馬表・枠   印・タグ・的中  リンク   今週
 ```
 
-- 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・
+- 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
   `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない
 - **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない
 - 今ある違反（直す予定）は [harness.md 2-5](./harness.md)
@@ -227,13 +234,17 @@ D1 への入口は `event.platform.env.DB` というバインディング1つ。
 ```ts
 // src/lib/server/db/index.ts
 import { drizzle } from 'drizzle-orm/d1';
+import { instrumentD1, type QueryObserver } from './instrument';
 import * as schema from './schema';
 
-export function createDb(env: App.Platform['env']) {
-  return drizzle(env.DB, { schema });
+export function createDb(env: App.Platform['env'], observe: QueryObserver) {
+  return drizzle(instrumentD1(env.DB, observe), { schema });
 }
 export type Db = ReturnType<typeof createDb>;
 ```
+
+`instrumentD1` は D1 の binding を包み、クエリごとの時間と失敗を `observe` に渡す
+（D1 の失敗と遅いクエリの監視。→ [monitoring.md 第3章](./monitoring.md)）。
 
 Workers の実行環境は複数リクエストで再利用されうるため、
 **モジュールスコープに DB 接続やユーザー情報を保持するとリクエスト間で漏れる。**
@@ -685,7 +696,8 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 | 項目 | どうするか |
 | --- | --- |
 | **バックアップ** | D1 の Time Travel で過去7日間（Free）の任意の時点に復元できる。**別途バックアップの仕組みは作らない。** 節目で `pnpm exec wrangler d1 export` を手動実行して手元に置けば十分 |
-| **ログ** | Workers Logs が Free で 200,000 イベント/日・3日保持。設定不要で使える |
+| **ログ** | Workers Logs が Free で 200,000 イベント/日・3日保持（`[observability] enabled = true`）。構造化ログの形と出さないものは [monitoring.md](./monitoring.md) |
+| **通知** | ERROR と、GitHub Actions の失敗・本番デプロイの結果を Discord へ。死活監視は `health.yml` が `/api/health` を外から叩く（→ [monitoring.md](./monitoring.md)） |
 | **メトリクス** | Cloudflare ダッシュボードの Worker / D1 メトリクス。rows read/written はここで実測を確認できる |
 | **シークレット** | `pnpm exec wrangler secret put`（本番）/ `.dev.vars`（ローカル、`.gitignore` 済み） |
 | **マイグレーション** | `wrangler d1 migrations apply` を GitHub Actions のデプロイ前に実行 |

@@ -25,6 +25,15 @@ directory = ".svelte-kit/cloudflare"
 [observability]
 enabled = true
 
+# 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
+# ローカルは hooks.server.ts が `dev` を見て local にする。
+[vars]
+APP_ENV = "production"
+
+# Workers Previews は本番の vars を継承しない。
+[previews.vars]
+APP_ENV = "staging"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "k-note"

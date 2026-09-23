@@ -1,0 +1,92 @@
+name: Discord 通知
+
+# 他のワークフローから呼ぶ部品（workflow_call）。Actions から Discord へ送るのはここだけ。
+# Worker からの通知は src/lib/server/monitoring/discord.ts（docs/monitoring.md）。
+#
+# 送信に失敗してもジョブは落とさない。通知が落ちたことで、成功したデプロイが
+# 失敗に見えるのを避ける（警告の注記だけ残す）。
+on:
+  workflow_call:
+    inputs:
+      level:
+        description: 'error / warn / success'
+        type: string
+        required: true
+      title:
+        type: string
+        required: true
+      description:
+        type: string
+        required: false
+        default: ''
+    secrets:
+      DISCORD_WEBHOOK_URL:
+        required: false
+
+permissions: {}
+
+jobs:
+  send:
+    name: 送信
+    runs-on: ubuntu-latest
+    steps:
+      # 値はすべて環境変数で渡し、JSON は jq で組む。
+      # run の中に ${{ }} で埋め込むと、ブランチ名などがシェルとして解釈されうる。
+      - name: Discord へ送る
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          LEVEL: ${{ inputs.level }}
+          TITLE: ${{ inputs.title }}
+          DESCRIPTION: ${{ inputs.description }}
+          # 呼び出し元の実行（workflow_call では github.* は呼び出し元を指す）。
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          WORKFLOW: ${{ github.workflow }}
+          REF: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DISCORD_WEBHOOK_URL}" ]; then
+            echo '::notice::DISCORD_WEBHOOK_URL が未設定なので送りません'
+            exit 0
+          fi
+
+          case "$LEVEL" in
+            error)   color=14427686; icon='🔴' ;;  # #dc2626
+            warn)    color=15381256; icon='🟡' ;;  # #eab308
+            success) color=1483594;  icon='🟢' ;;  # #16a34a
+            *)       color=6908265;  icon='⚪' ;;
+          esac
+
+          payload="$(jq -n \
+            --arg title "$icon $TITLE" \
+            --arg description "$DESCRIPTION" \
+            --arg url "$RUN_URL" \
+            --argjson color "$color" \
+            --arg workflow "$WORKFLOW" \
+            --arg ref "$REF" \
+            --arg sha "${SHA:0:7}" \
+            --arg actor "$ACTOR" \
+            '{
+              allowed_mentions: { parse: [] },
+              embeds: [({
+                title: $title,
+                url: $url,
+                color: $color,
+                fields: [
+                  { name: "Workflow", value: $workflow, inline: true },
+                  { name: "Ref", value: ("`" + $ref + "`"), inline: true },
+                  { name: "Commit", value: ("`" + $sha + "`"), inline: true },
+                  { name: "Actor", value: $actor, inline: true }
+                ],
+                timestamp: (now | todate)
+              } + (if $description == "" then {} else { description: $description } end))]
+            }')"
+
+          # URL はログに出さない（-s で進捗も出さない）。
+          if ! curl -sS --fail-with-body --max-time 10 \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary "$payload" \
+            "$DISCORD_WEBHOOK_URL" > /dev/null; then
+            echo '::warning::Discord への通知に失敗しました'
+          fi

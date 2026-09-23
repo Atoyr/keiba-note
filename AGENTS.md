@@ -52,6 +52,7 @@ AGENTS.md
 | [docs/product.md](./docs/product.md)                                              | 何を・なぜ作るか（要件・データモデル・画面の仕様・やらないこと） |
 | [docs/harness.md](./docs/harness.md)                                              | この仕組み全体の設計（6層・コンテキスト・これから入れる規則）    |
 | [docs/operations.md](./docs/operations.md) / [docs/staging.md](./docs/staging.md) | Cloudflare の構築・本番デプロイ / ステージングの更新             |
+| [docs/monitoring.md](./docs/monitoring.md)                                        | ログ・Discord への通知・死活監視（ログやエラー処理を触るとき）   |
 | [data/README.md](./data/README.md)                                                | 出走馬データ（YAML）の書式と投入                                 |
 
 ## 作業の手順
