@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { replayEarlyInput, type EarlyInput } from './early-input';
+import { replayEarlyInput, resetEarlyInput, type EarlyInput } from './early-input';
 
 /**
  * 実 chromium で DOM に書き戻す。記録は `src/app.html` が取るので、ここでは
@@ -29,7 +29,7 @@ describe('replayEarlyInput', () => {
 		const seen = listen(root);
 		const el = root.querySelector('textarea')!;
 
-		expect(replayEarlyInput([{ el, value: '書いた' }], root)).toBe(1);
+		expect(replayEarlyInput([{ el, value: '書いた', initial: '' }], root)).toBe(1);
 		expect(el.value).toBe('書いた');
 		expect(seen).toEqual(['body:input']);
 	});
@@ -40,7 +40,7 @@ describe('replayEarlyInput', () => {
 		const el = root.querySelector('textarea')!;
 		el.value = '書いた';
 
-		expect(replayEarlyInput([{ el, value: '書いた' }], root)).toBe(0);
+		expect(replayEarlyInput([{ el, value: '書いた', initial: '' }], root)).toBe(0);
 		expect(seen).toEqual([]);
 	});
 
@@ -52,8 +52,8 @@ describe('replayEarlyInput', () => {
 		const [off, on] = root.querySelectorAll('input');
 
 		const records: EarlyInput[] = [
-			{ el: off, checked: false },
-			{ el: on, checked: true }
+			{ el: off, checked: false, initial: true },
+			{ el: on, checked: true, initial: false }
 		];
 		expect(replayEarlyInput(records, root)).toBe(2);
 		expect([off.checked, on.checked]).toEqual([false, true]);
@@ -69,8 +69,8 @@ describe('replayEarlyInput', () => {
 
 		replayEarlyInput(
 			[
-				{ el: tanana, checked: true },
-				{ el: hoshi, checked: true }
+				{ el: tanana, checked: true, initial: false },
+				{ el: hoshi, checked: true, initial: false }
 			],
 			root
 		);
@@ -83,7 +83,7 @@ describe('replayEarlyInput', () => {
 		);
 		const el = root.querySelector('select')!;
 
-		replayEarlyInput([{ el, selected: ['G1', 'G3'] }], root);
+		replayEarlyInput([{ el, selected: ['G1', 'G3'], initial: [] }], root);
 		expect(Array.from(el.selectedOptions, (o) => o.value)).toEqual(['G1', 'G3']);
 	});
 
@@ -102,8 +102,8 @@ describe('replayEarlyInput', () => {
 		expect(
 			replayEarlyInput(
 				[
-					{ el: oldBody, value: '書いた' },
-					{ el: oldMark, checked: true }
+					{ el: oldBody, value: '書いた', initial: '' },
+					{ el: oldMark, checked: true, initial: false }
 				],
 				root
 			)
@@ -118,7 +118,43 @@ describe('replayEarlyInput', () => {
 		stale.remove();
 
 		const root = mount('<textarea name="body"></textarea><textarea name="body"></textarea>');
-		expect(replayEarlyInput([{ el: old, value: '書いた' }], root)).toBe(0);
+		expect(replayEarlyInput([{ el: old, value: '書いた', initial: '' }], root)).toBe(0);
 		expect(Array.from(root.querySelectorAll('textarea'), (t) => t.value)).toEqual(['', '']);
+	});
+});
+
+describe('resetEarlyInput', () => {
+	it('触った欄を SSR の値に戻す（bind:value で書いた値が残った欄も）。イベントは投げない', () => {
+		const root = mount(
+			'<textarea name="body">保存済み</textarea><input type="checkbox" name="tags" value="不利">'
+		);
+		const seen = listen(root);
+		const [body, tag] = root.querySelectorAll<HTMLTextAreaElement | HTMLInputElement>(
+			'textarea, input'
+		);
+		body.value = '書いた';
+		(tag as HTMLInputElement).checked = true;
+
+		resetEarlyInput(
+			[
+				{ el: body, value: '書いた', initial: '保存済み' },
+				{ el: tag, checked: true, initial: false }
+			],
+			root
+		);
+		expect(body.value).toBe('保存済み');
+		expect((tag as HTMLInputElement).checked).toBe(false);
+		expect(seen).toEqual([]);
+	});
+
+	it('ラジオは組ごと SSR の選択に戻す（触っていない ◎ も選び直す）', () => {
+		const root = mount(
+			'<input type="radio" name="mark" value="◎" checked><input type="radio" name="mark" value="△">'
+		);
+		const [honmei, hoshi] = root.querySelectorAll('input');
+		hoshi.checked = true;
+
+		resetEarlyInput([{ el: hoshi, checked: true, initial: false }], root);
+		expect([honmei.checked, hoshi.checked]).toEqual([true, false]);
 	});
 });

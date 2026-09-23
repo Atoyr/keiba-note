@@ -68,7 +68,8 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   非制御の入力欄（`<textarea>{値}</textarea>`・`checked={値}`）を SSR の値に戻すので、JS が届く前に
   書いたものが消え、「空欄＝消す」フォームでは保存で消える。`src/app.html` のインラインスクリプトが
   入力を覚え、ルートレイアウトの onMount が書き戻して `input` / `change` を投げる
-  （`src/lib/utils/early-input.ts`）。フォームごとに何もしなくてよい。
+  （`src/lib/utils/early-input.ts`）。書き戻した値は `DraftKeeper` の「未保存」に数えられる。
+  `bind:value` の欄も同じ扱いになるので、フォームごとに何もしなくてよい。
   `kit.csp` を入れるときは、このスクリプトに nonce が要る
 - フィールド名と action の一覧は [api.md 第3章](./api.md)
 

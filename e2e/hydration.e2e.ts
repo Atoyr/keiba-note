@@ -47,6 +47,23 @@ test('hydration 前に書いた本文は残り、未保存に数えられる', a
 	await expect(body).toHaveValue('hydration のあとに書いた。');
 });
 
+/**
+ * 予想画面の本文は `bind:value`（`Textarea`）なので、hydration では消えない。
+ * そのぶん `DraftKeeper` が書いた値を「保存済み」と読みやすい。未保存に数えられることを見る。
+ */
+test('予想画面でも、hydration 前に書いた見立ては未保存に数えられる', async ({ page }) => {
+	await login(page);
+	const release = await openWithoutJs(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	const body = page.locator('textarea[name="raceNoteBody"]');
+	await body.fill('hydration の前に書いた見立て。');
+
+	release();
+	await waitForHydration(page);
+	await expect(body).toHaveValue('hydration の前に書いた見立て。');
+	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
+});
+
 test('hydration 前に付けた札は残る', async ({ page }) => {
 	await login(page);
 	const release = await openWithoutJs(page, `/races/${BRACKET_RACE_ID}`);
@@ -62,6 +79,7 @@ test('hydration 前に付けた札は残る', async ({ page }) => {
 	release();
 	await waitForHydration(page);
 	await expect(tag).toBeChecked({ checked: !rendered });
+	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
 });
 
 test('hydration 前に付け替えた印は残る', async ({ page }) => {
@@ -77,4 +95,5 @@ test('hydration 前に付け替えた印は残る', async ({ page }) => {
 	await waitForHydration(page);
 	await expect(marks.getByRole('radio', { name: '△' })).toBeChecked();
 	await expect(marks.getByRole('radio', { name: '◎' })).not.toBeChecked();
+	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
 });

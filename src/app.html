@@ -6,7 +6,8 @@
 		<meta name="text-scale" content="scale" />
 		<script>
 			// hydration の前に書かれた入力を覚えておく。書き戻すのはルートレイアウト
-			// （src/lib/utils/early-input.ts の replayEarlyInput）。
+			// （src/lib/utils/early-input.ts）。initial は SSR の値（default*）で、JS が届く前は
+			// これが SSR の HTML そのままなので確か。
 			//
 			// Svelte は hydration で入力欄の値を SSR の値に合わせにいくので、JS が届く前に
 			// 打った文字や付けた札は消える。フォームは「空欄＝そのメモを消す」ので、
@@ -22,14 +23,18 @@
 					const el = e.target;
 					let snap;
 					if (el instanceof HTMLSelectElement) {
-						snap = { el, selected: Array.from(el.selectedOptions, (o) => o.value) };
+						const picked = (key) =>
+							Array.from(el.options)
+								.filter((o) => o[key])
+								.map((o) => o.value);
+						snap = { el, selected: picked('selected'), initial: picked('defaultSelected') };
 					} else if (el instanceof HTMLTextAreaElement) {
-						snap = { el, value: el.value };
+						snap = { el, value: el.value, initial: el.defaultValue };
 					} else if (el instanceof HTMLInputElement && el.type !== 'file') {
 						snap =
 							el.type === 'checkbox' || el.type === 'radio'
-								? { el, checked: el.checked }
-								: { el, value: el.value };
+								? { el, checked: el.checked, initial: el.defaultChecked }
+								: { el, value: el.value, initial: el.defaultValue };
 					} else return;
 					// 入れ直して末尾へ回す。ラジオは後から選んだものを最後に当てたいので、
 					// 触った順がそのまま書き戻す順になるようにする。

@@ -10,14 +10,29 @@
  * 記録は `src/app.html` のインラインスクリプトが取る（バンドルは hydration と一緒に
  * 届くので、それより前の入力はバンドルからは拾えない）。ここはそれを受け取って書き戻す。
  *
- * **各フォームを `bind:value` にする案は採らなかった。** Svelte の `bind:value` には
- * hydration 中の変更を保つ処理があるが、チェックボックスとラジオ（札・印）には無く、
- * フォームごとに直すと新しいフォームで同じ穴を開け直す。ここなら非制御のフォーム全部に効く。
+ * **2段で当てる**（ルートレイアウトの onMount）。
+ * 1. `resetEarlyInput` — 触った欄を SSR の値に揃える。`DraftKeeper` はこのあと DOM から
+ *    「保存済みの値」を読むので、書いた値がそこに紛れ込まないようにする。
+ *    `bind:value` の欄（予想画面の `Textarea`）は hydration で書いた値が保たれるので、
+ *    揃えないと書いた値が保存済みに数えられ、未保存の表示も離脱の確認も出なくなる
+ * 2. `replayEarlyInput` — `DraftKeeper` が読んだあとに書いた値を当て、イベントを投げる
+ *
+ * **各フォームを `bind:value` にする案は採らなかった。** 札と印（チェックボックスとラジオ）は
+ * `checked={値}` なので `bind:group` まで書き換えることになり、フォームを足すたびに同じ穴を
+ * 開け直す。ここなら非制御のフォーム全部に効く。
  */
 
-/** 触った入力欄と、そのときの値。`src/app.html` の記録と同じ形。 */
+/**
+ * 触った入力欄と、そのときの値。`initial` は最初に触る前の値（SSR の値）。
+ * `src/app.html` の記録と同じ形。
+ */
 export type EarlyInput =
-	{ el: Node; value: string } | { el: Node; checked: boolean } | { el: Node; selected: string[] };
+	| { el: Node; value: string; initial: string }
+	| { el: Node; checked: boolean; initial: boolean }
+	| { el: Node; selected: string[]; initial: string[] };
+
+/** 入力欄の状態。記録の値と SSR の値のどちらを当てるときも使う。 */
+type State = { value: string } | { checked: boolean } | { selected: string[] };
 
 type Field = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 
@@ -64,13 +79,13 @@ function locate(el: Node, root: Document | HTMLElement): Field | null {
 	return found.length === 1 ? found[0] : null;
 }
 
-/** 記録の値を書く。もう同じ値なら false（`bind:value` の欄は hydration で保たれている）。 */
-function apply(el: Field, r: EarlyInput): boolean {
-	if ('selected' in r) {
+/** 状態を書く。もう同じなら false（`bind:value` の欄は hydration で保たれている）。 */
+function apply(el: Field, s: State): boolean {
+	if ('selected' in s) {
 		if (!(el instanceof HTMLSelectElement)) return false;
 		let changed = false;
 		for (const o of el.options) {
-			const on = r.selected.includes(o.value);
+			const on = s.selected.includes(o.value);
 			if (o.selected !== on) {
 				o.selected = on;
 				changed = true;
@@ -78,18 +93,49 @@ function apply(el: Field, r: EarlyInput): boolean {
 		}
 		return changed;
 	}
-	if ('checked' in r) {
-		if (!(el instanceof HTMLInputElement) || el.checked === r.checked) return false;
-		el.checked = r.checked;
+	if ('checked' in s) {
+		if (!(el instanceof HTMLInputElement) || el.checked === s.checked) return false;
+		el.checked = s.checked;
 		return true;
 	}
-	if (el instanceof HTMLSelectElement || el.value === r.value) return false;
-	el.value = r.value;
+	if (el instanceof HTMLSelectElement || el.value === s.value) return false;
+	el.value = s.value;
 	return true;
+}
+
+const initialState = (r: EarlyInput): State =>
+	'value' in r
+		? { value: r.initial }
+		: 'checked' in r
+			? { checked: r.initial }
+			: { selected: r.initial };
+
+/**
+ * 触った欄を SSR の値に揃える。イベントは投げない（画面側に知らせるのは書き戻すときだけ）。
+ *
+ * ラジオは同じ name の組ごと SSR の状態（`defaultChecked`）に戻す。触っていない ◎ が
+ * 選択を外されたままだと、組として SSR の状態にならない。`defaultChecked` は Svelte が
+ * アイドル時に属性を外すまで SSR の値のままで、onMount はそれより前に走る。
+ */
+export function resetEarlyInput(
+	records: readonly EarlyInput[],
+	root: Document | HTMLElement = document
+) {
+	for (const r of records) {
+		const el = locate(r.el, root);
+		if (!el) continue;
+		if (el instanceof HTMLInputElement && el.type === 'radio' && el.name) {
+			for (const c of root.querySelectorAll(`input[type="radio"][name="${CSS.escape(el.name)}"]`))
+				if (c instanceof HTMLInputElement && c.form === el.form) c.checked = c.defaultChecked;
+			continue;
+		}
+		apply(el, initialState(r));
+	}
 }
 
 /**
  * 記録を触った順に書き戻し、書いた欄に `input`（札・印・選択肢は `change` も）を投げる。
+ * `resetEarlyInput` のあと、`DraftKeeper` が保存済みの値を読んでから呼ぶ。
  *
  * イベントを投げるのは、書き戻した値を画面側に知らせるため。`DraftKeeper` はこれで
  * 「未保存の変更」に数え、`bind:` の付いた欄は状態を合わせる。
