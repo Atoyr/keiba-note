@@ -475,7 +475,9 @@ export type PastRun = {
 	finish?: number;
 	/** 着順が数字でないときの表記（`取` `除` `中` など）。 */
 	status?: string;
+	/** 戦績表の騎手名。4文字で切れている（`佐々木大`）ので、`jockeyId` があれば引き直す。 */
 	jockey?: string;
+	jockeyId?: string;
 	weight?: number;
 	time?: string;
 	passing?: string;
@@ -539,6 +541,7 @@ export function parseHorseResults(html: string): PastRun[] {
 			finish,
 			status: finish === undefined && finishText ? finishText : undefined,
 			jockey: toHalfWidth(text(at(tds, '騎手'))) || undefined,
+			jockeyId: person(at(tds, '騎手'), 'jockey')?.id,
 			weight: num(text(at(tds, '斤量'))),
 			time: text(at(tds, 'タイム')) || undefined,
 			passing: text(at(tds, '通過')) || undefined,

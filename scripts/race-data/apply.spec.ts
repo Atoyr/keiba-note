@@ -6,7 +6,7 @@ import {
 	applyShutuba,
 	type ResolvePerson
 } from './apply.ts';
-import type { PastRun, ResultRow, ShutubaRow } from './netkeiba.ts';
+import type { PastRun, Person, ResultRow, ShutubaRow } from './netkeiba.ts';
 import { RaceFile } from './yaml-file.ts';
 
 const resolve: ResolvePerson = async (kind, p) =>
@@ -285,6 +285,23 @@ races:
 			'ホースC',
 			'ホースB'
 		]);
+	});
+
+	it('騎手は ID から略さない名前に引き直す', async () => {
+		const file = RaceFile.parse('2026-08-09.yaml', 'date: 2026-08-09\n\nraces: []\n');
+		const asked: Person[] = [];
+		await applyPastRuns(
+			async () => file,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[run('2026-08-09', { jockey: '佐々木大', jockeyId: '01197' })],
+			{ before: '2026-09-27', count: 5 },
+			async (_kind, p) => {
+				asked.push(p);
+				return '佐々木大輔';
+			}
+		);
+		expect(asked).toEqual([{ id: '01197', short: '佐々木大' }]);
+		expect(file.toString()).toContain('        jockey: 佐々木大輔\n');
 	});
 });
 

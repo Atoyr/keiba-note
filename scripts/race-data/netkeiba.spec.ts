@@ -401,6 +401,7 @@ describe('parseHorseResults', () => {
 			finish: 2,
 			status: undefined,
 			jockey: '横山典弘',
+			jockeyId: '00660',
 			weight: 57,
 			time: '2:16.9',
 			passing: '6-6-7-5',

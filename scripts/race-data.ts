@@ -262,6 +262,7 @@ async function main() {
 			const t = parseTarget(args);
 			const { file, race } = await loadRace(args, t);
 			const files = new Map<string, RaceFile>([[t.date, file]]);
+			const people = await peopleResolver();
 			const openFile = async (date: string) => {
 				if (!files.has(date)) files.set(date, await RaceFile.load(args.dir, date, '過去走'));
 				return files.get(date)!;
@@ -278,12 +279,16 @@ async function main() {
 					continue;
 				}
 				const runs = parseHorseResults(await fetchPage(urls.horseResults(horseId)));
-				const log = await applyPastRuns(openFile, { name, ref }, runs, {
-					before: t.date,
-					count: args.count
-				});
+				const log = await applyPastRuns(
+					openFile,
+					{ name, ref },
+					runs,
+					{ before: t.date, count: args.count },
+					people.resolve
+				);
 				print(name, log);
 			}
+			await people.flush();
 			await saveAll(files.values());
 			return;
 		}
