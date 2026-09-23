@@ -6,6 +6,10 @@
 /*
  * shadcn-svelte のテーマ変数（base color: neutral）。
  * `.dark` を付けるところは今は無いので、実質ライトモードのみ。
+ *
+ * テーマカラーは栗毛（蹄鉄のファビコンと同じ茶）で、`--primary` と `--ring` にだけ入れる。
+ * 赤・青・緑・黄・橙はグレードと枠色、状態の色で意味が決まっているので、それらと被らない色にした
+ * （docs/design-system.md 2-2）。背景と罫線は無彩色のまま。
  */
 :root {
 	--radius: 0.625rem;
@@ -15,7 +19,7 @@
 	--card-foreground: oklch(0.145 0 0);
 	--popover: oklch(1 0 0);
 	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.205 0 0);
+	--primary: oklch(0.456 0.087 60);
 	--primary-foreground: oklch(0.985 0 0);
 	--secondary: oklch(0.97 0 0);
 	--secondary-foreground: oklch(0.205 0 0);
@@ -26,7 +30,7 @@
 	--destructive: oklch(0.577 0.245 27.325);
 	--border: oklch(0.922 0 0);
 	--input: oklch(0.922 0 0);
-	--ring: oklch(0.708 0 0);
+	--ring: oklch(0.609 0.087 62.6);
 	--chart-1: oklch(0.646 0.222 41.116);
 	--chart-2: oklch(0.6 0.118 184.704);
 	--chart-3: oklch(0.398 0.07 227.392);
