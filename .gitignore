@@ -32,5 +32,10 @@ test-results
 # 内容が変わるため、コミットせず prepare / build で毎回生成する。
 worker-configuration.d.ts
 
-# Claude Code のワークツリーとローカル設定
-.claude/
+# Claude Code のワークツリーとローカル設定。
+# .claude/agents/（Evaluator など）と .claude/settings.json は共有するのでコミットする。
+/.claude/worktrees/
+/.claude/settings.local.json
+
+# エージェントの作業メモ（AGENTS.md「作業の手順」）
+/TASKS.md

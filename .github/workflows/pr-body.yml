@@ -1,0 +1,28 @@
+name: PR 本文
+
+# 本文を書き換えたときにも回したいので、ci.yml（コードの検証）とは分ける。
+# 同じワークフローにすると、本文を直すたびに E2E まで走り直す。
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: 欄が埋まっているか
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # 本文は環境変数で渡す。run の中に ${{ }} で埋め込むと、本文がシェルとして解釈されうる。
+      - run: node --experimental-strip-types scripts/check-pr-body.ts
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
