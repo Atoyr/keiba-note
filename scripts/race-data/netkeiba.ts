@@ -391,6 +391,14 @@ export function parseShutuba(html: string): { meta: RaceMeta; rows: ShutubaRow[]
 // 結果
 // ---------------------------------------------------------------------------
 
+/**
+ * 上がり3F。**障害は読まない。** netkeiba の障害の「上り」は1Fあたりの平均（13秒台）で、
+ * 平地の上がり3Fと並べられず、`last3f` の範囲（20〜60秒）にも入らない。
+ */
+function last3fOf(surface: Surface | undefined, cell: string | undefined): number | undefined {
+	return surface === '障害' ? undefined : num(text(cell ?? ''));
+}
+
 export type ResultRow = {
 	/** 着順。取消・除外・中止・失格なら undefined で、`status` に理由が入る。 */
 	finish?: number;
@@ -416,6 +424,7 @@ export type ResultRow = {
 export function parseResult(html: string): { meta: RaceMeta; rows: ResultRow[] } {
 	const table = tableAfter(html, 'id="All_Result_Table"') ?? '';
 	const rows: ResultRow[] = [];
+	const meta = parseRaceMeta(html);
 
 	// 結果の表は `<tr  class=...` と空白が2つ入る。
 	for (const m of table.matchAll(/<tr\s+class="[^"]*HorseList[^"]*"[\s\S]*?<\/tr>/g)) {
@@ -441,12 +450,12 @@ export function parseResult(html: string): { meta: RaceMeta; rows: ResultRow[] }
 			margin: margin || undefined,
 			popularity: int(text(tds[9] ?? '')),
 			odds: num(text(tds[10] ?? '')),
-			last3f: num(text(tds[11] ?? '')),
+			last3f: last3fOf(meta.surface, tds[11]),
 			passing: text(tds[12] ?? '') || undefined,
 			...parseHorseWeight(tds[14] ?? '')
 		});
 	}
-	return { meta: parseRaceMeta(html), rows };
+	return { meta, rows };
 }
 
 // ---------------------------------------------------------------------------
@@ -533,7 +542,7 @@ export function parseHorseResults(html: string): PastRun[] {
 			weight: num(text(at(tds, '斤量'))),
 			time: text(at(tds, 'タイム')) || undefined,
 			passing: text(at(tds, '通過')) || undefined,
-			last3f: num(text(at(tds, '上り'))),
+			last3f: last3fOf(surface, at(tds, '上り')),
 			...parseHorseWeight(at(tds, '馬体重'))
 		});
 	}
