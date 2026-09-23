@@ -1,0 +1,7 @@
+# Wrangler の D1 マイグレーションコマンドは previews.d1_databases を参照しない。
+# このファイルは wrangler.toml の previews.d1_databases と同じ D1 を指す。
+[[d1_databases]]
+binding = "PREVIEW_DB"
+database_name = "k-note-staging"
+database_id = "cb00f7c8-a0ed-4531-a39d-cde76b0d90bd"
+migrations_dir = "drizzle"

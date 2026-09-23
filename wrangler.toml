@@ -30,3 +30,11 @@ binding = "DB"
 database_name = "k-note"
 database_id = "ff841b63-5859-48de-b868-17c1df1144d0"
 migrations_dir = "drizzle"
+
+# Workers Previews は本番のバインディングを継承しない。
+# すべての Preview は既定で共通のステージング D1 を使う。
+[[previews.d1_databases]]
+binding = "DB"
+database_name = "k-note-staging"
+database_id = "cb00f7c8-a0ed-4531-a39d-cde76b0d90bd"
+migrations_dir = "drizzle"

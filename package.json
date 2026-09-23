@@ -23,14 +23,18 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate:local": "wrangler d1 migrations apply k-note --local",
 		"db:migrate:remote": "wrangler d1 migrations apply k-note --remote",
+		"db:migrate:staging": "wrangler d1 migrations apply PREVIEW_DB --remote --config wrangler.preview-migrations.toml",
 		"deploy": "vite build && wrangler deploy",
 		"docs:check": "node --experimental-strip-types scripts/check-docs.ts",
 		"pr:check": "node --experimental-strip-types scripts/check-pr-body.ts",
+		"deploy:staging": "vite build && wrangler preview --name staging",
 		"data:check": "node --experimental-strip-types scripts/import-races.ts --check",
 		"data:sql:local": "node --experimental-strip-types scripts/import-races.ts --target local --out .wrangler/import-races.sql",
 		"data:sql:remote": "node --experimental-strip-types scripts/import-races.ts --target remote --out .wrangler/import-races.sql",
+		"data:sql:staging": "node --experimental-strip-types scripts/import-races.ts --target remote --all --out .wrangler/import-races-staging.sql",
 		"data:import:local": "pnpm run data:sql:local && wrangler d1 execute k-note --local --file .wrangler/import-races.sql",
-		"data:import:remote": "pnpm run data:sql:remote && wrangler d1 execute k-note --remote --file .wrangler/import-races.sql"
+		"data:import:remote": "pnpm run data:sql:remote && wrangler d1 execute k-note --remote --file .wrangler/import-races.sql",
+		"data:import:staging": "pnpm run data:sql:staging && wrangler d1 execute PREVIEW_DB --remote --config wrangler.preview-migrations.toml --file .wrangler/import-races-staging.sql"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
@@ -65,7 +69,7 @@
 		"vite": "^8.0.16",
 		"vitest": "^4.1.8",
 		"vitest-browser-svelte": "^2.1.1",
-		"wrangler": "^4.97.0",
+		"wrangler": "^4.135.0",
 		"yaml": "^2.9.1"
 	},
 	"dependencies": {

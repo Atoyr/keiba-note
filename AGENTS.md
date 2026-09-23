@@ -47,12 +47,12 @@ AGENTS.md
 
 ほかに、必要なときだけ読むもの:
 
-| 文書                                       | 何が書いてあるか                                                 |
-| ------------------------------------------ | ---------------------------------------------------------------- |
-| [docs/product.md](./docs/product.md)       | 何を・なぜ作るか（要件・データモデル・画面の仕様・やらないこと） |
-| [docs/harness.md](./docs/harness.md)       | この仕組み全体の設計（6層・コンテキスト・これから入れる規則）    |
-| [docs/operations.md](./docs/operations.md) | Cloudflare の構築とデプロイ（人が行う）                          |
-| [data/README.md](./data/README.md)         | 出走馬データ（YAML）の書式と投入                                 |
+| 文書                                                                              | 何が書いてあるか                                                 |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [docs/product.md](./docs/product.md)                                              | 何を・なぜ作るか（要件・データモデル・画面の仕様・やらないこと） |
+| [docs/harness.md](./docs/harness.md)                                              | この仕組み全体の設計（6層・コンテキスト・これから入れる規則）    |
+| [docs/operations.md](./docs/operations.md) / [docs/staging.md](./docs/staging.md) | Cloudflare の構築・本番デプロイ / ステージングの更新             |
+| [data/README.md](./data/README.md)                                                | 出走馬データ（YAML）の書式と投入                                 |
 
 ## 作業の手順
 
