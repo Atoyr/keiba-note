@@ -47,6 +47,37 @@ export function isUpcoming(date: string, today: string): boolean {
 	return date > today;
 }
 
+/**
+ * 結果が出ていて、ふりかえりを書く段になったレースか。**一覧からレースへのリンク先**
+ * （ふりかえりか予想画面か）と、ダッシュボードの進み具合・ふりかえり待ちを決める。
+ * どの画面もこれで分け、画面ごとにずらさない（product.md 第6章 `/races/[id]`）。
+ *
+ * 日付だけ（`isUpcoming`）で決めないのは、当日の朝に見立てを書こうと開いたレースが
+ * ふりかえりへ飛ぶと、書きたい画面に着かないから。走り終えて着順が入れば、そこで初めて
+ * ふりかえりへ向ける。着順が1頭でも入っていれば結果が出たとみる
+ * （取消・除外の馬は着順が空のまま残る）。
+ *
+ * ふりかえり画面が開けるかどうかは `isUpcoming` のまま。結果の投入が遅れても書けるように。
+ */
+export function isSettled(race: { date: string; resultCount: number }, today: string): boolean {
+	return !isUpcoming(race.date, today) && race.resultCount > 0;
+}
+
+/**
+ * 一覧からレースへのリンクがふりかえり（`/races/[id]`）を開くか。偽なら予想画面。
+ *
+ * 基本は `isSettled`。ただし**自分がふりかえりを書いてあれば**、結果の投入前でもふりかえりへ
+ * 向ける（`reviewed`）。結果より先に書くことはあり、予想画面にふりかえりは出ないので、
+ * 「ふりかえり済」の行やふりかえりのメモを押して、書いたものが無い画面に着くことになる。
+ */
+export function opensReview(
+	race: { date: string; resultCount: number },
+	today: string,
+	reviewed = false
+): boolean {
+	return isSettled(race, today) || (reviewed && !isUpcoming(race.date, today));
+}
+
 export type Week = { start: string; end: string };
 
 /** その日を含む週の月曜（JST）。週の基準。 */

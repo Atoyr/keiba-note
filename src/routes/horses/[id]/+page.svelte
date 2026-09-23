@@ -7,8 +7,8 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
-	import { isUpcoming } from '$lib/utils/date';
-	import { noteHeading, runHeading } from '$lib/utils/note';
+	import { isSettled, opensReview } from '$lib/utils/date';
+	import { isReviewNote, noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -168,11 +168,11 @@
 							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
 								<span class="font-mono text-gray-500">{row.occurredAt}</span>
 								<KindBadge label={h.kindLabel} />
-								<!-- 出走予定のレースはふりかえりが書けない。予想画面へ送る。 -->
+								<!-- 結果が出たレースだけふりかえりへ。出走予定や結果の投入前は予想画面へ送る。 -->
 								<a
-									href={row.upcoming
-										? resolve('/races/[id]/preview', { id: row.run.raceId })
-										: resolve('/races/[id]', { id: row.run.raceId })}
+									href={isSettled(row.run, data.today)
+										? resolve('/races/[id]', { id: row.run.raceId })
+										: resolve('/races/[id]/preview', { id: row.run.raceId })}
 									class="text-gray-600 hover:underline"
 								>
 									{h.label}
@@ -187,11 +187,16 @@
 								<span class="font-mono text-gray-500">{n.occurredAt}</span>
 								<KindBadge label={h.kindLabel} />
 								{#if n.raceId}
-									<!-- レース紐付きのメモは occurred_at がレース日なので、それで振り分けられる。 -->
+									<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
+									     ふりかえりのメモは、それが書いてあるふりかえりへ。 -->
 									<a
-										href={isUpcoming(n.occurredAt, data.today)
-											? resolve('/races/[id]/preview', { id: n.raceId })
-											: resolve('/races/[id]', { id: n.raceId })}
+										href={opensReview(
+											{ date: n.occurredAt, resultCount: n.resultCount },
+											data.today,
+											isReviewNote(n.kind)
+										)
+											? resolve('/races/[id]', { id: n.raceId })
+											: resolve('/races/[id]/preview', { id: n.raceId })}
 										class="hover:underline"
 									>
 										{h.label}

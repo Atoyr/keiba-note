@@ -10,7 +10,26 @@ import { findOrCreateHorse } from './horses';
 export type RaceListItem = Pick<
 	Race,
 	'id' | 'date' | 'course' | 'raceNumber' | 'name' | 'grade' | 'className' | 'surface' | 'distance'
-> & { entryCount: number; noteCount: number };
+> & {
+	entryCount: number;
+	noteCount: number;
+	/** 着順の入った出走の数。行き先（予想かふりかえりか）を決める（→ `opensReview`）。 */
+	resultCount: number;
+	/** 自分のふりかえり（`race` と `entry`）の数。書いてあれば結果の前でもふりかえりへ向ける。 */
+	reviewCount: number;
+};
+
+/**
+ * レースの着順の入った出走の数。どの画面でもリンク先を `isSettled` で決めるための材料。
+ *
+ * 出走やメモとの JOIN で行が増えるクエリにもそのまま足せるよう、相関サブクエリにする。
+ * **外側の列を `${}` で埋めない。** Drizzle が修飾なしで展開して内側の race_entry に
+ * 束縛される（`listRaces` の注記）。代わりに外側の `"race"."id"` を文字で書くので、
+ * 外側のクエリに `race` が別名なしで入っていることが前提。LEFT JOIN で race が無い行は 0。
+ */
+export function raceResultCount() {
+	return sql<number>`(SELECT count(*) FROM race_entry AS settled WHERE settled.race_id = "race"."id" AND settled.finish_position IS NOT NULL)`;
+}
 
 /**
  * 絞り込み条件 → WHERE。指定の無い項目は `undefined` を渡して外す。
@@ -56,7 +75,9 @@ export async function listRaces(
 			surface: race.surface,
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
-			noteCount: countDistinct(note.id)
+			noteCount: countDistinct(note.id),
+			resultCount: raceResultCount(),
+			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
@@ -76,8 +97,6 @@ export type RaceProgressItem = RaceListItem & {
 	outlookCount: number;
 	/** 印を付けた出走前メモ。 */
 	markCount: number;
-	/** ふりかえり（`race` と `entry`）。 */
-	reviewCount: number;
 };
 
 /**
@@ -113,6 +132,7 @@ export async function listRacesBetween(
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
 			noteCount: countDistinct(note.id),
+			resultCount: raceResultCount(),
 			outlookCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'race_preview' THEN ${note.id} END)`,
 			markCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'preview' AND ${note.mark} IS NOT NULL THEN ${note.id} END)`,
 			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
@@ -342,7 +362,9 @@ export async function listGradedRacesInWeek(
 			surface: race.surface,
 			distance: race.distance,
 			entryCount: countDistinct(raceEntry.id),
-			noteCount: countDistinct(note.id)
+			noteCount: countDistinct(note.id),
+			resultCount: raceResultCount(),
+			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
@@ -471,6 +493,8 @@ export type HorseRun = {
 	grade: string | null;
 	className: string | null;
 	finishPosition: number | null;
+	/** そのレースで着順の入った出走の数（この馬が取消でも、レースの結果が出ていれば 1 以上）。 */
+	resultCount: number;
 };
 
 /**
@@ -498,7 +522,8 @@ export async function listRunsForHorse(db: Db, horseId: string, limit = 200): Pr
 			raceName: race.name,
 			grade: race.grade,
 			className: race.className,
-			finishPosition: raceEntry.finishPosition
+			finishPosition: raceEntry.finishPosition,
+			resultCount: raceResultCount()
 		})
 		.from(raceEntry)
 		.innerJoin(race, eq(raceEntry.raceId, race.id))

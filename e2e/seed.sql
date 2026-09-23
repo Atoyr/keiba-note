@@ -167,9 +167,30 @@ VALUES ('01JE2ERACEPASTEMPTY0000000', '2026-07-05', '福島', 11, 'E2E結果待�
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACETHISWEEK00000000', date('now', '+9 hours'), '中京', 11, 'E2E今週賞', 'G3', '芝', 1600);
 
+-- 今週（今日）で、**着順まで入った**重賞。今週の重賞から開くとふりかえりへ行くことを見る。
+--
+-- 同じ今日の E2E今週賞は着順が無いので予想画面のまま。**当日かどうかではなく結果の有無で**
+-- 行き先が分かれることを、この2つを並べて確かめる。馬は他のテストと共有しない。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACESETTLED000000000', date('now', '+9 hours'), '中山', 11, 'E2E結果確定賞', 'G2', '芝', 2200);
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSESETTLED00000000', 'E2Eケッカアリ', 2022);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYSETTLED00000000', '01JE2ERACESETTLED000000000', '01JE2EHORSESETTLED00000000', 5, 'E2E騎手', 1);
+
 -- 10日前。今週の頭より前で、かつ3週の窓の中（最短でも今週頭の4日前、最長で10日前）。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACELASTWEEK00000000', date('now', '+9 hours', '-10 days'), '福島', 10, 'E2E先週賞', 'G3', '芝', 2000);
+
+-- E2E先週賞の結果。**着順が入っていないと「ふりかえり待ち」に出ない**（結果が出たかで分ける → isSettled）。
+-- 馬は他のテストと共有しない。
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EHORSELASTWEEK0000000', 'E2Eセンシュウ', 2022);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYLASTWEEK0000000', '01JE2ERACELASTWEEK00000000', '01JE2EHORSELASTWEEK0000000', 4, 'E2E騎手', 3);
 
 -- 40日前。**窓の外**（窓の下端は最も古くて今日の27日前）。ここに出ないことを見る。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
