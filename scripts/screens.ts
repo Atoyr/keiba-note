@@ -1,5 +1,5 @@
 /**
- * PR に貼るキャプチャを撮る（docs/harness.md）。
+ * PR に貼るキャプチャを撮る（docs/testing.md）。
  *
  *   pnpm run screens <機能名> before [画面名...]   # 手を入れる前に撮る
  *   pnpm run screens <機能名> after  [画面名...]   # 直したあとに撮る

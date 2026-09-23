@@ -9,7 +9,7 @@ import { safeRedirect } from '$lib/utils/redirect';
  * ログイン不要で触れるパス。これ以外は全部弾く。
  *
  * `/notes/` は共有ページ。未ログインで開ける唯一のルートだが、そこで出せるのは
- * `visibility = 'unlisted'` の1行だけ（design.md 第6章）。
+ * `visibility = 'unlisted'` の1行だけ（product.md 第6章）。
  *
  * `/robots.txt` はここに要らない。`static/` の実ファイルは Workers Static Assets が
  * 直接返し、**Worker 自体が起動しない**ので hooks を通らない。

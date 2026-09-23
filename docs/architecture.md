@@ -1,12 +1,51 @@
-# k-note アーキテクチャ・コスト・技術選定
+# uma-memo アーキテクチャ・コスト・技術選定
 
-[design.md](./design.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
+[product.md](./product.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
 - 作成日: 2026-09-20
 - 更新日: 2026-09-21 — 招待制をやめて登録を開き、メモを既定非公開にした変更を反映（→ 3-6 / 第6章）
+- 更新日: 2026-09-23 — AGENTS.md の「ランタイム上の約束」「DB とデータ」を第0章に移し、
+  依存の向きの表（第2章）をここを正にした
+- 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てた（→ 第4章 / 第6章）
+- **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
+  第0章だけは、コードを変えるなら毎回
+- **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
+  [frontend.md](./frontend.md)、Cloudflare の構築とデプロイの手順は [operations.md](./operations.md)
 - 料金・制限の出典: Cloudflare 公式ドキュメント（2026-09-20 時点で確認）
   - [Workers Pricing](https://developers.cloudflare.com/workers/platform/pricing/)
   - [D1 Limits](https://developers.cloudflare.com/d1/platform/limits/)
+
+---
+
+## 0. 守ること
+
+破ると本番で他人のメモが漏れるか、Workers で壊れるもの。理由は括弧の先の章にある。
+
+### ランタイム
+
+- **メモを読む関数は `viewerId` を必須引数で受け取り、SQL の WHERE に `author_id = :viewer` を入れる。**
+  省略可能にした時点で、絞り忘れが「全ユーザーに見える」に直結する。
+  `visibility` を見てよいのは共有ページ `/notes/[id]` だけ（→ 3-6・3-7）
+- **D1 クライアントはリクエストごとに `createDb(platform.env)` で作る。** モジュールスコープに
+  接続やユーザー情報を持たせない。Workers の実行環境は複数のリクエストで使い回される（→ 3-1）
+- **認証の判断は `src/hooks.server.ts` に閉じる。** ルートは `locals.user` だけを見る。
+  ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）
+- **依存は一方向。** サービス層（`src/lib/server/services/`）は SvelteKit を import しない。
+  画面側はサーバーのコードを型ですら import しない（→ 第2章）
+- 1リクエストの D1 クエリは10以内（Free の上限は50）。超えそうなら JOIN か `batch()` にまとめる（→ 7-1）
+- **セッショントークンは DB に平文で入れない。** 保存するのは SHA-256 ハッシュだけ
+- `nodejs_compat` は付けない（起動コストとバンドルが増える。採用ライブラリは Web 標準 API で動く）。
+  `compatibility_date` は意図して上げるとき以外は変えない（→ 5-4）
+- モック認証（`MOCK_AUTH`）は `dev` ガードの中にだけ置く。本番ビルドから分岐ごと消えるのが前提
+
+### DB とデータ
+
+- スキーマの正は `src/lib/server/db/schema.ts`。マイグレーションは `pnpm run db:generate` で作り、
+  生成された `drizzle/*.sql` と `drizzle/meta/` は手で直さない。生成物も一緒にコミットする
+- 出走馬データは画面からではなく `data/races/*.yaml` で入れる。書式は [data/README.md](../data/README.md)。
+  触ったら `pnpm run data:check` を通す。`main` にマージされるとリリースを待たずに
+  `data-import.yml` が本番に投入するので、PR 本文にその旨を書く（→ 第4章）
+- **本番の D1（`--remote`）、`wrangler secret`、`deploy` は人が行う。** エージェントからは叩かない
 
 ---
 
@@ -123,62 +162,58 @@ export async function getHorseTimeline(event: RequestEvent) { ... }
 これが効いてくる場面は3つ。
 
 1. **テスト** — Vitest から D1 のローカルインスタンスを渡して直接呼べる。HTTP のモックが要らない
-2. **将来の API 追加** — [design.md](./design.md) のとおり当面 REST API は作らないが、
+2. **将来の API 追加** — [api.md](./api.md) のとおり当面 REST API は作らないが、
    必要になったとき `+server.ts` から同じサービス関数を呼ぶだけで済む
 3. **移植性** — 万一 Cloudflare から離れることになっても、business logic は素の TypeScript のまま残る
 
-### モジュール依存図
+### 依存の向き — どこからどこを import してよいか
 
-実際のファイル間の依存。**矢印が逆向きになったらレイヤ違反。**
+依存は**縦（層）と横（機能）の2軸**で決め、どちらも一方向にする。
+今は約束で、ESLint の規則として `pnpm run lint` で止めるのは [harness.md 第2層](./harness.md) の PR から。
+ファイル単位の依存図は手で描くとすぐ実物とずれるので置かない。正はこの節と、規則を入れたあとの `eslint.config.js`。
 
-```mermaid
-flowchart LR
-    subgraph routes["src/routes/"]
-        RH["races/[id]/+page.server.ts"]
-        HH["horses/[id]/+page.server.ts"]
-        AC["auth/google/callback/+server.ts"]
-    end
+**縦の軸 — 層**（上の図の6層を、import の単位に割ったもの）
 
-    HK["src/hooks.server.ts"]
+| from ＼ to | component | ui | pure | service | auth | db | route-helper |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| page（`+page.svelte`・`+layout.svelte`） | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| component（`lib/components/`） | ✓ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| ui（`lib/components/ui/`） | ✗ | ✓ | `utils.ts` だけ | ✗ | ✗ | ✗ | ✗ |
+| endpoint（`.server.ts`・`+server.ts`・`hooks.server.ts`） | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| service（`lib/server/services/`） | ✗ | ✗ | ✓ | 横の軸に従う | ✗ | ✓ | ✗ |
+| auth（`lib/server/auth/`） | ✗ | ✗ | ✓ | ✗ | ✓ | ✓ | ✗ |
+| db（`lib/server/db/`） | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ | ✗ |
+| pure（`lib/schemas/`・`lib/utils/`） | ✗ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ |
 
-    subgraph schemas["src/lib/schemas/"]
-        SC["note.ts / race.ts / horse.ts"]
-    end
+route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin`）。
 
-    subgraph services["src/lib/server/services/"]
-        SN["notes.ts"]
-        SR["races.ts"]
-        SHO["horses.ts"]
-    end
+- **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
+  `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
+  止めるが `import type` は通す
+- **SQL は db と service（と auth）にしか無い。** `drizzle-orm` をルートやコンポーネントから import しない
 
-    subgraph auth["src/lib/server/auth/"]
-        AS["session.ts"]
-        AG["google.ts"]
-    end
+パッケージ単位の禁止:
 
-    subgraph db["src/lib/server/db/"]
-        DS["schema.ts"]
-        DI["index.ts"]
-    end
+| 対象 | import しないもの |
+| --- | --- |
+| services / auth / db / schemas / utils | `@sveltejs/kit`・`$app/*` |
+| routes / components / schemas / utils | `drizzle-orm` |
+| auth 以外 | `arctic`・`@oslojs/*` |
 
-    D1[("D1 binding<br/>platform.env.DB")]
+**横の軸 — 機能**
 
-    HK --> AS
-    RH --> SC
-    HH --> SC
-    RH --> SN
-    RH --> SR
-    HH --> SHO
-    HH --> SN
-    AC --> AG
-    AC --> AS
-    SN --> DS
-    SR --> DS
-    SHO --> DS
-    AS --> DS
-    DS --> DI
-    DI --> D1
+機能は次の順に並べ、**右は左を使ってよいが、左は右を使わない**。順位で並べるので循環は起こりえない。
+
 ```
+horses ← races ← notes ← share ← dashboard
+  馬     レース・     メモ・見立て・  共有     ダッシュボード・
+         出馬表・枠   印・タグ・的中  リンク   今週
+```
+
+- 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・
+  `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない
+- **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない
+- 今ある違反（直す予定）は [harness.md 2-5](./harness.md)
 
 ---
 
@@ -239,7 +274,7 @@ sequenceDiagram
 ```
 
 **1ページ＝3クエリ。** タイムラインが1クエリで済むのは、
-[design.md](./design.md) のとおり `note` に `horse_id` を非正規化しているため。
+[product.md](./product.md) のとおり `note` に `horse_id` を非正規化しているため。
 レース紐付きメモと近況メモをマージする処理が要らない。
 
 使うインデックスは `note_author_horse (author_id, horse_id, occurred_at DESC)`。
@@ -345,7 +380,7 @@ SSR の HTML やデータペイロードに乗ってしまう。
 
 `visibility`（`private` / `unlisted`）を見るのは**共有ページ1本だけ**。
 ログイン中の読みはすべて `author_id = :viewer` で閉じているので、
-公開範囲の判定がそもそも要らない（→ [design.md 第2章 2-2](./design.md)）。
+公開範囲の判定がそもそも要らない（→ [product.md 第2章 2-2](./product.md)）。
 
 ```ts
 // routes/notes/[id]/+page.server.ts — ここだけが visibility を見る
@@ -402,7 +437,7 @@ flowchart TB
         C["data:check"] --> IM["data:import:remote"]
     end
 
-    DP --> W["k-note.xxxxx.workers.dev"]
+    DP --> W["uma-memo.com<br/>（k-note.xxxxx.workers.dev も当面残す）"]
     IM --> D
     W --> D[("D1 / apac")]
 ```
@@ -432,7 +467,10 @@ main は「次に出す候補」。どこを出すかはタグを切る側が決
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |
 | local | `vite dev`（Miniflare 経由） | ローカル SQLite（`.wrangler/state`） | 開発 |
-| production | `k-note` | `k-note` | 本番 |
+| production | `k-note` | `k-note` | 本番（`uma-memo.com`） |
+
+Worker と D1 の名前が旧名の `k-note` のままなのは意図どおり。変えると別の Worker・別の D1 になる
+（→ [operations.md「名前について」](./operations.md#名前について)）。
 
 プレビュー環境は当面作らない。この規模のアプリに2系統は要らない。
 必要になったら `wrangler versions upload` によるプレビュー URL を使う。
@@ -499,7 +537,7 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 **Arctic + Oslo** — Lucia はライブラリとしての提供をやめ実装ガイドに移行したため、
 その構成要素である Arctic（OAuth クライアント）と Oslo（暗号・エンコード）を直接使う。
 どちらも Web Crypto ベースで Node 固有 API に依存せず、Workers でそのまま動く。
-セッション管理は自分で書くが、[design.md の第4章](./design.md)のとおり150行程度で収まる範囲。
+セッション管理は自分で書くが、[product.md の第4章](./product.md)のとおり150行程度で収まる範囲。
 
 **Valibot** — Zod と同等の書き味でバンドルが小さい。
 ここも CPU 時間と起動コストに直結するため軽い方を採る。
@@ -508,7 +546,7 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 
 | 候補 | 不採用の理由 |
 | --- | --- |
-| Cloudflare Access | 独自ドメインが必要。`*.workers.dev` は保護できない |
+| Cloudflare Access | 当初は独自ドメインが無く、`*.workers.dev` は保護できなかった。`uma-memo.com` を取った今も、誰でも登録できる仕組みなので門は要らない |
 | Neon / Supabase + Hyperdrive | 本物の Postgres は魅力だが構成要素が増える。D1 で足りる規模 |
 | Workers KV をメインストアに | 結果整合でクエリが書けない。メモの横断参照に致命的 |
 | Durable Objects | 単一エンティティの強整合が要件ではない。オーバースペック |
@@ -529,10 +567,10 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 
 ### 結論
 
-**月額 ¥0。Cloudflare の無料枠に完全に収まり、当面それを出る見込みもない。**
+**Cloudflare の利用料は月額 ¥0。無料枠に完全に収まり、当面それを出る見込みもない。**
 
-かかるお金は今のところ存在しない。
-独自ドメインを取らず `*.workers.dev` を使い、Google OAuth も無料。
+かかるお金は独自ドメイン `uma-memo.com` の年額だけ。
+Workers の Custom Domains は無料で、Google OAuth も無料。
 
 ### 6-1. 無料枠と、このアプリの想定使用量
 

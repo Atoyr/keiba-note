@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { BRACKET_RACE_ID, HORSE_ID, PREVIEW_RACE_ID, REVIEW_RACE_ID, SHARED_NOTE_ID } from './seed';
 
 /**
- * 人がキャプチャで確かめる画面の一覧（docs/harness.md）。
+ * 人がキャプチャで確かめる画面の一覧（docs/testing.md）。
  *
  * `screens.e2e.ts` がここを全部開いて、desktop / mobile の2幅で撮る。
  * 画面を足したり、見せたい状態（開いた・入力した）が増えたりしたら、ここに1行足す。

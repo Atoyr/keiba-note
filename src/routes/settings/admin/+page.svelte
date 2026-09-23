@@ -9,7 +9,7 @@
 		new Date(unix * 1000).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });
 </script>
 
-<svelte:head><title>管理 — k-note</title></svelte:head>
+<svelte:head><title>管理 — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<h1 class="text-xl font-bold tracking-tight">管理</h1>

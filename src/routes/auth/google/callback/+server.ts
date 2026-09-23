@@ -69,7 +69,7 @@ export const GET: RequestHandler = async ({ cookies, url, platform }) => {
 		userId = existing.id;
 	} else {
 		// **登録に条件は無い。** メモが既定で非公開になった以上、入ってきた人に
-		// 見えるのは自分のメモだけで、守るべき「場」が存在しない（design.md 第4章）。
+		// 見えるのは自分のメモだけで、守るべき「場」が存在しない（product.md 第4章）。
 		//
 		// ADMIN_EMAIL と一致したときだけ admin。「user テーブルが空なら」という
 		// 条件は付けない — 登録が開いている以上「最初の1人」が成立しないため。

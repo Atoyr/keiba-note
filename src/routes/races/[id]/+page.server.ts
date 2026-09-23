@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		redirect(302, resolveRoute('/races/[id]/preview', { id: params.id }));
 	}
 
-	// `listRaceNotes` が返すのは **viewer 自身のメモだけ**（design.md 第2章 2-2）。
+	// `listRaceNotes` が返すのは **viewer 自身のメモだけ**（product.md 第2章 2-2）。
 	// 以前あった「他人のメモを読み取り専用で出す」分岐は、返ってこない行を
 	// 選り分けるだけの死にコードになったので落とした。
 	const myRaceNote = notes.find((n) => n.kind === 'race') ?? null;

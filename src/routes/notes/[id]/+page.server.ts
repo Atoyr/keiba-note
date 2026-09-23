@@ -7,7 +7,7 @@ import type { PageServerLoad } from './$types';
  * 共有ページ。**未ログインで到達できる唯一のルート**（hooks.server.ts の PUBLIC_PATHS）。
  *
  * ここだけが `visibility` を見る。他のすべての読みは author_id で自分のメモに
- * 閉じている（design.md 第2章 2-2）。
+ * 閉じている（product.md 第2章 2-2）。
  */
 export const load: PageServerLoad = async ({ params, platform, setHeaders }) => {
 	if (!platform?.env?.DB) error(503, 'データベースに接続できません');
@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ params, platform, setHeaders }) => 
 	// robots.txt で /notes/ を Disallow して**いない**のは意図的で、
 	// クロールを止めるとクローラが noindex を読めず、外部からリンクされた URL が
 	// 「内容なしの URL だけ」の形でインデックスされうるため。
-	// 狙いはクロールの拒否ではなくインデックスの拒否（design.md 第6章）。
+	// 狙いはクロールの拒否ではなくインデックスの拒否（product.md 第6章）。
 	setHeaders({
 		'x-robots-tag': 'noindex, nofollow',
 		// 共有ページから外部リンクを踏んでも、この URL が Referer で渡らないように。

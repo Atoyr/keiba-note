@@ -4,7 +4,7 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>プロフィール — k-note</title></svelte:head>
+<svelte:head><title>プロフィール — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<h1 class="text-xl font-bold tracking-tight">プロフィール</h1>

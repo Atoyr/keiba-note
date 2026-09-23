@@ -10,7 +10,7 @@
 
 	/**
 	 * 1件で閉じていること自体が「検索で辿り着けない」を支えている。
-	 * **アプリ内へのリンク、同じ著者の他のメモ、一覧への戻りは出さない**（design.md 第6章）。
+	 * **アプリ内へのリンク、同じ著者の他のメモ、一覧への戻りは出さない**（product.md 第6章）。
 	 */
 	const raceLine = $derived(
 		[n.raceDate, n.course && n.raceNumber ? `${n.course}${n.raceNumber}R` : n.course, n.raceName]
@@ -20,7 +20,7 @@
 </script>
 
 <svelte:head>
-	<title>メモ — k-note</title>
+	<title>メモ — uma-memo</title>
 	<meta name="robots" content="noindex, nofollow" />
 	<meta name="referrer" content="no-referrer" />
 </svelte:head>

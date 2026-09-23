@@ -1,4 +1,6 @@
 #:schema ./node_modules/wrangler/config-schema.json
+# アプリ名は uma-memo だが、Worker と D1 の名前は旧名の k-note のまま。
+# 変えると別の Worker・別の D1 になる（docs/operations.md「名前について」）。
 name = "k-note"
 main = ".svelte-kit/cloudflare/_worker.js"
 
@@ -8,8 +10,13 @@ compatibility_date = "2026-09-20"
 # nodejs_als は SvelteKit の adapter-cloudflare が AsyncLocalStorage を使うために必要な別物。
 compatibility_flags = ["nodejs_als"]
 
+# workers.dev は独自ドメインへの移行を確かめ終えるまで残す。
 workers_dev = true
 preview_urls = true
+
+# 独自ドメイン。ゾーン uma-memo.com が同じ Cloudflare アカウントにある前提。
+# デプロイ時に DNS レコードと証明書を Cloudflare が作る。
+routes = [{ pattern = "uma-memo.com", custom_domain = true }]
 
 [assets]
 binding = "ASSETS"

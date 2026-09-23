@@ -17,7 +17,7 @@ import type { Actions, PageServerLoad } from './$types';
  * ★ 馬詳細＝プロフィール + タイムライン。
  *
  * レース紐付きメモも近況メモも同じ流れに並ぶ。これが note を
- * 1テーブルにした狙い（design.md 第2章）。
+ * 1テーブルにした狙い（product.md 第2章）。
  *
  * **出走はメモが無くても並べる。** 骨は race_entry（誰が見ても同じ走った事実）で、
  * そこに viewer 自身のメモを重ねる。読みは3クエリで、3本とも並行に投げる。
@@ -82,7 +82,7 @@ export const actions: Actions = {
 	/**
 	 * プロフィール欄。馬の属性と常設メモ。
 	 *
-	 * 全ユーザー共通のマスタを書き換えるので admin だけ（design.md 第4章 / 第9章 #10）。
+	 * 全ユーザー共通のマスタを書き換えるので admin だけ（product.md 第4章 / 第9章 #10）。
 	 * 一般ユーザーが馬について書けるのはタイムラインの近況メモ（`addNote`）の方。
 	 */
 	saveProfile: async ({ locals, platform, params, request }) => {

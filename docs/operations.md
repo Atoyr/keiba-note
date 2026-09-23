@@ -1,11 +1,26 @@
-# k-note 運用手順 — Cloudflare の構築とデプロイ
+# uma-memo 運用手順 — Cloudflare の構築とデプロイ
 
 README から運用の手順だけを切り出したもの。日々の開発では読まなくてよい。
 アプリの全体像は [architecture.md 第4章](./architecture.md)（デプロイ構成）と第8章（運用）。
 
 - 作成日: 2026-09-23 — README の「Cloudflare に構築する」「デプロイ（GitHub Actions）」を移設
+- 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てる手順を足した（→ 名前について / 独自ドメインへ移す）
 
 ---
+
+## 名前について
+
+アプリ名は **uma-memo**（旧名 k-note）。変えたのは画面に出る名前と URL（`https://uma-memo.com`）だけで、
+次のものは**旧名のまま**にしてある。
+
+| もの | 名前 | 変えない理由 |
+| --- | --- | --- |
+| GitHub のリポジトリ | `keiba-note` | clone 済みの remote や Actions の設定を巻き込むため |
+| Worker（`wrangler.toml` の `name`） | `k-note` | 変えると別の Worker ができ、シークレットも入れ直しになる |
+| D1（`database_name`） | `k-note` | 名前は変えられない。作り直すとデータの移し替えになる |
+| Google Cloud のプロジェクト・OAuth クライアント | 旧名のまま | リダイレクト URI を足すだけで足りる |
+
+コマンドや設定に出てくる `k-note` は、この表のどれかを指している。**揃えようとして書き換えないこと。**
 
 ## Cloudflare に構築する
 
@@ -66,10 +81,11 @@ pnpm run deploy
 
 Google Cloud Console > APIs & Services > Credentials で
 OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）を作り、
-**承認済みのリダイレクト URI に2つ登録する。**
+**承認済みのリダイレクト URI に3つ登録する。**
 
 ```
 http://localhost:5173/auth/google/callback
+https://uma-memo.com/auth/google/callback
 https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
@@ -85,7 +101,13 @@ pnpm exec wrangler secret put ADMIN_EMAIL
 
 `ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
 
-### 7. レースデータを投入する
+### 7. 独自ドメインを当てる
+
+`wrangler.toml` の `routes` に `uma-memo.com` を `custom_domain = true` で書いてある。
+ゾーン `uma-memo.com` が同じ Cloudflare アカウントにあれば、デプロイ時に
+DNS レコードと証明書を Cloudflare が作る（→ 下の「独自ドメインへ移す」）。
+
+### 8. レースデータを投入する
 
 ```bash
 pnpm run data:import:remote
@@ -93,6 +115,34 @@ pnpm run data:import:remote
 
 ここまでで動く。以降は GitHub でリリースを publish すれば Actions が
 マイグレーション → デプロイまで回す。レースデータは `main` へのマージで入る（下記）。
+
+### 独自ドメインへ移す
+
+`k-note.<subdomain>.workers.dev` で動いていたものに `uma-memo.com` を当てる手順。
+**人が行う。** 順番を守れば、どの時点でも workers.dev 側はそのまま動いている。
+
+1. **ゾーンを Cloudflare に置く。** `uma-memo.com` を Worker と同じアカウントに追加し、
+   ネームサーバーを Cloudflare に向ける（Cloudflare Registrar で取ったなら済んでいる）。
+   apex に既存の A / AAAA / CNAME レコードがあると custom domain は作れないので消しておく
+2. **Google のリダイレクト URI を足す。** Google Cloud Console > APIs & Services > Credentials の
+   OAuth クライアントに `https://uma-memo.com/auth/google/callback` を足す。
+   既存の workers.dev の URI は消さない。コード側はオリジンから URI を組み立てるので変更は要らない
+3. **API トークンに権限を足す。** ゾーン `uma-memo.com` に Zone > `Workers Routes : Write`
+   （→ 下の「動かすのに必要な設定」）。CI から初めて routes を張るときに要る
+4. **リリースを publish する。** `deploy.yml` の `wrangler deploy` が custom domain を張る。
+   手元から張るなら `pnpm run deploy`
+5. **確かめる。** `https://uma-memo.com` を開いてログインまで通す。
+   Cookie はホストごとなので、workers.dev 側のセッションは引き継がれない（もう一度ログインする）
+
+workers.dev は当面残す。止めるのは独自ドメインで回ると確かめてからで、
+`wrangler.toml` の `workers_dev` / `preview_urls` を `false` にし、
+Google のリダイレクト URI から workers.dev のものを消す（別の PR で）。
+
+**止めると、workers.dev で発行した共有リンクが全部切れる。** 共有リンクは開いている画面の
+オリジンから組み立てる（`ShareControl.svelte`）ので、移行前に配ったリンクも、
+workers.dev を残している間にそちらで発行したリンクも `https://k-note.<subdomain>.workers.dev/notes/<id>` になっている。
+止める前に、workers.dev への要求を同じパスのまま `https://uma-memo.com` へ 301 で送る仕組みを入れ、
+しばらく回してから止める。リダイレクトを入れずに止めるなら、リンクが切れてよいと決めたことを PR に書く。
 
 ### 確認に使うコマンド
 
@@ -158,6 +208,7 @@ My Profile 配下のユーザートークンではなく、**アカウント所�
 | Workers | Editor / スコープは Specified Workers → k-note | `wrangler deploy` の書き込み           |
 | Account | `D1 : Edit`                                    | `d1 migrations apply` / `d1 execute`   |
 | Account | `Workers Scripts : Read`                       | workers.dev のサブドメイン名の読み取り |
+| Zone    | `Workers Routes : Write`（ゾーン `uma-memo.com`） | 独自ドメイン（`routes`）の張り付け |
 
 - Account Resources はこのアカウントだけに絞る
 - Client IP Address Filtering は**設定しない**。GitHub の runner は IP が動的なので、絞ると壊れる
@@ -181,14 +232,14 @@ workers.dev を実際に有効化しているのはこちらの Worker 単位の
 既存の設定が残るぶんサイトは動き続けるので、気づきにくい。
 
 `workers_dev = false` にすれば読みに行かなくなるが、その POST が `enabled: false` を
-送って workers.dev ごと落ちる。独自ドメインが無いうちは取れない手。
+送って workers.dev ごと落ちる。`uma-memo.com` に移し終えて workers.dev を止めるときには、これがそのまま止め方になる。
 
 **新しい Worker を作るには Workers product スコープの Admin が要る。**
 Specified Workers は既にある Worker にしか付けられないので、
 まだ一度もデプロイしていないなら、先に手元から `pnpm run deploy` して Worker を作っておくこと。
 
-独自ドメインを当てるときは、対象ゾーンに Zone > `Workers Routes : Write` を足す。
-ルートを張った後の通常のデプロイには要らない（ルート自体を変えるときだけ必要）。
+**表の最後の行（Zone）は** `uma-memo.com` を当てるときに足した。`wrangler.toml` に `routes` を書いている限り、
+`wrangler deploy` は毎回その状態に揃えに行くので、張った後のデプロイでも外さないこと。
 
 旧来の `Edit Cloudflare Workers` テンプレート（`Workers Scripts : Edit`）でも動く。
 2026-09-15 に Workers の権限が role ベースに変わり legacy 扱いになった（廃止日は未定）ので、

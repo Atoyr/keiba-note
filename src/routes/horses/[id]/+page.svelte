@@ -30,7 +30,7 @@
 	const input = 'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 </script>
 
-<svelte:head><title>{data.horse.name} — k-note</title></svelte:head>
+<svelte:head><title>{data.horse.name} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
@@ -47,7 +47,7 @@
 	{/if}
 
 	<!-- プロフィールは全ユーザー共通のマスタなので、書き換えられるのは admin だけ
-	     （design.md 第4章）。一般ユーザーにはタイムラインの近況メモだけを残す。 -->
+	     （product.md 第4章）。一般ユーザーにはタイムラインの近況メモだけを残す。 -->
 	{#if admin}
 		<button
 			type="button"

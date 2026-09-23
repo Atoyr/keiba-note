@@ -5,7 +5,7 @@ import { login } from './login';
 import { SCREENS, VIEWPORTS, type ViewportName } from './screens';
 
 /**
- * `screens.ts` の画面を全部開いて撮る（docs/harness.md）。
+ * `screens.ts` の画面を全部開いて撮る（docs/testing.md）。
  *
  * 撮るだけでなく、人が見る前に機械で分かることはここで落とす:
  * 開けること・ログイン画面に飛ばされないこと・実行時エラーが出ないこと・

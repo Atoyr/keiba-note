@@ -1,5 +1,5 @@
 /**
- * `pnpm run screens` で撮ったキャプチャを、PR 本文に貼る Markdown にする（docs/harness.md）。
+ * `pnpm run screens` で撮ったキャプチャを、PR 本文に貼る Markdown にする（docs/testing.md）。
  *
  *   pnpm run screens:pr <機能名>
  *
