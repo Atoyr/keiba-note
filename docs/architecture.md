@@ -1,4 +1,4 @@
-# k-note アーキテクチャ・コスト・技術選定
+# uma-memo アーキテクチャ・コスト・技術選定
 
 [product.md](./product.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
@@ -6,6 +6,7 @@
 - 更新日: 2026-09-21 — 招待制をやめて登録を開き、メモを既定非公開にした変更を反映（→ 3-6 / 第6章）
 - 更新日: 2026-09-23 — AGENTS.md の「ランタイム上の約束」「DB とデータ」を第0章に移し、
   依存の向きの表（第2章）をここを正にした
+- 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てた（→ 第4章 / 第6章）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -436,7 +437,7 @@ flowchart TB
         C["data:check"] --> IM["data:import:remote"]
     end
 
-    DP --> W["k-note.xxxxx.workers.dev"]
+    DP --> W["uma-memo.com<br/>（k-note.xxxxx.workers.dev も当面残す）"]
     IM --> D
     W --> D[("D1 / apac")]
 ```
@@ -466,7 +467,10 @@ main は「次に出す候補」。どこを出すかはタグを切る側が決
 | 環境 | Worker | D1 | 用途 |
 | --- | --- | --- | --- |
 | local | `vite dev`（Miniflare 経由） | ローカル SQLite（`.wrangler/state`） | 開発 |
-| production | `k-note` | `k-note` | 本番 |
+| production | `k-note` | `k-note` | 本番（`uma-memo.com`） |
+
+Worker と D1 の名前が旧名の `k-note` のままなのは意図どおり。変えると別の Worker・別の D1 になる
+（→ [operations.md「名前について」](./operations.md#名前について)）。
 
 プレビュー環境は当面作らない。この規模のアプリに2系統は要らない。
 必要になったら `wrangler versions upload` によるプレビュー URL を使う。
@@ -542,7 +546,7 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 
 | 候補 | 不採用の理由 |
 | --- | --- |
-| Cloudflare Access | 独自ドメインが必要。`*.workers.dev` は保護できない |
+| Cloudflare Access | 当初は独自ドメインが無く、`*.workers.dev` は保護できなかった。`uma-memo.com` を取った今も、誰でも登録できる仕組みなので門は要らない |
 | Neon / Supabase + Hyperdrive | 本物の Postgres は魅力だが構成要素が増える。D1 で足りる規模 |
 | Workers KV をメインストアに | 結果整合でクエリが書けない。メモの横断参照に致命的 |
 | Durable Objects | 単一エンティティの強整合が要件ではない。オーバースペック |
@@ -563,10 +567,10 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 
 ### 結論
 
-**月額 ¥0。Cloudflare の無料枠に完全に収まり、当面それを出る見込みもない。**
+**Cloudflare の利用料は月額 ¥0。無料枠に完全に収まり、当面それを出る見込みもない。**
 
-かかるお金は今のところ存在しない。
-独自ドメインを取らず `*.workers.dev` を使い、Google OAuth も無料。
+かかるお金は独自ドメイン `uma-memo.com` の年額だけ。
+Workers の Custom Domains は無料で、Google OAuth も無料。
 
 ### 6-1. 無料枠と、このアプリの想定使用量
 

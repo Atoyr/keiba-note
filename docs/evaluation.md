@@ -1,4 +1,4 @@
-# k-note の評価 — Evaluator が見ること
+# uma-memo の評価 — Evaluator が見ること
 
 変更を書いたエージェント（Generator）とは**別の**エージェント（Evaluator）が、
 できあがったものを評価するための基準と手順。
