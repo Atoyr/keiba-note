@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { noteHeading, raceReviewSaveLabel, runHeading } from './note';
+import { noteHeading, previewSaveLabel, raceReviewSaveLabel, runHeading } from './note';
 
 const race = {
 	course: '中山',
@@ -24,6 +24,20 @@ describe('noteHeading', () => {
 			label: '中山11R オールカマー (G2)',
 			kindLabel: '出走前'
 		});
+	});
+
+	// レース全体の見立ても開催前に書いたもの。同じ理由で着順を出さない。
+	it('レースの見立てにも着順を出さない', () => {
+		expect(noteHeading({ kind: 'race_preview', ...race })).toEqual({
+			label: '中山11R オールカマー (G2)',
+			kindLabel: '見立て'
+		});
+	});
+
+	// 同じレースに見立てとふりかえりの2行が並ぶので、札で見分けが付かないと困る。
+	it('見立てとふりかえりのレースのメモは札で見分けられる', () => {
+		expect(noteHeading({ kind: 'race_preview', ...race }).kindLabel).toBe('見立て');
+		expect(noteHeading({ kind: 'race', ...race }).kindLabel).toBe(null);
 	});
 
 	it('格が無いレースはクラスを代わりに出す', () => {
@@ -80,5 +94,20 @@ describe('raceReviewSaveLabel', () => {
 		// 1頭でも並んでいれば「まとめて」が実態に合う。
 		expect(raceReviewSaveLabel(1)).toBe('まとめて保存');
 		expect(raceReviewSaveLabel(18)).toBe('まとめて保存');
+	});
+});
+
+/**
+ * 予想画面の保存ボタン。理由は `raceReviewSaveLabel` と同じだが、
+ * **0頭に当たるのはこちらのほうが多い**（出馬表が出る前の重賞）。
+ */
+describe('previewSaveLabel', () => {
+	it('出走馬がいなければ、書けるのは見立てだけだとそのまま名乗る', () => {
+		expect(previewSaveLabel(0)).toBe('レースの見立てを保存');
+	});
+
+	it('出走馬が並んでいれば出走前メモの保存', () => {
+		expect(previewSaveLabel(1)).toBe('出走前メモを保存');
+		expect(previewSaveLabel(18)).toBe('出走前メモを保存');
 	});
 });

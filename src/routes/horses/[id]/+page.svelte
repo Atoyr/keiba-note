@@ -6,6 +6,7 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
+	import { isUpcoming } from '$lib/utils/date';
 	import { noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -166,8 +167,11 @@
 							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
 								<span class="font-mono text-gray-500">{row.occurredAt}</span>
 								<KindBadge label={h.kindLabel} />
+								<!-- 出走予定のレースはふりかえりが書けない。予想画面へ送る。 -->
 								<a
-									href={resolve('/races/[id]', { id: row.run.raceId })}
+									href={row.upcoming
+										? resolve('/races/[id]/preview', { id: row.run.raceId })
+										: resolve('/races/[id]', { id: row.run.raceId })}
 									class="text-gray-600 hover:underline"
 								>
 									{h.label}
@@ -182,7 +186,13 @@
 								<span class="font-mono text-gray-500">{n.occurredAt}</span>
 								<KindBadge label={h.kindLabel} />
 								{#if n.raceId}
-									<a href={resolve('/races/[id]', { id: n.raceId })} class="hover:underline">
+									<!-- レース紐付きのメモは occurred_at がレース日なので、それで振り分けられる。 -->
+									<a
+										href={isUpcoming(n.occurredAt, data.today)
+											? resolve('/races/[id]/preview', { id: n.raceId })
+											: resolve('/races/[id]', { id: n.raceId })}
+										class="hover:underline"
+									>
 										{h.label}
 									</a>
 								{:else}

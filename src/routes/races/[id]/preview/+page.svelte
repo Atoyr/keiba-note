@@ -14,7 +14,7 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { noteHeading } from '$lib/utils/note';
+	import { noteHeading, previewSaveLabel } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import type { PageProps } from './$types';
@@ -40,6 +40,12 @@
 
 	/** 展開している馬。1頭ずつ開く。 */
 	let open = $state<string | null>(null);
+
+	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄は見立て1つだけ。
+	// 「（N 件）」は並んでいる馬の数だけ意味を持つ言い方なので出さない。
+	const bulk = $derived(data.rows.length > 0);
+
+	const ta = 'mt-1 text-sm';
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — k-note</title></svelte:head>
@@ -67,9 +73,12 @@
 					出走馬を編集
 				</Button>
 			{/if}
-			<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
-				ふりかえりを書く
-			</Button>
+			<!-- 開催前はふりかえりが書けない（開いても戻される）ので、導線も出さない。 -->
+			{#if !data.upcoming}
+				<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
+					ふりかえりを書く
+				</Button>
+			{/if}
 		</div>
 	</header>
 
@@ -87,46 +96,68 @@
 			<p
 				class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
 			>
-				出走前メモを保存しました（{form.saved} 件）
+				保存しました{bulk ? `（${form.saved} 件）` : ''}
 			</p>
 		{/key}
 	{/if}
 
-	{#if data.rows.length === 0}
-		<div class="mt-6 rounded-xl border p-5">
-			<p class="text-sm text-muted-foreground">出走馬がまだ登録されていません。</p>
-			{#if admin}
-				<Button
-					href={resolve('/races/[id]/entries', { id: data.race.id })}
-					variant="outline"
-					size="sm"
-					class="mt-3"
-				>
-					出走馬を入力する
-				</Button>
-			{/if}
-		</div>
-	{:else}
-		<form
-			method="POST"
-			bind:this={formEl}
-			use:enhance={() =>
-				async ({ result, update }) => {
-					if (result.type === 'success') keeper?.clear();
-					// **reset: false が必須。** 既定の update() はフォームを reset() するが、
-					// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
-					// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
-					// メモが「変化なし」と判断されて描き直されない。
-					// 結果、保存した直後に中身が消えたように見える。
-					// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
-					// 保存すると本当に消える。表示はサーバーの data が正で、
-					// フォームの初期値ではない。
-					await update({ reset: false });
-				}}
-			class="mt-6"
-		>
-			<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
-			<ul class="grid gap-2">
+	<!-- **出走馬がいなくてもフォームを出す。** 出馬表が出る前の重賞に
+	     「このレースを狙う」と書き留める先が要る。書けるのは見立て1本だけになる。 -->
+	<form
+		method="POST"
+		bind:this={formEl}
+		use:enhance={() =>
+			async ({ result, update }) => {
+				if (result.type === 'success') keeper?.clear();
+				// **reset: false が必須。** 既定の update() はフォームを reset() するが、
+				// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
+				// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
+				// メモが「変化なし」と判断されて描き直されない。
+				// 結果、保存した直後に中身が消えたように見える。
+				// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
+				// 保存すると本当に消える。表示はサーバーの data が正で、
+				// フォームの初期値ではない。
+				await update({ reset: false });
+			}}
+		class="mt-6"
+	>
+		<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
+
+		<!-- レース全体の見立て。**ふりかえりの「レースのメモ」とは別の行**なので、
+		     開催後にふりかえりを書いてもここに書いたものは残る。
+		     見出しを別の名前にしてあるのは、同じ名前だと同じ欄に見えるため。 -->
+		<section>
+			<h2 class="text-sm font-semibold text-muted-foreground">レースの見立て</h2>
+			<p class="text-xs text-muted-foreground">
+				馬場の想定、狙いどころ。ふりかえりとは別に残ります
+			</p>
+			<Textarea
+				name="raceNoteBody"
+				rows={3}
+				placeholder="開幕週で内有利になりそう。前に行ける馬から。"
+				class={ta}
+				value={data.myRaceNote?.body ?? ''}
+			/>
+		</section>
+
+		{#if data.rows.length === 0}
+			<div class="mt-6 rounded-xl border p-5">
+				<p class="text-sm text-muted-foreground">
+					出走馬がまだ登録されていません。出馬表が入ると、ここに1頭ずつ並びます。
+				</p>
+				{#if admin}
+					<Button
+						href={resolve('/races/[id]/entries', { id: data.race.id })}
+						variant="outline"
+						size="sm"
+						class="mt-3"
+					>
+						出走馬を入力する
+					</Button>
+				{/if}
+			</div>
+		{:else}
+			<ul class="mt-6 grid gap-2">
 				{#each data.rows as r (r.entryId)}
 					{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
 					<li
@@ -248,10 +279,10 @@
 					</li>
 				{/each}
 			</ul>
+		{/if}
 
-			<div class="sticky bottom-0 mt-6 border-t bg-background/90 py-3 backdrop-blur">
-				<Button type="submit" class="w-full">出走前メモを保存</Button>
-			</div>
-		</form>
-	{/if}
+		<div class="sticky bottom-0 mt-6 border-t bg-background/90 py-3 backdrop-blur">
+			<Button type="submit" class="w-full">{previewSaveLabel(data.rows.length)}</Button>
+		</div>
+	</form>
 </main>

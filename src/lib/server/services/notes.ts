@@ -51,6 +51,48 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 		.orderBy(desc(note.createdAt));
 }
 
+/**
+ * レース自体のメモ1本ぶんの文を組み立てる。本文が空なら「消す」に振り替える。
+ *
+ * 見立て（`race_preview`）とふりかえり（`race`）は **kind 以外まったく同じ形**で、
+ * 一意制約も kind ごとの部分ユニークで対になっている（schema.ts の
+ * `note_author_race` / `note_author_race_preview`）。2か所に書き写すと、
+ * 片方だけ直したときに開催前と開催後で挙動がずれるので、当て先ごとここにまとめる。
+ */
+function raceNoteStatement(
+	db: Db,
+	input: {
+		authorId: string;
+		raceId: string;
+		kind: 'race' | 'race_preview';
+		/** 前後の空白だけなら「空」。 */
+		body: string;
+		occurredAt: string;
+	}
+) {
+	const { authorId, raceId, kind, occurredAt } = input;
+	const body = input.body.trim();
+
+	if (!body) {
+		return db
+			.delete(note)
+			.where(and(eq(note.authorId, authorId), eq(note.raceId, raceId), eq(note.kind, kind)));
+	}
+
+	// **当て先の述語はリテラルで書く。** 部分ユニーク索引に当てる ON CONFLICT は
+	// 索引の式と字面で一致していないと当たらない。`kind` を束縛変数で渡すと外れる。
+	const targetWhere = kind === 'race' ? sql`kind = 'race'` : sql`kind = 'race_preview'`;
+
+	return db
+		.insert(note)
+		.values({ id: ulid(), authorId, kind, raceId, body, occurredAt })
+		.onConflictDoUpdate({
+			target: [note.authorId, note.raceId],
+			targetWhere,
+			set: { body, occurredAt, updatedAt: nowSec() }
+		});
+}
+
 export type RaceReviewInput = {
 	raceId: string;
 	/** レース自体のメモ。空文字なら「書かない／消す」。 */
@@ -84,39 +126,17 @@ export async function saveRaceReview(
 	let cleared = 0;
 
 	const raceBody = input.raceNote.body.trim();
-	if (raceBody) {
-		statements.push(
-			db
-				.insert(note)
-				.values({
-					id: ulid(),
-					authorId,
-					kind: 'race',
-					raceId: input.raceId,
-					body: raceBody,
-					occurredAt
-				})
-				.onConflictDoUpdate({
-					target: [note.authorId, note.raceId],
-					targetWhere: sql`kind = 'race'`,
-					set: {
-						body: raceBody,
-						occurredAt,
-						updatedAt: nowSec()
-					}
-				})
-		);
-		saved++;
-	} else {
-		statements.push(
-			db
-				.delete(note)
-				.where(
-					and(eq(note.authorId, authorId), eq(note.raceId, input.raceId), eq(note.kind, 'race'))
-				)
-		);
-		cleared++;
-	}
+	statements.push(
+		raceNoteStatement(db, {
+			authorId,
+			raceId: input.raceId,
+			kind: 'race',
+			body: raceBody,
+			occurredAt
+		})
+	);
+	if (raceBody) saved++;
+	else cleared++;
 
 	for (const e of input.entries) {
 		const body = e.body.trim();
@@ -423,6 +443,8 @@ export async function listHistoryForHorses(
 
 export type PreviewNoteInput = {
 	raceId: string;
+	/** レースの見立て。空文字なら「書かない／消す」。 */
+	raceNote: { body: string };
 	entries: {
 		entryId: string;
 		horseId: string;
@@ -433,11 +455,14 @@ export type PreviewNoteInput = {
 };
 
 /**
- * 出走前メモの一括保存。
+ * 予想画面の一括保存。レースの見立て（`race_preview`）と出走前メモ（`preview`）。
  *
- * kind は `preview`。ふりかえりの `entry` とは一意制約が別なので、
- * **あとでふりかえりを書いても、ここで書いたメモは消えない。**
+ * ふりかえりの `race` / `entry` とは一意制約が別なので、
+ * **あとでふりかえりを書いても、ここで書いたものは消えない。**
  * occurred_at はレース日にする（タイムラインでそのレースの位置に並ぶ）。
+ *
+ * **`entries` は空になりうる。** 出馬表が出る前の重賞には出走馬がまだ1頭もいない。
+ * そのとき保存されるのは見立て1本だけで、それがこの画面の最低限の用になる。
  */
 export async function savePreviewNotes(
 	db: Db,
@@ -448,6 +473,19 @@ export async function savePreviewNotes(
 	const statements = [];
 	let saved = 0;
 	let cleared = 0;
+
+	const raceBody = input.raceNote.body.trim();
+	statements.push(
+		raceNoteStatement(db, {
+			authorId,
+			raceId: input.raceId,
+			kind: 'race_preview',
+			body: raceBody,
+			occurredAt
+		})
+	);
+	if (raceBody) saved++;
+	else cleared++;
 
 	for (const e of input.entries) {
 		const body = e.body.trim();

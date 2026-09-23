@@ -6,6 +6,13 @@ import { DASHBOARD_RACES } from './seed';
 const section = (page: Page, heading: string) =>
 	page.locator('main section').filter({ has: page.getByRole('heading', { name: heading }) });
 
+test('ダッシュボードは今週、過去、メモの順に表示する', async ({ page }) => {
+	await login(page);
+	await page.goto('/');
+
+	await expect(page.locator('main h2')).toHaveText(['今週のレース', '過去のレース', '最近のメモ']);
+});
+
 test('今週のレースと過去のレースが別々の枠に出る', async ({ page }) => {
 	await login(page);
 	await page.goto('/');

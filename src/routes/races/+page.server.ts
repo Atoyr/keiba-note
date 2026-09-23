@@ -1,5 +1,6 @@
 import { listRaceYears, listRaces } from '$lib/server/services/races';
 import { ctx } from '$lib/server/util';
+import { todayJst } from '$lib/utils/date';
 import { parseRaceFilter } from '$lib/utils/race-filter';
 import type { PageServerLoad } from './$types';
 
@@ -16,5 +17,6 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	const [races, years] = await Promise.all([listRaces(db, user.id, filter), listRaceYears(db)]);
 
-	return { races, years, filter };
+	// today はレースの行き先を決めるのに要る（開催前は予想画面 → `raceHref`）。
+	return { races, years, filter, today: todayJst() };
 };
