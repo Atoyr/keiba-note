@@ -9,9 +9,9 @@
 ## 画面
 
 <!--
-見た目か画面遷移が変わったなら、変更後のキャプチャを貼る（既存画面の修正なら before / after）。
-docs/screenshots/ にコミットしてから、コミット SHA の raw URL で貼ること（ブランチ名は使わない）:
-![説明](https://raw.githubusercontent.com/Atoyr/keiba-note/<コミットSHA>/docs/screenshots/<file>.png)
+見た目か画面遷移が変わったなら、`pnpm run screens:pr <機能名>` の出力をそのまま貼る
+（手順は AGENTS.md の「作業の手順」、仕組みは docs/harness.md）。
+見た目が変わった画面だけが before / after で並ぶ。画像の URL はコミット SHA で組まれる。
 
 UI を触っていない変更（データ登録・CI・docs・サーバー内部）は、
 代わりに実行ログや CI の run へのリンクを貼る。この欄は空にしない。
@@ -25,10 +25,8 @@ UI を触っていない変更（データ登録・CI・docs・サーバー内�
 
 - [ ] 単体テストを追加・更新した（省いたなら理由: ）
 - [ ] E2E を追加・更新した（省いたなら理由: ）
-- [ ] `pnpm run check`
-- [ ] `pnpm run lint`
-- [ ] `pnpm run test:unit -- --run`
-- [ ] `pnpm run test:e2e`（全部 green。`.only` や `test.skip` を残していない）
-- [ ] `data/` を触ったなら `pnpm run data:check`
+- [ ] 画面や状態を足したなら `e2e/screens.ts` に足した
+- [ ] `pnpm run verify`（check / lint / test:unit / test:e2e が全部 green。`.only` や `test.skip` を残していない）
+- [ ] `data/` を触ったなら `pnpm run data:check`（マージ後に `data-import.yml` が本番へ投入する）
 
 <!-- 出力を貼れるものは貼る。落ちたまま出すときは、どこが落ちているかを書く。 -->
