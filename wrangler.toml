@@ -2,7 +2,9 @@
 # アプリ名は uma-memo だが、Worker と D1 の名前は旧名の k-note のまま。
 # 変えると別の Worker・別の D1 になる（docs/operations.md「名前について」）。
 name = "k-note"
-main = ".svelte-kit/cloudflare/_worker.js"
+# adapter-cloudflare が作る Worker（.svelte-kit/cloudflare/_worker.js）を包んだ入口。
+# adapter の書き出し先は wrangler.adapter.toml にある（src/worker.js の頭を参照）。
+main = "src/worker.js"
 
 # 初期化時の日付で固定する。上げるときは意図的に上げること。
 compatibility_date = "2026-09-20"

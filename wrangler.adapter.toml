@@ -1,0 +1,12 @@
+# adapter-cloudflare だけが読む設定（vite.config.ts の adapter({ config })）。
+# wrangler はこのファイルを読まない。本当の設定は wrangler.toml。
+#
+# adapter は main に Worker を書き出す。wrangler.toml の main は、それを包む src/worker.js
+# なので、adapter には書き出し先を別に教える。src/worker.js はここの main を import する。
+# assets は wrangler.toml と同じにしておくこと（adapter はここにクライアントのファイルと _headers を置く）。
+name = "k-note"
+main = ".svelte-kit/cloudflare/_worker.js"
+
+[assets]
+binding = "ASSETS"
+directory = ".svelte-kit/cloudflare"
