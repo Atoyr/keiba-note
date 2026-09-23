@@ -31,7 +31,8 @@ describe('NoteMenu', () => {
 		await screen.getByTitle('メモの操作').click();
 		await expect.element(screen.getByText('共有リンクを作る')).toBeVisible();
 
-		document.body.click();
+		// タップでも閉じるよう pointerdown で見ている（NoteMenu.svelte）。
+		document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
 
 		await expect.element(screen.getByText('共有リンクを作る')).not.toBeVisible();
 	});
@@ -54,6 +55,20 @@ describe('NoteMenu', () => {
 
 		await expect.element(screen.getByText('共有リンクを作る')).not.toBeVisible();
 		await expect.element(screen.getByTitle('メモの操作')).toHaveFocus();
+	});
+
+	it('Tab でメニューの外へ抜けると閉じる', async () => {
+		const screen = render(NoteMenu, { children });
+		const after = document.createElement('button');
+		after.textContent = '次の要素';
+		document.body.appendChild(after);
+		await screen.getByTitle('メモの操作').click();
+		await screen.getByText('共有リンクを作る').click();
+
+		await userEvent.tab();
+
+		await expect.element(screen.getByText('共有リンクを作る')).not.toBeVisible();
+		after.remove();
 	});
 
 	it('何の操作かを読み上げられる名前が付く', async () => {

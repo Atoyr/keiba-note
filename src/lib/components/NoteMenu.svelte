@@ -24,7 +24,10 @@
 	let details: HTMLDetailsElement;
 	let summary: HTMLElement;
 
-	function closeOnOutside(e: MouseEvent) {
+	// click ではなく pointerdown で見る。iOS Safari は押せない要素（余白・見出し）の
+	// タップで click を window まで届けないことがあり、URL 欄を選ぶドラッグを外で離しても
+	// click は外側に落ちる。
+	function closeOnOutside(e: PointerEvent) {
 		if (details.open && !details.contains(e.target as Node)) details.open = false;
 	}
 
@@ -35,11 +38,18 @@
 		details.open = false;
 		if (focusInside) summary.focus();
 	}
+
+	// Tab で外へ抜けたら閉じる。開いたままだと下のメモに重なる。
+	// 移り先が無い（メニューの中の余白を押した）ときは閉じない。
+	function closeOnFocusOut(e: FocusEvent) {
+		const next = e.relatedTarget as Node | null;
+		if (next && !details.contains(next)) details.open = false;
+	}
 </script>
 
-<svelte:window onclick={closeOnOutside} onkeydown={closeOnEscape} />
+<svelte:window onpointerdown={closeOnOutside} onkeydown={closeOnEscape} />
 
-<details class="group relative" bind:this={details}>
+<details class="group relative" bind:this={details} onfocusout={closeOnFocusOut}>
 	<summary
 		bind:this={summary}
 		class="flex size-6 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground group-open:bg-accent hover:bg-accent hover:text-foreground [&::-webkit-details-marker]:hidden"
