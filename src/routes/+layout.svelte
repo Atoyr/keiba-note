@@ -1,25 +1,33 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { dev } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
+	import { replayEarlyInput, takeEarlyInput } from '$lib/utils/early-input';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
 
 	/**
-	 * hydration が済んだ印。E2E はこれを待ってから入力する（e2e/hydration.ts）。
+	 * hydration の前に書かれた入力を書き戻し、済んだ印を立てる。
 	 *
 	 * **済む前に入力欄へ書いた値は、hydration が SSR の値で上書きする**
 	 * （Svelte 5 は `<textarea>{値}</textarea>` を `.value` の代入で合わせにいく）。
-	 * 並列で走らせて JS の配信が遅れると、書いた見立てが空に戻ったまま送信され、
-	 * 「空欄＝消す」で保存された。onMount は子から先に走るので、ここに来た時点で
-	 * ページの入力欄の値合わせも `use:enhance` の取り付けも済んでいる。
+	 * `src/app.html` が覚えておいた入力を、ここで書き戻す（→ `$lib/utils/early-input`）。
+	 *
+	 * `tick()` を待つのは、`DraftKeeper` が「保存済みの値」を読み終えてから書き戻すため。
+	 * 先に書き戻すと、書いた値が保存済みとして読まれ、未保存に数えられない。
+	 * `DraftKeeper` はフォームを `bind:this` で受けてから読むので、onMount の時点では
+	 * まだ読んでいない。tick はマイクロタスクなので、その間にユーザーの入力は挟まらない。
+	 *
+	 * 印（`<html data-hydrated>`）は E2E が入力の前に待つ（e2e/hydration.ts）。
 	 */
-	onMount(() => {
+	onMount(async () => {
+		await tick();
+		replayEarlyInput(takeEarlyInput());
 		document.documentElement.dataset.hydrated = '';
 	});
 
