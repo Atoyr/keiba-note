@@ -2,10 +2,15 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import KindBadge from '$lib/components/KindBadge.svelte';
+	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
+	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
+	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -39,6 +44,19 @@
 	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄はレースのメモ1つだけ。
 	// 「まとめて保存」「（N 件）」は、並んでいる馬の数だけ意味を持つ言い方なので出さない。
 	const bulk = $derived(data.rows.length > 0);
+
+	// 予想で付けた印と着順の突き合わせ。印の順（◎ → ×）に並べ直す。
+	const answers = $derived(
+		answerCheck(
+			data.rows.map((r) => ({
+				entryId: r.entryId,
+				horseName: r.horseName,
+				horseNumber: r.horseNumber,
+				finishPosition: r.finishPosition,
+				mark: r.myPreview?.mark ?? null
+			}))
+		)
+	);
 
 	const ta =
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
@@ -82,6 +100,14 @@
 				保存しました{bulk ? `（${form.saved} 件）` : ''}
 			</p>
 		{/key}
+	{/if}
+
+	<!-- 答え合わせは書く欄より先に置く。何が外れたかを見てから書くほうが、
+	     ふりかえりの中身が「次にどうするか」に向く。 -->
+	{#if answers.length > 0}
+		<div class="mt-6">
+			<AnswerCheck {answers} />
+		</div>
 	{/if}
 
 	{#if data.rows.length === 0}
@@ -174,7 +200,24 @@
 									>{/if}
 								{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
 								{#if r.last3f}<span class="text-xs text-gray-500">上り{r.last3f}</span>{/if}
+								<span class="flex-1"></span>
+								<MarkBadge mark={r.myPreview?.mark ?? null} />
 							</div>
+
+							<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
+							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->
+							{#if r.myPreview && (r.myPreview.body || r.myPreview.tags.length > 0)}
+								<div
+									class="mt-1.5 rounded-md border border-sky-200 bg-sky-50/60 px-2.5 py-1.5 text-sm"
+								>
+									<KindBadge label="出走前" />
+									{#if r.myPreview.body}<span
+											class="ml-1 leading-relaxed whitespace-pre-wrap text-sky-950"
+											>{r.myPreview.body}</span
+										>{/if}
+									<TagBadges tags={r.myPreview.tags} class="ml-1" />
+								</div>
+							{/if}
 
 							<textarea
 								name="body.{r.entryId}"

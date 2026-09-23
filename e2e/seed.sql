@@ -206,3 +206,55 @@ VALUES (
 	'01JE2EHORSED00000000000000',
 	8, 16, 'E2E騎手', 2
 );
+
+-- ふりかえり画面の**答え合わせ**用。枠色を見るレース（E2E枠色賞）に出走前メモを足す。
+--
+-- 予想で付けた印と、走ったあとの着順を並べて見られることを確かめる。
+-- ◎を2着の馬（ソトワク）、○を1着の馬（ウチワク）に置いて、「本命が負けて対抗が勝った」
+-- 形にする。どちらも当たった形だと、印と着順の対応が入れ替わっていても気づけない。
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at)
+VALUES (
+	'01JE2EPREVIEWOUTER00000000',
+	'01JE2EUSER0000000000000000',
+	'preview',
+	'01JE2ERACEBRACKET000000000',
+	'01JE2EHORSED00000000000000',
+	'01JE2EENTRYOUTER0000000000',
+	'外枠でも先行できれば。',
+	'["次走買い"]',
+	'◎',
+	'2026-06-21'
+);
+
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at)
+VALUES (
+	'01JE2EPREVIEWINNER00000000',
+	'01JE2EUSER0000000000000000',
+	'preview',
+	'01JE2ERACEBRACKET000000000',
+	'01JE2EHORSEC00000000000000',
+	'01JE2EENTRYINNER0000000000',
+	'',
+	'[]',
+	'○',
+	'2026-06-21'
+);
+
+-- **別のユーザー**が同じレースに付けた出走前メモ。どの画面にも出てはいけない。
+-- 答え合わせは自分の印だけで組むので、他人の◎が混ざると「自分の予想」が嘘になる。
+INSERT OR REPLACE INTO user (id, google_sub, email, display_name, role)
+VALUES ('01JE2EOTHERUSER00000000000', 'e2e-other-google-sub', 'other@example.invalid', 'E2E 別ユーザー', 'user');
+
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at)
+VALUES (
+	'01JE2EOTHERPREVIEW00000000',
+	'01JE2EOTHERUSER00000000000',
+	'preview',
+	'01JE2ERACEBRACKET000000000',
+	'01JE2EHORSEC00000000000000',
+	'01JE2EENTRYINNER0000000000',
+	'他人の見立て。見えてはいけない。',
+	'[]',
+	'×',
+	'2026-06-21'
+);

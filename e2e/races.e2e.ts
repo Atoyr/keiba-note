@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { login } from './login';
-import { BRACKET_RACE_ID, EMPTY_RACE_ID, PAST_EMPTY_RACE_ID, REVIEW_RACE_ID } from './seed';
+import {
+	BRACKET_RACE_ID,
+	EMPTY_RACE_ID,
+	OTHER_USER_PREVIEW_BODY,
+	OUTER_PREVIEW_BODY,
+	PAST_EMPTY_RACE_ID,
+	REVIEW_RACE_ID
+} from './seed';
 
 /**
  * レース一覧の絞り込みは GET クエリで表される。
@@ -109,7 +116,8 @@ test('出走馬の枠番が枠の色で出る', async ({ page }) => {
 	await expect(outer).toHaveClass(/bg-pink-300/);
 
 	// 枠の色は馬番を置き換えるものではない。両方出ていること。
-	const row = page.locator('main li', { hasText: 'E2Eソトワク' });
+	// 答え合わせの欄にも同じ馬名が出るので、書く欄（form の中）の行に絞る。
+	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
 	await expect(row).toContainText('16');
 });
 
@@ -165,5 +173,85 @@ test('開催前に書いた見立ては、ふりかえりを保存しても残�
 	await page.goto(`/races/${PAST_EMPTY_RACE_ID}`);
 	await page.locator('textarea[name="raceNoteBody"]').fill('');
 	await page.getByRole('button', { name: 'レースのメモを保存' }).click();
+	await expect(page.getByText('保存しました')).toBeVisible();
+});
+
+/**
+ * ★ **答え合わせ。** 予想で付けた印と着順を、印の順（◎ → ×）に並べる。
+ *
+ * seed では◎を2着の馬、○を1着の馬に付けてある。着順の並び（1着 → 2着）のまま
+ * 出ていたら、印の順に並べ直していないことになる。
+ */
+test('ふりかえり画面の上に、予想の印と着順が印の順に並ぶ', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	const answers = page.locator('section', {
+		has: page.getByRole('heading', { name: '答え合わせ' })
+	});
+	await expect(answers.locator('li')).toHaveText([
+		/◎.*E2Eソトワク.*2着.*馬券内/,
+		/○.*E2Eウチワク.*1着.*馬券内/
+	]);
+	await expect(answers).toContainText('◎○▲△ 2頭中 2頭 馬券内');
+	// 的中は馬券に使う言葉。このアプリは馬券を記録していないので、印には使わない。
+	await expect(answers).not.toContainText(/当たり|外れ|的中/);
+});
+
+/**
+ * 出走前メモは各馬の行に**読むだけ**で出る。直せる欄にすると、結果を見てから
+ * 予想を書き換えられてしまい、答え合わせが成り立たない。
+ */
+test('各馬の行に、走る前に書いたメモが読み取り専用で出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
+	await expect(row).toContainText(OUTER_PREVIEW_BODY);
+	await expect(row).toContainText('次走買い');
+	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
+
+	// 入力欄には入っていない（ふりかえりの欄は空のまま）。
+	for (const value of await page
+		.locator('textarea')
+		.evaluateAll((els) => els.map((el) => (el as HTMLTextAreaElement).value))) {
+		expect(value).not.toContain(OUTER_PREVIEW_BODY);
+	}
+});
+
+/**
+ * ★ **他人の印は答え合わせに混ざらない。** seed では別のユーザーが同じレースの
+ * ウチワクに × を付けている。混ざると「自分の予想」の答え合わせが嘘になる。
+ */
+test('他人が同じレースに付けた印と出走前メモは出ない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	await expect(page.getByRole('heading', { name: '答え合わせ' })).toBeVisible();
+	await expect(page.getByText(OTHER_USER_PREVIEW_BODY)).toHaveCount(0);
+	await expect(page.getByTitle('予想印 ×')).toHaveCount(0);
+});
+
+/**
+ * 出走前メモ（`preview`）とふりかえり（`entry`）は別の行。
+ * ふりかえりを保存しても、走る前の印とメモは残る。
+ */
+test('ふりかえりを保存しても、出走前の印とメモは消えない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
+	await row.locator('textarea').fill('結局外を回して届かず。');
+	await page.getByRole('button', { name: 'まとめて保存' }).click();
+	await expect(page.getByText('保存しました')).toBeVisible();
+
+	await page.reload();
+	await expect(row.locator('textarea')).toHaveValue('結局外を回して届かず。');
+	await expect(row).toContainText(OUTER_PREVIEW_BODY);
+	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
+
+	// 後片付け。空で保存するとふりかえりのメモは消える。
+	await row.locator('textarea').fill('');
+	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
 });
