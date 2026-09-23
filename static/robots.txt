@@ -6,10 +6,12 @@
 # 狙いはクロールの拒否ではなくインデックスの拒否なので、crawl は許して
 # noindex を読ませる（docs/product.md 第6章）。
 #
-# /login（ホームページ）・/privacy・/terms は Google OAuth の同意画面に登録する公開ページ。
-# 誰に読まれてもよく、Google の確認で取りに来られるので止めない。
+# /（未ログインだと紹介ページ）・/login・/privacy・/terms は Google OAuth の同意画面に
+# 登録する公開ページ。誰に読まれてもよく、Google の確認で取りに来られるので止めない。
+# `/$` はトップだけ。`$` を付けないと `Allow: /` になり、上の Disallow を打ち消す。
 User-agent: *
 Disallow: /
+Allow: /$
 Allow: /notes/
 Allow: /login
 Allow: /privacy
