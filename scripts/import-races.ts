@@ -113,10 +113,10 @@ const raceSchema = v.object({
 	weather: v.optional(v.string()),
 	/**
 	 * 取得元のレース ID。`nk-` + netkeiba の race_id（12桁）。`data:fetch entries` が書く。
-	 * **これと `startTime` があるレースだけ、オッズを取りに行く**（docs/product.md 第1章）。
+	 * **これと `startTime` がある重賞（G1〜G3）だけ、オッズを取りに行く**（docs/product.md 第1章）。
 	 */
 	ref: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
-	/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯の終わり（重賞でなければ始まりも）を決める。 */
+	/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯の終わりを決める。 */
 	startTime: v.optional(
 		v.pipe(v.string(), v.regex(/^([01]\d|2[0-3]):[0-5]\d$/, '発走時刻は HH:MM で書いてください'))
 	),

@@ -39,21 +39,21 @@ describe('listOddsTargets', () => {
 	const ids = async (iso: string) =>
 		(await listOddsTargets(db, new Date(iso))).map((t) => t.raceId);
 
-	it('当日は、重賞と、ref・発走時刻ありで発走3時間前〜発走のレース', async () => {
-		// 日 14:00。15:40 発走の R1 は窓の中、10:05 発走の R5 は発走後。重賞は前日から窓の中
+	it('当日は重賞だけ。L・OP・条件戦は ref と発走時刻があっても取りに行かない', async () => {
+		// 日 14:00。R1（条件戦・15:40 発走）は対象外
 		expect(await listOddsTargets(db, new Date('2026-09-27T05:00:00Z'))).toEqual([
 			{ raceId: 'G2R', externalRef: 'nk-202609040912' },
-			{ raceId: 'R1', externalRef: 'nk-202606040911' },
 			{ raceId: 'G1R', externalRef: 'nk-202606040912' }
 		]);
 	});
 
-	it('朝は朝のレースと重賞', async () => {
-		// 日 08:00
-		expect(await ids('2026-09-26T23:00:00Z')).toEqual(['R5', 'G2R', 'G1R']);
+	it('ref か発走時刻が無い重賞は取りに行かない', async () => {
+		sqlite.exec(`UPDATE race SET external_ref = NULL WHERE id = 'G2R'`);
+		sqlite.exec(`UPDATE race SET start_time = NULL WHERE id = 'G1R'`);
+		expect(await ids('2026-09-27T05:00:00Z')).toEqual([]);
 	});
 
-	it('前日の夜は重賞だけ。前々日の夜は G1 だけ', async () => {
+	it('前日の夜は G1〜G3。前々日の夜は G1 だけ', async () => {
 		expect(await ids('2026-09-26T10:00:00Z')).toEqual(['G2R', 'G1R']); // 土 19:00
 		expect(await ids('2026-09-25T10:00:00Z')).toEqual(['G1R']); // 金 19:00
 		expect(await ids('2026-09-25T09:00:00Z')).toEqual([]); // 金 18:00
@@ -65,9 +65,9 @@ describe('listOddsTargets', () => {
 		expect(await ids('2026-09-27T10:00:00Z')).toEqual(['G1L']); // 日 19:00
 	});
 
-	it('対象が無い時間は空', async () => {
-		// JST 17:00。全レース発走後
-		expect(await listOddsTargets(db, new Date('2026-09-27T08:00:00Z'))).toEqual([]);
+	it('発走後は取りに行かない', async () => {
+		// 日 17:00。重賞も発走後
+		expect(await ids('2026-09-27T08:00:00Z')).toEqual([]);
 	});
 });
 

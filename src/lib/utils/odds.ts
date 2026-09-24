@@ -7,18 +7,25 @@
 
 import { addDays } from './date';
 
-const HOUR_MS = 60 * 60 * 1000;
-
-/** 重賞でないレースは、発走の何時間前から取りに行くか。 */
-export const ODDS_WINDOW_BEFORE_MS = 3 * HOUR_MS;
-
-/** 重賞は、何日前の何時（JST）から取りに行くか。前日発売のオッズが出始める頃に合わせる。 */
-const GRADED_OPENS: Partial<Record<string, { daysBefore: number; time: string }>> = {
+/**
+ * オッズを取りに行く格と、何日前の何時（JST）から取りに行くか。前日発売のオッズが出始める頃に合わせる。
+ * **ここに無い格（L・OP・条件戦）は取りに行かない。**
+ */
+const ODDS_OPENS = {
 	// 金曜から売る G1 があるので、前々日から見に行く。まだ出ていなければ何も保存しない
 	G1: { daysBefore: 2, time: '18:30' },
 	G2: { daysBefore: 1, time: '18:30' },
 	G3: { daysBefore: 1, time: '18:30' }
-};
+} as const satisfies Record<string, { daysBefore: number; time: string }>;
+
+type OddsGrade = keyof typeof ODDS_OPENS;
+
+function isOddsGrade(grade: string | null): grade is OddsGrade {
+	return grade !== null && Object.hasOwn(ODDS_OPENS, grade);
+}
+
+/** オッズを取りに行く格。`listOddsTargets` が D1 で先に絞るのに使う。 */
+export const ODDS_GRADES = Object.keys(ODDS_OPENS) as OddsGrade[];
 
 /** `YYYY-MM-DD` と `HH:MM`（JST）→ その時刻。形が違えば null。 */
 export function startsAt(date: string, startTime: string): Date | null {
@@ -32,23 +39,18 @@ export function startsAt(date: string, startTime: string): Date | null {
 }
 
 /**
- * オッズを取りに行き始める時刻。格で決める。
+ * オッズを取りに行き始める時刻。格で決める。取りに行かない格なら null。
  *
  * - G1 … 前々日の 18:30（金曜から売る G1 がある）
  * - G2・G3 … 前日の 18:30（前日発売のオッズが出始める頃）
- * - それ以外 … 発走の3時間前
+ * - L・OP・条件戦 … 取りに行かない
  *
- * どれも発売前なら取得元は予想オッズしか返さず、parser が読まないので何も保存されない。
+ * 発売前なら取得元は予想オッズしか返さず、parser が読まないので何も保存されない。
  */
-export function oddsWindowOpens(
-	date: string,
-	startTime: string,
-	grade: string | null
-): Date | null {
-	const opens = grade ? GRADED_OPENS[grade] : undefined;
-	if (opens) return startsAt(addDays(date, -opens.daysBefore), opens.time);
-	const start = startsAt(date, startTime);
-	return start && new Date(start.getTime() - ODDS_WINDOW_BEFORE_MS);
+export function oddsWindowOpens(date: string, grade: string | null): Date | null {
+	if (!isOddsGrade(grade)) return null;
+	const opens = ODDS_OPENS[grade];
+	return startsAt(addDays(date, -opens.daysBefore), opens.time);
 }
 
 /**
@@ -65,7 +67,7 @@ export function inOddsWindow(
 	now: Date
 ): boolean {
 	const start = startsAt(date, startTime);
-	const opens = oddsWindowOpens(date, startTime, grade);
+	const opens = oddsWindowOpens(date, grade);
 	if (!start || !opens) return false;
 	const t = now.getTime();
 	return t >= opens.getTime() && t <= start.getTime();

@@ -63,7 +63,7 @@ Cloudflare Workers 上で動かす。
   `race_odds` だけで、メモからも馬柱からも参照しない。壊れても消しても、ほかのデータに響かない
 - **取りに行くのは、レースの `ref`（取得元の ID）と発走時刻を YAML に書いたレースだけ。**
   どのレースを対象にするかは、PR を通ったデータで決まる
-- G1 は前々日の 18:30、G2・G3 は前日の 18:30、それ以外は当日の発走3時間前から、どれも発走まで、30分おき（夜中は取りに行かない）。閲覧のたびに取得元へは行かない（画面は D1 の値を出す）
+- 重賞（G1〜G3）だけ。G1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで。30分おき（夜中は取りに行かない）。L・OP・条件戦は取りに行かない。閲覧のたびに取得元へは行かない（画面は D1 の値を出す）
 - 取れなかった回は何も書かない。前回の値が、取れた時点とともに残る
 - 取得元は netkeiba（内部の JSON。公開の API ではない）。2026-09-24 に robots.txt を確かめた
   （`race.netkeiba.com`・`www.netkeiba.com` とも 404 で、規則は置かれていない）。利用規約上の扱いは人が確かめる。
@@ -405,7 +405,7 @@ erDiagram
 | track_condition | text | `良` / `稍重` / `重` / `不良` |
 | weather | text | |
 | start_time | text | 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯を決める |
-| external_ref | text | 取得元のレース ID（`nk-` + netkeiba の race_id）。これと `start_time` があるレースだけオッズを取りに行く |
+| external_ref | text | 取得元のレース ID（`nk-` + netkeiba の race_id）。これと `start_time` がある重賞だけオッズを取りに行く |
 | created_by | text FK→user.id | |
 | created_at / updated_at | integer | |
 

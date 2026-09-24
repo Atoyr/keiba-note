@@ -1,9 +1,9 @@
-import { and, asc, between, eq, isNotNull, notInArray, sql } from 'drizzle-orm';
+import { and, asc, between, eq, inArray, isNotNull, notInArray, sql } from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { race, raceOdds } from '$lib/server/db/schema';
 import type { HorseOdds, RaceOdds } from '$lib/server/odds/odds';
 import { addDays, todayJst } from '$lib/utils/date';
-import { inOddsWindow } from '$lib/utils/odds';
+import { inOddsWindow, ODDS_GRADES } from '$lib/utils/odds';
 
 /**
  * オッズの読み書き。取得（netkeiba へ行く）は `lib/server/odds/` が持ち、ここは D1 だけを見る。
@@ -17,10 +17,10 @@ export type OddsTarget = { raceId: string; externalRef: string };
 /**
  * いまオッズを取りに行くレース。**取得元の ID と発走時刻があり、いまが取りに行く時間帯に入っているもの**だけ。
  *
- * 時間帯は格で決まる（`oddsWindowOpens`）。G1 は前々日の 18:30、G2・G3 は前日の 18:30、
- * それ以外は当日の発走3時間前から、どれも発走まで。
+ * **重賞（G1〜G3）だけ。** 時間帯は格で決まる（`oddsWindowOpens`）。G1 は前々日の 18:30、
+ * G2・G3 は前日の 18:30 から、どちらも発走まで。L・OP・条件戦は取りに行かない。
  *
- * D1 で絞るのは「今日から2日後まで」と「ref・発走時刻が入っているか」まで。時間帯は JST の時刻計算が
+ * D1 で絞るのは「重賞」「今日から2日後まで」「ref・発走時刻が入っているか」まで。時間帯は JST の時刻計算が
  * 要るので JS 側で切る（その範囲の ref 付きのレースは数件なので、取ってから捨ててよい）。
  */
 export async function listOddsTargets(db: Db, now: Date): Promise<OddsTarget[]> {
@@ -36,6 +36,7 @@ export async function listOddsTargets(db: Db, now: Date): Promise<OddsTarget[]> 
 		.from(race)
 		.where(
 			and(
+				inArray(race.grade, ODDS_GRADES),
 				between(race.date, today, addDays(today, 2)),
 				isNotNull(race.externalRef),
 				isNotNull(race.startTime)

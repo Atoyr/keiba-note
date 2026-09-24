@@ -14,10 +14,11 @@ const NOW = new Date('2026-09-27T05:00:00Z');
 
 beforeEach(() => {
 	({ db, sqlite } = createTestDb());
-	sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, start_time, external_ref) VALUES
-		('R1', '2026-09-27', '中山', 11, 'スプリンターズS', '15:40', 'nk-202606040911'),
-		('R2', '2026-09-27', '阪神', 11, '別のレース', '15:30', 'nk-202609040911'),
-		('R9', '2026-09-27', '阪神', 12, '対象外（発走後）', '10:00', 'nk-202609040912')`);
+	// オッズを取りに行くのは重賞だけ
+	sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, grade, start_time, external_ref) VALUES
+		('R1', '2026-09-27', '中山', 11, 'スプリンターズS', 'G1', '15:40', 'nk-202606040911'),
+		('R2', '2026-09-27', '阪神', 11, '別のレース', 'G2', '15:30', 'nk-202609040911'),
+		('R9', '2026-09-27', '阪神', 12, '対象外（発走後）', 'G3', '10:00', 'nk-202609040912')`);
 });
 
 const odds = (raceId: string, win = 3.4): RaceOdds => ({
