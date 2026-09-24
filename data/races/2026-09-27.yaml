@@ -10,4 +10,190 @@ races:
     surface: 芝
     distance: 1200
     direction: 右
-    entries: []
+    entries:
+      - name: アイサンサン
+        jockey: 幸英明
+        sex: 牝
+        age: 4
+        ref: nk-2022103875
+        trainer: 橋田宜長
+        sire: キズナ
+        dam: ウアジェト
+        weight: 56
+      - name: ウインカーネリアン
+        jockey: 三浦皇成
+        sex: 牡
+        age: 9
+        ref: nk-2017101429
+        trainer: 鹿戸雄一
+        sire: スクリーンヒーロー
+        dam: コスモクリスタル
+        weight: 58
+      - name: エーティーマクフィ
+        jockey: 富田暁
+        sex: 牡
+        age: 7
+        ref: nk-2019105859
+        trainer: 武英智
+        sire: マクフィ
+        dam: テンシンランマン
+        weight: 58
+      - name: クラスペディア
+        sex: 牡
+        age: 4
+        ref: nk-2022106394
+        trainer: 河嶋宏樹
+        sire: ミスターメロディ
+        dam: ウンベラータ
+        weight: 58
+      - name: サウンドモリアーナ
+        jockey: 吉田隼人
+        sex: 牝
+        age: 4
+        ref: nk-2022102057
+        trainer: 武英智
+        sire: ミッキーアイル
+        dam: サウンドリアーナ
+        weight: 56
+      - name: ジューンブレア
+        jockey: 坂井瑠星
+        sex: 牝
+        age: 5
+        ref: nk-2021110099
+        trainer: 武英智
+        sire: アメリカンファラオ
+        dam: Lap of Luxury
+        weight: 56
+      - name: スターアニス
+        jockey: ルメール
+        sex: 牝
+        age: 3
+        ref: nk-2023106920
+        trainer: 高野友和
+        sire: ドレフォン
+        dam: エピセアローム
+        weight: 54
+      - name: タマモイカロス
+        sex: 牡
+        age: 3
+        ref: nk-2023103162
+        trainer: 藤岡健一
+        sire: デクラレーションオブウォー
+        dam: タマモブリリアン
+        weight: 56
+      - name: パンジャタワー
+        jockey: 松山弘平
+        sex: 牡
+        age: 4
+        ref: nk-2022101732
+        trainer: 橋口慎介
+        sire: タワーオブロンドン
+        dam: クラークスデール
+        weight: 58
+      - name: ピューロマジック
+        jockey: 岩田望来
+        sex: 牝
+        age: 5
+        ref: nk-2021107058
+        trainer: 安田翔伍
+        sire: アジアエクスプレス
+        dam: メジェルダ
+        weight: 56
+      - name: ブラックチャリス
+        jockey: 浜中俊
+        sex: 牝
+        age: 3
+        ref: nk-2023107008
+        trainer: 武幸四郎
+        sire: キタサンブラック
+        dam: ゴールドチャリス
+        weight: 54
+      - name: フリッカージャブ
+        jockey: 西村淳也
+        sex: 牡
+        age: 4
+        ref: nk-2022102020
+        trainer: 西園翔太
+        sire: サートゥルナーリア
+        dam: ナイキトリック
+        weight: 58
+      - name: フロムダスク
+        jockey: 中井裕二
+        sex: 牡
+        age: 6
+        ref: nk-2020110133
+        trainer: 森秀行
+        sire: Bolt d'Oro
+        dam: Foolish Cause
+        weight: 58
+      - name: ペアポルックス
+        jockey: 岩田康誠
+        sex: 牡
+        age: 5
+        ref: nk-2021102320
+        trainer: 梅田智之
+        sire: キンシャサノキセキ
+        dam: ミラクルアスク
+        weight: 58
+      - name: ママコチャ
+        jockey: 武豊
+        sex: 牝
+        age: 7
+        ref: nk-2019105394
+        trainer: 池江泰寿
+        sire: クロフネ
+        dam: ブチコ
+        weight: 56
+      - name: ヨシノイースター
+        jockey: 田辺裕信
+        sex: 牡
+        age: 8
+        ref: nk-2018106055
+        trainer: 中尾秀正
+        sire: ルーラーシップ
+        dam: アースプレイ
+        weight: 58
+      - name: リリージョワ
+        sex: 牝
+        age: 3
+        ref: nk-2023105312
+        trainer: 武幸四郎
+        sire: シルバーステート
+        dam: デサフィアンテ
+        weight: 54
+      - name: ルガル
+        jockey: 鮫島克駿
+        sex: 牡
+        age: 6
+        ref: nk-2020106851
+        trainer: 杉山晴紀
+        sire: ドゥラメンテ
+        dam: アタブ
+        weight: 58
+      - name: レイピア
+        jockey: 横山武史
+        sex: 牡
+        age: 4
+        ref: nk-2022103066
+        trainer: 中竹和也
+        sire: タワーオブロンドン
+        dam: アンナトルテ
+        weight: 58
+      - name: レッドモンレーヴ
+        jockey: 酒井学
+        sex: 牡
+        age: 7
+        ref: nk-2019105496
+        trainer: 蛯名正義
+        sire: ロードカナロア
+        dam: ラストグルーヴ
+        weight: 58
+      - name: ワールズエンド
+        jockey: 津村明秀
+        sex: 牡
+        age: 5
+        ref: nk-2021105864
+        trainer: 池添学
+        sire: ロードカナロア
+        dam: リラヴァティ
+        weight: 58

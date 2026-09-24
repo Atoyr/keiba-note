@@ -643,6 +643,20 @@ races:
     trackCondition: 良
     weather: 晴
     entries:
+      - horseNumber: 3
+        bracket: 2
+        name: ブラックチャリス
+        jockey: 吉田隼人
+        ref: nk-2023107008
+        finish: 6
+        popularity: 2
+        time: "1:08.9"
+        passing: "1-1"
+        last3f: 35.6
+        weight: 55
+        horseWeight: 470
+        horseWeightDiff: 10
+        odds: 4.5
       - horseNumber: 5
         bracket: 3
         name: ダノンマッキンリー
