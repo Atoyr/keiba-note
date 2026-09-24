@@ -84,8 +84,6 @@
 		{/if}
 	</div>
 
-	<CourseMap race={data.race} class="mt-4" />
-
 	{#if form && 'message' in form && form.message}
 		<p
 			class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
@@ -112,6 +110,9 @@
 			<AnswerCheck {answers} />
 		</div>
 	{/if}
+
+	<!-- コース図は見返すための資料なので、保存の結果と答え合わせより下、書く欄の直前に置く。 -->
+	<CourseMap race={data.race} class="mt-6" />
 
 	{#if data.rows.length === 0}
 		<p class="mt-8 rounded-md border border-gray-200 p-4 text-sm text-gray-500">

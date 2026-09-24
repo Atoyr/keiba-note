@@ -197,6 +197,8 @@ const DIRT_WIDTH = 22;
 /** 芝とダートの間にあける幅（中心線どうしではなく、帯の縁どうし）。 */
 const GAP = 8;
 const ARROW_GAP = 34;
+/** 「ゴール」の文字の大きさ（m）。PX_PER_M を掛けると約 11px。 */
+const LABEL_SIZE = 36;
 const PAD = 12;
 
 const COLOR = {
@@ -267,7 +269,7 @@ function layout(spec: CourseSpec): Layout {
 		turf,
 		dirt,
 		straight,
-		box: { x, y, w: Math.max(...xs) + half + PAD - x, h: goalY2 + 10 + PAD - y },
+		box: { x, y, w: Math.max(...xs) + half + PAD - x, h: goalY2 + LABEL_SIZE + 12 + PAD - y },
 		arrowY,
 		goalY1,
 		goalY2
@@ -331,10 +333,13 @@ export function courseMapSvg(spec: CourseSpec, variant: CourseMapVariant): strin
 		`L${n(mid - 90)} ${n(l.arrowY)}L${n(mid - 60)} ${n(l.arrowY + 18)}" fill="none" ` +
 		`stroke="${COLOR.arrow}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
 
-	// ゴール板。コースを横切る線と、その外側の旗。
-	const goal =
-		`<path d="M0 ${n(l.goalY1)}V${n(l.goalY2)}" stroke="${COLOR.mark}" stroke-width="6"/>` +
-		`<path d="M0 ${n(l.goalY2)}l26 -9l-26 -9Z" fill="${COLOR.mark}"/>`;
+	// ゴール板。コースを横切る線。旗だけでは走る向きの矢印と見分けにくいので、文字を添える。
+	const goal = `<path d="M0 ${n(l.goalY1)}V${n(l.goalY2)}" stroke="${COLOR.mark}" stroke-width="6"/>`;
+	// 文字は反転させない（右回りの図は左右を反転して描くので、グループの外に置く）。
+	// ゴールは x = 0 なので、反転しても位置は変わらない。
+	const label =
+		`<text x="0" y="${n(l.goalY2 + LABEL_SIZE)}" font-size="${LABEL_SIZE}" ` +
+		`text-anchor="middle" fill="${COLOR.mark}" font-family="sans-serif">ゴール</text>`;
 
 	const body = [...tracks.map((t) => t.svg), arrow, goal].join('');
 	const flip = spec.direction === '右' ? ' transform="scale(-1 1)"' : '';
@@ -344,7 +349,7 @@ export function courseMapSvg(spec: CourseSpec, variant: CourseMapVariant): strin
 	return (
 		`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" ` +
 		`viewBox="${n(vx)} ${n(box.y)} ${n(box.w)} ${n(box.h)}">` +
-		`<g${flip}>${body}</g></svg>\n`
+		`<g${flip}>${body}</g>${label}</svg>\n`
 	);
 }
 
