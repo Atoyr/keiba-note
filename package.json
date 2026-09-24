@@ -20,6 +20,7 @@
 		"verify": "pnpm run check && pnpm run lint && pnpm test",
 		"screens": "playwright install chromium && node --experimental-strip-types scripts/screens.ts",
 		"screens:pr": "node --experimental-strip-types scripts/pr-screens.ts",
+		"course-maps": "node --experimental-strip-types scripts/course-maps.ts",
 		"gen": "wrangler types",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate:local": "wrangler d1 migrations apply k-note --local",
