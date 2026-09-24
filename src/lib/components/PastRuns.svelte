@@ -43,15 +43,16 @@
 		{#each runs as r (r.raceId)}
 			<li class="flex flex-wrap items-baseline gap-x-2 py-1">
 				<span class="font-mono text-muted-foreground">{md(r.date)}</span>
-				<span class="truncate">{r.raceName ?? `${r.course}${r.raceNumber ?? ''}R`}</span>
+				<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。
+				     重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
+				     格が無いときだけクラスを札と同じ位置に出す（両方出すと重複して見える）。 -->
 				<GradeBadge grade={r.grade} />
-				<!-- 重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
-				     格が無いときだけクラスを出す（両方出すと重複して見える）。 -->
 				{#if !r.grade && r.className}
 					<span class="rounded bg-muted px-1 text-[10px] text-muted-foreground">
 						{r.className}
 					</span>
 				{/if}
+				<span class="truncate">{r.raceName ?? `${r.course}${r.raceNumber ?? ''}R`}</span>
 				<span class="font-mono text-muted-foreground">{cond(r)}</span>
 				<!-- 着順・人気・上がりは1つのまとまりにする。バラで並べると、
 				     狭い画面で折り返したときに3つが別々の行に散る。 -->

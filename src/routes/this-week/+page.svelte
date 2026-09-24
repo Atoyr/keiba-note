@@ -96,8 +96,9 @@
 								<span class="font-mono text-sm text-muted-foreground">
 									{r.course}{r.raceNumber ?? ''}R
 								</span>
-								<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>
+								<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。 -->
 								<GradeBadge grade={r.grade} />
+								<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>
 							</div>
 							<div class="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
 								<span>{r.surface ?? ''}{r.distance ? `${r.distance}m` : ''}</span>
