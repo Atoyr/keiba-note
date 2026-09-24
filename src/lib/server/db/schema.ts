@@ -3,6 +3,7 @@ import {
 	check,
 	index,
 	integer,
+	primaryKey,
 	real,
 	sqliteTable,
 	text,
@@ -127,6 +128,12 @@ export const race = sqliteTable(
 		direction: text('direction', { enum: ['右', '左', '直線'] }),
 		trackCondition: text('track_condition', { enum: ['良', '稍重', '重', '不良'] }),
 		weather: text('weather'),
+		/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯を決める（`services/odds.ts`）。 */
+		startTime: text('start_time'),
+		/**
+		 * 取得元のレース ID。`nk-202606040911`（netkeiba の race_id）の形。
+		 * **オッズを取りに行くのは、これと発走時刻が入った当日のレースだけ。**
+		 */
 		externalRef: text('external_ref'),
 		createdBy: text('created_by').references(() => user.id),
 		createdAt: createdAt(),
@@ -279,6 +286,47 @@ export const note = sqliteTable(
 );
 
 /**
+ * 最新の単勝・複勝オッズ。1レース・1馬番につき1行で、**履歴は持たない。**
+ *
+ * マスタ（race / race_entry）と違い、PR を通さず Cron が取得元から書く唯一のテーブル
+ * （docs/product.md 第1章の例外）。表示専用で、メモからも馬柱からも参照しない。
+ *
+ * 取得に失敗した回は何も書かない。前回うまく取れた値が、その時点（`as_of`）とともに残る。
+ * 馬番で持つのは、オッズが馬番に付くものだから。馬番が決まる前（枠順確定前）には
+ * 取得元もオッズを出さない（出るのは予想オッズで、parser が読まない）。
+ */
+export const raceOdds = sqliteTable(
+	'race_odds',
+	{
+		raceId: text('race_id')
+			.notNull()
+			.references(() => race.id, { onDelete: 'cascade' }),
+		horseNumber: integer('horse_number').notNull(),
+		winOdds: real('win_odds'),
+		placeOddsMin: real('place_odds_min'),
+		placeOddsMax: real('place_odds_max'),
+		/** オッズの時点（unixepoch）。画面の「14:30時点」。 */
+		asOf: integer('as_of').notNull(),
+		/** 取りに行った時刻（unixepoch）。 */
+		fetchedAt: integer('fetched_at').notNull()
+	},
+	(t) => [
+		// レース単位で読むので race_id が先頭。別にインデックスは要らない。
+		primaryKey({ columns: [t.raceId, t.horseNumber] }),
+		// 値の検査は validateRaceOdds が先にしている。ここは壊れた値が入らないための最後の砦。
+		check(
+			'race_odds_values',
+			sql`
+				horse_number BETWEEN 1 AND 18
+				AND (win_odds IS NULL OR win_odds > 0)
+				AND (place_odds_min IS NULL OR place_odds_min > 0)
+				AND (place_odds_max IS NULL OR place_odds_max >= place_odds_min)
+			`
+		)
+	]
+);
+
+/**
  * data/races/*.yaml の適用状況。
  *
  * 投入スクリプトは実行のたびに全ファイルを流し直していたが、開催日ごとに
@@ -310,6 +358,7 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export type Horse = typeof horse.$inferSelect;
 export type Race = typeof race.$inferSelect;
 export type RaceEntry = typeof raceEntry.$inferSelect;
+export type RaceOddsRow = typeof raceOdds.$inferSelect;
 export type Note = typeof note.$inferSelect;
 export type NoteKind = Note['kind'];
 export type NoteVisibility = Note['visibility'];

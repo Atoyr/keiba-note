@@ -164,9 +164,13 @@ export async function getRace(db: Db, id: string): Promise<Race | null> {
 	return rows.at(0) ?? null;
 }
 
+/**
+ * 画面（/races/new）から入れる項目。取得元の ID と発走時刻は YAML（`data:fetch entries`）からだけ入れる。
+ * どちらもオッズを取りに行く対象を決めるもので、手で打ち間違えると別のレースのオッズが付く。
+ */
 export type CreateRaceInput = Omit<
 	Race,
-	'id' | 'createdBy' | 'createdAt' | 'updatedAt' | 'externalRef'
+	'id' | 'createdBy' | 'createdAt' | 'updatedAt' | 'externalRef' | 'startTime'
 >;
 
 export async function createRace(

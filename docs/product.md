@@ -12,6 +12,8 @@ Cloudflare Workers 上で動かす。
   「API の形」は api.md に移した
 - 更新日: 2026-09-23 — アプリ名を k-note から uma-memo に変え、独自ドメイン `uma-memo.com` を当てた（→ 第4章）
 - 更新日: 2026-09-24 — 予想画面とふりかえり画面にコース図を足した（→ 第6章 `/races/[id]/preview`）
+- 更新日: 2026-09-24 — 予想画面に単勝・複勝のオッズを出すことにし、「外部データを自動で取り込まない」の
+  例外をオッズだけに設けた（→ 第1章 / 第5章 race・race_odds / 第6章 `/races/[id]/preview`）
 - ステータス: 確定（実装着手可）
 - **読む場面:** 機能を足す・変えるとき。何を・なぜ作るか、画面に何を出すか、やらないと決めたことを確かめるとき
 - 関連: [architecture.md](./architecture.md) — アーキテクチャ / コスト / 技術選定の根拠
@@ -46,7 +48,27 @@ Cloudflare Workers 上で動かす。
 - 公開タイムライン、フォロー、他人のメモの一覧・検索
 - タグ・全文検索（自分のメモに限れば将来やってよい。他人のメモは対象外）
 - 次走チェックリスト／通知
-- 外部データ（netkeiba / JRA 等）をアプリが自動で取り込むこと。取ってきて YAML を書く道具（`data:fetch`）はあるが、入るのはレビューを通った PR だけ
+- 外部データ（netkeiba / JRA 等）をアプリが自動で取り込むこと。取ってきて YAML を書く道具（`data:fetch`）はあるが、入るのはレビューを通った PR だけ。
+  **例外はオッズだけ**（下記）
+- オッズの履歴・変動グラフ・リアルタイム表示、単勝・複勝以外の券種
+
+#### 例外 — オッズ（2026-09-24）
+
+予想画面に**単勝と複勝（下限〜上限）**を出す。オッズは発走の直前まで動き、開催日の朝に PR を
+通していては間に合わないので、ここだけは Cron が取得元から取って D1 に書く。
+
+例外にしてよい理由と、そのための線引き:
+
+- **マスタ（馬・レース・出走馬・結果）は今までどおり PR だけで入る。** Cron が書くのは表示専用の
+  `race_odds` だけで、メモからも馬柱からも参照しない。壊れても消しても、ほかのデータに響かない
+- **取りに行くのは、レースの `ref`（取得元の ID）と発走時刻を YAML に書いたレースだけ。**
+  どのレースを対象にするかは、PR を通ったデータで決まる
+- 重賞（G1〜G3）だけ。G1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで。30分おき（夜中は取りに行かない）。L・OP・条件戦は取りに行かない。閲覧のたびに取得元へは行かない（画面は D1 の値を出す）
+- 取れなかった回は何も書かない。前回の値が、取れた時点とともに残る
+- 取得元は netkeiba（内部の JSON。公開の API ではない）。2026-09-24 に robots.txt を確かめた
+  （`race.netkeiba.com`・`www.netkeiba.com` とも 404 で、規則は置かれていない）。利用規約上の扱いは人が確かめる。
+  取得元を替えられるよう、取得元に固有の処理は `lib/server/odds/netkeiba/` に閉じる
+  （→ [architecture.md 3-8](./architecture.md)）
 - 馬券収支の管理
 - モバイルアプリ、ネイティブ通知
 
@@ -382,9 +404,13 @@ erDiagram
 | direction | text | `右` / `左` / `直線` |
 | track_condition | text | `良` / `稍重` / `重` / `不良` |
 | weather | text | |
-| external_ref | text | 将来の取り込み用 |
+| start_time | text | 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯を決める |
+| external_ref | text | 取得元のレース ID（`nk-` + netkeiba の race_id）。これと `start_time` がある重賞だけオッズを取りに行く |
 | created_by | text FK→user.id | |
 | created_at / updated_at | integer | |
+
+`start_time` と `external_ref` は YAML（`data:fetch entries`）からだけ入る。`/races/new` の画面には置かない
+（打ち間違えると別のレースのオッズが付くため）。
 
 - `INDEX race_date ON race(date DESC)`
 - `UNIQUE INDEX race_ident ON race(date, course, race_number)`
@@ -413,6 +439,23 @@ erDiagram
 - `UNIQUE INDEX entry_race_horse ON race_entry(race_id, horse_id)`
 - `UNIQUE INDEX entry_race_number ON race_entry(race_id, horse_number)`
 - `INDEX entry_horse ON race_entry(horse_id)`
+
+### race_odds（最新のオッズ）
+
+Cron が取得元から書く唯一のテーブル（→ 第1章「例外 — オッズ」）。1レース・1馬番につき1行で、履歴は持たない。
+
+| カラム | 型 | 備考 |
+| --- | --- | --- |
+| race_id | text FK→race.id ON DELETE CASCADE | |
+| horse_number | integer | 馬番。オッズは馬番に付く |
+| win_odds | real | 単勝。NULL = 値なし（取消・発売前） |
+| place_odds_min / place_odds_max | real | 複勝の下限・上限 |
+| as_of | integer | オッズの時点（unixepoch）。画面の「14:30時点」 |
+| fetched_at | integer | 取りに行った時刻（unixepoch） |
+
+- `PRIMARY KEY (race_id, horse_number)`。取れた回は馬ごとに upsert し、応答に無い馬番の行は消す
+- `CHECK`: 馬番 1–18、オッズは NULL か正、複勝は下限 ≤ 上限。値の検査は保存の前にもしている
+- `race_entry.odds`（YAML で入れる確定の単勝）とは別物。こちらは予想画面に出すだけ
 
 ### data_import（YAML の適用状況）
 
@@ -854,6 +897,16 @@ JRA の10場以外と、馬場が決まっていないレースには出さな�
 
 **着順が入っていない行も落とさない。** 出馬表だけ登録して結果が未入力のレースは実際にある。
 落とすと「走っていない」と見分けが付かなくなるので、`—` を出す。
+
+**オッズは各馬の馬柱の上に1行で「単勝 3.4 複勝 1.4-1.8」と出し、一覧の上に取れた時点を1行添える**
+（「単勝・複勝のオッズは 9/27 14:30時点」）。
+
+- 出すのは Cron が D1 に置いた値だけ。この画面から取得元へは行かない
+- **時点を必ず出す。** 30分おきにしか取らず、失敗した回は前の値が残る。「現在」「リアルタイム」とは書かない。
+  日付も付けるのは、前日の値が残っているときに今日の値と取り違えないため
+- 値の無い馬（取消・馬番未定）は `-`
+- 見出しの行（馬名・騎手・前回の札・印）には入れない。見出しは長さで折り返すので、馬ごとに位置が変わって縦に見比べられない
+- 1度も取れていないレース（ref か発走時刻が無い、発売前）では、オッズの欄ごと出さない
 
 > 馬柱が成立するかどうかは、**過去のレースに結果が入っているか**だけで決まる。
 > 結果は出馬表と同じ [data/races/](../data/races/) の YAML に追記する（→ [data/README.md](../data/README.md)）。

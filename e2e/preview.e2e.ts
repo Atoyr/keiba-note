@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
+	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
 	OTHER_DISTANCE_NOTE_BODY,
 	OTHER_USER_SAME_CONDITION_BODY,
@@ -45,6 +46,29 @@ test('「書き直す」を開くと、本文欄と全部の札が出る', async
 	await expect(page.getByText('好上がり', { exact: true })).toBeVisible();
 	// 付けた札はチェック済みで出る。
 	await expect(page.getByRole('checkbox', { name: '次走買い' })).toBeChecked();
+});
+
+/**
+ * オッズは Cron が D1 に置いたもの（seed の race_odds）を出すだけ。画面から取得元へは行かない。
+ * **時点を必ず添える**（30分おきにしか取らず、失敗した回は前の値が残るため）。
+ */
+test('出走馬の単勝・複勝オッズを、取れた時点とともに出す', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	await expect(page.getByText('単勝・複勝のオッズは 5/5 14:30時点')).toBeVisible();
+	const row = page.locator('main li[id^="entry-"]');
+	await expect(row).toContainText(/単勝\s*3\.4\s*複勝\s*1\.4-1\.8/);
+});
+
+test('オッズが1度も取れていないレースでは、オッズの欄を出さない', async ({ page }) => {
+	await login(page);
+	// 出走馬はいるが、race_odds の行が無いレース
+	await page.goto(`/races/${BRACKET_RACE_ID}/preview`);
+
+	await expect(page.locator('main li[id^="entry-"]').first()).toBeVisible();
+	await expect(page.getByText(/のオッズは/)).toHaveCount(0);
+	await expect(page.getByText('単勝')).toHaveCount(0);
 });
 
 /**

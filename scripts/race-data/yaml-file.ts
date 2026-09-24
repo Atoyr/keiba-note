@@ -45,12 +45,14 @@ export const RACE_KEYS = [
 	'direction',
 	'trackCondition',
 	'weather',
+	'ref',
+	'startTime',
 	'entries',
 	'withdrawn'
 ] as const;
 
 /** コロンや記号を含むので、既存のファイルと同じく必ずダブルクォートで書く。 */
-const QUOTED = new Set(['time', 'margin', 'passing']);
+const QUOTED = new Set(['time', 'margin', 'passing', 'startTime']);
 
 export type Value = string | number | undefined;
 export type Fields = Partial<Record<(typeof ENTRY_KEYS)[number], Value>>;

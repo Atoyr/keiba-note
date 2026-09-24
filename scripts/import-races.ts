@@ -38,6 +38,7 @@ import {
 	SURFACES,
 	TRACK_CONDITIONS
 } from '../src/lib/schemas/race.ts';
+import { COURSE_CODES } from './race-data/netkeiba.ts';
 
 /**
  * 既定の投入元。**ここには本番に入れてよいデータだけを置く。**
@@ -110,6 +111,15 @@ const raceSchema = v.object({
 	direction: optional(DIRECTIONS),
 	trackCondition: optional(TRACK_CONDITIONS),
 	weather: v.optional(v.string()),
+	/**
+	 * 取得元のレース ID。`nk-` + netkeiba の race_id（12桁）。`data:fetch entries` が書く。
+	 * **これと `startTime` がある重賞（G1〜G3）だけ、オッズを取りに行く**（docs/product.md 第1章）。
+	 */
+	ref: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
+	/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯の終わりを決める。 */
+	startTime: v.optional(
+		v.pipe(v.string(), v.regex(/^([01]\d|2[0-3]):[0-5]\d$/, '発走時刻は HH:MM で書いてください'))
+	),
 	entries: v.pipe(
 		v.array(entrySchema),
 		v.maxLength(MAX_ENTRIES, `出走馬は${MAX_ENTRIES}頭までです`)
@@ -210,14 +220,28 @@ export function statementsFor(file: RaceFile, fileName: string, hash: string): s
 		const raceKey = (prefix = '') =>
 			`${prefix}date = ${lit(date)} AND ${prefix}course = ${lit(race.course)} AND ${prefix}race_number = ${lit(race.raceNumber)}`;
 
+		// 取得元の ID と発走時刻（オッズの取得対象）は、**書いたレースのときだけ**列に触る。
+		// start_time はマイグレーション 0011 で足した列で、本番に流れるのはリリースのとき。
+		// main へのマージで走る投入（data-import.yml）はマイグレーションを流さないので、
+		// 書いていない YAML まで列を名指しすると、リリースまでの間の投入がすべて落ちる。
+		// 書かなければ既存の値を残す（結果の欄と同じ）。
+		const oddsCols =
+			race.ref !== undefined || race.startTime !== undefined
+				? {
+						names: ', start_time, external_ref',
+						values: `, ${lit(race.startTime)}, ${lit(race.ref)}`,
+						set: '\n  start_time = excluded.start_time, external_ref = excluded.external_ref,'
+					}
+				: { names: '', values: '', set: '' };
+
 		out.push(
 			`-- ${date} ${race.course}${race.raceNumber}R ${race.name}`,
-			`INSERT INTO race (id, date, course, race_number, name, grade, class_name, surface, distance, direction, track_condition, weather)
-VALUES (${lit(newId())}, ${lit(date)}, ${lit(race.course)}, ${lit(race.raceNumber)}, ${lit(race.name)}, ${lit(race.grade)}, ${lit(race.className)}, ${lit(race.surface)}, ${lit(race.distance)}, ${lit(race.direction)}, ${lit(race.trackCondition)}, ${lit(race.weather)})
+			`INSERT INTO race (id, date, course, race_number, name, grade, class_name, surface, distance, direction, track_condition, weather${oddsCols.names})
+VALUES (${lit(newId())}, ${lit(date)}, ${lit(race.course)}, ${lit(race.raceNumber)}, ${lit(race.name)}, ${lit(race.grade)}, ${lit(race.className)}, ${lit(race.surface)}, ${lit(race.distance)}, ${lit(race.direction)}, ${lit(race.trackCondition)}, ${lit(race.weather)}${oddsCols.values})
 ON CONFLICT (date, course, race_number) DO UPDATE SET
   name = excluded.name, grade = excluded.grade, class_name = excluded.class_name,
   surface = excluded.surface, distance = excluded.distance, direction = excluded.direction,
-  track_condition = excluded.track_condition, weather = excluded.weather,
+  track_condition = excluded.track_condition, weather = excluded.weather,${oddsCols.set}
   updated_at = unixepoch();`,
 			// 枠・馬番はいったん外してから入れ直す。
 			// 確定後に訂正が入ると（2頭の馬番が入れ替わる等）、1頭ずつ更新する途中で
@@ -341,10 +365,27 @@ WHERE race_entry_id = (${entry});`,
 	];
 }
 
-/** 同じレースの中で、馬番の重複と「出走馬にも取り下げにもいる馬」を見つける。 */
-function raceConflicts(race: RaceFile['races'][number]): string[] {
+/**
+ * 同じレースの中で、馬番の重複と「出走馬にも取り下げにもいる馬」を見つける。
+ * レースの ref が netkeiba の形なら、年・場・R がレースと合っているかも見る。
+ */
+function raceConflicts(race: RaceFile['races'][number], date: string): string[] {
 	const errors: string[] = [];
 	const label = `${race.course}${race.raceNumber}R`;
+
+	// race_id は 年4桁・場2桁・回2桁・日2桁・R2桁。打ち間違えると別のレースのオッズが付く。
+	if (race.ref?.startsWith('nk-')) {
+		const id = race.ref.slice(3);
+		if (!/^\d{12}$/.test(id)) {
+			errors.push(`${label}: ref ${race.ref} は nk- に12桁の race_id ではありません`);
+		} else if (
+			id.slice(0, 4) !== date.slice(0, 4) ||
+			COURSE_CODES[id.slice(4, 6)] !== race.course ||
+			Number(id.slice(10, 12)) !== race.raceNumber
+		) {
+			errors.push(`${label}: ref ${race.ref} の年・場・R がこのレースと合いません`);
+		}
+	}
 
 	const seen = new Map<number, string>();
 	for (const e of race.entries) {
@@ -415,7 +456,7 @@ export function readRaceFile(
 			if (error) errors.push(error);
 			return entry;
 		});
-		errors.push(...raceConflicts(race));
+		errors.push(...raceConflicts(race, parsed.output.date));
 	}
 	return errors.length > 0 ? { ok: false, errors } : { ok: true, output: parsed.output };
 }
