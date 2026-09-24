@@ -66,7 +66,8 @@ AGENTS.md
    指示どおりか・崩れていないかを確かめる。違えば 3 に戻る
 6. **Evaluator に評価させる。** 書いたエージェントは自分で合否を付けない。指示の原文・差分・キャプチャを
    別のエージェントに渡す（→ [evaluation.md 第2章](./docs/evaluation.md)）。`✗` を直して 4 から回す。2往復まで
-7. **PR を出す。** キャプチャをコミットして push し、`pnpm run screens:pr <機能名>` の出力を「画面」に、評価を「評価」に貼る
+7. **PR を出す。** `pnpm run screens:pr <機能名>` の出力を「画面」に、評価を「評価」に貼る。
+   キャプチャはコミットしない（`screens:pr` が画像置き場の `screenshots` ブランチへ上げる。→ [testing.md 5-2](./docs/testing.md)）
 
 UI に関わらない変更（サーバー内部・データ・CI・docs）は 2 と 5 を飛ばし、代わりに実行ログを PR に貼る。
 長い作業は、進み具合と残りを `TASKS.md`（リポジトリ直下。コミットしない）に書きながら進める。
@@ -92,7 +93,7 @@ pnpm run test:unit                      # 単体テストを1回
 pnpm run test:watch                     # 単体テストを監視して再実行
 pnpm run test:e2e                       # E2E だけ（ビルドから走る）
 pnpm run screens <機能名> before|after   # PR 用キャプチャ（画面名を並べれば絞れる）
-pnpm run screens:pr <機能名>            # PR 本文に貼る Markdown
+pnpm run screens:pr <機能名>            # キャプチャを screenshots ブランチへ上げ、PR 本文に貼る Markdown を出す
 pnpm run data:check                     # data/ を触ったとき
 pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.yaml を書く（data/README.md）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）

@@ -420,7 +420,7 @@ flowchart TB
     D -- green --> E["pnpm run screens 機能名 after<br/>見た目が同じ組は自動で消える"]
     E --> F["Evaluator が評価<br/>（第6層・evaluation.md）"]
     F -- 意図と違う --> C
-    F --> G["commit / push → pnpm run screens:pr 機能名<br/>→ PR 本文に貼る"]
+    F --> G["pnpm run screens:pr 機能名<br/>（画像は screenshots ブランチへ）→ PR 本文に貼る"]
     G --> H["人: キャプチャを見て判断"]
 ```
 

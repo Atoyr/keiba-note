@@ -104,6 +104,7 @@ before / after の比較も成り立たない。
 - **before は手を入れる前に撮る。** あとからは撮れない
 - `scripts/screens.ts` が `screens.e2e.ts` だけを走らせ、
   `docs/screenshots/<機能名>/<before|after>/<画面名>.<desktop|mobile>.png` に置く
+- `docs/screenshots/` は `.gitignore` に入っている。**キャプチャはコミットしない**（貼り方は 5-2）
 
 after のときは、同名の before と画素単位で比べ、**見た目が変わらなかった組は両方消す**。
 残るのは「この変更で見た目が変わった画面」と「before の無い（新しい）画面」だけになる。
@@ -120,18 +121,24 @@ after のときは、同名の before と画素単位で比べ、**見た目が�
 
 ### 5-2. 貼る — `pnpm run screens:pr <機能名>`
 
-`scripts/pr-screens.ts` が、キャプチャの表（画面 / before / after）を Markdown で出す。PR 本文の「画面」に貼る。
-画像の URL は `https://raw.githubusercontent.com/<owner>/<repo>/<コミットSHA>/...` で組む。
+`scripts/pr-screens.ts` が、キャプチャを画像置き場の **`screenshots` ブランチ**へ1コミットで push し、
+表（画面 / before / after）を Markdown で出す。PR 本文の「画面」に貼る。
+画像の URL は `https://raw.githubusercontent.com/<owner>/<repo>/<screenshots のコミットSHA>/<機能名>/...` で組む。
+作業ツリーと今のブランチには触らない（一時の index で木を組み、`commit-tree` と `push` だけを行う）。
 
-ブランチ名ではなく SHA を使うのは、ブランチ名だとあとの push で PR に貼った画像まで差し替わり、
-ブランチを消すと画像ごと消えるから。そのため、キャプチャがコミット済みで push 済みでなければ
-エラーで止まる。
+- **`screenshots` は main に合流させない。** 画像だけを持つ枝で、PR の差分と main の履歴に画像が入らない。
+  このブランチを消したり force push したりすると、過去の PR の画像が見えなくなる
+- 各コミットの木はその回の画像だけを持ち、直前の先端を親にする。親から辿れるので、古い画像も消えない
+- ブランチ名でなく SHA で組むのは、同じ機能名で上げ直しても、前に貼った画像が差し替わらないようにするため。
+  撮り直したら `screens:pr` を回し直し、出た表で PR 本文を貼り替える
+- ほかの作業ツリーと同時に上げて push が弾かれたら、最新の先端を親に組み直して3回まで試す
 
 ### 5-3. 溜めない
 
-PR 本文の画像は SHA で組んだ URL なので、あとのコミットで `docs/screenshots/` から消しても
-PR の表示は壊れない。マージされた機能のキャプチャは次の PR で消してよい
-（2026-09-23 に、それまでの66枚・6.7MB を消した）。
+キャプチャはコミットしないので、作業ブランチと main には溜まらない。手元の `docs/screenshots/<機能名>/` は
+PR を出したあと消してよい（次に同じ機能名で撮るときは `screens` が撮る範囲を消してから撮る）。
+2026-09-24 までは作業ブランチにコミットしていた。そのころの PR の画像は、当時のコミット SHA の URL なので
+main から消したあとも見える。
 
 ### 5-4. 写してはいけないもの
 

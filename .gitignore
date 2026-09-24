@@ -39,3 +39,7 @@ worker-configuration.d.ts
 
 # エージェントの作業メモ（AGENTS.md「作業の手順」）
 /TASKS.md
+
+# PR 用のキャプチャ（pnpm run screens）。コミットせず、pnpm run screens:pr が
+# 画像置き場の screenshots ブランチへ上げる（docs/testing.md 第5章）
+/docs/screenshots/
