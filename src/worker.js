@@ -8,6 +8,7 @@
 // 無いため。tsconfig は checkJs を切っているので、ここは型検査されない。
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
+import { handleNotificationEmail } from './lib/server/monitoring/email.ts';
 
 export default {
 	/**
@@ -17,5 +18,16 @@ export default {
 	 */
 	async fetch(req, env, ctx) {
 		return uncacheFailure(await sveltekit.fetch(req, env, ctx));
+	},
+
+	/**
+	 * Email Routing で届く Cloudflare の通知メール（Budget alert など）を Discord へ流す
+	 * （docs/monitoring.md 9-2）。
+	 *
+	 * @param {ForwardableEmailMessage} message
+	 * @param {Env & { DISCORD_WEBHOOK_URL?: string }} env
+	 */
+	async email(message, env) {
+		await handleNotificationEmail(message, env);
 	}
 };
