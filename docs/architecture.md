@@ -13,7 +13,6 @@
   ブラウザに抱えさせないようにした（→ 3-5）
 - 更新日: 2026-09-24 — D1 の書き込み上限がステージングと共有であることと、レースデータ投入の書き込みを試算に足した（→ 第6章）
 - 更新日: 2026-09-24 — Workers Paid に上げ、Worker に CPU 時間とサブリクエスト数の上限を置いた（→ 第6章・第7章・第8章、詳細は [monitoring.md 第9章](./monitoring.md)）
-- 更新日: 2026-09-24 — Worker の入口に `email` ハンドラを足し、`src/worker.js` が monitoring の `email.ts` を import するようにした（→ 第2章）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -194,16 +193,13 @@ export async function getHorseTimeline(event: RequestEvent) { ... }
 
 route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin`）。
 
-monitoring（`lib/server/monitoring/`。ログと Discord への通知）は endpoint と、Worker の入口の `email` ハンドラからだけ使う。
+monitoring（`lib/server/monitoring/`。ログと Discord への通知）は endpoint からだけ使う。
 monitoring が import してよいのは pure と db（`errors.ts` と observer の型）だけ。
 **db は monitoring を import しない。** `createDb` は observer を引数で受け、ルートが `locals.monitor.onQuery` を渡す。
 service と auth も monitoring を知らない（失敗は投げたままにし、ルートか `handleError` が拾う）。
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
-adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と
-`lib/server/monitoring/email.ts`（Cloudflare の通知メールを Discord へ流す。import するのは同じ monitoring の
-`discord.ts` と `log.ts` だけ）だけ（→ 3-5、[monitoring.md 9-2](./monitoring.md)）。
-wrangler がそのまま束ねるので、ここから辿れるファイルは `$lib` などの別名を使えない。
+adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）だけ（→ 3-5）。
 
 - **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
   `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は

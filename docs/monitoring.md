@@ -8,8 +8,7 @@ GitHub Actions の結果の通知、外からの死活監視。
 - **ここに無いもの:** Cloudflare とシークレットの構築手順は [operations.md](./operations.md)、
   層と依存の向きは [architecture.md](./architecture.md)
 - 作成日: 2026-09-23
-- 更新日: 2026-09-24 — Workers Paid に上げたので、Worker の上限と課金の見張りを足した。Cloudflare の通知メールを
-  Worker で受けて Discord へ流すようにした（→ 第9章）。
+- 更新日: 2026-09-24 — Workers Paid に上げたので、Worker の上限と課金の見張りを足した（→ 第9章）。
   デプロイの Webhook を Variable に入れて障害のチャンネルに落ちていたのを、Actions が見つけて知らせるようにした（→ 第7章・第8章）
 
 ---
@@ -29,8 +28,7 @@ GitHub Actions（discord-notify.yml）
 
 Cloudflare（ダッシュボードで設定 → 第9章）
  ├─ Budget alert（従量課金の見込みが決めた額を超えた）─┐
- └─ 使用量の通知（Workers・D1 が決めた量を超えた）────┴→ メール（自分と cf-alerts@uma-memo.com）
-      cf-alerts@ → Email Routing → Worker の email ハンドラ（monitoring/email.ts）→ Discord「障害」
+ └─ 使用量の通知（Workers・D1 が決めた量を超えた）────┴→ メール
 ```
 
 外部の監視サービスは足していない。Cloudflare Observability（`wrangler.toml` の `[observability]`）と
@@ -86,8 +84,6 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
 | `monitoring.discord.failed` | error | — | `discord.ts` | 通知そのものが送れなかった（ログにだけ出る） |
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
-| `cloudflare.notification` | warn | する | `src/worker.js` の `email`（`monitoring/email.ts`） | Cloudflare から通知メール（Budget alert・使用量の通知）が届いた（→ 9-2） |
-| `monitoring.email.rejected` | warn | しない | 同上 | Cloudflare 以外から通知用のアドレスにメールが来たので断った |
 
 **`SLOW_QUERY_MS` は仮置き。** Workers Logs で `d1.query.slow` の件数と `durationMs` を見て決め直す。
 対応が要る遅さが分かったら、そのときに `notify: true` を付ける。
@@ -195,7 +191,6 @@ Variable に入っていることは Actions が見つけ、footer の理由に�
 | 同上 | `DISCORD_DEPLOY_WEBHOOK_URL` | Secret | 「デプロイ」のチャンネルの Webhook。無ければ「障害」に送る。**Variables のタブに入れない** |
 | 同上 | `HEALTH_CHECK_URL` | Variable | `https://uma-memo.com/api/health`。`/api/health` の入ったリリースを出してから入れる |
 | `wrangler.toml` | `APP_ENV` | vars | `production`（`[previews.vars]` は `staging`）。シークレットではない |
-| Cloudflare（Email Routing） | `cf-alerts@uma-memo.com` | ルーティングルール | Worker `k-note` に送る。Budget alert と使用量の通知の宛先に入れる（→ 9-2） |
 
 **「障害」の Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す。** URL が漏れたら、Discord の
 チャンネル設定から Webhook を消して作り直す（URL を知っている人は誰でも書き込める）。
@@ -247,38 +242,17 @@ Workers Logs の呼び出しログの `cpuTime` を見て、実測の上に置�
   実測はダッシュボードの Worker / D1 のメトリクスで見て、ずれていたら直す
 - D1 の使用量は**アカウント単位でステージングと合算**される。ステージングへのデータ投入の暴走（2026-09-24 の事故）も、ここで見える
 
-**Discord へはメールを経由して流す。** Budget alert はメールでしか送れない。使用量の通知は Webhook にも送れるが、
-Webhook はプランによって使えない（Pro 以上のゾーンが要る、と書かれている）。そこで、どちらも宛先に
-`cf-alerts@uma-memo.com` を足し、Email Routing でそのアドレスを Worker に渡して、Worker が Discord「障害」へ送る
-（`src/worker.js` の `email` → `monitoring/email.ts`）。
-
-- Worker が送るのは**件名と差出人だけ。** 本文（金額や使用量）はメールかダッシュボードで見る
-- ヘッダの From が `cloudflare.com` とそのサブドメインでなければ受け取りを断る。断ったものは
-  `monitoring.email.rejected` としてログにだけ残る。cloudflare.com の DMARC は `p=reject` なので、ヘッダの From を偽った
-  メールは受け手で落とされる前提に立っている。封筒の From（MAIL FROM）は DMARC で守られず誰でも偽れるので見ない
-- それでも件名は他人が書きうる文として扱い、コードブロックに入れて送る（リンクや Markdown は効かない。メンションも飛ばない）
-- 本物の通知の From が `cloudflare.com` 配下でなかったら、正規の通知が断られる。最初の1通が届いたら、Discord に出たか
-  （出ていなければ Workers Logs の `monitoring.email.rejected` の `senderDomain`）を確かめる
-- uma-memo.com はほかにメールを受けていない（MX が無い）ので、Email Routing を入れても既存のメールとはぶつからない
+**知らせはメールだけで受ける（Discord には流さない）。** Budget alert はメールでしか送れない。
+メールを Worker で受けて Discord に写す案（Email Routing と `email` ハンドラ）も作ったが、経路が長く、
+設定する場所も増えるので見送った。使用量の通知も同じメールに揃える。
 
 #### 手順
 
-`email` ハンドラの入ったリリースを出してから行う（先にルールを作ると、Worker が受け取れずメールが落ちる）。
-
-1. **Email Routing を有効にする。** ダッシュボードでゾーン `uma-memo.com` を選び、Email > Email Routing を開いて有効にする。
-   MX と SPF の DNS レコードを足すよう求められるので、そのまま足す
-2. **アドレスを Worker に向ける。** Email Routing > Routing rules > Create address で、カスタムアドレス `cf-alerts`、
-   動作（Action）は「Send to a Worker」、送り先は `k-note`
-3. **Budget alert を作る。** アカウントのホームから Manage Account > Billing > Billable Usage > Create budget alert。
-   名前（例: `uma-memo 従量課金`）、閾値 `1`（USD）、宛先に自分のアドレスと、Add email で `cf-alerts@uma-memo.com` を入れて Save
-4. **使用量の通知を作る。** アカウントの Notifications > Add で「Usage Based Billing」を選ぶ。
-   製品（Workers / D1）と指標、上の表の閾値を選び、メールの宛先に自分と `cf-alerts@uma-memo.com` を入れて Create。
+1. **Budget alert を作る。** アカウントのホームから Manage Account > Billing > Billable Usage > Create budget alert。
+   名前（例: `uma-memo 従量課金`）、閾値 `1`（USD）、宛先に自分のアドレスを入れて Save
+2. **使用量の通知を作る。** アカウントの Notifications > Add で「Usage Based Billing」を選ぶ。
+   製品（Workers / D1）と指標、上の表の閾値を選び、宛先に自分のアドレスを入れて Create。
    指標ごとに1つずつ作る。この種類が一覧に無ければ、アカウントでは使えない（Budget alert だけで見る）
-5. **届くか確かめる。** 自分のメールから `cf-alerts@uma-memo.com` に送り、**断られる**（差出人が Cloudflare でない）ことと、
-   Workers Logs に `monitoring.email.rejected` が出ることを見る。Cloudflare からの本物は、アラートが鳴るまで確かめられない
-
-宛先の確認メールが `cf-alerts@` に届く場合は、Discord には件名しか出ず、リンクを踏めない。そのときは 2 の動作を
-一時的に「Send to an email」（自分のアドレス）にして確認を済ませ、「Send to a Worker」に戻す。
 
 通知の種類や名前、閾値の単位はダッシュボードの表示に従う。この節と違ったら、この節を直す。
 
@@ -289,7 +263,8 @@ Webhook はプランによって使えない（Pro 以上のゾーンが要る�
   今の規模では、9-2 の通知で気づけば足りるとして入れていない
 - **上限に当たったことを Discord に送ること。** Worker の外から見るしかない。Tail Worker（呼び出しの outcome を受けて送る）か、
   GraphQL Analytics API を Actions から定期に読む（API トークンが要る）。9-1 のとおり今は Workers Logs を人が見る
-- **通知メールの本文を読むこと。** 金額や使用量は本文にしかないが、MIME を解くライブラリを足すことになるので、件名だけにしている
+- **Cloudflare の通知を Discord に流すこと。** Email Routing で専用アドレスを Worker に向け、`email` ハンドラから送る形は
+  作ったが、経路が長く設定する場所も増えるので見送った（9-2）。欲しくなったら PR #67 の途中のコミットに実装がある
 
 ## 10. これから
 
