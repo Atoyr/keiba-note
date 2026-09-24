@@ -36,6 +36,37 @@ describe('courseMap', () => {
 		expect(courseMap(race('中山', '芝'))?.facts).toEqual(['右回り', '直線 310m', '高低差 5.3m']);
 	});
 
+	it('距離で内回りか外回りかが決まれば、そのコースだけの図と寸法を出す', () => {
+		const outer = courseMap(race('京都', '芝', 2200));
+		expect(outer?.file).toBe('kyoto-turf-outer');
+		expect(outer?.alt).toBe('京都競馬場のコース図（芝・外回り）');
+		expect(outer?.facts).toEqual(['右回り・外回り', '直線 403.7m', '高低差 4.3m']);
+
+		const inner = courseMap(race('阪神', '芝', 2000));
+		expect(inner?.file).toBe('hanshin-turf-inner');
+		expect(inner?.facts).toEqual(['右回り・内回り', '直線 356.5m', '高低差 1.9m']);
+
+		expect(courseMap(race('中山', '芝', 1600))?.file).toBe('nakayama-turf-outer');
+		expect(courseMap(race('新潟', '芝', 2200))?.file).toBe('niigata-turf-inner');
+	});
+
+	it('JRA が内回り・外回りの両方に載せている距離は、両方を出す', () => {
+		// 京都の2000m、中山の3200m（外回りから内回りへ回る）、表に無い距離。
+		for (const [course, distance] of [
+			['京都', 2000],
+			['中山', 3200],
+			['阪神', 1400],
+			['京都', 2100]
+		] as const) {
+			expect(courseMap(race(course, '芝', distance))?.file, `${course}${distance}`).toMatch(
+				/-turf$/
+			);
+		}
+		// ダートと障害は内回り・外回りを見ない。
+		expect(courseMap(race('京都', 'ダート', 1800))?.file).toBe('kyoto-dirt');
+		expect(courseMap(race('阪神', '障害', 3000))?.file).toBe('hanshin-turf');
+	});
+
 	it('新潟の芝1000mと「直線」は直線コースの図', () => {
 		expect(courseMap(race('新潟', '芝', 1000))?.file).toBe('niigata-straight');
 		expect(
@@ -43,7 +74,7 @@ describe('courseMap', () => {
 		).toEqual(['直線コース 1,000m']);
 		// ダートの1000mは周回コース。
 		expect(courseMap(race('新潟', 'ダート', 1000))?.file).toBe('niigata-dirt');
-		expect(courseMap(race('新潟', '芝', 1600))?.file).toBe('niigata-turf');
+		expect(courseMap(race('新潟', '芝', 1600))?.file).toBe('niigata-turf-outer');
 	});
 
 	it('障害は芝の図を出し、平地の寸法は出さない', () => {

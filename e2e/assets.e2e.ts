@@ -31,10 +31,10 @@ test('コース図は /_app/immutable/ の別ファイルとして、immutable �
 }) => {
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
-	const img = page.getByRole('img', { name: '京都競馬場のコース図（芝）' });
+	const img = page.getByRole('img', { name: '京都競馬場のコース図（芝・外回り）' });
 	// JS に埋め込まれた data: URI ではなく、名前にハッシュの付いたファイルであること。
 	const src = await img.getAttribute('src');
-	expect(src).toMatch(/\/_app\/immutable\/assets\/kyoto-turf\.[\w-]+\.svg$/);
+	expect(src).toMatch(/\/_app\/immutable\/assets\/kyoto-turf-outer\.[\w-]+\.svg$/);
 	// 画像として読めている（壊れた画像のアイコンになっていない）。
 	await expect
 		.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth))

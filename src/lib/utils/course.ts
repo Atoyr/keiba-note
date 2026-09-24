@@ -28,6 +28,12 @@ export type CourseSpec = {
 	dirt: CourseLoop;
 	/** 直線コース（新潟の芝1000m）の長さ。 */
 	straightCourse?: number;
+	/**
+	 * 芝の内回り・外回りそれぞれで行う距離（JRA の「発走距離」の表のまま）。
+	 * 両方に載っている距離（京都の2000m など）と、中山・阪神の3200m（外回りから内回りへ回る）は、
+	 * どちらか決められないので両方を強く描く。
+	 */
+	loopDistances?: Record<'内回り' | '外回り', number[]>;
 };
 
 export const COURSE_SPECS: Record<string, CourseSpec> = {
@@ -57,7 +63,11 @@ export const COURSE_SPECS: Record<string, CourseSpec> = {
 			{ name: '内回り', lap: 1623, straight: 358.7, rise: 0.8 }
 		],
 		dirt: { name: null, lap: 1472.5, straight: 353.9, rise: 0.6 },
-		straightCourse: 1000
+		straightCourse: 1000,
+		loopDistances: {
+			内回り: [1200, 1400, 2000, 2200, 2400],
+			外回り: [1400, 1600, 1800, 2000, 3000, 3200]
+		}
 	},
 	東京: {
 		slug: 'tokyo',
@@ -72,7 +82,11 @@ export const COURSE_SPECS: Record<string, CourseSpec> = {
 			{ name: '外回り', lap: 1839.7, straight: 310, rise: 5.3 },
 			{ name: '内回り', lap: 1667.1, straight: 310, rise: 5.3 }
 		],
-		dirt: { name: null, lap: 1493, straight: 308, rise: 4.5 }
+		dirt: { name: null, lap: 1493, straight: 308, rise: 4.5 },
+		loopDistances: {
+			内回り: [1800, 2000, 2500, 3200, 3600],
+			外回り: [1200, 1600, 2200, 2600, 3200, 4000]
+		}
 	},
 	中京: {
 		slug: 'chukyo',
@@ -87,7 +101,11 @@ export const COURSE_SPECS: Record<string, CourseSpec> = {
 			{ name: '外回り', lap: 1894.3, straight: 403.7, rise: 4.3 },
 			{ name: '内回り', lap: 1782.8, straight: 328.4, rise: 3.1 }
 		],
-		dirt: { name: null, lap: 1607.6, straight: 329.1, rise: 3 }
+		dirt: { name: null, lap: 1607.6, straight: 329.1, rise: 3 },
+		loopDistances: {
+			内回り: [1100, 1200, 1400, 1600, 2000],
+			外回り: [1400, 1600, 1800, 2000, 2200, 2400, 3000, 3200]
+		}
 	},
 	阪神: {
 		slug: 'hanshin',
@@ -96,7 +114,11 @@ export const COURSE_SPECS: Record<string, CourseSpec> = {
 			{ name: '外回り', lap: 2089, straight: 473.6, rise: 2.4 },
 			{ name: '内回り', lap: 1689, straight: 356.5, rise: 1.9 }
 		],
-		dirt: { name: null, lap: 1517.6, straight: 352.7, rise: 1.6 }
+		dirt: { name: null, lap: 1517.6, straight: 352.7, rise: 1.6 },
+		loopDistances: {
+			内回り: [1200, 1400, 2000, 2200, 3000, 3200],
+			外回り: [1400, 1600, 1800, 2400, 2600, 3200]
+		}
 	},
 	小倉: {
 		slug: 'kokura',
@@ -107,7 +129,18 @@ export const COURSE_SPECS: Record<string, CourseSpec> = {
 };
 
 /** どのコースを強く描くか。 */
-export type CourseMapVariant = 'turf' | 'dirt' | 'straight';
+export type CourseMapVariant = 'turf' | 'turf-inner' | 'turf-outer' | 'dirt' | 'straight';
+
+const LOOP_VARIANT = { 内回り: 'turf-inner', 外回り: 'turf-outer' } as const;
+
+/** 距離から内回りか外回りかを決める。決められなければ null。 */
+export function turfLoop(spec: CourseSpec, distance: number | null): '内回り' | '外回り' | null {
+	if (!spec.loopDistances || distance === null) return null;
+	const hits = (['内回り', '外回り'] as const).filter((name) =>
+		spec.loopDistances![name].includes(distance)
+	);
+	return hits.length === 1 ? hits[0] : null;
+}
 
 export type CourseMapSource = {
 	course: string;
@@ -153,11 +186,14 @@ export function courseMap(race: CourseMapSource): CourseMap | null {
 		(race.direction === '直線' || race.distance === spec.straightCourse);
 
 	// 障害は専用のコースを走るので、芝の図を出して寸法は出さない。
+	const loop = race.surface === '芝' && !straightCourse ? turfLoop(spec, race.distance) : null;
 	const variant: CourseMapVariant = straightCourse
 		? 'straight'
 		: race.surface === 'ダート'
 			? 'dirt'
-			: 'turf';
+			: loop
+				? LOOP_VARIANT[loop]
+				: 'turf';
 	const { width, height } = courseMapSize(spec);
 
 	let facts: string[];
@@ -166,15 +202,16 @@ export function courseMap(race: CourseMapSource): CourseMap | null {
 	} else if (race.surface === '障害') {
 		facts = [`${spec.direction}回り`];
 	} else {
-		const loops = variant === 'dirt' ? [spec.dirt] : spec.turf;
+		const loops =
+			variant === 'dirt' ? [spec.dirt] : spec.turf.filter((l) => !loop || l.name === loop);
 		facts = [
-			`${spec.direction}回り`,
+			loop ? `${spec.direction}回り・${loop}` : `${spec.direction}回り`,
 			`直線 ${perLoop(loops, (l) => l.straight)}`,
 			`高低差 ${perLoop(loops, (l) => l.rise)}`
 		];
 	}
 
-	const surfaceLabel = straightCourse ? '芝・直線' : race.surface;
+	const surfaceLabel = straightCourse ? '芝・直線' : loop ? `芝・${loop}` : race.surface;
 	return {
 		file: `${spec.slug}-${variant}`,
 		width,
@@ -299,16 +336,23 @@ export function courseMapSvg(spec: CourseSpec, variant: CourseMapVariant): strin
 	const l = layout(spec);
 	const { width, height } = courseMapSize(spec);
 
-	const turfColor = variant === 'turf' ? COLOR.turf : COLOR.inactive;
+	// 内回り・外回りが決まっていれば、そのコースだけを強く描く。
+	const loop = variant === 'turf-inner' ? '内回り' : variant === 'turf-outer' ? '外回り' : null;
+	const turfActive = (name: CourseLoop['name']) =>
+		variant === 'turf' || (loop !== null && name === loop);
 	const dirtColor = variant === 'dirt' ? COLOR.dirt : COLOR.inactive;
 	const band = (d: string, color: string, w: number) =>
 		`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}"/>`;
 
 	const tracks: { svg: string; active: boolean }[] = [
-		...l.turf.map((o) => ({
-			svg: band(ovalPath(o), turfColor, TURF_WIDTH),
-			active: variant === 'turf'
-		})),
+		// layout の turf は spec.turf と同じ順（外回りが先）。
+		...l.turf.map((o, i) => {
+			const active = turfActive(spec.turf[i].name);
+			return {
+				svg: band(ovalPath(o), active ? COLOR.turf : COLOR.inactive, TURF_WIDTH),
+				active
+			};
+		}),
 		{ svg: band(ovalPath(l.dirt), dirtColor, DIRT_WIDTH), active: variant === 'dirt' }
 	];
 	if (l.straight) {
@@ -359,6 +403,7 @@ export function allCourseMaps(): Map<string, string> {
 	for (const spec of Object.values(COURSE_SPECS)) {
 		const variants: CourseMapVariant[] = ['turf', 'dirt'];
 		if (spec.straightCourse !== undefined) variants.push('straight');
+		if (spec.loopDistances) variants.push('turf-inner', 'turf-outer');
 		for (const v of variants) files.set(`${spec.slug}-${v}.svg`, courseMapSvg(spec, v));
 	}
 	return files;

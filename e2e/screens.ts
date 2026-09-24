@@ -44,6 +44,16 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
 	{
+		// スマホではコースを畳んである。開いた状態（広い画面は開いたままなので、そのまま撮る）。
+		name: 'race-preview-course-open',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			const summary = page.locator('details summary', { hasText: 'コース' });
+			if (await summary.isVisible()) await summary.click();
+		}
+	},
+	{
 		name: 'race-preview-editing',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
