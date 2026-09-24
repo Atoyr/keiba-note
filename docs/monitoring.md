@@ -250,9 +250,11 @@ Workers Logs の呼び出しログの `cpuTime` を見て、実測の上に置�
 
 1. **Budget alert を作る。** アカウントのホームから Manage Account > Billing > Billable Usage > Create budget alert。
    名前（例: `uma-memo 従量課金`）、閾値 `1`（USD）、宛先に自分のアドレスを入れて Save
-2. **使用量の通知を作る。** アカウントの Notifications > Add で「Usage Based Billing」を選ぶ。
-   製品（Workers / D1）と指標、上の表の閾値を選び、宛先に自分のアドレスを入れて Create。
-   指標ごとに1つずつ作る。この種類が一覧に無ければ、アカウントでは使えない（Budget alert だけで見る）
+2. **使用量の通知を作る。** アカウントのホームで、左のメニューの Notifications（Manage Account の下にあることもある）>
+   Add を開き、通知の種類の一覧から「Usage Based Billing」（「Billable Usage」と出ることもある）の Select を押す。
+   製品（Workers / D1）と指標、上の表の閾値を選び、宛先に自分のアドレスを入れて Create。指標ごとに1つずつ作る。
+   **Cloudflare の文書では、この通知は Pro 以上のゾーンがあるアカウントに限られる。** uma-memo.com が Free のゾーンなら
+   一覧に出ないので、Budget alert だけで見る
 
 通知の種類や名前、閾値の単位はダッシュボードの表示に従う。この節と違ったら、この節を直す。
 
