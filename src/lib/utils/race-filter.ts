@@ -50,6 +50,14 @@ function parseYear(raw: string | null): number | null {
 }
 
 /**
+ * 絞り込みのキーが URL に1つも無いか。無ければ既定（→ `defaultRaceFilter`）で絞る。
+ * 画面は、既定のまま0件になったときの文の出し分けに使う。
+ */
+export function usesDefaultRaceFilter(params: URLSearchParams): boolean {
+	return !FILTER_KEYS.some((key) => params.has(key));
+}
+
+/**
  * クエリ文字列 → 絞り込み条件。
  *
  * **絞り込みのキーが1つも無ければ既定（今年の重賞 → `defaultRaceFilter`）。**
@@ -60,7 +68,7 @@ function parseYear(raw: string | null): number | null {
  * 並びは常に G1→OP** になる。URL を手で書き換えられても選択肢の外には出ない。
  */
 export function parseRaceFilter(params: URLSearchParams, today: string): RaceFilter {
-	if (!FILTER_KEYS.some((key) => params.has(key))) return defaultRaceFilter(today);
+	if (usesDefaultRaceFilter(params)) return defaultRaceFilter(today);
 
 	const grades = params.getAll('grade');
 	return {

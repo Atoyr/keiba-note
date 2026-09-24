@@ -3,6 +3,7 @@ import {
 	ALL_RACES_QUERY,
 	hasRaceFilter,
 	parseRaceFilter,
+	usesDefaultRaceFilter,
 	yearOptions,
 	yearRange,
 	EMPTY_RACE_FILTER
@@ -62,6 +63,15 @@ describe('parseRaceFilter', () => {
 
 	it('空白だけの名前は絞り込みにしない', () => {
 		expect(parse('q=%20%20').q).toBe('');
+	});
+});
+
+describe('usesDefaultRaceFilter', () => {
+	it('絞り込みのキーが1つも無いときだけ true', () => {
+		expect(usesDefaultRaceFilter(new URLSearchParams(''))).toBe(true);
+		expect(usesDefaultRaceFilter(new URLSearchParams('utm_source=x'))).toBe(true);
+		expect(usesDefaultRaceFilter(new URLSearchParams('year='))).toBe(false);
+		expect(usesDefaultRaceFilter(new URLSearchParams('q='))).toBe(false);
 	});
 });
 

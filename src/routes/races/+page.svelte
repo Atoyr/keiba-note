@@ -3,7 +3,7 @@
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
 	import { opensReview } from '$lib/utils/date';
-	import { hasRaceFilter } from '$lib/utils/race-filter';
+	import { ALL_RACES_QUERY, hasRaceFilter } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -31,7 +31,22 @@
 
 	<RaceFilterForm filter={data.filter} years={data.years} />
 
-	{#if data.races.length === 0}
+	{#if data.races.length === 0 && data.defaultFilter}
+		<!-- 何も指定せずに開いた（既定の今年の重賞で絞った）ときは「条件に合う」と言わない。
+		     本人は条件を付けていないので、何で絞っているかと、全件の見方を出す。 -->
+		<div class="mt-8 text-sm text-gray-500">
+			<p>
+				今年の重賞はまだありません。{#if admin}まずは1つ登録してみてください。{/if}
+			</p>
+			<p class="mt-2">
+				<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは resolve() で組み、クエリを足しているだけ（frontend.md 第3章） -->
+				<a href={`${resolve('/races')}${ALL_RACES_QUERY}`} class="text-gray-600 hover:underline">
+					すべてのレースを見る →
+				</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
+			</p>
+		</div>
+	{:else if data.races.length === 0}
 		<p class="mt-8 text-sm text-gray-500">
 			{#if filtered}
 				条件に合うレースがありません。

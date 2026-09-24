@@ -1,7 +1,7 @@
 import { listRaceYears, listRaces } from '$lib/server/services/races';
 import { ctx } from '$lib/server/util';
 import { todayJst } from '$lib/utils/date';
-import { parseRaceFilter, yearOptions } from '$lib/utils/race-filter';
+import { parseRaceFilter, usesDefaultRaceFilter, yearOptions } from '$lib/utils/race-filter';
 import type { PageServerLoad } from './$types';
 
 /**
@@ -20,5 +20,11 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
 	const [races, years] = await Promise.all([listRaces(db, user.id, filter), listRaceYears(db)]);
 
-	return { races, years: yearOptions(years, today), filter, today };
+	return {
+		races,
+		years: yearOptions(years, today),
+		filter,
+		defaultFilter: usesDefaultRaceFilter(url.searchParams),
+		today
+	};
 };
