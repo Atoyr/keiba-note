@@ -17,6 +17,11 @@ beforeEach(() => {
 		('R3', '2026-09-27', '阪神', 10, '発走時刻なし', NULL, 'nk-202609040910'),
 		('R4', '2026-09-28', '中山', 11, '翌日', '15:40', 'nk-202606040111'),
 		('R5', '2026-09-27', '中山', 9, '朝のレース', '10:05', 'nk-202606040909')`);
+	// 重賞は前日（G1 は前々日）の 18:30 から取りに行く
+	sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, grade, start_time, external_ref) VALUES
+		('G1R', '2026-09-27', '中山', 12, 'G1のレース', 'G1', '15:40', 'nk-202606040912'),
+		('G2R', '2026-09-27', '阪神', 12, 'G2のレース', 'G2', '15:30', 'nk-202609040912'),
+		('G1L', '2026-09-29', '中山', 1, '3日後のG1', 'G1', '15:40', 'nk-202606040201')`);
 });
 
 const odds = (over: Partial<RaceOdds> = {}): RaceOdds => ({
@@ -31,18 +36,33 @@ const odds = (over: Partial<RaceOdds> = {}): RaceOdds => ({
 });
 
 describe('listOddsTargets', () => {
-	it('当日・ref あり・発走時刻ありで、発走3時間前〜発走のレースだけ', async () => {
-		// JST 14:00。15:40 発走の R1 は窓の中、10:05 発走の R5 は発走後
+	const ids = async (iso: string) =>
+		(await listOddsTargets(db, new Date(iso))).map((t) => t.raceId);
+
+	it('当日は、重賞と、ref・発走時刻ありで発走3時間前〜発走のレース', async () => {
+		// 日 14:00。15:40 発走の R1 は窓の中、10:05 発走の R5 は発走後。重賞は前日から窓の中
 		expect(await listOddsTargets(db, new Date('2026-09-27T05:00:00Z'))).toEqual([
-			{ raceId: 'R1', externalRef: 'nk-202606040911' }
+			{ raceId: 'G2R', externalRef: 'nk-202609040912' },
+			{ raceId: 'R1', externalRef: 'nk-202606040911' },
+			{ raceId: 'G1R', externalRef: 'nk-202606040912' }
 		]);
 	});
 
-	it('朝は朝のレースだけ', async () => {
-		// JST 08:00
-		expect(await listOddsTargets(db, new Date('2026-09-26T23:00:00Z'))).toEqual([
-			{ raceId: 'R5', externalRef: 'nk-202606040909' }
-		]);
+	it('朝は朝のレースと重賞', async () => {
+		// 日 08:00
+		expect(await ids('2026-09-26T23:00:00Z')).toEqual(['R5', 'G2R', 'G1R']);
+	});
+
+	it('前日の夜は重賞だけ。前々日の夜は G1 だけ', async () => {
+		expect(await ids('2026-09-26T10:00:00Z')).toEqual(['G2R', 'G1R']); // 土 19:00
+		expect(await ids('2026-09-25T10:00:00Z')).toEqual(['G1R']); // 金 19:00
+		expect(await ids('2026-09-25T09:00:00Z')).toEqual([]); // 金 18:00
+	});
+
+	it('3日後のレースは G1 でもまだ取りに行かない', async () => {
+		// 土 19:00。9/29 の G1 は前々日（9/27）の 18:30 から
+		expect(await ids('2026-09-26T10:00:00Z')).not.toContain('G1L');
+		expect(await ids('2026-09-27T10:00:00Z')).toEqual(['G1L']); // 日 19:00
 	});
 
 	it('対象が無い時間は空', async () => {

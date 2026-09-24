@@ -5,10 +5,20 @@
  * ローカルタイムゾーンを経由せず UTC のミリ秒で計算する。
  */
 
+import { addDays } from './date';
+
 const HOUR_MS = 60 * 60 * 1000;
 
-/** 発走の何時間前から取りに行くか。 */
+/** 重賞でないレースは、発走の何時間前から取りに行くか。 */
 export const ODDS_WINDOW_BEFORE_MS = 3 * HOUR_MS;
+
+/** 重賞は、何日前の何時（JST）から取りに行くか。前日発売のオッズが出始める頃に合わせる。 */
+const GRADED_OPENS: Partial<Record<string, { daysBefore: number; time: string }>> = {
+	// 金曜から売る G1 があるので、前々日から見に行く。まだ出ていなければ何も保存しない
+	G1: { daysBefore: 2, time: '18:30' },
+	G2: { daysBefore: 1, time: '18:30' },
+	G3: { daysBefore: 1, time: '18:30' }
+};
 
 /** `YYYY-MM-DD` と `HH:MM`（JST）→ その時刻。形が違えば null。 */
 export function startsAt(date: string, startTime: string): Date | null {
@@ -22,16 +32,43 @@ export function startsAt(date: string, startTime: string): Date | null {
 }
 
 /**
- * いまオッズを取りに行ってよいか。**発走3時間前から発走まで。**
+ * オッズを取りに行き始める時刻。格で決める。
  *
- * それより前は動きが小さく、発走後は締め切られて変わらない（確定オッズは結果と一緒に
- * YAML の `odds` で入る）。取りに行く回数をこの幅に絞ることが、取得元への負荷を抑える主な手段。
+ * - G1 … 前々日の 18:30（金曜から売る G1 がある）
+ * - G2・G3 … 前日の 18:30（前日発売のオッズが出始める頃）
+ * - それ以外 … 発走の3時間前
+ *
+ * どれも発売前なら取得元は予想オッズしか返さず、parser が読まないので何も保存されない。
  */
-export function inOddsWindow(date: string, startTime: string, now: Date): boolean {
+export function oddsWindowOpens(
+	date: string,
+	startTime: string,
+	grade: string | null
+): Date | null {
+	const opens = grade ? GRADED_OPENS[grade] : undefined;
+	if (opens) return startsAt(addDays(date, -opens.daysBefore), opens.time);
 	const start = startsAt(date, startTime);
-	if (!start) return false;
+	return start && new Date(start.getTime() - ODDS_WINDOW_BEFORE_MS);
+}
+
+/**
+ * いまオッズを取りに行ってよいか。**取りに行き始める時刻（`oddsWindowOpens`）から発走まで。**
+ *
+ * 発走後は締め切られて変わらない（確定オッズは結果と一緒に YAML の `odds` で入る）。
+ * 取りに行く回数をこの幅に絞ることが、取得元への負荷を抑える主な手段。
+ * 夜中に取りに行かないのは Cron の時間帯（wrangler.toml）の側で決めている。
+ */
+export function inOddsWindow(
+	date: string,
+	startTime: string,
+	grade: string | null,
+	now: Date
+): boolean {
+	const start = startsAt(date, startTime);
+	const opens = oddsWindowOpens(date, startTime, grade);
+	if (!start || !opens) return false;
 	const t = now.getTime();
-	return t >= start.getTime() - ODDS_WINDOW_BEFORE_MS && t <= start.getTime();
+	return t >= opens.getTime() && t <= start.getTime();
 }
 
 /** 単勝。値が無ければ `-`。 */

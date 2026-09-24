@@ -1,8 +1,8 @@
-import { and, asc, eq, isNotNull, notInArray, sql } from 'drizzle-orm';
+import { and, asc, between, eq, isNotNull, notInArray, sql } from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { race, raceOdds } from '$lib/server/db/schema';
 import type { HorseOdds, RaceOdds } from '$lib/server/odds/odds';
-import { todayJst } from '$lib/utils/date';
+import { addDays, todayJst } from '$lib/utils/date';
 import { inOddsWindow } from '$lib/utils/odds';
 
 /**
@@ -15,10 +15,13 @@ import { inOddsWindow } from '$lib/utils/odds';
 export type OddsTarget = { raceId: string; externalRef: string };
 
 /**
- * いまオッズを取りに行くレース。**当日・取得元の ID あり・発走3時間前〜発走** の3つを満たすものだけ。
+ * いまオッズを取りに行くレース。**取得元の ID と発走時刻があり、いまが取りに行く時間帯に入っているもの**だけ。
  *
- * D1 で絞るのは日付と「ref・発走時刻が入っているか」まで。時間帯は JST の時刻計算が要るので
- * JS 側で切る（当日の ref 付きのレースは数件なので、取ってから捨ててよい）。
+ * 時間帯は格で決まる（`oddsWindowOpens`）。G1 は前々日の 18:30、G2・G3 は前日の 18:30、
+ * それ以外は当日の発走3時間前から、どれも発走まで。
+ *
+ * D1 で絞るのは「今日から2日後まで」と「ref・発走時刻が入っているか」まで。時間帯は JST の時刻計算が
+ * 要るので JS 側で切る（その範囲の ref 付きのレースは数件なので、取ってから捨ててよい）。
  */
 export async function listOddsTargets(db: Db, now: Date): Promise<OddsTarget[]> {
 	const today = todayJst(now);
@@ -27,14 +30,21 @@ export async function listOddsTargets(db: Db, now: Date): Promise<OddsTarget[]> 
 			id: race.id,
 			date: race.date,
 			startTime: race.startTime,
+			grade: race.grade,
 			externalRef: race.externalRef
 		})
 		.from(race)
-		.where(and(eq(race.date, today), isNotNull(race.externalRef), isNotNull(race.startTime)))
-		.orderBy(asc(race.startTime));
+		.where(
+			and(
+				between(race.date, today, addDays(today, 2)),
+				isNotNull(race.externalRef),
+				isNotNull(race.startTime)
+			)
+		)
+		.orderBy(asc(race.date), asc(race.startTime));
 
 	return rows.flatMap((r) =>
-		r.externalRef && r.startTime && inOddsWindow(r.date, r.startTime, now)
+		r.externalRef && r.startTime && inOddsWindow(r.date, r.startTime, r.grade, now)
 			? [{ raceId: r.id, externalRef: r.externalRef }]
 			: []
 	);

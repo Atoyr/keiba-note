@@ -43,7 +43,7 @@ export function raceFields(meta: RaceMeta): RaceFields {
 }
 
 /**
- * レースの取得元 ID（`nk-` + race_id）と発走時刻を書く。**これが入ったレースだけ、当日にオッズを
+ * レースの取得元 ID（`nk-` + race_id）と発走時刻を書く。**これが入ったレースだけ、オッズを
  * 取りに行く**（docs/product.md 第1章）。netkeiba が正なので上書きする。
  */
 export function applyRaceRef(

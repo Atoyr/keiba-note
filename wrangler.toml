@@ -46,11 +46,13 @@ subrequests = 1000
 [alias]
 "$lib" = "./src/lib"
 
-# オッズの更新（src/lib/server/odds/scheduled.ts）。UTC で書く。0-8 時 = JST 9:00〜17:30 の30分おき。
-# 取りに行くのは当日・発走3時間前〜発走のレースがある回だけで、無い回は D1 を1回読んで終わる。
+# オッズの更新（src/lib/server/odds/scheduled.ts）。UTC で書く。0-13 時 = JST 9:00〜22:30 の30分おき。
+# 夜まで回すのは、重賞を前日（G1 は前々日）の 18:30 から取りに行くため。夜中はオッズがほぼ動かないので回さない。
+# 取りに行くのは時間帯に入ったレース（src/lib/utils/odds.ts の inOddsWindow）がある回だけで、
+# 無い回は D1 を1回読んで終わる。
 # Workers Previews（ステージング）では Cron は動かない。
 [triggers]
-crons = ["*/30 0-8 * * *"]
+crons = ["*/30 0-13 * * *"]
 
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。
