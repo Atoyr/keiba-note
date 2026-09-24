@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import LandingPage from '$lib/components/LandingPage.svelte';
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
@@ -60,6 +61,8 @@
 				>
 					<span class="font-mono text-gray-500">{r.date}</span>
 					<span>{r.course}{r.raceNumber ?? ''}R</span>
+					<!-- 名前だけでは格が分からない重賞がある。名前を読む前に格が目に入るよう、前に置く。 -->
+					<GradeBadge grade={r.grade} />
 					<span class="font-medium">{r.name ?? ''}</span>
 					<!-- 「メモ 3」では何が済んで何が残っているかが読めないので、種類で言う。 -->
 					{#each raceProgress(r, today) as p (p.label)}

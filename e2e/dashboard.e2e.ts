@@ -46,6 +46,19 @@ test('今週のレースと過去のレースが別々の枠に出る', async ({
 	await expect(thisWeek.getByText(DASHBOARD_RACES.inWindow)).toHaveCount(0);
 });
 
+/** 名前だけではどの重賞か分からないので、格の札を名前の**前**に出す。今週も過去も同じ行。 */
+test('今週と過去のレースの行で、格の札がレース名の前に出る', async ({ page }) => {
+	await login(page);
+	await page.goto('/');
+
+	await expect(
+		section(page, '今週のレース').getByRole('link', { name: DASHBOARD_RACES.thisWeek })
+	).toHaveText(/中京11R\s*G3\s*E2E今週賞/);
+	await expect(
+		section(page, '過去のレース').getByRole('link', { name: DASHBOARD_RACES.inWindow })
+	).toHaveText(/福島10R\s*G3\s*E2E先週賞/);
+});
+
 /** 窓は3週で切る。ここが効かないと「過去のレース」が全履歴になる。 */
 test('3週より古いレースはどちらの枠にも出ない', async ({ page }) => {
 	await login(page);
