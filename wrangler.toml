@@ -26,6 +26,19 @@ directory = ".svelte-kit/cloudflare"
 
 [observability]
 enabled = true
+# Workers Logs が自動で残す呼び出しログから、URL のクエリ文字列を落とす。
+# /auth/google/callback の ?code=&state=（OAuth の認可コード）と /horses の ?q=（検索語）が
+# そのまま残るため（docs/monitoring.md 第2章「出さないもの」）。
+redact_query_string = true
+
+# Workers Paid の既定（CPU 30秒・サブリクエスト 10,000）は、暴走したときに止まらず課金が進む。
+# Free の頃（CPU 10ms・50）に収まって動いていた実績に余裕を足して、上限を低く置く。
+# 超えたら例外で落ち、気づける（docs/monitoring.md 第9章）。Preview（ステージング）にも同じ値が効く。
+[limits]
+# 1呼び出しの CPU 時間（ms）。SSR は数ms。10倍の余裕。
+cpu_ms = 100
+# 1呼び出しの fetch と D1 などへの呼び出しの数。設計の約束は D1 クエリ10以内（architecture.md 7-1）。
+subrequests = 50
 
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。
