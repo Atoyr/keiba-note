@@ -12,6 +12,8 @@
 - 更新日: 2026-09-24 — Worker の入口を `src/worker.js` にし、見つからないアセットの 404 を
   ブラウザに抱えさせないようにした（→ 3-5）
 - 更新日: 2026-09-24 — D1 の書き込み上限がステージングと共有であることと、レースデータ投入の書き込みを試算に足した（→ 第6章）
+- 更新日: 2026-09-24 — Cron Trigger でオッズを取りに行くようにした。外部依存に取得元（netkeiba）が加わり、
+  `src/worker.js` が `scheduled` も受ける（→ 第0章 / 第1章 / 第2章 / 3-8 / 第6章）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -42,6 +44,8 @@
 - `nodejs_compat` は付けない（起動コストとバンドルが増える。採用ライブラリは Web 標準 API で動く）。
   `compatibility_date` は意図して上げるとき以外は変えない（→ 5-4）
 - モック認証（`MOCK_AUTH`）は `dev` ガードの中にだけ置く。本番ビルドから分岐ごと消えるのが前提
+- **外部のデータ元（netkeiba）へ行くのは Cron だけ。** 画面の表示のたびに取りに行かない。
+  取得元に固有の処理（URL・応答の形）は `lib/server/odds/<取得元>/` の外に出さない（→ 3-8）
 
 ### DB とデータ
 
@@ -72,6 +76,8 @@ flowchart TB
     end
 
     G["Google<br/>OAuth 2.0 / OIDC"]
+    N["netkeiba<br/>オッズ（単勝・複勝）"]
+    CR["Cron Trigger<br/>30分おき"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -79,9 +85,12 @@ flowchart TB
     W -->|"SQL / 1リクエスト10クエリ以内"| D
     W -->|"認可リダイレクト・トークン交換"| G
     W -->|"HTML"| U
+    CR -->|"scheduled"| W
+    W -->|"オッズの取得（Cron のときだけ）"| N
 ```
 
-外部依存は **Google OAuth だけ**。それ以外は Cloudflare の中で完結する。
+外部依存は **Google OAuth と、オッズの取得元（netkeiba）の2つ**。netkeiba へは Cron のときだけ行き、
+画面の表示では行かない（→ 3-8）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -198,7 +207,13 @@ monitoring が import してよいのは pure と db（`errors.ts` と observer 
 service と auth も monitoring を知らない（失敗は投げたままにし、ルートか `handleError` が拾う）。
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
-adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）だけ（→ 3-5）。
+adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
+Cron の入口 `lib/server/odds/scheduled.ts` だけ（→ 3-5・3-8）。
+
+odds（`lib/server/odds/`）は2つに分かれる。`scheduled.ts` は Cron の入口で、**endpoint と同じ扱い**
+（db・service・monitoring を使ってよい）。残り（`odds.ts`・`update.ts`・`netkeiba/`）は **service と同じ扱い**で、
+monitoring を知らない（`update.ts` はログを引数の `log` に渡すだけ）。取得元に固有の処理は `netkeiba/` の中に閉じ、
+`odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない。
 
 - **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
   `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
@@ -218,9 +233,9 @@ adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知ら
 機能は次の順に並べ、**右は左を使ってよいが、左は右を使わない**。順位で並べるので循環は起こりえない。
 
 ```
-horses ← races ← notes ← share ← dashboard
-  馬     レース・     メモ・見立て・  共有     ダッシュボード・
-         出馬表・枠   印・タグ・的中  リンク   今週
+horses ← races ← odds ← notes ← share ← dashboard
+  馬     レース・     オッズ  メモ・見立て・  共有     ダッシュボード・
+         出馬表・枠           印・タグ・的中  リンク   今週
 ```
 
 - 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
@@ -439,6 +454,61 @@ load に到達する。**前提が他の全ルートと違う唯一の場所**�
 未ログインの閲覧者はセッション Cookie を持たないので検証クエリが走らず、
 **主キー1件引きの1クエリだけ**で返る。通常ページより軽い。
 
+### 3-8. オッズの取得 — Cron だけが外へ取りに行く
+
+予想画面に出す単勝・複勝のオッズは、Cron Trigger が30分おきに取得元から取って `race_odds` に書き、
+画面は D1 の値を読むだけ（→ [product.md 第1章「例外 — オッズ」](./product.md)）。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cron（*/30 0-8 * * * UTC）
+    participant S as odds/scheduled.ts
+    participant U as odds/update.ts
+    participant D as D1
+    participant P as NetkeibaOddsProvider
+    participant N as netkeiba
+
+    C->>S: scheduled
+    S->>U: updateOdds（db・provider・log）
+    U->>D: 当日・ref と発走時刻ありのレース 【クエリ1】
+    Note over U: 発走3時間前〜発走に入っているものだけ残す<br/>無ければここで終わり（取得元へは行かない）
+    loop 1レースずつ（間を1秒あける）
+        U->>P: getRaceOdds
+        P->>N: GET api_get_jra_odds.html?type=1
+        N-->>P: JSON
+        Note over P: parser.ts が RaceOdds に読み替える<br/>予想オッズ（yoso）・形の違いは投げる
+        P-->>U: RaceOdds
+        Note over U: validateRaceOdds
+        U->>D: 馬ごとの upsert ＋ 応答に無い馬番の削除を batch で1往復
+    end
+```
+
+| 層 | 置き場所 | 持つもの |
+| --- | --- | --- |
+| 型と約束 | `lib/server/odds/odds.ts` | `RaceOdds`・`OddsProvider`・`OddsError`（失敗の種類）・`validateRaceOdds` |
+| 取得元 | `lib/server/odds/netkeiba/` | URL と通信（`provider.ts`）、応答の読み替え（`parser.ts`。通信しないので fixture で試す） |
+| 手順 | `lib/server/odds/update.ts` | 対象の選び方・順番・再試行・ログの重さ |
+| 保存 | `lib/server/services/odds.ts` | D1 の読み書き。取得元を知らない |
+| 入口 | `lib/server/odds/scheduled.ts` | 監視の口・D1 クライアント・provider を作って渡す。**取得元を替えるときに直すのはここだけ** |
+
+**取得元への負荷を抑える約束**（取得元に止められたら機能ごと失う）:
+
+- 対象は YAML に `ref` と `startTime` を書いた当日のレースだけで、発走3時間前から発走まで。1レース最大7回
+- 1レースずつ順に取り、間を1秒あける。並列にしない
+- 再試行は、届かなかった・5xx のときに1回だけ（3秒あけて）。429 か取得元の `limit` が返ったら、
+  **その回の残りのレースも取りに行かずに終える**
+- 制限を避けるための細工（プロキシ・IP の切り替え・User-Agent の偽装）はしない。User-Agent は用途を名乗る
+
+**失敗しても前の値を壊さない。** 取れなかった・形が違った・値がおかしい（0以下、下限 > 上限、馬番の重複）ときは
+何も書かず、前回の値が時点とともに残る。保存は1つの `batch`（1トランザクション）なので半端に混ざらず、
+最後の砦として `race_odds` の CHECK もある。
+
+Cron の入口は SvelteKit の外なので、`$lib` の別名は wrangler.toml の `[alias]` で wrangler（esbuild）に教えている。
+自前のモジュール（監視など）は SvelteKit 側とは別にもう1つ束ねられる（Drizzle などの依存は1つにまとまる）。
+Workers Previews（ステージング）では Cron は動かない。ローカルでは
+`wrangler dev --test-scheduled` で上げて `/__scheduled` を叩くと1回ぶん動く。
+
 ---
 
 ## 4. デプロイ構成
@@ -630,6 +700,8 @@ Workers の Custom Domains は無料で、Google OAuth も無料。
   2026-09-24 にステージングが毎回全ファイルを流していたため、マージが5回続いた日に上限を使い切り、
   本番のメモの保存が 500 になった。**`--all` は日に何度も走る経路に入れない**
 - ストレージ: 年間1,200レース × (entry 14 + note 15) 行 ≒ 35,000行、インデックス込みで約20 MB
+- オッズ（3-8）: 1開催日に対象4レースとして、4レース × 7回 × 18頭 ≒ 500行の書き込み（`race_odds` は
+  主キーのほかに索引が無い）。Cron は1日18回起動するが、対象の無い回は D1 を1回読むだけ
 
 D1 の Free は**1データベースあたり 500 MB**（アカウント合計5 GB とは別の制限）。
 年20 MB なら **25年分**入る。
@@ -729,7 +801,7 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 
 ## 9. この構成の要約
 
-- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth だけ
+- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、Cron だけが行くオッズの取得元
 - **層は6つ、依存は一方向。** 要は「サービス層が SvelteKit を知らない」の1点。
   これだけでテストが書け、将来の API 追加にも耐える
 - **データアクセスは必ず ④→⑤→⑥ を通る。** ルートから直接 SQL を書かない。

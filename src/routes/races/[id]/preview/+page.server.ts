@@ -7,6 +7,7 @@ import {
 	listSameConditionRaceNotes,
 	savePreviewNotes
 } from '$lib/server/services/notes';
+import { getRaceOdds } from '$lib/server/services/odds';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
@@ -25,7 +26,7 @@ import type { Actions, PageServerLoad } from './$types';
  * 日付と格だけ先に登録され、出馬表はその後に入る（README「出走馬データ」）。
  * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
- * 読みは6クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ）。
+ * 読みは7クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ / オッズ）。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
  * （D1 は1リクエスト50クエリが上限。architecture.md 7-1）。
  */
@@ -41,7 +42,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	const { surface, distance } = race;
 
-	const [thisRaceNotes, history, pastRuns, sameCondition] = await Promise.all([
+	const [thisRaceNotes, history, pastRuns, sameCondition, odds] = await Promise.all([
 		listRaceNotes(db, params.id, user.id),
 		listHistoryForHorses(db, horseIds, params.id, user.id),
 		// 馬柱。このレースより前の出走歴だけを見る。
@@ -53,8 +54,13 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 					{ course: race.course, surface, distance, before: race.date },
 					user.id
 				)
-			: Promise.resolve([])
+			: Promise.resolve([]),
+		// Cron が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
+		getRaceOdds(db, params.id)
 	]);
+
+	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
+	const oddsByNumber = new Map(odds?.horses.map((h) => [h.horseNumber, h]) ?? []);
 
 	// 読めるのは自分のメモだけなので、著者での選り分けは要らない。
 	const myPreview = new Map(
@@ -71,8 +77,11 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		sameCondition,
 		// 開催前はふりかえりへの導線を出さない（開いても戻されるだけなので）。
 		upcoming: isUpcoming(race.date, todayJst()),
+		// 取れた時点。1度も取れていなければ null で、オッズの欄ごと出さない。
+		oddsAsOf: odds?.asOf ?? null,
 		rows: entries.map((e) => ({
 			...e,
+			odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
 			myPreview: myPreview.get(e.entryId) ?? null,
 			history: history.get(e.horseId) ?? [],
 			pastRuns: pastRuns.get(e.horseId) ?? []

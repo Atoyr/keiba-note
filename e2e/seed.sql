@@ -142,6 +142,11 @@ VALUES (
 	'2099-05-05'
 );
 
+-- 予想画面のオッズ。Cron が取ってきた形（race_odds）をそのまま置く。
+-- 時点は 2099-05-05 14:30 JST。画面が「5/5 14:30時点」と添えることを見る。
+INSERT OR REPLACE INTO race_odds (race_id, horse_number, win_odds, place_odds_min, place_odds_max, as_of, fetched_at)
+VALUES ('01JE2ERACEPREVIEW000000000', 3, 3.4, 1.4, 1.8, 4081642200, 4081642260);
+
 -- **出走馬がまだ1頭も登録されていない未来のレース。**
 --
 -- これから組まれる重賞は、出馬表が出る前に日付と格だけ先に登録する運用がある。

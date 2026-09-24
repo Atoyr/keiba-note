@@ -176,7 +176,9 @@ ${raceData('15:40発走 / 芝1200m (右 外 C)', '4回 中山 9日目 サラ系�
 			distance: 1200,
 			direction: '右',
 			trackCondition: undefined,
-			weather: undefined
+			weather: undefined,
+			// 出馬表の `15:40発走`。オッズを取りに行く時間帯を決める
+			startTime: '15:40'
 		});
 		expect(rows).toEqual([
 			{

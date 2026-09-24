@@ -3,6 +3,7 @@ import {
 	applyPastRuns,
 	applyProfile,
 	applyResult,
+	applyRaceRef,
 	applyShutuba,
 	type ResolvePerson
 } from './apply.ts';
@@ -383,5 +384,25 @@ describe('applyResult', () => {
 		);
 		expect(out).toContain('        margin: "クビ"\n');
 		expect(out).not.toContain('ホースC');
+	});
+});
+
+describe('applyRaceRef', () => {
+	it('レースに netkeiba の race_id と発走時刻を書く（オッズの取得対象になる）', () => {
+		const file = RaceFile.parse('2026-09-27.yaml', placeholder);
+		const log = applyRaceRef(file, '中山', 11, '202606040911', { ...meta, startTime: '15:40' });
+
+		expect(log).toEqual(['ref nk-202606040911 / 発走 15:40']);
+		expect(file.toString()).toContain(
+			// 時刻は YAML 1.1 だと60進数の整数に読まれうるので、クォートして書く
+			'    direction: 右\n    ref: nk-202606040911\n    startTime: "15:40"\n    entries: []\n'
+		);
+	});
+
+	it('発走時刻が読めなければそう伝える', () => {
+		const file = RaceFile.parse('2026-09-27.yaml', placeholder);
+		expect(applyRaceRef(file, '中山', 11, '202606040911', meta)).toEqual([
+			'ref nk-202606040911（発走時刻が読めませんでした。オッズは取りに行きません）'
+		]);
 	});
 });

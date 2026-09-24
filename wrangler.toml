@@ -27,6 +27,17 @@ directory = ".svelte-kit/cloudflare"
 [observability]
 enabled = true
 
+# src/worker.js から import する TS（Cron の入口）は SvelteKit ではなく wrangler が束ねる。
+# そこで使う `$lib` を SvelteKit と同じ場所に向ける。
+[alias]
+"$lib" = "./src/lib"
+
+# オッズの更新（src/lib/server/odds/scheduled.ts）。UTC で書く。0-8 時 = JST 9:00〜17:30 の30分おき。
+# 取りに行くのは当日・発走3時間前〜発走のレースがある回だけで、無い回は D1 を1回読んで終わる。
+# Workers Previews（ステージング）では Cron は動かない。
+[triggers]
+crons = ["*/30 0-8 * * *"]
+
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。
 [vars]

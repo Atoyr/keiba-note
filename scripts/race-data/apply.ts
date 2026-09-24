@@ -42,6 +42,27 @@ export function raceFields(meta: RaceMeta): RaceFields {
 	};
 }
 
+/**
+ * レースの取得元 ID（`nk-` + race_id）と発走時刻を書く。**これが入ったレースだけ、当日にオッズを
+ * 取りに行く**（docs/product.md 第1章）。netkeiba が正なので上書きする。
+ */
+export function applyRaceRef(
+	file: RaceFile,
+	course: string,
+	raceNumber: number,
+	raceId: string,
+	meta: RaceMeta
+): string[] {
+	const race = file.ensureRace(course, raceNumber, raceFields(meta));
+	const ref = toRef(raceId);
+	file.setRaceFields(race, { ref, startTime: meta.startTime }, 'overwrite');
+	return [
+		meta.startTime
+			? `ref ${ref} / 発走 ${meta.startTime}`
+			: `ref ${ref}（発走時刻が読めませんでした。オッズは取りに行きません）`
+	];
+}
+
 /** YAML の行の馬名と netkeiba の馬名が違うときの警告。 */
 function nameWarning(entry: YAMLMap, name: string): string[] {
 	const current = entry.get('name');

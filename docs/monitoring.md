@@ -9,6 +9,7 @@ GitHub Actions の結果の通知、外からの死活監視。
   層と依存の向きは [architecture.md](./architecture.md)
 - 作成日: 2026-09-23
 - 更新日: 2026-09-23 — Discord のチャンネルを「障害」と「デプロイ」の2つに分けた（→ 第7章・第8章）
+- 更新日: 2026-09-24 — Cron（オッズの取得）の event を足した（→ 第3章）
 
 ---
 
@@ -74,6 +75,27 @@ Discord と GitHub Actions で組む。
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
 | `monitoring.discord.failed` | error | — | `discord.ts` | 通知そのものが送れなかった（ログにだけ出る） |
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
+| `odds.fetch` | info / warn / error | 下の表 | `lib/server/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる |
+| `odds.cron` | info | しない | `lib/server/odds/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す（件数の内訳） |
+| `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かないなど） |
+
+`odds.fetch` の重さは `errorType`（`OddsError` の種類）で決める。**通知するのは人が手を入れる必要があるものだけ**で、
+一時的に届かなかった1回では知らせない（30分後の回で取れる）。Cron には request id が無いので、
+`requestId` は `cron-odds-<起動時刻>` にしている。
+
+| errorType | level | 通知 | 意味 |
+| --- | --- | --- | --- |
+| （成功） | info | しない | 保存した |
+| `not-available` | info | しない | 発売前（予想オッズしか出ていない）。失敗ではない |
+| `network` / `http` | warn | しない | 届かなかった・5xx（1回再試行したうえで）/ それ以外の HTTP の失敗 |
+| `rate-limited` | warn | する | 取得元に制限された。その回の残りのレースは取りに行かない |
+| `unsupported-ref` | warn | する | レースの `ref` を取得元が読めない（YAML の書き間違い） |
+| `parse` | error | する | 応答の形が想定と違う。**取得元の構造が変わった疑い**で、直すまで毎回落ちる |
+| `invalid` | error | する | 値がおかしいので保存しなかった |
+| `unknown` | error | する | 上のどれでもない（D1 への保存の失敗など） |
+
+連投の抑制の鍵は `odds.fetch:<errorType>`。同じ種類の失敗が複数のレースで続いても5分に1件にまとまる。
+リクエストと同じく、Cron の1回で送る通知は1件まで（先に起きたほう）。
 
 **`SLOW_QUERY_MS` は仮置き。** Workers Logs で `d1.query.slow` の件数と `durationMs` を見て決め直す。
 対応が要る遅さが分かったら、そのときに `notify: true` を付ける。
