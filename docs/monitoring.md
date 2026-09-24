@@ -210,20 +210,26 @@ Paid では超えた分が**課金されて動き続ける**。暴走しても�
 
 | 項目 | Paid の既定 | ここで置いた値 | 考え方 |
 | --- | --- | --- | --- |
-| `cpu_ms`（1呼び出しの CPU 時間） | 30,000 ms | **100 ms** | Free の 10ms で動いていた。SSR は数ms。10倍の余裕 |
-| `subrequests`（1呼び出しの fetch・D1 などの呼び出し数） | 10,000 | **50** | Free の頃と同じ。D1 クエリは10以内の約束（[architecture.md 7-1](./architecture.md)） |
+| `cpu_ms`（1呼び出しの CPU 時間） | 30,000 ms | **1,000 ms** | SSR は数ms で、Free の 10ms で動いていた。その100倍 |
+| `subrequests`（1呼び出しの fetch などの数） | 10,000 | **1,000** | 普段は数件。無限ループの fetch を止める |
 
-上限は、無限ループや N+1 の暴走を**請求ではなく障害として**表に出すためのもの。Preview（ステージング）にも同じ値が効く。
+上限は、無限ループのような暴走で課金が進むのを止めるためのもの。Preview（ステージング）にも同じ値が効く。
 ローカル（`pnpm run dev`・E2E）では効かない。
 
-**超えたときの見え方が2つで違う。**
+**上限に当たっても、Discord には届かない。**
 
-- **サブリクエスト数**は、超えた呼び出しが例外になる。`d1.query.failed` か `request.unhandled` として Discord「障害」に届く
-- **CPU 時間**は、Worker がその場で止められるので `handleError` も走らず、**Discord には何も届かない。**
-  Workers Logs で呼び出しの結果（outcome）が `exceededCpu` になっているかで見る。利用者には Cloudflare のエラー画面（1102）が出る。
-  頻発すれば `/api/health` か使用量の通知で気づく
+- **CPU 時間**は、Worker がその場で止められるので `handleError` も走らない。利用者には Cloudflare のエラー画面（1102）が出る
+- **サブリクエスト数**は、超えた呼び出しが例外になるが、Discord への送信も同じ呼び出しの fetch なので一緒に落ちる
+  （ログに `monitoring.discord.failed` が残るだけ）
+- `/api/health` は `select 1` だけの軽い経路なので、重い画面の超過は拾えない。使用量の通知も 1102 の件数では鳴らない
 
-足りなくなったら（正当な処理で超えるようになったら）、値を上げる前に、何が重いかを Workers Logs で確かめる。
+だから値は**普段の処理が決して当たらない高さ**に置いている。低く置くと、利用者だけがエラーを見て誰も気づけない。
+当たったかどうかは、Workers Logs で呼び出しの結果（outcome）が `exceededCpu` などになっていないかを人が見る。
+知らせが欲しくなったら 9-3 の方法を選ぶ。
+
+値を下げたくなったら、先にダッシュボードの Workers > k-note > Metrics の CPU time（最大・P99.9）と、
+Workers Logs の呼び出しログの `cpuTime` を見て、実測の上に置く。D1 クエリを10以内に収める約束
+（[architecture.md 7-1](./architecture.md)）は、上限ではなくレビューで守る。
 
 ### 9-2. 使用量と金額の見張り — Cloudflare のダッシュボード
 
@@ -247,8 +253,12 @@ Webhook はプランによって使えない（Pro 以上のゾーンが要る�
 （`src/worker.js` の `email` → `monitoring/email.ts`）。
 
 - Worker が送るのは**件名と差出人だけ。** 本文（金額や使用量）はメールかダッシュボードで見る
-- 差出人（ヘッダか封筒の From）が `cloudflare.com` とそのサブドメインでなければ受け取りを断る。
-  アドレスを知った人が Discord に書き込めないように。断ったものは `monitoring.email.rejected` としてログにだけ残る
+- ヘッダの From が `cloudflare.com` とそのサブドメインでなければ受け取りを断る。断ったものは
+  `monitoring.email.rejected` としてログにだけ残る。cloudflare.com の DMARC は `p=reject` なので、ヘッダの From を偽った
+  メールは受け手で落とされる前提に立っている。封筒の From（MAIL FROM）は DMARC で守られず誰でも偽れるので見ない
+- それでも件名は他人が書きうる文として扱い、コードブロックに入れて送る（リンクや Markdown は効かない。メンションも飛ばない）
+- 本物の通知の From が `cloudflare.com` 配下でなかったら、正規の通知が断られる。最初の1通が届いたら、Discord に出たか
+  （出ていなければ Workers Logs の `monitoring.email.rejected` の `senderDomain`）を確かめる
 - uma-memo.com はほかにメールを受けていない（MX が無い）ので、Email Routing を入れても既存のメールとはぶつからない
 
 #### 手順
@@ -277,8 +287,8 @@ Webhook はプランによって使えない（Pro 以上のゾーンが要る�
 - **リクエスト数の制限（レート制限）。** 利用者ごと・IP ごとに保存や `/auth` を絞る仕組み。Workers の Rate Limiting
   binding か、ゾーンの WAF のレート制限ルールで入れられる。WAF で止めたリクエストは Worker を起動しないので課金もされない。
   今の規模では、9-2 の通知で気づけば足りるとして入れていない
-- **CPU 超過を Discord に送ること。** Worker の外から見るしかない（Tail Worker か、GraphQL Analytics API を Actions から定期に読む）。
-  9-1 のとおり今は Workers Logs で見る
+- **上限に当たったことを Discord に送ること。** Worker の外から見るしかない。Tail Worker（呼び出しの outcome を受けて送る）か、
+  GraphQL Analytics API を Actions から定期に読む（API トークンが要る）。9-1 のとおり今は Workers Logs を人が見る
 - **通知メールの本文を読むこと。** 金額や使用量は本文にしかないが、MIME を解くライブラリを足すことになるので、件名だけにしている
 
 ## 10. これから

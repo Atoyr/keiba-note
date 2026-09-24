@@ -80,7 +80,10 @@ describe('handleNotificationEmail', () => {
 		expect(fetchFn.mock.calls[0][0]).toBe(WEBHOOK);
 		const [embed] = sentPayload(fetchFn).embeds;
 		expect(embed.title).toBe('🟡 WARNING');
-		expect(embed.description).toContain('Budget alert: uma-memo $1');
+		expect(embed.fields).toContainEqual({
+			name: 'subject',
+			value: '```\nBudget alert: uma-memo $1\n```'
+		});
 		expect(embed.fields).toContainEqual({
 			name: 'Event',
 			value: '`cloudflare.notification`',
@@ -93,15 +96,29 @@ describe('handleNotificationEmail', () => {
 		});
 	});
 
-	it('ヘッダの From が別でも、封筒の From が Cloudflare なら受ける', async () => {
+	it('封筒の From だけが Cloudflare のメールは断る（封筒は DMARC で守られず、誰でも偽れる）', async () => {
 		vi.spyOn(console, 'warn').mockImplementation(() => {});
 		const fetchFn = okFetch();
 		const message = mail({ headerFrom: 'Billing <billing@example.net>', from: 'x@cloudflare.com' });
 
 		await handleNotificationEmail(message, ENV, fetchFn);
 
-		expect(message.setReject).not.toHaveBeenCalled();
-		expect(fetchFn).toHaveBeenCalledOnce();
+		expect(message.setReject).toHaveBeenCalledWith('Unknown sender');
+		expect(fetchFn).not.toHaveBeenCalled();
+	});
+
+	it('件名はコードブロックに入れ、リンクや Markdown を効かせない', async () => {
+		vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const fetchFn = okFetch();
+
+		await handleNotificationEmail(mail({ subject: '[click](https://example.com)' }), ENV, fetchFn);
+
+		const [embed] = sentPayload(fetchFn).embeds;
+		expect(embed.description).not.toContain('example.com');
+		expect(embed.fields).toContainEqual({
+			name: 'subject',
+			value: '```\n[click](https://example.com)\n```'
+		});
 	});
 
 	it('Cloudflare 以外からのメールは断り、Discord に送らない', async () => {
@@ -122,7 +139,10 @@ describe('handleNotificationEmail', () => {
 
 		await handleNotificationEmail(mail(), ENV, fetchFn);
 
-		expect(sentPayload(fetchFn).embeds[0].description).toContain('（件名なし）');
+		expect(sentPayload(fetchFn).embeds[0].fields).toContainEqual({
+			name: 'subject',
+			value: '```\n（件名なし）\n```'
+		});
 	});
 
 	it('Webhook が無ければ送らない（ログには出す）', async () => {

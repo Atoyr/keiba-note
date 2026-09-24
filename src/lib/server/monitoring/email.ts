@@ -5,7 +5,10 @@
  * Budget alert はメールでしか送れないので、メールを受けて Discord に写す。
  * 本文（MIME）は読まない。件名と差出人だけを送り、詳しくはメールかダッシュボードで見てもらう。
  *
- * 差出人が Cloudflare でなければ受け取りを断る。アドレスを知った人が Discord に書き込めないように。
+ * 差出人が Cloudflare でなければ受け取りを断る。見るのはヘッダの From だけ。cloudflare.com は
+ * DMARC が p=reject なので、ヘッダの From を偽ったメールは受け手の側で落とされる前提に立つ。
+ * 封筒の From（MAIL FROM）は DMARC の判定に使われず誰でも偽れるので、見ない。
+ * それでも件名は他人が書きうる文として扱い、コードブロックに入れる（リンクや Markdown を効かせない）。
  */
 import { postDiscord, toDiscordPayload } from './discord';
 import { writeLog } from './log';
@@ -65,10 +68,8 @@ export async function handleNotificationEmail(
 	env: NotificationEmailEnv,
 	fetchFn: typeof fetch = fetch
 ): Promise<void> {
-	// 封筒の From は配信サービスの戻りアドレスになることがあるので、ヘッダの From でも見る。
 	const headerFrom = extractAddress(message.headers.get('from') ?? '');
-	const envelopeFrom = extractAddress(message.from);
-	if (!isAllowedSender(headerFrom) && !isAllowedSender(envelopeFrom)) {
+	if (!isAllowedSender(headerFrom)) {
 		writeLog({
 			level: 'warn',
 			event: 'monitoring.email.rejected',
@@ -95,10 +96,9 @@ export async function handleNotificationEmail(
 			level: 'warn',
 			event: 'cloudflare.notification',
 			message:
-				`Cloudflare から通知メールが届いた: ${subject}\n\n` +
-				'本文はメールか、ダッシュボードの Billing > Billable Usage で確かめてください。',
+				'Cloudflare から通知メールが届いた。本文はメールか、ダッシュボードの Billing > Billable Usage で確かめてください。',
 			environment: env.APP_ENV,
-			details: { from: headerFrom || envelopeFrom, to: message.to }
+			details: { subject, from: headerFrom, to: message.to }
 		}),
 		fetchFn
 	);
