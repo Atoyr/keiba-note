@@ -42,6 +42,11 @@ describe('extractAddress', () => {
 		);
 		expect(extractAddress(' noreply@cloudflare.com ')).toBe('noreply@cloudflare.com');
 	});
+
+	it('アドレスが複数並ぶ From は空にする（Cloudflare として通さない）', () => {
+		expect(extractAddress('a@evil.example, <x@cloudflare.com>')).toBe('');
+		expect(isAllowedSender(extractAddress('a@evil.example, <x@cloudflare.com>'))).toBe(false);
+	});
 });
 
 describe('isAllowedSender', () => {

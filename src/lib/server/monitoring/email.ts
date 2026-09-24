@@ -27,6 +27,9 @@ export type NotificationEmailEnv = {
 
 /** `Cloudflare <noreply@notify.cloudflare.com>` のような From から、アドレスだけを取り出す。 */
 export function extractAddress(from: string): string {
+	// `a@evil.example, <x@cloudflare.com>` のように複数並ぶ From は、DMARC の扱いが受け手で割れる。
+	// 通さないよう空にする（空は許可されない）。
+	if ((from.match(/@/g) ?? []).length > 1) return '';
 	const angle = from.match(/<([^<>]+)>\s*$/);
 	return (angle ? angle[1] : from).trim().toLowerCase();
 }
