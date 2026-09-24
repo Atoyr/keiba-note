@@ -24,6 +24,7 @@ import {
 	applyPastRuns,
 	applyProfile,
 	applyResult,
+	applyRaceRef,
 	applyShutuba,
 	type ResolvePerson
 } from './race-data/apply.ts';
@@ -252,6 +253,7 @@ async function main() {
 			const file = await RaceFile.load(args.dir, t.date);
 			const people = await peopleResolver();
 			const log = await applyShutuba(file, t.course, t.raceNumber, parsed, people.resolve);
+			log.push(...applyRaceRef(file, t.course, t.raceNumber, raceId, parsed.meta));
 			await people.flush();
 			print(`${t.date} ${t.course}${t.raceNumber}R ${parsed.meta.name}（${raceId}）`, log);
 			await saveAll([file]);

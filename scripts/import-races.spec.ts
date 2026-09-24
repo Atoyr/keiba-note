@@ -216,3 +216,59 @@ describe('data:check の検証', () => {
 		expect(errorsOf(candidates.replace(/entries:[\s\S]*$/, `entries:\n${many}\n`))).toEqual([]);
 	});
 });
+
+describe('レースの ref と発走時刻（オッズの取得対象）', () => {
+	// 2099-01-04 中山（06）11R
+	const withRef = candidates.replace(
+		'name: テストS',
+		'name: テストS\n    ref: nk-209906010111\n    startTime: "15:40"'
+	);
+	const errorsOf = (yaml: string) => {
+		const r = readRaceFile(yaml, '2099-01-04.yaml');
+		return r.ok ? [] : r.errors;
+	};
+	const race = (db: DatabaseSync) => db.prepare(`SELECT start_time, external_ref FROM race`).get();
+
+	it('race の start_time と external_ref に入る', () => {
+		const db = freshDb();
+		load(db, withRef);
+		expect(race(db)).toEqual({ start_time: '15:40', external_ref: 'nk-209906010111' });
+	});
+
+	it('書かなければ既存の値を残す（結果の欄と同じ）', () => {
+		const db = freshDb();
+		load(db, withRef);
+		load(db, candidates);
+		expect(race(db)).toEqual({ start_time: '15:40', external_ref: 'nk-209906010111' });
+	});
+
+	/**
+	 * start_time はマイグレーション 0011 の列。main へのマージで走る本番への投入は
+	 * マイグレーションを流さないので、リリースまでの間は列が無い。書いていない YAML で
+	 * 列を名指しすると、その間の投入がすべて落ちる。
+	 */
+	it('書いていない YAML の SQL は start_time / external_ref を名指ししない', () => {
+		const parsed = readRaceFile(candidates, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		const sql = statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n');
+		expect(sql).not.toMatch(/start_time|external_ref = excluded/);
+	});
+
+	it('発走時刻は HH:MM', () => {
+		expect(errorsOf(withRef.replace('"15:40"', '"15時40分"'))).toEqual([
+			'races.0.startTime: 発走時刻は HH:MM で書いてください'
+		]);
+	});
+
+	it('netkeiba の race_id の年・場・R がレースと食い違えば落とす', () => {
+		expect(errorsOf(withRef.replace('nk-209906010111', 'nk-209909010111'))).toEqual([
+			'中山11R: ref nk-209909010111 の年・場・R がこのレースと合いません'
+		]);
+		expect(errorsOf(withRef.replace('nk-209906010111', 'nk-209906010110'))).toEqual([
+			'中山11R: ref nk-209906010110 の年・場・R がこのレースと合いません'
+		]);
+		expect(errorsOf(withRef.replace('nk-209906010111', 'nk-2099'))).toEqual([
+			'中山11R: ref nk-2099 は nk- に12桁の race_id ではありません'
+		]);
+	});
+});

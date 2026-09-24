@@ -298,6 +298,8 @@ export type RaceMeta = {
 	direction?: Direction;
 	trackCondition?: TrackCondition;
 	weather?: string;
+	/** 発走時刻 `HH:MM`。出馬表の `15:40発走`。オッズを取りに行く時間帯を決める。 */
+	startTime?: string;
 };
 
 export type Person = { id: string; short: string };
@@ -329,6 +331,7 @@ export function parseRaceMeta(html: string): RaceMeta {
 
 	const { surface, distance } = parseSurfaceDistance(data01);
 	const dir = /\((右|左|直線|直)/.exec(data01)?.[1];
+	const start = /(\d{1,2}):(\d{2})発走/.exec(data01);
 	const direction: Direction | undefined = dir === '直' ? '直線' : (dir as Direction | undefined);
 
 	let className: string | undefined;
@@ -348,7 +351,8 @@ export function parseRaceMeta(html: string): RaceMeta {
 		distance,
 		direction,
 		trackCondition: parseTrackCondition(/馬場:\s*(\S+)/.exec(data01)?.[1] ?? ''),
-		weather: /天候:\s*(\S+)/.exec(data01)?.[1]
+		weather: /天候:\s*(\S+)/.exec(data01)?.[1],
+		startTime: start ? `${start[1].padStart(2, '0')}:${start[2]}` : undefined
 	};
 }
 

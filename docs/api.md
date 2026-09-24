@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-09-24 — オッズを予想画面の `load` で渡すことにし、Cron Trigger の口と `services/odds.ts` を足した（→ 第1章 / 第3章 / 第5章）
 
 ---
 
@@ -21,6 +22,9 @@ SvelteKit の `load` + form actions で完結させる。
 - `+server.ts` は、フォームでも画面でもない HTTP（OAuth のリダイレクト、ログアウト、死活監視）にだけ使う
 
 画面遷移ごとに API を叩く SPA にすると、リクエストが増え、実装も二重になる（→ [architecture.md 5-3](./architecture.md)）。
+
+オッズもこの形に従う。`GET /api/races/:id/odds` のような口は作らず、予想画面の `load` が
+`getRaceOdds` で D1 から読んで渡す。ブラウザは取得元（netkeiba）を呼ばない。
 将来モバイルクライアントなどが要るようになったら `/api/v1/*` を足す。そのときのために
 業務ロジックは `src/lib/server/services/` に置き、ルートからは薄く呼ぶだけにしておく（→ 第5章）。
 
@@ -69,7 +73,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/races` | GET | `year`・`grade`（複数）・`q` | レース一覧 | 未知の値は捨てる |
 | `/races/[id]` | GET | — | ふりかえり画面。**開催前なら `302 /races/[id]/preview`** | 404 |
 | `/races/[id]` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ saved, savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
-| `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ | 404 |
+| `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>` | 見立てと予想印を一括保存 | 検証 `fail(400)` / 404 |
 | `/horses` | GET | `q` | 馬一覧 | — |
 | `/horses/[id]` | GET | — | プロフィールとタイムライン | 404 |
@@ -95,6 +99,15 @@ SvelteKit の `load` + form actions で完結させる。
 | --- | --- | --- | --- | --- |
 | `/dev/mock-user` | POST | `as`（`admin`\|`user`）・`redirect` | モックのユーザーに切り替えて `303` | 本番ビルドでは 404 |
 | `/dev/notify-test` | POST | — | Discord へ ERROR を1件送る（疎通確認。→ [monitoring.md 第6章](./monitoring.md)） | 本番ビルドでは 404 |
+
+### HTTP でない口 — Cron Trigger
+
+| 起動 | 入口 | すること |
+| --- | --- | --- |
+| `*/30 0-13 * * *`（UTC。JST 9:00〜22:30 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | 取りに行く時間帯（重賞（G1〜G3）だけ。G1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで）に入ったレースのオッズを取得元から取り、`race_odds` に書く（→ [architecture.md 3-8](./architecture.md)） |
+
+ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。
+ログインの概念は無い（誰の操作でもない）。
 
 ## 4. action を書くときの約束
 
@@ -136,7 +149,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | --- | --- | --- |
 | メモ | **`viewerId` を必須で受ける**（省略可能にしない・既定値を与えない） | `author_id = :viewer` |
 | 共有ページのメモ（`getSharedNote` だけ） | `noteId` | `id = :id AND visibility = 'unlisted'` |
-| 馬・レース・出走馬（マスタ） | 絞らない | 全員に共通 |
+| 馬・レース・出走馬（マスタ）・オッズ | 絞らない | 全員に共通 |
 | マスタの一覧にメモの件数を添えるもの（`listHorses`・`listRacesBetween` など） | `viewerId` を必須で受ける | 件数は viewer のメモだけで数える（他人が何か書いていることを漏らさない） |
 
 - メモを書く・消す関数は `authorId` を受け、WHERE に入れる。他人のメモに当たったときは
@@ -150,6 +163,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | --- | --- | --- |
 | `services/horses.ts` | `listHorses`・`getHorse`・`getHorseEntries` | `findOrCreateHorse`・`updateHorseProfile` |
 | `services/races.ts` | `listRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
+| `services/odds.ts` | `listOddsTargets`・`getRaceOdds` | `saveRaceOdds`（Cron だけが呼ぶ） |
 | `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |
 | `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
 

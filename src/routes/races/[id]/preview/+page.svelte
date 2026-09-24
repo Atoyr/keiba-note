@@ -18,6 +18,7 @@
 	import { byMark } from '$lib/utils/answer';
 	import { courseMap } from '$lib/utils/course';
 	import { conditionLabel, latestConclusion, noteHeading, previewSaveLabel } from '$lib/utils/note';
+	import { formatOddsAsOf, formatPlaceOdds, formatWinOdds } from '$lib/utils/odds';
 	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import type { PageProps } from './$types';
@@ -236,7 +237,14 @@
 				{/if}
 			</div>
 		{:else}
-			<ul class="mt-6 grid gap-2">
+			<!-- 取れた時点を必ず添える。30分おきにしか取らず、失敗した回は前の値が残るので、
+			     「現在の」オッズのようには見せない（product.md 第6章）。 -->
+			{#if data.oddsAsOf}
+				<p class="mt-6 text-xs text-muted-foreground">
+					単勝・複勝のオッズは {formatOddsAsOf(data.oddsAsOf)}
+				</p>
+			{/if}
+			<ul class="{data.oddsAsOf ? 'mt-2' : 'mt-6'} grid gap-2">
 				{#each data.rows as r (r.entryId)}
 					{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
 					{@const conclusion = latestConclusion(r.history)}
@@ -276,6 +284,21 @@
 							<span class="flex-1"></span>
 							<MarkBadge mark={r.myPreview?.mark ?? null} />
 						</div>
+
+						<!-- オッズは見出しの行に入れず、専用の1行にする。見出しは馬名と騎手の長さで折り返すので、
+						     そこに入れると馬ごとに位置が変わり（mobile では前回の札と同じ行に落ちる）、縦に見比べられない。 -->
+						{#if data.oddsAsOf}
+							<p class="mt-1.5 ml-7 text-xs text-muted-foreground">
+								単勝
+								<span class="font-mono font-medium text-foreground">
+									{formatWinOdds(r.odds?.winOdds ?? null)}
+								</span>
+								<span class="ml-2">複勝</span>
+								<span class="font-mono font-medium text-foreground">
+									{formatPlaceOdds(r.odds?.placeOddsMin ?? null, r.odds?.placeOddsMax ?? null)}
+								</span>
+							</p>
+						{/if}
 
 						<!-- 馬柱は薄い面に載せて、下に続く「自分のメモ」と見分けられるようにする。
 						     どちらも小さい文字の塊なので、囲いが無いと1つの塊に見える。 -->
