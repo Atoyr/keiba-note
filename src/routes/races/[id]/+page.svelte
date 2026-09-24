@@ -10,6 +10,7 @@
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
@@ -66,20 +67,19 @@
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} spec={spec.join(' / ')} />
-	<div class="mt-1 flex flex-wrap gap-4 text-sm">
-		<a
-			href={resolve('/races/[id]/preview', { id: data.race.id })}
-			class="text-gray-600 hover:underline"
-		>
+	<!-- 灰色の文字だけだと押せると気づかれないので、予想画面の見出しと同じ小さいボタンにする。 -->
+	<div class="mt-2 flex flex-wrap gap-2">
+		<Button href={resolve('/races/[id]/preview', { id: data.race.id })} variant="outline" size="sm">
 			予想（過去メモを見る）
-		</a>
+		</Button>
 		{#if admin}
-			<a
+			<Button
 				href={resolve('/races/[id]/entries', { id: data.race.id })}
-				class="text-gray-600 hover:underline"
+				variant="outline"
+				size="sm"
 			>
 				出走馬を編集
-			</a>
+			</Button>
 		{/if}
 	</div>
 
