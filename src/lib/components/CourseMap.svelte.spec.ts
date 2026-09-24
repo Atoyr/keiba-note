@@ -51,8 +51,8 @@ describe('CourseMap', () => {
 
 	it('スマホで畳んだ行は、寸法が長くても切り詰めずに折り返す', async () => {
 		await page.viewport(390, 800);
-		// 京都の芝2000m は内回り・外回りのどちらにもあるので、寸法が両方ぶん並んで長くなる。
-		render(CourseMap, { race: { course: '京都', surface: '芝', distance: 2000, direction: '右' } });
+		// 京都の芝1600m は内回り・外回りのどちらにもあるので、寸法が両方ぶん並んで長くなる。
+		render(CourseMap, { race: { course: '京都', surface: '芝', distance: 1600, direction: '右' } });
 
 		const summary = document.querySelector('summary')!;
 		await expect.element(page.elementLocator(summary)).toBeVisible();

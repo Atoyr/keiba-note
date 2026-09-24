@@ -47,15 +47,18 @@ describe('courseMap', () => {
 		expect(inner?.facts).toEqual(['右回り・内回り', '直線 356.5m', '高低差 1.9m']);
 
 		expect(courseMap(race('中山', '芝', 1600))?.file).toBe('nakayama-turf-outer');
+		// JRA の表では両方にあるが、実際はほぼ内回りなので内回りに寄せている。
+		expect(courseMap(race('京都', '芝', 2000))?.file).toBe('kyoto-turf-inner');
+		expect(courseMap(race('阪神', '芝', 1400))?.file).toBe('hanshin-turf-inner');
 		expect(courseMap(race('新潟', '芝', 2200))?.file).toBe('niigata-turf-inner');
 	});
 
 	it('JRA が内回り・外回りの両方に載せている距離は、両方を出す', () => {
-		// 京都の2000m、中山の3200m（外回りから内回りへ回る）、表に無い距離。
+		// 京都の1600m、中山の3200m（外回りから内回りへ回る）、表に無い距離。
 		for (const [course, distance] of [
-			['京都', 2000],
+			['京都', 1600],
 			['中山', 3200],
-			['阪神', 1400],
+			['新潟', 2000],
 			['京都', 2100]
 		] as const) {
 			expect(courseMap(race(course, '芝', distance))?.file, `${course}${distance}`).toMatch(
