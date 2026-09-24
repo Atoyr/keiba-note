@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
@@ -109,6 +110,9 @@
 			<AnswerCheck {answers} />
 		</div>
 	{/if}
+
+	<!-- コース図は見返すための資料なので、保存の結果と答え合わせより下、書く欄の直前に置く。 -->
+	<CourseMap race={data.race} class="mt-6" />
 
 	{#if data.rows.length === 0}
 		<p class="mt-8 rounded-md border border-gray-200 p-4 text-sm text-gray-500">

@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import CourseMap from '$lib/components/CourseMap.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
@@ -15,6 +16,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { byMark } from '$lib/utils/answer';
+	import { courseMap } from '$lib/utils/course';
 	import { conditionLabel, latestConclusion, noteHeading, previewSaveLabel } from '$lib/utils/note';
 	import { formatOddsAsOf, formatPlaceOdds, formatWinOdds } from '$lib/utils/odds';
 	import { isAdmin } from '$lib/utils/role';
@@ -63,6 +65,9 @@
 
 	// 「京都 芝2200m」。同じ条件の過去メモの見出しに使う。
 	const condition = $derived(conditionLabel(data.race));
+
+	// コース図を出せるレースか（JRA の10場で、馬場が決まっている）。印と2列に並べるかを決める。
+	const hasCourse = $derived(courseMap(data.race) !== null);
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
@@ -99,23 +104,38 @@
 		</div>
 	</header>
 
-	<!-- 付けた印の一覧。16頭の中から「どれに◎を打ったか」を探さずに済むように。
-	     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。 -->
-	{#if marked.length > 0}
-		<section aria-labelledby="marks-heading" class="mt-4 rounded-lg border px-3 py-2">
-			<h2 id="marks-heading" class="text-xs font-semibold text-muted-foreground">付けた印</h2>
-			<ul class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-				{#each marked as m (m.entryId)}
-					<li>
-						<a href="#entry-{m.entryId}" class="flex items-center gap-1.5 text-sm hover:underline">
-							<MarkBadge mark={m.mark} />
-							<span class="font-mono text-xs text-muted-foreground">{m.horseNumber ?? '−'}</span>
-							{m.horseName}
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</section>
+	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
+	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。
+	     枠の高さは中身に合わせる（そろえると、印が1〜2頭のとき左の枠の大半が空く）。 -->
+	{#if marked.length > 0 || hasCourse}
+		<div
+			class="mt-4 grid items-start gap-4 {marked.length > 0 && hasCourse ? 'sm:grid-cols-2' : ''}"
+		>
+			<!-- 付けた印の一覧。16頭の中から「どれに◎を打ったか」を探さずに済むように。
+		     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。 -->
+			{#if marked.length > 0}
+				<section aria-labelledby="marks-heading" class="rounded-lg border px-3 py-2">
+					<h2 id="marks-heading" class="text-xs font-semibold text-muted-foreground">付けた印</h2>
+					<ul class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+						{#each marked as m (m.entryId)}
+							<li>
+								<a
+									href="#entry-{m.entryId}"
+									class="flex items-center gap-1.5 text-sm hover:underline"
+								>
+									<MarkBadge mark={m.mark} />
+									<span class="font-mono text-xs text-muted-foreground">{m.horseNumber ?? '−'}</span
+									>
+									{m.horseName}
+								</a>
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/if}
+
+			<CourseMap race={data.race} />
+		</div>
 	{/if}
 
 	{#if form && 'message' in form && form.message}

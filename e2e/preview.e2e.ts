@@ -21,7 +21,8 @@ test('書いた出走前メモは、開かなくても本文と付けた札が�
 
 	// 何も開いていない状態で、本文と付けた札の両方が畳まれた見出しに出ていること。
 	// 札の名前は TagPicker 側にも（伏せた状態で）あるので、summary に絞って見る。
-	const summary = page.locator('main summary');
+	// 出走馬の行の summary だけ（コース図もスマホ用に summary を持つ）。
+	const summary = page.locator('main li[id^="entry-"] summary');
 	await expect(summary).toContainText('今回は内枠が向きそう。');
 	await expect(summary).toContainText('次走買い');
 

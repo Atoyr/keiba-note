@@ -26,6 +26,20 @@ directory = ".svelte-kit/cloudflare"
 
 [observability]
 enabled = true
+# Workers Logs が自動で残す呼び出しログから、URL のクエリ文字列を落とす。
+# /auth/google/callback の ?code=&state=（OAuth の認可コード）と /horses の ?q=（検索語）が
+# そのまま残るため（docs/monitoring.md 第2章「出さないもの」）。
+redact_query_string = true
+
+# Workers Paid の既定（CPU 30秒・サブリクエスト 10,000）は、暴走したときに止まらず課金が進む。
+# 暴走は止め、普段の処理は決して当たらない高さに置く。**上限に当たっても Discord には届かない**
+# （同じ呼び出しからの通知も止まる）ので、普段の処理が当たる低さに置くと、利用者だけがエラーを見て
+# 誰も気づけない（docs/monitoring.md 9-1）。Preview（ステージング）にも同じ値が効く。
+[limits]
+# 1呼び出しの CPU 時間（ms）。SSR は数ms で、Free の 10ms で動いていた。その100倍。
+cpu_ms = 1000
+# 1呼び出しの fetch などの数。D1 クエリの約束は10以内（architecture.md 7-1）だが、それは上限で縛らない。
+subrequests = 1000
 
 # src/worker.js から import する TS（Cron の入口）は SvelteKit ではなく wrangler が束ねる。
 # そこで使う `$lib` を SvelteKit と同じ場所に向ける。

@@ -58,14 +58,25 @@ jobs:
           REF: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           ACTOR: ${{ github.actor }}
+          # Webhook を Secret ではなく Variable に入れてしまったかどうか（値は渡さず、有無だけ見る）。
+          # Variable は secrets.* から読めないので、黙って障害のチャンネルに落ちる。2026-09-24 に実際に起きた。
+          DEPLOY_WEBHOOK_IN_VARS: ${{ vars.DISCORD_DEPLOY_WEBHOOK_URL != '' }}
         run: |
           set -euo pipefail
           webhook_url="$ALERTS_WEBHOOK_URL"
+          footer=''
           if [ "$CHANNEL" = deploy ]; then
             if [ -n "$DEPLOY_WEBHOOK_URL" ]; then
               webhook_url="$DEPLOY_WEBHOOK_URL"
             else
-              echo '::notice::DISCORD_DEPLOY_WEBHOOK_URL が未設定なので、障害のチャンネルに送ります'
+              if [ "$DEPLOY_WEBHOOK_IN_VARS" = true ]; then
+                reason='DISCORD_DEPLOY_WEBHOOK_URL が Secret ではなく Variable に入っています'
+              else
+                reason='DISCORD_DEPLOY_WEBHOOK_URL が未設定です'
+              fi
+              echo "::warning::${reason}。障害のチャンネルに送ります"
+              # 届いた先でも気づけるよう、通知そのものに書く（Actions の注記は見落とす）。
+              footer="デプロイ用のチャンネルに送れず、ここに送っています: ${reason}（docs/monitoring.md 第8章）"
             fi
           fi
           if [ -z "$webhook_url" ]; then
@@ -89,6 +100,7 @@ jobs:
             --arg ref "$REF" \
             --arg sha "${SHA:0:7}" \
             --arg actor "$ACTOR" \
+            --arg footer "$footer" \
             '{
               allowed_mentions: { parse: [] },
               embeds: [({
@@ -102,7 +114,8 @@ jobs:
                   { name: "Actor", value: $actor, inline: true }
                 ],
                 timestamp: (now | todate)
-              } + (if $description == "" then {} else { description: $description } end))]
+              } + (if $description == "" then {} else { description: $description } end)
+                + (if $footer == "" then {} else { footer: { text: $footer } } end))]
             }')"
 
           # URL はログに出さない（-s で進捗も出さない）。

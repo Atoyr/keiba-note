@@ -8,7 +8,8 @@ GitHub Actions の結果の通知、外からの死活監視。
 - **ここに無いもの:** Cloudflare とシークレットの構築手順は [operations.md](./operations.md)、
   層と依存の向きは [architecture.md](./architecture.md)
 - 作成日: 2026-09-23
-- 更新日: 2026-09-23 — Discord のチャンネルを「障害」と「デプロイ」の2つに分けた（→ 第7章・第8章）
+- 更新日: 2026-09-24 — Workers Paid に上げたので、Worker の上限と課金の見張りを足した（→ 第9章）。
+  デプロイの Webhook を Variable に入れて障害のチャンネルに落ちていたのを、Actions が見つけて知らせるようにした（→ 第7章・第8章）
 - 更新日: 2026-09-24 — Cron（オッズの取得）の event を足した（→ 第3章）
 
 ---
@@ -25,6 +26,10 @@ GitHub Actions（discord-notify.yml）
  ├─ main の CI の失敗 ──────────────┐
  ├─ 本番デプロイの成功・失敗 ───────┼→ Discord「デプロイ」
  └─ 本番へのレースデータ投入の失敗 ─┘
+
+Cloudflare（ダッシュボードで設定 → 第9章）
+ ├─ Budget alert（従量課金の見込みが決めた額を超えた）─┐
+ └─ 使用量の通知（Workers・D1 が決めた量を超えた）────┴→ メール
 ```
 
 外部の監視サービスは足していない。Cloudflare Observability（`wrangler.toml` の `[observability]`）と
@@ -48,6 +53,11 @@ Discord と GitHub Actions で組む。
 メールアドレス。Drizzle のエラーはバインドした値をメッセージに載せる（`params: ...`）ので、
 `describeError` がそこを `[redacted]` に置き換える。SQL は `?` のままの文だけを出す。
 パス（`/races/01J8X...`）ではなくルートの形を出し、クエリ文字列（検索語）も出さない。
+
+Workers Logs は、こちらが出すログとは別に**呼び出しごとのログ（リクエストの URL を含む）を自動で残す。**
+そこにクエリ文字列が残ると、`/auth/google/callback` の `code`・`state`（OAuth の認可コード）と
+`/horses` の `q`（検索語）が載るので、`wrangler.toml` の `[observability] redact_query_string = true` で落としている。
+クエリ文字列に値を載せるルートを足しても、ログには出ない。
 
 ### ログを足すとき
 
@@ -186,7 +196,12 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 **チャンネルは2つに分けている。** 「障害」は本番が壊れている知らせ（Worker の ERROR と死活監視）で、
 見たらすぐ動くもの。「デプロイ」は CI/CD の結果で、自分が起こした操作の返事。混ぜると、
 デプロイの成功通知に障害の通知が埋もれる。「デプロイ」の Webhook が未設定なら「障害」に送る
-（通知が黙って消えないように。Actions の実行に注記が残る）。
+（通知が黙って消えないように）。そのときは、届いた通知の下端（footer）に「デプロイ用のチャンネルに送れず、
+ここに送っています」と理由を書き、Actions の実行にも警告を残す。
+
+**`DISCORD_DEPLOY_WEBHOOK_URL` を Secret ではなく Variable に入れると、未設定と同じになる**（ワークフローは
+`secrets.*` しか読まない）。2026-09-24 に実際にこれで「障害」にデプロイの通知が流れていた。
+Variable に入っていることは Actions が見つけ、footer の理由に書く。
 
 ## 8. 設定する値
 
@@ -195,14 +210,85 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 | Cloudflare（Worker `k-note`） | `DISCORD_WEBHOOK_URL` | シークレット | Webhook の URL（`pnpm exec wrangler secret put DISCORD_WEBHOOK_URL`） |
 | Cloudflare（Preview `staging`） | `DISCORD_WEBHOOK_URL` | シークレット | 任意。入れれば staging の ERROR も届く（`Environment: staging`）。別のチャンネルにしてもよい |
 | GitHub（Settings > Secrets and variables > Actions） | `DISCORD_WEBHOOK_URL` | Secret | 「障害」のチャンネルの Webhook。Cloudflare と同じもの |
-| 同上 | `DISCORD_DEPLOY_WEBHOOK_URL` | Secret | 「デプロイ」のチャンネルの Webhook。無ければ「障害」に送る |
+| 同上 | `DISCORD_DEPLOY_WEBHOOK_URL` | Secret | 「デプロイ」のチャンネルの Webhook。無ければ「障害」に送る。**Variables のタブに入れない** |
 | 同上 | `HEALTH_CHECK_URL` | Variable | `https://uma-memo.com/api/health`。`/api/health` の入ったリリースを出してから入れる |
 | `wrangler.toml` | `APP_ENV` | vars | `production`（`[previews.vars]` は `staging`）。シークレットではない |
 
 **「障害」の Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す。** URL が漏れたら、Discord の
 チャンネル設定から Webhook を消して作り直す（URL を知っている人は誰でも書き込める）。
+Variable に入れた URL は、リポジトリに書き込める人なら誰でも画面や API で読める。漏れたものとして扱う。
 
-## 9. これから
+## 9. 上限と課金の見張り
+
+2026-09-24 に Workers Paid（$5/月）に上げた。Free では上限を超えると**エラーになるだけ**だったが、
+Paid では超えた分が**課金されて動き続ける**。暴走しても気づかず請求だけが来る、を防ぐのがこの章。
+
+### 9-1. Worker の上限 — `wrangler.toml` の `[limits]`
+
+| 項目 | Paid の既定 | ここで置いた値 | 考え方 |
+| --- | --- | --- | --- |
+| `cpu_ms`（1呼び出しの CPU 時間） | 30,000 ms | **1,000 ms** | SSR は数ms で、Free の 10ms で動いていた。その100倍 |
+| `subrequests`（1呼び出しの fetch などの数） | 10,000 | **1,000** | 普段は数件。無限ループの fetch を止める |
+
+上限は、無限ループのような暴走で課金が進むのを止めるためのもの。Preview（ステージング）にも同じ値が効く。
+ローカル（`pnpm run dev`・E2E）では効かない。
+
+**上限に当たっても、Discord には届かない。**
+
+- **CPU 時間**は、Worker がその場で止められるので `handleError` も走らない。利用者には Cloudflare のエラー画面（1102）が出る
+- **サブリクエスト数**は、超えた呼び出しが例外になるが、Discord への送信も同じ呼び出しの fetch なので一緒に落ちる
+  （ログに `monitoring.discord.failed` が残るだけ）
+- `/api/health` は `select 1` だけの軽い経路なので、重い画面の超過は拾えない。使用量の通知も 1102 の件数では鳴らない
+
+だから値は**普段の処理が決して当たらない高さ**に置いている。低く置くと、利用者だけがエラーを見て誰も気づけない。
+当たったかどうかは、Workers Logs で呼び出しの結果（outcome）が `exceededCpu` などになっていないかを人が見る。
+知らせが欲しくなったら 9-3 の方法を選ぶ。
+
+値を下げたくなったら、先にダッシュボードの Workers > k-note > Metrics の CPU time（最大・P99.9）と、
+Workers Logs の呼び出しログの `cpuTime` を見て、実測の上に置く。D1 クエリを10以内に収める約束
+（[architecture.md 7-1](./architecture.md)）は、上限ではなくレビューで守る。
+
+### 9-2. 使用量と金額の見張り — Cloudflare のダッシュボード
+
+コードでは設定できないので、人がダッシュボードで設定する。**どれも止める仕組みではなく、知らせるだけ。**
+
+| 何を | 値の目安 |
+| --- | --- |
+| Budget alert（従量課金の見込み額） | **$1。** 普段の従量課金は $0 なので、1ドルでも見込まれたら異常 |
+| 使用量の通知（Workers のリクエスト数） | 100万/月（普段は1万/月ほど。含まれる枠は1,000万） |
+| 使用量の通知（D1 rows read） | 1億/月（普段は100万/月ほど。枠は250億） |
+| 使用量の通知（D1 rows written） | 100万/月（普段は数万/月。枠は5,000万） |
+
+- 閾値は、**含まれる枠よりずっと下、普段の量よりずっと上**に置く。枠に届く前、つまり
+  お金がかかる前に「いつもと桁が違う」ことを知らせたい。普段の量は [architecture.md 6-1](./architecture.md) の試算で、
+  実測はダッシュボードの Worker / D1 のメトリクスで見て、ずれていたら直す
+- D1 の使用量は**アカウント単位でステージングと合算**される。ステージングへのデータ投入の暴走（2026-09-24 の事故）も、ここで見える
+
+**知らせはメールだけで受ける（Discord には流さない）。** Budget alert はメールでしか送れない。
+メールを Worker で受けて Discord に写す案（Email Routing と `email` ハンドラ）も作ったが、経路が長く、
+設定する場所も増えるので見送った。使用量の通知も同じメールに揃える。
+
+#### 手順
+
+1. **Budget alert を作る。** アカウントのホームから Manage Account > Billing > Billable Usage > Create budget alert。
+   名前（例: `uma-memo 従量課金`）、閾値 `1`（USD）、宛先に自分のアドレスを入れて Save
+2. **使用量の通知を作る。** アカウントの Notifications > Add で「Usage Based Billing」を選ぶ。
+   製品（Workers / D1）と指標、上の表の閾値を選び、宛先に自分のアドレスを入れて Create。
+   指標ごとに1つずつ作る。この種類が一覧に無ければ、アカウントでは使えない（Budget alert だけで見る）
+
+通知の種類や名前、閾値の単位はダッシュボードの表示に従う。この節と違ったら、この節を直す。
+
+### 9-3. 入れていないもの
+
+- **リクエスト数の制限（レート制限）。** 利用者ごと・IP ごとに保存や `/auth` を絞る仕組み。Workers の Rate Limiting
+  binding か、ゾーンの WAF のレート制限ルールで入れられる。WAF で止めたリクエストは Worker を起動しないので課金もされない。
+  今の規模では、9-2 の通知で気づけば足りるとして入れていない
+- **上限に当たったことを Discord に送ること。** Worker の外から見るしかない。Tail Worker（呼び出しの outcome を受けて送る）か、
+  GraphQL Analytics API を Actions から定期に読む（API トークンが要る）。9-1 のとおり今は Workers Logs を人が見る
+- **Cloudflare の通知を Discord に流すこと。** Email Routing で専用アドレスを Worker に向け、`email` ハンドラから送る形は
+  作ったが、経路が長く設定する場所も増えるので見送った（9-2）。欲しくなったら PR #67 の途中のコミットに実装がある
+
+## 10. これから
 
 必要になったときに検討する（今は入れない）。Tail Workers・OpenTelemetry・Sentry・Grafana・Axiom などのログ基盤、
 SLO / SLI、レイテンシの監視、重大な障害でのメンション。
