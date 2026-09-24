@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
@@ -82,6 +83,8 @@
 			</Button>
 		{/if}
 	</div>
+
+	<CourseMap race={data.race} class="mt-4" />
 
 	{#if form && 'message' in form && form.message}
 		<p

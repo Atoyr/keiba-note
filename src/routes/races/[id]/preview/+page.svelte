@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import CourseMap from '$lib/components/CourseMap.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
@@ -97,6 +98,8 @@
 			{/if}
 		</div>
 	</header>
+
+	<CourseMap race={data.race} class="mt-4" />
 
 	<!-- 付けた印の一覧。16頭の中から「どれに◎を打ったか」を探さずに済むように。
 	     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。 -->

@@ -96,6 +96,7 @@ pnpm run screens:pr <機能名>            # PR 本文に貼る Markdown
 pnpm run data:check                     # data/ を触ったとき
 pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.yaml を書く（data/README.md）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）
+pnpm run course-maps                    # コース図の SVG を src/lib/utils/course.ts から書き出す
 ```
 
 ## コミットと PR
