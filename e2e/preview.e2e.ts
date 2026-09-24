@@ -141,6 +141,20 @@ test('開催済みの予想画面には「ふりかえりを書く」が出る',
 });
 
 /**
+ * 見出しはふりかえりと同じ形（1行目に日付・場・R）。以前は日付だけ2行目にあり、
+ * 見出しの上に「今週の重賞」への戻りリンクもあって、2画面を行き来すると別物に見えた。
+ */
+test('予想画面の見出しは、ふりかえりと同じく1行目に日付が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+		/^2099-05-05 京都11R\s*E2E予想賞$/
+	);
+	await expect(page.locator('main').getByRole('link', { name: '今週の重賞' })).toHaveCount(0);
+});
+
+/**
  * ★ 見立てを書く手元に、**同じ条件（京都 芝2200m）で前に自分が書いたレースのメモ**が出る。
  * 距離だけ違うレースのメモと、他人のメモは出ない。
  */

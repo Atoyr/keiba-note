@@ -14,6 +14,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel } from '$lib/utils/note';
+	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -26,22 +27,8 @@
 	let keeper = $state<DraftKeeper | null>(null);
 	const draftKey = $derived(`uma-memo:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
-	const meeting = $derived(
-		[data.race.date, `${data.race.course}${data.race.raceNumber ?? ''}R`].filter(Boolean).join(' ')
-	);
-
-	const spec = $derived(
-		[
-			// 重賞は見出しの格の札で分かるが、条件戦は条件がレースの識別子になる。
-			data.race.grade ? '' : (data.race.className ?? ''),
-			data.race.surface && data.race.distance
-				? `${data.race.surface}${data.race.distance}m`
-				: (data.race.surface ?? ''),
-			data.race.direction ?? '',
-			data.race.trackCondition ?? '',
-			data.race.weather ?? ''
-		].filter(Boolean)
-	);
+	const meeting = $derived(raceMeeting(data.race));
+	const spec = $derived(raceSpec(data.race));
 
 	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄はレースのメモ1つだけ。
 	// 「まとめて保存」「（N 件）」は、並んでいる馬の数だけ意味を持つ言い方なので出さない。
