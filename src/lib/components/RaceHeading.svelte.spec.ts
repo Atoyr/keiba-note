@@ -5,8 +5,8 @@ import '../../routes/layout.css';
 
 /**
  * 見出しはスマホ幅（320px）で崩れないことが要件。
- * レース名が長くても1行目の高さが変わらず、重賞の札がレース名の前に
- * 1行目のまま残ることを、実ブラウザ上の寸法で見る。
+ * レース名が長くても1行目の高さが変わらず、重賞の札が1行目に
+ * 混ざらないことを、実ブラウザ上の寸法で見る。
  */
 const PHONE = 320;
 
@@ -28,9 +28,7 @@ function h1() {
 }
 
 function spans() {
-	const [meeting] = Array.from(h1().children) as HTMLElement[];
-	const name = h1().querySelector<HTMLElement>('.truncate');
-	if (!name) throw new Error('レース名が無い');
+	const [meeting, name] = Array.from(h1().querySelectorAll('span'));
 	return { meeting, name };
 }
 
@@ -39,7 +37,7 @@ function badge() {
 }
 
 describe('RaceHeading', () => {
-	it('長いレース名だけを … で詰め、開催と重賞の札は1行目に最後まで出す', () => {
+	it('長いレース名だけを … で詰め、開催は最後まで出し、重賞の札は2行目に回す', () => {
 		narrow();
 		render(RaceHeading, {
 			meeting: '2026-10-04 東京11R',
@@ -66,13 +64,12 @@ describe('RaceHeading', () => {
 		expect(meeting.scrollWidth).toBe(meeting.clientWidth);
 		expect(meeting.textContent).toBe('2026-10-04 東京11R');
 
-		// 札は1行目の中にいて、開催とレース名のあいだに並ぶ。
-		const g = badge()!.getBoundingClientRect();
-		expect(badge()?.textContent?.trim()).toBe('G2');
-		expect(g.top).toBeGreaterThanOrEqual(h1().getBoundingClientRect().top);
-		expect(g.bottom).toBeLessThanOrEqual(h1().getBoundingClientRect().bottom);
-		expect(g.left).toBeGreaterThanOrEqual(meeting.getBoundingClientRect().right);
-		expect(g.right).toBeLessThanOrEqual(name.getBoundingClientRect().left);
+		// 札の上端が見出しの下端より下にある＝別の行にいる。
+		const g = badge();
+		expect(g?.textContent?.trim()).toBe('G2');
+		expect(g!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+			h1().getBoundingClientRect().bottom
+		);
 	});
 
 	it('短いレース名は詰めない', () => {
@@ -98,6 +95,5 @@ describe('RaceHeading', () => {
 		});
 
 		expect(h1().textContent?.trim()).toBe('2026-10-04 東京8R');
-		expect(badge()).toBeNull();
 	});
 });

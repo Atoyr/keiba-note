@@ -96,7 +96,7 @@
 								<span class="font-mono text-sm text-muted-foreground">
 									{r.course}{r.raceNumber ?? ''}R
 								</span>
-								<!-- 格の札はどの画面でもレース名の前（product.md 第6章）。 -->
+								<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。 -->
 								<GradeBadge grade={r.grade} />
 								<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>
 							</div>

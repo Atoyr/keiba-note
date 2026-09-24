@@ -43,7 +43,7 @@
 		{#each runs as r (r.raceId)}
 			<li class="flex flex-wrap items-baseline gap-x-2 py-1">
 				<span class="font-mono text-muted-foreground">{md(r.date)}</span>
-				<!-- 格の札はどの画面でもレース名の前（product.md 第6章）。
+				<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。
 				     重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
 				     格が無いときだけクラスを札と同じ位置に出す（両方出すと重複して見える）。 -->
 				<GradeBadge grade={r.grade} />

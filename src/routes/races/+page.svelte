@@ -58,7 +58,7 @@
 						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
 							<span class="font-mono text-sm text-gray-500">{r.date}</span>
 							<span class="text-sm">{r.course}{r.raceNumber ?? ''}R</span>
-							<!-- 格の札はどの画面でもレース名の前（product.md 第6章）。
+							<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。
 							     条件戦のクラスは札の代わりなので、同じ位置に置く。 -->
 							{#if r.grade}
 								<GradeBadge grade={r.grade} />
