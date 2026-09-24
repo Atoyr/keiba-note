@@ -19,7 +19,8 @@
 <!--
 見た目か画面遷移が変わったなら、`pnpm run screens:pr <機能名>` の出力をそのまま貼る
 （手順は AGENTS.md の「作業の手順」、撮り方と貼り方は docs/testing.md 第5章）。
-見た目が変わった画面だけが before / after で並ぶ。画像の URL はコミット SHA で組まれる。
+見た目が変わった画面だけが before / after で並ぶ。画像は screenshots ブランチに上がり、
+URL はそのコミット SHA で組まれる。キャプチャ（docs/screenshots/）はコミットしない。
 
 UI を触っていない変更（データ登録・CI・docs・サーバー内部）は、
 代わりに実行ログや CI の run へのリンクを貼る。この欄は空にしない（CI の「PR 本文」が落ちる）。
