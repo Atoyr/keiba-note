@@ -12,8 +12,8 @@
 	 * 1件で閉じていること自体が「検索で辿り着けない」を支えている。
 	 * **アプリ内へのリンク、同じ著者の他のメモ、一覧への戻りは出さない**（product.md 第6章）。
 	 */
-	const raceLine = $derived(
-		[n.raceDate, n.course && n.raceNumber ? `${n.course}${n.raceNumber}R` : n.course, n.raceName]
+	const meeting = $derived(
+		[n.raceDate, n.course && n.raceNumber ? `${n.course}${n.raceNumber}R` : n.course]
 			.filter(Boolean)
 			.join(' ')
 	);
@@ -27,10 +27,12 @@
 
 <main class="mx-auto max-w-2xl px-4 py-10 sm:px-6">
 	<article class="rounded-lg border border-gray-200 p-5 sm:p-6">
-		{#if raceLine}
+		{#if meeting || n.raceName}
+			<!-- 格の札はどの画面でもレース名の前（product.md 第6章）。 -->
 			<p class="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-				<span>{raceLine}</span>
+				{#if meeting}<span>{meeting}</span>{/if}
 				<GradeBadge grade={n.grade} />
+				{#if n.raceName}<span>{n.raceName}</span>{/if}
 			</p>
 		{/if}
 

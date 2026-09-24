@@ -121,7 +121,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 
 | 部品 | 何を出すか |
 | --- | --- |
-| `GradeBadge` | グレード（G1 / G2 / G3 / L / OP） |
+| `GradeBadge` | グレード（G1 / G2 / G3 / L / OP）。どの画面でもレース名の前に置く（→ [product.md 第6章](./product.md)） |
 | `BracketBadge` | 枠番。色だけでなく必ず数字を出す |
 | `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ×）の表示と選択 |
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |

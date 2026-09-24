@@ -31,6 +31,7 @@
 	const spec = $derived(
 		[
 			// 重賞は見出しの格の札で分かるが、条件戦は条件がレースの識別子になる。
+			// クラスは札より長いので1行目には置かない（名前が詰まる。product.md 第6章）。
 			data.race.grade ? '' : (data.race.className ?? ''),
 			data.race.surface && data.race.distance
 				? `${data.race.surface}${data.race.distance}m`

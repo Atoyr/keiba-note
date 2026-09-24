@@ -78,6 +78,19 @@ test('開催済みのレースはふりかえりが開く', async ({ page }) => 
 	await expect(page.getByText('ペース、馬場、展開など「レースの性質」')).toBeVisible();
 });
 
+/** 格の札はどの画面でもレース名の**前**（product.md 第6章）。ダッシュボードと同じ並び。 */
+test('今週の重賞とレース一覧で、格の札がレース名の前に出る', async ({ page }) => {
+	await login(page);
+	const { upcoming } = THIS_WEEK_RACES;
+	const order = new RegExp(String.raw`中京11R\s*G3\s*` + upcoming.name);
+
+	await page.goto('/this-week');
+	await expect(page.getByRole('link', { name: new RegExp(upcoming.name) })).toHaveText(order);
+
+	await page.goto('/races');
+	await expect(page.getByRole('link', { name: new RegExp(upcoming.name) })).toHaveText(order);
+});
+
 /**
  * 今週の重賞は予想の入口。**結果が出たレースだけ**ふりかえりへ向ける。
  *
