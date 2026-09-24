@@ -104,9 +104,12 @@
 	</header>
 
 	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
-	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。 -->
+	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。
+	     枠の高さは中身に合わせる（そろえると、印が1〜2頭のとき左の枠の大半が空く）。 -->
 	{#if marked.length > 0 || hasCourse}
-		<div class="mt-4 grid gap-4 {marked.length > 0 && hasCourse ? 'sm:grid-cols-2' : ''}">
+		<div
+			class="mt-4 grid items-start gap-4 {marked.length > 0 && hasCourse ? 'sm:grid-cols-2' : ''}"
+		>
 			<!-- 付けた印の一覧。16頭の中から「どれに◎を打ったか」を探さずに済むように。
 		     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。 -->
 			{#if marked.length > 0}

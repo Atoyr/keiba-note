@@ -64,9 +64,15 @@
 				class="flex min-h-6 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden"
 			>
 				<span class="text-xs font-semibold text-muted-foreground">コース</span>
-				<!-- 畳んでいる間だけ寸法を出す。開けば図の下に同じものが出る。 -->
-				<span class="min-w-0 flex-1 truncate text-xs text-muted-foreground group-open:invisible">
-					{map.facts.join(' · ')}
+				<!-- 畳んでいる間だけ寸法を出す。開けば図の下に同じものが出る。
+				     切り詰めずに1項目ずつ折り返す。内回り・外回りが決まらないレースは
+				     「直線 内回り 328.4m / 外回り 403.7m」と長くなり、1行に収まらない。 -->
+				<span
+					class="flex min-w-0 flex-1 flex-wrap gap-x-2 text-xs text-muted-foreground group-open:invisible"
+				>
+					{#each map.facts as fact (fact)}
+						<span class="whitespace-nowrap">{fact}</span>
+					{/each}
 				</span>
 				<ChevronDown
 					class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
