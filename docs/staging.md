@@ -44,10 +44,21 @@ pnpm run data:import:staging
 pnpm run deploy:staging
 ```
 
-`data:import:staging` は全 YAML を対象に SQL を作る。
-通常の `data:import:remote` は本番 D1 を参照して差分を判定するため、
+`data:import:staging` はステージング D1 の `data_import` を読み、**変わったファイルだけ**を流す
+（`--target staging`）。`data:import:remote` は本番 D1 を参照して差分を判定するため、
 ステージングへの投入には使わない。
 ステージングのデータを変更しても本番 D1 には反映されない。
+
+**全ファイルを流し直す（`--all`）経路を自動反映に入れないこと。** D1 の書き込み上限
+（Free で1日10万行）は**アカウント単位で本番と共有**している。全ファイルの投入は1回で
+約1万7千行を書くので、マージが続く日に上限を使い切り、本番のメモの保存が落ちる
+（2026-09-24 に実際に起きた → [architecture.md 第6章](./architecture.md)）。
+ステージングのデータを作り直したいときだけ、手で流す。
+
+```bash
+pnpm run data:sql:staging -- --all
+pnpm exec wrangler d1 execute PREVIEW_DB --remote --config wrangler.preview-migrations.toml --file .wrangler/import-races-staging.sql
+```
 
 ## Google ログイン
 

@@ -19,6 +19,7 @@
  *
  *   node --experimental-strip-types scripts/import-races.ts --check
  *   node --experimental-strip-types scripts/import-races.ts --target local  --out out.sql
+ *   node --experimental-strip-types scripts/import-races.ts --target staging --out out.sql
  *   node --experimental-strip-types scripts/import-races.ts --target remote --out out.sql --all
  */
 
@@ -419,16 +420,35 @@ export function readRaceFile(
 	return errors.length > 0 ? { ok: false, errors } : { ok: true, output: parsed.output };
 }
 
+/**
+ * 投入先ごとの、適用状況を読むための `wrangler d1 execute` の引数。
+ *
+ * **staging もここで差分を取る。** 以前は staging だけ `--all` で毎回全ファイルを流していて、
+ * main へのマージのたびに全データ（約1万7千行の変更 + 索引の更新）を書き直していた。
+ * D1 の Free の書き込み上限（1日10万行）は**アカウント単位**で本番と共有なので、
+ * マージが続いた日に上限を使い切り、本番のメモの保存が落ちた。
+ * staging D1 にも `data_import` はあるので、本番と同じく変わったファイルだけを流せば足りる。
+ */
+const TARGETS = {
+	local: [DB_NAME, '--local'],
+	remote: [DB_NAME, '--remote'],
+	// Wrangler の D1 コマンドは previews.d1_databases を見ないので、同じ D1 を指す別設定を使う。
+	staging: ['PREVIEW_DB', '--remote', '--config', 'wrangler.preview-migrations.toml']
+} as const;
+
+type Target = keyof typeof TARGETS;
+
+const isTarget = (t: string | null): t is Target => t !== null && Object.hasOwn(TARGETS, t);
+
 /** 適用済みのファイル名 → ハッシュ。テーブルがまだ無い等で引けなければ空で返す。 */
-function loadAppliedHashes(target: 'local' | 'remote'): Map<string, string> {
+function loadAppliedHashes(target: Target): Map<string, string> {
 	const result = spawnSync(
 		process.execPath,
 		[
 			WRANGLER,
 			'd1',
 			'execute',
-			DB_NAME,
-			`--${target}`,
+			...TARGETS[target],
 			'--json',
 			'--command',
 			'SELECT file, hash FROM data_import'
@@ -479,8 +499,8 @@ async function main() {
 	const dirIndex = args.indexOf('--dir');
 	const dataDir = dirIndex >= 0 ? args[dirIndex + 1] : DEFAULT_DATA_DIR;
 
-	if (!checkOnly && target !== 'local' && target !== 'remote') {
-		console.error('--target local | --target remote を指定してください（--check なら不要）。');
+	if (!checkOnly && !isTarget(target)) {
+		console.error('--target local | remote | staging を指定してください（--check なら不要）。');
 		process.exit(1);
 	}
 
@@ -506,7 +526,9 @@ async function main() {
 
 	// 適用状況の突き合わせは検証の**あと**。壊れた YAML は差分の有無に関わらず落としたい。
 	const applied =
-		checkOnly || forceAll ? new Map<string, string>() : loadAppliedHashes(target as never);
+		checkOnly || forceAll || !isTarget(target)
+			? new Map<string, string>()
+			: loadAppliedHashes(target);
 
 	const statements: string[] = [];
 	// ref → その ref に対して書かれている馬名。**ファイルをまたいで**集める。
