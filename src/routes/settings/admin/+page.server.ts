@@ -2,7 +2,16 @@ import { fail } from '@sveltejs/kit';
 import { and, desc, eq } from 'drizzle-orm';
 import * as v from 'valibot';
 import { note, session, user } from '$lib/server/db/schema';
+import { describeError } from '$lib/server/monitoring/log';
+import {
+	DispatchError,
+	dispatchEntriesFetch,
+	isDispatchConfigured
+} from '$lib/server/race-data/dispatch';
+import { listUpcomingRaces } from '$lib/server/services/entries-fetch';
+import { getRace } from '$lib/server/services/races';
 import { ctxAdmin } from '$lib/server/util';
+import { addDays, todayJst } from '$lib/utils/date';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -12,13 +21,23 @@ import type { Actions, PageServerLoad } from './$types';
  * ユーザーの凍結だけで、メモを覗くことではない（product.md 第4章）。
  */
 const freezeSchema = v.object({ userId: v.pipe(v.string(), v.minLength(1)) });
+const fetchEntriesSchema = v.object({ raceId: v.pipe(v.string(), v.minLength(1)) });
+
+/** 出走馬を取りに行かせるレースを並べる期間（今日から）。登録は開催の約2週間前から出る。 */
+const UPCOMING_DAYS = 14;
+
+const dispatchConfig = (platform: App.Platform | undefined) => ({
+	token: platform?.env.GITHUB_DISPATCH_TOKEN,
+	repository: platform?.env.GITHUB_REPOSITORY
+});
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const { db } = ctxAdmin(locals, platform);
+	const today = todayJst();
 
 	// 出すのはアカウントの素性だけ。メモの件数すら出さない
 	// （本文を見せなくても「何か書いている」ことは漏れる）。
-	const users = await db
+	const usersQuery = db
 		.select({
 			id: user.id,
 			email: user.email,
@@ -31,10 +50,71 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		.orderBy(desc(user.createdAt))
 		.limit(200);
 
-	return { users };
+	const [users, races] = await Promise.all([
+		usersQuery,
+		listUpcomingRaces(db, { from: today, to: addDays(today, UPCOMING_DAYS - 1) })
+	]);
+
+	return {
+		users,
+		races,
+		entriesFetch: { configured: isDispatchConfigured(dispatchConfig(platform)) }
+	};
 };
 
 export const actions: Actions = {
+	/**
+	 * 出走馬の取得を GitHub Actions に頼む。**ここでは netkeiba へ行かず、D1 にも書かない**
+	 * （lib/server/race-data/dispatch.ts）。Actions が出馬表を YAML に書いて PR を作り、
+	 * 人がマージしたら本番に入る。枠順の前なら候補を、後なら枠順を書く。
+	 */
+	fetchEntries: async ({ request, locals, platform }) => {
+		const { db } = ctxAdmin(locals, platform);
+
+		const form = await request.formData();
+		const parsed = v.safeParse(fetchEntriesSchema, {
+			raceId: form.get('raceId')?.toString() ?? ''
+		});
+		if (!parsed.success) return fail(400, { message: '操作を受け付けられませんでした' });
+
+		// 何を取りに行くか（日付・場・R・race_id）はフォームではなく DB から引く。
+		const race = await getRace(db, parsed.output.raceId);
+		if (!race) return fail(404, { message: 'レースが見つかりません' });
+		if (race.raceNumber === null) {
+			return fail(400, { message: 'レース番号が入っていないので、出馬表を引けません' });
+		}
+		const label = `${race.date} ${race.course}${race.raceNumber}R ${race.name ?? ''}`.trim();
+
+		try {
+			await dispatchEntriesFetch(dispatchConfig(platform), {
+				date: race.date,
+				course: race.course,
+				raceNumber: race.raceNumber,
+				externalRef: race.externalRef,
+				requireConfirmed: false,
+				trigger: 'admin'
+			});
+		} catch (e) {
+			const kind = e instanceof DispatchError ? e.kind : 'unknown';
+			if (kind === 'not-configured') {
+				return fail(503, { message: '出走馬の取得が設定されていません（GITHUB_DISPATCH_TOKEN）' });
+			}
+			locals.monitor.log({
+				level: kind === 'network' ? 'warn' : 'error',
+				event: 'entries.dispatch.failed',
+				message: '管理画面から出走馬の取得を頼めなかった',
+				raceId: race.id,
+				errorType: kind,
+				error: describeError(e)
+			});
+			return fail(502, {
+				message: `${label} の取得を頼めませんでした。時間をおいてもう一度押してください`
+			});
+		}
+
+		return { requested: label };
+	},
+
 	/**
 	 * 凍結＝論理削除。行は消さない（note.author_id が NOT NULL のため）。
 	 *

@@ -15,8 +15,9 @@ export default defineConfig({
 	// 本番ビルドで走らせる（CSRF 検証が効くのはここだけ）。D1 は開発用と分けた E2E 専用のもの。
 	// wrangler dev は .dev.vars を読むので、手元に Discord の Webhook を置いていても
 	// E2E から通知が飛ばないよう空で上書きする（--var が .dev.vars より勝つ）。
+	// GitHub のトークンも同じ。手元に置いていても、E2E から Actions を起動しない。
 	webServer: {
-		command: `npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL:`,
+		command: `npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN:`,
 		port: PORT
 	},
 	// E2E 専用 D1 をマイグレーションし、空にしてから e2e/seed.sql を流す。

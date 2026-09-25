@@ -49,6 +49,7 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: '/races', secret: null },
 	{ path: '/this-week', secret: null },
 	{ path: '/settings/shares', secret: null },
+	{ path: '/settings/admin', secret: null },
 	{ path: `/horses/${HORSE_ID}`, secret: 'E2E未来賞' },
 	{ path: `/races/${BRACKET_RACE_ID}`, secret: 'E2Eウチワク' },
 	// 開催前のレースは予想画面へ振り分けられる。**認証がその振り分けより先に効く**ことを見る

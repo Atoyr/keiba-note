@@ -22,6 +22,10 @@ ADMIN_EMAIL=""
 # 終わったら消す（開発中のエラーが本番のチャンネルに届く）。E2E からは送られない。
 DISCORD_WEBHOOK_URL=""
 
+# 出走馬の取得を GitHub Actions に頼むトークン（docs/operations.md）。通常は空のままにする。
+# 入れると、手元の管理画面の「出走馬を取得」が本物の Actions を起動して PR を作る。E2E からは送られない。
+GITHUB_DISPATCH_TOKEN=""
+
 # 開発用のモック認証。値が入っていればログイン画面を飛ばして
 # モックユーザーとして入る。本番ビルドでは `dev` ガードにより無視される。
 MOCK_AUTH="1"

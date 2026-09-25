@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { SESSION_TOKEN } from './seed';
+import { ADMIN_SESSION_TOKEN, SESSION_TOKEN } from './seed';
 
 /**
  * seed で用意したセッションを Cookie に載せる。
@@ -8,11 +8,11 @@ import { SESSION_TOKEN } from './seed';
  * モック認証は `dev` ガードで消えている。ログインが要る画面を見るには
  * ここを通るしかない。
  */
-export async function login(page: Page) {
+export async function login(page: Page, as: 'user' | 'admin' = 'user') {
 	await page.context().addCookies([
 		{
 			name: 'session',
-			value: SESSION_TOKEN,
+			value: as === 'admin' ? ADMIN_SESSION_TOKEN : SESSION_TOKEN,
 			domain: 'localhost',
 			path: '/',
 			httpOnly: true,

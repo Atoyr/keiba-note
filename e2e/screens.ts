@@ -22,6 +22,8 @@ export type Screen = {
 	path: string;
 	/** seed のセッションを載せて開くか。 */
 	auth: boolean;
+	/** 誰として開くか。既定は一般のユーザー。管理画面は `admin`。 */
+	as?: 'user' | 'admin';
 	/** 撮る前に画面を目的の状態にする（`<details>` を開く、入力する など）。 */
 	prepare?: (page: Page) => Promise<void>;
 };
@@ -47,6 +49,9 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'this-week', path: '/this-week', auth: true },
+	// 管理画面。これから2週間のレース（seed では今日の2レース）と、出走馬を取得するボタンが並ぶ。
+	// E2E では GitHub のトークンを渡していないので、ボタンは押せない状態で出る。
+	{ name: 'admin', path: '/settings/admin', auth: true, as: 'admin' },
 	{ name: 'races', path: '/races', auth: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },

@@ -1,5 +1,5 @@
 // Worker の入口（wrangler.toml の main）。adapter-cloudflare が作る Worker を包み、
-// 返す前にレスポンスを直す。Cron Trigger（オッズの更新）もここで受ける。
+// 返す前にレスポンスを直す。Cron Trigger（オッズの更新・出走馬の取得の依頼）もここで受ける。
 //
 // adapter は adapter の設定（wrangler.adapter.toml）の main に Worker を書き出し、そこを
 // 消してから書く。このファイルを adapter の main にすると上書きされるので、分けている。
@@ -11,6 +11,7 @@
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
 import { runOddsCron } from './lib/server/odds/scheduled.ts';
+import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
 
 export default {
 	/**
@@ -28,6 +29,11 @@ export default {
 	 * @param {ExecutionContext} ctx
 	 */
 	async scheduled(controller, env, ctx) {
-		ctx.waitUntil(runOddsCron(env, ctx, controller.scheduledTime));
+		// Cron は式ごとに別々に起動される。どの式で起きたかで出し分ける（wrangler.toml の crons）。
+		if (controller.cron === ENTRIES_CRON) {
+			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime));
+		} else {
+			ctx.waitUntil(runOddsCron(env, ctx, controller.scheduledTime));
+		}
 	}
 };

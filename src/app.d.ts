@@ -26,6 +26,11 @@ declare global {
 				 * URL そのものが書き込みの鍵なので、ログにもコードにも出さない。
 				 */
 				DISCORD_WEBHOOK_URL?: string;
+				/**
+				 * 出走馬の取得を GitHub Actions に頼むトークン（lib/server/race-data/dispatch.ts）。
+				 * このリポジトリの Actions に書き込めるだけの fine-grained token。無ければ頼まない。
+				 */
+				GITHUB_DISPATCH_TOKEN?: string;
 			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;
