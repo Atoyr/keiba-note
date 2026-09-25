@@ -10,6 +10,7 @@
 	import { isReviewNote, noteHeading } from '$lib/utils/note';
 	import { raceProgress, type ProgressTone } from '$lib/utils/dashboard';
 	import { formatDateShort, opensReview } from '$lib/utils/date';
+	import { ALL_RACES_QUERY } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 	import type { RaceProgressItem } from '$lib/server/services/races';
@@ -203,7 +204,12 @@
 		</section>
 
 		<p class="mt-4 text-sm">
-			<a href={resolve('/races')} class="text-gray-600 hover:underline">すべてのレースを見る →</a>
+			<!-- 「すべて」と名乗るので、一覧の既定（今年の重賞）ではなく全件へ。 -->
+			<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは resolve() で組み、クエリを足しているだけ（frontend.md 第3章） -->
+			<a href={`${resolve('/races')}${ALL_RACES_QUERY}`} class="text-gray-600 hover:underline">
+				すべてのレースを見る →
+			</a>
+			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		</p>
 
 		<section class="mt-10" aria-labelledby="recent-notes-heading">

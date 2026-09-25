@@ -69,6 +69,8 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'races', path: '/races', auth: true },
+	// 既定（今年の重賞）を外した全件。条件戦・先の年のレースも並ぶ。
+	{ name: 'races-all', path: '/races?year=', auth: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },

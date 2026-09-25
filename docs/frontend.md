@@ -52,6 +52,9 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - アプリ内のリンクは `$app/paths` の `resolve('/races/[id]', { id })` で組み、`href="/..."` を直に書かない。
   GET のフォームの `action` も同じ。別のルートへ POST するフォーム（`/auth/logout`・`/settings/shares`）は
   今は文字列で書いている
+- クエリ付きのリンク（`/races?year=` など）は、パスを `resolve()` で組んでからクエリを足す。
+  `svelte/no-navigation-without-resolve` は足した形を読めないので、その `<a>` だけを
+  `<!-- eslint-disable … -->` と `<!-- eslint-enable … -->` で囲み、理由を書く
 - フォームは **JavaScript が無くても動く** HTML フォームを基本にし、`use:enhance` で上乗せする
 - 出走馬のように行が並ぶ一括フォームは、書きかけを失わないよう `DraftKeeper` を置く
   （未保存の件数表示・離脱時の確認・`localStorage` の下書き）
