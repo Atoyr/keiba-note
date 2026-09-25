@@ -211,6 +211,16 @@ describe('data:check の検証', () => {
 		]);
 	});
 
+	it('着順が頭数を超えていたら落とす。馬番は超えてよい（取消・除外は頭数に入らない）', () => {
+		const withSize = (n: number, finish: number) =>
+			confirmed
+				.replace('name: テストS', `name: テストS\n    fieldSize: ${n}`)
+				.replace('name: ホースC, ref: t-c', `name: ホースC, ref: t-c, finish: ${finish}`);
+		// 2頭のうち1頭が取り消し、2番の馬が1頭立てを勝った
+		expect(errorsOf(withSize(1, 1))).toEqual([]);
+		expect(errorsOf(withSize(1, 2))).toEqual(['中山11R: ホースC の着順 2 が頭数 1 を超えています']);
+	});
+
 	it('枠が決まる前の候補は18頭を超えてよい', () => {
 		const many = Array.from({ length: 21 }, (_, i) => `      - { name: 候補${i + 1} }`).join('\n');
 		expect(errorsOf(candidates.replace(/entries:[\s\S]*$/, `entries:\n${many}\n`))).toEqual([]);
@@ -254,6 +264,14 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 		expect(sql).not.toMatch(/start_time|external_ref = excluded/);
 	});
 
+	it('書いていない YAML の SQL は頭数・勝ち馬・タイム差も名指ししない（マイグレーション 0012・0013 の列）', () => {
+		const parsed = readRaceFile(candidates, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		expect(statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n')).not.toMatch(
+			/field_size|winner_name|runner_up_name|time_diff/
+		);
+	});
+
 	it('発走時刻は HH:MM', () => {
 		expect(errorsOf(withRef.replace('"15:40"', '"15時40分"'))).toEqual([
 			'races.0.startTime: 発走時刻は HH:MM で書いてください'
@@ -270,5 +288,37 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 		expect(errorsOf(withRef.replace('nk-209906010111', 'nk-2099'))).toEqual([
 			'中山11R: ref nk-2099 は nk- に12桁の race_id ではありません'
 		]);
+	});
+});
+
+describe('レースの頭数・勝ち馬・2着馬と、出走馬のタイム差', () => {
+	const withResult = candidates
+		.replace(
+			'name: テストS',
+			'name: テストS\n    fieldSize: 16\n    winner: 勝ち馬X\n    runnerUp: ホースA'
+		)
+		.replace(
+			'{ name: ホースA, ref: t-a }',
+			'{ name: ホースA, ref: t-a, finish: 2, timeDiff: 0.4 }'
+		);
+	const race = (db: DatabaseSync) =>
+		db.prepare(`SELECT field_size, winner_name, runner_up_name FROM race`).get();
+	const diff = (db: DatabaseSync) =>
+		db
+			.prepare(
+				`SELECT time_diff FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-a'`
+			)
+			.get();
+
+	it('race と race_entry の列に入り、書かなければ既存の値を残す', () => {
+		const db = freshDb();
+		load(db, withResult);
+		const written = { field_size: 16, winner_name: '勝ち馬X', runner_up_name: 'ホースA' };
+		expect(race(db)).toEqual(written);
+		expect(diff(db)).toEqual({ time_diff: 0.4 });
+
+		load(db, candidates);
+		expect(race(db)).toEqual(written);
+		expect(diff(db)).toEqual({ time_diff: 0.4 });
 	});
 });

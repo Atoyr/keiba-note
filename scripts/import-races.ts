@@ -97,7 +97,12 @@ const entrySchema = v.object({
 	horseWeight: v.optional(v.pipe(v.number(), v.integer(), v.minValue(300), v.maxValue(700))),
 	/** 前走からの増減。`-4` のように負もある。 */
 	horseWeightDiff: v.optional(v.pipe(v.number(), v.integer(), v.minValue(-50), v.maxValue(50))),
-	odds: v.optional(v.pipe(v.number(), v.minValue(1), v.maxValue(10000)))
+	odds: v.optional(v.pipe(v.number(), v.minValue(1), v.maxValue(10000))),
+	/**
+	 * 勝ち馬とのタイム差（秒）。勝ち馬は2着との差を負の値で書く（`-0.2`）。
+	 * `data:fetch past`（戦績表の「着差」）と `result`（タイムから計算）が書く。
+	 */
+	timeDiff: v.optional(v.pipe(v.number(), v.minValue(-30), v.maxValue(60)))
 });
 
 const raceSchema = v.object({
@@ -111,6 +116,14 @@ const raceSchema = v.object({
 	direction: optional(DIRECTIONS),
 	trackCondition: optional(TRACK_CONDITIONS),
 	weather: v.optional(v.string()),
+	/**
+	 * 出走頭数（取消・除外を除く）。`data:fetch past` と `result` が書く。
+	 * **entries の数とは別に持つ。** 過去走・条件戦は気にしている馬だけを並べるので、数えても頭数にならない。
+	 */
+	fieldSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
+	/** 勝ち馬と2着馬の馬名。頭数と同じく entries とは別に持つ（勝ち馬が entries にいるとは限らない）。 */
+	winner: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
+	runnerUp: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 	/**
 	 * 取得元のレース ID。`nk-` + netkeiba の race_id（12桁）。`data:fetch entries` が書く。
 	 * **これと `startTime` がある重賞（G1〜G3）だけ、オッズを取りに行く**（docs/product.md 第1章）。
@@ -211,6 +224,20 @@ function horseRef(e: Pick<Entry, 'name' | 'ref' | 'birthYear'>): string {
 	);
 }
 
+/**
+ * 値を書いた列だけを INSERT と ON CONFLICT に並べる。書けば上書きし、書かなければ列を名指ししない。
+ * 本番への投入（data-import.yml）はマイグレーションを流さないので、新しい列を常に名指しすると
+ * リリースまでの間の投入がすべて落ちる。
+ */
+function writtenCols(cols: [column: string, value: string | number | undefined][]) {
+	const written = cols.filter(([, value]) => value !== undefined);
+	return {
+		names: written.map(([c]) => `, ${c}`).join(''),
+		values: written.map(([, value]) => `, ${lit(value)}`).join(''),
+		set: written.map(([c]) => `\n  ${c} = excluded.${c},`).join('')
+	};
+}
+
 export function statementsFor(file: RaceFile, fileName: string, hash: string): string[] {
 	const out: string[] = [];
 	const { date } = file;
@@ -233,15 +260,21 @@ export function statementsFor(file: RaceFile, fileName: string, hash: string): s
 						set: '\n  start_time = excluded.start_time, external_ref = excluded.external_ref,'
 					}
 				: { names: '', values: '', set: '' };
+		// 頭数・勝ち馬・2着馬（マイグレーション 0012・0013）も同じ理由で、書いたレースのときだけ列に触る。
+		const sizeCol = writtenCols([
+			['field_size', race.fieldSize],
+			['winner_name', race.winner],
+			['runner_up_name', race.runnerUp]
+		]);
 
 		out.push(
 			`-- ${date} ${race.course}${race.raceNumber}R ${race.name}`,
-			`INSERT INTO race (id, date, course, race_number, name, grade, class_name, surface, distance, direction, track_condition, weather${oddsCols.names})
-VALUES (${lit(newId())}, ${lit(date)}, ${lit(race.course)}, ${lit(race.raceNumber)}, ${lit(race.name)}, ${lit(race.grade)}, ${lit(race.className)}, ${lit(race.surface)}, ${lit(race.distance)}, ${lit(race.direction)}, ${lit(race.trackCondition)}, ${lit(race.weather)}${oddsCols.values})
+			`INSERT INTO race (id, date, course, race_number, name, grade, class_name, surface, distance, direction, track_condition, weather${oddsCols.names}${sizeCol.names})
+VALUES (${lit(newId())}, ${lit(date)}, ${lit(race.course)}, ${lit(race.raceNumber)}, ${lit(race.name)}, ${lit(race.grade)}, ${lit(race.className)}, ${lit(race.surface)}, ${lit(race.distance)}, ${lit(race.direction)}, ${lit(race.trackCondition)}, ${lit(race.weather)}${oddsCols.values}${sizeCol.values})
 ON CONFLICT (date, course, race_number) DO UPDATE SET
   name = excluded.name, grade = excluded.grade, class_name = excluded.class_name,
   surface = excluded.surface, distance = excluded.distance, direction = excluded.direction,
-  track_condition = excluded.track_condition, weather = excluded.weather,${oddsCols.set}
+  track_condition = excluded.track_condition, weather = excluded.weather,${oddsCols.set}${sizeCol.set}
   updated_at = unixepoch();`,
 			// 枠・馬番はいったん外してから入れ直す。
 			// 確定後に訂正が入ると（2頭の馬番が入れ替わる等）、1頭ずつ更新する途中で
@@ -262,6 +295,9 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 			// 名前で引き当てている最中に名前を書き換えるのは循環していて成立しない
 			// （引き当てが外れて別馬が1頭増えるだけになる）。
 			// 打ち間違いを直すには、先に ref を振ってから名前を変える2段階になる。
+			// タイム差（マイグレーション 0013）もレースの頭数と同じく、書いた行のときだけ列に触る。
+			const diffCol = writtenCols([['time_diff', e.timeDiff]]);
+
 			const rename = e.ref
 				? `
   name = ${lit(e.name)},`
@@ -292,14 +328,14 @@ WHERE id = ${ref};`,
 				`INSERT INTO race_entry (
   id, race_id, horse_id, bracket, horse_number, jockey,
   finish_position, popularity, finish_time, margin, passing, last_3f,
-  weight_carried, horse_weight, horse_weight_diff, odds
+  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}
 )
 SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)},
   ${lit(e.finish)}, ${lit(e.popularity)}, ${lit(e.time)}, ${lit(e.margin)}, ${lit(e.passing)}, ${lit(e.last3f)},
-  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}
+  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}
 FROM race r
 WHERE ${raceKey('r.')} AND ${ref} IS NOT NULL
-ON CONFLICT (race_id, horse_id) DO UPDATE SET
+ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}
   bracket = excluded.bracket,
   horse_number = excluded.horse_number,
   jockey = excluded.jockey,
@@ -394,6 +430,18 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 		if (other)
 			errors.push(`${label}: 馬番 ${e.horseNumber} が ${other} と ${e.name} で重複しています`);
 		seen.set(e.horseNumber, e.name);
+	}
+
+	// 頭数は entries と別に書くので、打ち間違えると馬柱に「8頭 12着」のような行が出る。
+	// **馬番とは比べない。** 頭数は取消・除外を除くので、18頭立てで1頭取り消すと18番の馬が17頭の中にいる。
+	if (race.fieldSize !== undefined) {
+		for (const e of race.entries) {
+			if (e.finish !== undefined && e.finish > race.fieldSize) {
+				errors.push(
+					`${label}: ${e.name} の着順 ${e.finish} が頭数 ${race.fieldSize} を超えています`
+				);
+			}
+		}
 	}
 
 	for (const w of race.withdrawn ?? []) {

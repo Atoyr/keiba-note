@@ -7,9 +7,9 @@
  * | 手順     | 上書きするもの                                   | 残すもの                 |
  * | -------- | ------------------------------------------------ | ------------------------ |
  * | 出馬表   | 枠・馬番（確定後）・騎手・性齢・斤量・調教師・ref | 馬名・結果・血統         |
- * | 過去走   | —（空いている項目だけ埋める）                    | 既に書いてある値すべて   |
+ * | 過去走   | —（空いている項目だけ埋める。頭数・勝ち馬・タイム差もここで入る） | 既に書いてある値すべて |
  * | 基本情報 | 性・馬齢・調教師・父・母・ref                     | 馬名・レースの値         |
- * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候    | 馬名・基本情報           |
+ * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数・勝ち馬・2着馬 | 馬名・基本情報 |
  *
  * **馬名は書き換えない。** ref が付いた馬の名前を変えると、ほかの開催日のファイルと
  * 食い違って `data:check` が落ちる（data/README.md「馬名を直す」）。食い違いは警告だけ出す。
@@ -167,7 +167,11 @@ export async function applyPastRuns(
 		const race = file.ensureRace(run.course, run.raceNumber, {
 			...raceFields(run.race),
 			trackCondition: run.race.trackCondition,
-			weather: run.race.weather
+			weather: run.race.weather,
+			fieldSize: run.race.fieldSize,
+			// 勝った走の戦績表には2着馬しか出ないが、勝ち馬はこの馬自身と分かっている。
+			winner: run.race.winner ?? (run.finish === 1 ? horse.name : undefined),
+			runnerUp: run.race.runnerUp
 		});
 		const { added } = file.upsertEntry(
 			race,
@@ -184,6 +188,7 @@ export async function applyPastRuns(
 				finish: run.finish,
 				popularity: run.popularity,
 				time: run.time,
+				timeDiff: run.timeDiff,
 				passing: run.passing,
 				last3f: run.last3f,
 				weight: run.weight,
@@ -234,6 +239,54 @@ export function applyProfile(
 }
 
 /**
+ * 結果の表から出走頭数を数える。**取消・除外は数えない**（走っていない）。中止・失格は走ったので数える。
+ * 戦績表の「頭数」と同じ数え方。表が空（結果がまだ出ていない）なら書かない。
+ */
+export function fieldSizeOf(rows: readonly Pick<ResultRow, 'status'>[]): number | undefined {
+	const started = rows.filter((r) => !/取|除/.test(r.status ?? '')).length;
+	return started > 0 ? started : undefined;
+}
+
+/** `1:58.4` → 118.4。読めなければ undefined。 */
+function seconds(time: string | undefined): number | undefined {
+	const m = /^(?:(\d+):)?(\d+(?:\.\d)?)$/.exec(time ?? '');
+	return m ? Number(m[1] ?? 0) * 60 + Number(m[2]) : undefined;
+}
+
+/**
+ * 結果の表のタイムから、勝ち馬とのタイム差（秒）を出す。戦績表の「着差」と同じ形にそろえる:
+ * 勝ち馬は2着馬との差を負の値で（`-0.2`）、ほかは勝ち馬との差（`0.4`）。
+ *
+ * **基準は着順で決め、タイムの速さでは選ばない。** 降着があると着順とタイムの順が食い違う
+ * （1:58.4 で入線して4着に降着した馬が、勝ち馬より速い）。それでも「負は勝った走だけ」を崩さないよう、
+ * 勝ち馬は 0 より大きく、ほかは 0 より小さくしない。
+ * 1着同着なら2着馬はもう1頭の1着馬（差は 0）。0.1秒単位に丸める（浮動小数の端数を YAML に書かない）。
+ * タイムか着順の無い馬（取消・中止）は入らない。
+ */
+export function timeDiffs(rows: readonly ResultRow[]): Map<ResultRow, number> {
+	const timed = rows.flatMap((r) => {
+		const t = seconds(r.time);
+		return t === undefined || r.finish === undefined ? [] : [{ r, t, finish: r.finish }];
+	});
+	const fastest = (finish: number) => {
+		const ts = timed.filter((x) => x.finish === finish).map((x) => x.t);
+		return ts.length > 0 ? Math.min(...ts) : undefined;
+	};
+	const winner = fastest(1);
+	const out = new Map<ResultRow, number>();
+	if (winner === undefined) return out;
+	const deadHeat = timed.filter((x) => x.finish === 1).length > 1;
+	const second = deadHeat ? winner : fastest(2);
+
+	const round = (d: number) => Math.round(d * 10) / 10 || 0;
+	for (const { r, t, finish } of timed) {
+		if (finish !== 1) out.set(r, round(Math.max(0, t - winner)));
+		else if (second !== undefined) out.set(r, round(Math.min(0, t - second)));
+	}
+	return out;
+}
+
+/**
  * 結果を当てはめる。YAML に載っている馬だけを更新する。
  * 条件戦では気にしている馬だけを載せる運用なので、載っていない馬は足さない。
  */
@@ -246,10 +299,20 @@ export async function applyResult(
 	const log: string[] = [];
 	file.setRaceFields(
 		race,
-		{ trackCondition: parsed.meta.trackCondition, weather: parsed.meta.weather },
+		{
+			trackCondition: parsed.meta.trackCondition,
+			weather: parsed.meta.weather,
+			fieldSize: fieldSizeOf(parsed.rows),
+			winner: parsed.rows.find((r) => r.finish === 1)?.name,
+			// 1着同着なら2着はいない。もう1頭の1着馬を2着馬として持つ（戦績表の「勝ち馬(2着馬)」と同じ）。
+			runnerUp: (
+				parsed.rows.find((r) => r.finish === 2) ?? parsed.rows.filter((r) => r.finish === 1)[1]
+			)?.name
+		},
 		'overwrite'
 	);
 
+	const diffs = timeDiffs(parsed.rows);
 	const used = new Set<ResultRow>();
 	for (const entry of file.entries(race).items.slice()) {
 		const ref = entry.get('ref') as string | undefined;
@@ -272,6 +335,7 @@ export async function applyResult(
 				finish: row.finish,
 				popularity: row.popularity,
 				time: row.time,
+				timeDiff: diffs.get(row),
 				margin: row.margin,
 				passing: row.passing,
 				last3f: row.last3f,

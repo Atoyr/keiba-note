@@ -298,6 +298,11 @@ export type RaceMeta = {
 	direction?: Direction;
 	trackCondition?: TrackCondition;
 	weather?: string;
+	/** 出走頭数。過去走の戦績表の「頭数」だけが持つ（出馬表・結果の meta には無い）。 */
+	fieldSize?: number;
+	/** 勝ち馬と2着馬の馬名。過去走の戦績表の「勝ち馬(2着馬)」から、その馬の着順に応じてどちらかが入る。 */
+	winner?: string;
+	runnerUp?: string;
 	/** 発走時刻 `HH:MM`。出馬表の `15:40発走`。オッズを取りに行く時間帯を決める。 */
 	startTime?: string;
 };
@@ -493,6 +498,8 @@ export type PastRun = {
 	jockeyId?: string;
 	weight?: number;
 	time?: string;
+	/** 勝ち馬とのタイム差（秒）。戦績表の「着差」。勝ち馬は2着との差が負で入る（`-0.2`）。 */
+	timeDiff?: number;
 	passing?: string;
 	last3f?: number;
 	horseWeight?: number;
@@ -531,6 +538,8 @@ export function parseHorseResults(html: string): PastRun[] {
 		const { surface, distance } = parseSurfaceDistance(text(at(tds, '距離')));
 		const finishText = text(at(tds, '着順'));
 		const finish = int(/^\d+/.exec(finishText)?.[0]);
+		// 「勝ち馬(2着馬)」は、その馬が勝った走では2着馬を `(馬名)` と括弧で出す。
+		const rival = text(at(tds, '勝ち馬(2着馬)')).replace(/^\((.*)\)$/, '$1') || undefined;
 
 		out.push({
 			date,
@@ -545,7 +554,9 @@ export function parseHorseResults(html: string): PastRun[] {
 				distance,
 				direction: directionOf(course, surface, distance),
 				trackCondition: parseTrackCondition(text(at(tds, '馬場'))),
-				weather: text(at(tds, '天気')) || undefined
+				weather: text(at(tds, '天気')) || undefined,
+				fieldSize: int(text(at(tds, '頭数'))),
+				...(finish === 1 ? { runnerUp: rival } : { winner: rival })
 			},
 			bracket: int(text(at(tds, '枠番'))),
 			horseNumber: int(text(at(tds, '馬番'))),
@@ -557,6 +568,7 @@ export function parseHorseResults(html: string): PastRun[] {
 			jockeyId: person(at(tds, '騎手'), 'jockey')?.id,
 			weight: num(text(at(tds, '斤量'))),
 			time: text(at(tds, 'タイム')) || undefined,
+			timeDiff: num(text(at(tds, '着差'))),
 			passing: text(at(tds, '通過')) || undefined,
 			last3f: last3fOf(surface, at(tds, '上り')),
 			...parseHorseWeight(at(tds, '馬体重'))
