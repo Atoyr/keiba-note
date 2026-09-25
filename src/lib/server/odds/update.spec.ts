@@ -104,6 +104,17 @@ describe('updateOdds', () => {
 		expect(logs[0].notify).toBe(false);
 	});
 
+	it('HTTP の失敗は、応答の抜き書きをログに載せる', async () => {
+		const response = { status: 400, headers: { server: 'CloudFront' }, body: 'Bad Request' };
+		const p = provider(new OddsError('http', '取得元が 400 を返しました', { response }), (id) =>
+			odds(id)
+		);
+		const { summary, logs } = run(p);
+
+		expect(await summary).toMatchObject({ saved: 1, failed: 1 });
+		expect(logs[0]).toMatchObject({ level: 'warn', errorType: 'http', response });
+	});
+
 	it('parse の失敗は再試行せず、通知の対象（error）にする', async () => {
 		const p = provider(new OddsError('parse', '形が違う'), (id) => odds(id));
 		const { summary, logs } = run(p);

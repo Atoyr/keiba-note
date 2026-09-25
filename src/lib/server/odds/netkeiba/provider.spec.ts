@@ -67,6 +67,40 @@ describe('NetkeibaOddsProvider', () => {
 		expect(await kindOf(p.getRaceOdds(input))).toBe(kind);
 	});
 
+	it('失敗した応答はステータス・見分けに使うヘッダ・本文の先頭を持って投げる', async () => {
+		const { p } = provider(
+			() =>
+				new Response(
+					`<html>
+<body>${'Bad Request '.repeat(40)}</body></html>`,
+					{
+						status: 400,
+						headers: {
+							server: 'CloudFront',
+							'x-cache': 'Error from cloudfront',
+							'x-amz-cf-pop': 'NRT57-P1',
+							'set-cookie': 'a=b'
+						}
+					}
+				)
+		);
+		const e = await p.getRaceOdds(input).catch((e: unknown) => e);
+
+		expect(e).toBeInstanceOf(OddsError);
+		const { response } = e as OddsError;
+		expect(response?.status).toBe(400);
+		// set-cookie のような見分けに使わないヘッダは載せない
+		expect(response?.headers).toEqual({
+			'content-type': 'text/plain;charset=UTF-8',
+			server: 'CloudFront',
+			'x-cache': 'Error from cloudfront',
+			'x-amz-cf-pop': 'NRT57-P1'
+		});
+		// 改行は詰め、長い本文は先頭だけ
+		expect(response?.body.startsWith('<html> <body>Bad Request')).toBe(true);
+		expect(response?.body).toHaveLength(300);
+	});
+
 	it('届かなければ network', async () => {
 		const { p } = provider(() => {
 			throw new TypeError('fetch failed');

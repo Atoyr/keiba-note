@@ -4,8 +4,9 @@ import { parseNetkeibaOdds } from './parser';
 // 2026-09-21 阪神11R（確定後）と 2026-09-27 スプリンターズS（枠順前）の実際の応答。
 import result from './fixtures/result.json';
 import yoso from './fixtures/yoso.json';
-// 発売中の応答は平日に取れないので、確定後の形に合わせて作ったもの。取消馬（3番）と
-// 単勝しか無い馬（5番）を入れてある。
+// 2026-09-25 21:35 の スプリンターズS（金曜発売中）の実際の応答。単勝の2番目は `0`（確定後は `0.0`）。
+import middle from './fixtures/middle.json';
+// 取消馬（3番）と単勝しか無い馬（5番）を入れた、発売中の形の作りもの。取消の欄の値は推測。
 import middleScratched from './fixtures/middle-scratched.json';
 // 発売中なのに全頭の欄が値なしの応答（作ったもの）。形が変わった疑いとして保存しない。
 import middleBlank from './fixtures/middle-blank.json';
@@ -41,6 +42,24 @@ describe('parseNetkeibaOdds', () => {
 			placeOddsMax: 52.3
 		});
 		// 読んだものは保存してよい値になっている
+		expect(() => validateRaceOdds(odds)).not.toThrow();
+	});
+
+	it('発売中（middle）の実際の応答を読む', () => {
+		const odds = parseNetkeibaOdds(middle, 'r1', fetchedAt);
+
+		expect(odds.asOf).toBe('2026-09-25T12:35:25.000Z');
+		expect(odds.horses).toHaveLength(16);
+		expect(odds.horses.map((h) => h.horseNumber)).toEqual(
+			Array.from({ length: 16 }, (_, i) => i + 1)
+		);
+		expect(odds.horses[0]).toEqual({
+			horseNumber: 1,
+			winOdds: 27.5,
+			placeOddsMin: 5.8,
+			placeOddsMax: 7.1
+		});
+		expect(odds.horses.every((h) => h.winOdds !== null && h.placeOddsMin !== null)).toBe(true);
 		expect(() => validateRaceOdds(odds)).not.toThrow();
 	});
 

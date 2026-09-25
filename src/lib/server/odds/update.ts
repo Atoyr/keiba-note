@@ -133,6 +133,8 @@ async function updateOne(
 			dedupeKey: `odds.fetch:${kind}`,
 			success: false,
 			errorType: kind,
+			// HTTP で失敗したときの応答の抜き書き（ステータス・ヘッダ・本文の先頭）。原因を調べるのに使う
+			...(e instanceof OddsError && e.response ? { response: e.response } : {}),
 			error: e
 		});
 		if (kind === 'not-available') return 'not-available';

@@ -86,7 +86,7 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
 | `monitoring.discord.failed` | error | — | `discord.ts` | 通知そのものが送れなかった（ログにだけ出る） |
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
-| `odds.fetch` | info / warn / error | 下の表 | `lib/server/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる |
+| `odds.fetch` | info / warn / error | 下の表 | `lib/server/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる。HTTP で失敗したときは `response`（ステータス・`server`/`x-cache`/`via` などのヘッダ・本文の先頭300字）も |
 | `odds.cron` | info | しない | `lib/server/odds/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す（件数の内訳） |
 | `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かないなど） |
 | `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる |
