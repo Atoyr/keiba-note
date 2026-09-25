@@ -192,7 +192,8 @@ test('出走馬の行の見出しに、前回付けた結論の札が出る', as
 
 /**
  * 馬柱の各走に、タイムと通過順が2行目として出る。
- * seed では、この馬の前走（E2E同条件賞・4着）に 2:12.8 と 8-8-7-6 が入っている。
+ * seed では、この馬の前走（E2E同条件賞・4着）に 2:12.8 と 8-8-7-6 が入っていて、
+ * 3走前（E2E霜月特別）にはどちらも無い。
  */
 test('馬柱の走に、タイムと通過順が出る', async ({ page }) => {
 	await login(page);
@@ -207,6 +208,15 @@ test('馬柱の走に、タイムと通過順が出る', async ({ page }) => {
 	await expect(run).toContainText('4着');
 	await expect(run).toContainText('タイム2:12.8');
 	await expect(run).toContainText('通過順8-8-7-6');
+
+	// タイムも通過順も入っていない走（E2E霜月特別）には2行目が出ない
+	const noTime = page
+		.locator('main > form > ul > li')
+		.first()
+		.locator('ol > li', { hasText: 'E2E霜月特別' });
+	await expect(noTime).toContainText('1着');
+	await expect(noTime).not.toContainText('タイム');
+	await expect(noTime).not.toContainText('通過順');
 });
 
 /** 付けた印は画面の上にまとめて出る。押すとその馬の行へ飛ぶ。 */

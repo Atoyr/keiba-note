@@ -450,6 +450,32 @@ VALUES (
 	3, 5, 'E2E騎手', 4, '2:12.8', '8-8-7-6'
 );
 
+-- 同じ馬の、それより前の2走。馬柱に3走が縦に並んだときの見え方（着順を縦に追えるか、
+-- 2行目がまとまりの右端の下に揃うか）を画面カタログで見るための行。
+-- 1走は人気・上がり・タイム・通過順まで全部、もう1走はタイムと通過順が無い（2行目が出ない）。
+-- 条件戦・2025年に置いて、レース一覧の既定（今年の重賞）とダッシュボードには出ないようにする。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition)
+VALUES ('01JE2ERACEPASTRUN100000000', '2025-12-28', '中山', 10, 'E2E師走特別', '3勝クラス', '芝', 2000, '稍重');
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position, popularity, last_3f, finish_time, passing)
+VALUES (
+	'01JE2EENTRYPASTRUN10000000',
+	'01JE2ERACEPASTRUN100000000',
+	'01JE2EHORSEB00000000000000',
+	7, 'E2E騎手', 2, 3, 34.9, '2:01.3', '3-3-3-2'
+);
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition)
+VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別', '2勝クラス', '芝', 2400, '良');
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position, popularity, last_3f)
+VALUES (
+	'01JE2EENTRYPASTRUN20000000',
+	'01JE2ERACEPASTRUN200000000',
+	'01JE2EHORSEB00000000000000',
+	2, 'E2E騎手', 1, 1, 33.8
+);
+
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at)
 VALUES (
 	'01JE2ESAMECONDENTRY000000',
