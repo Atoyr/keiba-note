@@ -12,10 +12,12 @@
 	import { formatDateShort, opensReview } from '$lib/utils/date';
 	import { ALL_RACES_QUERY } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
-	import type { PageProps } from './$types';
-	import type { RaceProgressItem } from '$lib/server/services/races';
+	import type { PageData, PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	/** 今週・過去のレースの1行。ログイン時の `data` から取る（画面はサーバーの型を import しない）。 */
+	type RaceRow = Extract<PageData, { landing: false }>['thisWeek'][number];
 
 	const admin = $derived(isAdmin(data.user));
 
@@ -50,7 +52,7 @@
 </script>
 
 <!-- 今週も過去も同じ行。違うのは並び順と、どの窓から取ってくるかだけ。 -->
-{#snippet raceList(races: RaceProgressItem[])}
+{#snippet raceList(races: RaceRow[])}
 	<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
 		{#each races as r (r.id)}
 			<li>
