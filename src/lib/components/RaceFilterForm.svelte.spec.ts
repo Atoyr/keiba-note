@@ -39,4 +39,15 @@ describe('RaceFilterForm', () => {
 			.toBeInTheDocument();
 		expect(setup().container.querySelectorAll('a').length).toBe(0);
 	});
+
+	// `/races` だけだと既定（今年の重賞）に戻り、クリアしても絞られたままになる。
+	it('クリアは全件（全期間・全ランク）へ向く', async () => {
+		await expect
+			.element(
+				setup({ year: 2026, grades: ['G1', 'G2', 'G3'] }).getByRole('link', {
+					name: '条件をクリア'
+				})
+			)
+			.toHaveAttribute('href', '/races?year=');
+	});
 });
