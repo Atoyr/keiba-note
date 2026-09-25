@@ -2,8 +2,11 @@ import * as v from 'valibot';
 
 export const VISIBILITIES = ['private', 'unlisted'] as const;
 
-/** 予想印。本命 → 消し の順。 */
-export const MARKS = ['◎', '○', '▲', '△', '×'] as const;
+/**
+ * 予想印。本命 → 消し の順。
+ * ☆ は穴（来るかもしれない）。△ より下に見るが、「馬券に絡む」と読んだ印なので答え合わせでは ◎○▲△ と同じに数える。
+ */
+export const MARKS = ['◎', '○', '▲', '△', '☆', '×'] as const;
 
 export type Mark = (typeof MARKS)[number];
 

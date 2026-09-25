@@ -16,6 +16,7 @@
 		'○': 'peer-checked:bg-orange-100 peer-checked:text-orange-900 peer-checked:border-orange-400',
 		'▲': 'peer-checked:bg-amber-100 peer-checked:text-amber-900 peer-checked:border-amber-400',
 		'△': 'peer-checked:bg-muted peer-checked:text-foreground peer-checked:border-foreground/30',
+		'☆': 'peer-checked:bg-sky-100 peer-checked:text-sky-900 peer-checked:border-sky-400',
 		'×': 'peer-checked:bg-muted peer-checked:text-muted-foreground peer-checked:border-border'
 	};
 </script>

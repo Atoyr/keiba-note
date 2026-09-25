@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
-import { tagsSchema } from './note';
+import { markSchema, tagsSchema } from './note';
 
 const parse = (input: unknown) => v.parse(tagsSchema, input);
 
@@ -30,5 +30,18 @@ describe('tagsSchema', () => {
 	it('空でも未指定でも空配列になる（null を返さない）', () => {
 		expect(parse([])).toEqual([]);
 		expect(parse(undefined)).toEqual([]);
+	});
+});
+
+/** 印もフォームから文字列で来る。選択肢に無いものは「印なし」にする。 */
+describe('markSchema', () => {
+	it('☆ を含む選択肢の印を通す', () => {
+		for (const m of ['◎', '○', '▲', '△', '☆', '×']) expect(v.parse(markSchema, m)).toBe(m);
+	});
+
+	it('選択肢に無い値・空・未指定は null（印なし）', () => {
+		expect(v.parse(markSchema, '★')).toBeNull();
+		expect(v.parse(markSchema, '')).toBeNull();
+		expect(v.parse(markSchema, undefined)).toBeNull();
 	});
 });

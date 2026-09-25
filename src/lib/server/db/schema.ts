@@ -10,7 +10,7 @@ import {
 	uniqueIndex
 } from 'drizzle-orm/sqlite-core';
 // 型だけの import。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
-import type { NoteTag } from '../../schemas/note';
+import { MARKS, type NoteTag } from '../../schemas/note';
 
 /**
  * Drizzle スキーマ。docs/product.md 第5章に対応する。
@@ -225,7 +225,7 @@ export const note = sqliteTable(
 		 * 予想印。`preview`（出走前メモ）にだけ付く。
 		 * 本文が空でも印だけ残せる（「◎だけ付けておく」が成立する）。
 		 */
-		mark: text('mark', { enum: ['◎', '○', '▲', '△', '×'] }),
+		mark: text('mark', { enum: MARKS }),
 		/**
 		 * `private`（既定・本人だけ）/ `unlisted`（リンクを知っている人だけ）。
 		 *

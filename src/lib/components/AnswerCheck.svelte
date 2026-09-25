@@ -22,7 +22,7 @@
 
 	/**
 	 * 言葉は事実（馬券内／着外）のまま、色で読みどおりかを出す。
-	 * - ◎○▲△ が馬券内 — 赤（読みどおり）
+	 * - ◎○▲△☆ が馬券内 — 赤（読みどおり）
 	 * - × が馬券内 — 琥珀（消した馬に来られた。読み違いとして目立たせる）
 	 * - それ以外 — 地の色
 	 */
@@ -42,7 +42,7 @@
 			<h2 id="answer-check-heading" class="text-sm font-semibold">答え合わせ</h2>
 			{#if count}
 				<span class="text-xs text-muted-foreground">
-					◎○▲△ {count.of}頭中 {count.in}頭 馬券内
+					◎○▲△☆ {count.of}頭中 {count.in}頭 馬券内
 				</span>
 			{/if}
 		</div>

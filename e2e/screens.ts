@@ -105,6 +105,16 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
+		// 印を ☆（穴）に付け替えたところ。保存はしない。選んだ ☆ の色（sky）がほかの印と見分けられるかを見る。
+		name: 'race-preview-mark-star',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
+			await marks.getByText('☆', { exact: true }).click();
+		}
+	},
+	{
 		// 「次走消し」の札（slate-700）と、保存ボタンのテーマカラー（紺）が並んだところ。
 		// 色が近いので、見分けがつくかを人が見る（docs/design-system.md 2-4）。
 		name: 'race-preview-editing-drop',

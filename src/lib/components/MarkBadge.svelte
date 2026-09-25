@@ -9,6 +9,7 @@
 		'○': 'bg-orange-100 text-orange-900 border-orange-400',
 		'▲': 'bg-amber-100 text-amber-900 border-amber-400',
 		'△': 'bg-muted text-foreground border-foreground/30',
+		'☆': 'bg-sky-100 text-sky-900 border-sky-400',
 		'×': 'bg-muted text-muted-foreground border-border'
 	};
 </script>

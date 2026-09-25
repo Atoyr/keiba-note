@@ -130,7 +130,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | --- | --- |
 | `GradeBadge` | グレード（G1 / G2 / G3 / L / OP）。一覧の行ではレース名の前に置く（→ [product.md 第6章](./product.md)） |
 | `BracketBadge` | 枠番。色だけでなく必ず数字を出す |
-| `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ×）の表示と選択 |
+| `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ☆ ×）の表示と選択 |
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
