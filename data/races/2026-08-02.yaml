@@ -296,6 +296,9 @@ races:
     direction: 直線
     trackCondition: 良
     weather: 晴
+    fieldSize: 17
+    winner: ピューロマジック
+    runnerUp: ロードトレイル
     entries:
       - horseNumber: 1
         bracket: 1
@@ -408,6 +411,7 @@ races:
         finish: 1
         popularity: 1
         time: "0:53.5"
+        timeDiff: -0.5
         passing: "1"
         last3f: 31.7
         weight: 56

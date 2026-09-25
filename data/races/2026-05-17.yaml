@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: エンブロイダリー
     entries:
       - horseNumber: 1
         bracket: 1
@@ -293,6 +295,7 @@ races:
         popularity: 13
         time: "1:31.8"
         margin: "クビ"
+        timeDiff: 0.9
         passing: "16-15"
         last3f: 32.9
         weight: 56

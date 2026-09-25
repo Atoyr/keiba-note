@@ -35,6 +35,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 17
+    winner: シックスペンス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -245,6 +247,7 @@ races:
         popularity: 7
         time: "1:32.1"
         margin: "クビ"
+        timeDiff: 0
         passing: "1-1"
         last3f: 34.2
         weight: 58
@@ -340,6 +343,7 @@ races:
         popularity: 4
         time: "1:32.2"
         margin: "クビ"
+        timeDiff: 0.1
         passing: "6-6"
         last3f: 33.4
         weight: 58

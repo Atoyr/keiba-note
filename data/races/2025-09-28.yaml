@@ -229,6 +229,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ウインカーネリアン
+    runnerUp: ジューンブレア
     entries:
       - horseNumber: 1
         bracket: 1
@@ -280,6 +283,7 @@ races:
         finish: 6
         popularity: 3
         time: "1:07.3"
+        timeDiff: 0.4
         passing: "5-5"
         last3f: 33.2
         weight: 56
@@ -336,6 +340,7 @@ races:
         finish: 13
         popularity: 12
         time: "1:07.7"
+        timeDiff: 0.8
         passing: "16-14"
         last3f: 32.8
         weight: 58
@@ -378,6 +383,7 @@ races:
         finish: 2
         popularity: 7
         time: "1:06.9"
+        timeDiff: 0
         passing: "1-1"
         last3f: 33.2
         weight: 56
@@ -406,6 +412,7 @@ races:
         finish: 12
         popularity: 4
         time: "1:07.7"
+        timeDiff: 0.8
         passing: "9-9"
         last3f: 33.3
         weight: 58
@@ -420,6 +427,7 @@ races:
         finish: 1
         popularity: 11
         time: "1:06.9"
+        timeDiff: 0
         passing: "2-2"
         last3f: 33
         weight: 58

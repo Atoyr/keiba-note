@@ -342,6 +342,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 10
+    winner: ワールズエンド
+    runnerUp: ペリファーニア
     entries:
       - horseNumber: 6
         bracket: 6
@@ -351,6 +354,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:19.1"
+        timeDiff: -0.6
         passing: "1-1"
         last3f: 33.2
         weight: 58

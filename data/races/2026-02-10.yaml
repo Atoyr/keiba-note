@@ -188,6 +188,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 16
+    winner: トロヴァトーレ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -382,6 +384,7 @@ races:
         popularity: 10
         time: "1:32.5"
         margin: "ハナ"
+        timeDiff: 0.3
         passing: "14-14"
         last3f: 32.9
         weight: 58

@@ -139,6 +139,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 17
+    winner: インビンシブルパパ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -190,6 +192,7 @@ races:
         finish: 2
         popularity: 1
         time: "1:07.5"
+        timeDiff: 0.1
         passing: "4-5"
         last3f: 33
         weight: 55.5

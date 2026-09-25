@@ -485,6 +485,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: フリッカージャブ
+    runnerUp: アンクルクロス
     entries:
       - horseNumber: 3
         bracket: 2
@@ -578,6 +581,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:06.4"
+        timeDiff: -0.2
         passing: "2-2"
         last3f: 33.3
         weight: 57

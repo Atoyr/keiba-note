@@ -175,6 +175,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: オフトレイル
     entries:
       - horseNumber: 1
         bracket: 1
@@ -240,6 +242,7 @@ races:
         finish: 8
         popularity: 1
         time: "1:19.2"
+        timeDiff: 0.3
         passing: "1-1"
         last3f: 34.3
         weight: 57
@@ -310,6 +313,7 @@ races:
         finish: 9
         popularity: 15
         time: "1:19.3"
+        timeDiff: 0.4
         passing: "17-16"
         last3f: 33
         weight: 57

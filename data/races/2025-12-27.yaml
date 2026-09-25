@@ -271,6 +271,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ルガル
+    runnerUp: ナムラクレア
     entries:
       - horseNumber: 1
         bracket: 1
@@ -350,6 +353,7 @@ races:
         finish: 11
         popularity: 2
         time: "1:20.0"
+        timeDiff: 1
         passing: "1-1"
         last3f: 35.9
         weight: 56
@@ -420,6 +424,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:19.0"
+        timeDiff: 0
         passing: "5-4"
         last3f: 33.9
         weight: 58
