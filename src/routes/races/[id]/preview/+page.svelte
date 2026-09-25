@@ -17,10 +17,10 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { byMark } from '$lib/utils/answer';
 	import { courseMap } from '$lib/utils/course';
+	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { conditionLabel, latestConclusion, noteHeading, previewSaveLabel } from '$lib/utils/note';
 	import { formatOddsAsOf, formatPlaceOdds, formatWinOdds } from '$lib/utils/odds';
 	import { isAdmin } from '$lib/utils/role';
-	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -32,15 +32,9 @@
 	let keeper = $state<DraftKeeper | null>(null);
 	const draftKey = $derived(`uma-memo:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
-	const spec = $derived(
-		[
-			data.race.surface && data.race.distance
-				? `${data.race.surface}${data.race.distance}m`
-				: (data.race.surface ?? ''),
-			data.race.direction ?? '',
-			`${data.rows.length}頭`
-		].filter(Boolean)
-	);
+	// 見出しはふりかえりと同じ関数で組む（行き来しても同じレースの見出しに見えるように）。
+	// 頭数は予想で見比べるときに使うので、出走馬がいるときだけ末尾に足す。
+	const spec = $derived(raceSpec(data.race, data.rows.length > 0 ? [`${data.rows.length}頭`] : []));
 
 	/** 展開している馬。1頭ずつ開く。 */
 	let open = $state<string | null>(null);
@@ -72,20 +66,22 @@
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
 
-<main class="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
-	<Button href={resolve('/this-week')} variant="ghost" size="sm" class="-ml-2">
-		<ChevronLeft class="size-4" />
-		今週の重賞
-	</Button>
-
-	<header class="mt-2">
-		<RaceHeading
-			meeting={`${data.race.course}${data.race.raceNumber ?? ''}R`}
-			name={data.race.name}
-			grade={data.race.grade}
-			spec={`${data.race.date} · ${spec.join(' / ')}`}
-		/>
+<main class="mx-auto max-w-3xl px-6 py-8">
+	<RaceHeading
+		meeting={raceMeeting(data.race)}
+		name={data.race.name}
+		grade={data.race.grade}
+		{spec}
+	/>
+	<!-- 並びはふりかえりの見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
+	     開催前は、ふりかえりが書けない（開いても戻される）ので導線も出さない。 -->
+	{#if !data.upcoming || admin}
 		<div class="mt-2 flex flex-wrap gap-2">
+			{#if !data.upcoming}
+				<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
+					ふりかえりを書く
+				</Button>
+			{/if}
 			{#if admin}
 				<Button
 					href={resolve('/races/[id]/entries', { id: data.race.id })}
@@ -95,14 +91,8 @@
 					出走馬を編集
 				</Button>
 			{/if}
-			<!-- 開催前はふりかえりが書けない（開いても戻される）ので、導線も出さない。 -->
-			{#if !data.upcoming}
-				<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
-					ふりかえりを書く
-				</Button>
-			{/if}
 		</div>
-	</header>
+	{/if}
 
 	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
 	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。

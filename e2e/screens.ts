@@ -3,6 +3,7 @@ import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
 	HORSE_ID,
+	PAST_EMPTY_RACE_ID,
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
 	SHARED_NOTE_ID
@@ -64,6 +65,12 @@ export const SCREENS: Screen[] = [
 		// 出走馬がまだいない（印が付けられない）レース。コースだけが全幅で出る。
 		name: 'race-preview-no-entries',
 		path: `/races/${EMPTY_RACE_ID}/preview`,
+		auth: true
+	},
+	{
+		// 開催済みのレース。見出しの下に「ふりかえりを書く」が出る（ふりかえりの見出しと並びをそろえてある）。
+		name: 'race-preview-past',
+		path: `/races/${PAST_EMPTY_RACE_ID}/preview`,
 		auth: true
 	},
 	{

@@ -40,10 +40,10 @@ describe('RaceHeading', () => {
 	it('長いレース名だけを … で詰め、開催は最後まで出し、重賞の札は2行目に回す', () => {
 		narrow();
 		render(RaceHeading, {
-			meeting: '2026-10-04 東京11R',
+			meeting: '東京11R',
 			name: LONG_NAME,
 			grade: 'G2',
-			spec: '芝1800m / 左 / 良'
+			spec: '2026-10-04 · 芝1800m / 左 / 良'
 		});
 
 		const { meeting, name } = spans();
@@ -60,9 +60,9 @@ describe('RaceHeading', () => {
 			0
 		);
 
-		// 開催（日付・場・R）は詰めずに最後まで出す。
+		// 開催（場・R）は詰めずに最後まで出す。
 		expect(meeting.scrollWidth).toBe(meeting.clientWidth);
-		expect(meeting.textContent).toBe('2026-10-04 東京11R');
+		expect(meeting.textContent).toBe('東京11R');
 
 		// 札の上端が見出しの下端より下にある＝別の行にいる。
 		const g = badge();
@@ -88,12 +88,12 @@ describe('RaceHeading', () => {
 	it('レース名が無くても見出しが立つ', () => {
 		narrow();
 		render(RaceHeading, {
-			meeting: '2026-10-04 東京8R',
+			meeting: '東京8R',
 			name: null,
 			grade: null,
-			spec: '芝1600m'
+			spec: '2026-10-04 · 芝1600m'
 		});
 
-		expect(h1().textContent?.trim()).toBe('2026-10-04 東京8R');
+		expect(h1().textContent?.trim()).toBe('東京8R');
 	});
 });
