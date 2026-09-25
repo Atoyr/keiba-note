@@ -76,6 +76,44 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
+	{
+		// ふりかえりを書きかけたところ。未保存の件数と保存ボタンが下に貼り付く（書くまでは出ない）。
+		name: 'race-review-unsaved',
+		path: `/races/${REVIEW_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.locator('textarea[name="raceNoteBody"]').fill('前半緩くて上がり勝負。');
+		}
+	},
+	{
+		// 保存したところ。知らせはトーストで下に出て、保存ボタンは消える。
+		// **保存は本当には送らない**（seed が書き換わり、ほかの画面の写りが変わる）。
+		// action の応答だけを差し替える。data は devalue で `{ saved: 3, savedAt: 0 }`。
+		name: 'race-review-saved',
+		path: `/races/${REVIEW_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.route(
+				(url) => url.pathname === `/races/${REVIEW_RACE_ID}`,
+				(route) =>
+					route.request().method() === 'POST'
+						? route.fulfill({
+								contentType: 'application/json',
+								body: JSON.stringify({
+									type: 'success',
+									status: 200,
+									data: JSON.stringify([{ saved: 1, savedAt: 2 }, 3, 0])
+								})
+							})
+						: route.fallback()
+			);
+			await page.locator('textarea[name="raceNoteBody"]').fill('前半緩くて上がり勝負。');
+			await page.getByRole('button', { name: 'まとめて保存' }).click();
+			await page.locator('[data-sonner-toast]').waitFor();
+		}
+	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
 	{
@@ -106,6 +144,44 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await page.getByText('書き直す', { exact: true }).click();
+		}
+	},
+	{
+		// 見立てを書きかけたところ。未保存の件数と保存ボタンが下に貼り付く（書くまでは出ない）。
+		name: 'race-preview-unsaved',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.locator('textarea[name="raceNoteBody"]').fill('開幕週で内有利になりそう。');
+		}
+	},
+	{
+		// 保存に失敗したところ。文は押した保存ボタンの横に出て、ボタンと件数は残る。
+		// 応答だけを差し替える（本当に長すぎる本文を打つと撮るのに時間がかかる）。
+		// data は devalue で `{ message: 'メモが長すぎます' }`（schemas/note.ts の文）。
+		name: 'race-preview-save-failed',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.route(
+				(url) => url.pathname === `/races/${PREVIEW_RACE_ID}/preview`,
+				(route) =>
+					route.request().method() === 'POST'
+						? route.fulfill({
+								contentType: 'application/json',
+								body: JSON.stringify({
+									type: 'failure',
+									status: 400,
+									data: JSON.stringify([{ message: 1 }, 'メモが長すぎます'])
+								})
+							})
+						: route.fallback()
+			);
+			await page.locator('textarea[name="raceNoteBody"]').fill('開幕週で内有利になりそう。');
+			await page.getByRole('button', { name: '出走前メモを保存' }).click();
+			await page.getByRole('alert').waitFor();
 		}
 	},
 	{

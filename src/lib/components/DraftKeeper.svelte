@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { tick } from 'svelte';
+	import { beforeNavigate } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
 
 	/**
@@ -19,22 +21,26 @@
 	 * 「空欄＝そのメモを消す」仕様と噛み合って、既存メモが黙って消える事故になる。
 	 * 下書きに入れるのも**サーバーの値から変えた項目だけ**なので、
 	 * 触っていない馬のメモを空で上書きすることがない。
+	 *
+	 * 未保存の件数は `dirtyCount` で親へ返し、`SaveBar` が保存ボタンと一緒に出す。
 	 */
 	let {
 		form,
-		storageKey
+		storageKey,
+		dirtyCount = $bindable(0)
 	}: {
 		/** 監視する form 要素。親から bind:this で渡す。 */
 		form: HTMLFormElement | null;
 		/** localStorage のキー。レースとユーザーで分ける。 */
 		storageKey: string;
+		/** 未保存の変更の件数。親は `bind:dirtyCount` で受ける。 */
+		dirtyCount?: number;
 	} = $props();
 
 	type Draft = { savedAt: number; fields: Record<string, string[]> };
 
 	/** 保存済み（＝サーバーから来た）状態。これとの差分が「未保存」。 */
 	let initial: Record<string, string[]> = {};
-	let dirtyCount = $state(0);
 	/** 復元できる下書き。null なら出さない。 */
 	let restorable = $state<Draft | null>(null);
 	let timer: ReturnType<typeof setTimeout> | null = null;
@@ -108,16 +114,71 @@
 		}
 	}
 
-	/** 保存が通ったら呼ぶ。下書きを捨て、いまの値を新しい「保存済み」にする。 */
-	export function clear() {
-		try {
-			localStorage.removeItem(storageKey);
-		} catch {
-			/* 握り潰す */
-		}
+	/** 送る直前と、応答を画面に反映する直前に呼ぶ。いまの値を返す。 */
+	export function snapshot(): Record<string, string[]> | null {
+		return form ? readValues(form) : null;
+	}
+
+	/**
+	 * 保存が通って、`update()` で画面を描き直したあとに呼ぶ。送った値（`sent`）を新しい
+	 * 「保存済み」にし、下書きを捨てる。
+	 *
+	 * **いまの値ではなく、送った値を保存済みにする。** 送信中に書き足した分はサーバーに
+	 * 届いていないので、未保存のまま数え、下書きにも残す。いまの値を読むと、それが
+	 * 保存済みに数えられ、保存ボタンも離れるときの確認も消える。
+	 *
+	 * **送信中に書き足した分は、フォームへ書き戻す**（`late` は `update()` の直前の値）。
+	 * `update()` で data が送った値に変わると、その欄が送った値で描き直され、
+	 * 書き足した分が画面から消えるため。
+	 */
+	export async function clear(
+		sent?: Record<string, string[]> | null,
+		late?: Record<string, string[]> | null
+	) {
 		restorable = null;
-		if (form) initial = readValues(form);
-		dirtyCount = 0;
+		if (timer) clearTimeout(timer);
+		if (!form) {
+			dirtyCount = 0;
+			writeDraft({});
+			return;
+		}
+		initial = sent ?? readValues(form);
+		if (late) {
+			await tick();
+			const back: Record<string, string[]> = {};
+			for (const k of new Set([...Object.keys(late), ...Object.keys(initial)])) {
+				if (!same(late[k], initial[k])) back[k] = late[k] ?? [];
+			}
+			applyFields(back);
+		}
+		const diff = changedFields(form);
+		dirtyCount = Object.keys(diff).length;
+		writeDraft(diff);
+	}
+
+	/** name ごとの値をフォームへ入れる。復元と、送信中に書き足した分の書き戻しで使う。 */
+	function applyFields(values: Record<string, string[]>) {
+		if (!form) return;
+		for (const [name, picked] of Object.entries(values)) {
+			const fields = form.elements.namedItem(name);
+			if (!fields) continue;
+
+			// 同じ name が複数あると RadioNodeList で来る。ラジオでも札の
+			// チェックボックス群でも、下書きに入っている値だけを on にすればよい。
+			if (fields instanceof RadioNodeList) {
+				for (const node of fields) {
+					if (node instanceof HTMLInputElement) node.checked = picked.includes(node.value);
+				}
+			} else if (fields instanceof HTMLInputElement) {
+				if (fields.type === 'checkbox' || fields.type === 'radio') {
+					fields.checked = picked.includes(fields.value);
+				} else {
+					fields.value = picked[0] ?? '';
+				}
+			} else if (fields instanceof HTMLTextAreaElement || fields instanceof HTMLSelectElement) {
+				fields.value = picked[0] ?? '';
+			}
+		}
 	}
 
 	function onInput() {
@@ -131,26 +192,7 @@
 
 	function restore() {
 		if (!form || !restorable) return;
-		for (const [name, values] of Object.entries(restorable.fields)) {
-			const fields = form.elements.namedItem(name);
-			if (!fields) continue;
-
-			// 同じ name が複数あると RadioNodeList で来る。ラジオでも札の
-			// チェックボックス群でも、下書きに入っている値だけを on にすればよい。
-			if (fields instanceof RadioNodeList) {
-				for (const node of fields) {
-					if (node instanceof HTMLInputElement) node.checked = values.includes(node.value);
-				}
-			} else if (fields instanceof HTMLInputElement) {
-				if (fields.type === 'checkbox' || fields.type === 'radio') {
-					fields.checked = values.includes(fields.value);
-				} else {
-					fields.value = values[0] ?? '';
-				}
-			} else if (fields instanceof HTMLTextAreaElement || fields instanceof HTMLSelectElement) {
-				fields.value = values[0] ?? '';
-			}
-		}
+		applyFields(restorable.fields);
 		restorable = null;
 		onInput();
 	}
@@ -193,6 +235,31 @@
 		return () => removeEventListener('beforeunload', onBeforeUnload);
 	});
 
+	/**
+	 * アプリ内のリンク（ヘッダー・馬名・戻る）で離れるときも止める。
+	 *
+	 * **`beforeunload` だけでは足りない。** SvelteKit のリンクはページを読み込み直さずに
+	 * 画面を差し替えるので、`beforeunload` が起きない。止めずに行かせると、
+	 * 書きかけは下書きに残るものの、保存していないことに気づかないまま離れる。
+	 *
+	 * - `leave`（タブを閉じる・外のサイトへ行く）は上の `beforeunload` が受け持つ
+	 * - 同じページの中のアンカー（付けた印から馬の行へ飛ぶ）は離脱ではないので止めない
+	 * - 行くと決めたら、下書きを待たずにすぐ書く（入力から 400ms 以内だとまだ書いていない）
+	 */
+	beforeNavigate((nav) => {
+		if (dirtyCount === 0 || nav.type === 'leave' || !form) return;
+		const from = nav.from?.url;
+		const to = nav.to?.url;
+		if (from && to && from.pathname === to.pathname && from.search === to.search) return;
+
+		if (!confirm('保存していない変更があります。保存せずにこのページを離れますか？')) {
+			nav.cancel();
+			return;
+		}
+		if (timer) clearTimeout(timer);
+		writeDraft(changedFields(form));
+	});
+
 	const when = $derived(
 		restorable
 			? new Date(restorable.savedAt).toLocaleString('ja-JP', {
@@ -215,10 +282,4 @@
 		<Button type="button" size="sm" variant="secondary" onclick={restore}>復元する</Button>
 		<Button type="button" size="sm" variant="ghost" onclick={discard}>破棄</Button>
 	</div>
-{/if}
-
-{#if dirtyCount > 0}
-	<p class="mb-1 text-xs text-amber-700" aria-live="polite">
-		未保存の変更が {dirtyCount} 件あります
-	</p>
 {/if}
