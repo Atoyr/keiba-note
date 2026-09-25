@@ -10,7 +10,8 @@
 - 更新日: 2026-09-23 — コンテキストの設計（第7章）を足した。AGENTS.md を知識の目次にし、
   書くときに要る決まりを分野ごとの文書（architecture / frontend / design-system / testing / api）に移した。
   この文書には、仕組みをなぜこう組むかと、これから入れるものだけを残す
-- 更新日: 2026-09-25 — 2-5 から `PastRuns.svelte` を外した（馬柱に項目を足した #78 で、props の型をコンポーネントに置いて直っていた）。残りは3件
+- 更新日: 2026-09-25 — 2-5 から画面側の2件を外した。`PastRuns.svelte` は #78 で props の型をコンポーネントに置き、
+  `src/routes/+page.svelte` は #79 で型を `PageData` から取るようにして直っていた。残りは2件
 - ステータス: 第5層とコンテキスト（第7章）は稼働中。それ以外は設計。実装は 9章の順に別 PR で入れる
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
@@ -72,7 +73,7 @@ flowchart LR
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
 | 1 目的 | README / product.md | なし | 仕様はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない |
-| 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反が3件ある（→ 2-5） |
+| 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反が2件ある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | 生の色指定が約250箇所。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」 | なし | 本番に触るコマンドの禁止は言葉だけ |
 | 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
@@ -250,7 +251,6 @@ rules: {
 
 | ファイル | 違反 | 直し方 |
 | --- | --- | --- |
-| `src/routes/+page.svelte:16` | page → service（`import type { RaceProgressItem }`） | 型を `PageData` から取るか pure に移す |
 | `src/routes/settings/admin/+page.server.ts:2` | endpoint が `drizzle-orm` で直接 SQL を組む | ユーザー凍結を service（`services/users.ts`）に移す |
 | `src/lib/server/services/notes.ts:6` | notes → dashboard（`WatchSourceRow` の型） | 型を notes 側に置き、dashboard から使う向きにする |
 
