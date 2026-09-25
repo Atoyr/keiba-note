@@ -45,6 +45,7 @@ export const RACE_KEYS = [
 	'direction',
 	'trackCondition',
 	'weather',
+	'fieldSize',
 	'ref',
 	'startTime',
 	'entries',

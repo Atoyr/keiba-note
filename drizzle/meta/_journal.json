@@ -85,6 +85,13 @@
       "when": 1790255007173,
       "tag": "0011_race_odds",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1790332943036,
+      "tag": "0012_race_field_size",
+      "breakpoints": true
     }
   ]
 }

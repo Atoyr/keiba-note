@@ -18,6 +18,9 @@ const run = (over: Partial<PastRun>): PastRun => ({
 	surface: '芝',
 	distance: 2000,
 	trackCondition: '良',
+	fieldSize: null,
+	bracket: null,
+	horseNumber: null,
 	finishPosition: 1,
 	popularity: 2,
 	last3f: 34.2,
@@ -29,6 +32,36 @@ const run = (over: Partial<PastRun>): PastRun => ({
 });
 
 describe('PastRuns', () => {
+	it('日付は YY/MM/DD で出す（年をまたいだ5走でも間隔が読める）', async () => {
+		const screen = render(PastRuns, { runs: [run({ date: '2025-12-28' })] });
+
+		await expect.element(screen.getByText('25/12/28')).toBeInTheDocument();
+	});
+
+	it('2行目の左に頭数・枠・馬番と騎手を出す', async () => {
+		const screen = render(PastRuns, {
+			runs: [run({ fieldSize: 16, bracket: 3, horseNumber: 5, jockey: 'ルメール' })]
+		});
+
+		await expect.element(screen.getByText('16頭 3枠5番')).toBeInTheDocument();
+		// 騎手の見出しは読み上げだけ
+		await expect.element(screen.getByRole('listitem')).toHaveTextContent('騎手ルメール');
+		await expect.element(screen.getByText('騎手', { exact: true })).toHaveClass(/sr-only/);
+	});
+
+	it('頭数が入っていない走は枠・馬番だけ、枠も無ければ馬番だけ出す', async () => {
+		const screen = render(PastRuns, {
+			runs: [
+				run({ raceId: 'r1', bracket: 3, horseNumber: 5 }),
+				run({ raceId: 'r2', horseNumber: 7 })
+			]
+		});
+
+		await expect.element(screen.getByText('3枠5番', { exact: true })).toBeInTheDocument();
+		await expect.element(screen.getByText('7番', { exact: true })).toBeInTheDocument();
+		await expect.element(screen.getByRole('list')).not.toHaveTextContent('頭');
+	});
+
 	it('タイムと通過順を、読み上げ用の見出しを付けて2行目に出す', async () => {
 		const screen = render(PastRuns, {
 			runs: [run({ finishTime: '1:58.4', passing: '5-5-4-2' })]
@@ -49,7 +82,7 @@ describe('PastRuns', () => {
 		await expect.element(item).not.toHaveTextContent('タイム');
 	});
 
-	it('どちらも無い走（結果が未入力）は2行目ごと出さない', async () => {
+	it('頭数・馬番・騎手・タイム・通過順のどれも無い走は2行目ごと出さない', async () => {
 		const screen = render(PastRuns, {
 			runs: [run({ finishPosition: null, popularity: null, last3f: null })]
 		});

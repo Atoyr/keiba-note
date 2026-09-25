@@ -211,6 +211,15 @@ describe('data:check の検証', () => {
 		]);
 	});
 
+	it('馬番・着順が頭数を超えていたら落とす', () => {
+		const withSize = (n: number) =>
+			confirmed.replace('name: テストS', `name: テストS\n    fieldSize: ${n}`);
+		expect(errorsOf(withSize(2))).toEqual([]);
+		expect(errorsOf(withSize(1))).toEqual([
+			'中山11R: ホースC の馬番・着順 2 が頭数 1 を超えています'
+		]);
+	});
+
 	it('枠が決まる前の候補は18頭を超えてよい', () => {
 		const many = Array.from({ length: 21 }, (_, i) => `      - { name: 候補${i + 1} }`).join('\n');
 		expect(errorsOf(candidates.replace(/entries:[\s\S]*$/, `entries:\n${many}\n`))).toEqual([]);
@@ -254,6 +263,14 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 		expect(sql).not.toMatch(/start_time|external_ref = excluded/);
 	});
 
+	it('書いていない YAML の SQL は field_size も名指ししない（マイグレーション 0012 の列）', () => {
+		const parsed = readRaceFile(candidates, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		expect(statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n')).not.toMatch(
+			/field_size/
+		);
+	});
+
 	it('発走時刻は HH:MM', () => {
 		expect(errorsOf(withRef.replace('"15:40"', '"15時40分"'))).toEqual([
 			'races.0.startTime: 発走時刻は HH:MM で書いてください'
@@ -270,5 +287,18 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 		expect(errorsOf(withRef.replace('nk-209906010111', 'nk-2099'))).toEqual([
 			'中山11R: ref nk-2099 は nk- に12桁の race_id ではありません'
 		]);
+	});
+});
+
+describe('レースの頭数（fieldSize）', () => {
+	const withSize = candidates.replace('name: テストS', 'name: テストS\n    fieldSize: 16');
+	const size = (db: DatabaseSync) => db.prepare(`SELECT field_size FROM race`).get();
+
+	it('race の field_size に入り、書かなければ既存の値を残す', () => {
+		const db = freshDb();
+		load(db, withSize);
+		expect(size(db)).toEqual({ field_size: 16 });
+		load(db, candidates);
+		expect(size(db)).toEqual({ field_size: 16 });
 	});
 });

@@ -12,10 +12,11 @@
 	 * 1行目は「いつ・何で・どう走ったか」に絞る:
 	 *   日付 / レース名(格) / 馬場・距離・状態 / 着順 / 人気 / 上がり3F
 	 *
-	 * タイムと通過順は2行目に、着順のまとまりの下へ右寄せで、薄い色で足す。
+	 * 2行目は薄い色の補足。左に「どの枠から・誰が乗ったか」（頭数・枠・馬番・騎手）、
+	 * 右に着順のまとまりの下へ揃えてタイムと通過順を置く。
 	 * 1行目に足すと狭い画面で折り返しが増え、着順の位置が行ごとにずれて
 	 * 縦に拾い読みできなくなる。2行目なら1行目の並びは今までと変わらない。
-	 * どちらも無い走（結果が未入力）は2行目ごと出さない。
+	 * どれも無い走は2行目ごと出さない。
 	 *
 	 * 着順が入っていない行も落とさずに出す。出馬表だけ登録して結果がまだ
 	 * 入っていないレースは実際にあるので、「走ったが結果は未入力」と
@@ -23,8 +24,20 @@
 	 */
 	let { runs }: { runs: PastRun[] } = $props();
 
-	/** `2026-09-06` → `09/06`。年は同じ並びの中では冗長なので落とす。 */
-	const md = (d: string) => d.slice(5).replace('-', '/');
+	/**
+	 * `2026-09-06` → `26/09/06`。年は2桁で残す。休み明けで5走が年をまたぐと、
+	 * 月日だけでは前走からの間隔も、何年前の走りかも読めない。
+	 */
+	const ymd = (d: string) => d.slice(2).replaceAll('-', '/');
+
+	/** `16頭 3枠5番`。頭数は取得元の値で、無ければ枠・馬番だけ出す。 */
+	const post = (r: PastRun) =>
+		[
+			r.fieldSize ? `${r.fieldSize}頭` : null,
+			r.horseNumber ? `${r.bracket ? `${r.bracket}枠` : ''}${r.horseNumber}番` : null
+		]
+			.filter(Boolean)
+			.join(' ');
 
 	/** `芝2000良` のような1かたまり。欠けている要素は詰める。 */
 	const cond = (r: PastRun) =>
@@ -46,8 +59,9 @@
 {:else}
 	<ol class="divide-y divide-border/60 text-xs">
 		{#each runs as r (r.raceId)}
+			{@const at = post(r)}
 			<li class="flex flex-wrap items-baseline gap-x-2 py-1">
-				<span class="font-mono text-muted-foreground">{md(r.date)}</span>
+				<span class="font-mono text-muted-foreground">{ymd(r.date)}</span>
 				<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。
 				     重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
 				     格が無いときだけクラスを札と同じ位置に出す（両方出すと重複して見える）。 -->
@@ -70,15 +84,23 @@
 						<span class="font-mono text-muted-foreground">上{r.last3f.toFixed(1)}</span>
 					{/if}
 				</span>
-				{#if r.finishTime || r.passing}
+				{#if at || r.jockey || r.finishTime || r.passing}
 					<!-- basis-full で必ず次の行に送る。見出しの語は画面には出さない
-					     （`1:58.4` と `5-5-4-2` は形で見分けが付く）が、読み上げでは要る。 -->
-					<span class="flex basis-full justify-end gap-x-2 font-mono text-muted-foreground">
-						{#if r.finishTime}
-							<span><span class="sr-only">タイム</span>{r.finishTime}</span>
+					     （`1:58.4` と `5-5-4-2` は形で見分けが付き、騎手は名前で分かる）が、読み上げでは要る。 -->
+					<span class="flex basis-full flex-wrap gap-x-2 text-muted-foreground">
+						{#if at}<span>{at}</span>{/if}
+						{#if r.jockey}
+							<span><span class="sr-only">騎手</span>{r.jockey}</span>
 						{/if}
-						{#if r.passing}
-							<span><span class="sr-only">通過順</span>{r.passing}</span>
+						{#if r.finishTime || r.passing}
+							<span class="ms-auto flex gap-x-2 font-mono">
+								{#if r.finishTime}
+									<span><span class="sr-only">タイム</span>{r.finishTime}</span>
+								{/if}
+								{#if r.passing}
+									<span><span class="sr-only">通過順</span>{r.passing}</span>
+								{/if}
+							</span>
 						{/if}
 					</span>
 				{/if}

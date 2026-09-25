@@ -112,6 +112,11 @@ const raceSchema = v.object({
 	trackCondition: optional(TRACK_CONDITIONS),
 	weather: v.optional(v.string()),
 	/**
+	 * 出走頭数（取消・除外を除く）。`data:fetch past` と `results` が書く。
+	 * **entries の数とは別に持つ。** 過去走・条件戦は気にしている馬だけを並べるので、数えても頭数にならない。
+	 */
+	fieldSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
+	/**
 	 * 取得元のレース ID。`nk-` + netkeiba の race_id（12桁）。`data:fetch entries` が書く。
 	 * **これと `startTime` がある重賞（G1〜G3）だけ、オッズを取りに行く**（docs/product.md 第1章）。
 	 */
@@ -233,15 +238,24 @@ export function statementsFor(file: RaceFile, fileName: string, hash: string): s
 						set: '\n  start_time = excluded.start_time, external_ref = excluded.external_ref,'
 					}
 				: { names: '', values: '', set: '' };
+		// 頭数（マイグレーション 0012）も同じ理由で、書いたレースのときだけ列に触る。
+		const sizeCol =
+			race.fieldSize !== undefined
+				? {
+						names: ', field_size',
+						values: `, ${lit(race.fieldSize)}`,
+						set: '\n  field_size = excluded.field_size,'
+					}
+				: { names: '', values: '', set: '' };
 
 		out.push(
 			`-- ${date} ${race.course}${race.raceNumber}R ${race.name}`,
-			`INSERT INTO race (id, date, course, race_number, name, grade, class_name, surface, distance, direction, track_condition, weather${oddsCols.names})
-VALUES (${lit(newId())}, ${lit(date)}, ${lit(race.course)}, ${lit(race.raceNumber)}, ${lit(race.name)}, ${lit(race.grade)}, ${lit(race.className)}, ${lit(race.surface)}, ${lit(race.distance)}, ${lit(race.direction)}, ${lit(race.trackCondition)}, ${lit(race.weather)}${oddsCols.values})
+			`INSERT INTO race (id, date, course, race_number, name, grade, class_name, surface, distance, direction, track_condition, weather${oddsCols.names}${sizeCol.names})
+VALUES (${lit(newId())}, ${lit(date)}, ${lit(race.course)}, ${lit(race.raceNumber)}, ${lit(race.name)}, ${lit(race.grade)}, ${lit(race.className)}, ${lit(race.surface)}, ${lit(race.distance)}, ${lit(race.direction)}, ${lit(race.trackCondition)}, ${lit(race.weather)}${oddsCols.values}${sizeCol.values})
 ON CONFLICT (date, course, race_number) DO UPDATE SET
   name = excluded.name, grade = excluded.grade, class_name = excluded.class_name,
   surface = excluded.surface, distance = excluded.distance, direction = excluded.direction,
-  track_condition = excluded.track_condition, weather = excluded.weather,${oddsCols.set}
+  track_condition = excluded.track_condition, weather = excluded.weather,${oddsCols.set}${sizeCol.set}
   updated_at = unixepoch();`,
 			// 枠・馬番はいったん外してから入れ直す。
 			// 確定後に訂正が入ると（2頭の馬番が入れ替わる等）、1頭ずつ更新する途中で
@@ -394,6 +408,18 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 		if (other)
 			errors.push(`${label}: 馬番 ${e.horseNumber} が ${other} と ${e.name} で重複しています`);
 		seen.set(e.horseNumber, e.name);
+	}
+
+	// 頭数は entries と別に書くので、打ち間違えると馬柱に「16頭 18番」のような行が出る。
+	if (race.fieldSize !== undefined) {
+		for (const e of race.entries) {
+			const over = Math.max(e.horseNumber ?? 0, e.finish ?? 0);
+			if (over > race.fieldSize) {
+				errors.push(
+					`${label}: ${e.name} の馬番・着順 ${over} が頭数 ${race.fieldSize} を超えています`
+				);
+			}
+		}
 	}
 
 	for (const w of race.withdrawn ?? []) {

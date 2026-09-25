@@ -5,6 +5,7 @@ import {
 	applyResult,
 	applyRaceRef,
 	applyShutuba,
+	fieldSizeOf,
 	isShutubaConfirmed,
 	type ResolvePerson
 } from './apply.ts';
@@ -188,7 +189,8 @@ describe('applyPastRuns', () => {
 			distance: 1200,
 			direction: '左',
 			trackCondition: '良',
-			weather: '晴'
+			weather: '晴',
+			fieldSize: 16
 		},
 		bracket: 1,
 		horseNumber: 2,
@@ -239,6 +241,7 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
     entries:
       - horseNumber: 2
         bracket: 1
@@ -359,7 +362,14 @@ describe('applyResult', () => {
 		...extra
 	});
 
-	it('YAML にいる馬だけ結果を入れ、馬場と天候も入れる', async () => {
+	it('頭数は取消・除外を数えず、中止・失格は数える', () => {
+		expect(
+			fieldSizeOf([{}, { status: '中' }, { status: '失' }, { status: '取' }, { status: '除' }])
+		).toBe(3);
+		expect(fieldSizeOf([])).toBeUndefined();
+	});
+
+	it('YAML にいる馬だけ結果を入れ、馬場・天候・頭数も入れる', async () => {
 		const file = RaceFile.parse(
 			'2026-09-27.yaml',
 			placeholder.replace(
@@ -388,7 +398,7 @@ describe('applyResult', () => {
 			'（YAML に無い 1 頭は足していません: ホースC）'
 		]);
 		const out = file.toString();
-		expect(out).toContain('    trackCondition: 稍重\n    weather: 曇\n');
+		expect(out).toContain('    trackCondition: 稍重\n    weather: 曇\n    fieldSize: 3\n');
 		expect(out).toContain(
 			'        name: ホースB\n        jockey: 騎（騎）\n        ref: nk-2\n        finish: 1\n'
 		);

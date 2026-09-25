@@ -128,6 +128,12 @@ export const race = sqliteTable(
 		direction: text('direction', { enum: ['右', '左', '直線'] }),
 		trackCondition: text('track_condition', { enum: ['良', '稍重', '重', '不良'] }),
 		weather: text('weather'),
+		/**
+		 * 出走頭数（取消・除外を除く）。馬柱の「16頭」。
+		 * **race_entry の行数では数えられない。** 過去走や条件戦は気にしている馬だけを入れるので、
+		 * 行数は実際の頭数より少ない。取得元の値をそのまま持つ。
+		 */
+		fieldSize: integer('field_size'),
 		/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯を決める（`services/odds.ts`）。 */
 		startTime: text('start_time'),
 		/**

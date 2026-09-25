@@ -191,11 +191,11 @@ test('出走馬の行の見出しに、前回付けた結論の札が出る', as
 });
 
 /**
- * 馬柱の各走に、タイムと通過順が2行目として出る。
- * seed では、この馬の前走（E2E同条件賞・4着）に 2:12.8 と 8-8-7-6 が入っていて、
- * 3走前（E2E霜月特別）にはどちらも無い。
+ * 馬柱の各走に、頭数・枠・馬番・騎手とタイム・通過順が2行目として出る。日付は YY/MM/DD。
+ * seed では、この馬の前走（E2E同条件賞・4着）は16頭の3枠5番で 2:12.8 と 8-8-7-6 が入っていて、
+ * 3走前（E2E霜月特別）は馬番と騎手だけ（頭数・枠・タイム・通過順が無い）。
  */
-test('馬柱の走に、タイムと通過順が出る', async ({ page }) => {
+test('馬柱の走に、頭数・枠・馬番・騎手とタイム・通過順が出る', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
@@ -205,16 +205,22 @@ test('馬柱の走に、タイムと通過順が出る', async ({ page }) => {
 		.first()
 		.locator('ol > li', { hasText: 'E2E同条件賞' })
 		.filter({ hasText: '芝2200m' });
+	await expect(run).toContainText('26/04/26');
 	await expect(run).toContainText('4着');
+	await expect(run).toContainText('16頭 3枠5番');
+	await expect(run).toContainText('騎手E2E騎手');
 	await expect(run).toContainText('タイム2:12.8');
 	await expect(run).toContainText('通過順8-8-7-6');
 
-	// タイムも通過順も入っていない走（E2E霜月特別）には2行目が出ない
+	// 頭数・枠・タイム・通過順が入っていない走（E2E霜月特別）は、入っているものだけ出す
 	const noTime = page
 		.locator('main > form > ul > li')
 		.first()
 		.locator('ol > li', { hasText: 'E2E霜月特別' });
 	await expect(noTime).toContainText('1着');
+	await expect(noTime).toContainText('2番');
+	await expect(noTime).not.toContainText('頭');
+	await expect(noTime).not.toContainText('枠');
 	await expect(noTime).not.toContainText('タイム');
 	await expect(noTime).not.toContainText('通過順');
 });

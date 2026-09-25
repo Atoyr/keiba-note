@@ -1,0 +1,1 @@
+ALTER TABLE `race` ADD `field_size` integer;

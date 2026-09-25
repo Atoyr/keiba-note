@@ -298,6 +298,8 @@ export type RaceMeta = {
 	direction?: Direction;
 	trackCondition?: TrackCondition;
 	weather?: string;
+	/** 出走頭数。過去走の戦績表の「頭数」だけが持つ（出馬表・結果の meta には無い）。 */
+	fieldSize?: number;
 	/** 発走時刻 `HH:MM`。出馬表の `15:40発走`。オッズを取りに行く時間帯を決める。 */
 	startTime?: string;
 };
@@ -545,7 +547,8 @@ export function parseHorseResults(html: string): PastRun[] {
 				distance,
 				direction: directionOf(course, surface, distance),
 				trackCondition: parseTrackCondition(text(at(tds, '馬場'))),
-				weather: text(at(tds, '天気')) || undefined
+				weather: text(at(tds, '天気')) || undefined,
+				fieldSize: int(text(at(tds, '頭数')))
 			},
 			bracket: int(text(at(tds, '枠番'))),
 			horseNumber: int(text(at(tds, '馬番'))),

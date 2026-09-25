@@ -7,9 +7,9 @@
  * | 手順     | 上書きするもの                                   | 残すもの                 |
  * | -------- | ------------------------------------------------ | ------------------------ |
  * | 出馬表   | 枠・馬番（確定後）・騎手・性齢・斤量・調教師・ref | 馬名・結果・血統         |
- * | 過去走   | —（空いている項目だけ埋める）                    | 既に書いてある値すべて   |
+ * | 過去走   | —（空いている項目だけ埋める。頭数もここで入る）  | 既に書いてある値すべて   |
  * | 基本情報 | 性・馬齢・調教師・父・母・ref                     | 馬名・レースの値         |
- * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候    | 馬名・基本情報           |
+ * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数 | 馬名・基本情報        |
  *
  * **馬名は書き換えない。** ref が付いた馬の名前を変えると、ほかの開催日のファイルと
  * 食い違って `data:check` が落ちる（data/README.md「馬名を直す」）。食い違いは警告だけ出す。
@@ -167,7 +167,8 @@ export async function applyPastRuns(
 		const race = file.ensureRace(run.course, run.raceNumber, {
 			...raceFields(run.race),
 			trackCondition: run.race.trackCondition,
-			weather: run.race.weather
+			weather: run.race.weather,
+			fieldSize: run.race.fieldSize
 		});
 		const { added } = file.upsertEntry(
 			race,
@@ -234,6 +235,15 @@ export function applyProfile(
 }
 
 /**
+ * 結果の表から出走頭数を数える。**取消・除外は数えない**（走っていない）。中止・失格は走ったので数える。
+ * 戦績表の「頭数」と同じ数え方。表が空（結果がまだ出ていない）なら書かない。
+ */
+export function fieldSizeOf(rows: readonly Pick<ResultRow, 'status'>[]): number | undefined {
+	const started = rows.filter((r) => !/取|除/.test(r.status ?? '')).length;
+	return started > 0 ? started : undefined;
+}
+
+/**
  * 結果を当てはめる。YAML に載っている馬だけを更新する。
  * 条件戦では気にしている馬だけを載せる運用なので、載っていない馬は足さない。
  */
@@ -246,7 +256,11 @@ export async function applyResult(
 	const log: string[] = [];
 	file.setRaceFields(
 		race,
-		{ trackCondition: parsed.meta.trackCondition, weather: parsed.meta.weather },
+		{
+			trackCondition: parsed.meta.trackCondition,
+			weather: parsed.meta.weather,
+			fieldSize: fieldSizeOf(parsed.rows)
+		},
 		'overwrite'
 	);
 

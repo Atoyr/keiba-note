@@ -411,7 +411,8 @@ describe('parseHorseResults', () => {
 				distance: 2200,
 				direction: '右',
 				trackCondition: '重',
-				weather: '雨'
+				weather: '雨',
+				fieldSize: 13
 			},
 			bracket: 1,
 			horseNumber: 1,
