@@ -162,9 +162,12 @@ main から消したあとも見える。
 
 ## 7. 限界
 
-- **admin の画面はカタログに無い。** seed のユーザーは `role='user'` だけ。管理画面
-  （`/settings/admin`・`/races/new`・`/races/[id]/entries`）を撮るには admin のユーザーと
-  セッションを seed に足し、`Screen` に「誰として開くか」を持たせる
+- **admin の画面は `/settings/admin` だけがカタログにある。** seed に admin のユーザーとセッション
+  （`ADMIN_SESSION_TOKEN`）があり、`Screen` の `as: 'admin'` で開く。`/races/new`・`/races/[id]/entries` も
+  同じように1行足せば撮れる
+- **GitHub Actions を起動するところ（出走馬の取得）は E2E では確かめない。** E2E はトークンを渡さない
+  （`playwright.config.ts` の `--var GITHUB_DISPATCH_TOKEN:`）ので、見るのは「押せない」「直接送っても断る」まで。
+  GitHub に送る中身は `lib/server/race-data/dispatch.spec.ts` で見る
 - **開発サーバーにしか無い経路**（モック認証の警告帯・ユーザー切り替え）は本番ビルドに無いので撮れない
 - 見た目の回帰を自動で止める仕組み（`toHaveScreenshot` の基準画像のコミット）は入れていない。
   OS ごとに基準画像が要り、見た目を変えるたびに更新の手間がかかる割に、この規模では

@@ -5,6 +5,7 @@ README から運用の手順だけを切り出したもの。日々の開発で�
 
 - 作成日: 2026-09-23 — README の「Cloudflare に構築する」「デプロイ（GitHub Actions）」を移設
 - 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てる手順を足した（→ 名前について / 独自ドメインへ移す）
+- 更新日: 2026-09-25 — 出走馬の取得を Actions に頼むトークン（`GITHUB_DISPATCH_TOKEN`）と、Actions に PR を作らせる設定を足した（→ 6 / 動かすのに必要な設定 5）
 
 ---
 
@@ -142,12 +143,26 @@ pnpm exec wrangler secret put GOOGLE_CLIENT_ID
 pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
 pnpm exec wrangler secret put ADMIN_EMAIL
 pnpm exec wrangler secret put DISCORD_WEBHOOK_URL
+pnpm exec wrangler secret put GITHUB_DISPATCH_TOKEN
 ```
 
 `DISCORD_WEBHOOK_URL` は障害を知らせる Discord の Webhook（→ [monitoring.md](./monitoring.md)）。
 入れなければ通知だけが止まり、アプリは動く。
 
 `ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
+
+`GITHUB_DISPATCH_TOKEN` は、出走馬の取得を GitHub Actions（`race-data-fetch.yml`）に頼むトークン
+（→ [architecture.md 3-9](./architecture.md)）。入れなければ、枠順の定期取得と管理画面の「出走馬を取得」だけが止まる。
+GitHub > Settings > Developer settings > Fine-grained tokens で次のように作る。
+
+| 項目 | 設定 |
+| --- | --- |
+| Resource owner / Repository access | `Atoyr` / Only select repositories → `keiba-note` |
+| Repository permissions | `Actions: Read and write` だけ（Metadata: Read は自動で付く） |
+| Expiration | 1年以内。切れると Cron が `entries.dispatch`（`auth`）で知らせる |
+
+リポジトリ名は `wrangler.toml` の `[vars]` の `GITHUB_REPOSITORY`（シークレットではない）。
+Actions 側にも設定が1つ要る（→ 下の「動かすのに必要な設定」の 5）。
 
 ### 7. 独自ドメインを当てる
 
@@ -333,6 +348,16 @@ Settings > Secrets and variables > Actions。
 
 例外は `DISCORD_WEBHOOK_URL` で、Worker と Actions の両方が Discord に送るので**両方に入れる**。
 差し替えるときも両方（→ [monitoring.md 第8章](./monitoring.md)）。
+
+**5. Actions に PR を作らせる**
+
+Settings > Actions > General > Workflow permissions で
+**「Allow GitHub Actions to create and approve pull requests」を入れる**（既定の「Read repository contents」のままでよい。
+`race-data-fetch.yml` は自分の `permissions` で書き込みを要求する）。入れないと、出馬表は取れても PR の作成で落ちる。
+
+Actions の `GITHUB_TOKEN` で作った PR には `ci.yml`・`pr-body.yml` が走らない（GitHub の仕様）。
+`race-data-fetch.yml` が自分で `data:check` を通してから PR を作るので、検証は済んでいる。
+main のルールセットに必須のチェックは無いので、そのままマージできる。
 
 ### このリポジトリは public なので
 
