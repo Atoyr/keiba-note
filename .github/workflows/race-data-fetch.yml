@@ -1,0 +1,228 @@
+name: 出走馬の取得
+
+# Worker から workflow_dispatch で起動される（src/lib/server/race-data/）。
+#   cron  … 枠順を待っている重賞を毎時（require_confirmed: true。確定するまでは何も書かない）
+#   admin … 管理画面の「出走馬を取得」（候補でも枠順でも、その時点の出馬表を書く）
+#
+# netkeiba の出馬表を `data:fetch entries` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
+# **D1 には触らない。** 本番に入るのは、人がその PR をマージしたとき（data-import.yml）。
+# 出走馬データの正は YAML のまま（docs/architecture.md 第0章）。
+#
+# 動かすには、リポジトリの Settings > Actions > General で
+# 「Allow GitHub Actions to create and approve pull requests」を入れておく（docs/operations.md）。
+# GITHUB_TOKEN で作った PR には ci.yml・pr-body.yml が走らない。検証（data:check）はここで済ませる。
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: '開催日（YYYY-MM-DD）'
+        type: string
+        required: true
+      course:
+        description: '競馬場（中山 など JRA の10場）'
+        type: string
+        required: true
+      race_number:
+        description: 'レース番号（1〜12）'
+        type: string
+        required: true
+      race_id:
+        description: 'netkeiba の race_id（12桁）。分かっていれば。無ければ当週のレース一覧から引く'
+        type: string
+        required: false
+        default: ''
+      require_confirmed:
+        description: '枠順が確定していなければ何も書かない'
+        type: boolean
+        required: false
+        default: false
+      trigger:
+        description: '起動元（cron / admin / manual）。PR 本文に書く'
+        type: string
+        required: false
+        default: manual
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# 同じレースの取得だけを1本ずつにする。全体を1つの群にすると、待っている回は最新の1つしか残らず、
+# 同じ回に頼まれた別のレースが取り消される。
+concurrency:
+  group: race-data-fetch-${{ inputs.date }}-${{ inputs.course }}-${{ inputs.race_number }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  fetch:
+    name: 取得
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      pr_url: ${{ steps.pr.outputs.url }}
+    # 入力は環境変数で渡す。run の中に ${{ }} で埋め込むと、値がシェルとして解釈されうる。
+    env:
+      DATE: ${{ inputs.date }}
+      COURSE: ${{ inputs.course }}
+      RACE_NUMBER: ${{ inputs.race_number }}
+      RACE_ID: ${{ inputs.race_id }}
+      REQUIRE_CONFIRMED: ${{ inputs.require_confirmed }}
+      TRIGGER: ${{ inputs.trigger }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: 入力を確かめる
+        run: |
+          [[ "$DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::date が YYYY-MM-DD ではありません"; exit 1; }
+          [[ "$RACE_NUMBER" =~ ^([1-9]|1[0-2])$ ]] || { echo "::error::race_number が 1〜12 ではありません"; exit 1; }
+          [[ -z "$RACE_ID" || "$RACE_ID" =~ ^[0-9]{12}$ ]] || { echo "::error::race_id が12桁の数字ではありません"; exit 1; }
+          # course が JRA の10場かは data:fetch が見る
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # 騎手・調教師の名前（data:fetch が各人のページを引いて node_modules/.cache/race-data/ に覚える）を
+      # 回をまたいで使う。無いと毎回30頭ぶん以上 netkeiba を引きに行く。
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/race-data
+          key: race-data-people-${{ github.run_id }}
+          restore-keys: race-data-people-
+
+      - name: 出馬表を取る
+        run: |
+          args=(entries "$DATE" "$COURSE" "$RACE_NUMBER")
+          if [ -n "$RACE_ID" ]; then args+=(--race-id "$RACE_ID"); fi
+          if [ "$REQUIRE_CONFIRMED" = "true" ]; then args+=(--require-confirmed); fi
+          pnpm run --silent data:fetch "${args[@]}" | tee "$RUNNER_TEMP/fetch.log"
+
+      - name: 差分を見る
+        id: diff
+        run: |
+          if git diff --quiet -- data/races; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "main と同じ中身なので PR は作らない"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat
+          fi
+
+      - name: 出走馬データの検証
+        if: steps.diff.outputs.changed == 'true'
+        run: pnpm run --silent data:check | tee "$RUNNER_TEMP/check.log"
+
+      - name: PR を作る・更新する
+        id: pr
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          branch="data-fetch/${DATE}-${COURSE}${RACE_NUMBER}R"
+          file="data/races/${DATE}.yaml"
+
+          # Cron は枠順が本番に入るまで毎時起動する。PR のブランチが同じ中身なら何もしない
+          # （url を出さないので、通知も送らない）。
+          if git fetch --quiet origin "$branch" 2>/dev/null && git diff --quiet FETCH_HEAD -- "$file"; then
+            echo "PR のブランチと同じ中身なので何もしない"
+            exit 0
+          fi
+
+          if [ "$TRIGGER" = "cron" ]; then
+            why="枠順が確定したため（Cron が毎時、枠順を待っている重賞の出馬表を見ている）。"
+          else
+            why="${TRIGGER} から取得を頼まれたため。"
+          fi
+
+          {
+            echo "## 何を変えたか"
+            echo
+            echo "- \`${file}\` の ${COURSE}${RACE_NUMBER}R に、netkeiba の出馬表を \`data:fetch entries\` で書いた（起動元: ${TRIGGER}）"
+            echo "- このブランチは Actions が作り直す。同じレースをもう一度取ると、main から作り直して上書きする（手で足したコミットは消える）"
+            echo
+            echo "**⚠️ マージすると \`data-import.yml\` が本番 D1 に投入する。**"
+            echo
+            echo "## レビューで見てほしいところ"
+            echo
+            echo "- 下のログの \`- …（出馬表に無いので withdrawn へ）\` は取り下げた馬。投入すると出走馬行が消え、付いていたメモは近況メモへ移る"
+            echo "- \`! 馬名\` の行は馬名の食い違い（馬名は書き換えていない。data/README.md「馬名を直す」）"
+            echo "- 頭数と馬番が出馬表と合っているか"
+            echo
+            echo "## なぜ"
+            echo
+            echo "$why"
+            echo
+            echo "## 画面"
+            echo
+            echo "データの登録のみ。取得のログ:"
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/fetch.log"
+            echo '```'
+            echo
+            echo "\`data:check\`:"
+            echo
+            echo '```'
+            grep -E "(^✗|${DATE}\.yaml|^合計)" "$RUNNER_TEMP/check.log" || true
+            echo '```'
+            echo
+            echo "run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo "## 評価"
+            echo
+            echo "対象外（Actions が作ったデータの登録のみ。UI も振る舞いも変わらない）"
+          } > "$RUNNER_TEMP/pr-body.txt"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --quiet -c "$branch"
+          git add -- "$file"
+          git commit --quiet -m "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を netkeiba から取る" -m "起動元: ${TRIGGER}"
+          # Actions だけが書くブランチなので、作り直して上書きする。
+          git push --quiet --force origin "$branch"
+
+          url=$(gh pr list --head "$branch" --state open --json url --jq '.[0].url // ""')
+          if [ -n "$url" ]; then
+            gh pr edit "$branch" --body-file "$RUNNER_TEMP/pr-body.txt"
+          else
+            url=$(gh pr create --base main --head "$branch" \
+              --title "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を取る" \
+              --body-file "$RUNNER_TEMP/pr-body.txt")
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "$url"
+
+  # PR ができたら知らせる（マージしないと本番に入らないため）。同じ中身で何もしなかった回は送らない。
+  notify-pr:
+    name: PR を通知
+    needs: [fetch]
+    if: needs.fetch.outputs.pr_url != '' && needs.fetch.result == 'success'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      channel: deploy
+      level: success
+      title: 出走馬の PR ができた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
+      description: ${{ needs.fetch.outputs.pr_url }} をマージすると本番に入ります。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+
+  notify-failure:
+    name: 失敗を通知
+    needs: [fetch]
+    if: failure()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      channel: deploy
+      level: error
+      title: 出走馬の取得が落ちた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
+      description: netkeiba からの取得か、data:check か、PR の作成で止まっています。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
