@@ -264,11 +264,11 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 		expect(sql).not.toMatch(/start_time|external_ref = excluded/);
 	});
 
-	it('書いていない YAML の SQL は field_size も名指ししない（マイグレーション 0012 の列）', () => {
+	it('書いていない YAML の SQL は頭数・勝ち馬・タイム差も名指ししない（マイグレーション 0012・0013 の列）', () => {
 		const parsed = readRaceFile(candidates, '2099-01-04.yaml');
 		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
 		expect(statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n')).not.toMatch(
-			/field_size/
+			/field_size|winner_name|runner_up_name|time_diff/
 		);
 	});
 
@@ -291,15 +291,34 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 	});
 });
 
-describe('レースの頭数（fieldSize）', () => {
-	const withSize = candidates.replace('name: テストS', 'name: テストS\n    fieldSize: 16');
-	const size = (db: DatabaseSync) => db.prepare(`SELECT field_size FROM race`).get();
+describe('レースの頭数・勝ち馬・2着馬と、出走馬のタイム差', () => {
+	const withResult = candidates
+		.replace(
+			'name: テストS',
+			'name: テストS\n    fieldSize: 16\n    winner: 勝ち馬X\n    runnerUp: ホースA'
+		)
+		.replace(
+			'{ name: ホースA, ref: t-a }',
+			'{ name: ホースA, ref: t-a, finish: 2, timeDiff: 0.4 }'
+		);
+	const race = (db: DatabaseSync) =>
+		db.prepare(`SELECT field_size, winner_name, runner_up_name FROM race`).get();
+	const diff = (db: DatabaseSync) =>
+		db
+			.prepare(
+				`SELECT time_diff FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-a'`
+			)
+			.get();
 
-	it('race の field_size に入り、書かなければ既存の値を残す', () => {
+	it('race と race_entry の列に入り、書かなければ既存の値を残す', () => {
 		const db = freshDb();
-		load(db, withSize);
-		expect(size(db)).toEqual({ field_size: 16 });
+		load(db, withResult);
+		const written = { field_size: 16, winner_name: '勝ち馬X', runner_up_name: 'ホースA' };
+		expect(race(db)).toEqual(written);
+		expect(diff(db)).toEqual({ time_diff: 0.4 });
+
 		load(db, candidates);
-		expect(size(db)).toEqual({ field_size: 16 });
+		expect(race(db)).toEqual(written);
+		expect(diff(db)).toEqual({ time_diff: 0.4 });
 	});
 });

@@ -400,9 +400,9 @@ VALUES (
 --
 -- 同じ条件（京都・芝・2200m）のレースに自分のふりかえりを1本、他人のふりかえりを1本。
 -- 距離だけ違うレース（京都 芝1800m）にも自分のふりかえりを1本置き、条件で絞れているかを見る。
--- 頭数（field_size）は馬柱の2行目「16頭 3枠5番」に出る。
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, field_size)
-VALUES ('01JE2ERACESAMECOND0000000', '2026-04-26', '京都', 11, 'E2E同条件賞', 'G2', '芝', 2200, 16);
+-- 頭数（field_size）と勝ち馬は馬柱の2行目「16頭 3枠5番 … E2E勝ち馬（0.4）」に出る。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, field_size, winner_name, runner_up_name)
+VALUES ('01JE2ERACESAMECOND0000000', '2026-04-26', '京都', 11, 'E2E同条件賞', 'G2', '芝', 2200, 16, 'E2E勝ち馬', 'E2E2着馬');
 
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEOTHERDIST000000', '2026-05-03', '京都', 11, 'E2E別距離賞', 'G2', '芝', 1800);
@@ -443,18 +443,18 @@ VALUES (
 -- 予想画面の馬（E2Eプレビューホース）の**前走の結論**。同条件のレースを4着で走り、
 -- ふりかえりで「次走買い」「不利」を付けた。予想画面の行の見出しにこの札が出る。
 -- タイムと通過順は、馬柱の2行目に出ることを見るために入れてある。
-INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, finish_time, passing)
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, finish_time, passing, time_diff)
 VALUES (
 	'01JE2EENTRYSAMECOND000000',
 	'01JE2ERACESAMECOND0000000',
 	'01JE2EHORSEB00000000000000',
-	3, 5, 'E2E騎手', 4, '2:12.8', '8-8-7-6'
+	3, 5, 'E2E騎手', 4, '2:12.8', '8-8-7-6', 0.4
 );
 
 -- 同じ馬の、それより前の2走。馬柱に3走が縦に並んだときの見え方（着順を縦に追えるか、
 -- 2行目がまとまりの右端の下に揃うか）を画面カタログで見るための行。
--- 1走は頭数・枠・人気・上がり・タイム・通過順まで全部、もう1走は頭数・枠・タイム・通過順が無い
--- （2行目は馬番と騎手だけになる）。
+-- 1走は頭数・枠・人気・上がり・タイム・通過順まで入っていて勝ち馬が無い。もう1走は勝った走で、
+-- 頭数・枠・タイム・通過順が無い（2行目は馬番・騎手と、2着馬とのタイム差になる）。
 -- 条件戦・2025年に置いて、レース一覧の既定（今年の重賞）とダッシュボードには出ないようにする。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, field_size)
 VALUES ('01JE2ERACEPASTRUN100000000', '2025-12-28', '中山', 10, 'E2E師走特別', '3勝クラス', '芝', 2000, '稍重', 14);
@@ -467,15 +467,15 @@ VALUES (
 	5, 7, 'E2E騎手', 2, 3, 34.9, '2:01.3', '3-3-3-2'
 );
 
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition)
-VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別', '2勝クラス', '芝', 2400, '良');
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, runner_up_name)
+VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別', '2勝クラス', '芝', 2400, '良', 'E2E霜月2着馬');
 
-INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position, popularity, last_3f)
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position, popularity, last_3f, time_diff)
 VALUES (
 	'01JE2EENTRYPASTRUN20000000',
 	'01JE2ERACEPASTRUN200000000',
 	'01JE2EHORSEB00000000000000',
-	2, 'E2E騎手', 1, 1, 33.8
+	2, 'E2E騎手', 1, 1, 33.8, -0.2
 );
 
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at)

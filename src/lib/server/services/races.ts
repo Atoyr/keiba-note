@@ -168,10 +168,20 @@ export async function getRace(db: Db, id: string): Promise<Race | null> {
  * 画面（/races/new）から入れる項目。取得元の ID と発走時刻は YAML（`data:fetch entries`）からだけ入れる。
  * どちらもオッズを取りに行く対象を決めるもので、手で打ち間違えると別のレースのオッズが付く。
  */
-/** 取得元の値（ref・発走時刻・頭数）は YAML からだけ入る。画面の入力には置かない（product.md `race`）。 */
+/**
+ * 取得元の値（ref・発走時刻・頭数・勝ち馬・2着馬）は YAML からだけ入る。画面の入力には置かない（product.md `race`）。
+ */
 export type CreateRaceInput = Omit<
 	Race,
-	'id' | 'createdBy' | 'createdAt' | 'updatedAt' | 'externalRef' | 'startTime' | 'fieldSize'
+	| 'id'
+	| 'createdBy'
+	| 'createdAt'
+	| 'updatedAt'
+	| 'externalRef'
+	| 'startTime'
+	| 'fieldSize'
+	| 'winnerName'
+	| 'runnerUpName'
 >;
 
 export async function createRace(
@@ -426,6 +436,11 @@ export type PastRun = {
 	trackCondition: string | null;
 	/** 出走頭数。race_entry の行数ではなく取得元の値（過去走は気にしている馬しか入っていない）。 */
 	fieldSize: number | null;
+	/** 勝ち馬と2着馬の馬名（race の列）。この馬が勝った走では2着馬を出す。 */
+	winnerName: string | null;
+	runnerUpName: string | null;
+	/** 勝ち馬とのタイム差（秒）。勝ち馬は2着との差が負で入る。 */
+	timeDiff: number | null;
 	bracket: number | null;
 	horseNumber: number | null;
 	finishPosition: number | null;
@@ -473,6 +488,9 @@ export async function listPastRuns(
 			distance: race.distance,
 			trackCondition: race.trackCondition,
 			fieldSize: race.fieldSize,
+			winnerName: race.winnerName,
+			runnerUpName: race.runnerUpName,
+			timeDiff: raceEntry.timeDiff,
 			bracket: raceEntry.bracket,
 			horseNumber: raceEntry.horseNumber,
 			finishPosition: raceEntry.finishPosition,

@@ -19,6 +19,9 @@ const run = (over: Partial<PastRun>): PastRun => ({
 	distance: 2000,
 	trackCondition: '良',
 	fieldSize: null,
+	winnerName: null,
+	runnerUpName: null,
+	timeDiff: null,
 	bracket: null,
 	horseNumber: null,
 	finishPosition: 1,
@@ -47,6 +50,35 @@ describe('PastRuns', () => {
 		// 騎手の見出しは読み上げだけ
 		await expect.element(screen.getByRole('listitem')).toHaveTextContent('騎手ルメール');
 		await expect.element(screen.getByText('騎手', { exact: true })).toHaveClass(/sr-only/);
+	});
+
+	it('負けた走は勝ち馬とタイム差を出す', async () => {
+		const screen = render(PastRuns, {
+			runs: [
+				run({ finishPosition: 4, winnerName: '勝ち馬X', runnerUpName: '2着馬Y', timeDiff: 0.4 })
+			]
+		});
+
+		await expect.element(screen.getByText('勝ち馬X（0.4）')).toBeInTheDocument();
+		await expect.element(screen.getByRole('listitem')).toHaveTextContent('勝ち馬勝ち馬X（0.4）');
+		await expect.element(screen.getByRole('listitem')).not.toHaveTextContent('2着馬Y');
+	});
+
+	it('勝った走は2着馬と、2着につけた差を負で出す', async () => {
+		const screen = render(PastRuns, {
+			runs: [run({ finishPosition: 1, winnerName: '自分', runnerUpName: '2着馬Y', timeDiff: -0.2 })]
+		});
+
+		await expect.element(screen.getByText('2着馬Y（-0.2）')).toBeInTheDocument();
+		await expect.element(screen.getByText('2着馬', { exact: true })).toHaveClass(/sr-only/);
+	});
+
+	it('差が 0 の走（ハナ差・同着）も 0.0 と出す', async () => {
+		const screen = render(PastRuns, {
+			runs: [run({ finishPosition: 2, winnerName: '勝ち馬X', timeDiff: 0 })]
+		});
+
+		await expect.element(screen.getByText('勝ち馬X（0.0）')).toBeInTheDocument();
 	});
 
 	it('頭数が入っていない走は枠・馬番だけ、枠も無ければ馬番だけ出す', async () => {
@@ -82,7 +114,7 @@ describe('PastRuns', () => {
 		await expect.element(item).not.toHaveTextContent('タイム');
 	});
 
-	it('頭数・馬番・騎手・タイム・通過順のどれも無い走は2行目ごと出さない', async () => {
+	it('頭数・馬番・騎手・勝ち馬・タイム・通過順のどれも無い走は2行目ごと出さない', async () => {
 		const screen = render(PastRuns, {
 			runs: [run({ finishPosition: null, popularity: null, last3f: null })]
 		});

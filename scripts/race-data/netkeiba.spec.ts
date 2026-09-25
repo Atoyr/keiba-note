@@ -317,7 +317,8 @@ describe('parseHorseResults', () => {
 		'着差',
 		'通過',
 		'上り',
-		'馬体重'
+		'馬体重',
+		'勝ち馬(2着馬)'
 	];
 	const tr = (cells: string[]) => `<tr>${cells.map((c) => `<td>${c}</td>`).join('')}</tr>`;
 	const table = (rows: string[]) =>
@@ -347,7 +348,8 @@ describe('parseHorseResults', () => {
 					'0.0',
 					'6-6-7-5',
 					'36.5',
-					'472(-10)'
+					'472(-10)',
+					'<a href="https://db.netkeiba.com/horse/2022100001/">勝ち馬X</a>'
 				]),
 				tr([
 					'2026/08/01',
@@ -370,7 +372,8 @@ describe('parseHorseResults', () => {
 					'0.0',
 					'1-1',
 					'37.0',
-					'480(0)'
+					'480(0)',
+					'(地方の2着馬)'
 				]),
 				tr([
 					'2026/07/05',
@@ -412,7 +415,8 @@ describe('parseHorseResults', () => {
 				direction: '右',
 				trackCondition: '重',
 				weather: '雨',
-				fieldSize: 13
+				fieldSize: 13,
+				winner: '勝ち馬X'
 			},
 			bracket: 1,
 			horseNumber: 1,
@@ -424,6 +428,7 @@ describe('parseHorseResults', () => {
 			jockeyId: '00660',
 			weight: 57,
 			time: '2:16.9',
+			timeDiff: 0,
 			passing: '6-6-7-5',
 			last3f: 36.5,
 			horseWeight: 472,
@@ -436,6 +441,40 @@ describe('parseHorseResults', () => {
 			status: '取',
 			jockey: 'M.デムーロ'
 		});
+	});
+
+	it('勝った走は「勝ち馬(2着馬)」の括弧を外して2着馬に入れ、着差は負のまま読む', () => {
+		const [won] = parseHorseResults(
+			table([
+				tr([
+					'2026/08/22',
+					'2新潟7',
+					'晴',
+					'10',
+					'<a href="https://db.netkeiba.com/race/202604020710/">3歳以上2勝クラス</a>',
+					'',
+					'14',
+					'3',
+					'4',
+					'2.1',
+					'1',
+					'1',
+					'騎手',
+					'57',
+					'芝1800',
+					'良',
+					'1:46.0',
+					'-0.2',
+					'2-2',
+					'33.9',
+					'480(0)',
+					'<a href="https://db.netkeiba.com/horse/2021105609/">(2着馬Y)</a>'
+				])
+			])
+		);
+		expect(won.race).toMatchObject({ fieldSize: 14, runnerUp: '2着馬Y' });
+		expect(won.race.winner).toBeUndefined();
+		expect(won.timeDiff).toBe(-0.2);
 	});
 
 	it('障害の上りは上がり3Fとして読まない', () => {

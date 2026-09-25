@@ -134,6 +134,12 @@ export const race = sqliteTable(
 		 * 行数は実際の頭数より少ない。取得元の値をそのまま持つ。
 		 */
 		fieldSize: integer('field_size'),
+		/**
+		 * 勝ち馬と2着馬の馬名。馬柱の「勝ち馬（0.4）」（1着の走では2着馬）に出す。
+		 * 頭数と同じく、**race_entry からは引けない**（気にしている馬しか入っていない）ので名前で持つ。
+		 */
+		winnerName: text('winner_name'),
+		runnerUpName: text('runner_up_name'),
 		/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯を決める（`services/odds.ts`）。 */
 		startTime: text('start_time'),
 		/**
@@ -175,7 +181,12 @@ export const raceEntry = sqliteTable(
 		margin: text('margin'),
 		/** 通過順（`3-3-2-2`）。 */
 		passing: text('passing'),
-		last3f: real('last_3f')
+		last3f: real('last_3f'),
+		/**
+		 * 勝ち馬とのタイム差（秒）。**勝ち馬は2着との差を負の値で持つ**（`-0.2`）。取得元の戦績表の表記のまま。
+		 * `margin` は競馬の着差の表記（`クビ`）で、こちらとは別物。
+		 */
+		timeDiff: real('time_diff')
 	},
 	(t) => [
 		uniqueIndex('entry_race_horse').on(t.raceId, t.horseId),
