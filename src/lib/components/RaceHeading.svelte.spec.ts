@@ -10,8 +10,12 @@ import '../../routes/layout.css';
  */
 const PHONE = 320;
 
-/** レース名が確実にあふれる長さ。 */
-const LONG_NAME = 'アイルランドトロフィー東京タイムズ杯';
+/**
+ * レース名が確実にあふれる長さ。**どのフォントで描いてもあふれるよう、実在の名前より長くしてある。**
+ * 1行目に開催（場・R）だけが並ぶので、レース名には 320px のうち 235px ほどが残る。
+ * 19文字では、CI（Ubuntu）の字幅だとちょうど収まってしまい、… にならなかった。
+ */
+const LONG_NAME = 'アイルランドトロフィー府中牝馬ステークス東京タイムズ杯';
 
 function narrow() {
 	document.body.style.width = `${PHONE}px`;
