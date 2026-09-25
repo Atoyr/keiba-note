@@ -426,6 +426,10 @@ export type PastRun = {
 	finishPosition: number | null;
 	popularity: number | null;
 	last3f: number | null;
+	/** 走破タイム。`1:58.4` のような文字列のまま（取得元の表記）。 */
+	finishTime: string | null;
+	/** 通過順。`5-5-4-2` のような文字列のまま。コーナーの数だけ並ぶ。 */
+	passing: string | null;
 	margin: string | null;
 	jockey: string | null;
 };
@@ -466,6 +470,8 @@ export async function listPastRuns(
 			finishPosition: raceEntry.finishPosition,
 			popularity: raceEntry.popularity,
 			last3f: raceEntry.last3f,
+			finishTime: raceEntry.finishTime,
+			passing: raceEntry.passing,
 			margin: raceEntry.margin,
 			jockey: raceEntry.jockey
 		})

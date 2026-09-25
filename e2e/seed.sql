@@ -441,12 +441,13 @@ VALUES (
 
 -- 予想画面の馬（E2Eプレビューホース）の**前走の結論**。同条件のレースを4着で走り、
 -- ふりかえりで「次走買い」「不利」を付けた。予想画面の行の見出しにこの札が出る。
-INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+-- タイムと通過順は、馬柱の2行目に出ることを見るために入れてある。
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, finish_time, passing)
 VALUES (
 	'01JE2EENTRYSAMECOND000000',
 	'01JE2ERACESAMECOND0000000',
 	'01JE2EHORSEB00000000000000',
-	3, 5, 'E2E騎手', 4
+	3, 5, 'E2E騎手', 4, '2:12.8', '8-8-7-6'
 );
 
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at)

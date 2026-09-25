@@ -190,6 +190,25 @@ test('出走馬の行の見出しに、前回付けた結論の札が出る', as
 	await expect(conclusion).toContainText('不利');
 });
 
+/**
+ * 馬柱の各走に、タイムと通過順が2行目として出る。
+ * seed では、この馬の前走（E2E同条件賞・4着）に 2:12.8 と 8-8-7-6 が入っている。
+ */
+test('馬柱の走に、タイムと通過順が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+
+	// 同じ行の「自分の過去メモ」も ol > li でレース名を含むので、馬柱にだけ出る条件（芝2200m）で絞る
+	const run = page
+		.locator('main > form > ul > li')
+		.first()
+		.locator('ol > li', { hasText: 'E2E同条件賞' })
+		.filter({ hasText: '芝2200m' });
+	await expect(run).toContainText('4着');
+	await expect(run).toContainText('タイム2:12.8');
+	await expect(run).toContainText('通過順8-8-7-6');
+});
+
 /** 付けた印は画面の上にまとめて出る。押すとその馬の行へ飛ぶ。 */
 test('付けた印が画面の上にまとまって出る', async ({ page }) => {
 	await login(page);
