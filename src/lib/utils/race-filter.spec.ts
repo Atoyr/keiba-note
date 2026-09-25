@@ -1,11 +1,40 @@
 import { describe, expect, it } from 'vitest';
-import { hasRaceFilter, parseRaceFilter, yearRange, EMPTY_RACE_FILTER } from './race-filter';
+import {
+	ALL_RACES_QUERY,
+	hasRaceFilter,
+	parseRaceFilter,
+	usesDefaultRaceFilter,
+	yearOptions,
+	yearRange,
+	EMPTY_RACE_FILTER
+} from './race-filter';
 
-const parse = (qs: string) => parseRaceFilter(new URLSearchParams(qs));
+const TODAY = '2026-09-25';
+const parse = (qs: string) => parseRaceFilter(new URLSearchParams(qs), TODAY);
 
 describe('parseRaceFilter', () => {
-	it('何も指定が無ければ絞らない', () => {
-		expect(parse('')).toEqual(EMPTY_RACE_FILTER);
+	it('何も指定が無ければ今年の重賞に絞る', () => {
+		expect(parse('')).toEqual({ year: 2026, grades: ['G1', 'G2', 'G3'], q: '' });
+	});
+
+	// 年の境界は JST の今日で決める。元日に開いたら新しい年。
+	it('既定の年は今日の年', () => {
+		expect(parseRaceFilter(new URLSearchParams(), '2027-01-01').year).toBe(2027);
+	});
+
+	it('絞り込みと関係の無いクエリだけなら既定のまま', () => {
+		expect(parse('utm_source=x').grades).toEqual(['G1', 'G2', 'G3']);
+	});
+
+	// フォームで「すべて」を選び、ランクを外して送ったとき（`year=&q=`）。
+	// 既定に戻ってしまうと、全件を見る手段が無くなる。
+	it.each(['year=&q=', ALL_RACES_QUERY.slice(1)])('%o なら絞らない', (qs) => {
+		expect(parse(qs)).toEqual(EMPTY_RACE_FILTER);
+	});
+
+	it('どれか1つでも指定があれば、ほかは既定で補わない', () => {
+		expect(parse('grade=L')).toEqual({ year: null, grades: ['L'], q: '' });
+		expect(parse('q=記念')).toEqual({ year: null, grades: [], q: '記念' });
 	});
 
 	it('年度・ランク・名前をまとめて読む', () => {
@@ -37,6 +66,15 @@ describe('parseRaceFilter', () => {
 	});
 });
 
+describe('usesDefaultRaceFilter', () => {
+	it('絞り込みのキーが1つも無いときだけ true', () => {
+		expect(usesDefaultRaceFilter(new URLSearchParams(''))).toBe(true);
+		expect(usesDefaultRaceFilter(new URLSearchParams('utm_source=x'))).toBe(true);
+		expect(usesDefaultRaceFilter(new URLSearchParams('year='))).toBe(false);
+		expect(usesDefaultRaceFilter(new URLSearchParams('q='))).toBe(false);
+	});
+});
+
 describe('hasRaceFilter', () => {
 	it('何も指定が無ければ false', () => {
 		expect(hasRaceFilter(EMPTY_RACE_FILTER)).toBe(false);
@@ -44,6 +82,17 @@ describe('hasRaceFilter', () => {
 
 	it('どれか1つでも指定があれば true', () => {
 		expect(hasRaceFilter({ ...EMPTY_RACE_FILTER, q: '記念' })).toBe(true);
+	});
+});
+
+describe('yearOptions', () => {
+	it('今年のレースがまだ無くても、今年を選択肢に入れる（降順）', () => {
+		expect(yearOptions([2025, 2024], TODAY)).toEqual([2026, 2025, 2024]);
+		expect(yearOptions([], TODAY)).toEqual([2026]);
+	});
+
+	it('今年がもうあれば、そのまま', () => {
+		expect(yearOptions([2099, 2026, 2025], TODAY)).toEqual([2099, 2026, 2025]);
 	});
 });
 

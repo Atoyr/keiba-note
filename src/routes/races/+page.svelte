@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
+	import RaceListEmpty from '$lib/components/RaceListEmpty.svelte';
 	import { opensReview } from '$lib/utils/date';
 	import { hasRaceFilter } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
@@ -32,15 +33,7 @@
 	<RaceFilterForm filter={data.filter} years={data.years} />
 
 	{#if data.races.length === 0}
-		<p class="mt-8 text-sm text-gray-500">
-			{#if filtered}
-				条件に合うレースがありません。
-			{:else if admin}
-				まだレースがありません。まずは1つ登録してみてください。
-			{:else}
-				まだレースがありません。
-			{/if}
-		</p>
+		<RaceListEmpty defaultFilter={data.defaultFilter} {filtered} {admin} />
 	{:else}
 		<p class="mt-6 text-xs text-gray-500">{data.races.length} 件</p>
 		<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">

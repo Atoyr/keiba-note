@@ -34,6 +34,60 @@ test('絞り込み付きのレース一覧も未ログインでは開けず、�
 });
 
 /**
+ * **何も付けずに開いたレース一覧は、今年の重賞だけ。** 探しに来るのはほとんどが今年の重賞で、
+ * 絞らないと条件戦と、枠だけ先に登録した先の重賞が上を埋める。
+ *
+ * 見るのは3つ。今日の重賞（E2E今週賞）は出る / 条件戦（E2E特別）と先の年（E2E未来賞）は出ない。
+ * フォームが既定の条件を映している。クリアすると全件に戻る（`/races` の既定に戻らない）。
+ */
+test('レース一覧は既定で今年の重賞に絞られ、クリアで全件になる', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, '/races');
+
+	const thisYear = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric' })
+		.format(new Date())
+		.slice(0, 4);
+	await expect(page.getByLabel('年度')).toHaveValue(thisYear);
+	for (const grade of ['G1', 'G2', 'G3']) {
+		await expect(page.getByRole('checkbox', { name: grade })).toBeChecked();
+	}
+	for (const grade of ['L', 'OP']) {
+		await expect(page.getByRole('checkbox', { name: grade })).not.toBeChecked();
+	}
+
+	await expect(page.getByRole('link', { name: /E2E今週賞/ })).toBeVisible();
+	await expect(page.getByRole('link', { name: /E2E特別/ })).toHaveCount(0);
+	await expect(page.getByRole('link', { name: /E2E未来賞/ })).toHaveCount(0);
+
+	await page.getByRole('link', { name: '条件をクリア' }).click();
+	await expect(page).toHaveURL('/races?year=');
+	await expect(page.getByLabel('年度')).toHaveValue('');
+	await expect(page.getByRole('checkbox', { name: 'G1' })).not.toBeChecked();
+	await expect(page.getByRole('link', { name: /E2E特別/ })).toBeVisible();
+	await expect(page.getByRole('link', { name: /E2E未来賞/ })).toBeVisible();
+	await expect(page.getByRole('link', { name: '条件をクリア' })).toHaveCount(0);
+});
+
+/**
+ * フォームで「すべて」を選び、ランクを全部外して送ると全件になる。
+ * 送った URL は `year=` を持つので、既定（今年の重賞）には戻らない。
+ */
+test('レース一覧のフォームで条件を全部外して送ると、既定に戻らず全件になる', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, '/races');
+
+	await page.getByLabel('年度').selectOption('');
+	for (const grade of ['G1', 'G2', 'G3']) {
+		await page.getByRole('checkbox', { name: grade }).uncheck();
+	}
+	await page.getByRole('button', { name: '絞り込む' }).click();
+
+	await expect(page).toHaveURL(/\/races\?year=&q=$/);
+	await expect(page.getByRole('link', { name: /E2E特別/ })).toBeVisible();
+	await expect(page.getByRole('checkbox', { name: 'G1' })).not.toBeChecked();
+});
+
+/**
  * ふりかえり画面の保存ボタン。
  *
  * この画面は「レースのメモ + 各馬のメモ」を1送信で保存するので「まとめて保存」だが、
@@ -121,12 +175,15 @@ test('今週の重賞から、結果が出たレースはふりかえりへ、�
 /**
  * レース一覧も同じ線引き（→ `opensReview`）。開催済みでも結果の投入前（E2E結果待ち賞）は
  * 予想画面へ、着順の入ったレース（E2E枠色賞）と、ふりかえりを書いたレースはふりかえりへ。
+ *
+ * **全件（`?year=`）で開く。** ここに並ぶレースは seed で日付が固定なので、
+ * 既定（今年の重賞）で開くと、年が変わった日から一覧に出なくなる。
  */
 test('レース一覧から、結果が出たレースはふりかえりへ、結果の投入前は予想画面へ行く', async ({
 	page
 }) => {
 	await login(page);
-	await page.goto('/races');
+	await page.goto('/races?year=');
 
 	await expect(page.getByRole('link', { name: /E2E枠色賞/ })).toHaveAttribute(
 		'href',

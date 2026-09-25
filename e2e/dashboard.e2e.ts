@@ -183,3 +183,17 @@ test('ダッシュボードのリンクは、結果が出たものとふりか�
 		section(page, '最近のメモ').getByRole('link', { name: /E2E別距離賞/ })
 	).toHaveAttribute('href', `/races/${OTHER_DISTANCE_RACE_ID}`);
 });
+
+/**
+ * 「すべてのレースを見る」は名乗りどおり全件へ。`/races` だけだと
+ * レース一覧の既定（今年の重賞）で開き、条件戦も去年のレースも出ない。
+ */
+test('「すべてのレースを見る」は絞り込みなしのレース一覧へ行く', async ({ page }) => {
+	await login(page);
+	await page.goto('/');
+
+	await expect(page.getByRole('link', { name: 'すべてのレースを見る →' })).toHaveAttribute(
+		'href',
+		'/races?year='
+	);
+});

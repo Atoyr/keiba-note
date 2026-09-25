@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { GRADES } from '$lib/schemas/race';
-	import { hasRaceFilter, type RaceFilter } from '$lib/utils/race-filter';
+	import { ALL_RACES_QUERY, hasRaceFilter, type RaceFilter } from '$lib/utils/race-filter';
 
 	/**
 	 * レース一覧の絞り込み。年度・ランク（OR）・レース名（部分一致）。
@@ -10,6 +10,9 @@
 	 * ブックマークにも共有にも使えるし、JS が無くても動く。
 	 * 送信された値は必ずサーバー側の `parseRaceFilter` を通る。
 	 * ここで組む選択肢は入力の補助であって、絞り込みの担保ではない。
+	 *
+	 * 何も付けずに開くと今年の重賞に絞ってある（→ `defaultRaceFilter`）。
+	 * その状態もフォームにそのまま映るので、何で絞られているかは見れば分かる。
 	 */
 	let { filter, years }: { filter: RaceFilter; years: number[] } = $props();
 
@@ -74,7 +77,15 @@
 				絞り込む
 			</button>
 			{#if filtered}
-				<a href={resolve('/races')} class="text-sm text-gray-600 hover:underline">条件をクリア</a>
+				<!-- `/races` だけだと既定（今年の重賞）に戻るので、全件のクエリを付ける。 -->
+				<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは resolve() で組み、クエリを足しているだけ（frontend.md 第3章） -->
+				<a
+					href={`${resolve('/races')}${ALL_RACES_QUERY}`}
+					class="text-sm text-gray-600 hover:underline"
+				>
+					条件をクリア
+				</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			{/if}
 		</div>
 	</div>
