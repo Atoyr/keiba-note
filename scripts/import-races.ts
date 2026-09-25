@@ -410,13 +410,13 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 		seen.set(e.horseNumber, e.name);
 	}
 
-	// 頭数は entries と別に書くので、打ち間違えると馬柱に「16頭 18番」のような行が出る。
+	// 頭数は entries と別に書くので、打ち間違えると馬柱に「8頭 12着」のような行が出る。
+	// **馬番とは比べない。** 頭数は取消・除外を除くので、18頭立てで1頭取り消すと18番の馬が17頭の中にいる。
 	if (race.fieldSize !== undefined) {
 		for (const e of race.entries) {
-			const over = Math.max(e.horseNumber ?? 0, e.finish ?? 0);
-			if (over > race.fieldSize) {
+			if (e.finish !== undefined && e.finish > race.fieldSize) {
 				errors.push(
-					`${label}: ${e.name} の馬番・着順 ${over} が頭数 ${race.fieldSize} を超えています`
+					`${label}: ${e.name} の着順 ${e.finish} が頭数 ${race.fieldSize} を超えています`
 				);
 			}
 		}

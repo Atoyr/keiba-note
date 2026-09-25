@@ -211,13 +211,14 @@ describe('data:check の検証', () => {
 		]);
 	});
 
-	it('馬番・着順が頭数を超えていたら落とす', () => {
-		const withSize = (n: number) =>
-			confirmed.replace('name: テストS', `name: テストS\n    fieldSize: ${n}`);
-		expect(errorsOf(withSize(2))).toEqual([]);
-		expect(errorsOf(withSize(1))).toEqual([
-			'中山11R: ホースC の馬番・着順 2 が頭数 1 を超えています'
-		]);
+	it('着順が頭数を超えていたら落とす。馬番は超えてよい（取消・除外は頭数に入らない）', () => {
+		const withSize = (n: number, finish: number) =>
+			confirmed
+				.replace('name: テストS', `name: テストS\n    fieldSize: ${n}`)
+				.replace('name: ホースC, ref: t-c', `name: ホースC, ref: t-c, finish: ${finish}`);
+		// 2頭のうち1頭が取り消し、2番の馬が1頭立てを勝った
+		expect(errorsOf(withSize(1, 1))).toEqual([]);
+		expect(errorsOf(withSize(1, 2))).toEqual(['中山11R: ホースC の着順 2 が頭数 1 を超えています']);
 	});
 
 	it('枠が決まる前の候補は18頭を超えてよい', () => {
