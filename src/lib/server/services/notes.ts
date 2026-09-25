@@ -579,7 +579,7 @@ export type PreviewNoteInput = {
 		horseId: string;
 		body: string;
 		tags: NoteTag[];
-		mark: '◎' | '○' | '▲' | '△' | '×' | null;
+		mark: Note['mark'];
 	}[];
 };
 

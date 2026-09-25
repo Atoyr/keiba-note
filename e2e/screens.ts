@@ -4,6 +4,7 @@ import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
 	HORSE_ID,
+	MARKS_RACE_ID,
 	PAST_EMPTY_RACE_ID,
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
@@ -73,6 +74,9 @@ export const SCREENS: Screen[] = [
 	{ name: 'races-all', path: '/races?year=', auth: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
+	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
+	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
+	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
 	{
 		// スマホではコースを畳んである。開いた状態（広い画面は開いたままなので、そのまま撮る）。
@@ -102,6 +106,16 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await page.getByText('書き直す', { exact: true }).click();
+		}
+	},
+	{
+		// 印を ☆（穴）に付け替えたところ。保存はしない。選んだ ☆ の色（violet）がほかの印と見分けられるかを見る。
+		name: 'race-preview-mark-star',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
+			await marks.getByText('☆', { exact: true }).click();
 		}
 	},
 	{

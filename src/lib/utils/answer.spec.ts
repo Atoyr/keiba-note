@@ -35,8 +35,8 @@ describe('placing', () => {
 });
 
 describe('asMarked', () => {
-	it('◎○▲△ は馬券内なら読みどおり', () => {
-		for (const mark of ['◎', '○', '▲', '△'] as Mark[]) {
+	it('◎○▲△☆ は馬券内なら読みどおり', () => {
+		for (const mark of ['◎', '○', '▲', '△', '☆'] as Mark[]) {
 			expect(asMarked(mark, 'in')).toBe(true);
 			expect(asMarked(mark, 'out')).toBe(false);
 		}
@@ -73,12 +73,13 @@ describe('answerCheck', () => {
 			row('△', 2, 2),
 			row('○', 3, 3),
 			row('◎', 4, 9),
+			row('☆', 6, 5),
 			row('▲', 5, 4)
 		]);
 
-		expect(answers.map((a) => a.mark)).toEqual(['◎', '○', '▲', '△', '×']);
-		expect(answers.map((a) => a.placing)).toEqual(['out', 'in', 'out', 'in', 'in']);
-		expect(answers.map((a) => a.asMarked)).toEqual([false, true, false, true, false]);
+		expect(answers.map((a) => a.mark)).toEqual(['◎', '○', '▲', '△', '☆', '×']);
+		expect(answers.map((a) => a.placing)).toEqual(['out', 'in', 'out', 'in', 'out', 'in']);
+		expect(answers.map((a) => a.asMarked)).toEqual([false, true, false, true, false, false]);
 	});
 
 	it('同じ印が複数あれば馬番の順。馬番が無い馬は後ろ', () => {
@@ -102,15 +103,16 @@ describe('answerCheck', () => {
 });
 
 describe('inTheMoneyCount', () => {
-	it('着順が決まった ◎○▲△ のうち、馬券内の頭数を数える', () => {
+	it('着順が決まった ◎○▲△☆ のうち、馬券内の頭数を数える', () => {
 		const answers = answerCheck([
 			row('◎', 1, 9),
 			row('○', 2, 1),
 			row('▲', 3, 3),
-			row('△', 4, null)
+			row('△', 4, null),
+			row('☆', 5, 2)
 		]);
 
-		expect(inTheMoneyCount(answers)).toEqual({ in: 2, of: 3 });
+		expect(inTheMoneyCount(answers)).toEqual({ in: 3, of: 4 });
 	});
 
 	// × を馬券内の数に混ぜると、消した馬に来られたことが「成績」に数えられてしまう。

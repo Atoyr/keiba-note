@@ -280,7 +280,7 @@ test('ふりかえり画面の上に、予想の印と着順が印の順に並�
 		/◎.*E2Eソトワク.*2着.*馬券内/,
 		/○.*E2Eウチワク.*1着.*馬券内/
 	]);
-	await expect(answers).toContainText('◎○▲△ 2頭中 2頭 馬券内');
+	await expect(answers).toContainText('◎○▲△☆ 2頭中 2頭 馬券内');
 	// 的中は馬券に使う言葉。このアプリは馬券を記録していないので、印には使わない。
 	await expect(answers).not.toContainText(/当たり|外れ|的中/);
 });

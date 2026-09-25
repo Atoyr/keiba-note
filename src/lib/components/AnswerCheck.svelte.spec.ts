@@ -49,7 +49,7 @@ describe('AnswerCheck', () => {
 		expect(screen.container.textContent).not.toMatch(/当たり|外れ|的中/);
 	});
 
-	it('着順が決まった ◎○▲△ だけで馬券内の頭数を数える', async () => {
+	it('着順が決まった ◎○▲△☆ だけで馬券内の頭数を数える', async () => {
 		const screen = render(AnswerCheck, {
 			answers: answers([
 				['◎', 1, 2],
@@ -59,7 +59,7 @@ describe('AnswerCheck', () => {
 			])
 		});
 
-		await expect.element(screen.getByText('◎○▲△ 2頭中 1頭 馬券内')).toBeInTheDocument();
+		await expect.element(screen.getByText('◎○▲△☆ 2頭中 1頭 馬券内')).toBeInTheDocument();
 		expect(items(screen.container)).toContain('▲ 3 ホース3 — 未確定');
 	});
 
