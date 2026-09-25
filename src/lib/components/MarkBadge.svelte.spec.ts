@@ -3,12 +3,12 @@ import { render } from 'vitest-browser-svelte';
 import MarkBadge from './MarkBadge.svelte';
 
 describe('MarkBadge', () => {
-	it('☆ は記号を文字で出し、ほかの印と別の色（sky）にする', async () => {
+	it('☆ は記号を文字で出し、ほかの印と別の色（violet）にする', async () => {
 		const screen = render(MarkBadge, { mark: '☆' });
 
 		const badge = screen.getByTitle('予想印 ☆');
 		await expect.element(badge).toHaveTextContent('☆');
-		await expect.element(badge).toHaveClass(/bg-sky-100/);
+		await expect.element(badge).toHaveClass(/bg-violet-100/);
 	});
 
 	it('印が無ければ何も出さない', async () => {

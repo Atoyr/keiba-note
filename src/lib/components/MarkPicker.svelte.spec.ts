@@ -12,4 +12,16 @@ describe('MarkPicker', () => {
 		expect(values).toEqual(['◎', '○', '▲', '△', '☆', '×', '']);
 		await expect.element(screen.getByRole('radio', { name: '☆' })).toBeChecked();
 	});
+
+	// 選んだ印にマウスを乗せても、塗りと輪郭が hover の色に置き換わらない（◎ の白い字が消えない）。
+	it('hover の色は選んでいない印にだけ付ける', async () => {
+		const screen = render(MarkPicker, { name: 'mark.x', value: '◎' });
+
+		for (const span of screen.container.querySelectorAll(
+			'input[value="◎"] + span, input[value="×"] + span'
+		)) {
+			expect(span.className).toContain('peer-not-checked:hover:bg-accent');
+			expect(span.className).not.toMatch(/(^|\s)hover:bg-accent/);
+		}
+	});
 });

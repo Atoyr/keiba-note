@@ -107,6 +107,9 @@ export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 /** 枠の色を見るレース。出走2頭の枠は1枠（白）と8枠（桃）。 */
 export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
 
+/** 予想印の見本のレース。出走6頭に ◎ ○ ▲ △ ☆ × を1つずつ付け、着順も入れてある。 */
+export const MARKS_RACE_ID = '01JE2ERACEMARKS00000000000';
+
 /**
  * ログイン済みで開くためのセッショントークン。**Cookie に入れる生の値。**
  *

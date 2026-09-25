@@ -461,3 +461,56 @@ VALUES (
 	'["次走買い","不利"]',
 	'2026-04-26'
 );
+
+-- 予想印の**見本**。6つの印（◎ ○ ▲ △ ☆ ×）を1頭ずつに付け、着順も入れてある。
+--
+-- 印の色を変えたときに、全部の印を並べて見比べるためのレース（画面カタログの race-review-marks /
+-- race-preview-marks）。ほかのテストはこのレースを見ないので、印を増やす・変えるときもここだけ直せばよい。
+-- ☆ は2着（穴が来た）、× は着外（消しが当たった）にして、答え合わせの色の出方も一度に見られるようにする。
+-- 条件戦にしてあるので、レース一覧の既定（今年の重賞）には出ない。
+-- メモの created_at は古い日付に固定する。ダッシュボードの「最近のメモ」は作った順の新しい20件なので、
+-- 既定（seed を流した時刻）のままだとこの6件が先頭に来て、共有中のメモなどほかのテストが見るメモを押し出す。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
+VALUES ('01JE2ERACEMARKS00000000000', '2026-06-07', '東京', 10, 'E2E印見本特別', '3勝クラス', '芝', 1800);
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE10000000000', 'E2Eホンメイ', 2022);
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYMARK10000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE10000000000', 1, 1, 'E2E騎手', 1);
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES ('01JE2EPREVIEWMARK100000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE10000000000', '01JE2EENTRYMARK10000000000', '', '[]', '◎', '2026-06-07', unixepoch('2026-06-07'));
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE20000000000', 'E2Eタイコウ', 2022);
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYMARK20000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE20000000000', 2, 2, 'E2E騎手', 5);
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES ('01JE2EPREVIEWMARK200000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE20000000000', '01JE2EENTRYMARK20000000000', '', '[]', '○', '2026-06-07', unixepoch('2026-06-07'));
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE30000000000', 'E2Eタンアナ', 2022);
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYMARK30000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE30000000000', 3, 3, 'E2E騎手', 3);
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES ('01JE2EPREVIEWMARK300000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE30000000000', '01JE2EENTRYMARK30000000000', '', '[]', '▲', '2026-06-07', unixepoch('2026-06-07'));
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE40000000000', 'E2Eレンシタ', 2022);
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYMARK40000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE40000000000', 4, 4, 'E2E騎手', 6);
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES ('01JE2EPREVIEWMARK400000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE40000000000', '01JE2EENTRYMARK40000000000', '', '[]', '△', '2026-06-07', unixepoch('2026-06-07'));
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE50000000000', 'E2Eアナウマ', 2022);
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYMARK50000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE50000000000', 5, 5, 'E2E騎手', 2);
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES ('01JE2EPREVIEWMARK500000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE50000000000', '01JE2EENTRYMARK50000000000', '', '[]', '☆', '2026-06-07', unixepoch('2026-06-07'));
+
+INSERT OR REPLACE INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE60000000000', 'E2Eケシウマ', 2022);
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
+VALUES ('01JE2EENTRYMARK60000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE60000000000', 6, 6, 'E2E騎手', 4);
+INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES ('01JE2EPREVIEWMARK600000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE60000000000', '01JE2EENTRYMARK60000000000', '', '[]', '×', '2026-06-07', unixepoch('2026-06-07'));
