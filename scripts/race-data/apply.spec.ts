@@ -5,6 +5,8 @@ import {
 	applyResult,
 	applyRaceRef,
 	applyShutuba,
+	fieldSizeOf,
+	timeDiffs,
 	isShutubaConfirmed,
 	type ResolvePerson
 } from './apply.ts';
@@ -188,7 +190,9 @@ describe('applyPastRuns', () => {
 			distance: 1200,
 			direction: '左',
 			trackCondition: '良',
-			weather: '晴'
+			weather: '晴',
+			fieldSize: 16,
+			runnerUp: '2着馬Y'
 		},
 		bracket: 1,
 		horseNumber: 2,
@@ -197,6 +201,7 @@ describe('applyPastRuns', () => {
 		jockey: '中井裕二',
 		weight: 55,
 		time: '1:06.5',
+		timeDiff: -0.2,
 		passing: '3-3',
 		last3f: 33.6,
 		horseWeight: 512,
@@ -239,6 +244,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ホースA
+    runnerUp: 2着馬Y
     entries:
       - horseNumber: 2
         bracket: 1
@@ -248,6 +256,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:06.5"
+        timeDiff: -0.2
         passing: "3-3"
         last3f: 33.6
         weight: 55
@@ -359,7 +368,79 @@ describe('applyResult', () => {
 		...extra
 	});
 
-	it('YAML にいる馬だけ結果を入れ、馬場と天候も入れる', async () => {
+	it('頭数は取消・除外を数えず、中止・失格は数える', () => {
+		expect(
+			fieldSizeOf([{}, { status: '中' }, { status: '失' }, { status: '取' }, { status: '除' }])
+		).toBe(3);
+		expect(fieldSizeOf([])).toBeUndefined();
+	});
+
+	it('タイム差は勝ち馬との差。勝ち馬は2着以下で最も速い馬との差を負で持つ', () => {
+		const rows = [
+			result('1', 'A', { finish: 1, time: '1:58.4' }),
+			result('2', 'B', { finish: 2, time: '1:58.6' }),
+			result('3', 'C', { finish: 3, time: '1:59.1' }),
+			result('4', 'D', { finish: undefined, status: '取', time: undefined })
+		];
+		const diffs = timeDiffs(rows);
+		expect(rows.map((r) => diffs.get(r))).toEqual([-0.2, 0.2, 0.7, undefined]);
+	});
+
+	it('1着同着なら、もう1頭の1着馬を2着馬に書く', async () => {
+		const file = RaceFile.parse(
+			'2026-09-27.yaml',
+			placeholder.replace(
+				'    entries: []',
+				'    entries:\n      - name: ホースA\n        ref: nk-1'
+			)
+		);
+		const race = file.findRace('中山', 11)!;
+		await applyResult(
+			file,
+			race,
+			{
+				meta,
+				rows: [
+					result('1', 'ホースA', { finish: 1 }),
+					result('2', 'ホースB', { finish: 1 }),
+					result('3', 'ホースC', { finish: 3 })
+				]
+			},
+			resolve
+		);
+		expect(file.toString()).toContain('    winner: ホースA\n    runnerUp: ホースB\n');
+	});
+
+	it('降着で着順とタイムの順が食い違っても、負は勝ち馬だけ', () => {
+		const rows = [
+			result('1', 'A', { finish: 1, time: '1:58.5' }),
+			result('2', 'B', { finish: 2, time: '1:58.6' }),
+			// 1:58.4 で入線して4着に降着
+			result('4', 'D', { finish: 4, time: '1:58.4' })
+		];
+		const diffs = timeDiffs(rows);
+		expect(rows.map((r) => diffs.get(r))).toEqual([-0.1, 0.1, 0]);
+
+		// 2着馬のほうが速く入線していても、勝ち馬の差は正にしない
+		const slowWinner = [
+			result('1', 'A', { finish: 1, time: '1:58.7' }),
+			result('2', 'B', { finish: 2, time: '1:58.6' })
+		];
+		const d2 = timeDiffs(slowWinner);
+		expect(slowWinner.map((r) => d2.get(r))).toEqual([0, 0]);
+	});
+
+	it('同着の1着どうしは 0', () => {
+		const rows = [
+			result('1', 'A', { finish: 1, time: '1:08.0' }),
+			result('2', 'B', { finish: 1, time: '1:08.0' }),
+			result('3', 'C', { finish: 3, time: '1:08.3' })
+		];
+		const diffs = timeDiffs(rows);
+		expect(rows.map((r) => diffs.get(r))).toEqual([0, 0, 0.3]);
+	});
+
+	it('YAML にいる馬だけ結果を入れ、馬場・天候・頭数・勝ち馬・2着馬も入れる', async () => {
 		const file = RaceFile.parse(
 			'2026-09-27.yaml',
 			placeholder.replace(
@@ -388,7 +469,9 @@ describe('applyResult', () => {
 			'（YAML に無い 1 頭は足していません: ホースC）'
 		]);
 		const out = file.toString();
-		expect(out).toContain('    trackCondition: 稍重\n    weather: 曇\n');
+		expect(out).toContain(
+			'    trackCondition: 稍重\n    weather: 曇\n    fieldSize: 3\n    winner: ホースB\n    runnerUp: ホースA\n'
+		);
 		expect(out).toContain(
 			'        name: ホースB\n        jockey: 騎（騎）\n        ref: nk-2\n        finish: 1\n'
 		);

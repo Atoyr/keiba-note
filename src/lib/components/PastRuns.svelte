@@ -1,9 +1,11 @@
 <script lang="ts">
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 
-	// $lib/server/services/races の PastRun は server 側の型なので引かない（architecture.md 第2章）。
-	// 要るのは表示に使うものだけなので構造だけ受ける。サーバーの PastRun はこの形を満たすので、
-	// ずれたら preview ページの `<PastRuns runs={...} />` で svelte-check が落ちる。
+	/**
+	 * 1走ぶん。サーバーの `listPastRuns` の戻り値と同じ形だが、**型は import せずここで持つ**
+	 * （画面側はサーバーのコードを型ですら import しない。architecture.md 第2章）。
+	 * 渡す側（予想画面の PageData）との食い違いは svelte-check が見る。
+	 */
 	type PastRun = {
 		raceId: string;
 		date: string;
@@ -15,11 +17,19 @@
 		surface: string | null;
 		distance: number | null;
 		trackCondition: string | null;
+		fieldSize: number | null;
+		winnerName: string | null;
+		runnerUpName: string | null;
+		/** 勝ち馬とのタイム差（秒）。勝った走は2着との差が負で入る。 */
+		timeDiff: number | null;
+		bracket: number | null;
+		horseNumber: number | null;
 		finishPosition: number | null;
 		popularity: number | null;
 		last3f: number | null;
 		finishTime: string | null;
 		passing: string | null;
+		jockey: string | null;
 	};
 
 	/**
@@ -32,10 +42,12 @@
 	 * 1行目は「いつ・何で・どう走ったか」に絞る:
 	 *   日付 / レース名(格) / 馬場・距離・状態 / 着順 / 人気 / 上がり3F
 	 *
-	 * タイムと通過順は2行目に、着順のまとまりの下へ右寄せで、薄い色で足す。
+	 * 2行目は薄い色の補足。左に「どの枠から・誰が乗ったか」（頭数・枠・馬番・騎手）と
+	 * 「誰にどれだけ負けたか」（勝ち馬とタイム差。勝った走は2着馬と、2着につけた差を負で）、
+	 * 右に着順のまとまりの下へ揃えてタイムと通過順を置く。
 	 * 1行目に足すと狭い画面で折り返しが増え、着順の位置が行ごとにずれて
 	 * 縦に拾い読みできなくなる。2行目なら1行目の並びは今までと変わらない。
-	 * どちらも無い走（結果が未入力）は2行目ごと出さない。
+	 * どれも無い走は2行目ごと出さない。
 	 *
 	 * 着順が入っていない行も落とさずに出す。出馬表だけ登録して結果がまだ
 	 * 入っていないレースは実際にあるので、「走ったが結果は未入力」と
@@ -43,8 +55,33 @@
 	 */
 	let { runs }: { runs: PastRun[] } = $props();
 
-	/** `2026-09-06` → `09/06`。年は同じ並びの中では冗長なので落とす。 */
-	const md = (d: string) => d.slice(5).replace('-', '/');
+	/**
+	 * `2026-09-06` → `26/09/06`。年は2桁で残す。休み明けで5走が年をまたぐと、
+	 * 月日だけでは前走からの間隔も、何年前の走りかも読めない。
+	 */
+	const ymd = (d: string) => d.slice(2).replaceAll('-', '/');
+
+	/** `16頭 3枠5番`。頭数は取得元の値で、無ければ枠・馬番だけ出す。 */
+	const post = (r: PastRun) =>
+		[
+			r.fieldSize ? `${r.fieldSize}頭` : null,
+			r.horseNumber ? `${r.bracket ? `${r.bracket}枠` : ''}${r.horseNumber}番` : null
+		]
+			.filter(Boolean)
+			.join(' ');
+
+	/**
+	 * 比べる相手。負けた走は勝ち馬、勝った走は2着馬（新聞の馬柱と同じ）。
+	 * タイム差は取得元の表記のまま（勝った走は `-0.2` と負になる）。
+	 */
+	const rival = (r: PastRun) => {
+		// 着順の無い走（取消・中止・結果が未入力）は、負けたのでも勝ったのでもない。勝ち馬を出すと負けたように読める。
+		if (r.finishPosition === null) return null;
+		const won = r.finishPosition === 1;
+		const name = won ? r.runnerUpName : r.winnerName;
+		const diff = r.timeDiff === null ? '' : `（${r.timeDiff.toFixed(1)}）`;
+		return name || diff ? { label: won ? '2着馬' : '勝ち馬', text: `${name ?? ''}${diff}` } : null;
+	};
 
 	/** `芝2000良` のような1かたまり。欠けている要素は詰める。 */
 	const cond = (r: PastRun) =>
@@ -66,8 +103,10 @@
 {:else}
 	<ol class="divide-y divide-border/60 text-xs">
 		{#each runs as r (r.raceId)}
+			{@const at = post(r)}
+			{@const vs = rival(r)}
 			<li class="flex flex-wrap items-baseline gap-x-2 py-1">
-				<span class="font-mono text-muted-foreground">{md(r.date)}</span>
+				<span class="font-mono text-muted-foreground">{ymd(r.date)}</span>
 				<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。
 				     重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
 				     格が無いときだけクラスを札と同じ位置に出す（両方出すと重複して見える）。 -->
@@ -90,15 +129,26 @@
 						<span class="font-mono text-muted-foreground">上{r.last3f.toFixed(1)}</span>
 					{/if}
 				</span>
-				{#if r.finishTime || r.passing}
+				{#if at || r.jockey || vs || r.finishTime || r.passing}
 					<!-- basis-full で必ず次の行に送る。見出しの語は画面には出さない
-					     （`1:58.4` と `5-5-4-2` は形で見分けが付く）が、読み上げでは要る。 -->
-					<span class="flex basis-full justify-end gap-x-2 font-mono text-muted-foreground">
-						{#if r.finishTime}
-							<span><span class="sr-only">タイム</span>{r.finishTime}</span>
+					     （`1:58.4` と `5-5-4-2` は形で見分けが付き、騎手・勝ち馬は並びで分かる）が、読み上げでは要る。 -->
+					<span class="flex basis-full flex-wrap gap-x-2 text-muted-foreground">
+						{#if at}<span>{at}</span>{/if}
+						{#if r.jockey}
+							<span><span class="sr-only">騎手</span>{r.jockey}</span>
 						{/if}
-						{#if r.passing}
-							<span><span class="sr-only">通過順</span>{r.passing}</span>
+						{#if vs}
+							<span><span class="sr-only">{vs.label}</span>{vs.text}</span>
+						{/if}
+						{#if r.finishTime || r.passing}
+							<span class="ms-auto flex gap-x-2 font-mono">
+								{#if r.finishTime}
+									<span><span class="sr-only">タイム</span>{r.finishTime}</span>
+								{/if}
+								{#if r.passing}
+									<span><span class="sr-only">通過順</span>{r.passing}</span>
+								{/if}
+							</span>
 						{/if}
 					</span>
 				{/if}
