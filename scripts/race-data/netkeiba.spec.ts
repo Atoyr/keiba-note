@@ -473,6 +473,7 @@ describe('parseHorseResults', () => {
 			])
 		);
 		expect(won.race).toMatchObject({ fieldSize: 14, runnerUp: '2着馬Y' });
+		// 勝ち馬はこの馬自身だが、戦績表の行には馬名が無い。applyPastRuns が馬名で埋める
 		expect(won.race.winner).toBeUndefined();
 		expect(won.timeDiff).toBe(-0.2);
 	});

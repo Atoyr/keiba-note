@@ -7,7 +7,7 @@
  * | 手順     | 上書きするもの                                   | 残すもの                 |
  * | -------- | ------------------------------------------------ | ------------------------ |
  * | 出馬表   | 枠・馬番（確定後）・騎手・性齢・斤量・調教師・ref | 馬名・結果・血統         |
- * | 過去走   | —（空いている項目だけ埋める。頭数・勝ち馬もここで入る） | 既に書いてある値すべて |
+ * | 過去走   | —（空いている項目だけ埋める。頭数・勝ち馬・タイム差もここで入る） | 既に書いてある値すべて |
  * | 基本情報 | 性・馬齢・調教師・父・母・ref                     | 馬名・レースの値         |
  * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数・勝ち馬・2着馬 | 馬名・基本情報 |
  *
@@ -169,7 +169,8 @@ export async function applyPastRuns(
 			trackCondition: run.race.trackCondition,
 			weather: run.race.weather,
 			fieldSize: run.race.fieldSize,
-			winner: run.race.winner,
+			// 勝った走の戦績表には2着馬しか出ないが、勝ち馬はこの馬自身と分かっている。
+			winner: run.race.winner ?? (run.finish === 1 ? horse.name : undefined),
 			runnerUp: run.race.runnerUp
 		});
 		const { added } = file.upsertEntry(
@@ -254,23 +255,33 @@ function seconds(time: string | undefined): number | undefined {
 
 /**
  * 結果の表のタイムから、勝ち馬とのタイム差（秒）を出す。戦績表の「着差」と同じ形にそろえる:
- * 勝ち馬は2着以下で最も速い馬との差を負の値で（`-0.2`）、ほかは勝ち馬との差（`0.4`）。
- * 0.1秒単位に丸める（浮動小数の端数を YAML に書かない）。タイムの無い馬（取消・中止）は入らない。
+ * 勝ち馬は2着馬との差を負の値で（`-0.2`）、ほかは勝ち馬との差（`0.4`）。
+ *
+ * **基準は着順で決め、タイムの速さでは選ばない。** 降着があると着順とタイムの順が食い違う
+ * （1:58.4 で入線して4着に降着した馬が、勝ち馬より速い）。それでも「負は勝った走だけ」を崩さないよう、
+ * 勝ち馬は 0 より大きく、ほかは 0 より小さくしない。
+ * 1着同着なら2着馬はもう1頭の1着馬（差は 0）。0.1秒単位に丸める（浮動小数の端数を YAML に書かない）。
+ * タイムか着順の無い馬（取消・中止）は入らない。
  */
 export function timeDiffs(rows: readonly ResultRow[]): Map<ResultRow, number> {
 	const timed = rows.flatMap((r) => {
 		const t = seconds(r.time);
-		return t === undefined || r.finish === undefined ? [] : [{ r, t }];
+		return t === undefined || r.finish === undefined ? [] : [{ r, t, finish: r.finish }];
 	});
-	const best = (list: typeof timed) => Math.min(...list.map((x) => x.t));
-	const winners = timed.filter((x) => x.r.finish === 1);
+	const fastest = (finish: number) => {
+		const ts = timed.filter((x) => x.finish === finish).map((x) => x.t);
+		return ts.length > 0 ? Math.min(...ts) : undefined;
+	};
+	const winner = fastest(1);
 	const out = new Map<ResultRow, number>();
-	if (winners.length === 0) return out;
-	const top = best(winners);
-	for (const { r, t } of timed) {
-		const others = timed.filter((x) => x.r !== r);
-		const base = r.finish === 1 ? (others.length > 0 ? best(others) : t) : top;
-		out.set(r, Math.round((t - base) * 10) / 10 || 0);
+	if (winner === undefined) return out;
+	const deadHeat = timed.filter((x) => x.finish === 1).length > 1;
+	const second = deadHeat ? winner : fastest(2);
+
+	const round = (d: number) => Math.round(d * 10) / 10 || 0;
+	for (const { r, t, finish } of timed) {
+		if (finish !== 1) out.set(r, round(Math.max(0, t - winner)));
+		else if (second !== undefined) out.set(r, round(Math.min(0, t - second)));
 	}
 	return out;
 }

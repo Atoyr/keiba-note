@@ -245,6 +245,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 16
+    winner: ホースA
     runnerUp: 2着馬Y
     entries:
       - horseNumber: 2
@@ -408,6 +409,25 @@ describe('applyResult', () => {
 			resolve
 		);
 		expect(file.toString()).toContain('    winner: ホースA\n    runnerUp: ホースB\n');
+	});
+
+	it('降着で着順とタイムの順が食い違っても、負は勝ち馬だけ', () => {
+		const rows = [
+			result('1', 'A', { finish: 1, time: '1:58.5' }),
+			result('2', 'B', { finish: 2, time: '1:58.6' }),
+			// 1:58.4 で入線して4着に降着
+			result('4', 'D', { finish: 4, time: '1:58.4' })
+		];
+		const diffs = timeDiffs(rows);
+		expect(rows.map((r) => diffs.get(r))).toEqual([-0.1, 0.1, 0]);
+
+		// 2着馬のほうが速く入線していても、勝ち馬の差は正にしない
+		const slowWinner = [
+			result('1', 'A', { finish: 1, time: '1:58.7' }),
+			result('2', 'B', { finish: 2, time: '1:58.6' })
+		];
+		const d2 = timeDiffs(slowWinner);
+		expect(slowWinner.map((r) => d2.get(r))).toEqual([0, 0]);
 	});
 
 	it('同着の1着どうしは 0', () => {

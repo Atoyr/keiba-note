@@ -1,6 +1,36 @@
 <script lang="ts">
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import type { PastRun } from '$lib/server/services/races';
+
+	/**
+	 * 1走ぶん。サーバーの `listPastRuns` の戻り値と同じ形だが、**型は import せずここで持つ**
+	 * （画面側はサーバーのコードを型ですら import しない。architecture.md 第2章）。
+	 * 渡す側（予想画面の PageData）との食い違いは svelte-check が見る。
+	 */
+	type PastRun = {
+		raceId: string;
+		date: string;
+		course: string;
+		raceNumber: number | null;
+		raceName: string | null;
+		grade: string | null;
+		className: string | null;
+		surface: string | null;
+		distance: number | null;
+		trackCondition: string | null;
+		fieldSize: number | null;
+		winnerName: string | null;
+		runnerUpName: string | null;
+		/** 勝ち馬とのタイム差（秒）。勝った走は2着との差が負で入る。 */
+		timeDiff: number | null;
+		bracket: number | null;
+		horseNumber: number | null;
+		finishPosition: number | null;
+		popularity: number | null;
+		last3f: number | null;
+		finishTime: string | null;
+		passing: string | null;
+		jockey: string | null;
+	};
 
 	/**
 	 * 馬柱（簡略版）。1走を1行で出す。
@@ -45,6 +75,8 @@
 	 * タイム差は取得元の表記のまま（勝った走は `-0.2` と負になる）。
 	 */
 	const rival = (r: PastRun) => {
+		// 着順の無い走（取消・中止・結果が未入力）は、負けたのでも勝ったのでもない。勝ち馬を出すと負けたように読める。
+		if (r.finishPosition === null) return null;
 		const won = r.finishPosition === 1;
 		const name = won ? r.runnerUpName : r.winnerName;
 		const diff = r.timeDiff === null ? '' : `（${r.timeDiff.toFixed(1)}）`;

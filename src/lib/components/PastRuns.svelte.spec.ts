@@ -7,7 +7,6 @@ import PastRuns from './PastRuns.svelte';
 type PastRun = ComponentProps<typeof PastRuns>['runs'][number];
 
 const run = (over: Partial<PastRun>): PastRun => ({
-	horseId: 'h1',
 	raceId: 'r1',
 	date: '2026-08-23',
 	course: '札幌',
@@ -29,7 +28,6 @@ const run = (over: Partial<PastRun>): PastRun => ({
 	last3f: 34.2,
 	finishTime: null,
 	passing: null,
-	margin: null,
 	jockey: null,
 	...over
 });
@@ -71,6 +69,15 @@ describe('PastRuns', () => {
 
 		await expect.element(screen.getByText('2着馬Y（-0.2）')).toBeInTheDocument();
 		await expect.element(screen.getByText('2着馬', { exact: true })).toHaveClass(/sr-only/);
+	});
+
+	it('着順の無い走（取消・結果が未入力）には勝ち馬を出さない', async () => {
+		const screen = render(PastRuns, {
+			runs: [run({ finishPosition: null, winnerName: '勝ち馬X', horseNumber: 5 })]
+		});
+
+		await expect.element(screen.getByRole('listitem')).toHaveTextContent('5番');
+		await expect.element(screen.getByRole('listitem')).not.toHaveTextContent('勝ち馬X');
 	});
 
 	it('差が 0 の走（ハナ差・同着）も 0.0 と出す', async () => {

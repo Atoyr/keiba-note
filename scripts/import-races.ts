@@ -117,7 +117,7 @@ const raceSchema = v.object({
 	trackCondition: optional(TRACK_CONDITIONS),
 	weather: v.optional(v.string()),
 	/**
-	 * 出走頭数（取消・除外を除く）。`data:fetch past` と `results` が書く。
+	 * 出走頭数（取消・除外を除く）。`data:fetch past` と `result` が書く。
 	 * **entries の数とは別に持つ。** 過去走・条件戦は気にしている馬だけを並べるので、数えても頭数にならない。
 	 */
 	fieldSize: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
