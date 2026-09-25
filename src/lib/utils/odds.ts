@@ -58,7 +58,7 @@ export function oddsWindowOpens(date: string, grade: string | null): Date | null
  *
  * 発走後は締め切られて変わらない（確定オッズは結果と一緒に YAML の `odds` で入る）。
  * 取りに行く回数をこの幅に絞ることが、取得元への負荷を抑える主な手段。
- * 夜中に取りに行かないのは Cron の時間帯（wrangler.toml）の側で決めている。
+ * 取りに行かない時間帯（JST 25:00〜7:00）は Cron の側（wrangler.toml）で決めている。
  */
 export function inOddsWindow(
 	date: string,

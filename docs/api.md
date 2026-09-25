@@ -106,7 +106,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | 起動 | 入口 | すること |
 | --- | --- | --- |
-| `*/30 0-13 * * *`（UTC。JST 9:00〜22:30 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | 取りに行く時間帯（重賞（G1〜G3）だけ。G1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで）に入ったレースのオッズを取得元から取り、`race_odds` に書く（→ [architecture.md 3-8](./architecture.md)） |
+| `*/30 22-23,0-15 * * *` と `0 16 * * *`（UTC。JST 7:00〜25:00 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | 取りに行く時間帯（重賞（G1〜G3）だけ。G1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで）に入ったレースのオッズを取得元から取り、`race_odds` に書く（→ [architecture.md 3-8](./architecture.md)） |
 | `5 1-10 * * *`（UTC。JST 10:05〜19:05 の毎時） | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 1〜3日後の重賞で馬番がまだ無いレースの出走馬の取得を、GitHub Actions に頼む（枠順が確定していなければ Actions は何も書かない。→ [architecture.md 3-9](./architecture.md)） |
 
 ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。

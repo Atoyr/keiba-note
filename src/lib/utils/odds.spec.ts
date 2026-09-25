@@ -38,6 +38,7 @@ describe('inOddsWindow', () => {
 		expect(at('G2', '2026-09-26T09:29:59Z')).toBe(false); // 土 18:29:59
 		expect(at('G2', '2026-09-26T09:30:00Z')).toBe(true); // 土 18:30
 		expect(at('G3', '2026-09-26T13:30:00Z')).toBe(true); // 土 22:30
+		expect(at('G3', '2026-09-26T16:00:00Z')).toBe(true); // 土 25:00（日 1:00）
 		expect(at('G3', '2026-09-27T00:00:00Z')).toBe(true); // 日 9:00
 		expect(at('G2', '2026-09-25T10:00:00Z')).toBe(false); // 金 19:00
 	});
