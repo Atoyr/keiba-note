@@ -57,7 +57,18 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   `<!-- eslint-disable … -->` と `<!-- eslint-enable … -->` で囲み、理由を書く
 - フォームは **JavaScript が無くても動く** HTML フォームを基本にし、`use:enhance` で上乗せする
 - 出走馬のように行が並ぶ一括フォームは、書きかけを失わないよう `DraftKeeper` を置く
-  （未保存の件数表示・離脱時の確認・`localStorage` の下書き）
+  （未保存の件数・離脱時の確認・`localStorage` の下書き）。離脱時の確認は、読み込み直し・タブを閉じる
+  （`beforeunload`）と、アプリ内のリンク（`beforeNavigate`）の両方で出す
+- 一括フォームの保存ボタンは `SaveBar` で出す。`DraftKeeper` の `bind:dirtyCount` を渡し、
+  **未保存の変更があるときだけ**件数と一緒に出る。JS が無いときは `<noscript>` で常に出す。
+  送信中は `pending`（`aria-disabled`。`disabled` にするとフォーカスが外れる）、失敗の文は `message` で
+  ボタンの横に出す。`use:enhance` では送る直前に `keeper.snapshot()` を取り、成功したら `keeper.clear(sent)` に渡す
+  （送信中に書き足した分を保存済みに数えない）。ボタンが消えるときフォーカスはフォームへ移るので、
+  フォームに `tabindex="-1"` を付ける
+- 「保存しました」のような一時的な知らせはトースト（`svelte-sonner` の `toast`）で出す。
+  `use:enhance` の結果が `success` のときに呼ぶ。JS が無いとトーストは出ないので、同じ文を
+  `<noscript>` で画面にも置く。**失敗（`form.message`）はトーストにしない。** 直すまで消えては困るので、
+  `role="alert"` で残す（一括フォームでは `SaveBar` の中）
 
 ## 4. フォームと入力
 

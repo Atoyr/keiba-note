@@ -6,6 +6,7 @@
 	import { page } from '$app/state';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';
 	import AppEnvMark from '$lib/components/AppEnvMark.svelte';
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import { replayEarlyInput, resetEarlyInput, takeEarlyInput } from '$lib/utils/early-input';
 	import type { LayoutProps } from './$types';
 
@@ -82,3 +83,11 @@
 {/if}
 
 {@render children()}
+
+<!-- 「保存しました」などの一時的な知らせ。下の中央に出す（保存ボタンを押した指の近く）。
+     保存が通ると保存ボタン（SaveBar）は消えるので、ボタンと重ならない。
+     **theme はライトに固定する。** 渡さないと ui/sonner が mode-watcher の mode.current を読み、
+     OS がダークの端末ではダークのトーストが出たうえ、<html> の color-scheme まで dark に書き換わる
+     （このアプリはライトだけ）。渡せば後ろの {...restProps} が勝ち、mode.current は読まれない。
+     richColors は使わない。成功の緑の文字が背景に対して 4.5:1 に届かない。 -->
+<Toaster position="bottom-center" theme="light" />

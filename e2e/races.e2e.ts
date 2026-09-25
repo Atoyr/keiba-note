@@ -100,9 +100,11 @@ test('レース一覧のフォームで条件を全部外して送ると、既�
  */
 test('出走馬がいないレースの保存ボタンは「まとめて」と名乗らない', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${PAST_EMPTY_RACE_ID}`);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}`);
 
 	await expect(page.getByText('出走馬がまだ登録されていません。')).toBeVisible();
+	// 保存ボタンは書いてから出る（SaveBar）。保存はしない。
+	await page.locator('textarea[name="raceNoteBody"]').fill('前残り。');
 	await expect(page.getByRole('button', { name: 'レースのメモを保存' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'まとめて保存' })).toHaveCount(0);
 });
@@ -342,4 +344,22 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 	await row.locator('textarea').fill('');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
+});
+
+/** ふりかえり画面でも、書きかけのままアプリ内のリンクで離れようとしたら止める。 */
+test('ふりかえりを書きかけのままリンクを押すと、離れる前に確認が出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}`);
+	await page.locator('textarea[name="raceNoteBody"]').fill('前残り。');
+
+	const messages: string[] = [];
+	page.once('dialog', (d) => {
+		messages.push(d.message());
+		void d.dismiss();
+	});
+	await page.getByRole('navigation').getByRole('link', { name: '馬' }).click();
+	await expect
+		.poll(() => messages)
+		.toEqual(['保存していない変更があります。保存せずにこのページを離れますか？']);
+	await expect(page).toHaveURL(`/races/${PAST_EMPTY_RACE_ID}`);
 });

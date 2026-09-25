@@ -4,6 +4,7 @@ import { login } from './login';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
+	MARKS_RACE_ID,
 	OTHER_DISTANCE_NOTE_BODY,
 	OTHER_USER_SAME_CONDITION_BODY,
 	PAST_EMPTY_RACE_ID,
@@ -105,11 +106,24 @@ test('出走馬がいない未来のレースでも、レースの見立てを�
 	await expect(page.getByText('出走馬がまだ登録されていません。')).toBeVisible();
 	const body = page.locator('textarea[name="raceNoteBody"]');
 	await expect(body).toHaveValue('');
+	// 何も変えていないうちは保存ボタンを出さない。
+	const save = page.getByRole('button', { name: 'レースの見立てを保存' });
+	await expect(save).toHaveCount(0);
+
+	// OS がダークの端末でも、トーストはライトで出て、画面の color-scheme も書き換えない（このアプリはライトだけ）。
+	await page.emulateMedia({ colorScheme: 'dark' });
 
 	await body.fill('開幕週で内有利になりそう。前に行ける馬から。');
-	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
+	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
+	// キーボードで押す。ボタンが消えたあと、フォーカスが行き場を失わないことを見る。
+	await save.press('Enter');
 
-	await expect(page.getByText('保存しました')).toBeVisible();
+	// 知らせはトーストで出る。保存が通ったのでボタンは消え、フォーカスはフォームへ移る。
+	await expect(page.locator('[data-sonner-toast]')).toContainText('保存しました');
+	await expect(save).toHaveCount(0);
+	await expect(page.locator('main form[method="POST"]')).toBeFocused();
+	await expect(page.locator('[data-sonner-toaster]')).toHaveAttribute('data-sonner-theme', 'light');
+	expect(await page.evaluate(() => document.documentElement.style.colorScheme)).toBe('');
 
 	// 読み込み直しても残っている（＝DB に入っている）。
 	await page.reload();
@@ -257,4 +271,140 @@ test('未ログインでは同じ条件のレースのメモも漏れない', as
 
 	await expect(page).toHaveURL(/\/login\?redirect=/);
 	await expect(page.getByText(SAME_CONDITION_NOTE_BODY)).toHaveCount(0);
+});
+
+/**
+ * ★ 書きかけのままアプリ内のリンクで離れようとしたら止める。
+ *
+ * SvelteKit のリンクは読み込み直さずに画面を差し替えるので、`beforeunload` の確認は出ない。
+ * 見立てを直している途中でヘッダーの「レース」を押すと、黙って離れていた。
+ */
+test('見立てを書きかけのままヘッダーのリンクを押すと、離れる前に確認が出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/preview`);
+	const body = page.locator('textarea[name="raceNoteBody"]');
+	await body.fill('外差しが決まる馬場。');
+
+	// 「キャンセル」なら画面に残り、書いたものもそのまま。
+	const messages: string[] = [];
+	page.once('dialog', (d) => {
+		messages.push(d.message());
+		void d.dismiss();
+	});
+	await page.getByRole('navigation').getByRole('link', { name: 'レース' }).click();
+	await expect
+		.poll(() => messages)
+		.toEqual(['保存していない変更があります。保存せずにこのページを離れますか？']);
+	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
+	await expect(body).toHaveValue('外差しが決まる馬場。');
+
+	// 「OK」なら離れる。
+	page.once('dialog', (d) => void d.accept());
+	await page.getByRole('navigation').getByRole('link', { name: 'レース' }).click();
+	await expect(page).toHaveURL(/\/races(\?|$)/);
+});
+
+/** 同じ画面の中のアンカー（付けた印から馬の行へ）は離脱ではないので止めない。 */
+test('書きかけでも、付けた印から馬の行へ飛ぶときは確認を出さない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/preview`);
+	await page.locator('textarea[name="raceNoteBody"]').fill('外差しが決まる馬場。');
+
+	let asked = false;
+	page.on('dialog', (d) => {
+		asked = true;
+		void d.dismiss();
+	});
+	await page.getByRole('region', { name: '付けた印' }).getByRole('link').first().click();
+	await expect(page).toHaveURL(new RegExp(`/races/${MARKS_RACE_ID}/preview#entry-`));
+	expect(asked).toBe(false);
+});
+
+/**
+ * JavaScript が無いと未保存の件数を数えられない。そのとき保存ボタンまで隠すと、
+ * フォームが送れなくなる。JS が無いときは常に出す。
+ */
+test.describe('JavaScript が無いとき', () => {
+	test.use({ javaScriptEnabled: false });
+
+	test('保存ボタンは最初から出ている', async ({ page }) => {
+		await login(page);
+		await page.goto(`/races/${MARKS_RACE_ID}/preview`);
+		await expect(page.getByRole('button', { name: '出走前メモを保存' })).toBeVisible();
+	});
+});
+
+/**
+ * 送信中は保存ボタンを押せない。送信中に書き足した分は届いていないので、
+ * 保存が通っても未保存のまま数え、画面からも消さない。
+ *
+ * **本当に保存させる。** 保存が通ると load が送った値を返し、欄がその値で描き直される。
+ * 書き足した分が消えるのはこの経路なので、応答を差し替えると確かめられない。
+ * POST だけを止めておき、その間に書き足す。
+ */
+test('送信中はボタンを押せず、その間に書き足した分は保存後も画面と未保存に残る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${EMPTY_RACE_ID}/preview`);
+
+	let release = () => {};
+	const released = new Promise<void>((r) => (release = r));
+	await page.route(
+		(url) => url.pathname === `/races/${EMPTY_RACE_ID}/preview`,
+		async (route) => {
+			if (route.request().method() !== 'POST') return route.fallback();
+			await released;
+			await route.continue();
+		}
+	);
+
+	const body = page.locator('textarea[name="raceNoteBody"]');
+	await body.fill('外差しが決まる馬場。');
+	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
+
+	const pending = page.getByRole('button', { name: '保存しています…' });
+	await expect(pending).toHaveAttribute('aria-disabled', 'true');
+	await body.fill('外差しが決まる馬場。内は荒れている。');
+	release();
+
+	await expect(page.locator('[data-sonner-toast]')).toContainText('保存しました');
+	await expect(body).toHaveValue('外差しが決まる馬場。内は荒れている。');
+	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
+
+	// 届いたのは送った時点の値だけ。
+	await page.unroute((url) => url.pathname === `/races/${EMPTY_RACE_ID}/preview`);
+	page.once('dialog', (d) => void d.accept()); // 読み込み直しは beforeunload の確認が出る
+	await page.reload();
+	await expect(body).toHaveValue('外差しが決まる馬場。');
+
+	// 後片付け。空で保存すると消える仕様なので、それで元に戻す。
+	await waitForHydration(page);
+	await body.fill('');
+	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
+	await expect(page.locator('[data-sonner-toast]')).toContainText('保存しました');
+});
+
+/** ブラウザの「戻る」でも止める。SvelteKit の中の履歴なら `beforeunload` は起きない。 */
+test('書きかけのまま「戻る」を押しても、離れる前に確認が出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}`);
+	// 読み込み直さずに予想画面へ（アプリ内の遷移）。
+	await page.getByRole('link', { name: '予想（過去メモを見る）' }).click();
+	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
+
+	const body = page.locator('textarea[name="raceNoteBody"]');
+	await body.fill('外差しが決まる馬場。');
+
+	const messages: string[] = [];
+	page.once('dialog', (d) => {
+		messages.push(d.message());
+		void d.dismiss();
+	});
+	await page.goBack();
+	await expect
+		.poll(() => messages)
+		.toEqual(['保存していない変更があります。保存せずにこのページを離れますか？']);
+	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
+	await expect(body).toHaveValue('外差しが決まる馬場。');
 });

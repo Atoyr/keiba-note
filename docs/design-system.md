@@ -108,7 +108,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
   設定は `components.json`（style `nova`・アイコン `lucide`）
 - **`src/lib/components/ui/` は手で直さない。** 見た目を変えたいときは、トークンを変えるか、
   呼ぶ側で `class` を足すか、③ のドメイン部品で包む
-- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / select / separator / textarea
+- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / select / separator / sonner / textarea
 - **素の `<button>` `<select>` `<textarea>` を新しく書かない。** 押せる大きさやフォーカスの見え方が
   部品ごとに揃わなくなる。shadcn に無い操作が要るときは、まず `shadcn-svelte add` で足せるものが無いかを見る
 - アイコンは `@lucide/svelte/icons/<名前>` を1つずつ import する
@@ -122,6 +122,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | ひとかたまりの情報 | `Card` |
 | 毎回は使わない操作を畳む | `DropdownMenu`（`⋯`）。出しっぱなしにするのは毎回踏む導線だけ |
 | 入力 | `Input` / `Textarea` / `Select` + `Label` |
+| 操作が済んだことを一時的に知らせる（保存しました） | トースト（`toast.success`。`Toaster` はルートレイアウトに1つだけ、下の中央、`theme="light"` 固定、`richColors` なし＝成功の緑の文字が 4.5:1 に届かない）。失敗は画面に残す |
 
 ## 4. ③ ドメイン部品
 
@@ -137,7 +138,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
 | `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の SVG で、`src/lib/utils/course.ts` から `pnpm run course-maps` で書き出す生成物（手で直さない） |
-| `NoteMenu` / `AnswerCheck` / `DraftKeeper` | メモの `⋯` メニュー・的中の確認・書きかけの保持 |
+| `NoteMenu` / `AnswerCheck` / `DraftKeeper` / `SaveBar` | メモの `⋯` メニュー・的中の確認・書きかけの保持・未保存のときだけ出る保存ボタン |
 | `AccountMenu` | ヘッダのアバター |
 | `AppEnvMark` | ファビコンと、ステージングの帯（→ 2-4） |
 | `LegalDocument` | プライバシーポリシーと利用規約の枠（見出し・制定日と改定日・戻り先） |

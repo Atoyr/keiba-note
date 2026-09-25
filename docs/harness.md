@@ -183,7 +183,7 @@ src/lib/
 │   ├── ui/          shared（shadcn 生成物）
 │   ├── shell/       shared   AccountMenu
 │   ├── races/       GradeBadge / BracketBadge / RaceHeading / RaceFilterForm / RaceListEmpty / PastRuns
-│   ├── notes/       MarkBadge / MarkPicker / TagBadges / TagPicker / KindBadge / NoteMenu / AnswerCheck / DraftKeeper
+│   ├── notes/       MarkBadge / MarkPicker / TagBadges / TagPicker / KindBadge / NoteMenu / AnswerCheck / DraftKeeper / SaveBar
 │   └── share/       ShareControl / SharedBadge
 ├── utils/
 │   ├── date.ts / redirect.ts / role.ts        shared

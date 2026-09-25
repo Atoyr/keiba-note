@@ -9,9 +9,11 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
+	import SaveBar from '$lib/components/SaveBar.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
@@ -25,6 +27,10 @@
 	// 下書きの置き場。レースとユーザーで分ける（同じ端末を2人で使う場合に混ざらないように）。
 	let formEl = $state<HTMLFormElement | null>(null);
 	let keeper = $state<DraftKeeper | null>(null);
+	/** 未保存の変更の件数（DraftKeeper が数える）。0 のあいだは保存ボタンを出さない。 */
+	let dirtyCount = $state(0);
+	/** 送信中。保存ボタンを押せなくする。 */
+	let saving = $state(false);
 	const draftKey = $derived(`uma-memo:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const meeting = $derived(raceMeeting(data.race));
@@ -33,6 +39,7 @@
 	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄はレースのメモ1つだけ。
 	// 「まとめて保存」「（N 件）」は、並んでいる馬の数だけ意味を持つ言い方なので出さない。
 	const bulk = $derived(data.rows.length > 0);
+	const savedMessage = (saved: number) => `保存しました${bulk ? `（${saved} 件）` : ''}`;
 
 	// 予想で付けた印と着順の突き合わせ。印の順（◎ → ×）に並べ直す。
 	const answers = $derived(
@@ -71,23 +78,27 @@
 		{/if}
 	</div>
 
+	<!-- 保存に失敗したときの文は、JS があれば保存ボタンの横に出す（SaveBar）。ここは JS が無いときだけ。 -->
 	{#if form && 'message' in form && form.message}
-		<p
-			class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
-			role="alert"
-		>
-			{form.message}
-		</p>
+		<noscript>
+			<p
+				class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+				role="alert"
+			>
+				{form.message}
+			</p>
+		</noscript>
 	{/if}
 
+	<!-- 保存の知らせはトースト（下の use:enhance）。JS が無いときはトーストが出せないので、ここに出す。 -->
 	{#if form && 'saved' in form}
-		{#key form.savedAt}
+		<noscript>
 			<p
 				class="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
 			>
-				保存しました{bulk ? `（${form.saved} 件）` : ''}
+				{savedMessage(form.saved ?? 0)}
 			</p>
-		{/key}
+		</noscript>
 	{/if}
 
 	<!-- 答え合わせは書く欄より先に置く。何が外れたかを見てから書くほうが、
@@ -116,24 +127,38 @@
 	<form
 		method="POST"
 		bind:this={formEl}
-		use:enhance={() =>
-			async ({ result, update }) => {
-				// 保存が通ったときだけ下書きを捨てる。失敗したら残す
-				// （電波が悪くて落ちた場合、書いたものを失わないため）。
-				if (result.type === 'success') keeper?.clear();
-				// **reset: false が必須。** 既定の update() はフォームを reset() するが、
-				// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
-				// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
-				// メモが「変化なし」と判断されて描き直されない。
-				// 結果、保存した直後に中身が消えたように見える。
-				// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
-				// 保存すると本当に消える。表示はサーバーの data が正で、
-				// フォームの初期値ではない。
-				await update({ reset: false });
-			}}
-		class="mt-8"
+		use:enhance={() => {
+			saving = true;
+			// 送った値。送信中に書き足した分を「保存済み」に数えないため（DraftKeeper.clear）。
+			const sent = keeper?.snapshot();
+			return async ({ result, update }) => {
+				try {
+					// 送信中に書き足した分も入った、いまの値。update() で欄が描き直される前に取る。
+					const late = keeper?.snapshot();
+					// **reset: false が必須。** 既定の update() はフォームを reset() するが、
+					// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
+					// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
+					// メモが「変化なし」と判断されて描き直されない。
+					// 結果、保存した直後に中身が消えたように見える。
+					// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
+					// 保存すると本当に消える。表示はサーバーの data が正で、
+					// フォームの初期値ではない。
+					await update({ reset: false });
+					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
+					// （電波が悪くて落ちた場合、書いたものを失わないため）。
+					if (result.type === 'success') {
+						await keeper?.clear(sent, late);
+						toast.success(savedMessage(Number(result.data?.saved ?? 0)));
+					}
+				} finally {
+					saving = false;
+				}
+			};
+		}}
+		tabindex="-1"
+		class="mt-8 outline-none"
 	>
-		<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
+		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
 		<section>
 			<!-- 開催前に書いた見立てを上に置く。**読むだけ。** 結果を見たあとで
 			     書き換えられると、事前と事後を別の行にした意味が無くなる。
@@ -226,13 +251,11 @@
 			</section>
 		{/if}
 
-		<div class="sticky bottom-0 mt-8 border-t border-gray-200 bg-white/90 py-3 backdrop-blur">
-			<button
-				type="submit"
-				class="w-full rounded-md bg-primary px-4 py-2.5 font-medium text-primary-foreground hover:bg-primary/80"
-			>
-				{raceReviewSaveLabel(data.rows.length)}
-			</button>
-		</div>
+		<SaveBar
+			{dirtyCount}
+			label={raceReviewSaveLabel(data.rows.length)}
+			pending={saving}
+			message={form && 'message' in form ? form.message : null}
+		/>
 	</form>
 </main>

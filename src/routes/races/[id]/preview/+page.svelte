@@ -6,6 +6,7 @@
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import SaveBar from '$lib/components/SaveBar.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
@@ -15,6 +16,7 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { toast } from 'svelte-sonner';
 	import { byMark } from '$lib/utils/answer';
 	import { courseMap } from '$lib/utils/course';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
@@ -30,6 +32,10 @@
 	// 下書きの置き場。レースとユーザーで分ける。
 	let formEl = $state<HTMLFormElement | null>(null);
 	let keeper = $state<DraftKeeper | null>(null);
+	/** 未保存の変更の件数（DraftKeeper が数える）。0 のあいだは保存ボタンを出さない。 */
+	let dirtyCount = $state(0);
+	/** 送信中。保存ボタンを押せなくする。 */
+	let saving = $state(false);
 	const draftKey = $derived(`uma-memo:draft:preview:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	// 見出しはふりかえりと同じ関数で組む（行き来しても同じレースの見出しに見えるように）。
@@ -42,6 +48,7 @@
 	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄は見立て1つだけ。
 	// 「（N 件）」は並んでいる馬の数だけ意味を持つ言い方なので出さない。
 	const bulk = $derived(data.rows.length > 0);
+	const savedMessage = (saved: number) => `保存しました${bulk ? `（${saved} 件）` : ''}`;
 
 	const ta = 'mt-1 text-sm';
 
@@ -128,23 +135,27 @@
 		</div>
 	{/if}
 
+	<!-- 保存に失敗したときの文は、JS があれば保存ボタンの横に出す（SaveBar）。ここは JS が無いときだけ。 -->
 	{#if form && 'message' in form && form.message}
-		<p
-			class="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
-			role="alert"
-		>
-			{form.message}
-		</p>
+		<noscript>
+			<p
+				class="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+				role="alert"
+			>
+				{form.message}
+			</p>
+		</noscript>
 	{/if}
 
+	<!-- 保存の知らせはトースト（下の use:enhance）。JS が無いときはトーストが出せないので、ここに出す。 -->
 	{#if form && 'saved' in form}
-		{#key form.savedAt}
+		<noscript>
 			<p
 				class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
 			>
-				保存しました{bulk ? `（${form.saved} 件）` : ''}
+				{savedMessage(form.saved ?? 0)}
 			</p>
-		{/key}
+		</noscript>
 	{/if}
 
 	<!-- **出走馬がいなくてもフォームを出す。** 出馬表が出る前の重賞に
@@ -152,22 +163,38 @@
 	<form
 		method="POST"
 		bind:this={formEl}
-		use:enhance={() =>
-			async ({ result, update }) => {
-				if (result.type === 'success') keeper?.clear();
-				// **reset: false が必須。** 既定の update() はフォームを reset() するが、
-				// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
-				// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
-				// メモが「変化なし」と判断されて描き直されない。
-				// 結果、保存した直後に中身が消えたように見える。
-				// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
-				// 保存すると本当に消える。表示はサーバーの data が正で、
-				// フォームの初期値ではない。
-				await update({ reset: false });
-			}}
-		class="mt-6"
+		use:enhance={() => {
+			saving = true;
+			// 送った値。送信中に書き足した分を「保存済み」に数えないため（DraftKeeper.clear）。
+			const sent = keeper?.snapshot();
+			return async ({ result, update }) => {
+				try {
+					// 送信中に書き足した分も入った、いまの値。update() で欄が描き直される前に取る。
+					const late = keeper?.snapshot();
+					// **reset: false が必須。** 既定の update() はフォームを reset() するが、
+					// Svelte はテキストエリアを .value で更新するので defaultValue は空のまま。
+					// リセットすると全欄が空になり、そのあとの再描画では値が変わっていない
+					// メモが「変化なし」と判断されて描き直されない。
+					// 結果、保存した直後に中身が消えたように見える。
+					// このフォームは「空欄＝そのメモを消す」仕様なので、そこでもう一度
+					// 保存すると本当に消える。表示はサーバーの data が正で、
+					// フォームの初期値ではない。
+					await update({ reset: false });
+					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
+					// （電波が悪くて落ちた場合、書いたものを失わないため）。
+					if (result.type === 'success') {
+						await keeper?.clear(sent, late);
+						toast.success(savedMessage(Number(result.data?.saved ?? 0)));
+					}
+				} finally {
+					saving = false;
+				}
+			};
+		}}
+		tabindex="-1"
+		class="mt-6 outline-none"
 	>
-		<DraftKeeper bind:this={keeper} form={formEl} storageKey={draftKey} />
+		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
 
 		<!-- レース全体の見立て。**ふりかえりの「レースのメモ」とは別の行**なので、
 		     開催後にふりかえりを書いてもここに書いたものは残る。
@@ -388,8 +415,11 @@
 			</ul>
 		{/if}
 
-		<div class="sticky bottom-0 mt-6 border-t bg-background/90 py-3 backdrop-blur">
-			<Button type="submit" class="w-full">{previewSaveLabel(data.rows.length)}</Button>
-		</div>
+		<SaveBar
+			{dirtyCount}
+			label={previewSaveLabel(data.rows.length)}
+			pending={saving}
+			message={form && 'message' in form ? form.message : null}
+		/>
 	</form>
 </main>
