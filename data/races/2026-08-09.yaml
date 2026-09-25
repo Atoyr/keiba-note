@@ -259,6 +259,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: フロムダスク
     entries:
       - horseNumber: 1
         bracket: 1
@@ -311,6 +313,7 @@ races:
         popularity: 2
         time: "1:06.9"
         margin: "2"
+        timeDiff: 0.4
         passing: "8-8"
         last3f: 33.4
         weight: 57.5
@@ -642,6 +645,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ナムラクララ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -651,6 +656,7 @@ races:
         finish: 6
         popularity: 2
         time: "1:08.9"
+        timeDiff: 0.5
         passing: "1-1"
         last3f: 35.6
         weight: 55

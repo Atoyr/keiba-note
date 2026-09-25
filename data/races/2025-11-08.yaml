@@ -319,6 +319,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 12
+    winner: フロムダスク
     entries:
       - horseNumber: 1
         bracket: 1
@@ -356,6 +358,7 @@ races:
         finish: 10
         popularity: 3
         time: "1:33.6"
+        timeDiff: 0.6
         passing: "3-3"
         last3f: 34.6
         weight: 55

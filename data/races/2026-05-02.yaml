@@ -11,6 +11,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: ワールズエンド
+    runnerUp: セフィロ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -309,6 +312,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:18.9"
+        timeDiff: 0
         passing: "1-1"
         last3f: 33.4
         weight: 57

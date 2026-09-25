@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ブラックチャリス
+    runnerUp: ビッグカレンルーフ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -291,6 +294,7 @@ races:
         finish: 1
         popularity: 4
         time: "1:33.6"
+        timeDiff: 0
         passing: "3-5-4"
         last3f: 35.1
         weight: 55

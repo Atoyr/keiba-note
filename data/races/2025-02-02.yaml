@@ -87,6 +87,8 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 16
+    winner: エイシンフェンサー
     entries:
       - horseNumber: 2
         bracket: 1
@@ -138,6 +140,7 @@ races:
         finish: 3
         popularity: 4
         time: "1:08.6"
+        timeDiff: 0.4
         passing: "3-3"
         last3f: 35
         weight: 59

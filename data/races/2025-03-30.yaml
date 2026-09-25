@@ -125,6 +125,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: サトノレーヴ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -162,6 +164,7 @@ races:
         finish: 7
         popularity: 3
         time: "1:08.8"
+        timeDiff: 0.9
         passing: "2-2"
         last3f: 34.8
         weight: 58

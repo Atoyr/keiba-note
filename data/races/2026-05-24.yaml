@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 18
+    winner: ジュウリョクピエロ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -198,6 +200,7 @@ races:
         popularity: 1
         time: "2:26.4"
         margin: "1"
+        timeDiff: 0.8
         passing: "4-6-8-10"
         last3f: 34.3
         weight: 55

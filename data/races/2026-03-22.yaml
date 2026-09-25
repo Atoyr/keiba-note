@@ -208,6 +208,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 18
+    winner: アイサンサン
+    runnerUp: ソルトクィーン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -536,6 +539,7 @@ races:
         finish: 1
         popularity: 12
         time: "1:19.6"
+        timeDiff: 0
         passing: "1-1"
         last3f: 34.2
         weight: 55

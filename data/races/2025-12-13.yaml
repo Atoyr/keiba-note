@@ -280,6 +280,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: ランスオブカオス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -317,6 +319,7 @@ races:
         finish: 2
         popularity: 2
         time: "1:31.9"
+        timeDiff: 0.1
         passing: "3-3"
         last3f: 33.5
         weight: 57

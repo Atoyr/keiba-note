@@ -326,6 +326,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 16
+    winner: カピリナ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -335,6 +337,7 @@ races:
         finish: 2
         popularity: 3
         time: "1:06.6"
+        timeDiff: 0
         passing: "4-3"
         last3f: 33.7
         weight: 55

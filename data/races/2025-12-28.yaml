@@ -555,6 +555,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 10
+    winner: イツモニコニコ
     entries:
       - horseNumber: 6
         bracket: 6
@@ -578,6 +580,7 @@ races:
         finish: 3
         popularity: 6
         time: "1:08.5"
+        timeDiff: 0.1
         passing: "1-1"
         last3f: 33.6
         weight: 55

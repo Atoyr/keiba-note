@@ -239,6 +239,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 12
+    winner: ピューロマジック
+    runnerUp: エーティーマクフィ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -290,6 +293,7 @@ races:
         popularity: 1
         time: "1:07.7"
         margin: "1/2"
+        timeDiff: 0.3
         passing: "5-5"
         last3f: 33.7
         weight: 57
@@ -361,6 +365,7 @@ races:
         finish: 1
         popularity: 6
         time: "1:07.4"
+        timeDiff: -0.2
         passing: "1-1"
         last3f: 34
         weight: 56
@@ -408,6 +413,7 @@ races:
         popularity: 4
         time: "1:07.6"
         margin: "1.1/4"
+        timeDiff: 0.2
         passing: "7-8"
         last3f: 33.5
         weight: 58

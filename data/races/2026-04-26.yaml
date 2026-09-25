@@ -598,6 +598,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: サウンドモリアーナ
+    runnerUp: レッドアヴァンティ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -649,6 +652,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:07.5"
+        timeDiff: -0.1
         passing: "2-2"
         last3f: 33.7
         weight: 54
