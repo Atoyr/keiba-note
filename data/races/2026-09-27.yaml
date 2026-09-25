@@ -10,134 +10,12 @@ races:
     surface: 芝
     distance: 1200
     direction: 右
+    ref: nk-202606040911
+    startTime: "15:40"
     entries:
-      - name: アイサンサン
-        jockey: 幸英明
-        sex: 牝
-        age: 4
-        ref: nk-2022103875
-        trainer: 橋田宜長
-        sire: キズナ
-        dam: ウアジェト
-        weight: 56
-      - name: ウインカーネリアン
-        jockey: 三浦皇成
-        sex: 牡
-        age: 9
-        ref: nk-2017101429
-        trainer: 鹿戸雄一
-        sire: スクリーンヒーロー
-        dam: コスモクリスタル
-        weight: 58
-      - name: エーティーマクフィ
-        jockey: 富田暁
-        sex: 牡
-        age: 7
-        ref: nk-2019105859
-        trainer: 武英智
-        sire: マクフィ
-        dam: テンシンランマン
-        weight: 58
-      - name: サウンドモリアーナ
-        jockey: 吉田隼人
-        sex: 牝
-        age: 4
-        ref: nk-2022102057
-        trainer: 武英智
-        sire: ミッキーアイル
-        dam: サウンドリアーナ
-        weight: 56
-      - name: ジューンブレア
-        jockey: 坂井瑠星
-        sex: 牝
-        age: 5
-        ref: nk-2021110099
-        trainer: 武英智
-        sire: アメリカンファラオ
-        dam: Lap of Luxury
-        weight: 56
-      - name: スターアニス
-        jockey: ルメール
-        sex: 牝
-        age: 3
-        ref: nk-2023106920
-        trainer: 高野友和
-        sire: ドレフォン
-        dam: エピセアローム
-        weight: 54
-      - name: パンジャタワー
-        jockey: 松山弘平
-        sex: 牡
-        age: 4
-        ref: nk-2022101732
-        trainer: 橋口慎介
-        sire: タワーオブロンドン
-        dam: クラークスデール
-        weight: 58
-      - name: ピューロマジック
-        jockey: 岩田望来
-        sex: 牝
-        age: 5
-        ref: nk-2021107058
-        trainer: 安田翔伍
-        sire: アジアエクスプレス
-        dam: メジェルダ
-        weight: 56
-      - name: ブラックチャリス
-        jockey: 浜中俊
-        sex: 牝
-        age: 3
-        ref: nk-2023107008
-        trainer: 武幸四郎
-        sire: キタサンブラック
-        dam: ゴールドチャリス
-        weight: 54
-      - name: フリッカージャブ
-        jockey: 西村淳也
-        sex: 牡
-        age: 4
-        ref: nk-2022102020
-        trainer: 西園翔太
-        sire: サートゥルナーリア
-        dam: ナイキトリック
-        weight: 58
-      - name: ペアポルックス
-        jockey: 岩田康誠
-        sex: 牡
-        age: 5
-        ref: nk-2021102320
-        trainer: 梅田智之
-        sire: キンシャサノキセキ
-        dam: ミラクルアスク
-        weight: 58
-      - name: ママコチャ
-        jockey: 武豊
-        sex: 牝
-        age: 7
-        ref: nk-2019105394
-        trainer: 池江泰寿
-        sire: クロフネ
-        dam: ブチコ
-        weight: 56
-      - name: ルガル
-        jockey: 鮫島克駿
-        sex: 牡
-        age: 6
-        ref: nk-2020106851
-        trainer: 杉山晴紀
-        sire: ドゥラメンテ
-        dam: アタブ
-        weight: 58
-      - name: レイピア
-        jockey: 横山武史
-        sex: 牡
-        age: 4
-        ref: nk-2022103066
-        trainer: 中竹和也
-        sire: タワーオブロンドン
-        dam: アンナトルテ
-        weight: 58
-      - name: レッドモンレーヴ
+      - horseNumber: 1
+        bracket: 1
+        name: レッドモンレーヴ
         jockey: 酒井学
         sex: 牡
         age: 7
@@ -146,7 +24,53 @@ races:
         sire: ロードカナロア
         dam: ラストグルーヴ
         weight: 58
-      - name: ワールズエンド
+      - horseNumber: 2
+        bracket: 1
+        name: アイサンサン
+        jockey: 幸英明
+        sex: 牝
+        age: 4
+        ref: nk-2022103875
+        trainer: 橋田宜長
+        sire: キズナ
+        dam: ウアジェト
+        weight: 56
+      - horseNumber: 3
+        bracket: 2
+        name: ママコチャ
+        jockey: 武豊
+        sex: 牝
+        age: 7
+        ref: nk-2019105394
+        trainer: 池江泰寿
+        sire: クロフネ
+        dam: ブチコ
+        weight: 56
+      - horseNumber: 4
+        bracket: 2
+        name: ジューンブレア
+        jockey: 坂井瑠星
+        sex: 牝
+        age: 5
+        ref: nk-2021110099
+        trainer: 武英智
+        sire: アメリカンファラオ
+        dam: Lap of Luxury
+        weight: 56
+      - horseNumber: 5
+        bracket: 3
+        name: サウンドモリアーナ
+        jockey: 吉田隼人
+        sex: 牝
+        age: 4
+        ref: nk-2022102057
+        trainer: 武英智
+        sire: ミッキーアイル
+        dam: サウンドリアーナ
+        weight: 56
+      - horseNumber: 6
+        bracket: 3
+        name: ワールズエンド
         jockey: 津村明秀
         sex: 牡
         age: 5
@@ -155,6 +79,116 @@ races:
         sire: ロードカナロア
         dam: リラヴァティ
         weight: 58
+      - horseNumber: 7
+        bracket: 4
+        name: ペアポルックス
+        jockey: 岩田康誠
+        sex: 牡
+        age: 5
+        ref: nk-2021102320
+        trainer: 梅田智之
+        sire: キンシャサノキセキ
+        dam: ミラクルアスク
+        weight: 58
+      - horseNumber: 8
+        bracket: 4
+        name: エーティーマクフィ
+        jockey: 富田暁
+        sex: 牡
+        age: 7
+        ref: nk-2019105859
+        trainer: 武英智
+        sire: マクフィ
+        dam: テンシンランマン
+        weight: 58
+      - horseNumber: 9
+        bracket: 5
+        name: スターアニス
+        jockey: ルメール
+        sex: 牝
+        age: 3
+        ref: nk-2023106920
+        trainer: 高野友和
+        sire: ドレフォン
+        dam: エピセアローム
+        weight: 54
+      - horseNumber: 10
+        bracket: 5
+        name: レイピア
+        jockey: 横山武史
+        sex: 牡
+        age: 4
+        ref: nk-2022103066
+        trainer: 中竹和也
+        sire: タワーオブロンドン
+        dam: アンナトルテ
+        weight: 58
+      - horseNumber: 11
+        bracket: 6
+        name: ルガル
+        jockey: 鮫島克駿
+        sex: 牡
+        age: 6
+        ref: nk-2020106851
+        trainer: 杉山晴紀
+        sire: ドゥラメンテ
+        dam: アタブ
+        weight: 58
+      - horseNumber: 12
+        bracket: 6
+        name: ブラックチャリス
+        jockey: 浜中俊
+        sex: 牝
+        age: 3
+        ref: nk-2023107008
+        trainer: 武幸四郎
+        sire: キタサンブラック
+        dam: ゴールドチャリス
+        weight: 54
+      - horseNumber: 13
+        bracket: 7
+        name: パンジャタワー
+        jockey: 松山弘平
+        sex: 牡
+        age: 4
+        ref: nk-2022101732
+        trainer: 橋口慎介
+        sire: タワーオブロンドン
+        dam: クラークスデール
+        weight: 58
+      - horseNumber: 14
+        bracket: 7
+        name: ウインカーネリアン
+        jockey: 三浦皇成
+        sex: 牡
+        age: 9
+        ref: nk-2017101429
+        trainer: 鹿戸雄一
+        sire: スクリーンヒーロー
+        dam: コスモクリスタル
+        weight: 58
+      - horseNumber: 15
+        bracket: 8
+        name: フリッカージャブ
+        jockey: 西村淳也
+        sex: 牡
+        age: 4
+        ref: nk-2022102020
+        trainer: 西園翔太
+        sire: サートゥルナーリア
+        dam: ナイキトリック
+        weight: 58
+      - horseNumber: 16
+        bracket: 8
+        name: ピューロマジック
+        jockey: 岩田望来
+        sex: 牝
+        age: 5
+        ref: nk-2021107058
+        trainer: 安田翔伍
+        sire: アジアエクスプレス
+        dam: メジェルダ
+        weight: 56
     withdrawn:
       - name: クラスペディア
         ref: nk-2022106394
