@@ -385,6 +385,31 @@ describe('applyResult', () => {
 		expect(rows.map((r) => diffs.get(r))).toEqual([-0.2, 0.2, 0.7, undefined]);
 	});
 
+	it('1着同着なら、もう1頭の1着馬を2着馬に書く', async () => {
+		const file = RaceFile.parse(
+			'2026-09-27.yaml',
+			placeholder.replace(
+				'    entries: []',
+				'    entries:\n      - name: ホースA\n        ref: nk-1'
+			)
+		);
+		const race = file.findRace('中山', 11)!;
+		await applyResult(
+			file,
+			race,
+			{
+				meta,
+				rows: [
+					result('1', 'ホースA', { finish: 1 }),
+					result('2', 'ホースB', { finish: 1 }),
+					result('3', 'ホースC', { finish: 3 })
+				]
+			},
+			resolve
+		);
+		expect(file.toString()).toContain('    winner: ホースA\n    runnerUp: ホースB\n');
+	});
+
 	it('同着の1着どうしは 0', () => {
 		const rows = [
 			result('1', 'A', { finish: 1, time: '1:08.0' }),

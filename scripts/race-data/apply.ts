@@ -293,7 +293,10 @@ export async function applyResult(
 			weather: parsed.meta.weather,
 			fieldSize: fieldSizeOf(parsed.rows),
 			winner: parsed.rows.find((r) => r.finish === 1)?.name,
-			runnerUp: parsed.rows.find((r) => r.finish === 2)?.name
+			// 1着同着なら2着はいない。もう1頭の1着馬を2着馬として持つ（戦績表の「勝ち馬(2着馬)」と同じ）。
+			runnerUp: (
+				parsed.rows.find((r) => r.finish === 2) ?? parsed.rows.filter((r) => r.finish === 1)[1]
+			)?.name
 		},
 		'overwrite'
 	);
