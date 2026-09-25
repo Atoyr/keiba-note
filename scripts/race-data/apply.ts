@@ -77,6 +77,14 @@ function label(e: YAMLMap): string {
 }
 
 /**
+ * 枠順が確定した出馬表か。**馬番が1頭でも付いていれば確定。** 枠が決まる前の出馬表（登録馬）には馬番が無い。
+ * 定期取得（`--require-confirmed`）は、これが偽なら何も書かずに終える。
+ */
+export function isShutubaConfirmed(rows: readonly Pick<ShutubaRow, 'horseNumber'>[]): boolean {
+	return rows.some((r) => r.horseNumber !== undefined);
+}
+
+/**
  * 出馬表を当てはめる。**netkeiba の一覧を正とし、載っていない行は `withdrawn` に移す。**
  *
  * - 枠が決まる前（馬番が1頭も無い）: 登録馬を候補として足す。回避した馬は取り下げる
@@ -90,7 +98,7 @@ export async function applyShutuba(
 	resolve: ResolvePerson
 ): Promise<string[]> {
 	const log: string[] = [];
-	const confirmed = parsed.rows.some((r) => r.horseNumber !== undefined);
+	const confirmed = isShutubaConfirmed(parsed.rows);
 	const race = file.ensureRace(course, raceNumber, raceFields(parsed.meta));
 	const kept = new Set<YAMLMap>();
 	const order = new Map<YAMLMap, number>();

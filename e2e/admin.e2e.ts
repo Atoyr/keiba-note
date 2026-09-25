@@ -30,7 +30,7 @@ test('これからのレースが頭数とともに並び、トークンが無�
 
 	const settled = page.getByRole('listitem').filter({ hasText: THIS_WEEK_RACES.settled.name });
 	await expect(settled.getByText('枠順あり（1頭）')).toBeVisible();
-	await expect(settled.getByRole('button', { name: '出走馬を取得' })).toBeDisabled();
+	await expect(settled.getByRole('button', { name: /出走馬を取得する$/ })).toBeDisabled();
 
 	// 予想画面へ行ける
 	await expect(settled.getByRole('link', { name: THIS_WEEK_RACES.settled.name })).toHaveAttribute(
@@ -45,12 +45,15 @@ test('トークンが無いまま取得を送っても、頼まずに理由を�
 
 	// ボタンは押せない状態で出るので、外して送る（画面を通さずに action を叩かれた場合と同じ）。
 	const row = page.getByRole('listitem').filter({ hasText: THIS_WEEK_RACES.upcoming.name });
-	const button = row.getByRole('button', { name: '出走馬を取得' });
+	const button = row.getByRole('button', { name: /出走馬を取得する$/ });
 	await button.evaluate((b) => b.removeAttribute('disabled'));
 	await button.click();
 
-	await expect(page.getByRole('alert')).toHaveText(
+	// 結果は押した行の下に出る（画面の上に出すと、行の多い一覧では押した場所から見えない）
+	await expect(row.getByRole('alert')).toHaveText(
 		'出走馬の取得が設定されていません（GITHUB_DISPATCH_TOKEN）'
 	);
-	await expect(page.getByRole('status')).toHaveCount(0);
+	await expect(page.getByRole('alert')).toHaveCount(1);
+	// 押したボタンからフォーカスが外れていない
+	await expect(button).toBeFocused();
 });

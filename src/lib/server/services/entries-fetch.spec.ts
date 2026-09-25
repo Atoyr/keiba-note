@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { listEntriesFetchTargets, listUpcomingRaces } from './entries-fetch';
+import { entriesFetchBlocker, listEntriesFetchTargets, listUpcomingRaces } from './entries-fetch';
 
 let db: Db;
 let sqlite: DatabaseSync;
@@ -52,6 +52,34 @@ describe('listEntriesFetchTargets', () => {
 		sqlite.exec(`UPDATE race_entry SET horse_number = 3 WHERE id = 'E1'`);
 		const ids = (await listEntriesFetchTargets(db, NOW)).map((t) => t.raceId);
 		expect(ids).toEqual(['SAT']);
+	});
+});
+
+describe('entriesFetchBlocker', () => {
+	const WEEK_END = '2026-09-27';
+
+	it('race_id があれば来週以降でも引ける', () => {
+		expect(
+			entriesFetchBlocker(
+				{ date: '2026-10-04', raceNumber: 11, externalRef: 'nk-202605040111' },
+				WEEK_END
+			)
+		).toBeNull();
+	});
+
+	it('race_id が無ければ当週（週の終わりまで）だけ', () => {
+		const r = { raceNumber: 11, externalRef: null };
+		expect(entriesFetchBlocker({ ...r, date: '2026-09-27' }, WEEK_END)).toBeNull();
+		expect(entriesFetchBlocker({ ...r, date: '2026-10-03' }, WEEK_END)).toMatch(/当週/);
+	});
+
+	it('レース番号が無ければ引けない', () => {
+		expect(
+			entriesFetchBlocker(
+				{ date: '2026-09-27', raceNumber: null, externalRef: 'nk-202606040911' },
+				WEEK_END
+			)
+		).toMatch(/レース番号/);
 	});
 });
 

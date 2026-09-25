@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { waitForHydration } from './hydration';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
@@ -52,6 +53,21 @@ export const SCREENS: Screen[] = [
 	// 管理画面。これから2週間のレース（seed では今日の2レース）と、出走馬を取得するボタンが並ぶ。
 	// E2E では GitHub のトークンを渡していないので、ボタンは押せない状態で出る。
 	{ name: 'admin', path: '/settings/admin', auth: true, as: 'admin' },
+	{
+		// 取得を断られた状態。結果は押した行の下に出る（トークンが無いので、押せないボタンを外して送る）。
+		name: 'admin-fetch-refused',
+		path: '/settings/admin',
+		auth: true,
+		as: 'admin',
+		prepare: async (page) => {
+			// use:enhance の送信にする（素の送信だと 503 のページへ遷移し、console にエラーが出る）
+			await waitForHydration(page);
+			const button = page.getByRole('button', { name: /出走馬を取得する$/ }).first();
+			await button.evaluate((b) => b.removeAttribute('disabled'));
+			await button.click();
+			await page.getByRole('alert').waitFor();
+		}
+	},
 	{ name: 'races', path: '/races', auth: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },

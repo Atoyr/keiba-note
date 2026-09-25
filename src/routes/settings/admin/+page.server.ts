@@ -8,10 +8,10 @@ import {
 	dispatchEntriesFetch,
 	isDispatchConfigured
 } from '$lib/server/race-data/dispatch';
-import { listUpcomingRaces } from '$lib/server/services/entries-fetch';
+import { entriesFetchBlocker, listUpcomingRaces } from '$lib/server/services/entries-fetch';
 import { getRace } from '$lib/server/services/races';
 import { ctxAdmin } from '$lib/server/util';
-import { addDays, todayJst } from '$lib/utils/date';
+import { addDays, currentWeek, todayJst } from '$lib/utils/date';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -55,9 +55,17 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		listUpcomingRaces(db, { from: today, to: addDays(today, UPCOMING_DAYS - 1) })
 	]);
 
+	const weekEnd = currentWeek(
+		new Date(),
+		races.map((r) => r.date)
+	).end;
 	return {
 		users,
-		races,
+		races: races.map(({ externalRef, ...r }) => ({
+			...r,
+			/** 押せない理由。null なら押せる。 */
+			blocker: entriesFetchBlocker({ ...r, externalRef }, weekEnd)
+		})),
 		entriesFetch: { configured: isDispatchConfigured(dispatchConfig(platform)) }
 	};
 };
@@ -78,10 +86,12 @@ export const actions: Actions = {
 		if (!parsed.success) return fail(400, { message: '操作を受け付けられませんでした' });
 
 		// 何を取りに行くか（日付・場・R・race_id）はフォームではなく DB から引く。
-		const race = await getRace(db, parsed.output.raceId);
-		if (!race) return fail(404, { message: 'レースが見つかりません' });
-		if (race.raceNumber === null) {
-			return fail(400, { message: 'レース番号が入っていないので、出馬表を引けません' });
+		const raceId = parsed.output.raceId;
+		const race = await getRace(db, raceId);
+		if (!race) return fail(404, { raceId, message: 'レースが見つかりません' });
+		const blocker = entriesFetchBlocker(race, currentWeek(new Date(), [race.date]).end);
+		if (blocker !== null || race.raceNumber === null) {
+			return fail(400, { raceId, message: blocker ?? '' });
 		}
 		const label = `${race.date} ${race.course}${race.raceNumber}R ${race.name ?? ''}`.trim();
 
@@ -97,7 +107,10 @@ export const actions: Actions = {
 		} catch (e) {
 			const kind = e instanceof DispatchError ? e.kind : 'unknown';
 			if (kind === 'not-configured') {
-				return fail(503, { message: '出走馬の取得が設定されていません（GITHUB_DISPATCH_TOKEN）' });
+				return fail(503, {
+					raceId,
+					message: '出走馬の取得が設定されていません（GITHUB_DISPATCH_TOKEN）'
+				});
 			}
 			locals.monitor.log({
 				level: kind === 'network' ? 'warn' : 'error',
@@ -108,11 +121,12 @@ export const actions: Actions = {
 				error: describeError(e)
 			});
 			return fail(502, {
+				raceId,
 				message: `${label} の取得を頼めませんでした。時間をおいてもう一度押してください`
 			});
 		}
 
-		return { requested: label };
+		return { raceId, requested: label };
 	},
 
 	/**

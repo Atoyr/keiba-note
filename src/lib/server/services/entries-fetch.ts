@@ -61,6 +61,25 @@ export async function listEntriesFetchTargets(db: Db, now: Date): Promise<Entrie
 		.orderBy(asc(race.date), asc(race.course), asc(race.raceNumber));
 }
 
+/**
+ * そのレースの出馬表を Actions に取らせられない理由。取らせられるなら null。管理画面のボタンと action の両方が見る。
+ *
+ * race_id（`external_ref`）が無いと、Actions は netkeiba のレース一覧から場・R で引く。
+ * **その一覧は当週ぶんしか出ない**ので、race_id の無い来週以降のレースは引けない（申し送り用の枠がこれ）。
+ *
+ * @param weekEnd 今週の終わり（`currentWeek(...).end`。連休は月曜・火曜まで伸びる）
+ */
+export function entriesFetchBlocker(
+	r: { date: string; raceNumber: number | null; externalRef: string | null },
+	weekEnd: string
+): string | null {
+	if (r.raceNumber === null) return 'レース番号が入っていないので、出馬表を引けません';
+	if (!r.externalRef && r.date > weekEnd) {
+		return 'race_id が無く、netkeiba の一覧に出るのは当週ぶんだけなので、まだ引けません';
+	}
+	return null;
+}
+
 export type UpcomingRace = {
 	id: string;
 	date: string;
@@ -69,6 +88,8 @@ export type UpcomingRace = {
 	name: string | null;
 	grade: string | null;
 	className: string | null;
+	/** 取得元のレース ID（`nk-…`）。あれば来週以降でも出馬表を引ける（`entriesFetchBlocker`）。 */
+	externalRef: string | null;
 	/** 出走馬（候補を含む）の頭数。 */
 	entryCount: number;
 	/** 馬番が入った頭数。0 なら枠順はまだ入っていない。 */
@@ -92,6 +113,7 @@ export async function listUpcomingRaces(
 			name: race.name,
 			grade: race.grade,
 			className: race.className,
+			externalRef: race.externalRef,
 			entryCount: count(raceEntry.id),
 			numberedCount: count(raceEntry.horseNumber)
 		})

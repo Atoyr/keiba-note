@@ -5,10 +5,20 @@ import {
 	applyResult,
 	applyRaceRef,
 	applyShutuba,
+	isShutubaConfirmed,
 	type ResolvePerson
 } from './apply.ts';
 import type { PastRun, Person, ResultRow, ShutubaRow } from './netkeiba.ts';
 import { RaceFile } from './yaml-file.ts';
+
+describe('isShutubaConfirmed', () => {
+	// 定期取得（--require-confirmed）は、これが偽なら何も書かない。取り違えると候補の入れ替えだけで PR ができる
+	it('馬番が1頭も無ければ枠順の前、1頭でもあれば確定', () => {
+		expect(isShutubaConfirmed([{}, {}])).toBe(false);
+		expect(isShutubaConfirmed([])).toBe(false);
+		expect(isShutubaConfirmed([{ horseNumber: 1 }, {}])).toBe(true);
+	});
+});
 
 const resolve: ResolvePerson = async (kind, p) =>
 	`${p.short}（${kind === 'jockey' ? '騎' : '調'}）`;
