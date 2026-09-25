@@ -47,14 +47,28 @@ export interface OddsProvider {
 export type OddsErrorKind =
 	'unsupported-ref' | 'network' | 'http' | 'rate-limited' | 'not-available' | 'parse' | 'invalid';
 
+/**
+ * 取得元の応答の、原因を調べるための抜き書き。HTTP で失敗したときだけ付く。
+ * **送ったリクエストの中身（ヘッダなど）は入れない。** 受け取ったものだけ。
+ */
+export type OddsResponseSummary = {
+	status: number;
+	/** 手前の CDN・WAF のどれが返したかを見分けるためのヘッダ（`server`・`x-cache`・`via` など）。 */
+	headers: Record<string, string>;
+	/** 本文の先頭。拒否の理由が書かれていることがある。 */
+	body: string;
+};
+
 export class OddsError extends Error {
 	override readonly name = 'OddsError';
+	readonly response?: OddsResponseSummary;
 	constructor(
 		readonly kind: OddsErrorKind,
 		message: string,
-		options?: { cause?: unknown }
+		options?: { cause?: unknown; response?: OddsResponseSummary }
 	) {
 		super(message, options);
+		this.response = options?.response;
 	}
 }
 

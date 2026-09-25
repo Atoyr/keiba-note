@@ -6,7 +6,7 @@
  * - 制限を避けるための細工（プロキシ・IP の切り替え・ヘッダの偽装）はしない。
  *   User-Agent は `data:fetch`（scripts/race-data/netkeiba.ts）と同じく用途を名乗る
  */
-import { OddsError, type OddsProvider, type RaceOdds } from '../odds';
+import { OddsError, type OddsProvider, type OddsResponseSummary, type RaceOdds } from '../odds';
 import { parseNetkeibaOdds } from './parser';
 
 const USER_AGENT = 'Mozilla/5.0 (uma-memo odds; personal use)';
@@ -67,9 +67,12 @@ export class NetkeibaOddsProvider implements OddsProvider {
 			throw new OddsError('network', '取得元に届きませんでした', { cause: e });
 		}
 
-		if (res.status === 429) throw new OddsError('rate-limited', '取得元が 429 を返しました');
-		if (res.status >= 500) throw new OddsError('network', `取得元が ${res.status} を返しました`);
-		if (!res.ok) throw new OddsError('http', `取得元が ${res.status} を返しました`);
+		if (!res.ok) {
+			const kind = res.status === 429 ? 'rate-limited' : res.status >= 500 ? 'network' : 'http';
+			throw new OddsError(kind, `取得元が ${res.status} を返しました`, {
+				response: await summarize(res)
+			});
+		}
 
 		let body: unknown;
 		try {
@@ -79,4 +82,37 @@ export class NetkeibaOddsProvider implements OddsProvider {
 		}
 		return parseNetkeibaOdds(body, raceId, fetchedAt);
 	}
+}
+
+/** 見分けに使うヘッダ。CloudFront（netkeiba の手前）のものと、拒否の理由が載りうるもの。 */
+const SUMMARY_HEADERS = [
+	'content-type',
+	'server',
+	'x-cache',
+	'via',
+	'x-amz-cf-pop',
+	'x-amz-cf-id',
+	'x-amzn-errortype',
+	'x-amzn-waf-action',
+	'retry-after'
+];
+const BODY_HEAD = 300;
+
+/**
+ * 失敗した応答の抜き書き。Workers からだけ 400 が返る（手元からは 200）ことがあり、
+ * 手前の CloudFront が返したのか、奥の Apache が返したのかを見分けるのに使う（docs/monitoring.md 第3章）。
+ */
+async function summarize(res: Response): Promise<OddsResponseSummary> {
+	const headers: Record<string, string> = {};
+	for (const name of SUMMARY_HEADERS) {
+		const value = res.headers.get(name);
+		if (value !== null) headers[name] = value;
+	}
+	let body = '';
+	try {
+		body = (await res.text()).replace(/\s+/g, ' ').trim().slice(0, BODY_HEAD);
+	} catch {
+		// 本文が読めなくても、ステータスとヘッダだけで出す
+	}
+	return { status: res.status, headers, body };
 }
