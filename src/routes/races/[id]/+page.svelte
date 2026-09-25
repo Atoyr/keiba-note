@@ -54,7 +54,7 @@
 <svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
-	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} spec={spec.join(' / ')} />
+	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} {spec} />
 	<!-- 灰色の文字だけだと押せると気づかれないので、予想画面の見出しと同じ小さいボタンにする。 -->
 	<div class="mt-2 flex flex-wrap gap-2">
 		<Button href={resolve('/races/[id]/preview', { id: data.race.id })} variant="outline" size="sm">
