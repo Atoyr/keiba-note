@@ -9,8 +9,13 @@
 	 * この画面は**競馬場で片手で読む**ことを前提にしている（product.md 第8章 Phase 4）。
 	 * 横スクロールが要る密度にすると、その場で使えなくなる。
 	 *
-	 * 出すのは「いつ・何で・どう走ったか」に絞る:
+	 * 1行目は「いつ・何で・どう走ったか」に絞る:
 	 *   日付 / レース名(格) / 馬場・距離・状態 / 着順 / 人気 / 上がり3F
+	 *
+	 * タイムと通過順は2行目に、着順のまとまりの下へ右寄せで、薄い色で足す。
+	 * 1行目に足すと狭い画面で折り返しが増え、着順の位置が行ごとにずれて
+	 * 縦に拾い読みできなくなる。2行目なら1行目の並びは今までと変わらない。
+	 * どちらも無い走（結果が未入力）は2行目ごと出さない。
 	 *
 	 * 着順が入っていない行も落とさずに出す。出馬表だけ登録して結果がまだ
 	 * 入っていないレースは実際にあるので、「走ったが結果は未入力」と
@@ -65,6 +70,18 @@
 						<span class="font-mono text-muted-foreground">上{r.last3f.toFixed(1)}</span>
 					{/if}
 				</span>
+				{#if r.finishTime || r.passing}
+					<!-- basis-full で必ず次の行に送る。見出しの語は画面には出さない
+					     （`1:58.4` と `5-5-4-2` は形で見分けが付く）が、読み上げでは要る。 -->
+					<span class="flex basis-full justify-end gap-x-2 font-mono text-muted-foreground">
+						{#if r.finishTime}
+							<span><span class="sr-only">タイム</span>{r.finishTime}</span>
+						{/if}
+						{#if r.passing}
+							<span><span class="sr-only">通過順</span>{r.passing}</span>
+						{/if}
+					</span>
+				{/if}
 			</li>
 		{/each}
 	</ol>

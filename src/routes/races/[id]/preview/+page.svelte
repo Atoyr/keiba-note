@@ -291,9 +291,13 @@
 						{/if}
 
 						<!-- 馬柱は薄い面に載せて、下に続く「自分のメモ」と見分けられるようにする。
-						     どちらも小さい文字の塊なので、囲いが無いと1つの塊に見える。 -->
-						<div class="mt-1.5 ml-7 rounded-md bg-muted/50 px-2.5 py-1">
-							<PastRuns runs={r.pastRuns} />
+						     どちらも小さい文字の塊なので、囲いが無いと1つの塊に見える。
+						     面は半透明なので、下に不透明な bg-background を敷く。敷かないと ◎ の行の赤みが透けて、
+						     補足の文字（text-muted-foreground）のコントラストが 4.5:1 を割る（4.48:1）。 -->
+						<div class="mt-1.5 ml-7 rounded-md bg-background">
+							<div class="rounded-md bg-muted/50 px-2.5 py-1">
+								<PastRuns runs={r.pastRuns} />
+							</div>
 						</div>
 
 						{#if r.history.length > 0}
