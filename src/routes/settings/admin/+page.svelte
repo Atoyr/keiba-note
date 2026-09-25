@@ -119,8 +119,9 @@
 								</a>
 							</p>
 						{:else}
+							<!-- 赤は枠と地だけ。文字まで text-destructive にすると、14px に要る 4.5:1 に届かない。 -->
 							<p
-								class="mt-2 rounded border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+								class="mt-2 rounded border border-destructive/50 bg-destructive/5 px-3 py-2 text-sm text-foreground"
 								role="alert"
 							>
 								{fetchResult.message}
