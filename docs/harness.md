@@ -10,6 +10,8 @@
 - 更新日: 2026-09-23 — コンテキストの設計（第7章）を足した。AGENTS.md を知識の目次にし、
   書くときに要る決まりを分野ごとの文書（architecture / frontend / design-system / testing / api）に移した。
   この文書には、仕組みをなぜこう組むかと、これから入れるものだけを残す
+- 更新日: 2026-09-25 — 2-5 から画面側の2件を外した。`PastRuns.svelte` は #78 で props の型をコンポーネントに置き、
+  `src/routes/+page.svelte` は #79 で型を `PageData` から取るようにして直っていた。残りは2件
 - ステータス: 第5層とコンテキスト（第7章）は稼働中。それ以外は設計。実装は 9章の順に別 PR で入れる
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
@@ -71,7 +73,7 @@ flowchart LR
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
 | 1 目的 | README / product.md | なし | 仕様はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない |
-| 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反が4件ある（→ 2-5） |
+| 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反が2件ある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | 生の色指定が約250箇所。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」 | なし | 本番に触るコマンドの禁止は言葉だけ |
 | 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
@@ -249,8 +251,6 @@ rules: {
 
 | ファイル | 違反 | 直し方 |
 | --- | --- | --- |
-| `src/lib/components/PastRuns.svelte:3` | component → service（`import type { PastRun }`） | 型を `PageData` から取るか pure に移す |
-| `src/routes/+page.svelte:13` | page → service（`import type { RaceProgressItem }`） | 同上 |
 | `src/routes/settings/admin/+page.server.ts:2` | endpoint が `drizzle-orm` で直接 SQL を組む | ユーザー凍結を service（`services/users.ts`）に移す |
 | `src/lib/server/services/notes.ts:6` | notes → dashboard（`WatchSourceRow` の型） | 型を notes 側に置き、dashboard から使う向きにする |
 
@@ -656,7 +656,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | --- | --- | --- |
 | 依存の検査ツール | eslint-plugin-boundaries | `.svelte` の `import type` を見逃さない（2-4） |
 | 機能の表し方 | 層の下に機能のディレクトリ | SvelteKit の `$lib/server` の保護を保ったまま、規則を glob で書ける |
-| 既存違反の扱い（第2層） | 規則を入れる PR で全部直す | 4件しかない |
+| 既存違反の扱い（第2層） | 規則を入れる PR で全部直す | 数件しかない（2-5） |
 | 既存違反の扱い（第3層） | 一括抑制で凍結して、画面ごとに減らす | 約250箇所。1つの PR で見比べられない |
 | 見た目の回帰テスト | 入れない | [testing.md 第7章](./testing.md) |
 
@@ -679,7 +679,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | # | PR | 層 | 中身 | 画面への影響 |
 | --- | --- | --- | --- | --- |
 | 0 | コンテキストと評価（**済み**） | 5 / 6 / 7 | AGENTS.md を目次にし、architecture / frontend / design-system / testing / api / evaluation に分けた。`docs:check`・Evaluator のサブエージェント・`pr-body.yml` | なし |
-| 1 | 依存の規則 | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の4件を直す | なし（キャプチャ0枚を確かめる） |
+| 1 | 依存の規則 | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の残りを直す | なし（キャプチャ0枚を確かめる） |
 | 2 | 操作と即時の手応え | 4 | `.claude/settings.json`（deny と hook）、`preview:e2e`、`.claude/launch.json` | なし |
 | 3 | トークンと lint | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |
