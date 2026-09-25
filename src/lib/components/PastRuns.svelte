@@ -1,6 +1,26 @@
 <script lang="ts">
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import type { PastRun } from '$lib/server/services/races';
+
+	// $lib/server/services/races の PastRun は server 側の型なので引かない（architecture.md 第2章）。
+	// 要るのは表示に使うものだけなので構造だけ受ける。サーバーの PastRun はこの形を満たすので、
+	// ずれたら preview ページの `<PastRuns runs={...} />` で svelte-check が落ちる。
+	type PastRun = {
+		raceId: string;
+		date: string;
+		course: string;
+		raceNumber: number | null;
+		raceName: string | null;
+		grade: string | null;
+		className: string | null;
+		surface: string | null;
+		distance: number | null;
+		trackCondition: string | null;
+		finishPosition: number | null;
+		popularity: number | null;
+		last3f: number | null;
+		finishTime: string | null;
+		passing: string | null;
+	};
 
 	/**
 	 * 馬柱（簡略版）。1走を1行で出す。

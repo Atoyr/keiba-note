@@ -7,7 +7,6 @@ import PastRuns from './PastRuns.svelte';
 type PastRun = ComponentProps<typeof PastRuns>['runs'][number];
 
 const run = (over: Partial<PastRun>): PastRun => ({
-	horseId: 'h1',
 	raceId: 'r1',
 	date: '2026-08-23',
 	course: '札幌',
@@ -23,8 +22,6 @@ const run = (over: Partial<PastRun>): PastRun => ({
 	last3f: 34.2,
 	finishTime: null,
 	passing: null,
-	margin: null,
-	jockey: null,
 	...over
 });
 
