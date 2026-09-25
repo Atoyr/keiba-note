@@ -106,6 +106,19 @@ VALUES (
 	4102444800
 );
 
+-- サイト管理者（role='admin'）と、そのセッション。管理画面（/settings/admin など）を開くためだけに使う。
+-- **メモは書かない。** admin でも他人のメモは読めないので、ここにメモがあると「見えてはいけない」側の行になり、
+-- どの画面に出るかの前提が増える。トークンは e2e/seed.ts の ADMIN_SESSION_TOKEN。
+INSERT OR REPLACE INTO user (id, google_sub, email, display_name, role)
+VALUES ('01JE2EADMIN000000000000000', 'e2e-admin-google-sub', 'admin@example.invalid', 'E2E 管理者', 'admin');
+
+INSERT OR REPLACE INTO session (id, user_id, expires_at)
+VALUES (
+	'c4fd50eca6e61581874d143ee5d9f2130661080d75349c83be2687710a8cd5fb',
+	'01JE2EADMIN000000000000000',
+	4102444800
+);
+
 -- 予想画面（/races/[id]/preview）専用の1レース。
 --
 -- **馬タイムライン用の行とは別に立てる。** あちらの「E2E未来賞」は

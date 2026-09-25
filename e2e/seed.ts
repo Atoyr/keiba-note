@@ -119,6 +119,12 @@ export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
 export const SESSION_TOKEN = 'e2esessiontoken00000000000000000';
 
 /**
+ * サイト管理者（role='admin'）のセッショントークン。管理画面を開くためだけに使う。
+ * `SESSION_TOKEN` と同じく、seed.sql の id はこれの SHA-256。
+ */
+export const ADMIN_SESSION_TOKEN = 'e2eadminsessiontoken000000000000';
+
+/**
  * 馬タイムライン（`HORSE_ID`）の、メモを書かなかった2走。リンク先を見る。
  * - `quiet` — 着順が入っている（5着）。ふりかえりへ
  * - `future` — 2099年の出走予定。予想画面へ

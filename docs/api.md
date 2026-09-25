@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-09-25 — 管理画面の `?/fetchEntries` と、出走馬の取得を頼む Cron と `services/entries-fetch.ts` を足した（→ 第1章 / 第3章 / 第5章）
 - 更新日: 2026-09-24 — オッズを予想画面の `load` で渡すことにし、Cron Trigger の口と `services/odds.ts` を足した（→ 第1章 / 第3章 / 第5章）
 
 ---
@@ -92,6 +93,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/races/new` | GET / POST `default` | レースの項目（`raceSchema`） | `303 /races/[id]/entries` | 検証 `fail(400)` / 同じ日付・場・R `fail(409)` / 403 |
 | `/races/[id]/entries` | GET / POST `default` | `rowCount`・`horseName.<i>`・`bracket.<i>`・`horseNumber.<i>` ほか | `303 /races/[id]` | 検証 `fail(400)` / 同じ馬名が2行 `fail(400)` / 馬番か馬の重複（UNIQUE） `fail(409)` / 403 |
 | `/settings/admin` | GET / POST `?/freeze` | `userId` | ユーザーを凍結し、セッションを全部消す | 自分自身は `fail(400)` / 403 |
+| `/settings/admin` | POST `?/fetchEntries` | `raceId` | そのレースの出走馬の取得を GitHub Actions に頼み、`{ requested }` を返す（D1 には書かない。→ [architecture.md 3-9](./architecture.md)） | 無いレース `fail(404)` / 引けないレース（レース番号なし・race_id が無く当週でもない。`entriesFetchBlocker`）`fail(400)` / トークン未設定 `fail(503)` / GitHub が受け付けない `fail(502)` / 403 |
 
 ### 開発サーバーだけ
 
@@ -105,6 +107,7 @@ SvelteKit の `load` + form actions で完結させる。
 | 起動 | 入口 | すること |
 | --- | --- | --- |
 | `*/30 0-13 * * *`（UTC。JST 9:00〜22:30 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | 取りに行く時間帯（重賞（G1〜G3）だけ。G1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで）に入ったレースのオッズを取得元から取り、`race_odds` に書く（→ [architecture.md 3-8](./architecture.md)） |
+| `5 1-10 * * *`（UTC。JST 10:05〜19:05 の毎時） | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 1〜3日後の重賞で馬番がまだ無いレースの出走馬の取得を、GitHub Actions に頼む（枠順が確定していなければ Actions は何も書かない。→ [architecture.md 3-9](./architecture.md)） |
 
 ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。
 ログインの概念は無い（誰の操作でもない）。
@@ -164,6 +167,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/horses.ts` | `listHorses`・`getHorse`・`getHorseEntries` | `findOrCreateHorse`・`updateHorseProfile` |
 | `services/races.ts` | `listRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
 | `services/odds.ts` | `listOddsTargets`・`getRaceOdds` | `saveRaceOdds`（Cron だけが呼ぶ） |
+| `services/entries-fetch.ts` | `listEntriesFetchTargets`・`listUpcomingRaces`・`entriesFetchBlocker`（D1 を読まない判定） | —（出馬表は YAML の PR で入る） |
 | `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |
 | `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
 

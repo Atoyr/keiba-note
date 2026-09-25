@@ -629,7 +629,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /races/[id]/entries           出走馬の一括入力・編集
 /horses/new                   馬登録（未実装。馬は出走馬の入力か YAML で作られる）
 /horses/[id]/edit             馬情報編集（`/horses/[id]` にインラインで実装済み。**馬名は含まない** → 第9章 #13）
-/settings/admin               ユーザー一覧・凍結、マスタの削除
+/settings/admin               ユーザー一覧・凍結、マスタの削除、出走馬の取得の依頼（Actions が YAML の PR を作る）
 ```
 
 `/invite/[code]` と `/settings/members` は招待の廃止に伴って削除する（→ 第4章）。

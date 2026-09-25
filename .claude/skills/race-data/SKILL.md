@@ -64,6 +64,10 @@ pnpm run data:fetch entries 2026-09-27 中山 11
 確かめること: `entries` の頭数と馬番（1〜N の連番）が出馬表と合っている。`withdrawn` が想定した馬だけ。
 レースの `startTime` が出馬表の発走時刻と合っている。
 
+**アプリが先に PR を作っていることがある。** 重賞の枠順は、アプリの Cron が GitHub Actions に取らせて
+`data-fetch/<日付>-<場><R>R` の PR を作る（data/README.md「アプリから取らせる」）。枠順を入れる前に
+`gh pr list --search "head:data-fetch/"` で確かめ、あればそちらを見る（同じ中身の PR を2つ出さない）。
+
 ### 3. 過去5走を取る
 
 ```bash

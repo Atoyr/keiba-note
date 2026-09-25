@@ -50,14 +50,24 @@ subrequests = 1000
 # 夜まで回すのは、重賞を前日（G1 は前々日）の 18:30 から取りに行くため。夜中はオッズがほぼ動かないので回さない。
 # 取りに行くのは時間帯に入ったレース（src/lib/utils/odds.ts の inOddsWindow）がある回だけで、
 # 無い回は D1 を1回読んで終わる。
+#
+# 出走馬の取得の依頼（src/lib/server/race-data/scheduled.ts の ENTRIES_CRON と同じ文字列にする）。
+# 1-10 時 = JST 10:05〜19:05 の毎時。枠順を待っている重賞（1〜3日後で馬番が未入力）があれば、
+# GitHub Actions（race-data-fetch.yml）に出馬表を取らせて YAML の PR を作らせる。netkeiba へは Worker から行かない。
+#
 # Workers Previews（ステージング）では Cron は動かない。
 [triggers]
-crons = ["*/30 0-13 * * *"]
+crons = ["*/30 0-13 * * *", "5 1-10 * * *"]
 
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。
 [vars]
 APP_ENV = "production"
+
+# 出走馬の取得を頼む GitHub のリポジトリ（src/lib/server/race-data/dispatch.ts）。シークレットではない。
+# トークンは GITHUB_DISPATCH_TOKEN（wrangler secret。docs/operations.md）。
+# [previews.vars] には置かない。ステージングから本番のデータの PR を作らせない（管理画面のボタンも押せなくなる）。
+GITHUB_REPOSITORY = "Atoyr/keiba-note"
 
 # Workers Previews は本番の vars を継承しない。
 [previews.vars]

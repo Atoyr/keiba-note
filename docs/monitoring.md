@@ -11,6 +11,7 @@ GitHub Actions の結果の通知、外からの死活監視。
 - 更新日: 2026-09-24 — Workers Paid に上げたので、Worker の上限と課金の見張りを足した（→ 第9章）。
   デプロイの Webhook を Variable に入れて障害のチャンネルに落ちていたのを、Actions が見つけて知らせるようにした（→ 第7章・第8章）
 - 更新日: 2026-09-24 — Cron（オッズの取得）の event を足した（→ 第3章）
+- 更新日: 2026-09-25 — 出走馬の取得の依頼（Cron・管理画面）の event と、`race-data-fetch.yml` の通知を足した（→ 第3章 / 第7章）
 
 ---
 
@@ -88,6 +89,10 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `odds.fetch` | info / warn / error | 下の表 | `lib/server/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる |
 | `odds.cron` | info | しない | `lib/server/odds/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す（件数の内訳） |
 | `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かないなど） |
+| `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる |
+| `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
+| `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
+| `entries.dispatch.failed` | warn / error | error だけ | `/settings/admin` の `?/fetchEntries` | 管理画面から頼めなかった。届かなかったときは warn。トークン未設定は画面に出すだけでログにしない |
 
 `odds.fetch` の重さは `errorType`（`OddsError` の種類）で決める。**通知するのは人が手を入れる必要があるものだけ**で、
 一時的に届かなかった1回では知らせない（30分後の回で取れる）。Cron には request id が無いので、
@@ -103,6 +108,17 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `parse` | error | する | 応答の形が想定と違う。**取得元の構造が変わった疑い**で、直すまで毎回落ちる |
 | `invalid` | error | する | 値がおかしいので保存しなかった |
 | `unknown` | error | する | 上のどれでもない（D1 への保存の失敗など） |
+
+`entries.dispatch` の重さも `errorType`（`DispatchError` の種類）で決める。`requestId` は `cron-entries-<起動時刻>`。
+
+| errorType | level | 通知 | 意味 |
+| --- | --- | --- | --- |
+| （成功） | info | しない | 頼んだ |
+| `network` | warn | しない | GitHub に届かなかった・5xx。1時間後の回でまた頼む |
+| `not-configured` | warn | する | `GITHUB_DISPATCH_TOKEN` が無い。その回の残りは頼まない |
+| `rate-limited` | warn | する | GitHub の API の制限。その回の残りは頼まない |
+| `auth` | error | する | トークンが通らない（期限切れ・権限不足）。その回の残りは頼まない |
+| `http` / `unknown` | error | する | ワークフローが main に無い（404）・inputs が合わない（422）など |
 
 連投の抑制の鍵は `odds.fetch:<errorType>`。同じ種類の失敗が複数のレースで続いても5分に1件にまとまる。
 リクエストと同じく、Cron の1回で送る通知は1件まで（先に起きたほう）。
@@ -188,6 +204,7 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 | `ci.yml` | **main への push で**落ちたとき（PR の失敗は書いた人が見ているので送らない） | 赤 | デプロイ |
 | `deploy.yml` | 本番デプロイが成功したとき・落ちたとき（取り消しは送らない） | 緑 / 赤 | デプロイ |
 | `data-import.yml` | 本番へのレースデータ投入が落ちたとき（成功は開催のたびに流れるので送らない） | 赤 | デプロイ |
+| `race-data-fetch.yml` | 出走馬の PR を作った・更新したとき（マージしないと本番に入らないので）・落ちたとき。同じ中身で何もしなかった回は送らない | 緑 / 赤 | デプロイ |
 | `health.yml` | `/api/health` が落ちたとき・戻ったとき | 赤 / 緑 | 障害 |
 
 どれも `discord-notify.yml` を `workflow_call` で呼び、`channel`（`alerts` / `deploy`）で送り先を選ぶ。

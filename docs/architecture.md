@@ -16,6 +16,8 @@
 - 更新日: 2026-09-24 — 画像を Static Assets に置くときの約束（`?no-inline`）を足した（→ 3-5）
 - 更新日: 2026-09-24 — Cron Trigger でオッズを取りに行くようにした。外部依存に取得元（netkeiba）が加わり、
   `src/worker.js` が `scheduled` も受ける（→ 第0章 / 第1章 / 第2章 / 3-8 / 第6章）
+- 更新日: 2026-09-25 — 出走馬の取得を Worker（Cron・管理画面）から GitHub Actions に頼めるようにした。
+  Worker は Actions を起動するだけで、出馬表は YAML の PR で入る（→ 第0章 / 第1章 / 第2章 / 3-9）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -48,6 +50,8 @@
 - モック認証（`MOCK_AUTH`）は `dev` ガードの中にだけ置く。本番ビルドから分岐ごと消えるのが前提
 - **外部のデータ元（netkeiba）へ行くのは Cron だけ。** 画面の表示のたびに取りに行かない。
   取得元に固有の処理（URL・応答の形）は `lib/server/odds/<取得元>/` の外に出さない（→ 3-8）
+- **出走馬の取得を Worker から頼むときは、GitHub Actions を起動するだけ。** Worker は出馬表を取りに行かず、
+  D1 にも書かない。Actions が YAML を書いて PR を作り、マージで入る（下の「DB とデータ」の経路のまま。→ 3-9）
 
 ### DB とデータ
 
@@ -79,7 +83,8 @@ flowchart TB
 
     G["Google<br/>OAuth 2.0 / OIDC"]
     N["netkeiba<br/>オッズ（単勝・複勝）"]
-    CR["Cron Trigger<br/>30分おき"]
+    GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る"]
+    CR["Cron Trigger<br/>30分おき・毎時"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -89,10 +94,11 @@ flowchart TB
     W -->|"HTML"| U
     CR -->|"scheduled"| W
     W -->|"オッズの取得（Cron のときだけ）"| N
+    W -->|"出走馬の取得の依頼（Cron・管理画面）"| GH
 ```
 
-外部依存は **Google OAuth と、オッズの取得元（netkeiba）の2つ**。netkeiba へは Cron のときだけ行き、
-画面の表示では行かない（→ 3-8）。それ以外は Cloudflare の中で完結する。
+外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは Cron のときだけ行き、
+画面の表示では行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -210,12 +216,15 @@ service と auth も monitoring を知らない（失敗は投げたままにし
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
 adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
-Cron の入口 `lib/server/odds/scheduled.ts` だけ（→ 3-5・3-8）。
+Cron の入口 `lib/server/odds/scheduled.ts`・`lib/server/race-data/scheduled.ts` だけ（→ 3-5・3-8・3-9）。
 
 odds（`lib/server/odds/`）は2つに分かれる。`scheduled.ts` は Cron の入口で、**endpoint と同じ扱い**
 （db・service・monitoring を使ってよい）。残り（`odds.ts`・`update.ts`・`netkeiba/`）は **service と同じ扱い**で、
 monitoring を知らない（`update.ts` はログを引数の `log` に渡すだけ）。取得元に固有の処理は `netkeiba/` の中に閉じ、
 `odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない。
+
+race-data（`lib/server/race-data/`。出走馬の取得を Actions に頼む）も同じ分け方。`scheduled.ts` は endpoint と同じ扱いで、
+`dispatch.ts`・`request.ts` は service と同じ扱い（monitoring を知らない）。機能の軸では races に入る。
 
 - **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
   `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
@@ -525,6 +534,46 @@ Cron の入口は SvelteKit の外なので、`$lib` の別名は wrangler.toml 
 自前のモジュール（監視など）は SvelteKit 側とは別にもう1つ束ねられる（Drizzle などの依存は1つにまとまる）。
 Workers Previews（ステージング）では Cron は動かない。ローカルでは
 `wrangler dev --test-scheduled` で上げて `/__scheduled` を叩くと1回ぶん動く。
+
+### 3-9. 出走馬の取得 — Worker は Actions を起動するだけ
+
+出馬表（候補・枠順）は、Worker が netkeiba から取って D1 に書くのでは**なく**、GitHub Actions が
+`data:fetch entries` で `data/races/*.yaml` を書き、PR を作る。本番に入るのは人がマージしたとき（`data-import.yml`）。
+出走馬データの正を YAML に置いたままにするため（第0章「DB とデータ」）。Worker が D1 に直接書くと、次に YAML を
+投入したときに枠・馬番が YAML の値で入れ直され（そのレースぶんを NULL にしてから入れる）、書いたものが消える。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Cron（5 1-10 * * * UTC）/ 管理画面
+    participant W as race-data/（Worker）
+    participant D as D1
+    participant G as GitHub API
+    participant A as race-data-fetch.yml
+    participant N as netkeiba
+
+    C->>W: scheduled / POST ?/fetchEntries
+    W->>D: 1〜3日後の重賞で馬番が未入力のもの（Cron）/ そのレース（管理画面）
+    W->>G: workflow_dispatch（日付・場・R・race_id）
+    Note over W: ここで終わり。netkeiba へは行かず、D1 にも書かない
+    G->>A: 起動
+    A->>N: 出馬表（data:fetch entries）
+    Note over A: Cron からは枠順が確定していなければ何も書かない
+    A->>A: data:check → PR を作る（同じ中身の PR があれば何もしない）
+```
+
+| 層 | 置き場所 | 持つもの |
+| --- | --- | --- |
+| 依頼 | `lib/server/race-data/dispatch.ts` | GitHub の API に1回送る。失敗の種類（`DispatchError`） |
+| 手順 | `lib/server/race-data/request.ts` | Cron の対象を1つずつ頼む・止める条件・ログの重さ |
+| 対象 | `lib/server/services/entries-fetch.ts` | D1 から対象のレースを選ぶ（読むだけ） |
+| 入口 | `lib/server/race-data/scheduled.ts`・`/settings/admin` の `?/fetchEntries` | 監視の口と D1 クライアントを作って渡す |
+| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR |
+
+- Cron は枠順が本番に入る（馬番が付く）まで毎時頼む。Actions は、確定前なら出馬表を1回見て終わり、
+  確定後に PR のブランチと同じ中身なら何もしない。PR ができたら Discord の「デプロイ」に知らせる
+- トークン（`GITHUB_DISPATCH_TOKEN`）は、このリポジトリの Actions に書き込めるだけのもの。漏れても
+  できるのはワークフローの起動までで、できた PR は人がマージするまで本番に入らない
 
 ---
 

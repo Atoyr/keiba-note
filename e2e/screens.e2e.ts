@@ -74,7 +74,7 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 					if (m.type() === 'error') errors.push(m.text());
 				});
 
-				if (screen.auth) await login(page);
+				if (screen.auth) await login(page, screen.as);
 				const res = await page.goto(screen.path);
 
 				expect(res?.status(), `${screen.path} の応答`).toBeLessThan(400);
