@@ -79,6 +79,22 @@ describe('saveRaceReview', () => {
 });
 
 describe('savePreviewNotes', () => {
+	it('本文も札も無く ☆ だけでも、印をそのまま残す', async () => {
+		const { db, ops } = fakeDb();
+
+		await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: '' }, entries: [{ ...entry(), mark: '☆' }] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([
+			{ kind: 'delete' },
+			{ kind: 'insert', values: expect.objectContaining({ kind: 'preview', mark: '☆' }) }
+		]);
+	});
+
 	it('印が無くても札だけで出走前メモを残す', async () => {
 		const { db, ops } = fakeDb();
 

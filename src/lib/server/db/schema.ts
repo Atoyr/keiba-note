@@ -9,7 +9,7 @@ import {
 	text,
 	uniqueIndex
 } from 'drizzle-orm/sqlite-core';
-// 型だけの import。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
+// 印の選択肢（MARKS）と札の型。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
 import { MARKS, type NoteTag } from '../../schemas/note';
 
 /**
