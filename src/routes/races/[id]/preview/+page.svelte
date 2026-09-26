@@ -20,7 +20,13 @@
 	import { byMark } from '$lib/utils/answer';
 	import { courseMap } from '$lib/utils/course';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { conditionLabel, latestConclusion, noteHeading, previewSaveLabel } from '$lib/utils/note';
+	import {
+		conditionLabel,
+		latestConclusion,
+		noteHeading,
+		previewSaveLabel,
+		savedMessage
+	} from '$lib/utils/note';
 	import { formatOddsAsOf, formatPlaceOdds, formatWinOdds } from '$lib/utils/odds';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -44,11 +50,6 @@
 
 	/** 展開している馬。1頭ずつ開く。 */
 	let open = $state<string | null>(null);
-
-	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄は見立て1つだけ。
-	// 「（N 件）」は並んでいる馬の数だけ意味を持つ言い方なので出さない。
-	const bulk = $derived(data.rows.length > 0);
-	const savedMessage = (saved: number) => `保存しました${bulk ? `（${saved} 件）` : ''}`;
 
 	const ta = 'mt-1 text-sm';
 
@@ -149,12 +150,13 @@
 	{/if}
 
 	<!-- 保存の知らせはトースト（下の use:enhance）。JS が無いときはトーストが出せないので、ここに出す。 -->
-	{#if form && 'saved' in form}
+	{#if form && 'savedAt' in form}
 		<noscript>
 			<p
 				class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
 			>
-				{savedMessage(form.saved ?? 0)}
+				<!-- 件数は出さない。JS が無いと変えたメモを数えられず、未保存の件数も出ていない。 -->
+				保存しました
 			</p>
 		</noscript>
 	{/if}
@@ -184,8 +186,8 @@
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
-						await keeper?.clear(sent, late);
-						toast.success(savedMessage(Number(result.data?.saved ?? 0)));
+						const changed = (await keeper?.clear(sent, late)) ?? 0;
+						toast.success(savedMessage(data.rows.length, changed));
 					}
 				} finally {
 					saving = false;

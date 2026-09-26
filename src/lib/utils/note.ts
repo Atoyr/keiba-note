@@ -152,6 +152,20 @@ export function previewSaveLabel(entryCount: number): string {
 	return entryCount > 0 ? '出走前メモを保存' : 'レースの見立てを保存';
 }
 
+/**
+ * ふりかえりと予想の一括保存が通ったときの知らせ（トースト）。
+ *
+ * **件数は、この保存で変えたメモの数**（`DraftKeeper.clear` が返す）。押す前の
+ * 「未保存の変更が N 件」と同じ数え方にする。空でないメモの総数を出すと、触っていない馬まで
+ * 数えて件数が合わず、何か操作を間違えたように読める。
+ *
+ * 出走馬がいなければ件数を出さない。入力欄はレースのメモ1つだけで、「（N 件）」は
+ * 並んでいる馬の数だけ意味を持つ言い方なので（`raceReviewSaveLabel` と同じ理由）。
+ */
+export function savedMessage(entryCount: number, changed: number): string {
+	return `保存しました${entryCount > 0 && changed > 0 ? `（${changed} 件）` : ''}`;
+}
+
 export type ConclusionSource = {
 	kind: NoteHeadingSource['kind'];
 	tags: NoteTag[];
