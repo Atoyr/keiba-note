@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
@@ -9,7 +8,7 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
+	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
@@ -178,20 +177,10 @@
 					{/if}
 					<!-- 展開の予想は盤面が場所を取るので畳んでおく。結果と見比べたいときに開く。 -->
 					{#if data.myRaceFlow}
-						<details class="group mt-1">
-							<summary
-								class="flex cursor-pointer list-none items-center gap-1 text-xs text-sky-900 [&::-webkit-details-marker]:hidden"
-							>
-								展開の予想
-								<ChevronDown
-									class="size-4 transition-transform group-open:rotate-180"
-									aria-hidden="true"
-								/>
-							</summary>
-							<div class="mt-2 rounded-md bg-background p-2">
-								<RaceFlowView flow={data.myRaceFlow} />
-							</div>
-						</details>
+						<!-- 白い面に載せる。空色の面の上だと、隊列の補足の灰色が 4.5:1 に届かない。 -->
+						<div class="mt-1 rounded-md bg-background px-2 py-1">
+							<RaceFlowDetails flow={data.myRaceFlow} level="h3" titleClass="text-xs" />
+						</div>
 					{/if}
 					<a
 						href={resolve('/races/[id]/preview', { id: data.race.id })}

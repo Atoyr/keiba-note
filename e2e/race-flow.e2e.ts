@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
-import { FLOW_RACE_ID, MARKS_RACE_ID } from './seed';
+import { FLOW_CROWD_RACE_ID, FLOW_RACE_ID, MARKS_RACE_ID } from './seed';
 
 /**
  * ★ 展開の予想を盤面に置いて、「まとめて保存」で残せること。
@@ -37,12 +37,69 @@ test('盤面に馬を置き、ペースとメモを添えて保存すると、�
 	await expect(summary).toContainText('ハイ');
 	await expect(summary).toContainText('スタート ①-②');
 
-	// 予想まとめにも盤面で出る。
+	// 予想まとめでは畳んで出し、閉じた行に隊列の1行、開くと盤面。
 	await gotoHydrated(page, `/races/${FLOW_RACE_ID}/summary`);
 	const section = page.getByRole('region', { name: '展開の予想' });
+	await expect(section.locator('summary')).toContainText('スタート ①-②');
+	await expect(section.getByRole('group', { name: 'スタートの隊列' })).toBeHidden();
+	await section.locator('summary').click();
 	await expect(section.getByRole('group', { name: 'スタートの隊列' })).toBeVisible();
-	await expect(section).toContainText('①-②');
 	await expect(section).toContainText('①が押してハナ');
+});
+
+/**
+ * 隊列は hidden の欄なので、下書きから「復元する」で戻したときに盤面を読み直す必要がある
+ * （DraftKeeper が欄に change を投げ、RaceFlowEditor がそれを聞く）。
+ */
+test('置いたまま保存せずに読み込み直しても、下書きの復元で盤面が戻る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${FLOW_CROWD_RACE_ID}/preview`);
+
+	const flow = page.locator('details', { hasText: '展開の予想' });
+	await flow.locator('summary').click();
+	await flow.getByRole('tab', { name: /ゴール前/ }).click();
+	await flow.getByRole('button', { name: 'ツバサ', exact: true }).click();
+	await flow.getByRole('button', { name: '先頭・大外（空き）' }).click();
+	await expect(page.getByRole('button', { name: '出走前メモを保存' })).toBeVisible();
+	// 下書きは入力から少し遅れて書く（DraftKeeper）。書かれるまで待つ。
+	await expect
+		.poll(() =>
+			page.evaluate(() =>
+				Object.keys(localStorage).some((k) => k.startsWith('uma-memo:draft:preview:'))
+			)
+		)
+		.toBe(true);
+
+	page.once('dialog', (d) => void d.accept());
+	await gotoHydrated(page, `/races/${FLOW_CROWD_RACE_ID}/preview`);
+	const summary = page.locator('details', { hasText: '展開の予想' }).locator('summary');
+	await expect(summary).not.toContainText('ゴール前');
+
+	await page.getByRole('button', { name: '復元する' }).click();
+	await expect(summary).toContainText('ゴール前 ツバ');
+});
+
+/** キーボードでは盤面を1つの止まり場所にし、矢印キーでマスを動く。 */
+test('盤面は Tab で1回止まり、矢印キーでマスを移って置ける', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${FLOW_RACE_ID}/preview`);
+
+	const flow = page.locator('details', { hasText: '展開の予想' });
+	await flow.locator('summary').click();
+	// スタートは上の保存のテストが並行して埋めるので、触らないゴール前で確かめる。
+	await flow.getByRole('tab', { name: /ゴール前/ }).click();
+	await flow.getByRole('button', { name: '2番 E2Eオイコミ', exact: true }).click();
+
+	const board = flow.getByRole('group', { name: /ゴール前の隊列/ });
+	await expect(board.locator('button[tabindex="0"]')).toHaveCount(1);
+	await board.getByRole('button', { name: '先頭・内（空き）' }).focus();
+	await page.keyboard.press('ArrowDown');
+	await page.keyboard.press('ArrowRight');
+	await expect(board.getByRole('button', { name: '前から2列目・中（空き）' })).toBeFocused();
+	await page.keyboard.press('Enter');
+	await expect(
+		board.getByRole('button', { name: '2番 E2Eオイコミ（前から2列目・中）' })
+	).toBeVisible();
 });
 
 /** 開催後のふりかえりでは、開催前に置いた展開を畳んで出す（答え合わせに使う）。 */

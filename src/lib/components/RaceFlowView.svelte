@@ -6,7 +6,8 @@
 	/**
 	 * 展開の予想を読むだけの形。予想まとめ・共有ページ・ふりかえりで使う。
 	 *
-	 * 3つの局面の盤面を並べる（広い画面は横に3つ、スマホは縦に積む）。書く画面と違って
+	 * 3つの局面の盤面を並べる（広い画面は2つずつ、スマホは縦に積む）。3つ横に並べると
+	 * マスが 20px ほどになり、枠順前の頭2文字のコマが読めない。書く画面と違って
 	 * タブにしないのは、読む場では局面の移り変わりを見比べるのが用だから。
 	 * 盤面の下に隊列の1行（`⑤-③⑦`）を添える。盤面だけだと読み上げで順が追いにくい。
 	 *
@@ -28,7 +29,7 @@
 		</p>
 	{/if}
 	{#if phases.length > 0}
-		<div class="grid gap-4 sm:grid-cols-3">
+		<div class="grid gap-4 sm:grid-cols-2">
 			{#each phases as p (p)}
 				<div class="min-w-0">
 					<h3 class="text-xs font-medium text-muted-foreground">{FLOW_PHASE_LABEL[p]}</h3>

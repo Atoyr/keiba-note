@@ -151,13 +151,26 @@
 		void set(phase, next);
 	}
 
+	let board = $state<RaceFlowBoard | null>(null);
+
+	/**
+	 * 押したボタンが消える操作（外す・消す）のあとは、盤面へフォーカスを戻す。
+	 * 戻さないとフォーカスの行き先が無くなり、キーボードでは迷子になる。
+	 */
+	async function thenFocusBoard(done: Promise<void>) {
+		await done;
+		board?.focus();
+	}
+
 	function remove() {
 		if (!selected) return;
 		const id = selected;
 		selected = null;
-		void set(
-			phase,
-			spots[phase].filter((s) => s.entryId !== id)
+		void thenFocusBoard(
+			set(
+				phase,
+				spots[phase].filter((s) => s.entryId !== id)
+			)
 		);
 	}
 
@@ -171,7 +184,7 @@
 
 	function clearPhase() {
 		selected = null;
-		void set(phase, []);
+		void thenFocusBoard(set(phase, []));
 	}
 
 	function choose(p: FlowPhase) {
@@ -208,32 +221,30 @@
 
 <details class="group rounded-lg border px-3 py-2">
 	<summary
-		class="flex min-h-6 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden"
+		class="flex min-h-6 cursor-pointer list-none flex-wrap items-center gap-x-2 [&::-webkit-details-marker]:hidden"
 	>
 		<span class="shrink-0 text-sm font-semibold text-muted-foreground">展開の予想</span>
-		<!-- 畳んでいる間だけ中身を1行で出す。開けば下の盤面が正なので、同じものを二重に見せない。
-		     開いたら高さごと外す（3局面ぶん折り返すと、見出しの行が空いたまま縦に伸びる）。 -->
-		<span
-			class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 text-xs text-muted-foreground group-open:hidden"
-		>
-			{#if written}
-				{#if pace}
-					<span class="rounded border px-1 font-medium text-foreground">{pace}</span>
-				{/if}
-				{#each digest as d, i (d.phase)}
-					<span class="whitespace-nowrap"
-						>{i > 0 ? '→ ' : ''}{d.label}
-						<span class="text-sm text-foreground">{d.order}</span></span
-					>
-				{/each}
-			{:else}
-				<span>＋ 書く</span>
-			{/if}
-		</span>
+		{#if pace}
+			<span class="rounded border px-1 text-xs font-medium group-open:hidden">{pace}</span>
+		{:else if !written}
+			<span class="text-xs text-muted-foreground group-open:hidden">＋ 書く</span>
+		{/if}
 		<ChevronDown
 			class="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
 			aria-hidden="true"
 		/>
+		<!-- 畳んでいる間だけ、局面ごとの隊列を見出しの下に全幅で出す。18頭だと1行に収まらないので、
+		     見出しの横に並べず、局面ごとに1行ずつ折り返せるようにする。
+		     開けば下の盤面が正なので、同じものを二重に見せない（高さごと外す）。 -->
+		{#if digest.length > 0}
+			<span class="grid basis-full gap-0.5 pt-0.5 text-xs text-muted-foreground group-open:hidden">
+				{#each digest as d (d.phase)}
+					<span class="break-all"
+						>{d.label} <span class="text-sm text-foreground">{d.order}</span></span
+					>
+				{/each}
+			</span>
+		{/if}
 	</summary>
 
 	<div class="mt-2 grid gap-3">
@@ -281,15 +292,18 @@
 						size="sm"
 						class={cn(
 							'h-8 flex-1 gap-1 px-1 text-xs',
+							// 選んでいないタブも text-foreground にする。bg-muted の上の text-muted-foreground は
+							// 4.5:1 に届かない（text-xs には足りない）。選んだタブは面と太字で見分ける。
 							phase === p
 								? 'bg-background font-semibold text-foreground shadow-xs hover:bg-background'
-								: 'text-muted-foreground'
+								: 'font-normal text-foreground'
 						)}
 						onclick={() => choose(p)}
 					>
 						{FLOW_PHASE_LABEL[p]}
+						<!-- 置いた頭数。数だけだと何の数か読めないので「頭」を付ける。 -->
 						{#if spots[p].length > 0}
-							<span class="font-mono text-muted-foreground">{spots[p].length}</span>
+							<span class="font-normal">{spots[p].length}頭</span>
 						{/if}
 					</Button>
 				{/each}
@@ -304,6 +318,7 @@
 				class="mt-2 grid gap-2"
 			>
 				<RaceFlowBoard
+					bind:this={board}
 					spots={boardSpots(spots[phase])}
 					{leadsRight}
 					label="{FLOW_PHASE_LABEL[phase]}の隊列"

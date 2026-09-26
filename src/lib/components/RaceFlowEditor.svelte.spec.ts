@@ -47,6 +47,17 @@ describe('RaceFlowEditor', () => {
 		expect(screen.container.querySelector('details')!.open).toBe(false);
 	});
 
+	/** 数だけだと何の数か読めない。 */
+	it('局面のタブに、置いた頭数を「頭」付きで出す', async () => {
+		const { screen } = setup({
+			...emptyFlow(),
+			corner4: { spots: [{ entryId: 'e1', x: 0, y: 0 }], memo: '' }
+		});
+		await screen.getByText('展開の予想').click();
+		await expect.element(screen.getByRole('tab', { name: /^4コーナー\s*1頭$/ })).toBeVisible();
+		await expect.element(screen.getByRole('tab', { name: 'スタート', exact: true })).toBeVisible();
+	});
+
 	it('何も書いていなければ「＋ 書く」', async () => {
 		const { screen } = setup();
 		expect(screen.container.querySelector('summary')!.textContent).toContain('＋ 書く');
@@ -114,6 +125,8 @@ describe('RaceFlowEditor', () => {
 		await screen.getByRole('button', { name: '盤面から外す' }).click();
 
 		await expect.poll(() => spotsOf(screen.container, 'start')).toEqual([]);
+		// 押したボタンは消えるので、フォーカスは盤面のマスへ戻る（行き先を失わない）。
+		await expect.poll(() => document.activeElement?.hasAttribute('data-cell')).toBe(true);
 		await expect
 			.element(screen.getByRole('button', { name: '1番 ホースA', exact: true }))
 			.toBeVisible();
