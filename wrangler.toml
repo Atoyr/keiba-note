@@ -31,6 +31,18 @@ enabled = true
 # そのまま残るため（docs/monitoring.md 第2章「出さないもの」）。
 redact_query_string = true
 
+# fetch の処理を東京（AWS ap-northeast-1 の近く）で動かす。利用者は国内だけで、D1 のプライマリも apac にある。
+# オッズの取得元（netkeiba）は、海外の拠点から行くと手前で 400 を返す。**placement は Cron（scheduled）には効かない**ので、
+# オッズの Cron は下の SELF を通して自分の fetch を呼び、取得はそちらで行う（src/lib/server/odds/scheduled.ts）。
+[placement]
+region = "aws:ap-northeast-1"
+
+# 自分自身へのサービスバインディング。オッズの Cron が、東京に置かれる fetch の処理を呼ぶのに使う（上の placement）。
+# Workers Previews（ステージング）は Cron が動かないので、[previews] には置かない。
+[[services]]
+binding = "SELF"
+service = "k-note"
+
 # Workers Paid の既定（CPU 30秒・サブリクエスト 10,000）は、暴走したときに止まらず課金が進む。
 # 暴走は止め、普段の処理は決して当たらない高さに置く。**上限に当たっても Discord には届かない**
 # （同じ呼び出しからの通知も止まる）ので、普段の処理が当たる低さに置くと、利用者だけがエラーを見て

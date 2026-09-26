@@ -18,6 +18,8 @@
   `src/worker.js` が `scheduled` も受ける（→ 第0章 / 第1章 / 第2章 / 3-8 / 第6章）
 - 更新日: 2026-09-25 — 出走馬の取得を Worker（Cron・管理画面）から GitHub Actions に頼めるようにした。
   Worker は Actions を起動するだけで、出馬表は YAML の PR で入る（→ 第0章 / 第1章 / 第2章 / 3-9）
+- 更新日: 2026-09-26 — Worker の fetch を東京に置いた（`[placement]`）。海外の拠点から netkeiba へ行くと 400 を返されるので、
+  オッズの Cron は自分の fetch（`env.SELF`）を呼び、取得はそちらで行う（→ 3-8）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -72,7 +74,7 @@
 flowchart TB
     U["ブラウザ<br/>ログインした本人 ＋ 共有 URL の閲覧者"]
 
-    subgraph CF["Cloudflare Edge — ユーザーに最も近い拠点で実行"]
+    subgraph CF["Cloudflare — アセットは最寄りの拠点、Worker の fetch は東京（placement）"]
         A["Static Assets<br/>JS / CSS / フォント<br/>課金対象外・無制限"]
         W["Worker<br/>SvelteKit SSR + form actions<br/>hooks.server.ts で認証"]
     end
@@ -487,13 +489,15 @@ load に到達する。共有ページは通常のログイン必須ルートと
 sequenceDiagram
     autonumber
     participant C as Cron（JST 7:00〜25:00 の30分おき）
-    participant S as odds/scheduled.ts
+    participant R as worker.js の scheduled<br/>（どの拠点で動くか決まらない）
+    participant S as worker.js の fetch → odds/scheduled.ts<br/>（東京に置かれる）
     participant U as odds/update.ts
     participant D as D1
     participant P as NetkeibaOddsProvider
     participant N as netkeiba
 
-    C->>S: scheduled
+    C->>R: scheduled
+    R->>S: env.SELF.fetch（POST https://odds-cron.internal/run）
     S->>U: updateOdds（db・provider・log）
     U->>D: 今日から2日後まで・ref と発走時刻ありのレース 【クエリ1】
     Note over U: 取りに行く時間帯に入っているものだけ残す<br/>無ければここで終わり（取得元へは行かない）
@@ -506,6 +510,7 @@ sequenceDiagram
         Note over U: validateRaceOdds
         U->>D: 馬ごとの upsert ＋ 応答に無い馬番の削除を batch で1往復
     end
+    S-->>R: 204（終わってから返す）
 ```
 
 | 層 | 置き場所 | 持つもの |
@@ -514,7 +519,18 @@ sequenceDiagram
 | 取得元 | `lib/server/odds/netkeiba/` | URL と通信（`provider.ts`）、応答の読み替え（`parser.ts`。通信しないので fixture で試す） |
 | 手順 | `lib/server/odds/update.ts` | 対象の選び方・順番・再試行・ログの重さ |
 | 保存 | `lib/server/services/odds.ts` | D1 の読み書き。取得元を知らない |
-| 入口 | `lib/server/odds/scheduled.ts` | 監視の口・D1 クライアント・provider を作って渡す。**取得元を替えるときに直すのはここだけ** |
+| 入口 | `lib/server/odds/scheduled.ts` | Cron から fetch への受け渡し（`relayOddsCron` / `handleOddsRun`）。監視の口・D1 クライアント・provider を作って渡す。**取得元を替えるときに直すのはここだけ** |
+
+**取得は東京で動く fetch の処理でする。** Cron（`scheduled`）はどの拠点で動くか決められず、チューリッヒなど海外の拠点から
+netkeiba へ行くと、手前の CloudFront が本文の無い 400 を返す（手元＝東京の拠点からは同じ URL で 200）。
+`wrangler.toml` の `[placement] region = "aws:ap-northeast-1"` で東京に置けるのは fetch の処理だけで、Cron には効かない。
+そこで Cron は自分自身へのサービスバインディング `SELF` で `https://odds-cron.internal/run` を POST し、
+`worker.js` の fetch が SvelteKit に渡す前にそれを拾って `runOddsCron` を回す。
+
+- この宛先に外からは届かない。外からのリクエストが Worker に届くのは独自ドメインと workers.dev のホスト名だけで、
+  `.internal` は公に登録できない。だから `hooks.server.ts` の認証も `PUBLIC_PATHS` も通さない
+- 利用者は国内だけなので、画面の fetch も東京に置く。D1 のプライマリ（apac）にも近くなる
+- 国内から取るのは、利用者と同じ場所から見るというだけで、制限を避ける細工（下の約束）ではない
 
 **取得元への負荷を抑える約束**（取得元に止められたら機能ごと失う）:
 
@@ -540,8 +556,8 @@ sequenceDiagram
 
 Cron の入口は SvelteKit の外なので、`$lib` の別名は wrangler.toml の `[alias]` で wrangler（esbuild）に教えている。
 自前のモジュール（監視など）は SvelteKit 側とは別にもう1つ束ねられる（Drizzle などの依存は1つにまとまる）。
-Workers Previews（ステージング）では Cron は動かない。ローカルでは
-`wrangler dev --test-scheduled` で上げて `/__scheduled` を叩くと1回ぶん動く。
+Workers Previews（ステージング）では Cron は動かないので、`SELF` も `[previews]` には置いていない。ローカルでは
+`wrangler dev --test-scheduled` で上げて `/__scheduled` を叩くと1回ぶん動く（`SELF` を通るところまで同じ）。
 
 ### 3-9. 出走馬の取得 — Worker は Actions を起動するだけ
 

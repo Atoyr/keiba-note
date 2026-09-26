@@ -10,7 +10,7 @@
 // ここから import する TS は wrangler（esbuild）が束ねる。`$lib` は wrangler.toml の alias で解く。
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
-import { runOddsCron } from './lib/server/odds/scheduled.ts';
+import { handleOddsRun, isOddsRunRequest, relayOddsCron } from './lib/server/odds/scheduled.ts';
 import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
 
 export default {
@@ -20,6 +20,8 @@ export default {
 	 * @param {ExecutionContext} ctx
 	 */
 	async fetch(req, env, ctx) {
+		// オッズの Cron が env.SELF から呼ぶ。fetch の処理は東京に置かれる（wrangler.toml の placement）。
+		if (isOddsRunRequest(req)) return handleOddsRun(req, env, ctx);
 		return uncacheFailure(await sveltekit.fetch(req, env, ctx));
 	},
 
@@ -33,7 +35,8 @@ export default {
 		if (controller.cron === ENTRIES_CRON) {
 			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime));
 		} else {
-			ctx.waitUntil(runOddsCron(env, ctx, controller.scheduledTime));
+			// 取得は Cron の中でせず、東京で動く fetch の処理に渡す（placement は Cron に効かない）
+			ctx.waitUntil(relayOddsCron(env, ctx, controller.scheduledTime));
 		}
 	}
 };
