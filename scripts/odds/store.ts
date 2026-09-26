@@ -64,7 +64,8 @@ export function pickTargets(rows: TargetRow[], now: Date): OddsTarget[] {
  * 取れたオッズでそのレースの行を置き換える SQL。**検査（`validateRaceOdds`）を通したものだけを渡すこと。**
  *
  * 馬ごとに upsert し、今回の応答に無かった馬番の行は消す。2文を1回の `--command` で送る。
- * D1 は複数の文を batch（1トランザクション）で流すので、途中で落ちても前回の値が半端に混ざらない。
+ * `--remote` では D1 の REST API（`/query`）に1回で渡り、複数の文は batch（1トランザクション）で流れるので、
+ * 途中で落ちても前回の値が半端に混ざらない。
  * 最後の砦として `race_odds` の CHECK もある。
  */
 export function saveOddsSql(odds: RaceOdds): string {

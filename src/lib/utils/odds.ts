@@ -25,7 +25,7 @@ function isOddsGrade(grade: string | null): grade is OddsGrade {
 	return grade !== null && Object.hasOwn(ODDS_OPENS, grade);
 }
 
-/** オッズを取りに行く格。`listOddsTargets` が D1 で先に絞るのに使う。 */
+/** オッズを取りに行く格。`targetsSql`（scripts/odds/store.ts）が D1 で先に絞るのに使う。 */
 export const ODDS_GRADES = Object.keys(ODDS_OPENS) as OddsGrade[];
 
 /** `YYYY-MM-DD` と `HH:MM`（JST）→ その時刻。形が違えば null。 */

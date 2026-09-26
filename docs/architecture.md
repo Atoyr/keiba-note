@@ -87,7 +87,7 @@ flowchart TB
     G["Google<br/>OAuth 2.0 / OIDC"]
     N["netkeiba<br/>オッズ（単勝・複勝）"]
     GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る<br/>オッズを取って D1 に書く"]
-    CR["Cron Trigger<br/>30分おき・毎時"]
+    CR["Cron Trigger<br/>毎時"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -490,7 +490,7 @@ load に到達する。共有ページは通常のログイン必須ルートと
 ```mermaid
 sequenceDiagram
     autonumber
-    participant A as odds-update.yml<br/>（JST 7:00〜25:00 の30分おき）
+    participant A as odds-update.yml<br/>（JST 7:05〜25:05 の30分おき）
     participant S as scripts/odds-update.ts
     participant U as scripts/odds/update.ts
     participant D as D1（wrangler d1 execute --remote）
@@ -542,7 +542,7 @@ Workers の外向きの IP は多くの Worker で共有されていて、その
   | G2・G3 | 前日の 18:30（前日発売のオッズが出始める頃） | 土 14回 + 日 18回 = 32回 |
   | L・OP・条件戦 | 取りに行かない | 0回 |
 
-  どれも発走まで。ワークフローは JST 7:00〜25:00（翌 1:00）に回す。ネットの前日発売は夜間も売っているので 25:00 まで取り、
+  どれも発走まで。ワークフローは JST 7:05〜25:05（翌 1:05）に回す（混む毎時0分を避けて5分ずらす）。ネットの前日発売は夜間も売っているので 25:00 まで取り、
   25:00〜7:00 は取りに行かない。発売前は取得元が予想オッズしか返さず、
   何も保存しない（`not-available`）
 - 1レースずつ順に取り、間を1秒あける。並列にしない
@@ -551,8 +551,9 @@ Workers の外向きの IP は多くの Worker で共有されていて、その
 - 制限を避けるための細工（プロキシ・IP の切り替え・User-Agent の偽装）はしない。User-Agent は用途を名乗る
 
 **失敗しても前の値を壊さない。** 取れなかった・形が違った・値がおかしい（0以下、下限 > 上限、馬番の重複）ときは
-何も書かず、前回の値が時点とともに残る。保存の2文（upsert と削除）は1回の `--command` で送り、D1 はそれを batch
-（1トランザクション）で流すので半端に混ざらない。最後の砦として `race_odds` の CHECK もある。
+何も書かず、前回の値が時点とともに残る。保存の2文（upsert と削除）は1回の `--command` で送る。
+`--remote` のときは D1 の REST API（`/query`）に1回で渡り、API の文書は「複数の文は batch として実行する」としている
+（D1 の batch は1トランザクション）ので半端に混ざらない。最後の砦として `race_odds` の CHECK もある。
 
 ### 3-9. 出走馬の取得 — Worker は Actions を起動するだけ
 

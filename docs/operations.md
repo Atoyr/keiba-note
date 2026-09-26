@@ -230,7 +230,7 @@ main の CI 成功            → staging.yml     ステージング D1 更新 �
 main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
 ```
 
-オッズの更新 `odds-update.yml` は JST 7:00〜25:00 の30分おきに netkeiba からオッズを取り、`race_odds` に
+オッズの更新 `odds-update.yml` は JST 7:05〜25:05 の30分おきに netkeiba からオッズを取り、`race_odds` に
 `wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)）。使うのは下の `CLOUDFLARE_API_TOKEN` の `D1 : Edit`。
 
 ほかに監視のためのものが2本ある。`health.yml`（30分ごとに本番の `/api/health` を叩く）と、

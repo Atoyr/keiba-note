@@ -177,7 +177,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | --- | --- | --- |
 | `services/horses.ts` | `listHorses`・`getHorse`・`getHorseEntries` | `findOrCreateHorse`・`updateHorseProfile` |
 | `services/races.ts` | `listRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
-| `services/odds.ts` | `listOddsTargets`・`getRaceOdds` | `saveRaceOdds`（Cron だけが呼ぶ） |
+| `services/odds.ts` | `getRaceOdds` | —（GitHub Actions が `scripts/odds/store.ts` の SQL で書く。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | `listEntriesFetchTargets`・`listUpcomingRaces`・`entriesFetchBlocker`（D1 を読まない判定） | —（出馬表は YAML の PR で入る） |
 | `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |
 | `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
