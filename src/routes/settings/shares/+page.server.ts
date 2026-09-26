@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { shareNoteSchema } from '$lib/schemas/note';
 import { listSharedNotes, setNoteVisibility } from '$lib/server/services/notes';
+import { listRaceShares, revokeRaceShare } from '$lib/server/services/race-shares';
 import { ctx } from '$lib/server/util';
 import { safeRedirect } from '$lib/utils/redirect';
 import type { Actions, PageServerLoad } from './$types';
@@ -18,7 +19,11 @@ import type { Actions, PageServerLoad } from './$types';
  */
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const { db, user } = ctx(locals, platform);
-	return { notes: await listSharedNotes(db, user.id) };
+	const [notes, races] = await Promise.all([
+		listSharedNotes(db, user.id),
+		listRaceShares(db, user.id)
+	]);
+	return { notes, races };
 };
 
 export const actions: Actions = {
@@ -26,6 +31,19 @@ export const actions: Actions = {
 		const { db, user } = ctx(locals, platform);
 
 		const form = await request.formData();
+		if (form.has('raceId')) {
+			const parsed = v.safeParse(v.pipe(v.string(), v.minLength(1)), form.get('raceId'));
+			if (!parsed.success) return fail(400, { message: '操作を受け付けられませんでした' });
+			try {
+				await revokeRaceShare(db, parsed.output, user.id);
+			} catch {
+				return fail(503, {
+					message:
+						'共有の解除を確認できませんでした。時間をおいてもう一度「共有をやめる」を押してください。'
+				});
+			}
+			return { shared: false };
+		}
 		const parsed = v.safeParse(shareNoteSchema, {
 			noteId: form.get('noteId')?.toString() ?? '',
 			visibility: form.get('visibility')?.toString()

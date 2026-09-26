@@ -137,6 +137,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
 | `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |
+| `RaceSummary` | 1レースの見立て・各馬のメモ・札・印。本人のまとめ画面と共有ページで共通 |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の SVG で、`src/lib/utils/course.ts` から `pnpm run course-maps` で書き出す生成物（手で直さない） |
 | `NoteMenu` / `AnswerCheck` / `DraftKeeper` / `SaveBar` | メモの `⋯` メニュー・的中の確認・書きかけの保持・未保存のときだけ出る保存ボタン |
 | `AccountMenu` | ヘッダのアバター |

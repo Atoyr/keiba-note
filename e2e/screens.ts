@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
+import { failNextAction } from './action-failure';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
@@ -8,7 +9,8 @@ import {
 	PAST_EMPTY_RACE_ID,
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
-	SHARED_NOTE_ID
+	SHARED_NOTE_ID,
+	SHARED_RACE_ID
 } from './seed';
 
 /**
@@ -221,6 +223,63 @@ export const SCREENS: Screen[] = [
 	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
+	{
+		name: 'settings-profile-save-failed',
+		path: '/settings/profile',
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByLabel('公開用の名前', { exact: true }).fill('週末うまメモ');
+			await failNextAction(page, '/settings/profile', {
+				publicName: '週末うまメモ',
+				message: '公開用の名前の保存を確認できませんでした。時間をおいてもう一度保存してください。'
+			});
+			await page.getByRole('button', { name: '公開用の名前を保存', exact: true }).click();
+			await page.getByRole('alert').waitFor();
+		}
+	},
+	{
+		name: 'race-summary-share-failed',
+		path: `/races/${PREVIEW_RACE_ID}/summary`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await failNextAction(page, `/races/${PREVIEW_RACE_ID}/summary`, {
+				failed: true,
+				message: '共有内容の保存を確認できませんでした。時間をおいてもう一度お試しください。'
+			});
+			await page.getByRole('button', { name: '共有リンクを作る' }).click();
+			await page.getByRole('alert').waitFor();
+		}
+	},
+	{
+		name: 'race-summary-revoke-failed',
+		path: `/races/${MARKS_RACE_ID}/summary`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await failNextAction(page, `/races/${MARKS_RACE_ID}/summary`, {
+				failed: true,
+				message:
+					'共有の解除を確認できませんでした。時間をおいてもう一度「共有をやめる」を押してください。'
+			});
+			await page.getByRole('button', { name: '共有をやめる', exact: true }).click();
+			await page.getByRole('alert').waitFor();
+		}
+	},
+	{
+		name: 'settings-profile-editing',
+		path: '/settings/profile',
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByLabel('公開用の名前', { exact: true }).fill('週末うまメモ');
+		}
+	},
+	{ name: 'race-summary', path: `/races/${PREVIEW_RACE_ID}/summary`, auth: true },
+	{ name: 'race-summary-marks', path: `/races/${MARKS_RACE_ID}/summary`, auth: true },
+	{ name: 'race-summary-empty', path: `/races/${EMPTY_RACE_ID}/summary`, auth: true },
+	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },
 	{ name: 'settings-shares', path: '/settings/shares', auth: true }
 ];
 

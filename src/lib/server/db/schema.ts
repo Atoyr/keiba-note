@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 // 印の選択肢（MARKS）と札の型。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
 import { MARKS, type NoteTag } from '../../schemas/note';
+import type { RaceSummary } from '../../utils/race-summary';
 
 /**
  * Drizzle スキーマ。docs/product.md 第5章に対応する。
@@ -36,6 +37,8 @@ export const user = sqliteTable('user', {
 	/** 表示用。`ADMIN_EMAIL` との突き合わせにも使う。 */
 	email: text('email').notNull().unique(),
 	displayName: text('display_name').notNull(),
+	/** Google の名前を共有しない。未設定なら共有ページは「匿名」。 */
+	publicName: text('public_name'),
 	avatarUrl: text('avatar_url'),
 	/**
 	 * `admin` / `user`。admin はメンテ用の区分で、マスタ（馬・レース・出走馬）の
@@ -363,6 +366,24 @@ export const dataImport = sqliteTable('data_import', {
 		.notNull()
 		.default(sql`(unixepoch())`)
 });
+
+/** 本人が明示的に共有した予想のコピー。公開側は note テーブルを読まない。 */
+export const raceShare = sqliteTable(
+	'race_share',
+	{
+		id: text('id').primaryKey(),
+		authorId: text('author_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		raceId: text('race_id')
+			.notNull()
+			.references(() => race.id, { onDelete: 'cascade' }),
+		content: text('content', { mode: 'json' }).$type<RaceSummary>().notNull(),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(t) => [uniqueIndex('race_share_author_race').on(t.authorId, t.raceId)]
+);
 
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session)

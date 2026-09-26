@@ -35,7 +35,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | 誰が | 仕組み | 通らなかったとき |
 | --- | --- | --- |
-| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/privacy`・`/terms`・`/api/health`）のパスと、その下。**`/` だけは完全一致** | — |
+| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/shared/races/`・`/privacy`・`/terms`・`/api/health`）のパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
 | admin | `ctxAdmin(locals, platform)` | 403 |
@@ -67,6 +67,10 @@ SvelteKit の `load` + form actions で完結させる。
 
 ### ログインした人
 
+予想まとめの公開ルートは `GET /shared/races/[id]`。共有用コピー1件と公開名だけを返す。
+見つからない・取り消し済み・著者凍結済みは404。`/notes/[id]` と同じ `noindex` / `no-referrer` / `no-store` を付ける。
+両方の共有ページで、ルートレイアウトは `user: null` を返し、本人の閲覧時にもアカウント情報を送らない。
+
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
 | `/` | GET | — | 自分の最近のメモ・今週と過去のレース | — |
@@ -80,9 +84,14 @@ SvelteKit の `load` + form actions で完結させる。
 | `/horses/[id]` | GET | — | プロフィールとタイムライン | 404 |
 | `/horses/[id]` | POST `?/addNote` | `body`・`tags`（複数）・`occurredAt` | 近況メモを足す | 検証 `fail(400)` / 404 |
 | `/horses/[id]` | POST `?/deleteNote` | `noteId` | 自分のメモを消す | 他人のメモ・無いメモは `fail(403)` |
-| `/settings/profile` | GET | — | 自分の表示名 | — |
+| `/settings/profile` | GET | — | 自分の公開用の名前 | — |
+| `/settings/profile` | POST `default` | `publicName`（前後空白除去、30文字以内、空欄可） | 公開名を更新。空欄は匿名 | 検証 `fail(400)` / 保存失敗 `fail(503)`（入力保持・再試行案内） |
+| `/races/[id]/summary` | GET | — | 本人の見立て・各馬のメモ・札・印、共有状態、公開名 | 404 |
+| `/races/[id]/summary` | POST `?/share` | — | 本人の保存済み予想のコピーを作成・更新 | 空の予想・無いレース `fail(400)` / 保存失敗 `fail(503)` |
+| `/races/[id]/summary` | POST `?/revoke` | — | 本人の共有コピーを取り消す | 解除の失敗 `fail(503)`（再試行案内） |
 | `/settings/shares` | GET | — | 共有中のメモ一覧 | — |
 | `/settings/shares` | POST `default` | `noteId`・`visibility`（`private`\|`unlisted`）・`redirect` | 公開範囲を切り替え、`redirect` があれば `303` で戻す | 他人のメモ・無いメモは `fail(404)` |
+| `/settings/shares` | POST `default` | `raceId`（メモの操作とは排他） | 本人の予想まとめの共有を取り消す | 検証 `fail(400)` / 解除の失敗 `fail(503)` |
 | `/auth/logout` | POST | — | セッションを破棄して `303 /login` | — |
 
 ### admin だけ（`ctxAdmin`）
@@ -170,5 +179,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/entries-fetch.ts` | `listEntriesFetchTargets`・`listUpcomingRaces`・`entriesFetchBlocker`（D1 を読まない判定） | —（出馬表は YAML の PR で入る） |
 | `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |
 | `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
+| `services/profile.ts` | `getPublicName` | `setPublicName` |
+| `services/race-shares.ts` | `getRaceSummary`・`getOwnRaceShare`・`getSharedRaceSummary`・`listRaceShares` | `publishRaceSummary`・`revokeRaceShare` |
 
 関数を足したら、この表にも足す。

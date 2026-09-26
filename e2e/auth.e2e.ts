@@ -49,6 +49,8 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: '/races', secret: null },
 	{ path: '/this-week', secret: null },
 	{ path: '/settings/shares', secret: null },
+	{ path: '/settings/profile', secret: null },
+	{ path: `/races/${PREVIEW_RACE_ID}/summary`, secret: '今回は内枠が向きそう。' },
 	{ path: '/settings/admin', secret: null },
 	{ path: `/horses/${HORSE_ID}`, secret: 'E2E未来賞' },
 	{ path: `/races/${BRACKET_RACE_ID}`, secret: 'E2Eウチワク' },

@@ -64,6 +64,9 @@
 	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} {spec} />
 	<!-- 灰色の文字だけだと押せると気づかれないので、予想画面の見出しと同じ小さいボタンにする。 -->
 	<div class="mt-2 flex flex-wrap gap-2">
+		<Button href={resolve('/races/[id]/summary', { id: data.race.id })} variant="outline" size="sm"
+			>予想をまとめて見る</Button
+		>
 		<Button href={resolve('/races/[id]/preview', { id: data.race.id })} variant="outline" size="sm">
 			予想（過去メモを見る）
 		</Button>

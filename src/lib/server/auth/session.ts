@@ -154,6 +154,7 @@ export type CreateUserInput = {
 
 export async function createUser(db: Db, input: CreateUserInput): Promise<User> {
 	const row: User = {
+		publicName: null,
 		id: ulid(),
 		googleSub: input.googleSub,
 		email: input.email,
