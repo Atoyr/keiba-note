@@ -5,7 +5,8 @@ test('未ログインのトップは紹介ページで、ダッシュボード�
 	await page.goto('/');
 	await expect(page).toHaveURL('/');
 	await expect(page.getByRole('heading', { level: 1, name: 'uma-memo' })).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Google でログイン' })).toBeVisible();
+	// 入口はページの先頭と末尾の2か所にある。
+	await expect(page.getByRole('button', { name: 'Google でログイン' }).first()).toBeVisible();
 
 	// `/` は誰でも開ける。seed のメモやレースが1文字も漏れていないこと。
 	await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toHaveCount(0);

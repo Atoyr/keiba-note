@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
 import { failNextAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
@@ -37,7 +37,19 @@ export type Screen = {
 };
 
 export const SCREENS: Screen[] = [
-	{ name: 'landing', path: '/', auth: false },
+	{
+		// 紹介ページのキャプチャは loading="lazy" なので、下まで送って全部の読み込みを待つ
+		// （待たないと、画面の外にあった画像が空の枠のまま写る）。
+		name: 'landing',
+		path: '/',
+		auth: false,
+		prepare: async (page) => {
+			for (const img of await page.locator('main img').all()) {
+				await img.scrollIntoViewIfNeeded();
+				await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete)).toBe(true);
+			}
+		}
+	},
 	{ name: 'login', path: '/login', auth: false },
 	{ name: 'privacy', path: '/privacy', auth: false },
 	{ name: 'terms', path: '/terms', auth: false },
