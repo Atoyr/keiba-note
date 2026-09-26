@@ -13,8 +13,7 @@
 	/**
 	 * 本命だけ塗り、それ以外は薄い面か輪郭。◎ が視線を集めるようにする。
 	 * △・☆・× は背景に近い灰色だと付けたのかが見分けにくいので、濃い輪郭で背景から浮かせる。
-	 * × は白い面に slate-700 の輪郭と字（札「次走消し」と同じ色で、「消し」をそろえる）。
-	 * 塗りにしないのは、濃い面だと ◎ より目立ってしまうため。
+	 * × は薄いグレーの面にする。濃い面で ◎ より目立たせず、未選択の白い面とも区別する。
 	 * ☆ の violet はほかで使っていない色。sky は「案内・共有中」に使っている（design-system.md 2-2）。
 	 */
 	const tone: Record<Mark, string> = {
@@ -23,7 +22,7 @@
 		'▲': 'peer-checked:bg-amber-100 peer-checked:text-amber-900 peer-checked:border-amber-400',
 		'△': 'peer-checked:bg-slate-200 peer-checked:text-slate-900 peer-checked:border-slate-500',
 		'☆': 'peer-checked:bg-violet-100 peer-checked:text-violet-900 peer-checked:border-violet-500',
-		'×': 'peer-checked:bg-background peer-checked:text-slate-700 peer-checked:border-slate-700'
+		'×': 'peer-checked:bg-muted peer-checked:text-foreground peer-checked:border-muted-foreground'
 	};
 
 	/** ☆ と × は記号の字面が小さいので、1段大きくしてほかの印とそろえる（MarkBadge と同じ）。 */

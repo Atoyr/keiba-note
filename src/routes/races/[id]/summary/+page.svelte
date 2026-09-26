@@ -4,6 +4,7 @@
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import Share2 from '@lucide/svelte/icons/share-2';
 	import RaceSummary from '$lib/components/RaceSummary.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -52,19 +53,28 @@
 <main class="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
 	<div class="flex flex-wrap gap-2">
 		<Button href={resolve('/races/[id]/preview', { id: data.raceId })} variant="outline" size="sm"
-			>予想を書く・直す</Button
+			>予想</Button
 		>
 		{#if hasSummary(data.summary) || data.shareId}
-			<Button href="#share-heading" variant="outline" size="sm">共有の設定へ</Button>
+			<Button
+				href="#share-settings"
+				variant="outline"
+				size="icon-sm"
+				aria-label="共有の設定"
+				title="共有の設定"
+			>
+				<Share2 aria-hidden="true" />
+			</Button>
 		{/if}
 	</div>
 	<RaceSummary summary={data.summary} authorName={data.authorName} />
 	{#if !hasSummary(data.summary)}
 		<p class="rounded-lg border p-4 text-sm text-muted-foreground">
-			まだ予想がありません。「予想を書く・直す」から見立てや印を保存すると、ここにまとまります。
+			まだ予想がありません。「予想」から見立てや印を保存すると、ここにまとまります。
 		</p>
 	{/if}
 	<section
+		id="share-settings"
 		bind:this={shareSection}
 		tabindex="-1"
 		aria-labelledby="share-heading"

@@ -544,6 +544,14 @@ VALUES ('01JE2EENTRYMARK60000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKH
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
 VALUES ('01JE2EPREVIEWMARK600000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE60000000000', '01JE2EENTRYMARK60000000000', '', '[]', '×', '2026-06-07', unixepoch('2026-06-07'));
 
+-- 印を付けず本文だけ保存した馬も、まとめで欠けないことを確認する。
+INSERT INTO horse (id, name, birth_year)
+VALUES ('01JE2EMARKHORSE70000000000', 'E2Eメモノミ', 2022);
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number)
+VALUES ('01JE2EENTRYMARK70000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE70000000000', 7, 7);
+INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, mark, occurred_at)
+VALUES ('01JE2EPREVIEWMARK700000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE70000000000', '01JE2EENTRYMARK70000000000', '印は保留。距離延長での走りに注目。', NULL, '2026-06-07');
+
 -- 予想まとめの操作テスト専用。他の予想の保存テストとデータを共有しない。
 INSERT INTO horse (id,name) VALUES ('01JE2EHORSESUMMARY0000000','E2Eまとめホース');
 INSERT INTO race (id,date,course,race_number,name,surface,distance)
@@ -558,4 +566,4 @@ VALUES ('01JE2ESUMMARYPREVIEW00000','01JE2EUSER0000000000000000','preview','01JE
 -- 公開ページのキャプチャ用。共有コピーなので元のメモは変えない。
 INSERT INTO race_share (id,author_id,race_id,content)
 VALUES ('01JE2ESHAREDRACE0000000000','01JE2EUSER0000000000000000','01JE2ERACEMARKS00000000000',
-'{"race":{"name":"E2E印見本賞","meeting":"東京11R","spec":"2026-06-07 · 芝1600m / 左","grade":"G1"},"body":"前半は落ち着いた流れを想定。直線の末脚を重視したい。","rows":[{"horseName":"E2Eホンメイ","horseNumber":1,"bracket":1,"body":"好位で脚をためられれば。前走の末脚に期待。","mark":"◎","tags":[]},{"horseName":"E2Eタイコウ","horseNumber":2,"bracket":2,"body":"展開が向きそう。長く脚を使える点を評価。","mark":"○","tags":[]},{"horseName":"E2Eタンアナ","horseNumber":3,"bracket":3,"body":"","mark":"▲","tags":[]},{"horseName":"E2Eレンシタ","horseNumber":4,"bracket":4,"body":"","mark":"△","tags":[]},{"horseName":"E2Eアナウマ","horseNumber":5,"bracket":5,"body":"","mark":"☆","tags":[]},{"horseName":"E2Eケシウマ","horseNumber":6,"bracket":6,"body":"","mark":"×","tags":[]}]}');
+'{"race":{"name":"E2E印見本賞","meeting":"東京11R","spec":"2026-06-07 · 芝1600m / 左","grade":"G1"},"body":"前半は落ち着いた流れを想定。直線の末脚を重視したい。","rows":[{"horseName":"E2Eホンメイ","horseNumber":1,"bracket":1,"body":"好位で脚をためられれば。前走の末脚に期待。","mark":"◎","tags":[]},{"horseName":"E2Eタイコウ","horseNumber":2,"bracket":2,"body":"展開が向きそう。長く脚を使える点を評価。","mark":"○","tags":[]},{"horseName":"E2Eタンアナ","horseNumber":3,"bracket":3,"body":"","mark":"▲","tags":[]},{"horseName":"E2Eレンシタ","horseNumber":4,"bracket":4,"body":"","mark":"△","tags":[]},{"horseName":"E2Eアナウマ","horseNumber":5,"bracket":5,"body":"","mark":"☆","tags":[]},{"horseName":"E2Eケシウマ","horseNumber":6,"bracket":6,"body":"","mark":"×","tags":[]},{"horseName":"E2Eメモノミ","horseNumber":7,"bracket":7,"body":"印は保留。距離延長での走りに注目。","mark":null,"tags":[]}]}');

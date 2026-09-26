@@ -277,6 +277,7 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'race-summary', path: `/races/${PREVIEW_RACE_ID}/summary`, auth: true },
+	// 全印と、印を付けず本文だけ保存した馬を同じまとめに表示する。
 	{ name: 'race-summary-marks', path: `/races/${MARKS_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-empty', path: `/races/${EMPTY_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },

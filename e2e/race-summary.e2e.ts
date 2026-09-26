@@ -2,9 +2,28 @@ import { expect, test } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { failNextAction } from './action-failure';
 import { login } from './login';
-import { SHARED_NOTE_ID, SHARED_RACE_ID, SUMMARY_RACE_ID } from './seed';
+import { MARKS_RACE_ID, SHARED_NOTE_ID, SHARED_RACE_ID, SUMMARY_RACE_ID } from './seed';
 
 const summaryPath = `/races/${SUMMARY_RACE_ID}/summary`;
+
+test('印なしのメモも表示し、予想リンクとシェアアイコンで移動できる', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/summary`);
+	const memoOnly = page.locator('li', { hasText: 'E2Eメモノミ' });
+	await expect(memoOnly).toContainText('印は保留。距離延長での走りに注目。');
+	await expect(memoOnly.locator('[title^="予想印"]')).toHaveCount(0);
+	const shareLink = page.getByRole('link', { name: '共有の設定', exact: true });
+	await expect(shareLink.locator('svg')).toBeVisible();
+	await shareLink.focus();
+	await page.keyboard.press('Enter');
+	await expect(page.getByRole('region', { name: 'この予想を共有' })).toBeFocused();
+	await page.getByRole('link', { name: '予想', exact: true }).click();
+	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
+	await gotoHydrated(page, `/shared/races/${SHARED_RACE_ID}`);
+	await expect(page.locator('li', { hasText: 'E2Eメモノミ' })).toContainText(
+		'印は保留。距離延長での走りに注目。'
+	);
+});
 
 test('予想をまとめ、公開名で共有・更新・解除できる。本名はHTMLやデータにも出ない', async ({
 	page,
