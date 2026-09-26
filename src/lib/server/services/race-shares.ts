@@ -3,8 +3,9 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, raceEntry, raceShare, user } from '$lib/server/db/schema';
 import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
+import { resolveFlow, hasResolvedFlow } from '$lib/utils/race-flow';
 import { hasSummary, type RaceSummary } from '$lib/utils/race-summary';
-import { getRace } from './races';
+import { getRace, listEntriesForPreview } from './races';
 
 /** 本人用のまとめ。メモは必ず viewerId で絞り、共有用の項目だけを組み立てる。 */
 export async function getRaceSummary(
@@ -20,6 +21,7 @@ export async function getRaceSummary(
 				body: note.body,
 				mark: note.mark,
 				tags: note.tags,
+				flow: note.flow,
 				horseName: horse.name,
 				horseNumber: raceEntry.horseNumber,
 				bracket: raceEntry.bracket
@@ -36,9 +38,21 @@ export async function getRaceSummary(
 			)
 	]);
 	if (!race) return null;
+	const outlook = notes.find((n) => n.kind === 'race_preview');
+	// 展開の盤面は出走馬の id で持つので、馬番・枠・馬名に引き当てる。出走前メモを書いていない馬も
+	// 盤面には置けるので、メモ側の JOIN では足りない。展開があるときだけ引く。
+	// 取り下げで出走馬から外れた馬は、引き当てられないので盤面から落ちる。
+	const flow = outlook?.flow
+		? resolveFlow(
+				outlook.flow,
+				new Map((await listEntriesForPreview(db, raceId)).map((e) => [e.entryId, e])),
+				race
+			)
+		: null;
 	return {
 		race: { name: race.name, meeting: raceMeeting(race), spec: raceSpec(race), grade: race.grade },
-		body: notes.find((n) => n.kind === 'race_preview')?.body ?? '',
+		body: outlook?.body ?? '',
+		...(hasResolvedFlow(flow) ? { flow } : {}),
 		rows: notes
 			.filter((n) => n.kind === 'preview')
 			.sort(

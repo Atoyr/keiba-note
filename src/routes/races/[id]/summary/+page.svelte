@@ -147,7 +147,7 @@
 	>
 		<h2 id="share-heading" class="font-semibold">この予想を共有</h2>
 		<p class="text-sm text-muted-foreground">
-			このページの見立て・各馬のメモ・札・印を共有します。リンクを知っている人はログインなしで見られます。
+			このページの見立て・展開・各馬のメモ・札・印を共有します。リンクを知っている人はログインなしで見られます。
 		</p>
 		<p class="text-sm break-words">
 			公開用の名前：<strong>{data.authorName}</strong>

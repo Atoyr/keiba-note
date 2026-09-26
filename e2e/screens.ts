@@ -6,6 +6,8 @@ import {
 	BRACKET_RACE_ID,
 	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
+	FLOW_CROWD_RACE_ID,
+	FLOW_RACE_ID,
 	HORSE_ID,
 	MARKS_RACE_ID,
 	PAST_EMPTY_RACE_ID,
@@ -120,6 +122,60 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
+	{
+		// 展開の予想を開き、4コーナーの盤面で置いた馬を1頭選んだところ（入れ替え・外すの操作が出る）。
+		name: 'race-preview-flow',
+		path: `/races/${MARKS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const flow = page.locator('details', { hasText: '展開の予想' });
+			await flow.locator('summary').click();
+			await flow.getByRole('tab', { name: /4コーナー/ }).click();
+			await flow.getByRole('button', { name: /^2番 E2Eタイコウ（/ }).click();
+		}
+	},
+	// 18頭・枠順前。畳んだ行が折り返して収まるか（馬番が無いので頭2文字が並ぶ）。
+	{ name: 'race-preview-flow-crowd', path: `/races/${FLOW_CROWD_RACE_ID}/preview`, auth: true },
+	{
+		// 同じレースで4コーナーを開いたところ。枠の色が無い灰色のコマに頭2文字。
+		name: 'race-preview-flow-crowd-open',
+		path: `/races/${FLOW_CROWD_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const flow = page.locator('details', { hasText: '展開の予想' });
+			await flow.locator('summary').click();
+			await flow.getByRole('tab', { name: /4コーナー/ }).click();
+		}
+	},
+	{
+		// 予想まとめで展開を開いたところ（既定は畳む）。
+		name: 'race-summary-flow-open',
+		path: `/races/${MARKS_RACE_ID}/summary`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '展開の予想' }).click();
+		}
+	},
+	{
+		// 出走馬を置く前。全頭が「まだ置いていない馬」に並ぶ。
+		name: 'race-preview-flow-empty',
+		path: `/races/${FLOW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '展開の予想' }).click();
+		}
+	},
+	{
+		// ふりかえりの「開催前の見立て」で、展開の予想を開いたところ。
+		name: 'race-review-flow-open',
+		path: `/races/${MARKS_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '展開の予想' }).click();
+		}
+	},
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
 	{
 		// スマホではコースを畳んである。開いた状態（広い画面は開いたままなので、そのまま撮る）。

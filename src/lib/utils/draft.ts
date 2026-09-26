@@ -38,6 +38,9 @@ export function changedFields(now: FieldValues, base: FieldValues): FieldValues 
 	return diff;
 }
 
+/** 見立て（`race_preview`）の1行に入る、本文以外の欄（展開の予想）。 */
+const RACE_NOTE_FIELDS = /^(racePace|flowSpots\.|flowMemo\.)/;
+
 /**
  * 欄の name から、どのメモの欄か。`body.<entryId>` と `tags.<entryId>` は同じメモ。
  *
@@ -45,6 +48,9 @@ export function changedFields(now: FieldValues, base: FieldValues): FieldValues 
  * レースのメモに欄を足すときは、`raceNoteBody` と同じメモに数えるよう、ここも合わせる。
  */
 export function noteOfField(name: string): string {
+	// 展開の予想の欄（ペース・局面ごとの隊列とメモ）は、見立て（`raceNoteBody`）と同じメモの列に入る。
+	// `flowSpots.start` の `.` の後ろは局面で、メモの持ち主ではない。
+	if (RACE_NOTE_FIELDS.test(name)) return 'raceNoteBody';
 	const dot = name.indexOf('.');
 	return dot < 0 ? name : name.slice(dot + 1);
 }

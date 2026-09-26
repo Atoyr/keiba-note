@@ -8,6 +8,7 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
+	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
@@ -162,12 +163,21 @@
 			<!-- 開催前に書いた見立てを上に置く。**読むだけ。** 結果を見たあとで
 			     書き換えられると、事前と事後を別の行にした意味が無くなる。
 			     直したいときは予想画面へ戻る。 -->
-			{#if data.myRacePreview?.body}
+			{#if data.myRacePreview?.body || data.myRaceFlow}
 				<div class="mb-4 rounded-md border border-sky-200 bg-sky-50/60 px-3 py-2">
 					<p class="text-xs font-semibold text-sky-900">開催前の見立て</p>
-					<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap text-sky-950">
-						{data.myRacePreview.body}
-					</p>
+					{#if data.myRacePreview?.body}
+						<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap text-sky-950">
+							{data.myRacePreview.body}
+						</p>
+					{/if}
+					<!-- 展開の予想は盤面が場所を取るので畳んでおく。結果と見比べたいときに開く。 -->
+					{#if data.myRaceFlow}
+						<!-- 白い面に載せる。空色の面の上だと、隊列の補足の灰色が 4.5:1 に届かない。 -->
+						<div class="mt-1 rounded-md bg-background px-2 py-1">
+							<RaceFlowDetails flow={data.myRaceFlow} level="h3" titleClass="text-xs" />
+						</div>
+					{/if}
 					<a
 						href={resolve('/races/[id]/preview', { id: data.race.id })}
 						class="mt-1 inline-block text-xs text-sky-800 underline-offset-2 hover:underline"

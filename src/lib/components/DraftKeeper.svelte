@@ -148,9 +148,25 @@
 		return saved;
 	}
 
-	/** name ごとの値をフォームへ入れる。復元と、送信中に書き足した分の書き戻しで使う。 */
+	/**
+	 * name ごとの値をフォームへ入れる。復元と、送信中に書き足した分の書き戻しで使う。
+	 *
+	 * 値が変わった欄には**泡立たない `change`** を投げる。値をプログラムで変えてもイベントは起きないので、
+	 * 欄の値から自分の表示を組む部品（展開の盤面 `RaceFlowEditor` の hidden の欄）が
+	 * 書き戻しに気づけない。泡立たないので、フォームで聞いている `onInput` には届かない
+	 * （件数はこのあと呼び出し側が数え直す）。
+	 *
+	 * **投げ方はブラウザに合わせる。** 値が変わらなかった欄には投げない。ラジオは新しく選ばれたものにだけ
+	 * 投げる（外れたほうには起きない。Svelte の bind:group は change で checked を見ずに値を入れる）。
+	 */
 	function applyFields(values: FieldValues) {
 		if (!form) return;
+		const notify = (el: EventTarget) => el.dispatchEvent(new Event('change'));
+		const check = (node: HTMLInputElement, on: boolean) => {
+			if (node.checked === on) return;
+			node.checked = on;
+			if (node.type !== 'radio' || on) notify(node);
+		};
 		for (const [name, picked] of Object.entries(values)) {
 			const fields = form.elements.namedItem(name);
 			if (!fields) continue;
@@ -159,16 +175,20 @@
 			// チェックボックス群でも、下書きに入っている値だけを on にすればよい。
 			if (fields instanceof RadioNodeList) {
 				for (const node of fields) {
-					if (node instanceof HTMLInputElement) node.checked = picked.includes(node.value);
+					if (node instanceof HTMLInputElement) check(node, picked.includes(node.value));
 				}
 			} else if (fields instanceof HTMLInputElement) {
 				if (fields.type === 'checkbox' || fields.type === 'radio') {
-					fields.checked = picked.includes(fields.value);
-				} else {
+					check(fields, picked.includes(fields.value));
+				} else if (fields.value !== (picked[0] ?? '')) {
 					fields.value = picked[0] ?? '';
+					notify(fields);
 				}
 			} else if (fields instanceof HTMLTextAreaElement || fields instanceof HTMLSelectElement) {
-				fields.value = picked[0] ?? '';
+				if (fields.value !== (picked[0] ?? '')) {
+					fields.value = picked[0] ?? '';
+					notify(fields);
+				}
 			}
 		}
 	}

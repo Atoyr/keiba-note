@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { Db } from '$lib/server/db';
 import type { NoteTag } from '$lib/schemas/note';
+import { emptyFlow, type RaceFlow } from '$lib/schemas/race-flow';
 import type { HorseRun } from './races';
 import { mergeHorseTimeline, saveRaceReview, savePreviewNotes, type TimelineNote } from './notes';
 
-type Op = { kind: 'insert'; values: Record<string, unknown> } | { kind: 'delete' };
+type Op =
+	| { kind: 'insert'; values: Record<string, unknown> }
+	| { kind: 'delete' }
+	| { kind: 'update'; set: Record<string, unknown> };
 
 /**
  * `batch()` に積まれた文を記録するだけの db。
@@ -24,6 +28,11 @@ function fakeDb() {
 			}
 		}),
 		delete: () => ({ where: () => ({ op: { kind: 'delete' } as Op }) }),
+		update: () => ({
+			set: (set: Record<string, unknown>) => ({
+				where: () => ({ op: { kind: 'update', set } as Op })
+			})
+		}),
 		batch: (statements: { op: Op }[]) => {
 			ops.push(...statements.map((s) => s.op));
 			return Promise.resolve([]);
@@ -84,7 +93,7 @@ describe('savePreviewNotes', () => {
 
 		await savePreviewNotes(
 			db,
-			{ raceId: 'r1', raceNote: { body: '' }, entries: [{ ...entry(), mark: '☆' }] },
+			{ raceId: 'r1', raceNote: { body: '', flow: null }, entries: [{ ...entry(), mark: '☆' }] },
 			'u1',
 			'2026-09-27'
 		);
@@ -102,7 +111,7 @@ describe('savePreviewNotes', () => {
 			db,
 			{
 				raceId: 'r1',
-				raceNote: { body: '' },
+				raceNote: { body: '', flow: null },
 				entries: [{ ...entry({ tags: ['馬場一致'] }), mark: null }]
 			},
 			'u1',
@@ -125,7 +134,7 @@ describe('savePreviewNotes', () => {
 
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: 'r1', raceNote: { body: '' }, entries: [{ ...entry(), mark: null }] },
+			{ raceId: 'r1', raceNote: { body: '', flow: null }, entries: [{ ...entry(), mark: null }] },
 			'u1',
 			'2026-09-27'
 		);
@@ -143,7 +152,7 @@ describe('savePreviewNotes', () => {
 
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: 'r1', raceNote: { body: '開幕週で内有利になりそう。' }, entries: [] },
+			{ raceId: 'r1', raceNote: { body: '開幕週で内有利になりそう。', flow: null }, entries: [] },
 			'u1',
 			'2099-06-06'
 		);
@@ -171,7 +180,7 @@ describe('savePreviewNotes', () => {
 		const preview = fakeDb();
 		await savePreviewNotes(
 			preview.db,
-			{ raceId: 'r1', raceNote: { body: '内有利' }, entries: [] },
+			{ raceId: 'r1', raceNote: { body: '内有利', flow: null }, entries: [] },
 			'u1',
 			'2026-09-27'
 		);
@@ -188,12 +197,82 @@ describe('savePreviewNotes', () => {
 		expect(review.ops[0]).toMatchObject({ values: { kind: 'race' } });
 	});
 
+	/** 本文を書かずに展開だけ置くのは普通の使い方。印や札だけの出走前メモと同じ扱い。 */
+	it('本文が空でも展開があれば見立ての行を残し、展開を一緒に書く', async () => {
+		const { db, ops } = fakeDb();
+		const flow: RaceFlow = { ...emptyFlow(), pace: 'スロー' };
+
+		const result = await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: '', flow }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([
+			{
+				kind: 'insert',
+				values: expect.objectContaining({ kind: 'race_preview', body: '', flow })
+			}
+		]);
+		expect(result).toEqual({ saved: 1, cleared: 0 });
+	});
+
+	/** ふりかえりのレースのメモに展開は付かない（列に触らない）。 */
+	it('ふりかえりの保存は展開の列に触らない', async () => {
+		const { db, ops } = fakeDb();
+		await saveRaceReview(
+			db,
+			{ raceId: 'r1', raceNote: { body: '実際はハイペース' }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+		expect(ops[0]).toMatchObject({ values: { kind: 'race', flow: undefined } });
+	});
+
+	/**
+	 * 出走馬が0頭のとき、展開の欄はフォームに無い（undefined）。null と読むと、
+	 * 見立ての本文を直しただけで保存済みのペースとメモが消える。
+	 */
+	it('展開に触らない保存では、本文が空でも展開のある行は残して本文だけ空にする', async () => {
+		const { db, ops } = fakeDb();
+
+		await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: '' }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+
+		// 展開の無い行だけ消し、展開のある行は本文を空にする。展開の列は書かない。
+		expect(ops).toEqual([
+			{ kind: 'delete' },
+			{ kind: 'update', set: expect.objectContaining({ body: '' }) }
+		]);
+		expect(ops[1]).not.toHaveProperty('set.flow');
+	});
+
+	it('展開に触らない保存で本文があれば、展開の列を値にも更新にも入れない', async () => {
+		const { db, ops } = fakeDb();
+
+		await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: '内有利' }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([
+			{ kind: 'insert', values: expect.objectContaining({ kind: 'race_preview', flow: undefined }) }
+		]);
+	});
+
 	it('空白だけの見立ては「空」として扱い、既存の見立てを消す', async () => {
 		const { db, ops } = fakeDb();
 
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: 'r1', raceNote: { body: ' \n ' }, entries: [] },
+			{ raceId: 'r1', raceNote: { body: ' \n ', flow: null }, entries: [] },
 			'u1',
 			'2026-09-27'
 		);

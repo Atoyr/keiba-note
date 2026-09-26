@@ -6,8 +6,10 @@
 	 *
 	 * 白（1枠）は面が背景と同じなので、輪郭だけで枠だと分かるようにする。
 	 * 黄・橙・桃は面が明るいので文字を黒に置く（白抜きだと読めない）。
+	 *
+	 * 展開の盤面のコマ（`RaceFlowBoard`）も同じ色にする。
 	 */
-	const BRACKET_CLASS: Record<number, string> = {
+	export const BRACKET_CLASS: Record<number, string> = {
 		1: 'bg-white text-gray-900 border-gray-400',
 		2: 'bg-gray-900 text-white border-gray-900',
 		3: 'bg-red-600 text-white border-red-600',

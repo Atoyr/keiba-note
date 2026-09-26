@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 // 印の選択肢（MARKS）と札の型。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
 import { MARKS, type NoteTag } from '../../schemas/note';
+import type { RaceFlow } from '../../schemas/race-flow';
 import type { RaceSummary } from '../../utils/race-summary';
 
 /**
@@ -246,6 +247,15 @@ export const note = sqliteTable(
 		 * 本文が空でも印だけ残せる（「◎だけ付けておく」が成立する）。
 		 */
 		mark: text('mark', { enum: MARKS }),
+		/**
+		 * 展開の予想（ペースと、スタート・4コーナー・ゴール前の隊列）。
+		 * `race_preview`（レースの見立て）にだけ付く。形の正は `$lib/schemas/race-flow`。
+		 *
+		 * **「`race_preview` にだけ付く」を CHECK にしていない。** SQLite で表の CHECK を
+		 * 足すには note 表を作り直すことになり、メモ全部を載せた本番の表を1列のために
+		 * 組み直すのは割に合わない。書くのは `raceNoteStatement` の見立ての経路だけ。
+		 */
+		flow: text('flow', { mode: 'json' }).$type<RaceFlow>(),
 		/**
 		 * `private`（既定・本人だけ）/ `unlisted`（リンクを知っている人だけ）。
 		 *

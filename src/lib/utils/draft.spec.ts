@@ -57,3 +57,20 @@ describe('countChangedNotes', () => {
 		expect(countChangedNotes({})).toBe(0);
 	});
 });
+
+describe('展開の予想の欄', () => {
+	/** ペース・隊列・一言メモは見立ての行（race_preview）に入る。局面の数だけ別に数えない。 */
+	it('見立ての本文と同じ1件に数える', () => {
+		expect(noteOfField('racePace')).toBe('raceNoteBody');
+		expect(noteOfField('flowSpots.corner4')).toBe('raceNoteBody');
+		expect(noteOfField('flowMemo.finish')).toBe('raceNoteBody');
+		expect(
+			countChangedNotes({
+				raceNoteBody: ['内有利'],
+				racePace: ['ハイ'],
+				'flowSpots.start': ['[]'],
+				'flowMemo.corner4': ['外から']
+			})
+		).toBe(1);
+	});
+});

@@ -5,6 +5,7 @@ import { raceReviewSchema } from '$lib/schemas/note';
 import { listRaceNotes, saveRaceReview } from '$lib/server/services/notes';
 import { getRace, listEntries } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -54,9 +55,15 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		notes.filter((n) => n.kind === 'preview').map((n) => [n.raceEntryId, n])
 	);
 
+	// 開催前に書いた展開の予想。見立てと同じく読むだけ。答え合わせのために出す。
+	const racePreviewFlow = myRacePreview?.flow
+		? resolveFlow(myRacePreview.flow, new Map(entries.map((e) => [e.entryId, e])), race)
+		: null;
+
 	return {
 		race,
 		myRacePreview,
+		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
 		rows: entries.map((e) => {
 			const p = myPreviews.get(e.entryId);
 			return {

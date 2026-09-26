@@ -102,6 +102,35 @@ describe('予想まとめの共有', () => {
 		await setPublicName(state.db, 'a', '');
 		expect((await getSharedNote(state.db, 'shared'))?.authorName).toBe('匿名');
 	});
+	it('展開は馬番・馬名に引き当てて載せ、出走馬の id を共有に写さない', async () => {
+		// 盤面に置いた2頭のうち 'e-gone' は出走馬にいない（取り下げ）。
+		state.sqlite.exec(
+			`UPDATE race SET direction='左' WHERE id='r';
+			 UPDATE note SET flow='{"pace":"スロー","start":{"spots":[{"entryId":"e","x":0,"y":1},{"entryId":"e-gone","x":1,"y":0}],"memo":"逃げ一頭"},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}' WHERE id='outlook'`
+		);
+		const summary = await getRaceSummary(state.db, 'r', 'a');
+		expect(summary?.flow).toMatchObject({
+			pace: 'スロー',
+			leadsRight: true,
+			start: {
+				memo: '逃げ一頭',
+				spots: [{ horseNumber: 1, bracket: null, horseName: 'テストホース', x: 0, y: 1 }]
+			}
+		});
+		const share = await publishRaceSummary(state.db, 'r', 'a');
+		const content = (await getSharedRaceSummary(state.db, share!.id))?.content;
+		expect(content?.flow?.start.spots).toHaveLength(1);
+		expect(JSON.stringify(content)).not.toMatch(/"e"|e-gone|entryId|horseId/);
+	});
+	/** 展開を入れる前の共有コピーは flow のキーを持たない。null を足すと「変わった」に見える。 */
+	it('展開が無ければ flow のキーごと持たず、見立ても印も無く展開だけでも共有できる', async () => {
+		expect(await getRaceSummary(state.db, 'r', 'a')).not.toHaveProperty('flow');
+		state.sqlite.exec(
+			`DELETE FROM note WHERE id='preview';
+			 UPDATE note SET body='', flow='{"pace":"ハイ","start":{"spots":[],"memo":""},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}' WHERE id='outlook'`
+		);
+		expect(await publishRaceSummary(state.db, 'r', 'a')).not.toBeNull();
+	});
 	it('凍結したユーザーの共有は読めない', async () => {
 		const share = await publishRaceSummary(state.db, 'r', 'a');
 		state.sqlite.exec("UPDATE user SET deleted_at=1 WHERE id='a'");
