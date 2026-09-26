@@ -45,7 +45,7 @@ export const actions: Actions = {
 				failed: true,
 				message: '共有する予想がありません。予想画面で見立てや印を保存してください。'
 			});
-		return { message: '共有内容を保存しました。下のリンクを共有できます。' };
+		return { shareId: share.id, message: '共有内容を保存しました。下のリンクを共有できます。' };
 	},
 	revoke: async ({ locals, platform, params }) => {
 		const { db, user } = ctx(locals, platform);

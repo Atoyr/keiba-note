@@ -10,7 +10,7 @@
 		'▲': 'bg-amber-100 text-amber-900 border-amber-400',
 		'△': 'bg-slate-200 text-slate-900 border-slate-500',
 		'☆': 'bg-violet-100 text-violet-900 border-violet-500',
-		'×': 'bg-background text-slate-700 border-slate-700'
+		'×': 'bg-muted text-foreground border-muted-foreground'
 	};
 
 	/** ☆ と × は記号の字面が小さいので、1段大きくしてほかの印とそろえる。 */

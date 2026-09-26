@@ -87,7 +87,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/settings/profile` | GET | — | 自分の公開用の名前 | — |
 | `/settings/profile` | POST `default` | `publicName`（前後空白除去、30文字以内、空欄可） | 公開名を更新。空欄は匿名 | 検証 `fail(400)` / 保存失敗 `fail(503)`（入力保持・再試行案内） |
 | `/races/[id]/summary` | GET | — | 本人の見立て・各馬のメモ・札・印、共有状態、公開名 | 404 |
-| `/races/[id]/summary` | POST `?/share` | — | 本人の保存済み予想のコピーを作成・更新 | 空の予想・無いレース `fail(400)` / 保存失敗 `fail(503)` |
+| `/races/[id]/summary` | POST `?/share` | — | 本人の保存済み予想のコピーを作成・更新し `shareId` を返す（端末共有に使用） | 空の予想・無いレース `fail(400)` / 保存失敗 `fail(503)` |
 | `/races/[id]/summary` | POST `?/revoke` | — | 本人の共有コピーを取り消す | 解除の失敗 `fail(503)`（再試行案内） |
 | `/settings/shares` | GET | — | 共有中のメモ一覧 | — |
 | `/settings/shares` | POST `default` | `noteId`・`visibility`（`private`\|`unlisted`）・`redirect` | 公開範囲を切り替え、`redirect` があれば `303` で戻す | 他人のメモ・無いメモは `fail(404)` |

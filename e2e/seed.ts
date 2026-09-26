@@ -111,6 +111,7 @@ export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
 
 /** 予想印の見本のレース。出走6頭に ◎ ○ ▲ △ ☆ × を1つずつ付け、着順も入れてある。 */
 export const MARKS_RACE_ID = '01JE2ERACEMARKS00000000000';
+export const NATIVE_SHARE_RACE_ID = '01JE2ERACENATIVESHARE00000';
 
 /**
  * ログイン済みで開くためのセッショントークン。**Cookie に入れる生の値。**

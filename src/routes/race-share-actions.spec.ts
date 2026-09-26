@@ -26,6 +26,12 @@ const event = <Route extends '/settings/profile' | '/settings/shares' | '/races/
 beforeEach(() => vi.resetAllMocks());
 
 describe('共有と公開名の保存失敗', () => {
+	it('共有保存が成功してから、端末へ渡すための共有IDを返す', async () => {
+		vi.mocked(publishRaceSummary).mockResolvedValue({ id: 'saved-share' });
+		expect(await summary.share!(event('/races/[id]/summary'))).toMatchObject({
+			shareId: 'saved-share'
+		});
+	});
 	it('公開名のDB失敗は入力を保持し、再試行を案内する', async () => {
 		vi.mocked(setPublicName).mockRejectedValue(new Error('DB failure with private params'));
 		const result = await profile.default!(event('/settings/profile', { publicName: 'うま日和' }));

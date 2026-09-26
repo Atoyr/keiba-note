@@ -1,15 +1,24 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
-	import type { RaceSummary } from '$lib/utils/race-summary';
-	let { summary, authorName }: { summary: RaceSummary; authorName: string } = $props();
+	import { orderedSummaryRows, type RaceSummary } from '$lib/utils/race-summary';
+	let {
+		summary,
+		authorName,
+		actions
+	}: { summary: RaceSummary; authorName: string; actions?: Snippet } = $props();
+	const rows = $derived(orderedSummaryRows(summary.rows));
 </script>
 
 <article class="min-w-0 space-y-6 break-words">
 	<div>
-		<p class="mb-2 text-sm font-medium text-muted-foreground">予想まとめ</p>
+		<div class="mb-2 flex items-center justify-between gap-4">
+			<p class="text-sm font-medium text-muted-foreground">予想まとめ</p>
+			{#if actions}<div class="flex shrink-0 items-center gap-2">{@render actions()}</div>{/if}
+		</div>
 		<RaceHeading {...summary.race} />
 		<p class="mt-3 text-sm text-muted-foreground">{authorName} の予想</p>
 	</div>
@@ -23,7 +32,7 @@
 		<section aria-labelledby="summary-horses">
 			<h2 id="summary-horses" class="mb-3 text-sm font-semibold">各馬のメモ・印</h2>
 			<ul class="divide-y rounded-lg border">
-				{#each summary.rows as row, i (i)}
+				{#each rows as row, i (i)}
 					<li class="space-y-2 p-4">
 						<div class="flex flex-wrap items-center gap-2">
 							<BracketBadge bracket={row.bracket} />

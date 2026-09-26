@@ -56,6 +56,18 @@ describe('予想まとめの共有', () => {
 		const share = await publishRaceSummary(state.db, 'r', 'a');
 		expect((await getSharedRaceSummary(state.db, share!.id))?.content.rows[0].mark).toBe('◎');
 	});
+	it('印がなくても馬のメモがあれば、本人のまとめと共有コピーに残す', async () => {
+		state.sqlite.exec(
+			"DELETE FROM note WHERE id='outlook'; UPDATE note SET mark=NULL WHERE id='preview'"
+		);
+		const summary = await getRaceSummary(state.db, 'r', 'a');
+		expect(summary?.rows).toEqual([
+			expect.objectContaining({ horseName: 'テストホース', body: '内枠を評価', mark: null })
+		]);
+		const share = await publishRaceSummary(state.db, 'r', 'a');
+		expect(share).not.toBeNull();
+		expect((await getSharedRaceSummary(state.db, share!.id))?.content).toEqual(summary);
+	});
 	it('共有はコピー。予想の編集や削除が自動で反映されず、明示更新だけが反映される', async () => {
 		const share = await publishRaceSummary(state.db, 'r', 'a');
 		state.sqlite.exec(

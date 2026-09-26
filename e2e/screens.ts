@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
 import { failNextAction } from './action-failure';
+import { mockDeviceShare } from './native-share';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
@@ -277,6 +278,48 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'race-summary', path: `/races/${PREVIEW_RACE_ID}/summary`, auth: true },
+	...(['copy', 'manual', 'retry', 'pending'] as const).map((mode): Screen => ({
+		name: `race-summary-share-${mode}`,
+		path: `/races/${MARKS_RACE_ID}/summary`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await mockDeviceShare(page, mode);
+			// 既存コピーで成功応答を再現し、他のキャプチャ用の共有内容を更新しない。
+			await page.route(
+				(url) => url.pathname === `/races/${MARKS_RACE_ID}/summary`,
+				(route) =>
+					route.fulfill({
+						contentType: 'application/json',
+						body: JSON.stringify({
+							type: 'success',
+							status: 200,
+							data: JSON.stringify([
+								{ shareId: 1, message: 2 },
+								SHARED_RACE_ID,
+								'共有内容を保存しました。下のリンクを共有できます。'
+							])
+						})
+					}),
+				{ times: 1 }
+			);
+			await page.getByRole('button', { name: '予想をシェア', exact: true }).click();
+			if (mode === 'pending') {
+				await page.getByRole('button', { name: '共有リンクを準備中', exact: true }).waitFor();
+				return;
+			}
+			await page
+				.getByText(
+					mode === 'copy'
+						? '共有リンクをコピーしました。投稿先に貼り付けてください。'
+						: mode === 'manual'
+							? '共有リンクを用意しました。「リンクをコピー」かリンク欄の選択でコピーしてください。'
+							: '共有リンクを用意しました。投稿先の選択を開けなかったため、「投稿先を選ぶ」を押すか、リンクをコピーしてください。'
+				)
+				.waitFor();
+		}
+	})),
+	// 全印と、印を付けず本文だけ保存した馬を同じまとめに表示する。
 	{ name: 'race-summary-marks', path: `/races/${MARKS_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-empty', path: `/races/${EMPTY_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },
