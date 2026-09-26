@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import FlowOrder from '$lib/components/FlowOrder.svelte';
 	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
 	import { flowDigest, type ResolvedFlow } from '$lib/utils/race-flow';
 	import { cn } from '$lib/utils';
@@ -46,14 +47,12 @@
 		{#if digest.length > 0}
 			<span class="grid basis-full gap-0.5 pt-0.5 text-xs text-muted-foreground group-open:hidden">
 				{#each digest as d (d.phase)}
-					<span class="break-all"
-						>{d.label} <span class="text-sm text-foreground">{d.order}</span></span
-					>
+					<span>{d.label} <FlowOrder columns={d.columns} class="text-sm text-foreground" /></span>
 				{/each}
 			</span>
 		{/if}
 	</summary>
 	<div class="mt-2">
-		<RaceFlowView {flow} />
+		<RaceFlowView {flow} phaseLevel={level === 'h2' ? 'h3' : 'h4'} />
 	</div>
 </details>

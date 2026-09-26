@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { emptyFlow, type RaceFlow } from '../schemas/race-flow';
 import {
+	flowColumns,
 	flowDigest,
 	flowLeadsRight,
 	flowOrder,
@@ -24,6 +25,14 @@ describe('horseToken', () => {
 describe('flowOrder', () => {
 	it('前から後ろへ、同じ列は内から外へ続けて書く', () => {
 		expect(flowOrder([spot(11, 4, 0), spot(7, 1, 2), spot(5, 0, 0), spot(3, 1, 0)])).toBe('⑤-③⑦-⑪');
+	});
+
+	/** 頭2文字が区切りなしに並ぶと、どこで馬が切れるか読めない。 */
+	it('馬番が無い馬がいる列は、列の中も「･」で区切る', () => {
+		expect(
+			flowColumns([spot(null, 0, 1, 'カゲロウ'), spot(null, 0, 0, 'アカツキ'), spot(3, 2, 0)])
+		).toEqual(['アカ･カゲ', '③']);
+		expect(flowOrder([spot(null, 0, 0, 'アカツキ'), spot(5, 0, 1)])).toBe('アカ･⑤');
 	});
 
 	it('何も置いていなければ空', () => {
@@ -79,7 +88,7 @@ describe('resolveFlow', () => {
 			new Map([['e1', { horseNumber: 3, bracket: 2, horseName: 'ホースA' }]]),
 			{ course: '中山', direction: '右' }
 		);
-		expect(flowDigest(out)).toEqual([{ phase: 'start', label: 'スタート', order: '③' }]);
+		expect(flowDigest(out)).toEqual([{ phase: 'start', label: 'スタート', columns: ['③'] }]);
 		expect(hasResolvedFlow(out)).toBe(true);
 		expect(hasResolvedFlow(null)).toBe(false);
 		expect(

@@ -58,6 +58,8 @@ test('置いたまま保存せずに読み込み直しても、下書きの復�
 	const flow = page.locator('details', { hasText: '展開の予想' });
 	await flow.locator('summary').click();
 	await flow.getByRole('tab', { name: /ゴール前/ }).click();
+	// seed ではゴール前にも18頭を置いてあるので、消してから1頭だけ置く。
+	await flow.getByRole('button', { name: '並びを消す' }).click();
 	await flow.getByRole('button', { name: 'ツバサ', exact: true }).click();
 	await flow.getByRole('button', { name: '先頭・大外（空き）' }).click();
 	await expect(page.getByRole('button', { name: '出走前メモを保存' })).toBeVisible();
@@ -73,7 +75,7 @@ test('置いたまま保存せずに読み込み直しても、下書きの復�
 	page.once('dialog', (d) => void d.accept());
 	await gotoHydrated(page, `/races/${FLOW_CROWD_RACE_ID}/preview`);
 	const summary = page.locator('details', { hasText: '展開の予想' }).locator('summary');
-	await expect(summary).not.toContainText('ゴール前');
+	await expect(summary).toContainText('ゴール前 アカ･サク-');
 
 	await page.getByRole('button', { name: '復元する' }).click();
 	await expect(summary).toContainText('ゴール前 ツバ');

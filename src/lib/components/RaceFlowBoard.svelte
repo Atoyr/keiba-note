@@ -56,6 +56,8 @@
 	const glyph = (s: BoardSpot) => (s.horseNumber ? String(s.horseNumber) : horseToken(s));
 
 	/*
+	 * マスの内側の余白は 1px。頭2文字（全角2字＝約 24px）が 390px 幅のマス（約 29px）に欠けずに入る幅を残す。
+	 *
 	 * キーボードでは盤面を1つの止まり場所にし、矢印キーでマスを動く（40マスを Tab で辿らせない）。
 	 * `active` は描いた順（行ごと・左から右）の位置。
 	 */
@@ -103,7 +105,9 @@
 
 	const chipClass = (s: BoardSpot) =>
 		cn(
-			'flex size-full items-center justify-center overflow-hidden rounded-full border text-xs leading-none font-medium tracking-tighter',
+			// 馬番は丸いコマ（帽子）。馬番が無いうちの頭2文字は、円だと縁で濁点が欠けるので角丸の四角にする。
+			'flex size-full items-center justify-center overflow-hidden border text-xs leading-none font-medium',
+			s.horseNumber ? 'rounded-full' : 'rounded-sm tracking-tighter',
 			(s.bracket && BRACKET_CLASS[s.bracket]) ||
 				'border-muted-foreground bg-background text-foreground',
 			selected === s.key && 'ring-2 ring-ring ring-offset-1 ring-offset-background'
@@ -143,7 +147,7 @@
 					data-cell
 					tabindex={i === active ? 0 : -1}
 					onfocus={() => (active = i)}
-					class="aspect-square h-auto w-full min-w-0 rounded-sm p-0.5 hover:bg-background"
+					class="aspect-square h-auto w-full min-w-0 rounded-sm p-px hover:bg-background"
 					aria-label={describe(c)}
 					aria-pressed={c.spot ? selected === c.spot.key : undefined}
 					onclick={() => onCell(c.x, c.y)}
@@ -151,7 +155,7 @@
 					{#if c.spot}{@render chip(c.spot)}{:else}{@render dot()}{/if}
 				</Button>
 			{:else}
-				<div class="flex aspect-square items-center justify-center p-0.5">
+				<div class="flex aspect-square items-center justify-center p-px">
 					{#if c.spot}
 						<span class="sr-only">{describe(c)}</span>
 						<span aria-hidden="true" class="block size-full">{@render chip(c.spot)}</span>

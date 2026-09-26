@@ -18,7 +18,8 @@
 		type Pace,
 		type RaceFlow
 	} from '$lib/schemas/race-flow';
-	import { flowOrder, horseToken, type FlowHorse } from '$lib/utils/race-flow';
+	import FlowOrder from '$lib/components/FlowOrder.svelte';
+	import { flowColumns, horseToken, type FlowHorse } from '$lib/utils/race-flow';
 	import { cn } from '$lib/utils';
 
 	/**
@@ -211,7 +212,7 @@
 		FLOW_PHASES.filter((p) => spots[p].length > 0).map((p) => ({
 			phase: p,
 			label: FLOW_PHASE_SHORT[p],
-			order: flowOrder(boardSpots(spots[p]))
+			columns: flowColumns(boardSpots(spots[p]))
 		}))
 	);
 	const written = $derived(pace !== null || digest.length > 0);
@@ -239,9 +240,7 @@
 		{#if digest.length > 0}
 			<span class="grid basis-full gap-0.5 pt-0.5 text-xs text-muted-foreground group-open:hidden">
 				{#each digest as d (d.phase)}
-					<span class="break-all"
-						>{d.label} <span class="text-sm text-foreground">{d.order}</span></span
-					>
+					<span>{d.label} <FlowOrder columns={d.columns} class="text-sm text-foreground" /></span>
 				{/each}
 			</span>
 		{/if}
@@ -343,7 +342,7 @@
 								type="button"
 								variant="ghost"
 								size="icon-sm"
-								class="p-0"
+								class="w-auto min-w-7 p-0"
 								aria-label={name(h)}
 								aria-pressed={selected === h.entryId}
 								title={h.horseName}
@@ -351,7 +350,9 @@
 							>
 								<span
 									class={cn(
-										'flex size-7 items-center justify-center rounded-full border text-xs font-medium',
+										'flex h-7 items-center justify-center border text-xs font-medium',
+										// 盤面のコマと同じ形。馬番は丸、頭2文字は角丸の四角（円だと縁で字が欠ける）。
+										h.horseNumber ? 'w-7 rounded-full' : 'min-w-7 rounded-sm px-1',
 										(h.bracket && BRACKET_CLASS[h.bracket]) ||
 											'border-muted-foreground bg-background text-foreground',
 										selected === h.entryId &&

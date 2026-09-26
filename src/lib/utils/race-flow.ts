@@ -76,38 +76,41 @@ export function resolveFlow(
 
 const CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
 
+const hasCircled = (h: Pick<FlowHorse, 'horseNumber'>) =>
+	!!h.horseNumber && h.horseNumber >= 1 && h.horseNumber <= CIRCLED.length;
+
 /** 盤面のコマと1行の要約で使う、馬の短い呼び名。馬番が無いうちは馬名の頭2文字。 */
 export const horseToken = (h: Pick<FlowHorse, 'horseNumber' | 'horseName'>) =>
-	h.horseNumber && h.horseNumber >= 1 && h.horseNumber <= CIRCLED.length
-		? CIRCLED[h.horseNumber - 1]
-		: [...h.horseName].slice(0, 2).join('');
+	hasCircled(h) ? CIRCLED[h.horseNumber! - 1] : [...h.horseName].slice(0, 2).join('');
 
 /**
- * 隊列を前から後ろへの1行にする（`⑤-③⑦-⑪①`）。同じ列に並んだ馬は内から続けて書く。
- * 新聞の隊列の書き方に寄せ、列の切れ目を `-` で表す。
+ * 隊列を前から後ろへ列ごとに区切る（`['⑤', '③⑦', '⑪①']`）。同じ列に並んだ馬は内から続けて書く。
+ *
+ * **馬番が無いうち（頭2文字）は、同じ列の中も `･`（半角の中黒。全角だと18頭で行が増える）で区切る。** 丸数字は1字で1頭と読めるが、
+ * 「アカイナ」は どこで馬が切れるか読めない。
  */
-export function flowOrder(spots: readonly ResolvedSpot[]): string {
+export function flowColumns(spots: readonly ResolvedSpot[]): string[] {
 	const cols = new Map<number, ResolvedSpot[]>();
 	for (const s of spots) cols.set(s.x, [...(cols.get(s.x) ?? []), s]);
 	return [...cols.entries()]
 		.sort(([a], [b]) => a - b)
-		.map(([, col]) =>
-			col
-				.sort((a, b) => a.y - b.y)
-				.map(horseToken)
-				.join('')
-		)
-		.join('-');
+		.map(([, col]) => {
+			const sorted = [...col].sort((a, b) => a.y - b.y);
+			return sorted.map(horseToken).join(sorted.every((h) => hasCircled(h)) ? '' : '･');
+		});
 }
+
+/** 隊列の1行（`⑤-③⑦-⑪①`）。新聞の隊列の書き方に寄せ、列の切れ目を `-` で表す。 */
+export const flowOrder = (spots: readonly ResolvedSpot[]): string => flowColumns(spots).join('-');
 
 /** 閉じているときに出す、局面ごとの隊列の1行。隊列を置いていない局面は出さない。 */
 export function flowDigest(
 	flow: ResolvedFlow
-): { phase: FlowPhase; label: string; order: string }[] {
+): { phase: FlowPhase; label: string; columns: string[] }[] {
 	return FLOW_PHASES.filter((p) => flow[p].spots.length > 0).map((p) => ({
 		phase: p,
 		label: FLOW_PHASE_SHORT[p],
-		order: flowOrder(flow[p].spots)
+		columns: flowColumns(flow[p].spots)
 	}));
 }
 
