@@ -12,6 +12,8 @@ GitHub Actions の結果の通知、外からの死活監視。
   デプロイの Webhook を Variable に入れて障害のチャンネルに落ちていたのを、Actions が見つけて知らせるようにした（→ 第7章・第8章）
 - 更新日: 2026-09-24 — Cron（オッズの取得）の event を足した（→ 第3章）
 - 更新日: 2026-09-25 — 出走馬の取得の依頼（Cron・管理画面）の event と、`race-data-fetch.yml` の通知を足した（→ 第3章 / 第7章）
+- 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions（`odds-update.yml`）に移した。
+  `odds.*` のログは Workers Logs ではなく Actions の run に出る（→ 第1章 / 第3章 / 第7章）
 
 ---
 
@@ -24,6 +26,7 @@ Worker（hooks.server.ts が1リクエストに1つ monitor を作る）
 
 GitHub Actions（discord-notify.yml）
  ├─ health.yml（30分ごとに /api/health）落ちた・戻ったときだけ → Discord「障害」
+ ├─ odds-update.yml（30分ごとにオッズの更新）人の手が要る失敗のときだけ → Discord「障害」
  ├─ main の CI の失敗 ──────────────┐
  ├─ 本番デプロイの成功・失敗 ───────┼→ Discord「デプロイ」
  └─ 本番へのレースデータ投入の失敗 ─┘
@@ -86,19 +89,27 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
 | `monitoring.discord.failed` | error | — | `discord.ts` | 通知そのものが送れなかった（ログにだけ出る） |
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
-| `odds.fetch` | info / warn / error | 下の表 | `lib/server/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる。HTTP で失敗したときは `response`（ステータス・`server`/`x-cache`/`via` などのヘッダ・本文の先頭300字）も |
-| `odds.cron` | info | しない | `lib/server/odds/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す（件数の内訳） |
-| `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かないなど）か、Cron から東京の fetch の処理（`env.SELF`）に渡せなかった（→ [architecture.md 3-8](./architecture.md)） |
 | `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる |
 | `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
 | `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
 | `entries.dispatch.failed` | warn / error | error だけ | `/settings/admin` の `?/fetchEntries` | 管理画面から頼めなかった。届かなかったときは warn。トークン未設定は画面に出すだけでログにしない |
 
-`odds.fetch` の重さは `errorType`（`OddsError` の種類）で決める。**通知するのは人が手を入れる必要があるものだけ**で、
-一時的に届かなかった1回では知らせない（30分後の回で取れる）。Cron には request id が無いので、
-`requestId` は `cron-odds-<起動時刻>` にしている。取得は Cron から呼んだ fetch の処理で行うので、`odds.fetch` と
-`odds.cron` は `$metadata.origin` が `fetch` になる。requestId は Cron の回と同じものを渡している。
-`response.headers.x-amz-cf-pop` が `NRT`・`KIX` 以外（海外の拠点）なら、東京に置けていない。
+### オッズの更新（GitHub Actions）のログ
+
+オッズは Worker ではなく GitHub Actions（`odds-update.yml` → `scripts/odds-update.ts`）が取る（→ [architecture.md 3-8](./architecture.md)）。
+ログは **Workers Logs には出ず、Actions の run のログ**に JSON で1行ずつ出る。形は Worker のログと揃えてある。
+
+| event | level | 通知 | どこで | いつ |
+| --- | --- | --- | --- | --- |
+| `odds.fetch` | info / warn / error | 下の表 | `scripts/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる。HTTP で失敗したときは `response`（ステータス・`server`/`x-cache`/`via`/`x-amz-cf-pop` などのヘッダ・本文の先頭300字）も |
+| `odds.cron` | info | しない | `scripts/odds-update.ts` | 1回ぶんを終えた（件数の内訳）。対象が無い回も出す |
+| `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かない・トークンが通らないなど） |
+
+**通知するのは人が手を入れる必要があるものだけ**（level が error か、`notify: true`）。そういう行が1件でもあれば
+run を失敗で終え、`discord-notify.yml` が「障害」のチャンネルに1件送る（1回の run で1件）。一時的に届かなかった・400 の1回では
+知らせない（30分後の回で取れる）。直すまで毎回落ちる種類（`parse` など）は、30分ごとに届く。
+
+`odds.fetch` の重さは `errorType`（`OddsError` の種類）で決める。
 
 | errorType | level | 通知 | 意味 |
 | --- | --- | --- | --- |
@@ -122,7 +133,6 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `auth` | error | する | トークンが通らない（期限切れ・権限不足）。その回の残りは頼まない |
 | `http` / `unknown` | error | する | ワークフローが main に無い（404）・inputs が合わない（422）など |
 
-連投の抑制の鍵は `odds.fetch:<errorType>`。同じ種類の失敗が複数のレースで続いても5分に1件にまとまる。
 リクエストと同じく、Cron の1回で送る通知は1件まで（先に起きたほう）。
 
 **`SLOW_QUERY_MS` は仮置き。** Workers Logs で `d1.query.slow` の件数と `durationMs` を見て決め直す。
@@ -208,6 +218,7 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 | `data-import.yml` | 本番へのレースデータ投入が落ちたとき（成功は開催のたびに流れるので送らない） | 赤 | デプロイ |
 | `race-data-fetch.yml` | 出走馬の PR を作った・更新したとき（マージしないと本番に入らないので）・落ちたとき。同じ中身で何もしなかった回は送らない | 緑 / 赤 | デプロイ |
 | `health.yml` | `/api/health` が落ちたとき・戻ったとき | 赤 / 緑 | 障害 |
+| `odds-update.yml` | オッズの更新で人の手が要る失敗があったとき（第3章「オッズの更新のログ」）。成功・発売前・一時的な失敗は送らない | 赤 | 障害 |
 
 どれも `discord-notify.yml` を `workflow_call` で呼び、`channel`（`alerts` / `deploy`）で送り先を選ぶ。
 ステージングへの反映（`staging.yml`）は送っていない。

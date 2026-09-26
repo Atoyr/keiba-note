@@ -5,7 +5,8 @@
  * ローカルタイムゾーンを経由せず UTC のミリ秒で計算する。
  */
 
-import { addDays } from './date';
+// scripts/odds/（Node で直接動く）からも読むので、拡張子まで書く
+import { addDays } from './date.ts';
 
 /**
  * オッズを取りに行く格と、何日前の何時（JST）から取りに行くか。前日発売のオッズが出始める頃に合わせる。

@@ -2,8 +2,11 @@
  * オッズの正規化した形と、取得元（provider）の約束。
  *
  * **取得元に固有のことはここに持ち込まない。** netkeiba の JSON の形・URL・status の名前は
- * `netkeiba/` の中に閉じ、D1・予想画面・Cron はこのファイルの型だけを見る。
- * 取得元を替えるときは provider を1つ書き足し、`scheduled.ts` で渡すものを替えるだけで済む。
+ * `scripts/odds/netkeiba/` の中に閉じ、D1・予想画面・更新の手順（`scripts/odds/update.ts`）はこのファイルの型だけを見る。
+ * 取得元を替えるときは provider を1つ書き足し、`scripts/odds-update.ts` で渡すものを替えるだけで済む。
+ *
+ * 取得は GitHub Actions がし（`scripts/odds/`）、Worker は予想画面で読むだけ。型と検査を両方から使うのでここに置く。
+ * `scripts/` からは Node で直接読むので、ここは何も import しない。
  */
 
 export type HorseOdds = {
@@ -61,13 +64,16 @@ export type OddsResponseSummary = {
 
 export class OddsError extends Error {
 	override readonly name = 'OddsError';
+	// Node の型の除去（--experimental-strip-types）は引数プロパティを読めないので、欄は別に宣言する
+	readonly kind: OddsErrorKind;
 	readonly response?: OddsResponseSummary;
 	constructor(
-		readonly kind: OddsErrorKind,
+		kind: OddsErrorKind,
 		message: string,
 		options?: { cause?: unknown; response?: OddsResponseSummary }
 	) {
 		super(message, options);
+		this.kind = kind;
 		this.response = options?.response;
 	}
 }

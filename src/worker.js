@@ -1,5 +1,6 @@
 // Worker の入口（wrangler.toml の main）。adapter-cloudflare が作る Worker を包み、
-// 返す前にレスポンスを直す。Cron Trigger（オッズの更新・出走馬の取得の依頼）もここで受ける。
+// 返す前にレスポンスを直す。Cron Trigger（出走馬の取得の依頼）もここで受ける。
+// オッズの更新は Worker ではなく GitHub Actions がする（scripts/odds-update.ts。docs/architecture.md 3-8）。
 //
 // adapter は adapter の設定（wrangler.adapter.toml）の main に Worker を書き出し、そこを
 // 消してから書く。このファイルを adapter の main にすると上書きされるので、分けている。
@@ -10,7 +11,6 @@
 // ここから import する TS は wrangler（esbuild）が束ねる。`$lib` は wrangler.toml の alias で解く。
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
-import { handleOddsRun, isOddsRunRequest, relayOddsCron } from './lib/server/odds/scheduled.ts';
 import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
 
 export default {
@@ -20,8 +20,6 @@ export default {
 	 * @param {ExecutionContext} ctx
 	 */
 	async fetch(req, env, ctx) {
-		// オッズの Cron が env.SELF から呼ぶ。fetch の処理は東京に置かれる（wrangler.toml の placement）。
-		if (isOddsRunRequest(req)) return handleOddsRun(req, env, ctx);
 		return uncacheFailure(await sveltekit.fetch(req, env, ctx));
 	},
 
@@ -34,9 +32,6 @@ export default {
 		// Cron は式ごとに別々に起動される。どの式で起きたかで出し分ける（wrangler.toml の crons）。
 		if (controller.cron === ENTRIES_CRON) {
 			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime));
-		} else {
-			// 取得は Cron の中でせず、東京で動く fetch の処理に渡す（placement は Cron に効かない）
-			ctx.waitUntil(relayOddsCron(env, ctx, controller.scheduledTime));
 		}
 	}
 };

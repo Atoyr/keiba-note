@@ -31,17 +31,10 @@ enabled = true
 # そのまま残るため（docs/monitoring.md 第2章「出さないもの」）。
 redact_query_string = true
 
-# fetch の処理を東京（AWS ap-northeast-1 の近く）で動かす。利用者は国内だけで、D1 のプライマリも apac にある。
-# オッズの取得元（netkeiba）は、海外の拠点から行くと手前で 400 を返す。**placement は Cron（scheduled）には効かない**ので、
-# オッズの Cron は下の SELF を通して自分の fetch を呼び、取得はそちらで行う（src/lib/server/odds/scheduled.ts）。
+# fetch の処理を東京（AWS ap-northeast-1 の近く）で動かす。利用者は国内だけで、D1 のプライマリも apac にある
+# （D1 との往復が 180〜800ms から 50〜110ms に縮んだ）。placement は Cron（scheduled）には効かない。
 [placement]
 region = "aws:ap-northeast-1"
-
-# 自分自身へのサービスバインディング。オッズの Cron が、東京に置かれる fetch の処理を呼ぶのに使う（上の placement）。
-# Workers Previews（ステージング）は Cron が動かないので、[previews] には置かない。
-[[services]]
-binding = "SELF"
-service = "k-note"
 
 # Workers Paid の既定（CPU 30秒・サブリクエスト 10,000）は、暴走したときに止まらず課金が進む。
 # 暴走は止め、普段の処理は決して当たらない高さに置く。**上限に当たっても Discord には届かない**
@@ -58,13 +51,8 @@ subrequests = 1000
 [alias]
 "$lib" = "./src/lib"
 
-# オッズの更新（src/lib/server/odds/scheduled.ts）。UTC で書く。JST 7:00〜25:00（翌 1:00）の30分おき。
-#   "*/30 22-23,0-15 * * *" … JST 7:00〜24:30
-#   "0 16 * * *"            … JST 25:00 ちょうどの1回（上の式では拾えない）
-# ネットの前日発売は夜間も売っているので 25:00 まで回す。25:00〜7:00 は回さない。
-# 重賞は前日（G1 は前々日）の 18:30 から取りに行く。
-# 取りに行くのは時間帯に入ったレース（src/lib/utils/odds.ts の inOddsWindow）がある回だけで、
-# 無い回は D1 を1回読んで終わる。
+# オッズの更新は Worker の Cron ではなく GitHub Actions（.github/workflows/odds-update.yml）がする。
+# netkeiba は Workers から来たリクエストを時間帯によってまとめて 400 で返す（docs/architecture.md 3-8）。
 #
 # 出走馬の取得の依頼（src/lib/server/race-data/scheduled.ts の ENTRIES_CRON と同じ文字列にする）。
 # 1-10 時 = JST 10:05〜19:05 の毎時。枠順を待っている重賞（1〜3日後で馬番が未入力）があれば、
@@ -72,7 +60,7 @@ subrequests = 1000
 #
 # Workers Previews（ステージング）では Cron は動かない。
 [triggers]
-crons = ["*/30 22-23,0-15 * * *", "0 16 * * *", "5 1-10 * * *"]
+crons = ["5 1-10 * * *"]
 
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。

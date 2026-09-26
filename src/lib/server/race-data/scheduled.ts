@@ -3,7 +3,7 @@
  * 枠順を待っている重賞の出走馬の取得を、GitHub Actions に頼む。
  *
  * SvelteKit の外で動くので、`hooks.server.ts` がリクエストごとにしていること
- * （監視の口と D1 クライアントを作る）をここで同じようにする（`lib/server/odds/scheduled.ts` と同じ形）。
+ * （監視の口と D1 クライアントを作る）をここで同じようにする。
  */
 import { createDb } from '$lib/server/db';
 import { describeError } from '$lib/server/monitoring/log';

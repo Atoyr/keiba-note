@@ -1,7 +1,7 @@
 /**
- * オッズの更新。Cron（`scheduled.ts`）から30分おきに呼ばれる。
+ * オッズの更新。GitHub Actions（`odds-update.yml` → `scripts/odds-update.ts`）から30分おきに呼ばれる。
  *
- * 1. D1 から、いま取りに行ってよいレースを選ぶ（`listOddsTargets`。ref・発走時刻がある重賞で、格で決まる時間帯に入ったもの）
+ * 1. D1 から、いま取りに行ってよいレースを選ぶ（`store.listTargets`。ref・発走時刻がある重賞で、格で決まる時間帯に入ったもの）
  * 2. **1レースずつ順に**取りに行く。並列にしない。レースの間は間を空ける
  * 3. 検査を通ったものだけを保存する。**失敗した回は何も書かない**（前回の値と時点が残る）
  *
@@ -10,9 +10,23 @@
  *
  * ログの出し方（通知するかどうか）は呼び出し側に渡す `log` が決める。ここは monitoring を知らない。
  */
-import type { Db } from '$lib/server/db';
-import { listOddsTargets, saveRaceOdds, type OddsTarget } from '$lib/server/services/odds';
-import { OddsError, validateRaceOdds, type OddsErrorKind, type OddsProvider } from './odds';
+import {
+	OddsError,
+	validateRaceOdds,
+	type OddsErrorKind,
+	type OddsProvider,
+	type RaceOdds
+} from '../../src/lib/server/odds/odds.ts';
+
+export type OddsTarget = { raceId: string; externalRef: string };
+
+/** 対象の選び方と保存先。本番は `wrangler d1 execute --remote`（`scripts/odds-update.ts`）、テストは node:sqlite。 */
+export type OddsStore = {
+	/** いま取りに行ってよいレース（`store.ts` の `targetsSql` → `pickTargets`）。 */
+	listTargets: (now: Date) => Promise<OddsTarget[]>;
+	/** 検査を通ったものを、そのレースの行と置き換える（`store.ts` の `saveOddsSql`）。 */
+	save: (odds: RaceOdds) => Promise<void>;
+};
 
 export type OddsLogEntry = {
 	level: 'info' | 'warn' | 'error';
@@ -27,7 +41,7 @@ export type OddsLogEntry = {
 };
 
 export type UpdateOddsDeps = {
-	db: Db;
+	store: OddsStore;
 	provider: OddsProvider;
 	log: (entry: OddsLogEntry) => void;
 	now?: () => Date;
@@ -64,7 +78,7 @@ export async function updateOdds(deps: UpdateOddsDeps): Promise<UpdateOddsSummar
 		stopped: false
 	};
 
-	const targets = await listOddsTargets(deps.db, now());
+	const targets = await deps.store.listTargets(now());
 	summary.targets = targets.length;
 
 	for (const [i, target] of targets.entries()) {
@@ -113,7 +127,7 @@ async function updateOne(
 			odds = await provider.getRaceOdds(input);
 		}
 		validateRaceOdds(odds);
-		await saveRaceOdds(deps.db, odds);
+		await deps.store.save(odds);
 
 		deps.log({
 			...base,
