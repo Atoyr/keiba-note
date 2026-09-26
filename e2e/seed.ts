@@ -125,8 +125,8 @@ export const MARKS_RACE_ID = '01JE2ERACEMARKS00000000000';
 export const NATIVE_SHARE_RACE_ID = '01JE2ERACENATIVESHARE00000';
 
 /**
- * 未保存の件数と保存の件数がそろうことを見るレース（開催前）。出走2頭で、E2Eカキズミには
- * 出走前メモ（○）が保存済み、E2Eコレカラにはまだ何も無い。
+ * 未保存の件数と保存の件数がそろうことを見るレース（開催済み。予想もふりかえりも開ける）。
+ * 出走2頭で、E2Eカキズミには出走前メモ（○）が保存済み、E2Eコレカラにはまだ何も無い。
  */
 export const COUNT_RACE_ID = '01JE2ERACECOUNT0000000000';
 

@@ -93,8 +93,8 @@ export const SCREENS: Screen[] = [
 	{
 		// 保存したところ。知らせはトーストで下に出て、保存ボタンは消える。
 		// **保存は本当には送らない**（seed が書き換わり、ほかの画面の写りが変わる）。
-		// action の応答だけを差し替える。data は devalue で `{ saved: 3, savedAt: 0 }`。
-		// 知らせの件数は応答の saved ではなく、変えたメモの数（レースのメモ1つ＝1 件）。
+		// action の応答だけを差し替える。data は devalue で `{ savedAt: 0 }`。
+		// 知らせの件数は応答ではなく画面の側で数える（変えたのはレースのメモ1つ＝1 件）。
 		name: 'race-review-saved',
 		path: `/races/${REVIEW_RACE_ID}`,
 		auth: true,
@@ -109,7 +109,7 @@ export const SCREENS: Screen[] = [
 								body: JSON.stringify({
 									type: 'success',
 									status: 200,
-									data: JSON.stringify([{ saved: 1, savedAt: 2 }, 3, 0])
+									data: JSON.stringify([{ savedAt: 1 }, 0])
 								})
 							})
 						: route.fallback()

@@ -121,13 +121,9 @@ export const actions: Actions = {
 		}
 
 		// occurred_at はレース日。タイムラインでそのレースの位置に並ぶ。
-		const result = await savePreviewNotes(
-			db,
-			{ raceId: params.id, ...parsed.output },
-			user.id,
-			race.date
-		);
+		// 件数（`saved`）は返さない。画面の知らせは、変えたメモの数を画面の側で数える（utils/note.ts の savedMessage）。
+		await savePreviewNotes(db, { raceId: params.id, ...parsed.output }, user.id, race.date);
 
-		return { saved: result.saved, savedAt: Date.now() };
+		return { savedAt: Date.now() };
 	}
 };

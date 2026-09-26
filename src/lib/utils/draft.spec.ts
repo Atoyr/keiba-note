@@ -12,6 +12,14 @@ describe('changedFields', () => {
 		expect(changedFields({}, { 'tags.A': ['不利'] })).toEqual({ 'tags.A': [] });
 	});
 
+	it('前後の空白だけの違いは変更に数えない（サーバーは trim して保存する）', () => {
+		expect(changedFields({ 'body.A': ['xyz '] }, { 'body.A': ['xyz'] })).toEqual({});
+		expect(changedFields({ 'body.A': ['  '] }, { 'body.A': [''] })).toEqual({});
+		expect(changedFields({ 'body.A': ['x y'] }, { 'body.A': ['xy'] })).toEqual({
+			'body.A': ['x y']
+		});
+	});
+
 	it('書いて元に戻した欄は変更に数えない', () => {
 		expect(changedFields({ 'body.A': ['同じ'] }, { 'body.A': ['同じ'] })).toEqual({});
 	});

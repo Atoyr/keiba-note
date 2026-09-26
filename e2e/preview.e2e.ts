@@ -3,7 +3,6 @@ import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
 	BRACKET_RACE_ID,
-	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
 	MARKS_RACE_ID,
 	OTHER_DISTANCE_NOTE_BODY,
@@ -384,46 +383,6 @@ test('送信中はボタンを押せず、その間に書き足した分は保�
 	await body.fill('');
 	await page.getByRole('button', { name: 'レースの見立てを保存' }).click();
 	await expect(page.locator('[data-sonner-toast]')).toContainText('保存しました');
-});
-
-/**
- * ★ 押す前に出ていた「未保存の変更が N 件」と、保存したときの「保存しました（N 件）」がそろう。
- *
- * 以前は、未保存は**欄の数**（1頭に本文・札・印を付けると3件）、保存は**空でないメモの総数**
- * （触っていない馬の保存済みメモも入る）で数えていて、1頭書いただけで「3 件」→「2 件」になっていた。
- * 件数が変わると、何か操作を間違えたのかと読ませてしまう。1件はメモ1つ（1頭ぶん）にそろえる。
- */
-test('1頭に本文・札・印を付けると未保存は1件で、保存の知らせも1件', async ({ page }) => {
-	await login(page);
-	await gotoHydrated(page, `/races/${COUNT_RACE_ID}/preview`);
-
-	const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eコレカラ' });
-	await row.getByText('＋ 出走前メモ').click();
-	await row.locator('textarea').fill('距離短縮で前に行けそう。');
-	await row.getByRole('checkbox', { name: '次走買い' }).check({ force: true });
-	await row.getByRole('radio', { name: '▲' }).check({ force: true });
-	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
-
-	await page.getByRole('button', { name: '出走前メモを保存' }).click();
-	// 保存済みのメモ（E2Eカキズミ）は触っていないので数えない。
-	const toast = (text: string) => page.locator('[data-sonner-toast]', { hasText: text });
-	await expect(toast('保存しました（1 件）')).toBeVisible();
-
-	// 後片付け。すべて空で保存すると消える。レースの見立ても一緒に書いて、2つなら2件と出ることも見る。
-	await page.locator('textarea[name="raceNoteBody"]').fill('前に行ける馬から。');
-	// 出走前メモの欄は開いたまま（保存しても畳まない）。
-	await row.locator('textarea').fill('');
-	await row.getByRole('checkbox', { name: '次走買い' }).uncheck({ force: true });
-	await row.getByRole('radio', { name: 'なし' }).check({ force: true });
-	await expect(page.getByText('未保存の変更が 2 件あります')).toBeVisible();
-	await page.getByRole('button', { name: '出走前メモを保存' }).click();
-	// 前の知らせが残っていることがあるので、文で選ぶ。
-	await expect(toast('保存しました（2 件）')).toBeVisible();
-
-	await page.locator('textarea[name="raceNoteBody"]').fill('');
-	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
-	await page.getByRole('button', { name: '出走前メモを保存' }).click();
-	await expect(page.getByText('未保存の変更が', { exact: false })).toHaveCount(0);
 });
 
 /** ブラウザの「戻る」でも止める。SvelteKit の中の履歴なら `beforeunload` は起きない。 */

@@ -15,7 +15,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
-	import { raceReviewSaveLabel } from '$lib/utils/note';
+	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -35,14 +35,6 @@
 
 	const meeting = $derived(raceMeeting(data.race));
 	const spec = $derived(raceSpec(data.race));
-
-	// 出走馬がいないレース（これから組まれる重賞など）では、入力欄はレースのメモ1つだけ。
-	// 「まとめて保存」「（N 件）」は、並んでいる馬の数だけ意味を持つ言い方なので出さない。
-	const bulk = $derived(data.rows.length > 0);
-	// 件数は、この保存で変えたメモの数（`DraftKeeper.clear` が返す）。押す前の「未保存の変更が N 件」と
-	// 同じ数え方にする。サーバーの `saved` は空でないメモの総数で、触っていない馬まで数えるので使わない。
-	const savedMessage = (changed: number) =>
-		`保存しました${bulk && changed > 0 ? `（${changed} 件）` : ''}`;
 
 	// 予想で付けた印と着順の突き合わせ。印の順（◎ → ×）に並べ直す。
 	const answers = $derived(
@@ -97,7 +89,7 @@
 	{/if}
 
 	<!-- 保存の知らせはトースト（下の use:enhance）。JS が無いときはトーストが出せないので、ここに出す。 -->
-	{#if form && 'saved' in form}
+	{#if form && 'savedAt' in form}
 		<noscript>
 			<p
 				class="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
@@ -155,7 +147,7 @@
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
 						const changed = (await keeper?.clear(sent, late)) ?? 0;
-						toast.success(savedMessage(changed));
+						toast.success(savedMessage(data.rows.length, changed));
 					}
 				} finally {
 					saving = false;
