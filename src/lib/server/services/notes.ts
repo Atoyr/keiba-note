@@ -712,7 +712,7 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
 			tags: note.tags,
 			mark: note.mark,
 			occurredAt: note.occurredAt,
-			authorName: user.displayName,
+			authorName: sql<string>`coalesce(${user.publicName}, '匿名')`,
 			horseName: horse.name,
 			raceDate: race.date,
 			raceName: race.name,
@@ -726,7 +726,7 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
 		.leftJoin(race, eq(note.raceId, race.id))
 		.leftJoin(horse, eq(note.horseId, horse.id))
 		.leftJoin(raceEntry, eq(note.raceEntryId, raceEntry.id))
-		.where(and(eq(note.id, noteId), eq(note.visibility, 'unlisted')))
+		.where(and(eq(note.id, noteId), eq(note.visibility, 'unlisted'), isNull(user.deletedAt)))
 		.limit(1);
 
 	return rows.at(0) ?? null;

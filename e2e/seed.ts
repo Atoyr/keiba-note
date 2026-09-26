@@ -53,6 +53,8 @@ export default function seed() {
 
 /** 共有中のメモ。`/notes/[id]` で開ける。 */
 export const SHARED_NOTE_ID = '01JE2ESHAREDNOTE0000000000';
+export const SHARED_RACE_ID = '01JE2ESHAREDRACE0000000000';
+export const SUMMARY_RACE_ID = '01JE2ERACESUMMARY000000000';
 
 /** 非公開のメモ。存在するが `/notes/[id]` では 404 になる。 */
 export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';

@@ -82,24 +82,25 @@
 	/>
 	<!-- 並びはふりかえりの見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
 	     開催前は、ふりかえりが書けない（開いても戻される）ので導線も出さない。 -->
-	{#if !data.upcoming || admin}
-		<div class="mt-2 flex flex-wrap gap-2">
-			{#if !data.upcoming}
-				<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
-					ふりかえりを書く
-				</Button>
-			{/if}
-			{#if admin}
-				<Button
-					href={resolve('/races/[id]/entries', { id: data.race.id })}
-					variant="outline"
-					size="sm"
-				>
-					出走馬を編集
-				</Button>
-			{/if}
-		</div>
-	{/if}
+	<div class="mt-2 flex flex-wrap gap-2">
+		<Button href={resolve('/races/[id]/summary', { id: data.race.id })} variant="outline" size="sm"
+			>予想をまとめて見る</Button
+		>
+		{#if !data.upcoming}
+			<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
+				ふりかえりを書く
+			</Button>
+		{/if}
+		{#if admin}
+			<Button
+				href={resolve('/races/[id]/entries', { id: data.race.id })}
+				variant="outline"
+				size="sm"
+			>
+				出走馬を編集
+			</Button>
+		{/if}
+	</div>
 
 	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
 	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。

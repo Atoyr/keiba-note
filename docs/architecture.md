@@ -458,8 +458,15 @@ where(and(eq(note.id, id), eq(note.visibility, 'unlisted')))
 
 ### 3-7. 共有ページはこの経路の例外
 
+レース単位の共有は `/shared/races/[id]`。本人が `?/share` を送ったときに、
+`viewerId` で絞った予想を `race_share.content` にコピーする。公開ページはこのコピーと
+`user.public_name` だけを読み、`note` は読まない。既存のメモ閲覧の規則は変えない。
+`race_share` は `(author_id, race_id)` ごとに1件。更新は同じURL、取り消しはコピーを削除し、再共有は新しいID。
+凍結済みの著者は両方の共有ページで404になる。未設定の公開名は「匿名」で、Google名へは戻さない。
+共有ページのレイアウトはログイン中も `user: null` を返し、HTMLやデータ応答にアカウント情報を含めない。
+
 `/notes/[id]` は `hooks.server.ts` の公開パスに入るため、`locals.user` が null のまま
-load に到達する。**前提が他の全ルートと違う唯一の場所**なので、独立して覚えておく。
+load に到達する。共有ページは通常のログイン必須ルートと前提が違う。
 
 | | 通常のルート | `/notes/[id]` |
 | --- | --- | --- |

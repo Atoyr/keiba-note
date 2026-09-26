@@ -43,7 +43,9 @@
 	 * ログインしている人にだけヘッダーが出ると、その確認が成り立たない。
 	 * 共有ページからアプリ内へ導線を出さない、という決めごととも揃う。
 	 */
-	const bare = $derived(page.url.pathname.startsWith('/notes/'));
+	const bare = $derived(
+		page.url.pathname.startsWith('/notes/') || page.url.pathname.startsWith('/shared/races/')
+	);
 </script>
 
 <AppEnvMark staging={data.staging} />

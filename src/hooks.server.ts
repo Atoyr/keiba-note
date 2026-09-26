@@ -14,7 +14,7 @@ import { safeRedirect } from '$lib/utils/redirect';
  * 下だけ。**`/` だけは完全一致。** 前方一致にすると全部のパスが開いてしまう。
  * `/` は未ログインだと紹介ページを出し、DB には触らない（`src/routes/+page.server.ts`）。
  *
- * `/notes/` は共有ページ。未ログインで DB の中身を出す唯一のルートだが、そこで出せるのは
+ * `/notes/` はメモの共有ページ。そこで出せるのは
  * `visibility = 'unlisted'` の1行だけ（product.md 第6章）。
  *
  * `/privacy` と `/terms` は Google OAuth の同意画面に URL を登録するページ。
@@ -26,7 +26,16 @@ import { safeRedirect } from '$lib/utils/redirect';
  * `/robots.txt` はここに要らない。`static/` の実ファイルは Workers Static Assets が
  * 直接返し、**Worker 自体が起動しない**ので hooks を通らない。
  */
-const PUBLIC_PATHS = ['/', '/login', '/auth/', '/notes/', '/privacy', '/terms', '/api/health'];
+const PUBLIC_PATHS = [
+	'/',
+	'/login',
+	'/auth/',
+	'/notes/',
+	'/shared/races/',
+	'/privacy',
+	'/terms',
+	'/api/health'
+];
 
 function isPublic(pathname: string): boolean {
 	return PUBLIC_PATHS.some((p) => {
