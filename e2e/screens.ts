@@ -4,6 +4,7 @@ import { failNextAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
 import {
 	BRACKET_RACE_ID,
+	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
 	HORSE_ID,
 	MARKS_RACE_ID,
@@ -93,6 +94,7 @@ export const SCREENS: Screen[] = [
 		// 保存したところ。知らせはトーストで下に出て、保存ボタンは消える。
 		// **保存は本当には送らない**（seed が書き換わり、ほかの画面の写りが変わる）。
 		// action の応答だけを差し替える。data は devalue で `{ saved: 3, savedAt: 0 }`。
+		// 知らせの件数は応答の saved ではなく、変えたメモの数（レースのメモ1つ＝1 件）。
 		name: 'race-review-saved',
 		path: `/races/${REVIEW_RACE_ID}`,
 		auth: true,
@@ -157,6 +159,20 @@ export const SCREENS: Screen[] = [
 		prepare: async (page) => {
 			await waitForHydration(page);
 			await page.locator('textarea[name="raceNoteBody"]').fill('開幕週で内有利になりそう。');
+		}
+	},
+	{
+		// 1頭に本文・札・印を付けたところ。欄は3つでも、未保存はメモ1つ＝「1 件」と数える。
+		name: 'race-preview-unsaved-entry',
+		path: `/races/${COUNT_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eコレカラ' });
+			await row.getByText('＋ 出走前メモ').click();
+			await row.locator('textarea').fill('距離短縮で前に行けそう。');
+			await row.getByText('次走買い', { exact: true }).click();
+			await row.getByText('▲', { exact: true }).click();
 		}
 	},
 	{

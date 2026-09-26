@@ -2,6 +2,7 @@
 	import { tick } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { changedFields, countChangedNotes, sameValue, type FieldValues } from '$lib/utils/draft';
 
 	/**
 	 * 一括保存フォームの「書き忘れ」と「書いたものが消える」を防ぐ。
@@ -23,6 +24,9 @@
 	 * 触っていない馬のメモを空で上書きすることがない。
 	 *
 	 * 未保存の件数は `dirtyCount` で親へ返し、`SaveBar` が保存ボタンと一緒に出す。
+	 * **1件はメモ1つ**（レースのメモ、または1頭ぶん）。欄の数では数えない（→ `utils/draft.ts`）。
+	 * 保存の知らせの件数も `clear()` が同じ数え方で返すので、「未保存の変更が N 件」と
+	 * 「保存しました（N 件）」がそろう。
 	 */
 	let {
 		form,
@@ -33,14 +37,14 @@
 		form: HTMLFormElement | null;
 		/** localStorage のキー。レースとユーザーで分ける。 */
 		storageKey: string;
-		/** 未保存の変更の件数。親は `bind:dirtyCount` で受ける。 */
+		/** 未保存の変更の件数（メモの数）。親は `bind:dirtyCount` で受ける。 */
 		dirtyCount?: number;
 	} = $props();
 
-	type Draft = { savedAt: number; fields: Record<string, string[]> };
+	type Draft = { savedAt: number; fields: FieldValues };
 
 	/** 保存済み（＝サーバーから来た）状態。これとの差分が「未保存」。 */
-	let initial: Record<string, string[]> = {};
+	let initial: FieldValues = {};
 	/** 復元できる下書き。null なら出さない。 */
 	let restorable = $state<Draft | null>(null);
 	let timer: ReturnType<typeof setTimeout> | null = null;
@@ -53,8 +57,8 @@
 	 * 最後にチェックしたものだけが下書きに残り、復元すると他が外れていた。
 	 * ラジオは選択中のもの、チェックボックスはオンのものだけが乗る。
 	 */
-	function readValues(el: HTMLFormElement): Record<string, string[]> {
-		const out: Record<string, string[]> = {};
+	function readValues(el: HTMLFormElement): FieldValues {
+		const out: FieldValues = {};
 		for (const [k, v] of new FormData(el)) {
 			if (typeof v !== 'string') continue;
 			(out[k] ??= []).push(v);
@@ -62,23 +66,8 @@
 		return out;
 	}
 
-	/**
-	 * 同じ値かどうか。JSON にして比べる。
-	 *
-	 * 区切り文字で連結して比べる手もあるが、本文（textarea）には何でも入るので
-	 * 安全な区切りが無い。並び順は DOM の順で安定しているので JSON で足りる。
-	 */
-	const same = (a: string[] | undefined, b: string[] | undefined) =>
-		JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
-
-	function changedFields(el: HTMLFormElement): Record<string, string[]> {
-		const now = readValues(el);
-		const diff: Record<string, string[]> = {};
-		for (const k of new Set([...Object.keys(now), ...Object.keys(initial)])) {
-			if (!same(now[k], initial[k])) diff[k] = now[k] ?? [];
-		}
-		return diff;
-	}
+	/** 保存済みの状態から変わった欄。 */
+	const unsaved = (el: HTMLFormElement) => changedFields(readValues(el), initial);
 
 	/**
 	 * localStorage は private モードや設定次第で投げる。ここで握り潰す。
@@ -93,7 +82,7 @@
 			const parsed = JSON.parse(raw) as { savedAt?: number; fields?: Record<string, unknown> };
 			if (!parsed || typeof parsed !== 'object' || !parsed.fields) return null;
 
-			const fields: Record<string, string[]> = {};
+			const fields: FieldValues = {};
 			for (const [k, value] of Object.entries(parsed.fields)) {
 				if (typeof value === 'string') fields[k] = value === '' ? [] : [value];
 				else if (Array.isArray(value))
@@ -105,7 +94,7 @@
 		}
 	}
 
-	function writeDraft(fields: Record<string, string[]>) {
+	function writeDraft(fields: FieldValues) {
 		try {
 			if (Object.keys(fields).length === 0) localStorage.removeItem(storageKey);
 			else localStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), fields }));
@@ -115,13 +104,17 @@
 	}
 
 	/** 送る直前と、応答を画面に反映する直前に呼ぶ。いまの値を返す。 */
-	export function snapshot(): Record<string, string[]> | null {
+	export function snapshot(): FieldValues | null {
 		return form ? readValues(form) : null;
 	}
 
 	/**
 	 * 保存が通って、`update()` で画面を描き直したあとに呼ぶ。送った値（`sent`）を新しい
 	 * 「保存済み」にし、下書きを捨てる。
+	 *
+	 * **返すのは、この保存で変わったメモの数。** 保存の知らせに出す件数で、押す前に出ていた
+	 * 「未保存の変更が N 件」と同じ数え方にする。サーバーの `saved`（空でないメモの総数）を
+	 * 出すと、触っていない馬のメモまで数えて件数が合わず、何か操作を間違えたように読める。
 	 *
 	 * **いまの値ではなく、送った値を保存済みにする。** 送信中に書き足した分はサーバーに
 	 * 届いていないので、未保存のまま数え、下書きにも残す。いまの値を読むと、それが
@@ -132,32 +125,31 @@
 	 * 書き足した分が画面から消えるため。
 	 */
 	export async function clear(
-		sent?: Record<string, string[]> | null,
-		late?: Record<string, string[]> | null
-	) {
+		sent?: FieldValues | null,
+		late?: FieldValues | null
+	): Promise<number> {
 		restorable = null;
 		if (timer) clearTimeout(timer);
 		if (!form) {
 			dirtyCount = 0;
 			writeDraft({});
-			return;
+			return 0;
 		}
-		initial = sent ?? readValues(form);
+		const next = sent ?? readValues(form);
+		const saved = countChangedNotes(changedFields(next, initial));
+		initial = next;
 		if (late) {
 			await tick();
-			const back: Record<string, string[]> = {};
-			for (const k of new Set([...Object.keys(late), ...Object.keys(initial)])) {
-				if (!same(late[k], initial[k])) back[k] = late[k] ?? [];
-			}
-			applyFields(back);
+			applyFields(changedFields(late, initial));
 		}
-		const diff = changedFields(form);
-		dirtyCount = Object.keys(diff).length;
+		const diff = unsaved(form);
+		dirtyCount = countChangedNotes(diff);
 		writeDraft(diff);
+		return saved;
 	}
 
 	/** name ごとの値をフォームへ入れる。復元と、送信中に書き足した分の書き戻しで使う。 */
-	function applyFields(values: Record<string, string[]>) {
+	function applyFields(values: FieldValues) {
 		if (!form) return;
 		for (const [name, picked] of Object.entries(values)) {
 			const fields = form.elements.namedItem(name);
@@ -183,8 +175,8 @@
 
 	function onInput() {
 		if (!form) return;
-		const diff = changedFields(form);
-		dirtyCount = Object.keys(diff).length;
+		const diff = unsaved(form);
+		dirtyCount = countChangedNotes(diff);
 
 		if (timer) clearTimeout(timer);
 		timer = setTimeout(() => writeDraft(diff), 400);
@@ -213,7 +205,7 @@
 		const draft = readDraft();
 		if (draft) {
 			const now = readValues(el);
-			const differs = Object.entries(draft.fields).some(([k, v]) => !same(now[k], v));
+			const differs = Object.entries(draft.fields).some(([k, v]) => !sameValue(now[k], v));
 			if (differs) restorable = draft;
 			else writeDraft({});
 		}
@@ -257,7 +249,7 @@
 			return;
 		}
 		if (timer) clearTimeout(timer);
-		writeDraft(changedFields(form));
+		writeDraft(unsaved(form));
 	});
 
 	const when = $derived(

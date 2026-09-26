@@ -61,9 +61,12 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   （`beforeunload`）と、アプリ内のリンク（`beforeNavigate`）の両方で出す
 - 一括フォームの保存ボタンは `SaveBar` で出す。`DraftKeeper` の `bind:dirtyCount` を渡し、
   **未保存の変更があるときだけ**件数と一緒に出る。JS が無いときは `<noscript>` で常に出す。
+  件数はメモの数で数える。欄の name は `body.<entryId>` のように `.` の後ろをメモの持ち主にそろえる
+  （`utils/draft.ts` が同じメモの欄を1件にまとめる）。
   送信中は `pending`（`aria-disabled`。`disabled` にするとフォーカスが外れる）、失敗の文は `message` で
   ボタンの横に出す。`use:enhance` では送る直前に `keeper.snapshot()` を取り、成功したら `keeper.clear(sent)` に渡す
-  （送信中に書き足した分を保存済みに数えない）。ボタンが消えるときフォーカスはフォームへ移るので、
+  （送信中に書き足した分を保存済みに数えない）。保存の知らせの件数は `clear()` の戻り値（変えたメモの数）を使い、
+  サーバーの `saved`（空でないメモの総数）は出さない。ボタンが消えるときフォーカスはフォームへ移るので、
   フォームに `tabindex="-1"` を付ける
 - 「保存しました」のような一時的な知らせはトースト（`svelte-sonner` の `toast`）で出す。
   `use:enhance` の結果が `success` のときに呼ぶ。JS が無いとトーストは出ないので、同じ文を
