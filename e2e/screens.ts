@@ -278,7 +278,7 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'race-summary', path: `/races/${PREVIEW_RACE_ID}/summary`, auth: true },
-	...(['copy', 'manual', 'retry'] as const).map((mode): Screen => ({
+	...(['copy', 'manual', 'retry', 'pending'] as const).map((mode): Screen => ({
 		name: `race-summary-share-${mode}`,
 		path: `/races/${MARKS_RACE_ID}/summary`,
 		auth: true,
@@ -304,6 +304,10 @@ export const SCREENS: Screen[] = [
 				{ times: 1 }
 			);
 			await page.getByRole('button', { name: '予想をシェア', exact: true }).click();
+			if (mode === 'pending') {
+				await page.getByRole('button', { name: '共有リンクを準備中', exact: true }).waitFor();
+				return;
+			}
 			await page
 				.getByText(
 					mode === 'copy'

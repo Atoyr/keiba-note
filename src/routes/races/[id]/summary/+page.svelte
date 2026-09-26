@@ -5,6 +5,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import Share2 from '@lucide/svelte/icons/share-2';
+	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import RaceSummary from '$lib/components/RaceSummary.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -110,10 +111,15 @@
 						variant="outline"
 						size="icon-sm"
 						aria-disabled={pending}
+						aria-busy={pending}
 						aria-label={pending ? '共有リンクを準備中' : '予想をシェア'}
 						title="リンクを発行してシェア"
 					>
-						<Share2 aria-hidden="true" />
+						{#if pending}
+							<LoaderCircle class="motion-safe:animate-spin" aria-hidden="true" />
+						{:else}
+							<Share2 aria-hidden="true" />
+						{/if}
 					</Button>
 				</form>
 			{:else if data.shareId}

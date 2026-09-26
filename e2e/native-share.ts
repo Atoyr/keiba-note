@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-export type DeviceShareMode = 'success' | 'cancel' | 'retry' | 'copy' | 'manual';
+export type DeviceShareMode = 'success' | 'cancel' | 'retry' | 'copy' | 'manual' | 'pending';
 
 /** OSの共有画面自体は自動操作できないため、ブラウザとの境界で受け渡す値を記録する。 */
 export async function mockDeviceShare(page: Page, mode: DeviceShareMode) {
@@ -14,6 +14,7 @@ export async function mockDeviceShare(page: Page, mode: DeviceShareMode) {
 					? undefined
 					: async (data: ShareData) => {
 							state.shared.push(data);
+							if (mode === 'pending') await new Promise<void>(() => {});
 							if (mode === 'cancel') throw new DOMException('cancelled', 'AbortError');
 							if (mode === 'retry' && state.shared.length === 1)
 								throw new DOMException('expired', 'NotAllowedError');

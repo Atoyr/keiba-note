@@ -67,6 +67,25 @@ for (const mode of ['success', 'cancel', 'retry', 'copy', 'manual'] satisfies De
 	});
 }
 
+test('共有待ちを表示し、連打してもリンク発行と端末共有を繰り返さない', async ({ page }) => {
+	await mockDeviceShare(page, 'pending');
+	let postCount = 0;
+	page.on('request', (request) => {
+		if (request.method() === 'POST' && request.url().includes('?/share')) postCount++;
+	});
+	await page.getByRole('button', { name: '予想をシェア', exact: true }).click();
+	await expect(page.getByRole('textbox', { name: '共有リンク', exact: true })).toBeVisible();
+	const pendingButton = page.getByRole('button', { name: '共有リンクを準備中', exact: true });
+	await expect(pendingButton).toHaveAttribute('aria-busy', 'true');
+	await expect(pendingButton).toHaveAttribute('aria-disabled', 'true');
+	await expect(pendingButton.locator('svg.lucide-loader-circle')).toBeVisible();
+	// aria-disabledでもEnterが送られた場合に、アプリ側のガードが働くことを確認する。
+	await pendingButton.focus();
+	await page.keyboard.press('Enter');
+	expect((await deviceShareState(page)).shared).toHaveLength(1);
+	expect(postCount).toBe(1);
+});
+
 test('発行失敗時は端末共有を開かず、同じボタンから再試行できる', async ({ page }) => {
 	await mockDeviceShare(page, 'success');
 	await failNextAction(page, path, {
