@@ -13,14 +13,15 @@ const PORT = Number(process.env.E2E_PORT ?? 4173);
 
 export default defineConfig({
 	// 本番ビルドで走らせる（CSRF 検証が効くのはここだけ）。D1 は開発用と分けた E2E 専用のもの。
+	// 先頭の e2e/seed.ts が、その D1 をマイグレーションし、空にしてから e2e/seed.sql を流す。
+	// seed は wrangler dev より先に終わらせる。globalSetup に置くと、Playwright は webServer を
+	// 先に立ち上げるため、2つの workerd が同じ SQLite を開いて SQLITE_BUSY で落ちることがある。
 	// wrangler dev は .dev.vars を読むので、手元に Discord の Webhook を置いていても
 	// E2E から通知が飛ばないよう空で上書きする（--var が .dev.vars より勝つ）。
 	// GitHub のトークンも同じ。手元に置いていても、E2E から Actions を起動しない。
 	webServer: {
-		command: `npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN:`,
+		command: `node --experimental-strip-types e2e/seed.ts && npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN:`,
 		port: PORT
 	},
-	// E2E 専用 D1 をマイグレーションし、空にしてから e2e/seed.sql を流す。
-	globalSetup: './e2e/seed.ts',
 	testMatch: '**/*.e2e.{ts,js}'
 });
