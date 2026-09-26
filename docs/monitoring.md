@@ -88,7 +88,7 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
 | `odds.fetch` | info / warn / error | 下の表 | `lib/server/odds/update.ts` | 1レースぶんのオッズを取りに行った（成否どちらも）。`provider`・`raceId`・`externalRaceId`・`startedAt`・`finishedAt`・`success`・`horseCount`・`errorType` を載せる。HTTP で失敗したときは `response`（ステータス・`server`/`x-cache`/`via` などのヘッダ・本文の先頭300字）も |
 | `odds.cron` | info | しない | `lib/server/odds/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す（件数の内訳） |
-| `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かないなど） |
+| `odds.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた（D1 に届かないなど）か、Cron から東京の fetch の処理（`env.SELF`）に渡せなかった（→ [architecture.md 3-8](./architecture.md)） |
 | `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる |
 | `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
 | `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
@@ -96,7 +96,9 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 
 `odds.fetch` の重さは `errorType`（`OddsError` の種類）で決める。**通知するのは人が手を入れる必要があるものだけ**で、
 一時的に届かなかった1回では知らせない（30分後の回で取れる）。Cron には request id が無いので、
-`requestId` は `cron-odds-<起動時刻>` にしている。
+`requestId` は `cron-odds-<起動時刻>` にしている。取得は Cron から呼んだ fetch の処理で行うので、`odds.fetch` と
+`odds.cron` は `$metadata.origin` が `fetch` になる。requestId は Cron の回と同じものを渡している。
+`response.headers.x-amz-cf-pop` が `NRT`・`KIX` 以外（海外の拠点）なら、東京に置けていない。
 
 | errorType | level | 通知 | 意味 |
 | --- | --- | --- | --- |
