@@ -6,23 +6,39 @@ import { MARKS_RACE_ID, SHARED_NOTE_ID, SHARED_RACE_ID, SUMMARY_RACE_ID } from '
 
 const summaryPath = `/races/${SUMMARY_RACE_ID}/summary`;
 
-test('印なしのメモも表示し、予想リンクとシェアアイコンで移動できる', async ({ page }) => {
+test('印なしのメモも表示し、見出し右側の予想リンクとシェアボタンを使える', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/summary`);
 	const memoOnly = page.locator('li', { hasText: 'E2Eメモノミ' });
 	await expect(memoOnly).toContainText('印は保留。距離延長での走りに注目。');
 	await expect(memoOnly.locator('[title^="予想印"]')).toHaveCount(0);
-	const shareLink = page.getByRole('link', { name: '共有の設定', exact: true });
-	await expect(shareLink.locator('svg')).toBeVisible();
-	await shareLink.focus();
-	await page.keyboard.press('Enter');
-	await expect(page.getByRole('region', { name: 'この予想を共有' })).toBeFocused();
+	const shareButton = page.getByRole('button', { name: '予想をシェア', exact: true });
+	await expect(shareButton.locator('svg')).toBeVisible();
+	for (const width of [390, 1280]) {
+		await page.setViewportSize({ width, height: 844 });
+		const heading = (await page.getByText('予想まとめ', { exact: true }).boundingBox())!;
+		const prediction = (await page.getByRole('link', { name: '予想', exact: true }).boundingBox())!;
+		const share = (await shareButton.boundingBox())!;
+		expect(Math.abs(heading.y + heading.height / 2 - share.y - share.height / 2)).toBeLessThan(2);
+		expect(prediction.x).toBeGreaterThan(heading.x + heading.width);
+		expect(share.x).toBeGreaterThan(prediction.x + prediction.width);
+	}
 	await page.getByRole('link', { name: '予想', exact: true }).click();
 	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
 	await gotoHydrated(page, `/shared/races/${SHARED_RACE_ID}`);
 	await expect(page.locator('li', { hasText: 'E2Eメモノミ' })).toContainText(
 		'印は保留。距離延長での走りに注目。'
 	);
+	await expect(page.locator('article li .font-semibold')).toHaveText([
+		'E2Eホンメイ',
+		'E2Eモウイットウ',
+		'E2Eタイコウ',
+		'E2Eタンアナ',
+		'E2Eレンシタ',
+		'E2Eアナウマ',
+		'E2Eケシウマ',
+		'E2Eメモノミ'
+	]);
 });
 
 test('予想をまとめ、公開名で共有・更新・解除できる。本名はHTMLやデータにも出ない', async ({
@@ -147,7 +163,7 @@ test('JavaScriptなしでも公開名を保存でき、空欄で既存の共有�
 	if (await page.getByRole('button', { name: '共有をやめる' }).count()) {
 		await page.getByRole('button', { name: '共有をやめる' }).click();
 	}
-	await page.getByRole('button', { name: '共有リンクを作る' }).click();
+	await page.getByRole('button', { name: '予想をシェア', exact: true }).click();
 	await expect(page.getByRole('textbox', { name: '共有リンク', exact: true })).toBeVisible();
 	await page.getByRole('button', { name: '共有をやめる' }).click();
 	await expect(page.getByRole('textbox', { name: '共有リンク', exact: true })).toHaveCount(0);

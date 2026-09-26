@@ -563,7 +563,13 @@ VALUES ('01JE2ESUMMARYOUTLOOK00000','01JE2EUSER0000000000000000','race_preview',
 INSERT INTO note (id,author_id,kind,race_id,horse_id,race_entry_id,body,mark,occurred_at)
 VALUES ('01JE2ESUMMARYPREVIEW00000','01JE2EUSER0000000000000000','preview','01JE2ERACESUMMARY000000000','01JE2EHORSESUMMARY0000000','01JE2EENTRYSUMMARY0000000','まとめ用のメモ。内枠を評価。','◎','2099-05-04');
 
+-- 端末共有の操作テスト用。既存のまとめ操作テストと書き込み先を分ける。
+INSERT INTO race (id,date,course,race_number,name,surface,distance)
+VALUES ('01JE2ERACENATIVESHARE00000','2099-05-05','東京',11,'E2E端末共有賞','芝',1600);
+INSERT INTO note (id,author_id,kind,race_id,body,occurred_at)
+VALUES ('01JE2ENATIVESHARENOTE0000','01JE2EUSER0000000000000000','race_preview','01JE2ERACENATIVESHARE00000','端末共有用の見立て。','2099-05-05');
+
 -- 公開ページのキャプチャ用。共有コピーなので元のメモは変えない。
 INSERT INTO race_share (id,author_id,race_id,content)
 VALUES ('01JE2ESHAREDRACE0000000000','01JE2EUSER0000000000000000','01JE2ERACEMARKS00000000000',
-'{"race":{"name":"E2E印見本賞","meeting":"東京11R","spec":"2026-06-07 · 芝1600m / 左","grade":"G1"},"body":"前半は落ち着いた流れを想定。直線の末脚を重視したい。","rows":[{"horseName":"E2Eホンメイ","horseNumber":1,"bracket":1,"body":"好位で脚をためられれば。前走の末脚に期待。","mark":"◎","tags":[]},{"horseName":"E2Eタイコウ","horseNumber":2,"bracket":2,"body":"展開が向きそう。長く脚を使える点を評価。","mark":"○","tags":[]},{"horseName":"E2Eタンアナ","horseNumber":3,"bracket":3,"body":"","mark":"▲","tags":[]},{"horseName":"E2Eレンシタ","horseNumber":4,"bracket":4,"body":"","mark":"△","tags":[]},{"horseName":"E2Eアナウマ","horseNumber":5,"bracket":5,"body":"","mark":"☆","tags":[]},{"horseName":"E2Eケシウマ","horseNumber":6,"bracket":6,"body":"","mark":"×","tags":[]},{"horseName":"E2Eメモノミ","horseNumber":7,"bracket":7,"body":"印は保留。距離延長での走りに注目。","mark":null,"tags":[]}]}');
+'{"race":{"name":"E2E印見本賞","meeting":"東京11R","spec":"2026-06-07 · 芝1600m / 左","grade":"G1"},"body":"前半は落ち着いた流れを想定。直線の末脚を重視したい。","rows":[{"horseName":"E2Eモウイットウ","horseNumber":9,"bracket":5,"body":"同じ本命印の中では馬番順。","mark":"◎","tags":[]},{"horseName":"E2Eホンメイ","horseNumber":1,"bracket":1,"body":"好位で脚をためられれば。前走の末脚に期待。","mark":"◎","tags":[]},{"horseName":"E2Eタイコウ","horseNumber":2,"bracket":2,"body":"展開が向きそう。長く脚を使える点を評価。","mark":"○","tags":[]},{"horseName":"E2Eタンアナ","horseNumber":3,"bracket":3,"body":"","mark":"▲","tags":[]},{"horseName":"E2Eレンシタ","horseNumber":4,"bracket":4,"body":"","mark":"△","tags":[]},{"horseName":"E2Eアナウマ","horseNumber":5,"bracket":5,"body":"","mark":"☆","tags":[]},{"horseName":"E2Eケシウマ","horseNumber":6,"bracket":6,"body":"","mark":"×","tags":[]},{"horseName":"E2Eメモノミ","horseNumber":7,"bracket":7,"body":"印は保留。距離延長での走りに注目。","mark":null,"tags":[]}]}');
