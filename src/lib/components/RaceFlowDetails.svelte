@@ -1,6 +1,5 @@
 <script lang="ts">
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import FlowOrder from '$lib/components/FlowOrder.svelte';
+	import FlowDigest from '$lib/components/FlowDigest.svelte';
 	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
 	import { flowDigest, type ResolvedFlow } from '$lib/utils/race-flow';
 	import { cn } from '$lib/utils';
@@ -37,20 +36,7 @@
 		<svelte:element this={level} id={titleId} class={cn('text-sm font-semibold', titleClass)}
 			>展開の予想</svelte:element
 		>
-		{#if flow.pace}
-			<span class="rounded border px-1 text-xs font-medium group-open:hidden">{flow.pace}</span>
-		{/if}
-		<ChevronDown
-			class="ml-auto size-4 shrink-0 transition-transform group-open:rotate-180"
-			aria-hidden="true"
-		/>
-		{#if digest.length > 0}
-			<span class="grid basis-full gap-0.5 pt-0.5 text-xs text-muted-foreground group-open:hidden">
-				{#each digest as d (d.phase)}
-					<span>{d.label} <FlowOrder columns={d.columns} class="text-sm text-foreground" /></span>
-				{/each}
-			</span>
-		{/if}
+		<FlowDigest pace={flow.pace} {digest} />
 	</summary>
 	<div class="mt-2">
 		<RaceFlowView {flow} phaseLevel={level === 'h2' ? 'h3' : 'h4'} />

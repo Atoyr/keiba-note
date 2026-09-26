@@ -13,11 +13,8 @@ export async function getRaceSummary(
 	raceId: string,
 	viewerId: string
 ): Promise<RaceSummary | null> {
-	const [race, entries, notes] = await Promise.all([
+	const [race, notes] = await Promise.all([
 		getRace(db, raceId),
-		// 展開の盤面は出走馬の id で持つので、馬番・枠・馬名に引き当てる。
-		// 出走前メモを書いていない馬も盤面には置けるので、メモ側の JOIN では足りない。
-		listEntriesForPreview(db, raceId),
 		db
 			.select({
 				kind: note.kind,
@@ -42,9 +39,15 @@ export async function getRaceSummary(
 	]);
 	if (!race) return null;
 	const outlook = notes.find((n) => n.kind === 'race_preview');
+	// 展開の盤面は出走馬の id で持つので、馬番・枠・馬名に引き当てる。出走前メモを書いていない馬も
+	// 盤面には置けるので、メモ側の JOIN では足りない。展開があるときだけ引く。
 	// 取り下げで出走馬から外れた馬は、引き当てられないので盤面から落ちる。
 	const flow = outlook?.flow
-		? resolveFlow(outlook.flow, new Map(entries.map((e) => [e.entryId, e])), race)
+		? resolveFlow(
+				outlook.flow,
+				new Map((await listEntriesForPreview(db, raceId)).map((e) => [e.entryId, e])),
+				race
+			)
 		: null;
 	return {
 		race: { name: race.name, meeting: raceMeeting(race), spec: raceSpec(race), grade: race.grade },

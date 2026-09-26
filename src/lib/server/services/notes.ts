@@ -1,4 +1,18 @@
-import { and, between, desc, eq, inArray, isNull, like, lt, lte, ne, or, sql } from 'drizzle-orm';
+import {
+	and,
+	between,
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	isNull,
+	like,
+	lt,
+	lte,
+	ne,
+	or,
+	sql
+} from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note, type Race } from '$lib/server/db/schema';
@@ -71,7 +85,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
  * `note_author_race` / `note_author_race_preview`）。2か所に書き写すと、
  * 片方だけ直したときに開催前と開催後で挙動がずれるので、当て先ごとここにまとめる。
  */
-function raceNoteStatement(
+function raceNoteStatements(
 	db: Db,
 	input: {
 		authorId: string;
@@ -80,8 +94,11 @@ function raceNoteStatement(
 		/** 前後の空白だけなら「空」。 */
 		body: string;
 		/**
-		 * 展開の予想。見立て（`race_preview`）だけが渡す。null は「書いていない」。
-		 * ふりかえり（`race`）は渡さないので、列に触らない。
+		 * 展開の予想。見立て（`race_preview`）だけが渡す。null は「書いていない（消す）」。
+		 *
+		 * **undefined は「触らない」。** 展開の欄はフォームに出ていないことがある（出走馬が0頭のとき）。
+		 * そのとき null と読むと、保存済みのペースとメモを黙って消してしまう。
+		 * ふりかえり（`race`）も渡さないので、列に触らない。
 		 */
 		flow?: RaceFlow | null;
 		occurredAt: string;
@@ -89,28 +106,40 @@ function raceNoteStatement(
 ) {
 	const { authorId, raceId, kind, occurredAt } = input;
 	const body = input.body.trim();
-	const flow = kind === 'race_preview' ? (input.flow ?? null) : undefined;
+	const flow = kind === 'race_preview' ? input.flow : undefined;
+	const mine = and(eq(note.authorId, authorId), eq(note.raceId, raceId), eq(note.kind, kind));
 
 	// **本文が空でも展開があれば行を残す。** 印や札だけの出走前メモと同じ扱いで、
 	// 「展開だけ置いておく」が成立する。
 	if (!body && !flow) {
-		return db
-			.delete(note)
-			.where(and(eq(note.authorId, authorId), eq(note.raceId, raceId), eq(note.kind, kind)));
+		// 展開に触らない保存（欄が無かった）では、保存済みの展開がある行は残して本文だけ空にする。
+		if (kind === 'race_preview' && flow === undefined) {
+			return [
+				db.delete(note).where(and(mine, isNull(note.flow))),
+				db
+					.update(note)
+					.set({ body: '', updatedAt: nowSec() })
+					.where(and(mine, isNotNull(note.flow)))
+			];
+		}
+		return [db.delete(note).where(mine)];
 	}
 
 	// **当て先の述語はリテラルで書く。** 部分ユニーク索引に当てる ON CONFLICT は
 	// 索引の式と字面で一致していないと当たらない。`kind` を束縛変数で渡すと外れる。
 	const targetWhere = kind === 'race' ? sql`kind = 'race'` : sql`kind = 'race_preview'`;
 
-	return db
-		.insert(note)
-		.values({ id: ulid(), authorId, kind, raceId, body, flow, occurredAt })
-		.onConflictDoUpdate({
-			target: [note.authorId, note.raceId],
-			targetWhere,
-			set: { body, flow, occurredAt, updatedAt: nowSec() }
-		});
+	// flow が undefined なら値にも更新にも入れない（新しい行は NULL、既存の行は展開をそのまま残す）。
+	return [
+		db
+			.insert(note)
+			.values({ id: ulid(), authorId, kind, raceId, body, flow, occurredAt })
+			.onConflictDoUpdate({
+				target: [note.authorId, note.raceId],
+				targetWhere,
+				set: { body, flow, occurredAt, updatedAt: nowSec() }
+			})
+	];
 }
 
 export type RaceReviewInput = {
@@ -147,7 +176,7 @@ export async function saveRaceReview(
 
 	const raceBody = input.raceNote.body.trim();
 	statements.push(
-		raceNoteStatement(db, {
+		...raceNoteStatements(db, {
 			authorId,
 			raceId: input.raceId,
 			kind: 'race',
@@ -591,7 +620,10 @@ export async function listHistoryForHorses(
 
 export type PreviewNoteInput = {
 	raceId: string;
-	/** レースの見立て。本文が空で展開も無ければ「書かない／消す」。 */
+	/**
+	 * レースの見立て。本文が空で展開も無ければ「書かない／消す」。
+	 * `flow` は null で「展開を消す」、undefined で「展開に触らない」（→ `raceNoteStatements`）。
+	 */
 	raceNote: { body: string; flow?: RaceFlow | null };
 	entries: {
 		entryId: string;
@@ -623,9 +655,9 @@ export async function savePreviewNotes(
 	let cleared = 0;
 
 	const raceBody = input.raceNote.body.trim();
-	const flow = input.raceNote.flow ?? null;
+	const flow = input.raceNote.flow;
 	statements.push(
-		raceNoteStatement(db, {
+		...raceNoteStatements(db, {
 			authorId,
 			raceId: input.raceId,
 			kind: 'race_preview',

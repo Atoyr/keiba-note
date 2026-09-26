@@ -176,6 +176,21 @@ function perLoop(loops: CourseLoop[], pick: (l: CourseLoop) => number): string {
 }
 
 /**
+ * 直線コース（新潟の芝1000m）を走るレースか。回りが空でも距離で決まる。
+ * コース図と展開の盤面の向き（`flowLeadsRight`）で同じ判定を使う。
+ */
+export function isStraightCourse(
+	spec: CourseSpec,
+	race: Pick<CourseMapSource, 'surface' | 'distance' | 'direction'>
+): boolean {
+	return (
+		spec.straightCourse !== undefined &&
+		race.surface === '芝' &&
+		(race.direction === '直線' || race.distance === spec.straightCourse)
+	);
+}
+
+/**
  * レースに合うコース図と、その下に出す寸法。JRA の10場以外（地方・海外）と、
  * 馬場が決まっていないレースは null（どの図を出しても当てずっぽうになる）。
  */
@@ -183,10 +198,7 @@ export function courseMap(race: CourseMapSource): CourseMap | null {
 	const spec = COURSE_SPECS[race.course];
 	if (!spec || !race.surface) return null;
 
-	const straightCourse =
-		spec.straightCourse !== undefined &&
-		race.surface === '芝' &&
-		(race.direction === '直線' || race.distance === spec.straightCourse);
+	const straightCourse = isStraightCourse(spec, race);
 
 	// 障害は専用のコースを走るので、芝の図を出して寸法は出さない。
 	const loop = race.surface === '芝' && !straightCourse ? turfLoop(spec, race.distance) : null;

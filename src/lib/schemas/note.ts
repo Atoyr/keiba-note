@@ -112,8 +112,11 @@ export const previewEntrySchema = v.object({
 export const previewNotesSchema = v.object({
 	raceNote: v.object({
 		body: bodySchema,
-		/** 展開の予想。すべて空なら null。出走馬でない id を落とすのはルート（DB が正）。 */
-		flow: raceFlowFormSchema
+		/**
+		 * 展開の予想。すべて空なら null。**欄がフォームに無かった（出走馬が0頭）なら undefined**
+		 * で、保存は展開の列に触らない。出走馬でない id を落とすのはルート（DB が正）。
+		 */
+		flow: v.optional(raceFlowFormSchema)
 	}),
 	entries: v.array(previewEntrySchema)
 });

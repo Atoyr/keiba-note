@@ -43,16 +43,38 @@ describe('flowOrder', () => {
 describe('flowLeadsRight', () => {
 	/** スタンドから見た向き。左回りは直線を左から右へ走ってくる。 */
 	it('左回りだけ先頭を右に描く', () => {
-		expect(flowLeadsRight({ course: '中山', direction: '左' })).toBe(true);
-		expect(flowLeadsRight({ course: '東京', direction: '右' })).toBe(false);
-		expect(flowLeadsRight({ course: '新潟', direction: '直線' })).toBe(false);
+		expect(flowLeadsRight({ course: '中山', direction: '左', surface: '芝', distance: 2000 })).toBe(
+			true
+		);
+		expect(flowLeadsRight({ course: '東京', direction: '右', surface: '芝', distance: 2000 })).toBe(
+			false
+		);
+		expect(
+			flowLeadsRight({ course: '新潟', direction: '直線', surface: '芝', distance: 1000 })
+		).toBe(false);
+	});
+
+	/** 新潟は左回りだが、芝1000m は直線コース。回りが空でも距離で直線と決める（コース図と同じ）。 */
+	it('回りが空の新潟の芝1000m は直線として先頭を左にする', () => {
+		expect(flowLeadsRight({ course: '新潟', direction: null, surface: '芝', distance: 1000 })).toBe(
+			false
+		);
+		expect(flowLeadsRight({ course: '新潟', direction: null, surface: '芝', distance: 1600 })).toBe(
+			true
+		);
 	});
 
 	/** コース図と同じく、回りが入っていなければ場の回りで決める（東京は左回り）。 */
 	it('回りが空なら場の回りで決め、分からなければ先頭を左にする', () => {
-		expect(flowLeadsRight({ course: '東京', direction: null })).toBe(true);
-		expect(flowLeadsRight({ course: '中山', direction: null })).toBe(false);
-		expect(flowLeadsRight({ course: '大井', direction: null })).toBe(false);
+		expect(flowLeadsRight({ course: '東京', direction: null, surface: '芝', distance: 2000 })).toBe(
+			true
+		);
+		expect(flowLeadsRight({ course: '中山', direction: null, surface: '芝', distance: 2000 })).toBe(
+			false
+		);
+		expect(
+			flowLeadsRight({ course: '大井', direction: null, surface: 'ダート', distance: 1200 })
+		).toBe(false);
 	});
 });
 
@@ -74,7 +96,12 @@ describe('resolveFlow', () => {
 		const horses = new Map([
 			['e1', { entryId: 'e1', horseId: 'h1', horseNumber: 3, bracket: 2, horseName: 'ホースA' }]
 		]);
-		const out = resolveFlow(flow, horses, { course: '中山', direction: '左' });
+		const out = resolveFlow(flow, horses, {
+			course: '中山',
+			direction: '左',
+			surface: '芝',
+			distance: 2000
+		});
 		expect(out.start.spots).toEqual([
 			{ horseNumber: 3, bracket: 2, horseName: 'ホースA', x: 0, y: 0 }
 		]);
@@ -86,13 +113,20 @@ describe('resolveFlow', () => {
 		const out = resolveFlow(
 			flow,
 			new Map([['e1', { horseNumber: 3, bracket: 2, horseName: 'ホースA' }]]),
-			{ course: '中山', direction: '右' }
+			{ course: '中山', direction: '右', surface: '芝', distance: 2000 }
 		);
 		expect(flowDigest(out)).toEqual([{ phase: 'start', label: 'スタート', columns: ['③'] }]);
 		expect(hasResolvedFlow(out)).toBe(true);
 		expect(hasResolvedFlow(null)).toBe(false);
 		expect(
-			hasResolvedFlow(resolveFlow(emptyFlow(), new Map(), { course: '中山', direction: '右' }))
+			hasResolvedFlow(
+				resolveFlow(emptyFlow(), new Map(), {
+					course: '中山',
+					direction: '右',
+					surface: '芝',
+					distance: 2000
+				})
+			)
 		).toBe(false);
 	});
 });

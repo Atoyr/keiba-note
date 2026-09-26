@@ -139,7 +139,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
 | `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |
 | `RaceSummary` | 1レースの見立て・各馬のメモ・札・印。本人のまとめ画面と共有ページで共通 |
-| `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` | 展開の予想の入力（畳んだ1行・ペース・局面のタブ）・盤面（前後 × 内外のマス目に枠の色のコマ。上が内ラチ、先頭はスタンドから見た向き。キーボードは矢印キー）・読むだけの畳んだ形・その中の3局面の並び |
+| `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` / `FlowDigest` / `FlowOrder` | 展開の予想の入力（畳んだ1行・ペース・局面のタブ）・盤面（前後 × 内外のマス目に枠の色のコマ。上が内ラチ、先頭はスタンドから見た向き。キーボードは矢印キー）・読むだけの畳んだ形・その中の3局面の並び・閉じた行（ペースと局面ごとの隊列）・隊列の1行（列の切れ目でだけ折り返す） |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の SVG で、`src/lib/utils/course.ts` から `pnpm run course-maps` で書き出す生成物（手で直さない） |
 | `NoteMenu` / `AnswerCheck` / `DraftKeeper` / `SaveBar` | メモの `⋯` メニュー・的中の確認・書きかけの保持・未保存のときだけ出る保存ボタン |
 | `AccountMenu` | ヘッダのアバター |

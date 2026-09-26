@@ -5,7 +5,7 @@ import {
 	type Pace,
 	type RaceFlow
 } from '../schemas/race-flow';
-import { COURSE_SPECS } from './course';
+import { COURSE_SPECS, isStraightCourse } from './course';
 
 /** 盤面に置く馬の見た目に要るもの。 */
 export type FlowHorse = { horseNumber: number | null; bracket: number | null; horseName: string };
@@ -25,7 +25,12 @@ export type ResolvedFlow = {
 } & Record<FlowPhase, { spots: ResolvedSpot[]; memo: string }>;
 
 /** 回りを決めるのに要るレースの項目。 */
-export type FlowCourse = { course: string; direction: string | null };
+export type FlowCourse = {
+	course: string;
+	direction: string | null;
+	surface: string | null;
+	distance: number | null;
+};
 
 /**
  * 盤面で先頭をどちらに描くか。**スタンドから見た向きに合わせる。**
@@ -36,9 +41,12 @@ export type FlowCourse = { course: string; direction: string | null };
  * 直線コースと、どちらでも決まらないレースは右回りと同じ向き（先頭が左）にする。
  */
 export function flowLeadsRight(race: FlowCourse): boolean {
+	const spec = COURSE_SPECS[race.course];
+	// 直線コースは回りが空でも距離で決まる（コース図と同じ判定）。
+	if (race.direction === '直線' || (spec && isStraightCourse(spec, race))) return false;
 	if (race.direction === '左') return true;
 	if (race.direction) return false;
-	return COURSE_SPECS[race.course]?.direction === '左';
+	return spec?.direction === '左';
 }
 
 export function resolveFlow(
@@ -116,4 +124,5 @@ export function flowDigest(
 
 export const hasResolvedFlow = (flow: ResolvedFlow | null | undefined): flow is ResolvedFlow =>
 	!!flow &&
-	(flow.pace !== null || FLOW_PHASES.some((p) => flow[p].spots.length > 0 || flow[p].memo !== ''));
+	(flow.pace !== null ||
+		FLOW_PHASES.some((p) => flow[p].spots.length > 0 || flow[p].memo.trim() !== ''));

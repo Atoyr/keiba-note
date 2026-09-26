@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
-import { raceFlowFormSchema, restrictFlowTo, type RaceFlowFormInput } from './race-flow';
+import {
+	parseFlowSpots,
+	raceFlowFormSchema,
+	restrictFlowTo,
+	type RaceFlowFormInput
+} from './race-flow';
 
 const form = (over: Partial<RaceFlowFormInput> = {}): RaceFlowFormInput => ({
 	pace: '',
@@ -47,7 +52,8 @@ describe('raceFlowFormSchema', () => {
 				{ entryId: 'b', x: 0, y: 1 },
 				{ entryId: 'c', x: 3, y: 0 }
 			],
-			memo: '外から押し上げる'
+			// 前後の空白は削らない（削ると保存直後の欄と送った値が食い違う）。
+			memo: ' 外から押し上げる '
 		});
 	});
 
@@ -119,5 +125,31 @@ describe('restrictFlowTo', () => {
 	it('落とした結果が空なら null', () => {
 		expect(restrictFlowTo(flow, new Set())).toBeNull();
 		expect(restrictFlowTo(null, new Set(['mine']))).toBeNull();
+	});
+});
+
+describe('parseFlowSpots', () => {
+	/** 古い・壊れた下書きから、盤面に出ず外せない馬が残らないように。 */
+	it('盤面の外のマスと重なりを落とし、揃えて返す', () => {
+		expect(
+			parseFlowSpots(
+				spots([
+					{ entryId: 'b', x: 2, y: 0 },
+					{ entryId: 'out', x: 12, y: 0 },
+					{ entryId: 'a', x: 0, y: 0 },
+					{ entryId: 'a', x: 5, y: 1 },
+					{ entryId: 'c', x: 0, y: 0 }
+				])
+			)
+		).toEqual([
+			{ entryId: 'a', x: 0, y: 0 },
+			{ entryId: 'b', x: 2, y: 0 }
+		]);
+	});
+
+	it('壊れていれば空', () => {
+		expect(parseFlowSpots('[{')).toEqual([]);
+		expect(parseFlowSpots('{}')).toEqual([]);
+		expect(parseFlowSpots('')).toEqual([]);
 	});
 });

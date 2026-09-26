@@ -25,7 +25,7 @@
 	} = $props();
 
 	const phases = $derived(
-		FLOW_PHASES.filter((p) => flow[p].spots.length > 0 || flow[p].memo !== '')
+		FLOW_PHASES.filter((p) => flow[p].spots.length > 0 || flow[p].memo.trim() !== '')
 	);
 </script>
 
@@ -53,8 +53,8 @@
 						</div>
 						<p class="mt-1 text-sm"><FlowOrder columns={flowColumns(flow[p].spots)} /></p>
 					{/if}
-					{#if flow[p].memo}
-						<p class="mt-1 text-sm leading-relaxed">{flow[p].memo}</p>
+					{#if flow[p].memo.trim()}
+						<p class="mt-1 text-sm leading-relaxed">{flow[p].memo.trim()}</p>
 					{/if}
 				</div>
 			{/each}

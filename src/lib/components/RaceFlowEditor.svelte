@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import type { Attachment } from 'svelte/attachments';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import RaceFlowBoard, { type BoardSpot } from '$lib/components/RaceFlowBoard.svelte';
 	import { BRACKET_CLASS } from '$lib/components/BracketBadge.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -10,16 +9,16 @@
 		FLOW_MEMO_MAX,
 		FLOW_PHASES,
 		FLOW_PHASE_LABEL,
-		FLOW_PHASE_SHORT,
 		PACES,
+		parseFlowSpots,
 		sortSpots,
 		type FlowPhase,
 		type FlowSpot,
 		type Pace,
 		type RaceFlow
 	} from '$lib/schemas/race-flow';
-	import FlowOrder from '$lib/components/FlowOrder.svelte';
-	import { flowColumns, horseToken, type FlowHorse } from '$lib/utils/race-flow';
+	import FlowDigest from '$lib/components/FlowDigest.svelte';
+	import { flowDigest, horseToken, type FlowHorse } from '$lib/utils/race-flow';
 	import { cn } from '$lib/utils';
 
 	/**
@@ -89,7 +88,7 @@
 	const watchPace =
 		(p: Pace | null): Attachment<HTMLInputElement> =>
 		(el) => {
-			// 書き戻しは選ばれていないラジオにも change を投げるので、選ばれたものだけを拾う。
+			// change は選ばれたラジオにだけ起きる（DraftKeeper の書き戻しもそう投げる）が、念のため選ばれたものだけを拾う。
 			const pick = () => {
 				if (el.checked) pace = p;
 			};
@@ -100,22 +99,8 @@
 	const serialize = (xs: FlowSpot[]) =>
 		JSON.stringify(sortSpots(xs).map(({ entryId, x, y }) => ({ entryId, x, y })));
 
-	function parse(raw: string): FlowSpot[] {
-		try {
-			const xs = JSON.parse(raw) as unknown;
-			if (!Array.isArray(xs)) return [];
-			return xs.filter(
-				(s): s is FlowSpot =>
-					!!s &&
-					typeof s.entryId === 'string' &&
-					Number.isInteger(s.x) &&
-					Number.isInteger(s.y) &&
-					byId.has(s.entryId)
-			);
-		} catch {
-			return [];
-		}
-	}
+	/** 下書きから戻した値。検証はサーバーと同じ（`parseFlowSpots`）で、このレースにいない馬も落とす。 */
+	const parse = (raw: string): FlowSpot[] => parseFlowSpots(raw).filter((s) => byId.has(s.entryId));
 
 	const boardSpots = (xs: FlowSpot[]): BoardSpot[] =>
 		xs.flatMap((s) => {
@@ -208,14 +193,16 @@
 	const pool = $derived(horses.filter((h) => !placed.has(h.entryId)));
 	const selectedHorse = $derived(selected ? (byId.get(selected) ?? null) : null);
 
+	// 閉じた行の隊列。読むだけの形と同じ関数で組む（メモは閉じた行に出さないので空で渡す）。
 	const digest = $derived(
-		FLOW_PHASES.filter((p) => spots[p].length > 0).map((p) => ({
-			phase: p,
-			label: FLOW_PHASE_SHORT[p],
-			columns: flowColumns(boardSpots(spots[p]))
-		}))
+		flowDigest({
+			pace,
+			leadsRight,
+			start: { spots: boardSpots(spots.start), memo: '' },
+			corner4: { spots: boardSpots(spots.corner4), memo: '' },
+			finish: { spots: boardSpots(spots.finish), memo: '' }
+		})
 	);
-	const written = $derived(pace !== null || digest.length > 0);
 
 	const name = (h: FlowHorse) => `${h.horseNumber ? `${h.horseNumber}番 ` : ''}${h.horseName}`;
 </script>
@@ -225,25 +212,7 @@
 		class="flex min-h-6 cursor-pointer list-none flex-wrap items-center gap-x-2 [&::-webkit-details-marker]:hidden"
 	>
 		<span class="shrink-0 text-sm font-semibold text-muted-foreground">展開の予想</span>
-		{#if pace}
-			<span class="rounded border px-1 text-xs font-medium group-open:hidden">{pace}</span>
-		{:else if !written}
-			<span class="text-xs text-muted-foreground group-open:hidden">＋ 書く</span>
-		{/if}
-		<ChevronDown
-			class="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
-			aria-hidden="true"
-		/>
-		<!-- 畳んでいる間だけ、局面ごとの隊列を見出しの下に全幅で出す。18頭だと1行に収まらないので、
-		     見出しの横に並べず、局面ごとに1行ずつ折り返せるようにする。
-		     開けば下の盤面が正なので、同じものを二重に見せない（高さごと外す）。 -->
-		{#if digest.length > 0}
-			<span class="grid basis-full gap-0.5 pt-0.5 text-xs text-muted-foreground group-open:hidden">
-				{#each digest as d (d.phase)}
-					<span>{d.label} <FlowOrder columns={d.columns} class="text-sm text-foreground" /></span>
-				{/each}
-			</span>
-		{/if}
+		<FlowDigest {pace} {digest} emptyLabel="＋ 書く" />
 	</summary>
 
 	<div class="mt-2 grid gap-3">

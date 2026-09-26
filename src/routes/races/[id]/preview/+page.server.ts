@@ -108,18 +108,22 @@ export const actions: Actions = {
 		const parsed = v.safeParse(previewNotesSchema, {
 			raceNote: {
 				body: form.get('raceNoteBody')?.toString() ?? '',
-				flow: {
-					pace: form.get('racePace')?.toString() ?? '',
-					...Object.fromEntries(
-						FLOW_PHASES.map((p) => [
-							p,
-							{
-								spots: form.get(`flowSpots.${p}`)?.toString() ?? '',
-								memo: form.get(`flowMemo.${p}`)?.toString() ?? ''
-							}
-						])
-					)
-				}
+				// 展開の欄は出走馬がいるときしか画面に出ない。欄が来なかったら undefined にして、
+				// 保存済みの展開に触らない（null と読むと黙って消える）。
+				flow: !form.has(`flowSpots.${FLOW_PHASES[0]}`)
+					? undefined
+					: {
+							pace: form.get('racePace')?.toString() ?? '',
+							...Object.fromEntries(
+								FLOW_PHASES.map((p) => [
+									p,
+									{
+										spots: form.get(`flowSpots.${p}`)?.toString() ?? '',
+										memo: form.get(`flowMemo.${p}`)?.toString() ?? ''
+									}
+								])
+							)
+						}
 			},
 			entries: entries.map((e) => ({
 				entryId: e.entryId,

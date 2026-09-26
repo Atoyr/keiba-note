@@ -61,7 +61,7 @@ export const isEmptyFlow = (flow: RaceFlow | null | undefined): boolean =>
 	!flow || (flow.pace === null && FLOW_PHASES.every((p) => isEmptyPhase(flow[p])));
 
 export const isEmptyPhase = (phase: FlowPhaseNote): boolean =>
-	phase.spots.length === 0 && phase.memo === '';
+	phase.spots.length === 0 && phase.memo.trim() === '';
 
 /**
  * 並びを揃える。前から後ろ、同じ列は内から外。
@@ -111,11 +111,32 @@ const spotsFieldSchema = v.pipe(
 	})
 );
 
+/**
+ * hidden の欄の値から隊列を読む（画面側で下書きを戻すとき）。サーバーと同じ検証を通し、
+ * 盤面の外のマスや重なりは落とす。壊れていれば空。古い・壊れた下書きから、盤面に出ず外せない馬が
+ * 残ると、保存で理由の分からない 400 になるため。
+ */
+export function parseFlowSpots(raw: string): FlowSpot[] {
+	const parsed = v.safeParse(spotsFieldSchema, raw);
+	if (parsed.success) return parsed.output;
+	// 1件でも範囲外なら配列ごと弾かれるので、1件ずつ拾い直す。
+	try {
+		const xs = JSON.parse(raw) as unknown;
+		if (!Array.isArray(xs)) return [];
+		const ok = xs.filter((x) => v.is(spotSchema, x));
+		return v.parse(spotsFieldSchema, JSON.stringify(ok));
+	} catch {
+		return [];
+	}
+}
+
 const phaseFieldSchema = v.object({
 	spots: spotsFieldSchema,
+	// **前後の空白を削らない。** 削ると、保存のあとサーバーの値で欄が描き直されて、送った値
+	// （DraftKeeper が保存済みとみなす値）と食い違い、保存した直後に「未保存1件」が出る。
+	// 空かどうかは isEmptyPhase が空白を無視して見る。
 	memo: v.pipe(
 		v.optional(v.string(), ''),
-		v.trim(),
 		v.maxLength(FLOW_MEMO_MAX, `展開のメモは${FLOW_MEMO_MAX}文字までです`)
 	)
 });
@@ -152,8 +173,17 @@ export type RaceFlowFormInput = v.InferInput<typeof raceFlowFormSchema>;
 export function restrictFlowTo(
 	flow: RaceFlow | null,
 	entryIds: ReadonlySet<string>
-): RaceFlow | null {
-	if (!flow) return null;
+): RaceFlow | null;
+/** undefined（展開に触らない）はそのまま返す。 */
+export function restrictFlowTo(
+	flow: RaceFlow | null | undefined,
+	entryIds: ReadonlySet<string>
+): RaceFlow | null | undefined;
+export function restrictFlowTo(
+	flow: RaceFlow | null | undefined,
+	entryIds: ReadonlySet<string>
+): RaceFlow | null | undefined {
+	if (!flow) return flow;
 	const out: RaceFlow = { ...flow };
 	for (const p of FLOW_PHASES) {
 		out[p] = { ...flow[p], spots: flow[p].spots.filter((s) => entryIds.has(s.entryId)) };
