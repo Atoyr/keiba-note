@@ -113,11 +113,14 @@
 			class="mt-4 grid items-start gap-4 {marked.length > 0 && hasCourse ? 'sm:grid-cols-2' : ''}"
 		>
 			<!-- 付けた印の一覧。16頭の中から「どれに◎を打ったか」を探さずに済むように。
-		     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。 -->
+		     並びと色はふりかえりの答え合わせと同じ。押すとその馬の行へ飛ぶ。
+		     広い画面では1頭1行にする（横に詰めると、◎→○→▲の順が折り返しで追いにくい）。
+		     スマホは縦に長くなるので、折り返して詰めたままにする。
+		     馬番は幅をそろえて右寄せにし、1行ずつ並べたときに馬名の頭がそろうようにする。 -->
 			{#if marked.length > 0}
 				<section aria-labelledby="marks-heading" class="rounded-lg border px-3 py-2">
 					<h2 id="marks-heading" class="text-xs font-semibold text-muted-foreground">付けた印</h2>
-					<ul class="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+					<ul class="mt-1 flex flex-wrap gap-x-4 gap-y-1 sm:flex-col">
 						{#each marked as m (m.entryId)}
 							<li>
 								<a
@@ -125,7 +128,8 @@
 									class="flex items-center gap-1.5 text-sm hover:underline"
 								>
 									<MarkBadge mark={m.mark} />
-									<span class="font-mono text-xs text-muted-foreground">{m.horseNumber ?? '−'}</span
+									<span class="w-4 text-right font-mono text-xs text-muted-foreground"
+										>{m.horseNumber ?? '−'}</span
 									>
 									{m.horseName}
 								</a>
