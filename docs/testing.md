@@ -57,13 +57,17 @@ E2E のプレビューサーバー（`playwright.config.ts` の webServer）は 
 `pnpm run dev` で書いたメモが E2E とキャプチャに混ざっていた。これでは人によって結果が変わり、
 before / after の比較も成り立たない。
 
-`globalSetup`（`e2e/seed.ts`）が毎回、次の順で状態を作り直す。
+webServer の command の先頭で `e2e/seed.ts` が毎回、次の順で状態を作り直してから、ビルドと `wrangler dev` に進む。
 
 1. `wrangler d1 migrations apply --local --persist-to .wrangler/e2e`（冪等）
 2. 全テーブルを `DELETE`（テーブル名はその場で `sqlite_master` から引く。テーブルを足しても直さなくてよい）
 3. `e2e/seed.sql` を流す
 
 これで E2E は `pnpm run test:e2e` だけで完結する。事前の `db:migrate:local` は要らない。
+
+**seed は `globalSetup` に置かない。** Playwright は webServer を globalSetup より先に立ち上げるので、
+`globalSetup` で seed すると、上がったあとの `wrangler dev` と seed の `wrangler d1` が同じ SQLite を開いて取り合い、
+ときどき `database is locked: SQLITE_BUSY` で落ちる。`wrangler dev` を立てる前に seed を終わらせる。
 
 プレビューサーバーのポートは既定で 4173。**同じマシンで別の worktree も E2E を回すときは
 `E2E_PORT` を変える。** 同じポートを取り合うと相手のサーバー（相手の D1）に当たり、

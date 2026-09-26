@@ -74,7 +74,8 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       # ブラウザの取得は test:e2e が内部でやる（playwright install chromium）。
-      # E2E 専用の D1（.wrangler/e2e）のマイグレーションと seed は globalSetup がやる。
+      # E2E 専用の D1（.wrangler/e2e）のマイグレーションと seed は、playwright.config.ts の
+      # webServer が wrangler dev を立てる前にやる（e2e/seed.ts）。
       - run: pnpm run test:e2e
       # 画面カタログ（e2e/screens.ts）の全画面。PR に貼り忘れても、ここから見られる。
       - uses: actions/upload-artifact@v4

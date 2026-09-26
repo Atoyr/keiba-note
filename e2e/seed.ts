@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 /**
  * E2E 専用のローカル D1 の置き場。開発用の `.wrangler/state` とは分けてある。
@@ -20,13 +21,18 @@ const wrangler = (args: string) =>
 	});
 
 /**
- * E2E の前に、E2E 専用 D1 を「マイグレーション済み・seed.sql の行だけ」にする
- * （playwright.config.ts の `globalSetup`）。
+ * E2E の前に、E2E 専用 D1 を「マイグレーション済み・seed.sql の行だけ」にする。
  *
  * 全テーブルを空にしてから流すので、前回のテストが書いた行は残らない。
  * テーブル名はその場で引くので、テーブルを足しても ここを直す必要はない。
+ *
+ * **プレビューサーバー（wrangler dev）が上がる前に走らせる。** playwright.config.ts の
+ * webServer の command の先頭で `node --experimental-strip-types e2e/seed.ts` として呼ぶ。
+ * `globalSetup` には置かない。Playwright は webServer を globalSetup より先に立ち上げるので、
+ * 上がったあとの wrangler dev と同じ SQLite をここで開くことになり、取り合って
+ * `database is locked: SQLITE_BUSY` で落ちることがある。
  */
-export default function seed() {
+function seed() {
 	wrangler('d1 migrations apply k-note');
 
 	const [{ results }] = JSON.parse(
@@ -49,6 +55,11 @@ export default function seed() {
 	const file = join(E2E_STATE, 'seed.sql');
 	writeFileSync(file, `${reset}\n\n${readFileSync('e2e/seed.sql', 'utf8')}`);
 	wrangler(`d1 execute k-note --file ${file}`);
+}
+
+// テストは定数を import するだけ。直接起動されたときだけ流す。
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	seed();
 }
 
 /** 共有中のメモ。`/notes/[id]` で開ける。 */
