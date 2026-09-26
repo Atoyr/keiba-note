@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { previewNotesSchema } from '$lib/schemas/note';
+import { FLOW_PHASES, restrictFlowTo } from '$lib/schemas/race-flow';
 import {
 	listHistoryForHorses,
 	listRaceNotes,
@@ -74,6 +75,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	return {
 		race,
 		myRaceNote,
+		// 取り下げで出走馬から外れた馬は盤面から落とす。
+		myFlow: restrictFlowTo(myRaceNote?.flow ?? null, new Set(entries.map((e) => e.entryId))),
 		sameCondition,
 		// 開催前はふりかえりへの導線を出さない（開いても戻されるだけなので）。
 		upcoming: isUpcoming(race.date, todayJst()),
@@ -104,7 +107,19 @@ export const actions: Actions = {
 
 		const parsed = v.safeParse(previewNotesSchema, {
 			raceNote: {
-				body: form.get('raceNoteBody')?.toString() ?? ''
+				body: form.get('raceNoteBody')?.toString() ?? '',
+				flow: {
+					pace: form.get('racePace')?.toString() ?? '',
+					...Object.fromEntries(
+						FLOW_PHASES.map((p) => [
+							p,
+							{
+								spots: form.get(`flowSpots.${p}`)?.toString() ?? '',
+								memo: form.get(`flowMemo.${p}`)?.toString() ?? ''
+							}
+						])
+					)
+				}
 			},
 			entries: entries.map((e) => ({
 				entryId: e.entryId,
@@ -121,9 +136,15 @@ export const actions: Actions = {
 		}
 
 		// occurred_at はレース日。タイムラインでそのレースの位置に並ぶ。
+		// 盤面に置けるのはこのレースの出走馬だけ（フォームの id は鵜呑みにしない）。
+		const flow = restrictFlowTo(
+			parsed.output.raceNote.flow,
+			new Set(entries.map((e) => e.entryId))
+		);
+
 		const result = await savePreviewNotes(
 			db,
-			{ raceId: params.id, ...parsed.output },
+			{ raceId: params.id, ...parsed.output, raceNote: { ...parsed.output.raceNote, flow } },
 			user.id,
 			race.date
 		);

@@ -3,7 +3,9 @@
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import BracketBadge from '$lib/components/BracketBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
+	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
+	import { hasResolvedFlow } from '$lib/utils/race-flow';
 	import { orderedSummaryRows, type RaceSummary } from '$lib/utils/race-summary';
 	let {
 		summary,
@@ -26,6 +28,13 @@
 		<section aria-labelledby="summary-outlook" class="rounded-lg border p-4">
 			<h2 id="summary-outlook" class="text-sm font-semibold">レースの見立て</h2>
 			<p class="mt-2 text-sm leading-relaxed whitespace-pre-wrap">{summary.body}</p>
+		</section>
+	{/if}
+	<!-- 共有のコピーは展開を入れる前に作ったものもあるので、無ければ欄ごと出さない。 -->
+	{#if hasResolvedFlow(summary.flow)}
+		<section aria-labelledby="summary-flow" class="rounded-lg border p-4">
+			<h2 id="summary-flow" class="mb-2 text-sm font-semibold">展開の予想</h2>
+			<RaceFlowView flow={summary.flow} />
 		</section>
 	{/if}
 	{#if summary.rows.length}

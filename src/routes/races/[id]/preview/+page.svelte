@@ -8,6 +8,7 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
+	import RaceFlowEditor from '$lib/components/RaceFlowEditor.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
@@ -22,6 +23,7 @@
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { conditionLabel, latestConclusion, noteHeading, previewSaveLabel } from '$lib/utils/note';
 	import { formatOddsAsOf, formatPlaceOdds, formatWinOdds } from '$lib/utils/odds';
+	import { flowLeadsRight } from '$lib/utils/race-flow';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -212,6 +214,23 @@
 				class={ta}
 				value={data.myRaceNote?.body ?? ''}
 			/>
+
+			<!-- 展開の予想。盤面に馬を置くので、出走馬がいるときだけ出す。
+			     見続けるものではないので畳んでおき、閉じた行にペースと隊列の1行だけを出す。 -->
+			{#if data.rows.length > 0}
+				<div class="mt-3">
+					<RaceFlowEditor
+						horses={data.rows.map((r) => ({
+							entryId: r.entryId,
+							horseNumber: r.horseNumber,
+							bracket: r.bracket,
+							horseName: r.horseName
+						}))}
+						value={data.myFlow}
+						leadsRight={flowLeadsRight(data.race)}
+					/>
+				</div>
+			{/if}
 
 			<!-- 同じ舞台で前に自分が何を見たか。見立てを書く手元に置く。
 			     レース名ではなく条件で束ねるので、去年の同じレースも同じ舞台の別のレースも出る。 -->

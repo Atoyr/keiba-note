@@ -3,6 +3,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, user, type Note, type Race } from '$lib/server/db/schema';
 import type { NoteTag } from '$lib/schemas/note';
+import type { RaceFlow } from '$lib/schemas/race-flow';
 import type { WatchSourceRow } from '$lib/utils/dashboard';
 import { raceResultCount, type HorseRun } from './races';
 
@@ -27,7 +28,16 @@ const nowSec = () => Math.floor(Date.now() / 1000);
 
 export type NoteView = Pick<
 	Note,
-	'id' | 'kind' | 'body' | 'tags' | 'mark' | 'visibility' | 'occurredAt' | 'raceEntryId' | 'horseId'
+	| 'id'
+	| 'kind'
+	| 'body'
+	| 'tags'
+	| 'mark'
+	| 'flow'
+	| 'visibility'
+	| 'occurredAt'
+	| 'raceEntryId'
+	| 'horseId'
 > & { authorId: string; authorName: string };
 
 /** レース詳細で出す全メモ（レース自体のメモ + 各馬のメモ）。1クエリ。 */
@@ -39,6 +49,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 			body: note.body,
 			tags: note.tags,
 			mark: note.mark,
+			flow: note.flow,
 			visibility: note.visibility,
 			occurredAt: note.occurredAt,
 			raceEntryId: note.raceEntryId,
@@ -68,13 +79,21 @@ function raceNoteStatement(
 		kind: 'race' | 'race_preview';
 		/** 前後の空白だけなら「空」。 */
 		body: string;
+		/**
+		 * 展開の予想。見立て（`race_preview`）だけが渡す。null は「書いていない」。
+		 * ふりかえり（`race`）は渡さないので、列に触らない。
+		 */
+		flow?: RaceFlow | null;
 		occurredAt: string;
 	}
 ) {
 	const { authorId, raceId, kind, occurredAt } = input;
 	const body = input.body.trim();
+	const flow = kind === 'race_preview' ? (input.flow ?? null) : undefined;
 
-	if (!body) {
+	// **本文が空でも展開があれば行を残す。** 印や札だけの出走前メモと同じ扱いで、
+	// 「展開だけ置いておく」が成立する。
+	if (!body && !flow) {
 		return db
 			.delete(note)
 			.where(and(eq(note.authorId, authorId), eq(note.raceId, raceId), eq(note.kind, kind)));
@@ -86,11 +105,11 @@ function raceNoteStatement(
 
 	return db
 		.insert(note)
-		.values({ id: ulid(), authorId, kind, raceId, body, occurredAt })
+		.values({ id: ulid(), authorId, kind, raceId, body, flow, occurredAt })
 		.onConflictDoUpdate({
 			target: [note.authorId, note.raceId],
 			targetWhere,
-			set: { body, occurredAt, updatedAt: nowSec() }
+			set: { body, flow, occurredAt, updatedAt: nowSec() }
 		});
 }
 
@@ -572,8 +591,8 @@ export async function listHistoryForHorses(
 
 export type PreviewNoteInput = {
 	raceId: string;
-	/** レースの見立て。空文字なら「書かない／消す」。 */
-	raceNote: { body: string };
+	/** レースの見立て。本文が空で展開も無ければ「書かない／消す」。 */
+	raceNote: { body: string; flow?: RaceFlow | null };
 	entries: {
 		entryId: string;
 		horseId: string;
@@ -604,16 +623,18 @@ export async function savePreviewNotes(
 	let cleared = 0;
 
 	const raceBody = input.raceNote.body.trim();
+	const flow = input.raceNote.flow ?? null;
 	statements.push(
 		raceNoteStatement(db, {
 			authorId,
 			raceId: input.raceId,
 			kind: 'race_preview',
 			body: raceBody,
+			flow,
 			occurredAt
 		})
 	);
-	if (raceBody) saved++;
+	if (raceBody || flow) saved++;
 	else cleared++;
 
 	for (const e of input.entries) {

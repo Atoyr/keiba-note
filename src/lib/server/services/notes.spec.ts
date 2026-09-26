@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Db } from '$lib/server/db';
 import type { NoteTag } from '$lib/schemas/note';
+import { emptyFlow, type RaceFlow } from '$lib/schemas/race-flow';
 import type { HorseRun } from './races';
 import { mergeHorseTimeline, saveRaceReview, savePreviewNotes, type TimelineNote } from './notes';
 
@@ -186,6 +187,39 @@ describe('savePreviewNotes', () => {
 
 		expect(preview.ops[0]).toMatchObject({ values: { kind: 'race_preview' } });
 		expect(review.ops[0]).toMatchObject({ values: { kind: 'race' } });
+	});
+
+	/** 本文を書かずに展開だけ置くのは普通の使い方。印や札だけの出走前メモと同じ扱い。 */
+	it('本文が空でも展開があれば見立ての行を残し、展開を一緒に書く', async () => {
+		const { db, ops } = fakeDb();
+		const flow: RaceFlow = { ...emptyFlow(), pace: 'スロー' };
+
+		const result = await savePreviewNotes(
+			db,
+			{ raceId: 'r1', raceNote: { body: '', flow }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([
+			{
+				kind: 'insert',
+				values: expect.objectContaining({ kind: 'race_preview', body: '', flow })
+			}
+		]);
+		expect(result).toEqual({ saved: 1, cleared: 0 });
+	});
+
+	/** ふりかえりのレースのメモに展開は付かない（列に触らない）。 */
+	it('ふりかえりの保存は展開の列に触らない', async () => {
+		const { db, ops } = fakeDb();
+		await saveRaceReview(
+			db,
+			{ raceId: 'r1', raceNote: { body: '実際はハイペース' }, entries: [] },
+			'u1',
+			'2026-09-27'
+		);
+		expect(ops[0]).toMatchObject({ values: { kind: 'race', flow: undefined } });
 	});
 
 	it('空白だけの見立ては「空」として扱い、既存の見立てを消す', async () => {

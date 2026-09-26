@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
@@ -8,6 +9,7 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
+	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
@@ -166,12 +168,31 @@
 			<!-- 開催前に書いた見立てを上に置く。**読むだけ。** 結果を見たあとで
 			     書き換えられると、事前と事後を別の行にした意味が無くなる。
 			     直したいときは予想画面へ戻る。 -->
-			{#if data.myRacePreview?.body}
+			{#if data.myRacePreview?.body || data.myRaceFlow}
 				<div class="mb-4 rounded-md border border-sky-200 bg-sky-50/60 px-3 py-2">
 					<p class="text-xs font-semibold text-sky-900">開催前の見立て</p>
-					<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap text-sky-950">
-						{data.myRacePreview.body}
-					</p>
+					{#if data.myRacePreview?.body}
+						<p class="mt-0.5 text-sm leading-relaxed whitespace-pre-wrap text-sky-950">
+							{data.myRacePreview.body}
+						</p>
+					{/if}
+					<!-- 展開の予想は盤面が場所を取るので畳んでおく。結果と見比べたいときに開く。 -->
+					{#if data.myRaceFlow}
+						<details class="group mt-1">
+							<summary
+								class="flex cursor-pointer list-none items-center gap-1 text-xs text-sky-900 [&::-webkit-details-marker]:hidden"
+							>
+								展開の予想
+								<ChevronDown
+									class="size-4 transition-transform group-open:rotate-180"
+									aria-hidden="true"
+								/>
+							</summary>
+							<div class="mt-2 rounded-md bg-background p-2">
+								<RaceFlowView flow={data.myRaceFlow} />
+							</div>
+						</details>
+					{/if}
 					<a
 						href={resolve('/races/[id]/preview', { id: data.race.id })}
 						class="mt-1 inline-block text-xs text-sky-800 underline-offset-2 hover:underline"
