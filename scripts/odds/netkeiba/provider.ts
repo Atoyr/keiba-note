@@ -6,8 +6,13 @@
  * - 制限を避けるための細工（プロキシ・IP の切り替え・ヘッダの偽装）はしない。
  *   User-Agent は `data:fetch`（scripts/race-data/netkeiba.ts）と同じく用途を名乗る
  */
-import { OddsError, type OddsProvider, type OddsResponseSummary, type RaceOdds } from '../odds';
-import { parseNetkeibaOdds } from './parser';
+import {
+	OddsError,
+	type OddsProvider,
+	type OddsResponseSummary,
+	type RaceOdds
+} from '../../../src/lib/server/odds/odds.ts';
+import { parseNetkeibaOdds } from './parser.ts';
 
 const USER_AGENT = 'Mozilla/5.0 (uma-memo odds; personal use)';
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -36,7 +41,7 @@ export class NetkeibaOddsProvider implements OddsProvider {
 	readonly #now: () => Date;
 
 	constructor(options: NetkeibaOptions = {}) {
-		// Workers の fetch は this を失うと投げるので、そのまま渡さず包む。
+		// fetch は this を失うと投げる実行環境がある（Workers）ので、そのまま渡さず包む。
 		this.#fetch = options.fetchFn ?? ((input, init) => fetch(input, init));
 		this.#timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 		this.#now = options.now ?? (() => new Date());
@@ -99,8 +104,8 @@ const SUMMARY_HEADERS = [
 const BODY_HEAD = 300;
 
 /**
- * 失敗した応答の抜き書き。Workers からだけ 400 が返る（手元からは 200）ことがあり、
- * 手前の CloudFront が返したのか、奥の Apache が返したのかを見分けるのに使う（docs/monitoring.md 第3章）。
+ * 失敗した応答の抜き書き。Cloudflare Workers から取っていた頃、Workers からだけ 400 が返り（手元からは 200）、
+ * これで手前の CloudFront が弾いていると分かった（docs/architecture.md 3-8）。取得元の振る舞いが変わったときに見る。
  */
 async function summarize(res: Response): Promise<OddsResponseSummary> {
 	const headers: Record<string, string> = {};

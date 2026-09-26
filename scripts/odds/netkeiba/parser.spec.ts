@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { OddsError, validateRaceOdds } from '../odds';
-import { parseNetkeibaOdds } from './parser';
+import { OddsError, validateRaceOdds } from '../../../src/lib/server/odds/odds.ts';
+import { parseNetkeibaOdds } from './parser.ts';
 // 2026-09-21 阪神11R（確定後）と 2026-09-27 スプリンターズS（枠順前）の実際の応答。
 import result from './fixtures/result.json';
 import yoso from './fixtures/yoso.json';

@@ -1,0 +1,68 @@
+name: オッズの更新
+
+# 重賞の単勝・複勝のオッズを netkeiba から取り、本番の D1（race_odds）に書く（scripts/odds-update.ts）。
+# Worker（Cloudflare）からは取らない。netkeiba は Workers から来たリクエストを時間帯によってまとめて
+# 400 で返すため（docs/architecture.md 3-8）。
+#
+# UTC で書く。JST 7:05〜25:05（翌 1:05）の30分おき。
+#   "5,35 22-23,0-15 * * *" … JST 7:05〜24:35
+#   "5 16 * * *"            … JST 25:05 の1回（上の式では拾えない）
+# 0分・30分を避けて5分ずらしている。GitHub の schedule は毎時0分に混んで遅れやすく、
+# 発走の直前の回（15:40 発走なら 15:35）が発走後にずれると対象から外れてしまうため。
+# ネットの前日発売は夜間も売っているので 25:00 まで回す。25:00〜7:00 は回さない。
+# 取りに行くのは時間帯に入ったレース（src/lib/utils/odds.ts の inOddsWindow）がある回だけで、
+# 無い回は D1 を1回読んで終わる。
+#
+# GitHub の schedule は数分〜十数分遅れることがあり、混んでいると飛ばされることもある。
+# 30分おきの目安として扱う。
+on:
+  schedule:
+    - cron: '5,35 22-23,0-15 * * *'
+    - cron: '5 16 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 前の回が遅れて残っていたら、重ねずに待つ。deploy の群には入れない
+# （同じ群に待ちが2つ並ぶと古いほうが消され、デプロイが飛ぶ）。
+concurrency:
+  group: odds-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: 更新
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # 人が手を入れる必要があるもの（取得元の形が変わった・制限された・値がおかしい・D1 に書けない）が
+      # あったときだけ失敗で終わる。発売前・一時的に届かなかった・400 は成功のまま（ログにだけ残る）。
+      - name: オッズを取って D1 に書く
+        run: pnpm run --silent odds:update
+
+  # 失敗は Discord の alerts へ（Worker のエラーと同じ扱い。docs/monitoring.md）。成功は送らない。
+  notify:
+    name: 失敗を通知
+    needs: [update]
+    if: failure()
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      channel: alerts
+      level: error
+      title: オッズの更新が落ちた
+      description: 取得元の応答の形が変わった・制限された・D1 に書けないなど、人の手が要る失敗です。run のログ（JSON）を見てください。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

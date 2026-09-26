@@ -19,7 +19,7 @@
  * - `NG`・空 … まだ無い
  * - `limit` … 取得元が制限をかけている
  */
-import { OddsError, type HorseOdds, type RaceOdds } from '../odds';
+import { OddsError, type HorseOdds, type RaceOdds } from '../../../src/lib/server/odds/odds.ts';
 
 const WIN = '1';
 const PLACE = '2';

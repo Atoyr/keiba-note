@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { OddsError } from '../odds';
-import { NetkeibaOddsProvider, netkeibaRaceId } from './provider';
+import { OddsError } from '../../../src/lib/server/odds/odds.ts';
+import { NetkeibaOddsProvider, netkeibaRaceId } from './provider.ts';
 import result from './fixtures/result.json';
 
 /**

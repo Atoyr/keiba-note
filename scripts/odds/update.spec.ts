@@ -2,12 +2,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { getRaceOdds, saveRaceOdds } from '$lib/server/services/odds';
-import { OddsError, type OddsProvider, type RaceOdds } from './odds';
-import { updateOdds, type OddsLogEntry } from './update';
+import { OddsError, type OddsProvider, type RaceOdds } from '$lib/server/odds/odds';
+import { getRaceOdds } from '$lib/server/services/odds';
+import { pickTargets, saveOddsSql, targetsSql, type TargetRow } from './store';
+import { updateOdds, type OddsLogEntry, type OddsStore } from './update';
 
 let db: Db;
 let sqlite: DatabaseSync;
+
+/** 本番（wrangler d1 execute）と同じ SQL を node:sqlite に流す保存先。 */
+const store: OddsStore = {
+	listTargets: async (now) =>
+		pickTargets(sqlite.prepare(targetsSql(now)).all() as TargetRow[], now),
+	save: async (odds) => {
+		sqlite.exec(saveOddsSql(odds));
+	}
+};
 
 // JST 14:00。R1（15:40）と R2（15:30）が取りに行く時間帯に入っている。
 const NOW = new Date('2026-09-27T05:00:00Z');
@@ -42,7 +52,13 @@ function provider(...results: Array<RaceOdds | OddsError | ((raceId: string) => 
 function run(p: OddsProvider) {
 	const logs: OddsLogEntry[] = [];
 	const sleep = vi.fn(async () => {});
-	const summary = updateOdds({ db, provider: p, log: (e) => logs.push(e), now: () => NOW, sleep });
+	const summary = updateOdds({
+		store,
+		provider: p,
+		log: (e) => logs.push(e),
+		now: () => NOW,
+		sleep
+	});
 	return { summary, logs, sleep };
 }
 
@@ -91,7 +107,7 @@ describe('updateOdds', () => {
 	});
 
 	it('再試行も失敗したら、前回の値を消さずに次のレースへ進む', async () => {
-		await saveRaceOdds(db, odds('R2', 9.9));
+		await store.save(odds('R2', 9.9));
 		const p = provider(new OddsError('network', 'x'), new OddsError('network', 'x'), (id) =>
 			odds(id)
 		);
@@ -125,7 +141,7 @@ describe('updateOdds', () => {
 	});
 
 	it('検査に通らない値は保存せず、前回の値を残す', async () => {
-		await saveRaceOdds(db, odds('R2', 9.9));
+		await store.save(odds('R2', 9.9));
 		const p = provider(
 			(id) => ({ ...odds(id), horses: [] }),
 			(id) => odds(id)

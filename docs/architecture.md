@@ -18,8 +18,9 @@
   `src/worker.js` が `scheduled` も受ける（→ 第0章 / 第1章 / 第2章 / 3-8 / 第6章）
 - 更新日: 2026-09-25 — 出走馬の取得を Worker（Cron・管理画面）から GitHub Actions に頼めるようにした。
   Worker は Actions を起動するだけで、出馬表は YAML の PR で入る（→ 第0章 / 第1章 / 第2章 / 3-9）
-- 更新日: 2026-09-26 — Worker の fetch を東京に置いた（`[placement]`）。海外の拠点から netkeiba へ行くと 400 を返されるので、
-  オッズの Cron は自分の fetch（`env.SELF`）を呼び、取得はそちらで行う（→ 3-8）
+- 更新日: 2026-09-26 — Worker の fetch を東京に置いた（`[placement]`。→ 第1章）
+- 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions に移した。netkeiba は Workers から来たリクエストを
+  時間帯によってまとめて 400 で返す。取得と保存は `scripts/odds/` に移り、Worker は netkeiba へ行かない（→ 第0章 / 第1章 / 第2章 / 3-8）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -50,8 +51,8 @@
 - `nodejs_compat` は付けない（起動コストとバンドルが増える。採用ライブラリは Web 標準 API で動く）。
   `compatibility_date` は意図して上げるとき以外は変えない（→ 5-4）
 - モック認証（`MOCK_AUTH`）は `dev` ガードの中にだけ置く。本番ビルドから分岐ごと消えるのが前提
-- **外部のデータ元（netkeiba）へ行くのは Cron だけ。** 画面の表示のたびに取りに行かない。
-  取得元に固有の処理（URL・応答の形）は `lib/server/odds/<取得元>/` の外に出さない（→ 3-8）
+- **Worker は外部のデータ元（netkeiba）へ行かない。** オッズは GitHub Actions が取って D1 に書き、画面は読むだけ。
+  取得元に固有の処理（URL・応答の形）は `scripts/odds/<取得元>/` の外に出さない（→ 3-8）
 - **出走馬の取得を Worker から頼むときは、GitHub Actions を起動するだけ。** Worker は出馬表を取りに行かず、
   D1 にも書かない。Actions が YAML を書いて PR を作り、マージで入る（下の「DB とデータ」の経路のまま。→ 3-9）
 
@@ -85,8 +86,8 @@ flowchart TB
 
     G["Google<br/>OAuth 2.0 / OIDC"]
     N["netkeiba<br/>オッズ（単勝・複勝）"]
-    GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る"]
-    CR["Cron Trigger<br/>30分おき・毎時"]
+    GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る<br/>オッズを取って D1 に書く"]
+    CR["Cron Trigger<br/>毎時"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -95,12 +96,13 @@ flowchart TB
     W -->|"認可リダイレクト・トークン交換"| G
     W -->|"HTML"| U
     CR -->|"scheduled"| W
-    W -->|"オッズの取得（Cron のときだけ）"| N
     W -->|"出走馬の取得の依頼（Cron・管理画面）"| GH
+    GH -->|"オッズの取得（30分おき）"| N
+    GH -->|"オッズの書き込み（wrangler d1 execute）"| D
 ```
 
-外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは Cron のときだけ行き、
-画面の表示では行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。それ以外は Cloudflare の中で完結する。
+外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは GitHub Actions だけが行き、
+Worker は行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -218,11 +220,11 @@ service と auth も monitoring を知らない（失敗は投げたままにし
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
 adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
-Cron の入口 `lib/server/odds/scheduled.ts`・`lib/server/race-data/scheduled.ts` だけ（→ 3-5・3-8・3-9）。
+Cron の入口 `lib/server/race-data/scheduled.ts` だけ（→ 3-5・3-9）。
 
-odds（`lib/server/odds/`）は2つに分かれる。`scheduled.ts` は Cron の入口で、**endpoint と同じ扱い**
-（db・service・monitoring を使ってよい）。残り（`odds.ts`・`update.ts`・`netkeiba/`）は **service と同じ扱い**で、
-monitoring を知らない（`update.ts` はログを引数の `log` に渡すだけ）。取得元に固有の処理は `netkeiba/` の中に閉じ、
+odds の型と検査（`lib/server/odds/odds.ts`）は pure と同じ扱いで、何も import しない。予想画面の読み出し（`services/odds.ts`）と、
+GitHub Actions が動かす取得と保存（`scripts/odds/`）の両方から使う。`scripts/` は Worker に束ねられず、Node で直接動く
+（`scripts/` から読む `src/` のファイルは、相対パスに `.ts` まで書く）。取得元に固有の処理は `scripts/odds/netkeiba/` の中に閉じ、
 `odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない。
 
 race-data（`lib/server/race-data/`。出走馬の取得を Actions に頼む）も同じ分け方。`scheduled.ts` は endpoint と同じ扱いで、
@@ -480,27 +482,25 @@ load に到達する。共有ページは通常のログイン必須ルートと
 未ログインの閲覧者はセッション Cookie を持たないので検証クエリが走らず、
 **主キー1件引きの1クエリだけ**で返る。通常ページより軽い。
 
-### 3-8. オッズの取得 — Cron だけが外へ取りに行く
+### 3-8. オッズの取得 — GitHub Actions だけが外へ取りに行く
 
-予想画面に出す単勝・複勝のオッズは、Cron Trigger が30分おきに取得元から取って `race_odds` に書き、
-画面は D1 の値を読むだけ（→ [product.md 第1章「例外 — オッズ」](./product.md)）。
+予想画面に出す単勝・複勝のオッズは、GitHub Actions（`odds-update.yml`）が30分おきに取得元から取って `race_odds` に書き、
+画面は D1 の値を読むだけ（→ [product.md 第1章「例外 — オッズ」](./product.md)）。**Worker は取得元へ行かない。**
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as Cron（JST 7:00〜25:00 の30分おき）
-    participant R as worker.js の scheduled<br/>（どの拠点で動くか決まらない）
-    participant S as worker.js の fetch → odds/scheduled.ts<br/>（東京に置かれる）
-    participant U as odds/update.ts
-    participant D as D1
+    participant A as odds-update.yml<br/>（JST 7:05〜25:05 の30分おき）
+    participant S as scripts/odds-update.ts
+    participant U as scripts/odds/update.ts
+    participant D as D1（wrangler d1 execute --remote）
     participant P as NetkeibaOddsProvider
     participant N as netkeiba
 
-    C->>R: scheduled
-    R->>S: env.SELF.fetch（POST https://odds-cron.internal/run）
-    S->>U: updateOdds（db・provider・log）
-    U->>D: 今日から2日後まで・ref と発走時刻ありのレース 【クエリ1】
-    Note over U: 取りに行く時間帯に入っているものだけ残す<br/>無ければここで終わり（取得元へは行かない）
+    A->>S: pnpm run odds:update
+    S->>U: updateOdds（store・provider・log）
+    U->>D: 今日から2日後まで・ref と発走時刻ありの重賞（targetsSql）
+    Note over U: 取りに行く時間帯に入っているものだけ残す（pickTargets）<br/>無ければここで終わり（取得元へは行かない）
     loop 1レースずつ（間を1秒あける）
         U->>P: getRaceOdds
         P->>N: GET api_get_jra_odds.html?type=1
@@ -508,29 +508,29 @@ sequenceDiagram
         Note over P: parser.ts が RaceOdds に読み替える<br/>予想オッズ（yoso）・形の違いは投げる
         P-->>U: RaceOdds
         Note over U: validateRaceOdds
-        U->>D: 馬ごとの upsert ＋ 応答に無い馬番の削除を batch で1往復
+        U->>D: 馬ごとの upsert ＋ 応答に無い馬番の削除を1回で（saveOddsSql）
     end
-    S-->>R: 204（終わってから返す）
+    S-->>A: 人の手が要る失敗があれば終了コード 1 → Discord
 ```
 
 | 層 | 置き場所 | 持つもの |
 | --- | --- | --- |
-| 型と約束 | `lib/server/odds/odds.ts` | `RaceOdds`・`OddsProvider`・`OddsError`（失敗の種類）・`validateRaceOdds` |
-| 取得元 | `lib/server/odds/netkeiba/` | URL と通信（`provider.ts`）、応答の読み替え（`parser.ts`。通信しないので fixture で試す） |
-| 手順 | `lib/server/odds/update.ts` | 対象の選び方・順番・再試行・ログの重さ |
-| 保存 | `lib/server/services/odds.ts` | D1 の読み書き。取得元を知らない |
-| 入口 | `lib/server/odds/scheduled.ts` | Cron から fetch への受け渡し（`relayOddsCron` / `handleOddsRun`）。監視の口・D1 クライアント・provider を作って渡す。**取得元を替えるときに直すのはここだけ** |
+| 型と約束 | `src/lib/server/odds/odds.ts` | `RaceOdds`・`OddsProvider`・`OddsError`（失敗の種類）・`validateRaceOdds`。予想画面の読み出しと共有する |
+| 取得元 | `scripts/odds/netkeiba/` | URL と通信（`provider.ts`）、応答の読み替え（`parser.ts`。通信しないので fixture で試す） |
+| 手順 | `scripts/odds/update.ts` | 順番・再試行・ログの重さ。対象の選び方と保存は `OddsStore` として受け取る |
+| 保存 | `scripts/odds/store.ts` | 対象を選ぶ SQL と保存の SQL。値を文字列に埋める（`wrangler d1 execute` はバインドを受けない） |
+| 入口 | `scripts/odds-update.ts` | `wrangler d1 execute` の store・provider・ログを作って渡す。**取得元を替えるときに直すのはここだけ** |
+| 読み出し | `src/lib/server/services/odds.ts` | 予想画面の `getRaceOdds`。Worker が触るのはここだけ |
 
-**取得は東京で動く fetch の処理でする。** Cron（`scheduled`）はどの拠点で動くか決められず、チューリッヒなど海外の拠点から
-netkeiba へ行くと、手前の CloudFront が本文の無い 400 を返す（手元＝東京の拠点からは同じ URL で 200）。
-`wrangler.toml` の `[placement] region = "aws:ap-northeast-1"` で東京に置けるのは fetch の処理だけで、Cron には効かない。
-そこで Cron は自分自身へのサービスバインディング `SELF` で `https://odds-cron.internal/run` を POST し、
-`worker.js` の fetch が SvelteKit に渡す前にそれを拾って `runOddsCron` を回す。
+**なぜ Worker で取らないか。** 最初は Worker の Cron で取っていたが、netkeiba の手前の CloudFront が、Cloudflare Workers から
+来たリクエストを時間帯によってまとめて 400（本文なし）で返すようになった。2026-09-26 は 10:30 から 20:30 まで21回続けて弾かれた。
+拠点（大阪・東京・チューリッヒ・ダラス）には関係がなかった。同じ時間帯に GitHub Actions（アメリカ東部）と手元からは 200 が返った。
+Workers の外向きの IP は多くの Worker で共有されていて、その IP ごとに制限されていると見ている。IP やヘッダを変えて避けることはしない（下の約束）。
 
-- この宛先に外からは届かない。外からのリクエストが Worker に届くのは独自ドメインと workers.dev のホスト名だけで、
-  `.internal` は公に登録できない。だから `hooks.server.ts` の認証も `PUBLIC_PATHS` も通さない
-- 利用者は国内だけなので、画面の fetch も東京に置く。D1 のプライマリ（apac）にも近くなる
-- 国内から取るのは、利用者と同じ場所から見るというだけで、制限を避ける細工（下の約束）ではない
+- D1 へは `data:import:remote` と同じく `CLOUDFLARE_API_TOKEN` で `wrangler d1 execute --remote` する。1回の起動で
+  読むのが1回、書くのが対象のレースごとに1回
+- GitHub の schedule は数分〜十数分遅れることがあり、混んでいると飛ばされることもある。30分おきは目安で、画面は「何時時点」を出す
+- 手元では `pnpm run odds:update --local` で、ローカルの D1 に向けて1回ぶん動く（取得元へは本当に行く）
 
 **取得元への負荷を抑える約束**（取得元に止められたら機能ごと失う）:
 
@@ -542,7 +542,7 @@ netkeiba へ行くと、手前の CloudFront が本文の無い 400 を返す（
   | G2・G3 | 前日の 18:30（前日発売のオッズが出始める頃） | 土 14回 + 日 18回 = 32回 |
   | L・OP・条件戦 | 取りに行かない | 0回 |
 
-  どれも発走まで。Cron は JST 7:00〜25:00（翌 1:00）に回す。ネットの前日発売は夜間も売っているので 25:00 まで取り、
+  どれも発走まで。ワークフローは JST 7:05〜25:05（翌 1:05）に回す（混む毎時0分を避けて5分ずらす）。ネットの前日発売は夜間も売っているので 25:00 まで取り、
   25:00〜7:00 は取りに行かない。発売前は取得元が予想オッズしか返さず、
   何も保存しない（`not-available`）
 - 1レースずつ順に取り、間を1秒あける。並列にしない
@@ -551,13 +551,9 @@ netkeiba へ行くと、手前の CloudFront が本文の無い 400 を返す（
 - 制限を避けるための細工（プロキシ・IP の切り替え・User-Agent の偽装）はしない。User-Agent は用途を名乗る
 
 **失敗しても前の値を壊さない。** 取れなかった・形が違った・値がおかしい（0以下、下限 > 上限、馬番の重複）ときは
-何も書かず、前回の値が時点とともに残る。保存は1つの `batch`（1トランザクション）なので半端に混ざらず、
-最後の砦として `race_odds` の CHECK もある。
-
-Cron の入口は SvelteKit の外なので、`$lib` の別名は wrangler.toml の `[alias]` で wrangler（esbuild）に教えている。
-自前のモジュール（監視など）は SvelteKit 側とは別にもう1つ束ねられる（Drizzle などの依存は1つにまとまる）。
-Workers Previews（ステージング）では Cron は動かないので、`SELF` も `[previews]` には置いていない。ローカルでは
-`wrangler dev --test-scheduled` で上げて `/__scheduled` を叩くと1回ぶん動く（`SELF` を通るところまで同じ）。
+何も書かず、前回の値が時点とともに残る。保存の2文（upsert と削除）は1回の `--command` で送る。
+`--remote` のときは D1 の REST API（`/query`）に1回で渡り、API の文書は「複数の文は batch として実行する」としている
+（D1 の batch は1トランザクション）ので半端に混ざらない。最後の砦として `race_odds` の CHECK もある。
 
 ### 3-9. 出走馬の取得 — Worker は Actions を起動するだけ
 
@@ -795,7 +791,7 @@ Workers の Custom Domains は無料で、Google OAuth も無料。
   本番のメモの保存が 500 になった。**`--all` は日に何度も走る経路に入れない**
 - ストレージ: 年間1,200レース × (entry 14 + note 15) 行 ≒ 35,000行、インデックス込みで約20 MB
 - オッズ（3-8）: G1 1つ・G2/G3 2つの週末として、(69 + 32 × 2) 回 × 18頭 ≒ 2,400行の書き込み（`race_odds` は
-  主キーのほかに索引が無い）。Cron は1日18回起動するが、対象の無い回は D1 を1回読むだけ
+  主キーのほかに索引が無い）。GitHub Actions は1日37回起動するが、対象の無い回は D1 を1回読むだけ
 
 D1 の Free は**1データベースあたり 500 MB**（アカウント合計5 GB とは別の制限）。
 年20 MB なら **25年分**入る。
@@ -897,7 +893,7 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 
 ## 9. この構成の要約
 
-- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、Cron だけが行くオッズの取得元
+- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、GitHub Actions だけが行くオッズの取得元
 - **層は6つ、依存は一方向。** 要は「サービス層が SvelteKit を知らない」の1点。
   これだけでテストが書け、将来の API 追加にも耐える
 - **データアクセスは必ず ④→⑤→⑥ を通る。** ルートから直接 SQL を書かない。

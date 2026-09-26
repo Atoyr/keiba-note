@@ -221,6 +221,7 @@ pnpm exec wrangler tail                # 本番のログを流す
 ## デプロイ（GitHub Actions）
 
 ワークフローは4本。**アプリとレースデータは別系統で出る。**
+ほかに、本番の D1 に書くものとしてオッズの更新（`odds-update.yml`）がある（下）。
 
 ```
 PR / main への push        → ci.yml          検証（data:check / check / lint / test:unit）＋ E2E
@@ -228,6 +229,9 @@ main の CI 成功            → staging.yml     ステージング D1 更新 �
 リリース publish           → deploy.yml      検証 ＋ E2E ＋ マイグレーション → デプロイ
 main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
 ```
+
+オッズの更新 `odds-update.yml` は JST 7:05〜25:05 の30分おきに netkeiba からオッズを取り、`race_odds` に
+`wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)）。使うのは下の `CLOUDFLARE_API_TOKEN` の `D1 : Edit`。
 
 ほかに監視のためのものが2本ある。`health.yml`（30分ごとに本番の `/api/health` を叩く）と、
 Discord へ送る部品の `discord-notify.yml`（→ [monitoring.md 第7章](./monitoring.md)）。
@@ -274,7 +278,7 @@ My Profile 配下のユーザートークンではなく、**アカウント所�
 | 対象    | 設定                                           | 何のために                             |
 | ------- | ---------------------------------------------- | -------------------------------------- |
 | Workers | Editor / スコープは Specified Workers → k-note | `wrangler deploy` の書き込み           |
-| Account | `D1 : Edit`                                    | `d1 migrations apply` / `d1 execute`   |
+| Account | `D1 : Edit`                                    | `d1 migrations apply` / `d1 execute`（レースデータ投入・オッズの更新） |
 | Account | `Workers Scripts : Read`                       | workers.dev のサブドメイン名の読み取り |
 | Zone    | `Workers Routes : Write`（ゾーン `uma-memo.com`） | 独自ドメイン（`routes`）の張り付け |
 

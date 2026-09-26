@@ -5,7 +5,8 @@
  * ローカルタイムゾーンを経由せず UTC のミリ秒で計算する。
  */
 
-import { addDays } from './date';
+// scripts/odds/（Node で直接動く）からも読むので、拡張子まで書く
+import { addDays } from './date.ts';
 
 /**
  * オッズを取りに行く格と、何日前の何時（JST）から取りに行くか。前日発売のオッズが出始める頃に合わせる。
@@ -24,7 +25,7 @@ function isOddsGrade(grade: string | null): grade is OddsGrade {
 	return grade !== null && Object.hasOwn(ODDS_OPENS, grade);
 }
 
-/** オッズを取りに行く格。`listOddsTargets` が D1 で先に絞るのに使う。 */
+/** オッズを取りに行く格。`targetsSql`（scripts/odds/store.ts）が D1 で先に絞るのに使う。 */
 export const ODDS_GRADES = Object.keys(ODDS_OPENS) as OddsGrade[];
 
 /** `YYYY-MM-DD` と `HH:MM`（JST）→ その時刻。形が違えば null。 */
