@@ -131,6 +131,12 @@ export const FLOW_CROWD_RACE_ID = '01JE2ERACEFLOW180000000000';
 export const NATIVE_SHARE_RACE_ID = '01JE2ERACENATIVESHARE00000';
 
 /**
+ * 未保存の件数と保存の件数がそろうことを見るレース（開催済み。予想もふりかえりも開ける）。
+ * 出走2頭で、E2Eカキズミには出走前メモ（○）が保存済み、E2Eコレカラにはまだ何も無い。
+ */
+export const COUNT_RACE_ID = '01JE2ERACECOUNT0000000000';
+
+/**
  * ログイン済みで開くためのセッショントークン。**Cookie に入れる生の値。**
  *
  * DB には SHA-256 した値しか無い（`hashSessionToken`）ので、seed.sql の id と

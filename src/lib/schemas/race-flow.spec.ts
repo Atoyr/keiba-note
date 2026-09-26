@@ -52,8 +52,7 @@ describe('raceFlowFormSchema', () => {
 				{ entryId: 'b', x: 0, y: 1 },
 				{ entryId: 'c', x: 3, y: 0 }
 			],
-			// 前後の空白は削らない（削ると保存直後の欄と送った値が食い違う）。
-			memo: ' 外から押し上げる '
+			memo: '外から押し上げる'
 		});
 	});
 

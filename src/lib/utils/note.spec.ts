@@ -5,7 +5,8 @@ import {
 	noteHeading,
 	previewSaveLabel,
 	raceReviewSaveLabel,
-	runHeading
+	runHeading,
+	savedMessage
 } from './note';
 
 const race = {
@@ -155,5 +156,23 @@ describe('conditionLabel', () => {
 	it('馬場か距離が決まっていなければ null', () => {
 		expect(conditionLabel({ course: '京都', surface: null, distance: 2200 })).toBeNull();
 		expect(conditionLabel({ course: '京都', surface: '芝', distance: null })).toBeNull();
+	});
+});
+
+/**
+ * 一括保存の知らせ。件数は**この保存で変えたメモの数**で、押す前の「未保存の変更が N 件」とそろえる。
+ */
+describe('savedMessage', () => {
+	it('出走馬が並んでいれば、変えたメモの数を添える', () => {
+		expect(savedMessage(16, 1)).toBe('保存しました（1 件）');
+		expect(savedMessage(16, 3)).toBe('保存しました（3 件）');
+	});
+
+	it('出走馬がいなければ件数を出さない（書けるのはレースのメモ1つだけ）', () => {
+		expect(savedMessage(0, 1)).toBe('保存しました');
+	});
+
+	it('変えたメモが無ければ「（0 件）」とは言わない', () => {
+		expect(savedMessage(16, 0)).toBe('保存しました');
 	});
 });

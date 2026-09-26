@@ -132,11 +132,11 @@ export function parseFlowSpots(raw: string): FlowSpot[] {
 
 const phaseFieldSchema = v.object({
 	spots: spotsFieldSchema,
-	// **前後の空白を削らない。** 削ると、保存のあとサーバーの値で欄が描き直されて、送った値
-	// （DraftKeeper が保存済みとみなす値）と食い違い、保存した直後に「未保存1件」が出る。
-	// 空かどうかは isEmptyPhase が空白を無視して見る。
+	// 見立ての本文と同じく前後の空白を削る。保存のあと欄が削った値で描き直されても、
+	// 下書きの比べ方（utils/draft.ts の sameValue）が前後の空白を無視するので「未保存」にはならない。
 	memo: v.pipe(
 		v.optional(v.string(), ''),
+		v.trim(),
 		v.maxLength(FLOW_MEMO_MAX, `展開のメモは${FLOW_MEMO_MAX}文字までです`)
 	)
 });

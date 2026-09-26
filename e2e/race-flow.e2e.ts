@@ -29,8 +29,10 @@ test('盤面に馬を置き、ペースとメモを添えて保存すると、�
 
 	const save = page.getByRole('button', { name: '出走前メモを保存' });
 	await expect(save).toBeVisible();
+	// ペース・隊列・メモはどれも見立ての1行に入るので、何か所触っても1件（utils/draft.ts）。
+	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
 	await save.click();
-	await expect(page.locator('[data-sonner-toast]')).toContainText('保存しました');
+	await expect(page.locator('[data-sonner-toast]')).toContainText('保存しました（1 件）');
 
 	await gotoHydrated(page, `/races/${FLOW_RACE_ID}/preview`);
 	const summary = page.locator('details', { hasText: '展開の予想' }).locator('summary');

@@ -146,13 +146,14 @@ export const actions: Actions = {
 			new Set(entries.map((e) => e.entryId))
 		);
 
-		const result = await savePreviewNotes(
+		// 件数（`saved`）は返さない。画面の知らせは、変えたメモの数を画面の側で数える（utils/note.ts の savedMessage）。
+		await savePreviewNotes(
 			db,
 			{ raceId: params.id, ...parsed.output, raceNote: { ...parsed.output.raceNote, flow } },
 			user.id,
 			race.date
 		);
 
-		return { saved: result.saved, savedAt: Date.now() };
+		return { savedAt: Date.now() };
 	}
 };

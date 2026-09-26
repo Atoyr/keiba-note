@@ -77,7 +77,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
 | `/races` | GET | `year`・`grade`（複数）・`q` | レース一覧 | 未知の値は捨てる |
 | `/races/[id]` | GET | — | ふりかえり画面。**開催前なら `302 /races/[id]/preview`** | 404 |
-| `/races/[id]` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ saved, savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
+| `/races/[id]` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
 | `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`racePace`・`flowSpots.<局面>`（JSON）・`flowMemo.<局面>`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>`（局面は `start`・`corner4`・`finish`） | 見立て（展開の予想を含む）と予想印を一括保存。盤面の馬はこのレースの出走馬に絞る | 検証 `fail(400)` / 404 |
 | `/horses` | GET | `q` | 馬一覧 | — |
