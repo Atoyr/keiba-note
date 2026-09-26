@@ -96,6 +96,7 @@ pnpm run screens <機能名> before|after   # PR 用キャプチャ（画面名�
 pnpm run screens:pr <機能名>            # キャプチャを screenshots ブランチへ上げ、PR 本文に貼る Markdown を出す
 pnpm run data:check                     # data/ を触ったとき
 pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.yaml を書く（data/README.md）
+pnpm run odds:update --local            # オッズの更新を手元の D1 で1回（本番は odds-update.yml。architecture.md 3-8）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）
 pnpm run course-maps                    # コース図の SVG を src/lib/utils/course.ts から書き出す
 ```
