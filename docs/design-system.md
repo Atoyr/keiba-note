@@ -145,7 +145,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `AccountMenu` | ヘッダのアバター |
 | `AppEnvMark` | ファビコンと、ステージングの帯（→ 2-4） |
 | `LegalDocument` | プライバシーポリシーと利用規約の枠（見出し・制定日と改定日・戻り先） |
-| `GoogleLogin` / `LandingPage` | 「Google でログイン」と規約への同意の一文・未ログインのトップの紹介ページ |
+| `GoogleLogin` / `LandingPage` | 「Google でログイン」と規約への同意の一文・未ログインのトップの紹介ページ（使う順の3段階に機能とキャプチャを並べる。キャプチャは `pnpm run landing:shots` で撮る → [testing.md 第8章](./testing.md)） |
 
 - 同じ意味のものは、画面ごとに作らずここの部品を使う
 - 見た目の分岐（グレードごと、印ごと）は1箇所の表に書く。新しく書くものは `tailwind-variants` の `tv()` にし、

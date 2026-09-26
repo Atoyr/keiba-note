@@ -1,0 +1,30 @@
+{
+	"dashboard": {
+		"width": 390,
+		"height": 720
+	},
+	"flow": {
+		"width": 342,
+		"height": 382
+	},
+	"horse": {
+		"width": 390,
+		"height": 720
+	},
+	"preview": {
+		"width": 390,
+		"height": 720
+	},
+	"preview-entry": {
+		"width": 342,
+		"height": 582
+	},
+	"review": {
+		"width": 390,
+		"height": 720
+	},
+	"summary": {
+		"width": 390,
+		"height": 720
+	}
+}

@@ -94,6 +94,7 @@ pnpm run test:watch                     # 単体テストを監視して再実�
 pnpm run test:e2e                       # E2E だけ（ビルドから走る）
 pnpm run screens <機能名> before|after   # PR 用キャプチャ（画面名を並べれば絞れる）
 pnpm run screens:pr <機能名>            # キャプチャを screenshots ブランチへ上げ、PR 本文に貼る Markdown を出す
+pnpm run landing:shots                  # 紹介ページ（未ログインの /）に載せるキャプチャを撮り直す（testing.md 第8章）
 pnpm run data:check                     # data/ を触ったとき
 pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.yaml を書く（data/README.md）
 pnpm run odds:update --local            # オッズの更新を手元の D1 で1回（本番は odds-update.yml。architecture.md 3-8）

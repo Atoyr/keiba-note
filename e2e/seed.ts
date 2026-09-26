@@ -12,10 +12,20 @@ import { pathToFileURL } from 'node:url';
  */
 export const E2E_STATE = '.wrangler/e2e';
 
+/**
+ * 紹介ページ（未ログインの `/`）に載せるキャプチャを撮るときの D1 と見本データ
+ * （`pnpm run landing:shots` → docs/testing.md 第8章）。
+ *
+ * E2E の D1 とは分ける。見本の行が E2E の画面の前提を変えないように、
+ * E2E の「E2E〜」という行が紹介ページに写らないように。
+ */
+export const LANDING_STATE = '.wrangler/landing';
+const LANDING_SEED = 'e2e/landing/seed.sql';
+
 // 固定の文字列なので shell に渡して問題ない（pnpm は Windows では .cmd で、
 // shell 無しでは起動できない）。
-const wrangler = (args: string) =>
-	execSync(`pnpm exec wrangler ${args} --local --persist-to ${E2E_STATE}`, {
+const wrangler = (args: string, state: string) =>
+	execSync(`pnpm exec wrangler ${args} --local --persist-to ${state}`, {
 		encoding: 'utf8',
 		stdio: ['ignore', 'pipe', 'inherit']
 	});
@@ -31,13 +41,16 @@ const wrangler = (args: string) =>
  * `globalSetup` には置かない。Playwright は webServer を globalSetup より先に立ち上げるので、
  * 上がったあとの wrangler dev と同じ SQLite をここで開くことになり、取り合って
  * `database is locked: SQLITE_BUSY` で落ちることがある。
+ *
+ * 引数に `landing` を付けると、紹介ページのキャプチャ用の D1 に見本データを流す（手順は同じ）。
  */
-function seed() {
-	wrangler('d1 migrations apply k-note');
+function seed(state: string, sqlFile: string) {
+	wrangler('d1 migrations apply k-note', state);
 
 	const [{ results }] = JSON.parse(
 		wrangler(
-			`d1 execute k-note --json --command "SELECT name FROM sqlite_master WHERE type = 'table'"`
+			`d1 execute k-note --json --command "SELECT name FROM sqlite_master WHERE type = 'table'"`,
+			state
 		)
 	) as [{ results: { name: string }[] }];
 
@@ -51,15 +64,16 @@ function seed() {
 		...tables.map((name) => `DELETE FROM "${name}";`)
 	].join('\n');
 
-	mkdirSync(E2E_STATE, { recursive: true });
-	const file = join(E2E_STATE, 'seed.sql');
-	writeFileSync(file, `${reset}\n\n${readFileSync('e2e/seed.sql', 'utf8')}`);
-	wrangler(`d1 execute k-note --file ${file}`);
+	mkdirSync(state, { recursive: true });
+	const file = join(state, 'seed.sql');
+	writeFileSync(file, `${reset}\n\n${readFileSync(sqlFile, 'utf8')}`);
+	wrangler(`d1 execute k-note --file ${file}`, state);
 }
 
 // テストは定数を import するだけ。直接起動されたときだけ流す。
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-	seed();
+	if (process.argv[2] === 'landing') seed(LANDING_STATE, LANDING_SEED);
+	else seed(E2E_STATE, 'e2e/seed.sql');
 }
 
 /** 共有中のメモ。`/notes/[id]` で開ける。 */

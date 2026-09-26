@@ -19,6 +19,7 @@
 		"test:e2e": "playwright install chromium && playwright test",
 		"verify": "pnpm run check && pnpm run lint && pnpm test",
 		"screens": "playwright install chromium && node --experimental-strip-types scripts/screens.ts",
+		"landing:shots": "playwright install chromium && playwright test -c playwright.landing.config.ts",
 		"screens:pr": "node --experimental-strip-types scripts/pr-screens.ts",
 		"course-maps": "node --experimental-strip-types scripts/course-maps.ts",
 		"gen": "wrangler types",
