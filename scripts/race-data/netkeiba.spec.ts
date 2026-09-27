@@ -4,6 +4,7 @@ import {
 	parseHorseProfile,
 	parseHorseResults,
 	parseHorseWeight,
+	parseLaps,
 	parsePedigree,
 	parsePersonName,
 	parseRaceList,
@@ -213,6 +214,28 @@ ${raceData('15:40発走 / 芝1200m (右 外 C)', '4回 中山 9日目 サラ系�
 		);
 		expect(rows).toHaveLength(1);
 		expect(rows[0]).toMatchObject({ bracket: 1, horseNumber: 1, name: 'キャントウェイト' });
+	});
+});
+
+describe('parseLaps', () => {
+	// 結果ページの「ラップタイム」の表（2026-09-20 中山11R オールカマーを縮めたもの）。
+	const table = (
+		lapRow: string
+	) => `<table summary="ラップタイム" class="RaceCommon_Table Race_HaronTime">
+<tbody>
+<tr class="Header"><th>200m</th><th>400m</th><th>600m</th></tr>
+<tr class="HaronTime"><td>12.8</td><td>24.6</td><td>37.6</td></tr>
+<tr class="HaronTime">${lapRow}</tr>
+</tbody>
+</table>`;
+
+	it('2行目の区間タイムを取る（1行目は通過タイム）', () => {
+		expect(parseLaps(table('<td>12.8</td><td>11.8</td><td>13.0</td>'))).toEqual([12.8, 11.8, 13]);
+	});
+
+	it('表が無い・数字でない区間が混ざるときは取らない', () => {
+		expect(parseLaps('<table id="All_Result_Table"></table>')).toBeUndefined();
+		expect(parseLaps(table('<td>12.8</td><td>-</td><td>13.0</td>'))).toBeUndefined();
 	});
 });
 

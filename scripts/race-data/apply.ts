@@ -303,6 +303,8 @@ export async function applyResult(
 			trackCondition: parsed.meta.trackCondition,
 			weather: parsed.meta.weather,
 			fieldSize: fieldSizeOf(parsed.rows),
+			// 結果ページの「ラップタイム」の区間タイム。表が無ければ書かない（既存を消さない）。
+			laps: parsed.meta.laps,
 			winner: parsed.rows.find((r) => r.finish === 1)?.name,
 			// 1着同着なら2着はいない。もう1頭の1着馬を2着馬として持つ（戦績表の「勝ち馬(2着馬)」と同じ）。
 			runnerUp: (

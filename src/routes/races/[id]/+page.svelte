@@ -8,6 +8,7 @@
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
+	import RaceLaps from '$lib/components/RaceLaps.svelte';
 	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
@@ -137,6 +138,19 @@
 	{#if actual}
 		<div class="mt-6">
 			<ActualFlow {actual} predicted={data.myRaceFlow} />
+		</div>
+	{/if}
+
+	<!-- ラップは実際の展開の続き（どう流れたか → どんなペースだったか）。
+	     出走馬がそろっていなくても出せる（レース全体の値）。 -->
+	{#if data.race.laps && data.race.laps.length > 0}
+		<!-- 実際の展開のすぐ下なら続きとして詰め、実際の展開が無いときはほかの欄と同じ間隔にする。 -->
+		<div class={actual ? 'mt-3' : 'mt-6'}>
+			<RaceLaps
+				laps={data.race.laps}
+				distance={data.race.distance}
+				predictedPace={data.myRaceFlow?.pace ?? null}
+			/>
 		</div>
 	{/if}
 

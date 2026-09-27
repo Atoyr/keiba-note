@@ -305,6 +305,8 @@ export type RaceMeta = {
 	runnerUp?: string;
 	/** 発走時刻 `HH:MM`。出馬表の `15:40発走`。オッズを取りに行く時間帯を決める。 */
 	startTime?: string;
+	/** ラップ（区間タイム、秒）。結果ページの「ラップタイム」の表だけが持つ。 */
+	laps?: number[];
 };
 
 export type Person = { id: string; short: string };
@@ -439,10 +441,25 @@ export type ResultRow = {
 	horseWeightDiff?: number;
 };
 
+/**
+ * 結果ページの「ラップタイム」の表。1行目は通過タイム（`1:02.4`）、2行目が区間タイム（`12.5`）。
+ * **区間タイムの行（最後の `HaronTime` の行）を取る。** 表が無い（結果の前・障害など）か、
+ * 数字でない区間が混ざっていれば undefined（途中が欠けたラップは前後半3Fを誤らせる）。
+ */
+export function parseLaps(html: string): number[] | undefined {
+	const table = tableAfter(html, 'Race_HaronTime');
+	if (!table) return undefined;
+	const lapRow = [...table.matchAll(/<tr\s+class="HaronTime"[^>]*>([\s\S]*?)<\/tr>/g)].at(-1)?.[1];
+	if (!lapRow) return undefined;
+	const laps = cells(lapRow).map((td) => text(td));
+	if (laps.length === 0 || !laps.every((l) => /^\d{1,2}\.\d$/.test(l))) return undefined;
+	return laps.map(Number);
+}
+
 export function parseResult(html: string): { meta: RaceMeta; rows: ResultRow[] } {
 	const table = tableAfter(html, 'id="All_Result_Table"') ?? '';
 	const rows: ResultRow[] = [];
-	const meta = parseRaceMeta(html);
+	const meta = { ...parseRaceMeta(html), laps: parseLaps(html) };
 
 	// 結果の表は `<tr  class=...` と空白が2つ入る。
 	for (const m of table.matchAll(/<tr\s+class="[^"]*HorseList[^"]*"[\s\S]*?<\/tr>/g)) {

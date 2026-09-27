@@ -49,6 +49,7 @@ export const RACE_KEYS = [
 	'fieldSize',
 	'winner',
 	'runnerUp',
+	'laps',
 	'ref',
 	'startTime',
 	'entries',
@@ -60,7 +61,8 @@ const QUOTED = new Set(['time', 'margin', 'passing', 'startTime']);
 
 export type Value = string | number | undefined;
 export type Fields = Partial<Record<(typeof ENTRY_KEYS)[number], Value>>;
-export type RaceFields = Partial<Record<(typeof RACE_KEYS)[number], Value>>;
+/** レースの項目。ラップだけは数の並び（1行の `[12.8, 11.8, …]` で書く）。 */
+export type RaceFields = Partial<Record<(typeof RACE_KEYS)[number], Value | number[]>>;
 
 /**
  * - `overwrite` — 書く値があれば上書きする（出馬表・結果・基本情報。netkeiba が正）
@@ -238,7 +240,10 @@ export class RaceFile {
 	}
 
 	toString(): string {
-		return this.doc.toString({ lineWidth: 0 });
+		// 並び（ラップ）は括弧の内側に空白を入れない（`[12.8, 11.8]`）。data/README.md の例と、人が手で書く形にそろえる
+		// （yaml は `[ 12.8, 11.8 ]` と書く。data/ は Prettier の対象外なので、整形のためではない）。
+		// 出走馬の行の `{ name: … }` は既存のファイルが空白を入れているので、並びだけを直す。
+		return this.doc.toString({ lineWidth: 0 }).replace(/^(\s*laps: )\[ (.*) \]$/gm, '$1[$2]');
 	}
 
 	async save(): Promise<boolean> {
@@ -251,12 +256,23 @@ export class RaceFile {
 }
 
 /** 値を書く。変わったかどうかを返す。undefined は「書かない」（既存を消さない）。 */
-function setFields(map: YAMLMap, fields: Record<string, Value>, mode: Mode): boolean {
+function setFields(map: YAMLMap, fields: Record<string, Value | number[]>, mode: Mode): boolean {
 	let changed = false;
 	for (const [key, value] of Object.entries(fields)) {
 		if (value === undefined || value === '') continue;
 		const current = map.get(key);
 		if (current !== undefined && current !== null && mode === 'fill') continue;
+		if (Array.isArray(value)) {
+			// 並び（ラップ）は中身で比べる。同じなら書き換えない（差分に出さない）。
+			const now = isSeq(current) ? (current.toJSON() as unknown[]) : null;
+			if (now && JSON.stringify(now) === JSON.stringify(value)) continue;
+			const seq = new YAMLSeq();
+			seq.flow = true;
+			for (const v of value) seq.add(v);
+			map.set(key, seq);
+			changed = true;
+			continue;
+		}
 		if (current === value) continue;
 		if (QUOTED.has(key) && typeof value === 'string') {
 			const s = new Scalar(value);

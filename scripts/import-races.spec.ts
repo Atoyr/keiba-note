@@ -221,6 +221,23 @@ describe('data:check の検証', () => {
 		expect(errorsOf(withSize(1, 2))).toEqual(['中山11R: ホースC の着順 2 が頭数 1 を超えています']);
 	});
 
+	it('ラップの区間の数が距離と合わなければ落とす（端数は最初の区間）', () => {
+		const withLaps = (distance: number, n: number) =>
+			candidates.replace(
+				'name: テストS',
+				`name: テストS\n    distance: ${distance}\n    laps: [${Array(n).fill(12).join(', ')}]`
+			);
+		expect(errorsOf(withLaps(1200, 6))).toEqual([]);
+		expect(errorsOf(withLaps(2500, 13))).toEqual([]);
+		expect(errorsOf(withLaps(1200, 5))).toEqual([
+			'中山11R: ラップが 5 区間あります（1200m なら 6 区間）'
+		]);
+		// 距離が無いと端数の区間を見分けられないので、ラップだけ書くのは落とす。
+		expect(
+			errorsOf(candidates.replace('name: テストS', 'name: テストS\n    laps: [12, 11.5, 11.8]'))
+		).toEqual(['中山11R: ラップを書くなら距離（distance）も書いてください']);
+	});
+
 	it('枠が決まる前の候補は18頭を超えてよい', () => {
 		const many = Array.from({ length: 21 }, (_, i) => `      - { name: 候補${i + 1} }`).join('\n');
 		expect(errorsOf(candidates.replace(/entries:[\s\S]*$/, `entries:\n${many}\n`))).toEqual([]);
@@ -320,5 +337,21 @@ describe('レースの頭数・勝ち馬・2着馬と、出走馬のタイム差
 		load(db, candidates);
 		expect(race(db)).toEqual(written);
 		expect(diff(db)).toEqual({ time_diff: 0.4 });
+	});
+
+	it('ラップは JSON の配列で入り、書かなければ既存の値を残す', () => {
+		const db = freshDb();
+		const laps = (d: DatabaseSync) => d.prepare(`SELECT laps FROM race`).get();
+		load(
+			db,
+			candidates.replace(
+				'name: テストS',
+				'name: テストS\n    distance: 800\n    laps: [12.3, 11.0, 13.5, 12.0]'
+			)
+		);
+		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5,12]' });
+
+		load(db, candidates);
+		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5,12]' });
 	});
 });
