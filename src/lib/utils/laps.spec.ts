@@ -62,6 +62,17 @@ describe('lapChart', () => {
 		expect(c.back).toEqual({ x1: (8 / 11) * 100, x2: 100 });
 	});
 
+	it('最初の区間が端数（100m）のレースは、その区間を描かず目盛りにも数えない', () => {
+		const laps = [6.9, 11.2, 11.6, 12.4, 12.6, 12.3, 12.1, 12.4, 12.3, 12.0, 11.6, 11.4, 12.0];
+		const c = lapChart(laps, 2500);
+		expect(c.points).toHaveLength(12);
+		expect(c.points.map((p) => p.lap)).not.toContain(6.9);
+		expect(c.levels.map((l) => l.label)).toEqual(['11.2', '12.6']);
+		// 前半3F は端数を飛ばした3区間 = 描いた区間の先頭から3つ。
+		expect(c.front).toEqual({ x1: 0, x2: (3 / 12) * 100 });
+		expect(c.back).toEqual({ x1: (9 / 12) * 100, x2: 100 });
+	});
+
 	it('読み上げの説明に区間タイムと前後半を入れる', () => {
 		expect(lapChart(allComers, 2200).summary).toContain(
 			'前半3F 37.6、後半3F 37.1（後半が0.5秒速い）'

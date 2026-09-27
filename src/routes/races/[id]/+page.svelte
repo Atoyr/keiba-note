@@ -143,7 +143,8 @@
 	<!-- ラップは実際の展開の続き（どう流れたか → どんなペースだったか）。
 	     出走馬がそろっていなくても出せる（レース全体の値）。 -->
 	{#if data.race.laps && data.race.laps.length > 0}
-		<div class="mt-3">
+		<!-- 実際の展開のすぐ下なら続きとして詰め、実際の展開が無いときはほかの欄と同じ間隔にする。 -->
+		<div class={actual ? 'mt-3' : 'mt-6'}>
 			<RaceLaps
 				laps={data.race.laps}
 				distance={data.race.distance}

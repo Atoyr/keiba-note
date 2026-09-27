@@ -287,6 +287,8 @@ VALUES (
 -- 上りは入っているが、出走馬は気にしている2頭だけ（実際は16頭立て）。
 -- 入っている馬の中だけで上りの順位を数えると嘘になるので、タイムだけが出る。
 UPDATE race SET field_size = 16 WHERE id = '01JE2ERACEBRACKET000000000';
+-- ラップ（1600m なので8区間）。出走馬がそろっていないので実際の展開は出ないが、ラップはレース全体の値なので出る。
+UPDATE race SET laps = '[12.3,10.9,11.3,11.6,11.8,11.5,11.2,11.9]' WHERE id = '01JE2ERACEBRACKET000000000';
 UPDATE race_entry SET last_3f = 33.8 WHERE id = '01JE2EENTRYINNER0000000000';
 UPDATE race_entry SET last_3f = 34.1 WHERE id = '01JE2EENTRYOUTER0000000000';
 

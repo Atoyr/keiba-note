@@ -60,6 +60,16 @@
 		<div class="mt-2 max-w-md">
 			<!-- 左は目盛りの幅。面と線は SVG を伸ばして描き、文字は HTML で置く（CourseElevation と同じ）。 -->
 			<div role="img" aria-label={chart.summary} class="pl-9">
+				<!-- 前半3F・後半3Fの文字は折れ線の上に1行取って置く。面の中に置くと、目盛りの線や
+				     最速の区間の点（上端に来る）と重なる。 -->
+				<div class="relative h-4 text-xs text-muted-foreground" aria-hidden="true">
+					{#if chart.front}
+						<span class="absolute bottom-0" style:left="{chart.front.x1}%">前半3F</span>
+					{/if}
+					{#if chart.back}
+						<span class="absolute bottom-0" style:right="{100 - chart.back.x2}%">後半3F</span>
+					{/if}
+				</div>
 				<div class="relative h-20" aria-hidden="true">
 					<svg
 						viewBox="0 0 1000 100"
@@ -97,18 +107,6 @@
 							vector-effect="non-scaling-stroke"
 						/>
 					</svg>
-					<!-- 薄い面（muted）の上に乗るので、補足の色ではなく本文の色にする（CourseElevation の「直線」と同じ）。 -->
-					{#if chart.front}
-						<span class="absolute top-0 px-1 text-xs text-foreground" style:left="{chart.front.x1}%"
-							>前半3F</span
-						>
-					{/if}
-					{#if chart.back}
-						<span
-							class="absolute top-0 px-1 text-xs text-foreground"
-							style:right="{100 - chart.back.x2}%">後半3F</span
-						>
-					{/if}
 					{#each chart.levels as level (level.label)}
 						<span
 							class="absolute -left-9 w-8 -translate-y-1/2 text-right text-xs text-muted-foreground tabular-nums"

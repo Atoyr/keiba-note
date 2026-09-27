@@ -114,6 +114,15 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
+		// 実際の展開が出ない（出走馬がそろっていない）レースでラップを開いたところ。
+		name: 'race-review-laps-open-no-flow',
+		path: `/races/${BRACKET_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: 'ラップ' }).click();
+		}
+	},
+	{
 		// ラップを開いたところ（前半3F・後半3Fを塗った折れ線と区間タイム）。
 		name: 'race-review-laps-open',
 		path: `/races/${MARKS_RACE_ID}`,

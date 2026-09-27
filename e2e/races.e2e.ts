@@ -425,6 +425,17 @@ test('ラップの入っていないレースには、ラップの欄を出さ�
 	await expect(page.getByRole('region', { name: 'ラップ' })).toHaveCount(0);
 });
 
+/** ラップはレース全体の値なので、出走馬がそろっていない（実際の展開が出ない）レースでも出る。 */
+test('出走馬がそろっていないレースでも、ラップは出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	await expect(page.getByRole('region', { name: '実際の展開' })).toHaveCount(0);
+	await expect(page.getByRole('region', { name: 'ラップ' }).locator('summary')).toContainText(
+		'前半3F 34.5 · 後半3F 34.6'
+	);
+});
+
 /** 出走馬を気にしている馬だけ入れたレースでは、2頭の並びが全体の流れに見えるので出さない。 */
 test('走った全頭がそろっていないレースでは、実際の展開を出さない', async ({ page }) => {
 	await login(page);

@@ -74,21 +74,28 @@ export type LapChart = {
  *
  * 縦の目盛りは 0 秒から取らない。区間タイムの差は 1〜2 秒なので、0 からだと線が平らになって読めない。
  * いちばん速い区間といちばん遅い区間の上下に 0.2 秒ずつ余白を取る。
+ *
+ * **最初の区間が端数（100m）のレースは、その区間を描かない。** 100m ぶんのタイム（7秒ほど）は 200m の区間と
+ * 比べられず、目盛りの端に来てほかの区間が下に押し込まれる。描くのは 200m の区間だけで、端数の区間は
+ * 折れ線の下の区間タイムの1行にだけ出る。
  */
 export function lapChart(laps: readonly number[], distance: number | null): LapChart {
-	const fast = Math.min(...laps);
-	const slow = Math.max(...laps);
+	const start = firstLapLength(laps.length, distance) < 200 ? 1 : 0;
+	const drawn = laps.slice(start);
+	const fast = Math.min(...drawn);
+	const slow = Math.max(...drawn);
 	const top = fast - 0.2;
 	const bottom = slow + 0.2;
 	const yOf = (t: number) => ((t - top) / (bottom - top)) * 100;
-	const xOf = (i: number) => ((i + 0.5) / laps.length) * 100;
-	const points = laps.map((lap, i) => ({ x: xOf(i), y: yOf(lap), lap }));
+	const xOf = (i: number) => ((i + 0.5) / drawn.length) * 100;
+	const points = drawn.map((lap, i) => ({ x: xOf(i), y: yOf(lap), lap }));
 	const line = `M${points.map((p) => `${r1(p.x * 10)} ${r1(p.y)}`).join('L')}`;
 
 	const s = lapSummary(laps, distance);
+	// 前後半3Fの位置は laps の添字なので、描かなかった端数の区間ぶんずらす。
 	const band = (i: [number, number]) => ({
-		x1: (i[0] / laps.length) * 100,
-		x2: ((i[1] + 1) / laps.length) * 100
+		x1: ((i[0] - start) / drawn.length) * 100,
+		x2: ((i[1] - start + 1) / drawn.length) * 100
 	});
 	const levels = [
 		{ y: yOf(fast), label: fast.toFixed(1) },
