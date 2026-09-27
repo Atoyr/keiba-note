@@ -68,6 +68,10 @@
 
 	// 4角とゴール前の実際の隊列。予想で展開を置いていなくても出す（走った全頭がそろったレースだけ）。
 	const actual = $derived(actualFlow(data.rows, data.race));
+	/** 実際の展開が予想の隊列を並べる局面。見立ての閉じた行には重ねて出さない。 */
+	const shownInActual = $derived(
+		(['corner4', 'finish'] as const).filter((p) => actual?.[p] && data.myRaceFlow?.[p].spots.length)
+	);
 
 	const ta =
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
@@ -201,12 +205,12 @@
 					{#if data.myRaceFlow}
 						<!-- 白い面に載せる。空色の面の上だと、隊列の補足の灰色が 4.5:1 に届かない。 -->
 						<div class="mt-1 rounded-md bg-background px-2 py-1">
-							<!-- 実際の展開の欄が予想の隊列を並べているときは、閉じた行の隊列を重ねて出さない。 -->
+							<!-- 実際の展開の欄が予想の隊列を並べている局面（4角・ゴール前）は、閉じた行に重ねて出さない。 -->
 							<RaceFlowDetails
 								flow={data.myRaceFlow}
 								level="h3"
 								titleClass="text-xs"
-								showDigest={!actual}
+								hideDigest={shownInActual}
 							/>
 						</div>
 					{/if}

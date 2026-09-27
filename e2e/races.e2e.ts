@@ -359,8 +359,8 @@ test('展開を予想していないレースでも、4角とゴール前の実�
 	]);
 	// 予想と同じ盤面で見せる。①と③は同じ2番手なので、同じマスに積む。
 	const corner4 = page.getByRole('group', { name: '実際の4コーナーの隊列' });
-	await expect(corner4.getByText('1番 E2Eサンバンテ（前から2列目・内）')).toBeAttached();
-	await expect(corner4.getByText('3番 E2Eマクリ（前から2列目・中）')).toBeAttached();
+	await expect(corner4.getByText('1番 E2Eサンバンテ（4角2番手）')).toBeAttached();
+	await expect(corner4.getByText('3番 E2Eマクリ（4角2番手）')).toBeAttached();
 	await expect(page.getByRole('group', { name: '実際のゴール前の隊列' })).toBeVisible();
 	// 予想が無いので「予想」の段も、開催前の見立ても出ない。
 	await expect(page.getByRole('region', { name: '実際の展開' })).not.toContainText('予想');
@@ -382,7 +382,11 @@ test('展開を予想していたレースでは、実際の隊列の下に予�
 	]);
 	// 同じ隊列を「開催前の見立て」の閉じた行に重ねて出さない（予想の盤面は開けば見られる）。
 	const preview = page.locator('details', { hasText: '展開の予想' });
-	await expect(preview.locator('summary')).not.toContainText('③-①⑤');
+	// （seed ではスタートと4角の予想が同じ並びなので、並びではなく局面の名前で見る）
+	await expect(preview.locator('summary')).not.toContainText('4角');
+	await expect(preview.locator('summary')).not.toContainText('ゴール前');
+	// スタートの隊列は実際の展開に無いので、閉じた行に残す。
+	await expect(preview.locator('summary')).toContainText('スタート ③-①⑤');
 });
 
 /** 出走馬を気にしている馬だけ入れたレースでは、2頭の並びが全体の流れに見えるので出さない。 */

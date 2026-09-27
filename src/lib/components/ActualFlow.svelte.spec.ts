@@ -11,10 +11,19 @@ const spot = (horseNumber: number, x: number, y = 0) => ({
 	y
 });
 
+/** 実際の展開のコマ。`at` は順位（4角の位置か着順）。 */
+const ranked = (horseNumber: number, x: number, at: number, y = 0) => ({
+	...spot(horseNumber, x, y),
+	at
+});
+
 const actual = {
 	leadsRight: false,
-	corner4: { spots: [spot(2, 0), spot(1, 1), spot(3, 1, 1)], columns: ['②', '①③'] },
-	finish: { spots: [spot(1, 0), spot(2, 1), spot(3, 2)], columns: ['①', '②', '③'] }
+	corner4: {
+		spots: [ranked(2, 0, 1), ranked(1, 1, 2), ranked(3, 1, 2, 1)],
+		columns: ['②', '①③']
+	},
+	finish: { spots: [ranked(1, 0, 1), ranked(2, 1, 2), ranked(3, 2, 3)], columns: ['①', '②', '③'] }
 };
 
 const predicted: ResolvedFlow = {
@@ -46,8 +55,15 @@ describe('ActualFlow', () => {
 			['4コーナー', ['②-①③']],
 			['ゴール前', ['①-②-③']]
 		]);
-		// 盤面のコマは読み上げで場所ごとに読める（同じマスに積んだ2段目も）。
-		await expect.element(screen.getByText('3番 馬3（前から2列目・中）')).toBeInTheDocument();
+		// 結果に内外は無いので、読み上げは段の名前（内・中）ではなく順位で読む。
+		await expect.element(screen.getByText('3番 馬3（4角2番手）')).toBeInTheDocument();
+		await expect.element(screen.getByText('3番 馬3（3着）')).toBeInTheDocument();
+		expect(screen.container.textContent).not.toMatch(/・(内|中|外|大外)）/);
+		// 見出しは「内ラチ」ではなく、上下が内外でないことの注記。段は使った数だけ（4角は2段、ゴール前は1段）。
+		expect(screen.container.textContent).not.toContain('内ラチ');
+		expect(screen.getByText('上下は内外ではない').elements()).toHaveLength(2);
+		const grids = screen.container.querySelectorAll('.grid-cols-10');
+		expect([...grids].map((g) => g.children.length)).toEqual([20, 10]);
 	});
 
 	it('予想を置いていたら、置いた局面だけ予想の隊列を下に並べ、「実際」「予想」の札を付ける', () => {

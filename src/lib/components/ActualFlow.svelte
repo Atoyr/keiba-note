@@ -12,7 +12,8 @@
 	 * 予想の有無でこの欄が消えると、展開を考えなかったレースほどふりかえりの材料が減る。
 	 *
 	 * 結果には内外が無いので、盤面の上下は同じマスの馬を積んだだけ（置き方は `actualFlow`）。
-	 * それを盤面の下に書き添える。
+	 * そのため盤面は「内外を持たない並び」として描く（`RaceFlowBoard` の `note`）: 見出しに「内ラチ」を出さず注記を出し、
+	 * 段は使った数だけにし（6頭なら1〜2段）、読み上げは段の名前ではなく順位（「4角2番手」「3着」）にする。
 	 * 予想を置いていたら、盤面の下の隊列の1行に予想の隊列を並べて見比べる。
 	 * 予想の盤面まで並べると、スマホで盤面が4枚縦に積まれて書く欄が遠くなるので、
 	 * 予想の盤面は「開催前の見立て」を開いて見る。
@@ -31,7 +32,17 @@
 			const got = actual[p];
 			if (!got) return [];
 			const spots = predicted?.[p].spots ?? [];
-			return [{ phase: p, ...got, predicted: spots.length > 0 ? flowColumns(spots) : null }];
+			const said = (s: (typeof got.spots)[number]) =>
+				`${s.horseNumber ? `${s.horseNumber}番 ` : ''}${s.horseName}（${p === 'finish' ? `${s.at}着` : `4角${s.at}番手`}）`;
+			return [
+				{
+					phase: p,
+					columns: got.columns,
+					spots: got.spots.map((s, i) => ({ ...s, key: String(i), said: said(s) })),
+					lanes: Math.max(1, ...got.spots.map((s) => s.y + 1)),
+					predicted: spots.length > 0 ? flowColumns(spots) : null
+				}
+			];
 		})
 	);
 
@@ -49,8 +60,10 @@
 				<h3 class="text-xs font-medium text-muted-foreground">{FLOW_PHASE_LABEL[p.phase]}</h3>
 				<div class="mt-1">
 					<RaceFlowBoard
-						spots={p.spots.map((s, i) => ({ ...s, key: String(i) }))}
+						spots={p.spots}
 						leadsRight={actual.leadsRight}
+						lanes={p.lanes}
+						note="上下は内外ではない"
 						label="実際の{FLOW_PHASE_LABEL[p.phase]}の隊列"
 					/>
 				</div>
@@ -67,7 +80,4 @@
 			</div>
 		{/each}
 	</div>
-	<p class="mt-2 text-xs text-muted-foreground">
-		結果に内外は無いので、盤面の上下は同じ位置の馬を積んだだけ
-	</p>
 </section>

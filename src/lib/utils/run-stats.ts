@@ -120,8 +120,8 @@ type ActualFlowSource = FlowHorse & {
 	passing: string | null;
 };
 
-/** 実際の展開の1局面。盤面に置くコマと、隊列の1行。 */
-export type ActualPhase = { spots: ResolvedSpot[]; columns: string[] };
+/** 実際の展開の1局面。盤面に置くコマ（`at` は順位。4角の位置か着順）と、隊列の1行。 */
+export type ActualPhase = { spots: (ResolvedSpot & { at: number })[]; columns: string[] };
 
 /**
  * 実際の展開。4コーナーとゴール前の隊列を、予想と同じ盤面（`RaceFlowBoard`）と1行（`③-⑤⑦-⑪`）で返す。
@@ -164,7 +164,7 @@ export function actualFlow(
 			while ((used.get(x) ?? 0) >= FLOW_LANES.length && x < FLOW_COLS - 1) x++;
 			const y = used.get(x) ?? 0;
 			used.set(x, y + 1);
-			return { ...horse(p), x, y };
+			return { ...horse(p), x, y, at: p.at };
 		});
 		// 1行は順位で区切る（x に順位、y に同じ順位の中の並びを入れて列を組む）。
 		const columns = flowColumns(

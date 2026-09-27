@@ -147,6 +147,8 @@ export const MARKS_RACE_ID = '01JE2ERACEMARKS00000000000';
 export const FLOW_RACE_ID = '01JE2ERACEFLOW000000000000';
 /** 展開の予想もメモも置いていない、全頭そろった開催済みのレース（ふりかえりの「実際の展開」）。 */
 export const ACTUAL_FLOW_RACE_ID = '01JE2ERACEACTUALFLOW000000';
+/** 同じく予想の無い、18頭立て・全頭そろった開催済みのレース（盤面に2頭ずつまとめて積む）。 */
+export const ACTUAL_FLOW_18_RACE_ID = '01JE2ERACEACTUALFLOW180000';
 
 /** 18頭・枠順前（馬番も枠も無い）。見立てに展開（ハイペース、3局面すべてに18頭）が入っている。 */
 export const FLOW_CROWD_RACE_ID = '01JE2ERACEFLOW180000000000';

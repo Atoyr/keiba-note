@@ -1,8 +1,11 @@
 <script lang="ts" module>
 	import type { ResolvedSpot } from '$lib/utils/race-flow';
 
-	/** 盤面のコマ。`key` は操作するときに馬を指す値（予想画面では出走馬の id）。 */
-	export type BoardSpot = ResolvedSpot & { key: string };
+	/**
+	 * 盤面のコマ。`key` は操作するときに馬を指す値（予想画面では出走馬の id）。
+	 * `said` を渡すと、読み上げはマスの場所（「前から2列目・中」）ではなくこの文になる。
+	 */
+	export type BoardSpot = ResolvedSpot & { key: string; said?: string };
 </script>
 
 <script lang="ts">
@@ -20,13 +23,19 @@
 	 *
 	 * `onCell` を渡すとマスが押せる（予想画面の入力）。渡さなければ見るだけ
 	 * （予想まとめ・共有ページ・ふりかえり）。
+	 *
+	 * `note` を渡すと**内外を持たない並び**として描く（ふりかえりの実際の展開。結果には前後の順しか無い）。
+	 * 見出しの「内ラチ」と上の太線を出さず、代わりに `note` を出す。段の名前（内・中・外）は読み上げない
+	 * （コマの `said` を使う）。`lanes` で使う段だけに縮める。
 	 */
 	let {
 		spots,
 		leadsRight,
 		label,
 		selected = null,
-		onCell
+		onCell,
+		lanes = FLOW_LANES.length,
+		note
 	}: {
 		spots: BoardSpot[];
 		leadsRight: boolean;
@@ -35,13 +44,19 @@
 		/** 選んでいるコマの key。枠で囲む。 */
 		selected?: string | null;
 		onCell?: (x: number, y: number) => void;
+		/** 描く段の数（上から）。既定は全段。 */
+		lanes?: number;
+		/** 内外を持たない並びとして描くときの注記（「内ラチ」の代わりに見出しに出す）。 */
+		note?: string;
 	} = $props();
+
+	const shownLanes = $derived(FLOW_LANES.slice(0, Math.max(1, Math.min(lanes, FLOW_LANES.length))));
 
 	const at = $derived(new Map(spots.map((s) => [`${s.x}:${s.y}`, s])));
 
 	/** 行ごと・左から右へ。描く列と、持っている列（0 が先頭）を向きで対応づける。 */
 	const cells = $derived(
-		FLOW_LANES.flatMap((lane, y) =>
+		shownLanes.flatMap((lane, y) =>
 			Array.from({ length: FLOW_COLS }, (_, col) => {
 				const x = leadsRight ? FLOW_COLS - 1 - col : col;
 				return { x, y, lane, spot: at.get(`${x}:${y}`) ?? null };
@@ -75,7 +90,7 @@
 	function onKey(e: KeyboardEvent) {
 		const col = active % FLOW_COLS;
 		const row = Math.floor(active / FLOW_COLS);
-		const last = FLOW_LANES.length - 1;
+		const last = shownLanes.length - 1;
 		const next =
 			e.key === 'ArrowRight' && col < FLOW_COLS - 1
 				? active + 1
@@ -99,9 +114,11 @@
 	const where = (x: number, lane: string) => `${x === 0 ? '先頭' : `前から${x + 1}列目`}・${lane}`;
 
 	const describe = (c: (typeof cells)[number]) =>
-		c.spot
-			? `${c.spot.horseNumber ? `${c.spot.horseNumber}番 ` : ''}${c.spot.horseName}（${where(c.x, c.lane)}）`
-			: `${where(c.x, c.lane)}（空き）`;
+		c.spot?.said
+			? c.spot.said
+			: c.spot
+				? `${c.spot.horseNumber ? `${c.spot.horseNumber}番 ` : ''}${c.spot.horseName}（${where(c.x, c.lane)}）`
+				: `${where(c.x, c.lane)}（空き）`;
 
 	const chipClass = (s: BoardSpot) =>
 		cn(
@@ -129,14 +146,17 @@
 	class="w-full max-w-xs"
 >
 	<div class="flex justify-between text-xs text-muted-foreground" aria-hidden="true">
-		<span>内ラチ</span>
+		<span>{note ?? '内ラチ'}</span>
 		<span>{leadsRight ? '進行方向 →' : '← 進行方向'}</span>
 	</div>
 	<!-- 上の太い線が内ラチ。段の区切りは線を引かず、面の濃さだけで盤面と分かるようにする。 -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
 		bind:this={grid}
-		class="mt-0.5 grid grid-cols-10 gap-0.5 rounded-b-md border-t-2 border-muted-foreground bg-muted p-0.5"
+		class={cn(
+			'mt-0.5 grid grid-cols-10 gap-0.5 bg-muted p-0.5',
+			note ? 'rounded-md' : 'rounded-b-md border-t-2 border-muted-foreground'
+		)}
 		onkeydown={onCell ? onKey : undefined}
 	>
 		{#each cells as c, i (`${c.x}:${c.y}`)}
