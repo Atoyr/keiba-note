@@ -137,6 +137,10 @@ describe('corner4Positions', () => {
 });
 
 describe('actualFlow', () => {
+	/** 盤面のコマを「馬番@x,y」で並べる（見比べやすいように）。 */
+	const cells = (spots: { horseNumber: number | null; x: number; y: number }[] = []) =>
+		spots.map((s) => `${s.horseNumber}@${s.x},${s.y}`);
+
 	it('4角は通過順、ゴール前は着順の並び。同じ位置の馬は1つの列に馬番の順で並ぶ', () => {
 		const flow = actualFlow(
 			[
@@ -149,7 +153,36 @@ describe('actualFlow', () => {
 			{ ...turf, fieldSize: 5 }
 		);
 		// ⑤は4角の手前で中止。4角にもゴール前にも出ない。
-		expect(flow).toEqual({ corner4: ['②', '①③', '④'], finish: ['①', '②', '③', '④'] });
+		expect(flow?.corner4?.columns).toEqual(['②', '①③', '④']);
+		expect(flow?.finish?.columns).toEqual(['①', '②', '③', '④']);
+	});
+
+	it('盤面は順位のマスに置き、同じ順位の馬は上の段から積む。順位の抜けはマスを空ける', () => {
+		const flow = actualFlow(
+			[
+				horse(1, 1, '3-3-3-2'),
+				horse(2, 2, '1-1-1-1'),
+				horse(3, 3, '5-5-4-2'),
+				horse(4, 4, '2-2-2-4')
+			],
+			{ ...turf, fieldSize: 4 }
+		);
+		expect(cells(flow?.corner4?.spots)).toEqual(['2@0,0', '1@1,0', '3@1,1', '4@3,0']);
+	});
+
+	it('11頭以上は1マスに順位2つぶんをまとめ、隊列の1行は順位で区切ったまま', () => {
+		const rows = Array.from({ length: 18 }, (_, i) => horse(i + 1, i + 1, `${i + 1}-${i + 1}`));
+		const flow = actualFlow(rows, { ...turf, fieldSize: 18 });
+		expect(cells(flow?.finish?.spots).slice(0, 4)).toEqual(['1@0,0', '2@0,1', '3@1,0', '4@1,1']);
+		expect(cells(flow?.finish?.spots).at(-1)).toBe('18@8,1');
+		expect(flow?.finish?.columns.slice(0, 3)).toEqual(['①', '②', '③']);
+	});
+
+	it('先頭の向きは予想の盤面と同じ（右回りは左、左回りは右）', () => {
+		const rows = [horse(1, 1, '1-1'), horse(2, 2, '2-2')];
+		expect(actualFlow(rows, { ...turf, fieldSize: 2 })?.leadsRight).toBe(false);
+		const left = { course: '東京', surface: '芝', distance: 1600, direction: '左', fieldSize: 2 };
+		expect(actualFlow(rows, left)?.leadsRight).toBe(true);
 	});
 
 	it('同着は同じ列にまとめる', () => {
@@ -157,7 +190,7 @@ describe('actualFlow', () => {
 			...turf,
 			fieldSize: 3
 		});
-		expect(flow?.finish).toEqual(['①②', '③']);
+		expect(flow?.finish?.columns).toEqual(['①②', '③']);
 	});
 
 	it('走った全頭がそろっていない（気にしている馬だけ入れた）レースでは出さない', () => {
@@ -171,13 +204,14 @@ describe('actualFlow', () => {
 			...turf,
 			fieldSize: 2
 		});
-		expect(flow?.finish).toEqual(['①', '②']);
+		expect(flow?.finish?.columns).toEqual(['①', '②']);
 	});
 
 	it('直線のレースはゴール前だけ', () => {
 		const straight = { course: '新潟', surface: '芝', distance: 1000, direction: '直線' };
 		const flow = actualFlow([horse(1, 1, '2'), horse(2, 2, '1')], { ...straight, fieldSize: 2 });
-		expect(flow).toEqual({ corner4: null, finish: ['①', '②'] });
+		expect(flow?.corner4).toBeNull();
+		expect(flow?.finish?.columns).toEqual(['①', '②']);
 	});
 
 	it('結果がまだ入っていなければ出さない', () => {

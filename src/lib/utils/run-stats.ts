@@ -6,7 +6,14 @@
  */
 
 import { COURSE_SPECS, isStraightCourse } from './course';
-import { flowColumns, type FlowHorse } from './race-flow';
+import { FLOW_COLS, FLOW_LANES } from '../schemas/race-flow';
+import {
+	flowColumns,
+	flowLeadsRight,
+	type FlowCourse,
+	type FlowHorse,
+	type ResolvedSpot
+} from './race-flow';
 
 /**
  * コーナーを回るレースか。**直線のレース（新潟の芝1000m）はコーナーが無い**のに、
@@ -113,12 +120,19 @@ type ActualFlowSource = FlowHorse & {
 	passing: string | null;
 };
 
+/** 実際の展開の1局面。盤面に置くコマと、隊列の1行。 */
+export type ActualPhase = { spots: ResolvedSpot[]; columns: string[] };
+
 /**
- * 実際の展開。4コーナーとゴール前の隊列を、予想の隊列と同じ1行の形（`③-⑤⑦-⑪`）で返す。
+ * 実際の展開。4コーナーとゴール前の隊列を、予想と同じ盤面（`RaceFlowBoard`）と1行（`③-⑤⑦-⑪`）で返す。
  *
  * 予想で展開を置いていなくても、どう流れたかは結果から読める（4角は通過順、ゴール前は着順）。
- * 同じ位置の馬（同じ通過順・同着）は1つの列にまとめ、列の中は馬番の順。
- * **内外は結果に無い**ので、前後の順だけを出す（予想の盤面のように内外を描かない）。
+ *
+ * **盤面の置き方。** 結果には前後の順しか無い（内外が無い）。
+ * - 前後: 順位の順に先頭のマスから置く。10マスに収まらない頭数（11頭以上）は、1マスに順位2つぶん（18頭なら2頭）をまとめる
+ * - 上下: 同じマスに入った馬（同じ順位、またはまとめた2頭）を、順位 → 馬番の順に上の段から積む。**内外を表すものではない**
+ * - 隊列の1行は盤面のマスではなく順位で区切る（まとめた2頭を同じ列に書くと、並んでいたように読める）。
+ *   同じ順位（同じ通過順・同着）だけを1つの列にし、列の中は馬番の順
  *
  * **走った全頭がそろっているときだけ出す**（着順か通過順のある馬の数が `fieldSize` と同じとき）。
  * 気にしている馬だけ入れたレースで並べると、2頭だけの「隊列」が全体の流れのように読める。
@@ -127,35 +141,50 @@ type ActualFlowSource = FlowHorse & {
  */
 export function actualFlow(
 	rows: readonly ActualFlowSource[],
-	race: Parameters<typeof hasCorners>[0] & { fieldSize: number | null }
-): { corner4: string[] | null; finish: string[] | null } | null {
+	race: FlowCourse & { fieldSize: number | null }
+): { leadsRight: boolean; corner4: ActualPhase | null; finish: ActualPhase | null } | null {
 	const ran = rows.filter((r) => r.finishPosition !== null || !!r.passing);
 	if (race.fieldSize === null || ran.length === 0 || ran.length !== race.fieldSize) return null;
 
-	// 同じ位置の馬が同じ列に並ぶよう、位置を x、同じ位置の中の馬番の順を y にして隊列の1行を組む。
-	const columns = (placed: { h: ActualFlowSource; at: number }[]) => {
+	const phase = (placed: { h: ActualFlowSource; at: number }[]): ActualPhase => {
 		const sorted = [...placed].sort(
 			(a, b) => a.at - b.at || (a.h.horseNumber ?? 99) - (b.h.horseNumber ?? 99)
 		);
-		return flowColumns(
-			sorted.map(({ h, at }, i) => ({
-				horseNumber: h.horseNumber,
-				bracket: h.bracket,
-				horseName: h.horseName,
-				x: at,
-				y: sorted.slice(0, i).filter((p) => p.at === at).length
+		const horse = ({ h }: { h: ActualFlowSource }) => ({
+			horseNumber: h.horseNumber,
+			bracket: h.bracket,
+			horseName: h.horseName
+		});
+		// 1マスにまとめる順位の数。18頭なら2（10マス × 2 で 20 位まで入る）。
+		const per = Math.max(1, Math.ceil(Math.max(...sorted.map((p) => p.at)) / FLOW_COLS));
+		const used = new Map<number, number>();
+		const spots = sorted.map((p) => {
+			// まとめたマスが段の数を超えて埋まっていたら（同じ順位が5頭など）、後ろのマスへ送る。
+			let x = Math.min(FLOW_COLS - 1, Math.floor((p.at - 1) / per));
+			while ((used.get(x) ?? 0) >= FLOW_LANES.length && x < FLOW_COLS - 1) x++;
+			const y = used.get(x) ?? 0;
+			used.set(x, y + 1);
+			return { ...horse(p), x, y };
+		});
+		// 1行は順位で区切る（x に順位、y に同じ順位の中の並びを入れて列を組む）。
+		const columns = flowColumns(
+			sorted.map((p, i) => ({
+				...horse(p),
+				x: p.at,
+				y: sorted.slice(0, i).filter((q) => q.at === p.at).length
 			}))
 		);
+		return { spots, columns };
 	};
 
 	const at4 = corner4Positions(ran, race);
 	const finished = ran.filter((r) => r.finishPosition !== null);
 	const corner4 =
 		finished.length > 0 && finished.every((r) => at4.has(r.entryId))
-			? columns(ran.flatMap((h) => (at4.has(h.entryId) ? [{ h, at: at4.get(h.entryId)! }] : [])))
+			? phase(ran.flatMap((h) => (at4.has(h.entryId) ? [{ h, at: at4.get(h.entryId)! }] : [])))
 			: null;
 	const finish =
-		finished.length > 0 ? columns(finished.map((h) => ({ h, at: h.finishPosition! }))) : null;
+		finished.length > 0 ? phase(finished.map((h) => ({ h, at: h.finishPosition! }))) : null;
 
-	return corner4 || finish ? { corner4, finish } : null;
+	return corner4 || finish ? { leadsRight: flowLeadsRight(race), corner4, finish } : null;
 }

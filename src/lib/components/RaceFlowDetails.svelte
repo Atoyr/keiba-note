@@ -15,7 +15,8 @@
 		flow,
 		titleId,
 		titleClass = '',
-		level = 'h2'
+		level = 'h2',
+		showDigest = true
 	}: {
 		flow: ResolvedFlow;
 		/** 見出しの段。置く画面の見出しの並びに合わせる。 */
@@ -24,9 +25,14 @@
 		titleId?: string;
 		/** 見出しの文字の見た目。置く画面の見出しに合わせる。 */
 		titleClass?: string;
+		/**
+		 * 閉じた行に局面ごとの隊列を出すか。ふりかえりで「実際の展開」が予想の隊列を並べているときは出さない
+		 * （同じ隊列が2回並び、スマホで書く欄が遠くなる）。
+		 */
+		showDigest?: boolean;
 	} = $props();
 
-	const digest = $derived(flowDigest(flow));
+	const digest = $derived(showDigest ? flowDigest(flow) : []);
 </script>
 
 <details class="group">

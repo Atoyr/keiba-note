@@ -330,15 +330,17 @@ test('全頭の上りがそろっていないレースでは、上りのタイ�
 	await expect(page.locator('form').getByTitle(/上り\d位/)).toHaveCount(0);
 });
 
-/** 「実際の展開」の欄。局面（dt）ごとに中身（dd）の文字を返す。 */
+/** 「実際の展開」の欄。局面（見出し）ごとに、盤面の下の隊列の1行を返す。 */
 const actualFlowRows = (page: Page) =>
 	page
 		.getByRole('region', { name: '実際の展開' })
-		.locator('dt')
-		.evaluateAll((dts) =>
-			dts.map((dt) => [
-				dt.textContent?.trim(),
-				dt.nextElementSibling?.textContent?.replace(/\s+/g, ' ').trim()
+		.locator('h3')
+		.evaluateAll((hs) =>
+			hs.map((h) => [
+				h.textContent?.trim(),
+				[...(h.parentElement?.querySelectorAll('p') ?? [])].map((p) =>
+					p.textContent?.replace(/\s+/g, '')
+				)
 			])
 		);
 
@@ -352,9 +354,14 @@ test('展開を予想していないレースでも、4角とゴール前の実�
 	await page.goto(`/races/${ACTUAL_FLOW_RACE_ID}`);
 
 	expect(await actualFlowRows(page)).toEqual([
-		['4角', '②-①③-④-⑤'],
-		['ゴール前', '①-②-③-④-⑤']
+		['4コーナー', ['②-①③-④-⑤']],
+		['ゴール前', ['①-②-③-④-⑤']]
 	]);
+	// 予想と同じ盤面で見せる。①と③は同じ2番手なので、同じマスに積む。
+	const corner4 = page.getByRole('group', { name: '実際の4コーナーの隊列' });
+	await expect(corner4.getByText('1番 E2Eサンバンテ（前から2列目・内）')).toBeAttached();
+	await expect(corner4.getByText('3番 E2Eマクリ（前から2列目・中）')).toBeAttached();
+	await expect(page.getByRole('group', { name: '実際のゴール前の隊列' })).toBeVisible();
 	// 予想が無いので「予想」の段も、開催前の見立ても出ない。
 	await expect(page.getByRole('region', { name: '実際の展開' })).not.toContainText('予想');
 	await expect(page.getByText('開催前の見立て')).toHaveCount(0);
@@ -370,9 +377,12 @@ test('展開を予想していたレースでは、実際の隊列の下に予�
 	await page.goto(`/races/${MARKS_RACE_ID}`);
 
 	expect(await actualFlowRows(page)).toEqual([
-		['4角', '実際③-①-⑥-④-⑤-② 予想③-①⑤-②-④-⑥-⑦'],
-		['ゴール前', '実際①-⑤-③-⑥-②-④ 予想①②-③-⑤-⑦-④-⑥']
+		['4コーナー', ['実際③-①-⑥-④-⑤-②', '予想③-①⑤-②-④-⑥-⑦']],
+		['ゴール前', ['実際①-⑤-③-⑥-②-④', '予想①②-③-⑤-⑦-④-⑥']]
 	]);
+	// 同じ隊列を「開催前の見立て」の閉じた行に重ねて出さない（予想の盤面は開けば見られる）。
+	const preview = page.locator('details', { hasText: '展開の予想' });
+	await expect(preview.locator('summary')).not.toContainText('③-①⑤');
 });
 
 /** 出走馬を気にしている馬だけ入れたレースでは、2頭の並びが全体の流れに見えるので出さない。 */
