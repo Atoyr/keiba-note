@@ -219,3 +219,19 @@ export const OTHER_DISTANCE_NOTE_BODY = '距離が違うので出てはいけな
 
 /** 同じ条件のレースに**別のユーザー**が書いたふりかえり。どこにも出てはいけない。 */
 export const OTHER_USER_SAME_CONDITION_BODY = '他人のレースメモ。見えてはいけない。';
+
+/**
+ * 推しの馬（→ seed.sql の favorite_horse）。
+ * - `running` / `idle` — 自分の推し。出走予定がある馬と、無い馬
+ * - `others` — 別のユーザーの推し。**出てはいけない**
+ * - `toggle` — 誰の推しでもない、今週出走する馬（E2E今週賞）。E2E が推しにして外す
+ */
+export const FAVORITE_HORSES = {
+	running: 'E2Eテストホース',
+	idle: 'E2Eソトワク',
+	others: 'E2Eタニンノウマ',
+	toggle: 'E2Eミカギリ'
+} as const;
+
+/** `FAVORITE_HORSES.toggle` の馬。 */
+export const TOGGLE_FAVORITE_HORSE_ID = '01JE2EHORSEDROP00000000000';

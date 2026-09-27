@@ -148,6 +148,61 @@
 			{/if}
 		</section>
 
+		<!-- 推しの馬の、まだ走り終えていない出走。今週に限らず、登録済みの先のレースまで出す。
+		     推しにする・外すのは馬の画面。推しがいないうちは、どこで推しにするかを案内する。 -->
+		<section class="mt-8">
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+				<h2 class="text-sm font-semibold text-muted-foreground">推しの出走予定</h2>
+				<span class="text-xs text-muted-foreground">推しにした馬の、登録済みのレース</span>
+			</div>
+
+			{#if data.favorites.runs.length === 0 && data.favorites.idle.length === 0}
+				<p class="mt-2 text-sm text-muted-foreground">
+					<a href={resolve('/horses')} class="underline">馬</a>
+					の画面で「推しにする」を押すと、その馬の出走予定がここに並びます。
+				</p>
+			{:else}
+				{#if data.favorites.runs.length === 0}
+					<p class="mt-2 text-sm text-muted-foreground">推しの馬の出走予定はまだありません。</p>
+				{:else}
+					<ul class="mt-2 divide-y border-y">
+						{#each data.favorites.runs as f (f.entryId)}
+							<li class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-2.5 text-sm">
+								<span class="font-mono text-muted-foreground">{formatDateShort(f.raceDate)}</span>
+								<a
+									href={resolve('/horses/[id]', { id: f.horseId })}
+									class="font-medium hover:underline"
+								>
+									{f.horseName}
+								</a>
+								<a
+									href={raceHref(f.raceId, { date: f.raceDate, resultCount: f.resultCount })}
+									class="flex flex-wrap items-baseline gap-x-2 hover:underline"
+								>
+									<span>{f.course}{f.raceNumber ?? ''}R</span>
+									<GradeBadge grade={f.grade} />
+									<span>{f.raceName ?? ''}</span>
+								</a>
+								{#if f.horseNumber}
+									<span class="font-mono text-muted-foreground">{f.horseNumber}番</span>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				<!-- 出走予定の無い推しも名前だけ出す。出さないと、推しにした馬がどこにも見えなくなる。 -->
+				{#if data.favorites.idle.length > 0}
+					<p class="mt-2 text-xs text-muted-foreground">
+						出走予定の無い推し:
+						{#each data.favorites.idle as h, i (h.horseId)}{#if i > 0}・{/if}<a
+								href={resolve('/horses/[id]', { id: h.horseId })}
+								class="hover:underline">{h.horseName}</a
+							>{/each}
+					</p>
+				{/if}
+			{/if}
+		</section>
+
 		<!-- 予想したのに答え合わせをしていないレース。無いときは枠ごと出さない（宿題が無いのが普通）。 -->
 		{#if data.awaiting.length > 0}
 			<section class="mt-8">

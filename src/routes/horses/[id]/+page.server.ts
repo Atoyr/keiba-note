@@ -1,6 +1,8 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
+import { favoriteHorseSchema } from '$lib/schemas/favorite';
 import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
+import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
 import {
 	addHorseNote,
@@ -20,24 +22,25 @@ import type { Actions, PageServerLoad } from './$types';
  * 1テーブルにした狙い（product.md 第2章）。
  *
  * **出走はメモが無くても並べる。** 骨は race_entry（誰が見ても同じ走った事実）で、
- * そこに viewer 自身のメモを重ねる。読みは3クエリで、3本とも並行に投げる。
+ * そこに viewer 自身のメモを重ねる。読みは4クエリ（馬・メモ・出走・推しか）で、全部並行に投げる。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 
 	const today = todayJst();
 
-	const [horse, notes, runs] = await Promise.all([
+	const [horse, notes, runs, favorite] = await Promise.all([
 		getHorse(db, params.id),
 		getHorseTimeline(db, params.id, user.id),
-		listRunsForHorse(db, params.id)
+		listRunsForHorse(db, params.id),
+		isFavoriteHorse(db, params.id, user.id)
 	]);
 
 	if (!horse) error(404, '馬が見つかりません');
 
 	// viewerId は返さない。タイムラインに並ぶメモは viewer 自身のものだけなので、
 	// 画面側で「自分のメモか」を判定する必要がなくなった。
-	return { horse, timeline: mergeHorseTimeline(notes, runs, today), today };
+	return { horse, timeline: mergeHorseTimeline(notes, runs, today), today, favorite };
 };
 
 export const actions: Actions = {
@@ -61,6 +64,26 @@ export const actions: Actions = {
 
 		await addHorseNote(db, { horseId: params.id, ...parsed.output }, user.id);
 		return { added: true };
+	},
+
+	/**
+	 * 推しにする・外す。推しは本人だけのものなので、誰でも自分の分を切り替えられる
+	 * （マスタの馬には何も書かない）。推しの出走予定はダッシュボードに出る。
+	 */
+	favorite: async ({ locals, platform, params, request }) => {
+		const { db, user } = ctx(locals, platform);
+
+		const horse = await getHorse(db, params.id);
+		if (!horse) error(404, '馬が見つかりません');
+
+		const form = await request.formData();
+		const parsed = v.safeParse(favoriteHorseSchema, {
+			favorite: form.get('favorite')?.toString() ?? ''
+		});
+		if (!parsed.success) return fail(400, { message: '推しを切り替えられませんでした' });
+
+		await setFavoriteHorse(db, params.id, user.id, parsed.output.favorite);
+		return { favorite: parsed.output.favorite };
 	},
 
 	/** 自分のメモを消す。他人のメモはサービス層で弾かれる。 */

@@ -395,6 +395,27 @@ export const raceShare = sqliteTable(
 	(t) => [uniqueIndex('race_share_author_race').on(t.authorId, t.raceId)]
 );
 
+/**
+ * 推しの馬。1人・1頭につき1行で、**あれば推し**（行を消せば外れる）。
+ *
+ * メモと同じく本人だけのもの。読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る
+ * （誰が何を推しているかを他人に見せない）。馬はマスタなので、推しても馬の行には何も書かない。
+ * 主キーが user_id で始まるので、「自分の推し」を引くのに別のインデックスは要らない。
+ */
+export const favoriteHorse = sqliteTable(
+	'favorite_horse',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		horseId: text('horse_id')
+			.notNull()
+			.references(() => horse.id, { onDelete: 'cascade' }),
+		createdAt: createdAt()
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.horseId] })]
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session)
 }));

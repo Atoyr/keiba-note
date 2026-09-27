@@ -84,6 +84,58 @@ export function pickWatchlist(rows: WatchSourceRow[]): WatchedRunner[] {
 }
 
 // ---------------------------------------------------------------------------
+// 推しの出走予定
+// ---------------------------------------------------------------------------
+
+/** 推しの馬1頭。 */
+export type FavoriteHorse = { horseId: string; horseName: string };
+
+/** 推しの馬の、今日以降の出走1つ。 */
+export type FavoriteRun = FavoriteHorse & {
+	entryId: string;
+	raceId: string;
+	raceDate: string;
+	/** そのレースの着順の入った出走の数。走り終えたか・リンク先を決める（→ `isSettled`）。 */
+	resultCount: number;
+	course: string;
+	raceNumber: number | null;
+	raceName: string | null;
+	grade: string | null;
+	/** 枠順が出る前（登録の段階）は NULL。 */
+	horseNumber: number | null;
+};
+
+export type FavoriteSchedule = {
+	runs: FavoriteRun[];
+	/** 出走予定が1つも無い推し。ここに名前が無いと、推しにした馬が画面から消えて見える。 */
+	idle: FavoriteHorse[];
+};
+
+/**
+ * 推しの出走予定。**まだ走り終えていない出走**を、早い順（日付 → R → 馬名）に並べる。
+ *
+ * `runs` はサービス層が今日以降で引いたもの。当日のレースは、結果が入るまでは予定に残し、
+ * 入ったら外す（`isSettled`）。日付だけで切ると、朝に開いたとき今日の出走が出ない。
+ * 出走予定の無い推しは `idle` に分けて返す。
+ */
+export function favoriteSchedule(
+	horses: FavoriteHorse[],
+	runs: FavoriteRun[],
+	today: string
+): FavoriteSchedule {
+	const upcoming = runs
+		.filter((r) => !isSettled({ date: r.raceDate, resultCount: r.resultCount }, today))
+		.sort(
+			(a, b) =>
+				a.raceDate.localeCompare(b.raceDate) ||
+				(a.raceNumber ?? 0) - (b.raceNumber ?? 0) ||
+				a.horseName.localeCompare(b.horseName, 'ja')
+		);
+	const running = new Set(upcoming.map((r) => r.horseId));
+	return { runs: upcoming, idle: horses.filter((h) => !running.has(h.horseId)) };
+}
+
+// ---------------------------------------------------------------------------
 // レースの進み具合
 // ---------------------------------------------------------------------------
 

@@ -612,3 +612,14 @@ VALUES ('01JE2EENTRYCOUNTB00000000','01JE2ERACECOUNT0000000000','01JE2EHORSECOUN
 -- created_at を古くするのは、ダッシュボードの「最近のメモ」（作った順の新しい20件）を押し出さないため。
 INSERT INTO note (id,author_id,kind,race_id,horse_id,race_entry_id,body,mark,occurred_at,created_at)
 VALUES ('01JE2ECOUNTPREVIEW0000000','01JE2EUSER0000000000000000','preview','01JE2ERACECOUNT0000000000','01JE2EHORSECOUNTA00000000','01JE2EENTRYCOUNTA00000000','保存済みのメモ。','○','2019-05-03',unixepoch('2026-01-01'));
+
+-- 推しの馬（favorite_horse）。ダッシュボードの「推しの出走予定」と、馬の画面の「推しにする／推しから外す」を見る。
+-- - E2Eテストホース — 出走予定（2099-04-04 E2E未来賞）がある推し
+-- - E2Eソトワク — 走り終えたレースしか無い推し（「出走予定の無い推し」に名前だけ出る）
+-- - E2Eタニンノウマ — **別のユーザー**の推し。今週出走するが、自分のダッシュボードには出てはいけない
+-- E2Eミカギリ（今週出走）は誰の推しでもない。E2E が推しにして、外して確かめる。
+INSERT OR REPLACE INTO favorite_horse (user_id, horse_id)
+VALUES
+	('01JE2EUSER0000000000000000', '01JE2EHORSE000000000000000'),
+	('01JE2EUSER0000000000000000', '01JE2EHORSED00000000000000'),
+	('01JE2EOTHERUSER00000000000', '01JE2EHORSEOTHERS000000000');

@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import Star from '@lucide/svelte/icons/star';
+	import { toast } from 'svelte-sonner';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
@@ -17,6 +20,7 @@
 	const admin = $derived(isAdmin(data.user));
 
 	let profileOpen = $state(false);
+	let favoritePending = $state(false);
 
 	const profile = $derived(
 		[
@@ -33,7 +37,49 @@
 <svelte:head><title>{data.horse.name} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
-	<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
+	<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+		<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
+		<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
+		     二重に押しても行き来しない。星の塗りで今の状態を、文言で押すと何が起きるかを出す。 -->
+		<form
+			method="POST"
+			action="?/favorite"
+			use:enhance={({ cancel }) => {
+				if (favoritePending) {
+					cancel();
+					return;
+				}
+				favoritePending = true;
+				return async ({ result, update }) => {
+					try {
+						await update();
+						if (result.type === 'success') {
+							toast.success(
+								result.data?.favorite
+									? '推しにしました。出走予定はダッシュボードに並びます'
+									: '推しから外しました'
+							);
+						}
+					} finally {
+						favoritePending = false;
+					}
+				};
+			}}
+		>
+			<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
+			<Button type="submit" variant="outline" aria-disabled={favoritePending}>
+				<Star class={data.favorite ? 'fill-current' : ''} aria-hidden="true" />
+				{data.favorite ? '推しから外す' : '推しにする'}
+			</Button>
+		</form>
+	</div>
+	{#if form && 'favorite' in form}<noscript
+			><p class="mt-1 text-sm">
+				{form.favorite
+					? '推しにしました。出走予定はダッシュボードに並びます。'
+					: '推しから外しました。'}
+			</p></noscript
+		>{/if}
 	{#if profile.length > 0}
 		<p class="mt-1 text-sm text-gray-600">{profile.join(' / ')}</p>
 	{/if}

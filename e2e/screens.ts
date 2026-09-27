@@ -14,7 +14,8 @@ import {
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
 	SHARED_NOTE_ID,
-	SHARED_RACE_ID
+	SHARED_RACE_ID,
+	TOGGLE_FAVORITE_HORSE_ID
 } from './seed';
 
 /**
@@ -293,7 +294,10 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'horses', path: '/horses', auth: true },
+	// 推しの馬。名前の右に「推しから外す」（星が塗られる）。
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
+	// 推しでない馬。「推しにする」（星は輪郭だけ）。
+	{ name: 'horse-not-favorite', path: `/horses/${TOGGLE_FAVORITE_HORSE_ID}`, auth: true },
 	{
 		// 共有と削除は `⋯` に畳んである。共有中の近況メモのメニューを開いた状態。
 		name: 'horse-timeline-note-menu',
