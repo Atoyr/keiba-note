@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "09255d64-a717-4292-9cf5-7d72365869d0",
-  "prevId": "12f7d03b-7c85-4654-bb9b-450c81e2e491",
+  "id": "51491b9f-cd17-483a-9560-4553f1d702ae",
+  "prevId": "09255d64-a717-4292-9cf5-7d72365869d0",
   "tables": {
     "data_import": {
       "name": "data_import",
@@ -677,6 +677,13 @@
         },
         "runner_up_name": {
           "name": "runner_up_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "laps": {
+          "name": "laps",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

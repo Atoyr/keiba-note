@@ -77,6 +77,7 @@
 			<a href={resolve('/this-week')} class="text-sm text-gray-600 hover:underline">今週</a>
 			<a href={resolve('/races')} class="text-sm text-gray-600 hover:underline">レース</a>
 			<a href={resolve('/horses')} class="text-sm text-gray-600 hover:underline">馬</a>
+			<a href={resolve('/jockeys')} class="text-sm text-gray-600 hover:underline">騎手</a>
 			<span class="flex-1"></span>
 			<!-- 右側は1つだけ。共有中・管理・ユーザー名・ログアウトはこの中。 -->
 			<AccountMenu user={data.user} canLogout={!data.mockAuth} />

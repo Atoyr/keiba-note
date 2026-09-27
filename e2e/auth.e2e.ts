@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { BRACKET_RACE_ID, DASHBOARD_RACES, EMPTY_RACE_ID, HORSE_ID, PREVIEW_RACE_ID } from './seed';
+import {
+	BRACKET_RACE_ID,
+	DASHBOARD_RACES,
+	EMPTY_RACE_ID,
+	HORSE_ID,
+	JOCKEYS,
+	PREVIEW_RACE_ID
+} from './seed';
 
 test('未ログインのトップは紹介ページで、ダッシュボードの中身は出ない', async ({ page }) => {
 	await page.goto('/');
@@ -54,6 +61,8 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: `/races/${PREVIEW_RACE_ID}/summary`, secret: '今回は内枠が向きそう。' },
 	{ path: '/settings/admin', secret: null },
 	{ path: `/horses/${HORSE_ID}`, secret: 'E2E未来賞' },
+	{ path: '/jockeys', secret: null },
+	{ path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}`, secret: JOCKEYS.mainSummary },
 	{ path: `/races/${BRACKET_RACE_ID}`, secret: 'E2Eウチワク' },
 	// 開催前のレースは予想画面へ振り分けられる。**認証がその振り分けより先に効く**ことを見る
 	// （追い越されると redirect が /preview になり、未ログインのまま中身が出る）。

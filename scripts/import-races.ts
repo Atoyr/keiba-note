@@ -276,7 +276,7 @@ export function statementsFor(file: RaceFile, fileName: string, hash: string): s
 			['field_size', race.fieldSize],
 			['winner_name', race.winner],
 			['runner_up_name', race.runnerUp],
-			// ラップ（マイグレーション 0017）も同じ。JSON の配列で持つ（schema.ts の `mode: 'json'`）。
+			// ラップ（マイグレーション 0018）も同じ。JSON の配列で持つ（schema.ts の `mode: 'json'`）。
 			['laps', race.laps ? JSON.stringify(race.laps) : undefined]
 		]);
 

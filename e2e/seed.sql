@@ -348,7 +348,7 @@ INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
 VALUES ('01JE2EENTRYDROP00000000000', '01JE2ERACETHISWEEK00000000', '01JE2EHORSEDROP00000000000', 7, 'E2E騎手');
 
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey)
-VALUES ('01JE2EENTRYOTHERS000000000', '01JE2ERACETHISWEEK00000000', '01JE2EHORSEOTHERS000000000', 9, 'E2E騎手');
+VALUES ('01JE2EENTRYOTHERS000000000', '01JE2ERACETHISWEEK00000000', '01JE2EHORSEOTHERS000000000', 9, 'E2Eワカテ騎手');
 
 -- 買い。理由の札（不利）も添わること。
 INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, occurred_at)
@@ -664,6 +664,21 @@ VALUES
 	('01JE2EUSER0000000000000000', '01JE2EHORSE000000000000000'),
 	('01JE2EUSER0000000000000000', '01JE2EHORSED00000000000000'),
 	('01JE2EOTHERUSER00000000000', '01JE2EHORSEOTHERS000000000');
+
+-- 騎手（/jockeys）。騎手はマスタを持たず、出走馬の騎手名で束ねる。
+-- 「E2E騎手」は上の出走のほとんどに乗っている（メモの付いた騎乗・付いていない騎乗・出走予定がそろう）。
+-- 「E2Eワカテ騎手」は今週のレースの1騎乗だけ（一覧に2人並べ、札で絞ると1人になるのを見る）。
+-- まとめは自分のものと、**別のユーザー**のもの（どの画面にも出てはいけない）。
+INSERT OR REPLACE INTO jockey_note (user_id, jockey, body, tags)
+VALUES (
+	'01JE2EUSER0000000000000000',
+	'E2E騎手',
+	'中山の内回りは前に行く。人気薄でも粘り込む。',
+	'["中山巧者","先行が多い","穴で怖い"]'
+);
+
+INSERT OR REPLACE INTO jockey_note (user_id, jockey, body, tags)
+VALUES ('01JE2EOTHERUSER00000000000', 'E2E騎手', '他人の騎手のまとめ。見えてはいけない。', '["東京巧者"]');
 
 -- ふりかえり画面の「実際の展開」用。**展開の予想もメモも置いていない**レース
 -- （予想していなくても、4角とゴール前の隊列が結果から出ることを見る）。
