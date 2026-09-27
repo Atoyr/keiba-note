@@ -96,7 +96,9 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 				// `sticky bottom-0` で、先頭にいるまま全体を撮ると**いまの表示位置**
 				// （1画面ぶん下）に描かれ、その下の出走馬の行を覆い隠す。末尾にいれば
 				// 本来の置き場（フォームの最後）に収まる。
-				await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+				if (!screen.stayAtTop) {
+					await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+				}
 
 				const file = `${screen.name}.${viewportName}.png`;
 				mkdirSync(OUT, { recursive: true });

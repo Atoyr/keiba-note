@@ -744,3 +744,16 @@ INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_pos
 	('01JE2EACT18ENTRY1600000000', '01JE2ERACEACTUALFLOW180000', '01JE2EACT18HORSE1600000000', 8, 16, 16, '17-17-17-17'),
 	('01JE2EACT18ENTRY1700000000', '01JE2ERACEACTUALFLOW180000', '01JE2EACT18HORSE1700000000', 8, 17, 12, '16-16-16-16'),
 	('01JE2EACT18ENTRY1800000000', '01JE2ERACEACTUALFLOW180000', '01JE2EACT18HORSE1800000000', 8, 18, 14, '18-18-18-18');
+
+-- 一覧を100件ずつ読むところ（下端で続きを読む）。1ページ（100件）を超えるレースと馬。
+-- レースは 2001 年の条件戦に置く。既定の一覧（今年の重賞）・ダッシュボード・今週の重賞には出ず、
+-- `?year=2001` と全件（`?year=`）の末尾にだけ並ぶ。出走馬は付けない（馬のタイムライン・騎手に出さない）。
+WITH RECURSIVE s(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM s WHERE i < 105)
+INSERT INTO race (id, date, course, race_number, name, class_name, surface, distance)
+SELECT printf('01JE2EPAGERACE%012d', i), date('2001-01-01', '+' || i || ' days'), '中山', 1,
+	printf('E2E一覧レース%03d', i), '未勝利', 'ダート', 1200
+FROM s;
+-- 馬は「E2E一覧ウマ」で始まる 105 頭。名前の順で `/horses` の1ページ目の大半を占める。
+WITH RECURSIVE s(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM s WHERE i < 105)
+INSERT INTO horse (id, name)
+SELECT printf('01JE2EPAGEHORSE%011d', i), printf('E2E一覧ウマ%03d', i) FROM s;

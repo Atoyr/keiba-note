@@ -2,6 +2,7 @@ import { and, asc, countDistinct, desc, eq, like, or } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Horse } from '$lib/server/db/schema';
+import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
 
 /**
  * 馬。
@@ -25,13 +26,22 @@ export type HorseListItem = Pick<Horse, 'id' | 'name' | 'sex' | 'birthYear' | 't
  *
  * メモ件数は **viewer 自身のメモだけ**を数える。他人の分を含めると、
  * 本文を出していなくても「誰かが何か書いている」ことが漏れる。
+ *
+ * `offset` 件目から `PAGE_SIZE` 件ずつ返す（画面は下端で続きを読む → `$lib/utils/paging`）。
+ * 馬名は生年違いの同名馬がいて一意でないので、並びの最後に id を足して
+ * ページの切れ目で重なったり抜けたりしないようにする。
  */
-export async function listHorses(db: Db, viewerId: string, q?: string): Promise<HorseListItem[]> {
+export async function listHorses(
+	db: Db,
+	viewerId: string,
+	q?: string,
+	offset = 0
+): Promise<Page<HorseListItem>> {
 	const filter = q?.trim()
 		? or(like(horse.name, `%${q.trim()}%`), like(horse.nameKana, `%${q.trim()}%`))
 		: undefined;
 
-	return db
+	const rows = await db
 		.select({
 			id: horse.id,
 			name: horse.name,
@@ -46,8 +56,10 @@ export async function listHorses(db: Db, viewerId: string, q?: string): Promise<
 		.leftJoin(note, and(eq(note.horseId, horse.id), eq(note.authorId, viewerId)))
 		.where(filter)
 		.groupBy(horse.id)
-		.orderBy(asc(horse.name))
-		.limit(200);
+		.orderBy(asc(horse.name), asc(horse.id))
+		.limit(PAGE_SIZE + 1)
+		.offset(offset);
+	return toPage(rows, offset);
 }
 
 export async function getHorse(db: Db, id: string): Promise<Horse | null> {

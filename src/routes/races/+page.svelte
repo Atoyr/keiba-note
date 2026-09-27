@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import LoadMore from '$lib/components/LoadMore.svelte';
 	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
 	import RaceListEmpty from '$lib/components/RaceListEmpty.svelte';
 	import { opensReview } from '$lib/utils/date';
+	import { PagedList } from '$lib/utils/paged-list.svelte';
+	import { pageHref } from '$lib/utils/paging';
 	import { hasRaceFilter } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -12,6 +16,15 @@
 
 	const admin = $derived(isAdmin(data.user));
 	const filtered = $derived(hasRaceFilter(data.filter));
+
+	// 100件ずつ。下端に近づいたら次の100件を足す（→ PagedList / LoadMore）。
+	const races = new PagedList(
+		() => ({ url: page.url, page: data.races }),
+		(next) => next.races as typeof data.races
+	);
+	export const snapshot = races.snapshot;
+
+	let listEl = $state<HTMLElement>();
 </script>
 
 <svelte:head><title>レース — uma-memo</title></svelte:head>
@@ -32,12 +45,21 @@
 
 	<RaceFilterForm filter={data.filter} years={data.years} />
 
-	{#if data.races.length === 0}
+	{#if data.total === 0}
 		<RaceListEmpty defaultFilter={data.defaultFilter} {filtered} {admin} />
 	{:else}
-		<p class="mt-6 text-xs text-gray-500">{data.races.length} 件</p>
-		<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
-			{#each data.races as r (r.id)}
+		<p class="mt-6 text-xs text-muted-foreground">
+			{data.total} 件
+			{#if data.offset > 0}
+				<!-- JS が無いときは「続きを読み込む」で offset 付きのページへ移るので、先頭へ戻る道を置く。 -->
+				<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは今開いている URL のまま、offset を外しているだけ（frontend.md 第3章） -->
+				・{data.offset + 1} 件目から
+				<a href={pageHref(page.url, 0)} class="underline">先頭から見る</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
+			{/if}
+		</p>
+		<ul bind:this={listEl} class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
+			{#each races.items as r (r.id)}
 				<li>
 					<!-- 一覧は日付降順なので、上のほうには開催前の重賞が並ぶ。
 					     結果が出たもの・ふりかえりを書いたものだけふりかえりへ、それ以外は予想画面へ送る
@@ -70,5 +92,12 @@
 				</li>
 			{/each}
 		</ul>
+		<LoadMore
+			href={races.href}
+			load={() => races.loadNext()}
+			list={listEl}
+			shown={data.offset + races.items.length}
+			unit="件"
+		/>
 	{/if}
 </main>

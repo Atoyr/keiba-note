@@ -256,3 +256,14 @@ export const JOCKEYS = {
 	/** 別のユーザーが「E2E騎手」に書いたまとめ。見えてはいけない。 */
 	otherUserSummary: '他人の騎手のまとめ。見えてはいけない。'
 } as const;
+
+/**
+ * 1ページ（100件）を超える一覧。`/races?year=2001` のレースと、名前が `E2E一覧ウマ` で始まる馬が
+ * それぞれ 105 件ある（`E2E一覧レース001`〜`105` / `E2E一覧ウマ001`〜`105`）。
+ */
+export const PAGED_LIST = {
+	raceYear: 2001,
+	raceCount: 105,
+	horsePrefix: 'E2E一覧ウマ',
+	horseCount: 105
+} as const;

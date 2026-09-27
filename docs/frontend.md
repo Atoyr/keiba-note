@@ -46,7 +46,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 ```
 
 - props は `$props()`、計算で出る値は `$derived()`。`$effect()` はブラウザの API
-  （`localStorage`、`beforeunload`）に触るときだけ使う。今は `DraftKeeper` の中にしか無い
+  （`localStorage`、`beforeunload`、`IntersectionObserver`）に触るときだけ使う。今は `DraftKeeper` と `LoadMore` の中にしか無い
 - 画面が要る型は `PageProps` の `data` から取る。**`$lib/server/**` から型を import しない**
   （SvelteKit は値の import しか止めない。層の規則は [architecture.md 第2章](./architecture.md)）
 - アプリ内のリンクは `$app/paths` の `resolve('/races/[id]', { id })` で組み、`href="/..."` を直に書かない。
@@ -68,6 +68,10 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   （送信中に書き足した分を保存済みに数えない）。保存の知らせの件数は `clear()` の戻り値（変えたメモの数）を使い、
   文は `utils/note.ts` の `savedMessage`。ボタンが消えるときフォーカスはフォームへ移るので、
   フォームに `tabindex="-1"` を付ける
+- 長い一覧は100件ずつ読む。サービス層は `offset` を受けて `Page<T>`（`items` と `next`）を返し、
+  画面は `PagedList`（`utils/paged-list.svelte.ts`）で1ページ目に続きを足して、下端に `LoadMore` を置く。
+  続きは `?offset=` を付けた同じ URL の `load` を `preloadData` で読む（専用の API は作らない）。
+  戻ったときに読んだ分を残すため、`export const snapshot = list.snapshot` を置く
 - 「保存しました」のような一時的な知らせはトースト（`svelte-sonner` の `toast`）で出す。
   `use:enhance` の結果が `success` のときに呼ぶ。JS が無いとトーストは出ないので、同じ文を
   `<noscript>` で画面にも置く。**失敗（`form.message`）はトーストにしない。** 直すまで消えては困るので、

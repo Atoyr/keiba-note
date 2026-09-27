@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-09-27 — `/races` と `/horses` に `offset` を足し、一覧を100件ずつ返すようにした。`countRaces` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-09-27 — 騎手の一覧と画面（`/jockeys`・`/jockeys/[name]` の `?/saveSummary`）と `services/jockeys.ts` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-09-27 — 推しの馬（`/horses/[id]` の `?/favorite` と `services/favorites.ts`）を足した（→ 第3章 / 第5章）
 - 更新日: 2026-09-25 — 管理画面の `?/fetchEntries` と、出走馬の取得を頼む Cron と `services/entries-fetch.ts` を足した（→ 第1章 / 第3章 / 第5章）
@@ -77,12 +78,12 @@ SvelteKit の `load` + form actions で完結させる。
 | --- | --- | --- | --- | --- |
 | `/` | GET | — | 自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
-| `/races` | GET | `year`・`grade`（複数）・`q` | レース一覧 | 未知の値は捨てる |
+| `/races` | GET | `year`・`grade`（複数）・`q`・`offset` | レース一覧を `offset` 件目から100件と、条件に当たる総数。画面は下端で `offset` を付けてこの `load` を `preloadData` で呼び、続きを足す | 未知の値は捨てる。`offset` が数字でなければ 0 |
 | `/races/[id]` | GET | — | ふりかえり画面。**開催前なら `302 /races/[id]/preview`** | 404 |
 | `/races/[id]` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
 | `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`racePace`・`flowSpots.<局面>`（JSON）・`flowMemo.<局面>`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>`（局面は `start`・`corner4`・`finish`） | 見立て（展開の予想を含む）と予想印を一括保存。盤面の馬はこのレースの出走馬に絞る | 検証 `fail(400)` / 404 |
-| `/horses` | GET | `q` | 馬一覧 | — |
+| `/horses` | GET | `q`・`offset` | 馬一覧を `offset` 件目から100頭（続きの読み方は `/races` と同じ） | `offset` が数字でなければ 0 |
 | `/horses/[id]` | GET | — | プロフィールとタイムライン・自分の推しか | 404 |
 | `/horses/[id]` | POST `?/favorite` | `favorite`（`1` で推しにする・`0` で外す） | 自分の推しを切り替え、`{ favorite }` を返す。何度送っても同じ状態になる | 検証 `fail(400)` / 無い馬 404 |
 | `/horses/[id]` | POST `?/addNote` | `body`・`tags`（複数）・`occurredAt` | 近況メモを足す | 検証 `fail(400)` / 404 |
@@ -184,7 +185,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | ファイル | 読み | 書き |
 | --- | --- | --- |
 | `services/horses.ts` | `listHorses`・`getHorse`・`getHorseEntries` | `findOrCreateHorse`・`updateHorseProfile` |
-| `services/races.ts` | `listRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
+| `services/races.ts` | `listRaces`・`countRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
 | `services/odds.ts` | `getRaceOdds` | —（GitHub Actions が `scripts/odds/store.ts` の SQL で書く。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | `listEntriesFetchTargets`・`listUpcomingRaces`・`entriesFetchBlocker`（D1 を読まない判定） | —（出馬表は YAML の PR で入る） |
 | `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |

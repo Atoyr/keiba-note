@@ -1,9 +1,22 @@
-import { and, asc, between, countDistinct, desc, eq, inArray, like, lt, sql } from 'drizzle-orm';
+import {
+	and,
+	asc,
+	between,
+	count,
+	countDistinct,
+	desc,
+	eq,
+	inArray,
+	like,
+	lt,
+	sql
+} from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
 import { GRADED } from '$lib/schemas/race';
 import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
+import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
 import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '$lib/utils/race-filter';
 import { findOrCreateHorse } from './horses';
 
@@ -57,13 +70,18 @@ function raceFilterWhere(filter: RaceFilter) {
  *
  * `filter` は年度・格付け・レース名の絞り込み（→ `$lib/utils/race-filter`）。
  * **メモ件数は viewer 自身のぶんだけ**を数えるのは絞り込みの有無によらない。
+ *
+ * `offset` 件目から `PAGE_SIZE` 件ずつ返す（画面は下端で続きを読む → `$lib/utils/paging`）。
+ * 並びの最後に id を足してあるのは、同じ日・同じ R の別の場が offset の切れ目をまたいでも
+ * 毎回同じ順に並べ、ページの間で重なったり抜けたりしないようにするため。
  */
 export async function listRaces(
 	db: Db,
 	viewerId: string,
-	filter: RaceFilter = EMPTY_RACE_FILTER
-): Promise<RaceListItem[]> {
-	return db
+	filter: RaceFilter = EMPTY_RACE_FILTER,
+	offset = 0
+): Promise<Page<RaceListItem>> {
+	const rows = await db
 		.select({
 			id: race.id,
 			date: race.date,
@@ -84,8 +102,16 @@ export async function listRaces(
 		.leftJoin(note, and(eq(note.raceId, race.id), eq(note.authorId, viewerId)))
 		.where(raceFilterWhere(filter))
 		.groupBy(race.id)
-		.orderBy(desc(race.date), desc(race.raceNumber))
-		.limit(100);
+		.orderBy(desc(race.date), desc(race.raceNumber), asc(race.id))
+		.limit(PAGE_SIZE + 1)
+		.offset(offset);
+	return toPage(rows, offset);
+}
+
+/** 絞り込みに当たるレースの数。一覧の「N 件」に出す（読んだ件数ではなく全体）。 */
+export async function countRaces(db: Db, filter: RaceFilter = EMPTY_RACE_FILTER): Promise<number> {
+	const rows = await db.select({ n: count() }).from(race).where(raceFilterWhere(filter));
+	return rows.at(0)?.n ?? 0;
 }
 
 /**
