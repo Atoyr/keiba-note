@@ -316,6 +316,19 @@ test('各馬の行に、4角の位置から着順・上りの順位・人気が�
 });
 
 /**
+ * ★ 出走馬を気にしている馬だけ入れたレースでは、上りの順位を出さない。
+ * 入っている馬の中だけで数えると、1頭しか入っていなければ6着でも「上り1位」になる。
+ * seed の E2E枠色賞は2頭だけで、頭数（fieldSize）も入っていない。
+ */
+test('全頭の上りがそろっていないレースでは、上りのタイムだけで順位を出さない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	await expect(page.locator('form li', { hasText: 'E2Eウチワク' })).toContainText('上り33.8');
+	await expect(page.locator('form').getByTitle(/上り\d位/)).toHaveCount(0);
+});
+
+/**
  * 出走前メモは各馬の行に**読むだけ**で出る。直せる欄にすると、結果を見てから
  * 予想を書き換えられてしまい、答え合わせが成り立たない。
  */

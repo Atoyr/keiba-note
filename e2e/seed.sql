@@ -284,6 +284,11 @@ VALUES (
 	'2026-06-21'
 );
 
+-- 上りは入っているが、出走馬は気にしている2頭だけで頭数（field_size）も無い。
+-- 入っている馬の中だけで上りの順位を数えると嘘になるので、タイムだけが出る。
+UPDATE race_entry SET last_3f = 33.8 WHERE id = '01JE2EENTRYINNER0000000000';
+UPDATE race_entry SET last_3f = 34.1 WHERE id = '01JE2EENTRYOUTER0000000000';
+
 -- **別のユーザー**が同じレースに付けた出走前メモ。どの画面にも出てはいけない。
 -- 答え合わせは自分の印だけで組むので、他人の◎が混ざると「自分の予想」が嘘になる。
 INSERT OR REPLACE INTO user (id, google_sub, email, display_name, role)
@@ -559,7 +564,9 @@ VALUES ('01JE2EPREVIEWMARK700000000', '01JE2EUSER0000000000000000', 'preview', '
 
 -- ふりかえり画面の「4角 → 着順」・上りの順位・確定の人気用（人気は予想画面の単勝オッズの並びにそろえた）。上り1〜3位が別々の馬に付き、
 -- 4角の位置と着順が入れ替わる（⑤アナウマは4角5番手から2着）ようにしてある。
--- メモノミ（着順なし）は通過順も上りも無いまま＝2行目を出さない形。
+-- メモノミ（着順なし）は通過順も上りも無いまま＝2行目を出さない形（取消なので頭数は6）。
+-- 上りの順位は、上りの入った頭数が頭数（field_size）と同じときだけ出る。
+UPDATE race SET field_size = 6 WHERE id = '01JE2ERACEMARKS00000000000';
 UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1 WHERE id = '01JE2EENTRYMARK10000000000';
 UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2 WHERE id = '01JE2EENTRYMARK20000000000';
 UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3 WHERE id = '01JE2EENTRYMARK30000000000';

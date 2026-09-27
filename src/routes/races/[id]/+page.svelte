@@ -52,9 +52,10 @@
 		)
 	);
 
-	// 4コーナーの位置と上りの順位。上りの順位は出走馬全体で数えるので、行ごとには出せない。
+	// 4コーナーの位置と上りの順位。上りの順位は走った全頭で数えるので、行ごとには出せない
+	// （全頭の上りがそろっていないレースでは順位を出さない。→ last3fRanks）。
 	const rows = $derived.by(() => {
-		const ranks = last3fRanks(data.rows);
+		const ranks = last3fRanks(data.rows, data.race.fieldSize);
 		return data.rows.map((r) => ({
 			...r,
 			corner4: corner4Position(r.passing),

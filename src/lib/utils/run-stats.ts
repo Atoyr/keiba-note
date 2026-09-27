@@ -24,11 +24,18 @@ export function corner4Position(passing: string | null): number | null {
  *
  * 同じタイムは同じ順位にし、次の順位はその頭数ぶん飛ばす（33.9・33.9・34.1 なら 1・1・3位）。
  * 競馬新聞の「上がり1位」と同じ数え方。上りが入っていない馬は順位を持たない（Map に入れない）。
+ *
+ * **走った全頭の上りがそろっているときだけ数える**（上りの入った頭数が `fieldSize` と同じとき）。
+ * 出走馬は気にしている馬だけ入れてよい（data/README.md「重賞でなくてよい」）ので、
+ * 入っている馬の中だけで数えると、1頭しか入っていないレースでは6着の馬が「上り1位」になる。
+ * 頭数（`fieldSize`）が入っていなければ、全頭そろっているかが分からないので数えない（空の Map）。
  */
 export function last3fRanks(
-	rows: readonly { entryId: string; last3f: number | null }[]
+	rows: readonly { entryId: string; last3f: number | null }[],
+	fieldSize: number | null
 ): Map<string, number> {
 	const times = rows.flatMap((r) => (r.last3f === null ? [] : [r.last3f]));
+	if (fieldSize === null || times.length !== fieldSize) return new Map();
 	return new Map(
 		rows.flatMap((r) =>
 			r.last3f === null

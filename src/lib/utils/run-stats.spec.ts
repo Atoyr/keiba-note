@@ -19,33 +19,55 @@ describe('corner4Position', () => {
 
 describe('last3fRanks', () => {
 	it('上りの速い順に 1・2・3位', () => {
-		const ranks = last3fRanks([
-			{ entryId: 'a', last3f: 34.5 },
-			{ entryId: 'b', last3f: 33.9 },
-			{ entryId: 'c', last3f: 34.1 }
-		]);
+		const ranks = last3fRanks(
+			[
+				{ entryId: 'a', last3f: 34.5 },
+				{ entryId: 'b', last3f: 33.9 },
+				{ entryId: 'c', last3f: 34.1 }
+			],
+			3
+		);
 		expect(ranks.get('b')).toBe(1);
 		expect(ranks.get('c')).toBe(2);
 		expect(ranks.get('a')).toBe(3);
 	});
 
 	it('同じタイムは同じ順位にし、次はその頭数ぶん飛ばす', () => {
-		const ranks = last3fRanks([
-			{ entryId: 'a', last3f: 33.9 },
-			{ entryId: 'b', last3f: 33.9 },
-			{ entryId: 'c', last3f: 34.1 }
-		]);
+		const ranks = last3fRanks(
+			[
+				{ entryId: 'a', last3f: 33.9 },
+				{ entryId: 'b', last3f: 33.9 },
+				{ entryId: 'c', last3f: 34.1 }
+			],
+			3
+		);
 		expect(ranks.get('a')).toBe(1);
 		expect(ranks.get('b')).toBe(1);
 		expect(ranks.get('c')).toBe(3);
 	});
 
-	it('上りの入っていない馬は順位を持たず、ほかの馬の順位にも数えない', () => {
-		const ranks = last3fRanks([
-			{ entryId: 'a', last3f: null },
-			{ entryId: 'b', last3f: 34.0 }
-		]);
+	it('上りの入っていない馬（取消）は順位を持たず、頭数にも数えない', () => {
+		const ranks = last3fRanks(
+			[
+				{ entryId: 'a', last3f: null },
+				{ entryId: 'b', last3f: 34.0 }
+			],
+			1
+		);
 		expect(ranks.has('a')).toBe(false);
 		expect(ranks.get('b')).toBe(1);
+	});
+
+	it('走った全頭の上りがそろっていなければ数えない（気にしている馬だけ入れたレース）', () => {
+		const rows = [{ entryId: 'a', last3f: 35.2 }];
+		expect(last3fRanks(rows, 16).size).toBe(0);
+	});
+
+	it('頭数が入っていなければ、そろっているか分からないので数えない', () => {
+		const rows = [
+			{ entryId: 'a', last3f: 34.0 },
+			{ entryId: 'b', last3f: 34.5 }
+		];
+		expect(last3fRanks(rows, null).size).toBe(0);
 	});
 });
