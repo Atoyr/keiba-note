@@ -32,6 +32,21 @@ export const NOTE_TAG_GROUP: Record<NoteTag, NoteTagGroup> = {
 	好上がり: 'merit'
 };
 
+/**
+ * 札の画面に出す文字。**保存する値（`NOTE_TAGS`）とは別に持つ。**
+ *
+ * ふりかえり画面の上りの順位（「上り1位」）と表記をそろえるため、「好上がり」は「好上り」と出す
+ * （2026-09-27、依頼による）。値を変えると本番のメモの `tags` を書き換えることになるので、値は変えない。
+ * 表に無い札は値のまま出す。
+ */
+const NOTE_TAG_LABEL: Partial<Record<NoteTag, string>> = {
+	好上がり: '好上り'
+};
+
+export function noteTagLabel(tag: NoteTag): string {
+	return NOTE_TAG_LABEL[tag] ?? tag;
+}
+
 export type RaceLabelSource = {
 	course?: string | null;
 	raceNumber?: number | null;

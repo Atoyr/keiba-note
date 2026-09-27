@@ -29,7 +29,7 @@ test('書いた出走前メモは、開かなくても本文と付けた札が�
 
 	// 選んでいない札（TagPicker の全選択肢）は伏せたまま。
 	// こちらは TagBadges に出ないので、画面に1つしか無い＝そのまま見に行ける。
-	await expect(page.getByText('好上がり', { exact: true })).toBeHidden();
+	await expect(page.getByText('好上り', { exact: true })).toBeHidden();
 	// 本文の入力欄も畳まれている（畳むのは書く側だけ）。
 	// **画面にはレースの見立ての欄も出ている**ので、出走馬のぶんだけを名前で選ぶ。
 	await expect(page.locator('textarea[name^="body."]')).toBeHidden();
@@ -44,7 +44,7 @@ test('「書き直す」を開くと、本文欄と全部の札が出る', async
 	// 入力欄には保存済みの本文が入っている（見立ての欄と混ざらないよう名前で選ぶ）。
 	await expect(page.locator('textarea[name^="body."]')).toHaveValue('今回は内枠が向きそう。');
 	// 選んでいない札もここで初めて出る（付け足せる）。
-	await expect(page.getByText('好上がり', { exact: true })).toBeVisible();
+	await expect(page.getByText('好上り', { exact: true })).toBeVisible();
 	// 付けた札はチェック済みで出る。
 	await expect(page.getByRole('checkbox', { name: '次走買い' })).toBeChecked();
 });
