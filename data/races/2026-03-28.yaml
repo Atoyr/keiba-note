@@ -12,6 +12,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 15
+    winner: マイユニバース
     entries:
       - horseNumber: 1
         bracket: 1
@@ -25,6 +26,7 @@ races:
         popularity: 2
         time: "2:30.9"
         margin: "1.1/2"
+        timeDiff: 0.2
         passing: "5-5-5-6"
         last3f: 35.7
         weight: 56
@@ -115,6 +117,7 @@ races:
         popularity: 12
         time: "2:32.6"
         margin: "1.1/2"
+        timeDiff: 1.9
         passing: "9-9-1-2"
         last3f: 37.9
         weight: 57
@@ -209,6 +212,7 @@ races:
         popularity: 7
         time: "2:33.1"
         margin: "クビ"
+        timeDiff: 2.4
         passing: "2-3-13-13"
         last3f: 37.4
         weight: 58
@@ -247,6 +251,7 @@ races:
         popularity: 13
         time: "2:32.9"
         margin: "1.3/4"
+        timeDiff: 2.2
         passing: "5-5-3-6"
         last3f: 37.9
         weight: 57

@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 17
+    winner: メイショウタバル
     entries:
       - horseNumber: 2
         bracket: 1
@@ -152,6 +154,21 @@ races:
         horseWeight: 492
         horseWeightDiff: 4
         odds: 210.3
+      - horseNumber: 16
+        bracket: 8
+        name: ショウナンラプンタ
+        jockey: 幸英明
+        ref: nk-2021105195
+        finish: 4
+        popularity: 11
+        time: "2:11.8"
+        timeDiff: 0.7
+        passing: "11-11-9-7"
+        last3f: 35.9
+        weight: 58
+        horseWeight: 544
+        horseWeightDiff: 2
+        odds: 55.1
       - name: レガレイラ
         ref: nk-2021105898
         bracket: 8

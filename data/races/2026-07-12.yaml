@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 重
     weather: 雨
+    fieldSize: 14
+    winner: ヴーレヴー
     entries:
       - horseNumber: 1
         bracket: 1
@@ -34,6 +36,7 @@ races:
         finish: 10
         popularity: 4
         time: "1:48.7"
+        timeDiff: 1.6
         passing: "10-9-9-8"
         last3f: 35.8
         weight: 57
@@ -78,6 +81,7 @@ races:
     trackCondition: 稍重
     weather: 曇
     fieldSize: 16
+    winner: アスクナイスショー
     entries:
       - horseNumber: 1
         bracket: 1
@@ -380,6 +384,7 @@ races:
         popularity: 3
         time: "1:59.7"
         margin: "1/2"
+        timeDiff: 1.8
         passing: "6-6-6-7"
         last3f: 37.2
         weight: 58

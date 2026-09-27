@@ -548,6 +548,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: レイベリング
     entries:
       - horseNumber: 1
         bracket: 1
@@ -669,6 +671,7 @@ races:
         finish: 7
         popularity: 5
         time: "1:34.5"
+        timeDiff: 0.4
         passing: "12-13"
         last3f: 32.6
         weight: 58

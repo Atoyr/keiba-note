@@ -421,6 +421,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 11
+    winner: ミクニインスパイア
+    runnerUp: フィーリウス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -430,6 +433,7 @@ races:
         finish: 1
         popularity: 2
         time: "2:30.5"
+        timeDiff: -0.4
         passing: "1-1-1-1"
         last3f: 34.1
         weight: 56
@@ -507,6 +511,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: レディネス
+    runnerUp: アウフヘーベン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -530,6 +537,7 @@ races:
         finish: 1
         popularity: 4
         time: "1:44.7"
+        timeDiff: -0.2
         passing: "4-4"
         last3f: 33.1
         weight: 55

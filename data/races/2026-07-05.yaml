@@ -392,7 +392,23 @@ races:
     distance: 2860
     trackCondition: 重
     weather: 雨
+    fieldSize: 12
+    winner: ドラギニャン
     entries:
+      - horseNumber: 11
+        bracket: 8
+        name: メイショウブレゲ
+        jockey: 中村将之
+        ref: nk-2019104091
+        finish: 8
+        popularity: 6
+        time: "3:15.2"
+        timeDiff: 2.4
+        passing: "7-6-7-7"
+        weight: 60
+        horseWeight: 478
+        horseWeightDiff: 8
+        odds: 8.8
       - horseNumber: 12
         bracket: 8
         name: ドラギニャン

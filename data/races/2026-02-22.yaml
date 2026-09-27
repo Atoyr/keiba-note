@@ -63,7 +63,24 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: サクラファレル
     entries:
+      - horseNumber: 3
+        bracket: 3
+        name: レイニング
+        jockey: ルメール
+        ref: nk-2022104750
+        finish: 2
+        popularity: 2
+        time: "1:58.8"
+        timeDiff: 0.2
+        passing: "9-10-11"
+        last3f: 33.5
+        weight: 56
+        horseWeight: 472
+        horseWeightDiff: 8
+        odds: 3
       - name: パンジャ
         ref: nk-2021105155
         bracket: 3
@@ -116,6 +133,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 16
+    winner: コスタノヴァ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -239,6 +257,7 @@ races:
         popularity: 15
         time: "1:37.8"
         margin: "クビ"
+        timeDiff: 2.4
         passing: "13-13"
         last3f: 37.4
         weight: 58
@@ -426,6 +445,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 16
+    winner: タガノデュード
     entries:
       - horseNumber: 1
         bracket: 1
@@ -459,6 +479,7 @@ races:
         popularity: 15
         time: "1:46.6"
         margin: "クビ"
+        timeDiff: 1.4
         passing: "10-10-11-14"
         last3f: 35.5
         weight: 55
@@ -589,6 +610,7 @@ races:
         popularity: 5
         time: "1:45.5"
         margin: "アタマ"
+        timeDiff: 0.3
         passing: "2-2-2-2"
         last3f: 35.1
         weight: 56

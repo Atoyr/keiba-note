@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: シェイクユアハート
     entries:
       - horseNumber: 1
         bracket: 1
@@ -62,6 +64,7 @@ races:
         finish: 7
         popularity: 1
         time: "1:58.1"
+        timeDiff: 0.5
         passing: "6-6-9-6"
         last3f: 33.8
         weight: 55
@@ -208,6 +211,21 @@ races:
         horseWeight: 470
         horseWeightDiff: 10
         odds: 5
+      - horseNumber: 15
+        bracket: 7
+        name: ヴィンセンシオ
+        jockey: 杉原誠人
+        ref: nk-2022104832
+        finish: 9
+        popularity: 6
+        time: "1:58.3"
+        timeDiff: 0.7
+        passing: "3-3-3-3"
+        last3f: 34.5
+        weight: 56
+        horseWeight: 502
+        horseWeightDiff: -12
+        odds: 14.1
       - horseNumber: 17
         bracket: 8
         name: リフレーミング
@@ -282,6 +300,7 @@ races:
     weather: 晴
     fieldSize: 13
     winner: ランスオブカオス
+    runnerUp: ワールズエンド
     entries:
       - horseNumber: 1
         bracket: 1
@@ -297,6 +316,21 @@ races:
         horseWeight: 468
         horseWeightDiff: 14
         odds: 47.2
+      - horseNumber: 2
+        bracket: 2
+        name: ダノンエアズロック
+        jockey: ジェルー
+        ref: nk-2021105817
+        finish: 3
+        popularity: 6
+        time: "1:31.9"
+        timeDiff: 0.1
+        passing: "3-3"
+        last3f: 33.5
+        weight: 57
+        horseWeight: 512
+        horseWeightDiff: 10
+        odds: 24.3
       - horseNumber: 3
         bracket: 3
         name: キョウエイブリッサ
@@ -334,6 +368,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:31.8"
+        timeDiff: -0.1
         passing: "6-5"
         last3f: 33.1
         weight: 56

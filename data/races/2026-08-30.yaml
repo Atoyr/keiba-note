@@ -36,6 +36,7 @@ races:
     trackCondition: 稍重
     weather: 雨
     fieldSize: 11
+    winner: ゾロアストロ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -71,6 +72,7 @@ races:
         popularity: 8
         time: "1:59.8"
         margin: "1.1/4"
+        timeDiff: 0.2
         passing: "1-1"
         last3f: 34.4
         weight: 57
@@ -190,6 +192,7 @@ races:
         popularity: 1
         time: "1:59.6"
         margin: "アタマ"
+        timeDiff: 0
         passing: "4-4"
         last3f: 33.9
         weight: 57
@@ -446,3 +449,28 @@ races:
         horseWeight: 454
         horseWeightDiff: 8
         odds: 1.7
+  - course: 新潟
+    raceNumber: 1
+    name: 障害3歳以上未勝利
+    className: 未勝利
+    surface: 障害
+    distance: 2850
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 12
+    winner: オーサムストローク
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: メイショウブレゲ
+        jockey: 中村将之
+        ref: nk-2019104091
+        finish: 7
+        popularity: 6
+        time: "3:07.0"
+        timeDiff: 3.8
+        passing: "7-7-8-8"
+        weight: 60
+        horseWeight: 478
+        horseWeightDiff: 0
+        odds: 18.3

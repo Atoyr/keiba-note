@@ -12,6 +12,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 14
+    winner: シェイクユアハート
     entries:
       - horseNumber: 1
         bracket: 1
@@ -246,6 +247,7 @@ races:
         popularity: 4
         time: "1:59.1"
         margin: "クビ"
+        timeDiff: 1
         passing: "2-1-1-1"
         last3f: 36.1
         weight: 57
@@ -264,6 +266,7 @@ races:
         popularity: 12
         time: "1:58.6"
         margin: "クビ"
+        timeDiff: 0.5
         passing: "7-8-11-10"
         last3f: 33.9
         weight: 55
@@ -589,6 +592,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ヴァルキリーバース
     entries:
       - horseNumber: 1
         bracket: 1
@@ -682,6 +687,7 @@ races:
         finish: 11
         popularity: 2
         time: "1:32.7"
+        timeDiff: 0.7
         passing: "2-2-2"
         last3f: 34.9
         weight: 58
@@ -730,6 +736,21 @@ races:
         horseWeight: 488
         horseWeightDiff: -2
         odds: 257.2
+      - horseNumber: 15
+        bracket: 8
+        name: ダノンエアズロック
+        jockey: 津村明秀
+        ref: nk-2021105817
+        finish: 4
+        popularity: 3
+        time: "1:32.2"
+        timeDiff: 0.2
+        passing: "2-3-3"
+        last3f: 34.3
+        weight: 57
+        horseWeight: 506
+        horseWeightDiff: -2
+        odds: 6.7
       - horseNumber: 16
         bracket: 8
         name: レガーロデルシエロ
@@ -738,6 +759,7 @@ races:
         finish: 3
         popularity: 8
         time: "1:32.2"
+        timeDiff: 0.2
         passing: "10-10-9"
         last3f: 33.5
         weight: 57

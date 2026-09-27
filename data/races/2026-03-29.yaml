@@ -872,6 +872,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 11
+    winner: ギャンブルルーム
     entries:
       - horseNumber: 3
         bracket: 3
@@ -909,6 +911,7 @@ races:
         finish: 11
         popularity: 3
         time: "2:24.3"
+        timeDiff: 1.1
         passing: "1-1-1-2"
         last3f: 35.5
         weight: 57

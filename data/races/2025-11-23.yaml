@@ -153,6 +153,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: ジャンタルマンタル
     entries:
       - horseNumber: 2
         bracket: 1
@@ -162,6 +164,7 @@ races:
         finish: 14
         popularity: 14
         time: "1:32.6"
+        timeDiff: 1.3
         passing: "7-8"
         last3f: 34
         weight: 58
@@ -302,6 +305,7 @@ races:
         finish: 15
         popularity: 16
         time: "1:32.7"
+        timeDiff: 1.4
         passing: "18-17"
         last3f: 33
         weight: 58

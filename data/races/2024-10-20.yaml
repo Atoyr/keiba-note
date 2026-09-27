@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: アーバンシック
     entries:
       - horseNumber: 1
         bracket: 1
@@ -90,6 +92,7 @@ races:
         finish: 2
         popularity: 4
         time: "3:04.5"
+        timeDiff: 0.4
         passing: "17-16-8-5"
         last3f: 35.8
         weight: 57

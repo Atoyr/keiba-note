@@ -49,6 +49,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 10
+    winner: サトノシャイニング
+    runnerUp: リンクスティップ
     entries:
       - horseNumber: 6
         bracket: 6
@@ -86,6 +89,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:47.0"
+        timeDiff: -0.5
         passing: "6-6"
         last3f: 35.1
         weight: 57

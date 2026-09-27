@@ -489,6 +489,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: ガイアメンテ
     entries:
       - horseNumber: 2
         bracket: 2
@@ -512,6 +514,7 @@ races:
         finish: 7
         popularity: 4
         time: "1:44.2"
+        timeDiff: 0.8
         passing: "2-2"
         last3f: 35.5
         weight: 56

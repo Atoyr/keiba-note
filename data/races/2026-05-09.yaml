@@ -324,6 +324,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 17
+    winner: トロヴァトーレ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -638,6 +639,7 @@ races:
         popularity: 10
         time: "1:45.5"
         margin: "1"
+        timeDiff: 0.2
         passing: "16-17-17"
         last3f: 32.6
         weight: 57
@@ -946,3 +948,28 @@ races:
         horseWeight: 500
         horseWeightDiff: 8
         odds: 244.6
+  - course: 新潟
+    raceNumber: 1
+    name: 障害4歳以上未勝利
+    className: 未勝利
+    surface: 障害
+    distance: 2890
+    trackCondition: 稍重
+    weather: 晴
+    fieldSize: 13
+    winner: ブラックバラード
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: メイショウブレゲ
+        jockey: 中村将之
+        ref: nk-2019104091
+        finish: 9
+        popularity: 2
+        time: "3:17.3"
+        timeDiff: 7.3
+        passing: "12-11-9-9"
+        weight: 60
+        horseWeight: 470
+        horseWeightDiff: -6
+        odds: 4.3

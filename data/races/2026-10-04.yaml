@@ -10,7 +10,168 @@ races:
     surface: 芝
     distance: 1800
     direction: 左
-    entries: []
+    ref: nk-202605040211
+    startTime: "15:45"
+    entries:
+      - name: アドマイヤクワッズ
+        jockey: 坂井瑠星
+        sex: 牡
+        age: 3
+        ref: nk-2023105311
+        trainer: 友道康夫
+        sire: リアルスティール
+        dam: デイトライン
+        weight: 55
+      - name: ヴィンセンシオ
+        sex: セ
+        age: 4
+        ref: nk-2022104832
+        trainer: 森一誠
+        sire: リアルスティール
+        dam: シーリア
+        weight: 57
+      - name: エルトンバローズ
+        jockey: 松若風馬
+        sex: 牡
+        age: 6
+        ref: nk-2020100680
+        trainer: 杉山晴紀
+        sire: ディープブリランテ
+        dam: ショウナンカラット
+        weight: 57
+      - name: クルゼイロドスル
+        jockey: 荻野極
+        sex: 牡
+        age: 6
+        ref: nk-2020101813
+        trainer: 高橋義忠
+        sire: ファインニードル
+        dam: スタリア
+        weight: 57
+      - name: サトノシャイニング
+        jockey: 西村淳也
+        sex: 牡
+        age: 4
+        ref: nk-2022101420
+        trainer: 杉山晴紀
+        sire: キズナ
+        dam: スウィーティーガール
+        weight: 57
+      - name: シャンパンカラー
+        jockey: 内田博幸
+        sex: 牡
+        age: 6
+        ref: nk-2020103075
+        trainer: 田中剛
+        sire: ドゥラメンテ
+        dam: メモリアルライフ
+        weight: 58
+      - name: セイウンハーデス
+        jockey: 幸英明
+        sex: 牡
+        age: 7
+        ref: nk-2019102632
+        trainer: 橋口慎介
+        sire: シルバーステート
+        dam: ハイノリッジ
+        weight: 57
+      - name: ダノンエアズロック
+        jockey: 田辺裕信
+        sex: 牡
+        age: 5
+        ref: nk-2021105817
+        trainer: 堀宣行
+        sire: モーリス
+        dam: モシーン
+        weight: 57
+      - name: ドラゴンブースト
+        jockey: 丹内祐次
+        sex: 牡
+        age: 4
+        ref: nk-2022105891
+        trainer: 藤野健太
+        sire: スクリーンヒーロー
+        dam: トーコーディオーネ
+        weight: 57
+      - name: ビーアストニッシド
+        sex: 牡
+        age: 7
+        ref: nk-2019101348
+        trainer: 堀内岳志
+        sire: アメリカンペイトリオット
+        dam: マオリオ
+        weight: 57
+      - name: ホウオウビスケッツ
+        jockey: 岩田康誠
+        sex: 牡
+        age: 6
+        ref: nk-2020103941
+        trainer: 奥村武
+        sire: マインドユアビスケッツ
+        dam: ホウオウサブリナ
+        weight: 57
+      - name: ライヒスアドラー
+        jockey: 佐々木大輔
+        sex: 牡
+        age: 3
+        ref: nk-2023103687
+        trainer: 上原佑紀
+        sire: シスキン
+        dam: クライリング
+        weight: 55
+      - name: ランスオブカオス
+        jockey: 横山武史
+        sex: 牡
+        age: 4
+        ref: nk-2022104401
+        trainer: 奥村豊
+        sire: シルバーステート
+        dam: ハイドラン
+        weight: 57
+      - name: リアライズシリウス
+        jockey: 津村明秀
+        sex: 牡
+        age: 3
+        ref: nk-2023103604
+        trainer: 手塚貴久
+        sire: ポエティックフレア
+        dam: レッドミラベル
+        weight: 55
+      - name: レイニング
+        jockey: ルメール
+        sex: 牡
+        age: 4
+        ref: nk-2022104750
+        trainer: 森一誠
+        sire: サートゥルナーリア
+        dam: クルミナル
+        weight: 57
+      - name: レガーロデルシエロ
+        sex: 牡
+        age: 5
+        ref: nk-2021105661
+        trainer: 栗田徹
+        sire: ロードカナロア
+        dam: デアレガーロ
+        weight: 57
+      - name: レディネス
+        jockey: 横山典弘
+        sex: 牡
+        age: 4
+        ref: nk-2022104416
+        trainer: 昆貢
+        sire: スワーヴリチャード
+        dam: リトルシャンブルズ
+        weight: 57
+      - name: ロングラン
+        jockey: 菊沢一樹
+        sex: セ
+        age: 8
+        ref: nk-2018104708
+        trainer: 和田勇介
+        sire: ヴィクトワールピサ
+        dam: ノッテビアンカ
+        weight: 57
   - course: 京都
     raceNumber: 11
     name: 京都大賞典
@@ -18,4 +179,193 @@ races:
     surface: 芝
     distance: 2400
     direction: 右
-    entries: []
+    ref: nk-202608040211
+    startTime: "15:30"
+    entries:
+      - name: アクアヴァーナル
+        jockey: 松山弘平
+        sex: 牝
+        age: 5
+        ref: nk-2021105433
+        trainer: 四位洋文
+        sire: エピファネイア
+        dam: エイプリルミスト
+        weight: 55
+      - name: ウエストナウ
+        jockey: 横山和生
+        sex: 牡
+        age: 5
+        ref: nk-2021106645
+        trainer: 寺島良
+        sire: キズナ
+        dam: ファヴォーラ
+        weight: 57
+      - name: ヴェルテンベルク
+        jockey: 古川吉洋
+        sex: 牡
+        age: 6
+        ref: nk-2020103060
+        trainer: 宮本博
+        sire: キタサンブラック
+        dam: マルカアイチャン
+        weight: 57
+      - name: ヴェルミセル
+        jockey: 川又賢治
+        sex: 牝
+        age: 6
+        ref: nk-2020103945
+        trainer: 吉村圭司
+        sire: ゴールドシップ
+        dam: マルーンドロップ
+        weight: 55
+      - name: エコロディノス
+        jockey: 田口貫太
+        sex: 牡
+        age: 4
+        ref: nk-2022105073
+        trainer: 大久保龍志
+        sire: キタサンブラック
+        dam: ミスティックリップス
+        weight: 57
+      - name: キングスコール
+        jockey: 吉田豊
+        sex: 牡
+        age: 4
+        ref: nk-2022104207
+        trainer: 矢作芳人
+        sire: ドゥラメンテ
+        dam: レインオンザデューン
+        weight: 57
+      - name: サヴォーナ
+        jockey: 斎藤新
+        sex: 牡
+        age: 6
+        ref: nk-2020100734
+        trainer: 中竹和也
+        sire: キズナ
+        dam: テイケイラピッド
+        weight: 57
+      - name: サフィラ
+        jockey: 北村友一
+        sex: 牝
+        age: 5
+        ref: nk-2021105541
+        trainer: 池添学
+        sire: ハーツクライ
+        dam: サロミナ
+        weight: 55
+      - name: ショウナンラプンタ
+        jockey: 池添謙一
+        sex: 牡
+        age: 5
+        ref: nk-2021105195
+        trainer: 高野友和
+        sire: キズナ
+        dam: フリアアステカ
+        weight: 57
+      - name: ダノンシーマ
+        jockey: 川田将雅
+        sex: 牡
+        age: 4
+        ref: nk-2022104645
+        trainer: 中内田充正
+        sire: キタサンブラック
+        dam: インクルードベティ
+        weight: 57
+      - name: ディープモンスター
+        jockey: 浜中俊
+        sex: 牡
+        age: 8
+        ref: nk-2018104475
+        trainer: 池江泰寿
+        sire: ディープインパクト
+        dam: シスタリーラヴ
+        weight: 58
+      - name: ナムラエイハブ
+        jockey: 田山旺佑
+        sex: 牡
+        age: 5
+        ref: nk-2021102895
+        trainer: 長谷川浩大
+        sire: リアルスティール
+        dam: ナムラアン
+        weight: 57
+      - name: ファミリータイム
+        jockey: 鮫島克駿
+        sex: 牡
+        age: 5
+        ref: nk-2021100651
+        trainer: 石坂公一
+        sire: リアルスティール
+        dam: プリオバーン
+        weight: 57
+      - name: ブレイヴロッカー
+        jockey: 太宰啓介
+        sex: セ
+        age: 6
+        ref: nk-2020102870
+        trainer: 本田優
+        sire: ドゥラメンテ
+        dam: シティイメージ
+        weight: 57
+      - name: ヘデントール
+        sex: 牡
+        age: 5
+        ref: nk-2021105521
+        trainer: 木村哲也
+        sire: ルーラーシップ
+        dam: コルコバード
+        weight: 58
+      - name: マイネルエンペラー
+        jockey: 吉村誠之助
+        sex: 牡
+        age: 6
+        ref: nk-2020105786
+        trainer: 清水久詞
+        sire: ゴールドシップ
+        dam: マイネテレジア
+        weight: 57
+      - name: ミクニインスパイア
+        jockey: M.デムーロ
+        sex: 牡
+        age: 4
+        ref: nk-2022106120
+        trainer: 林徹
+        sire: アドマイヤマーズ
+        dam: シルクヴィーナス
+        weight: 57
+      - name: ミステリーウェイ
+        jockey: 松本大輝
+        sex: セ
+        age: 8
+        ref: nk-2018104638
+        trainer: 小林真也
+        sire: ジャスタウェイ
+        dam: ジプシーハイウェイ
+        weight: 58
+      - name: メイショウブレゲ
+        jockey: 酒井学
+        sex: 牡
+        age: 7
+        ref: nk-2019104091
+        trainer: 本田優
+        sire: ゴールドシップ
+        dam: メイショウスイヅキ
+        weight: 57
+      - name: ラスカンブレス
+        jockey: 西塚洸二
+        sex: セ
+        age: 5
+        ref: nk-2021105391
+        trainer: 林徹
+        sire: ブリックスアンドモルタル
+        dam: アースライズ
+        weight: 57
+      - name: リビアングラス
+        sex: 牡
+        age: 6
+        ref: nk-2020105633
+        trainer: 矢作芳人
+        sire: キズナ
+        dam: ディルガ
+        weight: 57

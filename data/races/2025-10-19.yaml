@@ -311,6 +311,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 小雨
+    fieldSize: 18
+    winner: ニシノティアモ
     entries:
       - horseNumber: 2
         bracket: 1
@@ -320,6 +322,7 @@ races:
         finish: 16
         popularity: 3
         time: "1:47.2"
+        timeDiff: 1.8
         passing: "8-8-7"
         last3f: 35.1
         weight: 55

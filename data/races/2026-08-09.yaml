@@ -734,3 +734,31 @@ races:
         horseWeight: 540
         horseWeightDiff: -16
         odds: 11
+  - course: 新潟
+    raceNumber: 6
+    name: 佐渡S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: ライヒスアドラー
+    runnerUp: カニキュル
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ライヒスアドラー
+        jockey: 佐々木大輔
+        ref: nk-2023103687
+        finish: 1
+        popularity: 1
+        time: "1:44.8"
+        timeDiff: -0.2
+        passing: "7-7"
+        last3f: 32.7
+        weight: 55
+        horseWeight: 520
+        horseWeightDiff: 6
+        odds: 1.2

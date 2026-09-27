@@ -49,6 +49,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 12
+    winner: パントルナイーフ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -86,6 +88,7 @@ races:
         finish: 3
         popularity: 2
         time: "1:46.2"
+        timeDiff: 0.2
         passing: "3-4-6"
         last3f: 32.9
         weight: 56

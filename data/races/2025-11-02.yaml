@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 14
+    winner: マスカレードボール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -48,6 +50,7 @@ races:
         finish: 13
         popularity: 7
         time: "1:59.2"
+        timeDiff: 0.6
         passing: "2-2-2"
         last3f: 33.5
         weight: 58
@@ -90,6 +93,7 @@ races:
         finish: 7
         popularity: 10
         time: "1:59.0"
+        timeDiff: 0.4
         passing: "9-12-11"
         last3f: 32.4
         weight: 58
@@ -355,6 +359,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: ヴォランテ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -392,6 +398,7 @@ races:
         finish: 2
         popularity: 1
         time: "3:03.8"
+        timeDiff: 0
         passing: "4-4-2-2"
         last3f: 34.6
         weight: 54

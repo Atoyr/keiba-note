@@ -12,6 +12,7 @@ races:
     trackCondition: 重
     weather: 雨
     fieldSize: 13
+    winner: メイショウゲキリン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -67,6 +68,7 @@ races:
         popularity: 8
         time: "2:20.0"
         margin: "1/2"
+        timeDiff: 3.1
         passing: "9-9-10-8"
         last3f: 39.4
         weight: 57

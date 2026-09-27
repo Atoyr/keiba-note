@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 15
+    winner: オールナット
     entries:
       - horseNumber: 2
         bracket: 2
@@ -34,6 +36,7 @@ races:
         finish: 9
         popularity: 10
         time: "1:58.6"
+        timeDiff: 0.6
         passing: "7-8-7-7"
         last3f: 35.2
         weight: 55
@@ -423,6 +426,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 16
+    winner: ミクニインスパイア
+    runnerUp: ゲンジ
     entries:
       - horseNumber: 11
         bracket: 6
@@ -432,6 +438,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:00.4"
+        timeDiff: -0.1
         passing: "6-6-4-3"
         last3f: 33.6
         weight: 55
