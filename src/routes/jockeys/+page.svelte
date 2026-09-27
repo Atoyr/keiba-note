@@ -79,5 +79,10 @@
 				</li>
 			{/each}
 		</ul>
+		{#if data.truncated}
+			<p class="mt-4 text-xs text-muted-foreground">
+				騎乗の多い {data.limit} 人まで出しています。ほかの騎手は名前で探してください。
+			</p>
+		{/if}
 	{/if}
 </main>

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb } from '$lib/server/db/test-d1';
 import {
+	countJockeyRides,
 	getJockeySummary,
 	jockeyExists,
 	listJockeyRideNotes,
@@ -108,6 +109,12 @@ describe('騎手のタイムライン', () => {
 			typeof mergeJockeyTimeline
 		>[0][number];
 		expect(mergeJockeyTimeline([ride], [], '2026-09-27')[0].upcoming).toBe(false);
+	});
+
+	it('騎乗の数は上限で切る前の数', async () => {
+		expect(await listJockeyRides(state.db, 'ヤマダ', 2)).toHaveLength(2);
+		expect(await countJockeyRides(state.db, 'ヤマダ')).toBe(3);
+		expect(await countJockeyRides(state.db, 'タナカ')).toBe(0);
 	});
 
 	it('騎乗の無い名前は無い騎手', async () => {

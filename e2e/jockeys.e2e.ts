@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import {
@@ -11,6 +11,8 @@ import {
 
 const jockeyPath = (name: string) => `/jockeys/${encodeURIComponent(name)}`;
 const rides = 'main section ol > li';
+// まとめの文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
+const summaryRegion = (page: Page) => page.getByRole('region', { name: 'まとめ' });
 
 test('騎手の一覧は騎乗の多い順に並び、名前と自分が付けた札で絞れる', async ({ page }) => {
 	await login(page);
@@ -40,7 +42,7 @@ test('騎手の画面に、まとめと騎乗ごとの自分のメモが並ぶ',
 	await page.goto(jockeyPath(JOCKEYS.main));
 
 	await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();
-	await expect(page.locator('summary').getByText(JOCKEYS.mainSummary)).toBeVisible();
+	await expect(summaryRegion(page).getByText(JOCKEYS.mainSummary).first()).toBeVisible();
 
 	// 先頭は出走予定。以降は日付の降順。
 	const rows = page.locator(rides);
@@ -86,10 +88,12 @@ test('まとめを書いて札を付け、空にすると消える', async ({ pa
 	await page.getByRole('group', { name: '得意な場' }).getByText('福島巧者').click();
 	await page.getByRole('button', { name: 'まとめを保存する' }).click();
 	await expect(page.getByText('まとめを保存しました')).toBeVisible();
+	// 入力欄が閉じたら、フォーカスは開閉のボタンに戻る（押した保存ボタンは閉じた中に消える）。
+	await expect(summaryRegion(page).locator('summary')).toBeFocused();
 
 	// 読み込み直しても残る。一覧にも札が出る。
 	await page.reload();
-	await expect(page.locator('summary').getByText('若手らしく積極的。')).toBeVisible();
+	await expect(summaryRegion(page).getByText('若手らしく積極的。').first()).toBeVisible();
 	await page.goto('/jockeys');
 	await expect(page.locator('main ul > li', { hasText: JOCKEYS.rookie })).toContainText('福島巧者');
 
@@ -117,6 +121,12 @@ test('騎乗の無い騎手は 404 で、まとめも書けない', async ({ pag
 
 	const res = await page.goto(path);
 	expect(res?.status()).toBe(404);
+	// 既定のエラー画面ではなく、一覧へ戻る道を出す（名前の表記が変わるとリンクが古くなる）。
+	await expect(page.getByRole('heading', { name: '騎手が見つかりません' })).toBeVisible();
+	await expect(page.getByRole('link', { name: '騎手の一覧で探す' })).toHaveAttribute(
+		'href',
+		'/jockeys'
+	);
 
 	const post = await page.request.post(`${path}?/saveSummary`, {
 		headers: { origin: `http://localhost:${process.env.E2E_PORT ?? 4173}` },

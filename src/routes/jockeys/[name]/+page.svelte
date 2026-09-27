@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
@@ -20,6 +21,7 @@
 	/** まとめの入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。 */
 	let editing = $state(false);
 	let pending = $state(false);
+	let toggle = $state<HTMLElement>();
 
 	const hasSummary = $derived(!!data.summary);
 	const self = $derived(resolve('/jockeys/[name]', { name: jockeyParam(data.name) }));
@@ -39,83 +41,87 @@
 		<h2 id="jockey-summary" class="text-sm font-semibold text-muted-foreground">まとめ</h2>
 
 		<!-- 書いたまとめは畳まない。畳むのは書く側だけ（予想画面の出走前メモと同じ）。
-		     `<details>` なので JS が無くても開ける。 -->
-		<details class="group mt-2 rounded-md border p-3" bind:open={editing}>
-			<summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+		     `<details>` なので JS が無くても開ける。
+		     **まとめの文は `<summary>` の外に置く。** 中に入れると、開閉のボタンの読み上げ名がまとめ全文になる。
+		     開いている間は下の入力欄が正なので、読む形は隠す（JS が無いときは出たまま）。 -->
+		<div class="mt-2 rounded-md border p-3">
+			{#if !editing}
 				{#if data.summary}
-					<span class="block group-open:hidden">
-						<!-- 改行を保つので、テンプレート側の字下げを入れないよう1行で書く。 -->
-						{#if data.summary.body}<span class="block text-sm leading-relaxed whitespace-pre-wrap"
-								>{data.summary.body}</span
-							>{/if}
-						<JockeyTagBadges tags={data.summary.tags} class="mt-1" />
-					</span>
+					<!-- 改行を保つので、テンプレート側の字下げを入れないよう1行で書く。 -->
+					{#if data.summary.body}<p class="text-sm leading-relaxed whitespace-pre-wrap">
+							{data.summary.body}
+						</p>{/if}
+					<JockeyTagBadges tags={data.summary.tags} class="mt-1" />
 				{:else}
-					<span class="block text-sm text-muted-foreground group-open:hidden">
+					<p class="text-sm text-muted-foreground">
 						まだまとめはありません。乗り方の癖や得意な場を、札と一言で残せます。
-					</span>
+					</p>
 				{/if}
-				<span
-					class="mt-1 inline-block text-xs text-muted-foreground underline-offset-2 group-open:hidden hover:underline"
+			{/if}
+			<details class="group" bind:open={editing}>
+				<summary
+					bind:this={toggle}
+					class="mt-1 inline-flex min-h-6 cursor-pointer list-none items-center text-xs text-muted-foreground underline-offset-2 hover:underline [&::-webkit-details-marker]:hidden"
 				>
-					{hasSummary ? '書き直す' : '＋ まとめを書く'}
-				</span>
-				<span
-					class="hidden text-xs text-muted-foreground underline-offset-2 group-open:inline hover:underline"
-				>
-					閉じる
-				</span>
-			</summary>
+					<span class="group-open:hidden">{hasSummary ? '書き直す' : '＋ まとめを書く'}</span>
+					<span class="hidden group-open:inline">閉じる</span>
+				</summary>
 
-			<form
-				method="POST"
-				action="?/saveSummary"
-				class="mt-2 grid gap-3"
-				use:enhance={({ cancel }) => {
-					if (pending) {
-						cancel();
-						return;
-					}
-					pending = true;
-					return async ({ result, update }) => {
-						try {
-							// 表示の正はサーバーの data。フォームを初期値に戻すと、描き直されない欄が空に見える
-							// （product.md 第6章「update({ reset: false }) が要る」）。
-							await update({ reset: false });
-							if (result.type === 'success') {
-								editing = false;
-								toast.success(
-									result.data?.summary === 'cleared' ? 'まとめを消しました' : 'まとめを保存しました'
-								);
-							}
-						} finally {
-							pending = false;
+				<form
+					method="POST"
+					action="?/saveSummary"
+					class="mt-2 grid gap-3"
+					use:enhance={({ cancel }) => {
+						if (pending) {
+							cancel();
+							return;
 						}
-					};
-				}}
-			>
-				<Textarea
-					name="body"
-					rows={3}
-					aria-label="まとめの本文"
-					placeholder="中山の内回りは前に行く。追ってからしぶとい。"
-					class="text-sm"
-					value={data.summary?.body ?? ''}
-				/>
-				<JockeyTagPicker name="tags" values={data.summary?.tags ?? []} />
-				<p class="text-xs text-muted-foreground">
-					本文も札も空にして保存すると、まとめは消えます。
-				</p>
-				<div class="flex flex-wrap items-center gap-3">
-					<Button type="submit" aria-disabled={pending} class="aria-disabled:opacity-50">
-						まとめを保存する
-					</Button>
-					{#if form?.message}
-						<p class="text-sm text-destructive" role="alert">{form.message}</p>
-					{/if}
-				</div>
-			</form>
-		</details>
+						pending = true;
+						return async ({ result, update }) => {
+							try {
+								// 表示の正はサーバーの data。フォームを初期値に戻すと、描き直されない欄が空に見える
+								// （product.md 第6章「update({ reset: false }) が要る」）。
+								await update({ reset: false });
+								if (result.type === 'success') {
+									editing = false;
+									// 押した保存ボタンは閉じた中に消えるので、フォーカスを開閉のボタンへ戻す。
+									await tick();
+									toggle?.focus();
+									toast.success(
+										result.data?.summary === 'cleared'
+											? 'まとめを消しました'
+											: 'まとめを保存しました'
+									);
+								}
+							} finally {
+								pending = false;
+							}
+						};
+					}}
+				>
+					<Textarea
+						name="body"
+						rows={3}
+						aria-label="まとめの本文"
+						placeholder="中山の内回りは前に行く。追ってからしぶとい。"
+						class="text-sm"
+						value={data.summary?.body ?? ''}
+					/>
+					<JockeyTagPicker name="tags" values={data.summary?.tags ?? []} />
+					<p class="text-xs text-muted-foreground">
+						本文も札も空にして保存すると、まとめは消えます。
+					</p>
+					<div class="flex flex-wrap items-center gap-3">
+						<Button type="submit" aria-disabled={pending} class="aria-disabled:opacity-50">
+							まとめを保存する
+						</Button>
+						{#if form?.message}
+							<p class="text-sm text-destructive" role="alert">{form.message}</p>
+						{/if}
+					</div>
+				</form>
+			</details>
+		</div>
 		{#if form && 'summary' in form}<noscript
 				><p class="mt-1 text-sm">
 					{form.summary === 'cleared' ? 'まとめを消しました。' : 'まとめを保存しました。'}
@@ -207,11 +213,11 @@
 					</li>
 				{/each}
 			</ol>
-			{#if data.truncated}
-				<p class="mt-4 text-xs text-muted-foreground">
-					新しい {data.rideCount} 騎乗まで出しています。
-				</p>
-			{/if}
+		{/if}
+		{#if data.shownLimit}
+			<p class="mt-4 text-xs text-muted-foreground">
+				新しい {data.shownLimit} 騎乗まで出しています（それより前の騎乗とメモは出していません）。
+			</p>
 		{/if}
 	</section>
 </main>

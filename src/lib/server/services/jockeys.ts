@@ -27,6 +27,9 @@ export type JockeyListItem = {
 	tags: JockeyTag[];
 };
 
+/** 一覧に出す騎手の数。超えたら名前か札で絞ってもらう（画面で断る）。 */
+export const JOCKEY_LIST_LIMIT = 200;
+
 export type JockeyFilter = { q: string; tag: JockeyTag | null };
 
 /**
@@ -66,7 +69,7 @@ export async function listJockeys(
 		)
 		.groupBy(raceEntry.jockey, jockeyNote.tags)
 		.orderBy(desc(countDistinct(raceEntry.id)), asc(raceEntry.jockey))
-		.limit(200);
+		.limit(JOCKEY_LIST_LIMIT);
 
 	return rows.map((r) => ({
 		name: r.name ?? '',
@@ -182,6 +185,18 @@ export async function listJockeyRideNotes(
 		.where(and(eq(note.authorId, viewerId), eq(raceEntry.jockey, name)))
 		.orderBy(asc(note.createdAt));
 	return rows;
+}
+
+/**
+ * 騎乗の数。`listJockeyRides` は新しいほうから上限までしか返さないので、見出しの数はこちらで数える
+ * （一覧の騎乗数と同じ数になるように）。
+ */
+export async function countJockeyRides(db: Db, name: string): Promise<number> {
+	const rows = await db
+		.select({ n: countDistinct(raceEntry.id) })
+		.from(raceEntry)
+		.where(eq(raceEntry.jockey, name));
+	return rows.at(0)?.n ?? 0;
 }
 
 /** その名前の騎乗が1つでもあるか（無い騎手の画面は 404）。 */

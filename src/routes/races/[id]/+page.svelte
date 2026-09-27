@@ -218,10 +218,12 @@
 								>
 									{r.horseName}
 								</a>
+								<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
 								{#if r.jockey}
 									<a
 										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
-										class="text-gray-600 hover:underline">{r.jockey}</a
+										class="inline-flex min-h-6 items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
+										>{r.jockey}</a
 									>
 								{/if}
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span

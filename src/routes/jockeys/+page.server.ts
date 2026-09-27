@@ -1,5 +1,5 @@
 import { parseJockeyTag } from '$lib/schemas/jockey';
-import { listJockeys, listJockeyTagsInUse } from '$lib/server/services/jockeys';
+import { JOCKEY_LIST_LIMIT, listJockeys, listJockeyTagsInUse } from '$lib/server/services/jockeys';
 import { ctx } from '$lib/server/util';
 import type { PageServerLoad } from './$types';
 
@@ -17,5 +17,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 		listJockeys(db, user.id, { q, tag }),
 		listJockeyTagsInUse(db, user.id)
 	]);
-	return { jockeys, tagsInUse, q, tag };
+	// 上限まで返ってきたら、騎乗の少ない騎手を出していない。
+	const truncated = jockeys.length >= JOCKEY_LIST_LIMIT;
+	return { jockeys, tagsInUse, q, tag, truncated, limit: JOCKEY_LIST_LIMIT };
 };

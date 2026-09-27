@@ -2,6 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { jockeySummarySchema } from '$lib/schemas/jockey';
 import {
+	countJockeyRides,
 	getJockeySummary,
 	JOCKEY_RIDE_LIMIT,
 	jockeyExists,
@@ -18,7 +19,7 @@ import type { Actions, PageServerLoad } from './$types';
  * 騎手の画面＝まとめ + 騎乗のタイムライン。
  *
  * 骨は騎乗（`race_entry`。誰が見ても同じ）で、そこに viewer 自身のメモ（その騎乗の出走前・ふりかえり）を重ねる。
- * まとめは1人・1騎手につき1本（本文と札）。読みは3クエリで、並行に投げる。
+ * まとめは1人・1騎手につき1本（本文と札）。読みは4クエリで、並行に投げる。
  *
  * `?notes=1` でメモのある騎乗だけにする。騎乗は数百になるので、メモを読み返したいときに
  * メモの無い行を送らなくて済むように。URL に残るのは、予想の最中に開き直しても同じ絞りで見られるように。
@@ -28,24 +29,26 @@ export const load: PageServerLoad = async ({ locals, platform, params, url }) =>
 	const name = params.name;
 	const today = todayJst();
 
-	const [rides, notes, summary] = await Promise.all([
+	const [rides, rideCount, notes, summary] = await Promise.all([
 		listJockeyRides(db, name),
+		countJockeyRides(db, name),
 		listJockeyRideNotes(db, name, user.id),
 		getJockeySummary(db, name, user.id)
 	]);
 	if (rides.length === 0) error(404, '騎手が見つかりません');
 
 	const timeline = mergeJockeyTimeline(rides, notes, today);
-	const notedCount = timeline.filter((r) => r.notes.length > 0).length;
+	// 上限で切る前の数で数える（古い騎乗に付いたメモも数に入る）。
+	const notedCount = new Set(notes.map((n) => n.raceEntryId)).size;
 	const onlyNoted = url.searchParams.get('notes') === '1';
 
 	return {
 		name,
 		summary,
 		timeline: onlyNoted ? timeline.filter((r) => r.notes.length > 0) : timeline,
-		rideCount: rides.length,
-		/** 騎乗が上限まであったか（古い騎乗を出していない）。 */
-		truncated: rides.length >= JOCKEY_RIDE_LIMIT,
+		rideCount,
+		/** 上限で切ったか（古い騎乗を出していない）。切ったときは出している数を画面で断る。 */
+		shownLimit: rideCount > rides.length ? JOCKEY_RIDE_LIMIT : null,
 		notedCount,
 		onlyNoted,
 		today

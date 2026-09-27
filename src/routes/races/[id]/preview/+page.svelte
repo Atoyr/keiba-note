@@ -368,11 +368,12 @@
 										{r.horseName}
 									</a>
 								</span>
-								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。 -->
+								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
+								     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
 								{#if r.jockey}
 									<a
 										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
-										class="text-sm text-muted-foreground hover:underline"
+										class="inline-flex min-h-6 items-center text-sm text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
 									>
 										{r.jockey}
 									</a>
