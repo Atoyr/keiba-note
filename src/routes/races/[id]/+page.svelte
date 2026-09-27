@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
-	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -208,12 +208,9 @@
 								{#if r.finishPosition}
 									<span class="font-bold">{r.finishPosition}着</span>
 								{/if}
-								<!-- 枠は色、馬番は数字で出す。この画面の並びは着順なので、
-								     色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
-								<BracketBadge bracket={r.bracket} />
-								{#if r.horseNumber}
-									<span class="font-mono text-gray-500">{r.horseNumber}</span>
-								{/if}
+								<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
+								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
+								<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
 								<a
 									href={resolve('/horses/[id]', { id: r.horseId })}
 									class="font-medium hover:underline"

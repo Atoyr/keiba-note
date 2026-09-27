@@ -104,3 +104,39 @@ export function formatOddsAsOf(iso: string): string {
 	);
 	return `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}時点`;
 }
+
+/**
+ * 単勝オッズから人気を付ける。**オッズが低い順に 1人気、2人気…**
+ *
+ * 取得元の人気は票数で決まるが、ここにあるのはオッズだけなので、オッズで順を付ける。
+ * 同じオッズは同じ人気にし、次はその頭数ぶん飛ばす（3.4 / 5.1 / 5.1 / 8.0 → 1 / 2 / 2 / 4）。
+ * オッズの無い馬（取消・発売前）には付けない。
+ *
+ * 返すのは馬番 → 人気。
+ */
+export function popularityByNumber(
+	horses: { horseNumber: number; winOdds: number | null }[]
+): Map<number, number> {
+	const priced = horses.filter(
+		(h): h is { horseNumber: number; winOdds: number } => h.winOdds !== null
+	);
+	return new Map(
+		priced.map((h) => [h.horseNumber, 1 + priced.filter((o) => o.winOdds < h.winOdds).length])
+	);
+}
+
+/**
+ * 人気順に並べ替えた写し。人気の無い馬（取消・馬番未定）は後ろに回し、
+ * 同じ人気どうしと人気の無い馬どうしは馬番の順（馬番も無ければ元の順）にする。
+ */
+export function sortByPopularity<
+	T extends { popularity: number | null; horseNumber: number | null }
+>(rows: T[]): T[] {
+	// 人気も馬番も18までなので、それより大きい数で後ろに回す（Infinity 同士の差は NaN になる）
+	const last = 99;
+	return [...rows].sort(
+		(a, b) =>
+			(a.popularity ?? last) - (b.popularity ?? last) ||
+			(a.horseNumber ?? last) - (b.horseNumber ?? last)
+	);
+}
