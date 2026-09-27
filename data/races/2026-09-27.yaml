@@ -10,6 +10,11 @@ races:
     surface: 芝
     distance: 1200
     direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    fieldSize: 16
+    winner: ピューロマジック
+    runnerUp: ワールズエンド
     ref: nk-202606040911
     startTime: "15:40"
     entries:
@@ -23,7 +28,17 @@ races:
         trainer: 蛯名正義
         sire: ロードカナロア
         dam: ラストグルーヴ
+        finish: 5
+        popularity: 14
+        time: "1:09.6"
+        margin: "1.1/4"
+        timeDiff: 0.4
+        passing: "14-14"
+        last3f: 35
         weight: 58
+        horseWeight: 510
+        horseWeightDiff: -2
+        odds: 52.3
       - horseNumber: 2
         bracket: 1
         name: アイサンサン
@@ -34,7 +49,17 @@ races:
         trainer: 橋田宜長
         sire: キズナ
         dam: ウアジェト
+        finish: 11
+        popularity: 15
+        time: "1:09.8"
+        margin: "3/4"
+        timeDiff: 0.6
+        passing: "10-12"
+        last3f: 35.5
         weight: 56
+        horseWeight: 454
+        horseWeightDiff: -4
+        odds: 56.1
       - horseNumber: 3
         bracket: 2
         name: ママコチャ
@@ -45,7 +70,17 @@ races:
         trainer: 池江泰寿
         sire: クロフネ
         dam: ブチコ
+        finish: 10
+        popularity: 7
+        time: "1:09.7"
+        margin: "ハナ"
+        timeDiff: 0.5
+        passing: "7-7"
+        last3f: 35.6
         weight: 56
+        horseWeight: 500
+        horseWeightDiff: -2
+        odds: 16.1
       - horseNumber: 4
         bracket: 2
         name: ジューンブレア
@@ -56,7 +91,17 @@ races:
         trainer: 武英智
         sire: アメリカンファラオ
         dam: Lap of Luxury
+        finish: 8
+        popularity: 12
+        time: "1:09.7"
+        margin: "アタマ"
+        timeDiff: 0.5
+        passing: "7-8"
+        last3f: 35.6
         weight: 56
+        horseWeight: 496
+        horseWeightDiff: 12
+        odds: 28.3
       - horseNumber: 5
         bracket: 3
         name: サウンドモリアーナ
@@ -67,7 +112,17 @@ races:
         trainer: 武英智
         sire: ミッキーアイル
         dam: サウンドリアーナ
+        finish: 3
+        popularity: 11
+        time: "1:09.2"
+        margin: "ハナ"
+        timeDiff: 0
+        passing: "5-3"
+        last3f: 35.2
         weight: 56
+        horseWeight: 454
+        horseWeightDiff: 0
+        odds: 27
       - horseNumber: 6
         bracket: 3
         name: ワールズエンド
@@ -78,7 +133,17 @@ races:
         trainer: 池添学
         sire: ロードカナロア
         dam: リラヴァティ
+        finish: 2
+        popularity: 5
+        time: "1:09.2"
+        margin: "クビ"
+        timeDiff: 0
+        passing: "3-3"
+        last3f: 35.3
         weight: 58
+        horseWeight: 472
+        horseWeightDiff: 2
+        odds: 10.7
       - horseNumber: 7
         bracket: 4
         name: ペアポルックス
@@ -89,7 +154,17 @@ races:
         trainer: 梅田智之
         sire: キンシャサノキセキ
         dam: ミラクルアスク
+        finish: 8
+        popularity: 13
+        time: "1:09.7"
+        margin: "同着"
+        timeDiff: 0.5
+        passing: "3-3"
+        last3f: 35.9
         weight: 58
+        horseWeight: 482
+        horseWeightDiff: 4
+        odds: 36.7
       - horseNumber: 8
         bracket: 4
         name: エーティーマクフィ
@@ -100,7 +175,17 @@ races:
         trainer: 武英智
         sire: マクフィ
         dam: テンシンランマン
+        finish: 7
+        popularity: 8
+        time: "1:09.7"
+        margin: "クビ"
+        timeDiff: 0.5
+        passing: "14-14"
+        last3f: 35.2
         weight: 58
+        horseWeight: 476
+        horseWeightDiff: -6
+        odds: 21.9
       - horseNumber: 9
         bracket: 5
         name: スターアニス
@@ -111,7 +196,17 @@ races:
         trainer: 高野友和
         sire: ドレフォン
         dam: エピセアローム
+        finish: 4
+        popularity: 1
+        time: "1:09.4"
+        margin: "1.1/4"
+        timeDiff: 0.2
+        passing: "10-10"
+        last3f: 35.1
         weight: 54
+        horseWeight: 484
+        horseWeightDiff: 4
+        odds: 3.7
       - horseNumber: 10
         bracket: 5
         name: レイピア
@@ -122,7 +217,17 @@ races:
         trainer: 中竹和也
         sire: タワーオブロンドン
         dam: アンナトルテ
+        finish: 13
+        popularity: 10
+        time: "1:10.6"
+        margin: "4"
+        timeDiff: 1.4
+        passing: "14-12"
+        last3f: 36
         weight: 58
+        horseWeight: 508
+        horseWeightDiff: 0
+        odds: 25.2
       - horseNumber: 11
         bracket: 6
         name: ルガル
@@ -133,7 +238,16 @@ races:
         trainer: 杉山晴紀
         sire: ドゥラメンテ
         dam: アタブ
+        finish: 14
+        popularity: 4
+        time: "1:10.8"
+        margin: "1.1/4"
+        timeDiff: 1.6
+        passing: "10-10"
+        last3f: 36.5
         weight: 58
+        horseWeight: 532
+        odds: 9.6
       - horseNumber: 12
         bracket: 6
         name: ブラックチャリス
@@ -144,7 +258,17 @@ races:
         trainer: 武幸四郎
         sire: キタサンブラック
         dam: ゴールドチャリス
+        finish: 16
+        popularity: 16
+        time: "1:12.6"
+        margin: "4"
+        timeDiff: 3.4
+        passing: "13-16"
+        last3f: 38.2
         weight: 54
+        horseWeight: 464
+        horseWeightDiff: -6
+        odds: 113.6
       - horseNumber: 13
         bracket: 7
         name: パンジャタワー
@@ -155,7 +279,17 @@ races:
         trainer: 橋口慎介
         sire: タワーオブロンドン
         dam: クラークスデール
+        finish: 15
+        popularity: 2
+        time: "1:11.9"
+        margin: "7"
+        timeDiff: 2.7
+        passing: "7-8"
+        last3f: 37.8
         weight: 58
+        horseWeight: 490
+        horseWeightDiff: -4
+        odds: 3.9
       - horseNumber: 14
         bracket: 7
         name: ウインカーネリアン
@@ -166,7 +300,17 @@ races:
         trainer: 鹿戸雄一
         sire: スクリーンヒーロー
         dam: コスモクリスタル
+        finish: 6
+        popularity: 6
+        time: "1:09.6"
+        margin: "クビ"
+        timeDiff: 0.4
+        passing: "5-3"
+        last3f: 35.6
         weight: 58
+        horseWeight: 518
+        horseWeightDiff: 4
+        odds: 13.9
       - horseNumber: 15
         bracket: 8
         name: フリッカージャブ
@@ -177,7 +321,17 @@ races:
         trainer: 西園翔太
         sire: サートゥルナーリア
         dam: ナイキトリック
+        finish: 12
+        popularity: 3
+        time: "1:09.9"
+        margin: "3/4"
+        timeDiff: 0.7
+        passing: "2-2"
+        last3f: 36.2
         weight: 58
+        horseWeight: 504
+        horseWeightDiff: -2
+        odds: 7.7
       - horseNumber: 16
         bracket: 8
         name: ピューロマジック
@@ -188,7 +342,16 @@ races:
         trainer: 安田翔伍
         sire: アジアエクスプレス
         dam: メジェルダ
+        finish: 1
+        popularity: 9
+        time: "1:09.2"
+        timeDiff: 0
+        passing: "1-1"
+        last3f: 35.6
         weight: 56
+        horseWeight: 464
+        horseWeightDiff: 4
+        odds: 24.5
     withdrawn:
       - name: クラスペディア
         ref: nk-2022106394
