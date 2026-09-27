@@ -296,9 +296,9 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'horses', path: '/horses', auth: true },
-	// 推しの馬。名前の右に「推しから外す」（星が塗られる）。
+	// 推しの馬。名前の右に黄色く塗った★（押すと推しから外す）。
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
-	// 推しでない馬。「推しにする」（星は輪郭だけ）。
+	// 推しでない馬。黄色の輪郭だけの☆（押すと推しにする）。
 	{ name: 'horse-not-favorite', path: `/horses/${TOGGLE_FAVORITE_HORSE_ID}`, auth: true },
 	{
 		// 共有と削除は `⋯` に畳んである。共有中の近況メモのメニューを開いた状態。

@@ -37,7 +37,7 @@ test('推しがいなければ、どこで推しにするかを案内する', as
 	await login(page, 'admin');
 	await page.goto('/');
 
-	await expect(favorites(page)).toContainText('の画面で「推しにする」を押すと');
+	await expect(favorites(page)).toContainText('の画面で星のボタンを押すと');
 	await expect(favorites(page).getByRole('link', { name: '馬' })).toHaveAttribute(
 		'href',
 		'/horses'

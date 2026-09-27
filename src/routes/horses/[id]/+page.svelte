@@ -40,7 +40,10 @@
 	<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
 		<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
 		<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
-		     二重に押しても行き来しない。星の塗りで今の状態を、文言で押すと何が起きるかを出す。 -->
+		     二重に押しても行き来しない。
+		     **星だけのボタンにしている**（文字を添えない。色も色名を直に書く。design-system.md 第6章「例外 — 推しの星」）。
+		     今の状態は星の塗り（推しなら★、そうでなければ☆）で、押すと何が起きるかは読み上げと hover の名前
+		     （aria-label / title）で出す。輪郭は白い地に 3:1（WCAG 1.4.11）に届く amber-600、塗りは yellow-400。 -->
 		<form
 			method="POST"
 			action="?/favorite"
@@ -67,9 +70,19 @@
 			}}
 		>
 			<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
-			<Button type="submit" variant="outline" aria-disabled={favoritePending}>
-				<Star class={data.favorite ? 'fill-current' : ''} aria-hidden="true" />
-				{favoritePending ? '切り替え中…' : data.favorite ? '推しから外す' : '推しにする'}
+			<Button
+				type="submit"
+				variant="ghost"
+				size="icon-lg"
+				aria-label={data.favorite ? '推しから外す' : '推しにする'}
+				title={data.favorite ? '推しから外す' : '推しにする'}
+				aria-disabled={favoritePending}
+				class="aria-disabled:opacity-50"
+			>
+				<Star
+					class="size-7 text-amber-600 {data.favorite ? 'fill-yellow-400' : ''}"
+					aria-hidden="true"
+				/>
 			</Button>
 		</form>
 	</div>

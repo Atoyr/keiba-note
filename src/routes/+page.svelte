@@ -159,7 +159,7 @@
 			{#if data.favorites.runs.length === 0 && data.favorites.idle.length === 0}
 				<p class="mt-2 text-sm text-muted-foreground">
 					<a href={resolve('/horses')} class="underline">馬</a>
-					の画面で「推しにする」を押すと、その馬の出走予定がここに並びます。
+					の画面で星のボタンを押すと、その馬の出走予定がここに並びます。
 				</p>
 			{:else}
 				{#if data.favorites.runs.length === 0}
