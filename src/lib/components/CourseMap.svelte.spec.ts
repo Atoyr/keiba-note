@@ -66,6 +66,20 @@ describe('CourseMap', () => {
 		}
 	});
 
+	it('図の下に高低断面を出す。内回り・外回りが決まらないレースには出さない', async () => {
+		await page.viewport(1280, 800);
+		const sprint = render(CourseMap, {
+			race: { course: '中山', surface: '芝', distance: 1200, direction: '右' }
+		});
+		await expect.element(page.getByRole('img', { name: /^高低断面図/ })).toBeVisible();
+		sprint.unmount();
+
+		// 京都の芝1600m は内回り・外回りのどちらを走るか決まらない。
+		render(CourseMap, { race: { course: '京都', surface: '芝', distance: 1600, direction: '右' } });
+		await expect.element(page.getByRole('img', { name: /コース図/ })).toBeVisible();
+		await expect.element(page.getByRole('img', { name: /^高低断面図/ })).not.toBeInTheDocument();
+	});
+
 	it('図が無いレースでは何も出さない', () => {
 		const { container } = render(CourseMap, {
 			race: { course: '大井', surface: 'ダート', distance: 2000, direction: null }

@@ -13,6 +13,7 @@ import {
 	PAST_EMPTY_RACE_ID,
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
+	SPRINT_RACE_ID,
 	SHARED_NOTE_ID,
 	SHARED_RACE_ID,
 	TOGGLE_FAVORITE_HORSE_ID
@@ -220,6 +221,16 @@ export const SCREENS: Screen[] = [
 		name: 'race-preview-no-entries',
 		path: `/races/${EMPTY_RACE_ID}/preview`,
 		auth: true
+	},
+	{
+		// 中山の芝1200m。外回りの形（2コーナーから外へ分かれる）と、下って最後に上る高低断面。
+		name: 'race-preview-course-sprint',
+		path: `/races/${SPRINT_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			const summary = page.locator('details summary', { hasText: 'コース' });
+			if (await summary.isVisible()) await summary.click();
+		}
 	},
 	{
 		// 開催済みのレース。見出しの下に「ふりかえりを書く」が出る（ふりかえりの見出しと並びをそろえてある）。

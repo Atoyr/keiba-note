@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { courseMap, type CourseMapSource } from '$lib/utils/course';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import CourseElevation from './CourseElevation.svelte';
 
 	/**
-	 * レースを走るコースの図と、回り・直線・高低差。
+	 * レースを走るコースの図と、回り・直線・高低差。その下に、スタートからゴールまでの高低断面。
 	 *
 	 * 図は `src/lib/assets/courses/` の SVG を `<img>` で読む。`?no-inline` を付けて、
 	 * 小さなファイルでも JS に埋め込ませず、`/_app/immutable/assets/` に名前にハッシュの付いた
@@ -54,6 +55,9 @@
 				</ul>
 			</figcaption>
 		</figure>
+		{#if m.profile}
+			<CourseElevation profile={m.profile} />
+		{/if}
 	</div>
 {/snippet}
 
