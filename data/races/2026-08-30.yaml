@@ -35,6 +35,7 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 雨
+    fieldSize: 11
     entries:
       - horseNumber: 1
         bracket: 1
@@ -264,6 +265,7 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 9
     entries:
       - horseNumber: 1
         bracket: 1
