@@ -557,6 +557,16 @@ VALUES ('01JE2EENTRYMARK70000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKH
 INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, mark, occurred_at)
 VALUES ('01JE2EPREVIEWMARK700000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE70000000000', '01JE2EENTRYMARK70000000000', '印は保留。距離延長での走りに注目。', NULL, '2026-06-07');
 
+-- ふりかえり画面の「4角 → 着順」・上りの順位・確定の人気用（人気は予想画面の単勝オッズの並びにそろえた）。上り1〜3位が別々の馬に付き、
+-- 4角の位置と着順が入れ替わる（⑤アナウマは4角5番手から2着）ようにしてある。
+-- メモノミ（着順なし）は通過順も上りも無いまま＝2行目を出さない形。
+UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1 WHERE id = '01JE2EENTRYMARK10000000000';
+UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2 WHERE id = '01JE2EENTRYMARK20000000000';
+UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3 WHERE id = '01JE2EENTRYMARK30000000000';
+UPDATE race_entry SET passing = '4-4-4-4', last_3f = 35.3, popularity = 5 WHERE id = '01JE2EENTRYMARK40000000000';
+UPDATE race_entry SET passing = '6-6-5-5', last_3f = 33.7, popularity = 6 WHERE id = '01JE2EENTRYMARK50000000000';
+UPDATE race_entry SET passing = '3-3-3-3', last_3f = 34.4, popularity = 4 WHERE id = '01JE2EENTRYMARK60000000000';
+
 -- 展開の予想の見本。印見本のレースの見立てに、3局面の隊列を置いてある。
 -- 予想画面（畳んだ1行・盤面）・予想まとめ・ふりかえり（開催前の見立て）のキャプチャで使う。
 -- created_at は過去にする。今にするとダッシュボードの「最近のメモ」の先頭を取り、ほかのテストが見るメモを押し出す。

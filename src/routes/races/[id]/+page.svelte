@@ -7,6 +7,7 @@
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
+	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
@@ -18,6 +19,7 @@
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
+	import { corner4Position, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -49,6 +51,16 @@
 			}))
 		)
 	);
+
+	// 4コーナーの位置と上りの順位。上りの順位は出走馬全体で数えるので、行ごとには出せない。
+	const rows = $derived.by(() => {
+		const ranks = last3fRanks(data.rows);
+		return data.rows.map((r) => ({
+			...r,
+			corner4: corner4Position(r.passing),
+			last3fRank: ranks.get(r.entryId) ?? null
+		}));
+	});
 
 	const ta =
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
@@ -202,7 +214,7 @@
 				</p>
 
 				<ul class="mt-2 space-y-5">
-					{#each data.rows as r (r.entryId)}
+					{#each rows as r (r.entryId)}
 						<li class="border-t border-gray-200 pt-3">
 							<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
 								{#if r.finishPosition}
@@ -221,10 +233,26 @@
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span
 									>{/if}
 								{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
-								{#if r.last3f}<span class="text-xs text-gray-500">上り{r.last3f}</span>{/if}
 								<span class="flex-1"></span>
 								<MarkBadge mark={r.myPreview?.mark ?? null} />
 							</div>
+
+							<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
+							     後ろから届いたのか」「上りが速かったのか」が読めない。
+							     スマホで1行に収まるよう、1行目とは分けて小さく出す。 -->
+							{#if r.corner4 !== null || r.last3f !== null || r.popularity}
+								<p
+									class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+								>
+									{#if r.corner4 !== null}
+										<span
+											>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
+										>
+									{/if}
+									<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
+									{#if r.popularity}<span>{r.popularity}人気</span>{/if}
+								</p>
+							{/if}
 
 							<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
 							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->

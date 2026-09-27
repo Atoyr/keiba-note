@@ -4,6 +4,7 @@ import { login } from './login';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
+	MARKS_RACE_ID,
 	OTHER_DISTANCE_RACE_ID,
 	OTHER_USER_PREVIEW_BODY,
 	OUTER_PREVIEW_BODY,
@@ -285,6 +286,33 @@ test('ふりかえり画面の上に、予想の印と着順が印の順に並�
 	await expect(answers).toContainText('◎○▲△☆ 2頭中 2頭 馬券内');
 	// 的中は馬券に使う言葉。このアプリは馬券を記録していないので、印には使わない。
 	await expect(answers).not.toContainText(/当たり|外れ|的中/);
+});
+
+/**
+ * 各馬の行に、走りを読むための数字（4角の位置 → 着順・上りの順位・人気）が出る。
+ *
+ * seed の E2E印見本特別では、⑤アナウマが6人気・4角5番手から2着・上り1位、①ホンメイが上り2位、
+ * ⑥ケシウマが上り3位。上りの順位は出走馬全体で数えるので、行ごとの値だけでは決まらない。
+ */
+test('各馬の行に、4角の位置から着順・上りの順位・人気が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}`);
+
+	const row = (name: string) => page.locator('form li', { hasText: name });
+
+	await expect(row('E2Eアナウマ')).toContainText('4角5番手→2着');
+	await expect(row('E2Eアナウマ')).toContainText('6人気');
+	await expect(row('E2Eアナウマ').getByTitle('上り1位')).toHaveText('上り1位 33.7');
+	await expect(row('E2Eホンメイ').getByTitle('上り2位')).toBeVisible();
+	await expect(row('E2Eケシウマ').getByTitle('上り3位')).toBeVisible();
+
+	// 4位以下は順位を出さない。上りのタイムだけ。
+	await expect(row('E2Eタイコウ')).toContainText('上り34.8');
+	await expect(row('E2Eタイコウ').getByTitle(/上り\d位/)).toHaveCount(0);
+
+	// 通過順も上りも無い馬（着順なし）には2行目を出さない。
+	await expect(row('E2Eメモノミ')).not.toContainText('4角');
+	await expect(row('E2Eメモノミ')).not.toContainText('上り');
 });
 
 /**
