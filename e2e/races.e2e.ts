@@ -358,7 +358,14 @@ test('展開を予想していないレースでも、4角とゴール前の実�
 		['ゴール前', ['①-②-③-④-⑤']]
 	]);
 	// 予想と同じ盤面で見せる。①と③は同じ2番手なので、同じマスに積む。
+	// 既定は畳んである。閉じた行に局面ごとの隊列が出て、開くと盤面が出る。
+	const region = page.getByRole('region', { name: '実際の展開' });
+	await expect(region.locator('summary')).toContainText('4角 ②-①③-④-⑤');
+	await expect(region.locator('summary')).toContainText('ゴール前 ①-②-③-④-⑤');
 	const corner4 = page.getByRole('group', { name: '実際の4コーナーの隊列' });
+	await expect(corner4).toBeHidden();
+	await region.locator('summary').click();
+	await expect(corner4).toBeVisible();
 	await expect(corner4.getByText('1番 E2Eサンバンテ（4角2番手）')).toBeAttached();
 	await expect(corner4.getByText('3番 E2Eマクリ（4角2番手）')).toBeAttached();
 	await expect(page.getByRole('group', { name: '実際のゴール前の隊列' })).toBeVisible();

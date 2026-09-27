@@ -105,6 +105,24 @@ export const SCREENS: Screen[] = [
 	// 18頭立て。盤面の1マスに順位2つぶんをまとめる。
 	{ name: 'race-review-actual-flow-18', path: `/races/${ACTUAL_FLOW_18_RACE_ID}`, auth: true },
 	{
+		// 実際の展開を開いたところ（4段の盤面に、1マス2頭ずつ積む）。
+		name: 'race-review-actual-flow-18-open',
+		path: `/races/${ACTUAL_FLOW_18_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '実際の展開' }).click();
+		}
+	},
+	{
+		// 予想ありのレースで実際の展開を開いたところ（盤面の下に予想の隊列）。
+		name: 'race-review-actual-flow-marks-open',
+		path: `/races/${MARKS_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '実際の展開' }).click();
+		}
+	},
+	{
 		// ふりかえりを書きかけたところ。未保存の件数と保存ボタンが下に貼り付く（書くまでは出ない）。
 		name: 'race-review-unsaved',
 		path: `/races/${REVIEW_RACE_ID}`,

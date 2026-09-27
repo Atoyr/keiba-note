@@ -47,6 +47,12 @@ describe('ActualFlow', () => {
 	it('予想が無ければ、4コーナーとゴール前の盤面と隊列の1行を札なしで出す', async () => {
 		const screen = render(ActualFlow, { actual });
 
+		// 既定は畳む。閉じた行には局面ごとの実際の隊列が出て、盤面は開くまで見えない。
+		const summary = screen.container.querySelector('summary')!;
+		expect(summary.textContent).toMatch(/4角\s*②-①③/);
+		expect(summary.textContent).toMatch(/ゴール前\s*①-②-③/);
+		expect(screen.container.querySelector('details')?.open).toBe(false);
+		summary.click();
 		await expect
 			.element(screen.getByRole('group', { name: '実際の4コーナーの隊列' }))
 			.toBeVisible();
@@ -59,11 +65,11 @@ describe('ActualFlow', () => {
 		await expect.element(screen.getByText('3番 馬3（4角2番手）')).toBeInTheDocument();
 		await expect.element(screen.getByText('3番 馬3（3着）')).toBeInTheDocument();
 		expect(screen.container.textContent).not.toMatch(/・(内|中|外|大外)）/);
-		// 見出しは「内ラチ」ではなく、上下が内外でないことの注記。段は使った数だけ（4角は2段、ゴール前は1段）。
+		// 見出しは「内ラチ」ではなく、上下が内外でないことの注記。段は予想の盤面と同じ4段。
 		expect(screen.container.textContent).not.toContain('内ラチ');
 		expect(screen.getByText('上下は内外ではない').elements()).toHaveLength(2);
 		const grids = screen.container.querySelectorAll('.grid-cols-10');
-		expect([...grids].map((g) => g.children.length)).toEqual([20, 10]);
+		expect([...grids].map((g) => g.children.length)).toEqual([40, 40]);
 	});
 
 	it('予想を置いていたら、置いた局面だけ予想の隊列を下に並べ、「実際」「予想」の札を付ける', () => {

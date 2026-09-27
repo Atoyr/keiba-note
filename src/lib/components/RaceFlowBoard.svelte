@@ -26,7 +26,7 @@
 	 *
 	 * `note` を渡すと**内外を持たない並び**として描く（ふりかえりの実際の展開。結果には前後の順しか無い）。
 	 * 見出しの「内ラチ」と上の太線を出さず、代わりに `note` を出す。段の名前（内・中・外）は読み上げない
-	 * （コマの `said` を使う）。`lanes` で使う段だけに縮める。
+	 * （コマの `said` を使う）。
 	 */
 	let {
 		spots,
@@ -34,7 +34,6 @@
 		label,
 		selected = null,
 		onCell,
-		lanes = FLOW_LANES.length,
 		note
 	}: {
 		spots: BoardSpot[];
@@ -44,19 +43,15 @@
 		/** 選んでいるコマの key。枠で囲む。 */
 		selected?: string | null;
 		onCell?: (x: number, y: number) => void;
-		/** 描く段の数（上から）。既定は全段。 */
-		lanes?: number;
 		/** 内外を持たない並びとして描くときの注記（「内ラチ」の代わりに見出しに出す）。 */
 		note?: string;
 	} = $props();
-
-	const shownLanes = $derived(FLOW_LANES.slice(0, Math.max(1, Math.min(lanes, FLOW_LANES.length))));
 
 	const at = $derived(new Map(spots.map((s) => [`${s.x}:${s.y}`, s])));
 
 	/** 行ごと・左から右へ。描く列と、持っている列（0 が先頭）を向きで対応づける。 */
 	const cells = $derived(
-		shownLanes.flatMap((lane, y) =>
+		FLOW_LANES.flatMap((lane, y) =>
 			Array.from({ length: FLOW_COLS }, (_, col) => {
 				const x = leadsRight ? FLOW_COLS - 1 - col : col;
 				return { x, y, lane, spot: at.get(`${x}:${y}`) ?? null };
@@ -90,7 +85,7 @@
 	function onKey(e: KeyboardEvent) {
 		const col = active % FLOW_COLS;
 		const row = Math.floor(active / FLOW_COLS);
-		const last = shownLanes.length - 1;
+		const last = FLOW_LANES.length - 1;
 		const next =
 			e.key === 'ArrowRight' && col < FLOW_COLS - 1
 				? active + 1
