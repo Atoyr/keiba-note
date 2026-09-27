@@ -21,6 +21,7 @@
 	import { toast } from 'svelte-sonner';
 	import { byMark } from '$lib/utils/answer';
 	import { courseMap } from '$lib/utils/course';
+	import { jockeyParam } from '$lib/utils/jockey';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import {
 		conditionLabel,
@@ -367,8 +368,14 @@
 										{r.horseName}
 									</a>
 								</span>
+								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。 -->
 								{#if r.jockey}
-									<span class="text-sm text-muted-foreground">{r.jockey}</span>
+									<a
+										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
+										class="text-sm text-muted-foreground hover:underline"
+									>
+										{r.jockey}
+									</a>
 								{/if}
 								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->

@@ -16,6 +16,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
+	import { jockeyParam } from '$lib/utils/jockey';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { isAdmin } from '$lib/utils/role';
@@ -217,7 +218,12 @@
 								>
 									{r.horseName}
 								</a>
-								{#if r.jockey}<span class="text-gray-600">{r.jockey}</span>{/if}
+								{#if r.jockey}
+									<a
+										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
+										class="text-gray-600 hover:underline">{r.jockey}</a
+									>
+								{/if}
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span
 									>{/if}
 								{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
