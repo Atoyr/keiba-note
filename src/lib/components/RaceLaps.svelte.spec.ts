@@ -34,4 +34,15 @@ describe('RaceLaps', () => {
 
 		expect(screen.container.querySelector('summary')?.textContent).toMatch(/予想のペース\s*スロー/);
 	});
+
+	it('最初の区間が端数（2500m の 100m）なら、折れ線の左端を「100m」とし、描かないことを書き添える', () => {
+		const long = [7.3, 11.4, 11.7, 13.1, 12.6, 12.2, 12.2, 12.1, 11.8, 11.4, 11.2, 11.2, 11.6];
+		const screen = render(RaceLaps, { laps: long, distance: 2500 });
+		const text = screen.container.textContent ?? '';
+		expect(text).toContain('100m');
+		expect(text).not.toContain('スタート');
+		expect(text).toContain('最初の100mは折れ線に入れない');
+		// 区間タイムの1行には端数の区間も出す。
+		expect(text.replace(/\s+/g, '')).toContain('7.3-11.4-11.7');
+	});
 });

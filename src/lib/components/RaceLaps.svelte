@@ -2,7 +2,7 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import FlowOrder from '$lib/components/FlowOrder.svelte';
 	import type { Pace } from '$lib/schemas/race-flow';
-	import { lapChart, lapDiffLabel, lapSummary } from '$lib/utils/laps';
+	import { firstLapLength, lapChart, lapDiffLabel, lapSummary } from '$lib/utils/laps';
 
 	/**
 	 * ふりかえり画面の「ラップ」。前半3F・後半3Fと、区間タイムの折れ線。
@@ -29,6 +29,14 @@
 	const chart = $derived(lapChart(laps, distance));
 	/** 区間タイムの1行。前半・後半3Fに数えた区間は、盤面の隊列の1行と同じ区切り（`-`）で並べる。 */
 	const columns = $derived(laps.map((l) => l.toFixed(1)));
+	/**
+	 * 最初の区間が端数（2500m の 100m）なら、その長さ。折れ線は端数の区間を描かない（`lapChart`）ので、
+	 * 左端は「スタート」ではなくこの地点になる。端数が無ければ null。
+	 */
+	const partial = $derived.by(() => {
+		const len = firstLapLength(laps.length, distance);
+		return len < 200 ? len : null;
+	});
 </script>
 
 <section aria-labelledby="race-laps-heading" class="rounded-lg border px-3 py-2.5">
@@ -115,11 +123,13 @@
 					{/each}
 				</div>
 				<div class="flex justify-between pt-1 text-xs text-muted-foreground" aria-hidden="true">
-					<span>スタート</span><span>ゴール</span>
+					<span>{partial ? `${partial}m` : 'スタート'}</span><span>ゴール</span>
 				</div>
 			</div>
 			<p class="mt-1 text-sm tabular-nums"><FlowOrder {columns} /></p>
-			<p class="text-xs text-muted-foreground">速い区間ほど上。塗った所が前半3F・後半3F</p>
+			<p class="text-xs text-muted-foreground">
+				速い区間ほど上。塗った所が前半3F・後半3F{#if partial}。最初の{partial}mは折れ線に入れない{/if}
+			</p>
 		</div>
 	</details>
 </section>
