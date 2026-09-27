@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-09-27 — 騎手の一覧と画面（`/jockeys`・`/jockeys/[name]` の `?/saveSummary`）と `services/jockeys.ts` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-09-27 — 推しの馬（`/horses/[id]` の `?/favorite` と `services/favorites.ts`）を足した（→ 第3章 / 第5章）
 - 更新日: 2026-09-25 — 管理画面の `?/fetchEntries` と、出走馬の取得を頼む Cron と `services/entries-fetch.ts` を足した（→ 第1章 / 第3章 / 第5章）
 - 更新日: 2026-09-24 — オッズを予想画面の `load` で渡すことにし、Cron Trigger の口と `services/odds.ts` を足した（→ 第1章 / 第3章 / 第5章）
@@ -86,6 +87,9 @@ SvelteKit の `load` + form actions で完結させる。
 | `/horses/[id]` | POST `?/favorite` | `favorite`（`1` で推しにする・`0` で外す） | 自分の推しを切り替え、`{ favorite }` を返す。何度送っても同じ状態になる | 検証 `fail(400)` / 無い馬 404 |
 | `/horses/[id]` | POST `?/addNote` | `body`・`tags`（複数）・`occurredAt` | 近況メモを足す | 検証 `fail(400)` / 404 |
 | `/horses/[id]` | POST `?/deleteNote` | `noteId` | 自分のメモを消す | 他人のメモ・無いメモは `fail(403)` |
+| `/jockeys` | GET | `q`・`tag` | 騎手の一覧（騎乗の多い順）と、自分が使っている札 | 選択肢に無い `tag` は捨てる |
+| `/jockeys/[name]` | GET | `notes`（`1` でメモのある騎乗だけ） | 自分のまとめと、騎乗のタイムライン（騎乗ごとに自分の出走前・ふりかえりメモ）。`name` は騎手名（エンコードして渡す） | 騎乗の無い名前は 404 |
+| `/jockeys/[name]` | POST `?/saveSummary` | `body`・`tags`（複数） | 自分のまとめを上書き。本文も札も空なら消す。`{ summary: 'saved' \| 'cleared' }` | 検証 `fail(400)` / 騎乗の無い名前 404 |
 | `/settings/profile` | GET | — | 自分の公開用の名前 | — |
 | `/settings/profile` | POST `default` | `publicName`（前後空白除去、30文字以内、空欄可） | 公開名を更新。空欄は匿名 | 検証 `fail(400)` / 保存失敗 `fail(503)`（入力保持・再試行案内） |
 | `/races/[id]/summary` | GET | — | 本人の見立て・各馬のメモ・札・印、共有状態、公開名 | 404 |
@@ -167,6 +171,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | 共有ページのメモ（`getSharedNote` だけ） | `noteId` | `id = :id AND visibility = 'unlisted'` |
 | 馬・レース・出走馬（マスタ）・オッズ | 絞らない | 全員に共通 |
 | 推しの馬 | **`viewerId` を必須で受ける** | `user_id = :viewer`（誰が何を推しているかを他人に見せない） |
+| 騎手のまとめ（`jockey_note`） | **`viewerId` を必須で受ける** | `user_id = :viewer` |
 | マスタの一覧にメモの件数を添えるもの（`listHorses`・`listRacesBetween` など） | `viewerId` を必須で受ける | 件数は viewer のメモだけで数える（他人が何か書いていることを漏らさない） |
 
 - メモを書く・消す関数は `authorId` を受け、WHERE に入れる。他人のメモに当たったときは
@@ -186,6 +191,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
 | `services/profile.ts` | `getPublicName` | `setPublicName` |
 | `services/favorites.ts` | `isFavoriteHorse`・`listFavoriteHorses`・`listFavoriteRuns` | `setFavoriteHorse` |
+| `services/jockeys.ts` | `listJockeys`・`listJockeyTagsInUse`・`listJockeyRides`・`listJockeyRideNotes`・`jockeyExists`・`getJockeySummary`・`mergeJockeyTimeline`（D1 を読まない組み立て） | `saveJockeySummary` |
 | `services/race-shares.ts` | `getRaceSummary`・`getOwnRaceShare`・`getSharedRaceSummary`・`listRaceShares` | `publishRaceSummary`・`revokeRaceShare` |
 
 関数を足したら、この表にも足す。

@@ -8,6 +8,7 @@
   この決まりを lint でどう止めるか・移行の順番は [harness.md 第3層](./harness.md)、
   見た目の確かめ方は [testing.md 第5章](./testing.md)
 - 作成日: 2026-09-23 — harness.md 第3層の設計から、書くときに要る部分を移した
+- 更新日: 2026-09-27 — 騎手の札（`JockeyTagBadges` / `JockeyTagPicker`）を足した
 - 更新日: 2026-09-27 — 推しの星のボタンを例外として書いた（→ 第6章「例外」）
 - 更新日: 2026-09-27 — コース図の下の高低断面（`CourseElevation`）を足した
 - 更新日: 2026-09-27 — 上りの順位の札（`Last3fBadge`）を足した
@@ -140,6 +141,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `HorseNumberBadge` | 枠番と馬番の札。枠番（帽子の色）の右に、枠の色を薄くした面の馬番をくっつける。出走馬の行で枠と馬番を出すときはこれを使う |
 | `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ☆ ×）の表示と選択 |
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
+| `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
 | `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |

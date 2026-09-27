@@ -245,3 +245,14 @@ export const FAVORITE_HORSES = {
 
 /** `FAVORITE_HORSES.toggle` の馬。 */
 export const TOGGLE_FAVORITE_HORSE_ID = '01JE2EHORSEDROP00000000000';
+
+/** 騎手の画面（/jockeys）。まとめは seed.sql の jockey_note。 */
+export const JOCKEYS = {
+	/** 出走のほとんどに乗っている騎手。自分のまとめがある。 */
+	main: 'E2E騎手',
+	mainSummary: '中山の内回りは前に行く。人気薄でも粘り込む。',
+	/** 1騎乗だけの騎手。まとめは無い。 */
+	rookie: 'E2Eワカテ騎手',
+	/** 別のユーザーが「E2E騎手」に書いたまとめ。見えてはいけない。 */
+	otherUserSummary: '他人の騎手のまとめ。見えてはいけない。'
+} as const;

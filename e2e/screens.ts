@@ -11,6 +11,7 @@ import {
 	FLOW_CROWD_RACE_ID,
 	FLOW_RACE_ID,
 	HORSE_ID,
+	JOCKEYS,
 	MARKS_RACE_ID,
 	PAST_EMPTY_RACE_ID,
 	PREVIEW_RACE_ID,
@@ -360,6 +361,29 @@ export const SCREENS: Screen[] = [
 				.click();
 		}
 	},
+	// 騎手の一覧。騎乗の多い順に、自分が付けた札と一緒に並ぶ。上に「札で絞る」。
+	{ name: 'jockeys', path: '/jockeys', auth: true },
+	// 札で絞ったところ（選んだ札に ✓）。
+	{ name: 'jockeys-tag', path: `/jockeys?tag=${encodeURIComponent('中山巧者')}`, auth: true },
+	// 騎手の画面。まとめ（本文と札）と、騎乗ごとの自分のメモ。
+	{ name: 'jockey-timeline', path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}`, auth: true },
+	// メモのある騎乗だけに絞ったところ。
+	{
+		name: 'jockey-timeline-noted',
+		path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}?notes=1`,
+		auth: true
+	},
+	{
+		// まとめを書き直しているところ。札は系統ごとに段になって並ぶ。
+		name: 'jockey-summary-editing',
+		path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.getByText('書き直す', { exact: true }).click();
+		}
+	},
+	// まとめがまだ無い騎手（1騎乗だけ）。
+	{ name: 'jockey-no-summary', path: `/jockeys/${encodeURIComponent(JOCKEYS.rookie)}`, auth: true },
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
 	{

@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 // 印の選択肢（MARKS）と札の型。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
 import { MARKS, type NoteTag } from '../../schemas/note';
+import type { JockeyTag } from '../../schemas/jockey';
 import type { RaceFlow } from '../../schemas/race-flow';
 import type { RaceSummary } from '../../utils/race-summary';
 
@@ -195,7 +196,9 @@ export const raceEntry = sqliteTable(
 	(t) => [
 		uniqueIndex('entry_race_horse').on(t.raceId, t.horseId),
 		uniqueIndex('entry_race_number').on(t.raceId, t.horseNumber),
-		index('entry_horse').on(t.horseId)
+		index('entry_horse').on(t.horseId),
+		// 騎手の画面（/jockeys/[name]）と騎手の一覧。騎手はマスタを持たず、この列の名前で束ねる。
+		index('entry_jockey').on(t.jockey)
 	]
 );
 
@@ -414,6 +417,42 @@ export const favoriteHorse = sqliteTable(
 		createdAt: createdAt()
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.horseId] })]
+);
+
+/**
+ * 騎手のまとめ。1人・1騎手につき1本（本文と札）。**本人だけのもの**で、メモと同じく
+ * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
+ *
+ * 騎手はマスタのテーブルを持たない。出走馬（`race_entry.jockey`）の名前がそのまま騎手の鍵になる。
+ * 騎手の表を作ると、YAML の投入で騎手の行も作る・名前の揺れを寄せる、という仕事が増えるわりに、
+ * 画面で要るのは「その名前で乗った出走」だけなので。名前が変わる（表記が揺れる）と別の騎手に見える。
+ *
+ * `note` に kind を足さずに別の表にしたのは、note の列（race_id / horse_id / race_entry_id）の
+ * どれにも当たらず、CHECK（`note_kind_shape`）を作り直すことになるため。
+ */
+export const jockeyNote = sqliteTable(
+	'jockey_note',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		/** `race_entry.jockey` と同じ表記の騎手名。 */
+		jockey: text('jockey').notNull(),
+		/** 空でもよい（札だけ付けておける）。本文も札も空なら行ごと消す。 */
+		body: text('body').notNull().default(''),
+		/** 付けた札。選択肢の正は `$lib/schemas/jockey` の `JOCKEY_TAGS`。 */
+		tags: text('tags', { mode: 'json' })
+			.$type<JockeyTag[]>()
+			.notNull()
+			.default(sql`'[]'`),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(t) => [
+		// user_id が先頭なので、自分のまとめの一覧（札での絞り込み）にも別の索引は要らない。
+		primaryKey({ columns: [t.userId, t.jockey] }),
+		check('jockey_note_tags_json', sql`json_valid(tags)`)
+	]
 );
 
 export const userRelations = relations(user, ({ many }) => ({

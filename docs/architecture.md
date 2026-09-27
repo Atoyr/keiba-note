@@ -21,6 +21,7 @@
 - 更新日: 2026-09-26 — Worker の fetch を東京に置いた（`[placement]`。→ 第1章）
 - 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions に移した。netkeiba は Workers から来たリクエストを
   時間帯によってまとめて 400 で返す。取得と保存は `scripts/odds/` に移り、Worker は netkeiba へ行かない（→ 第0章 / 第1章 / 第2章 / 3-8）
+- 更新日: 2026-09-27 — 騎手（jockeys）を機能の並びに足した（→ 第2章）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -248,10 +249,13 @@ race-data（`lib/server/race-data/`。出走馬の取得を Actions に頼む）
 機能は次の順に並べ、**右は左を使ってよいが、左は右を使わない**。順位で並べるので循環は起こりえない。
 
 ```
-horses ← races ← odds ← notes ← share ← dashboard
-  馬     レース・     オッズ  メモ・見立て・  共有     ダッシュボード・
-         出馬表・枠           印・タグ・的中  リンク   今週
+horses ← races ← odds ← notes ← jockeys ← share ← dashboard
+  馬     レース・     オッズ  メモ・見立て・  騎手の    共有     ダッシュボード・
+         出馬表・枠           印・タグ・的中  まとめ・  リンク   今週
+                                             騎乗
 ```
+
+jockeys（騎手）はマスタの表を持たず、出走馬（`race_entry.jockey`）の名前で束ねる。騎乗（races）に自分のメモ（notes）を重ねるので notes の右に置く。
 
 - 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
   `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない
