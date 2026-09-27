@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { NoteTag } from '$lib/schemas/note';
 import {
 	awaitingReview,
+	favoriteSchedule,
 	pickWatchlist,
 	raceProgress,
 	watchVerdict,
+	type FavoriteRun,
 	type WatchSourceRow
 } from './dashboard';
 
@@ -160,5 +162,57 @@ describe('awaitingReview', () => {
 			'2026-09-20',
 			'2026-09-13'
 		]);
+	});
+});
+
+describe('favoriteSchedule', () => {
+	const run = (over: Partial<FavoriteRun> & Pick<FavoriteRun, 'entryId'>): FavoriteRun => ({
+		horseId: 'h1',
+		horseName: 'イチバンボシ',
+		raceId: `r-${over.entryId}`,
+		raceDate: '2026-10-04',
+		resultCount: 0,
+		course: '東京',
+		raceNumber: 11,
+		raceName: null,
+		grade: null,
+		horseNumber: null,
+		...over
+	});
+
+	it('当日のレースは結果が入るまで予定に残し、入ったら外す', () => {
+		const runs = [
+			run({ entryId: 'today-done', raceDate: TODAY, resultCount: 16 }),
+			run({ entryId: 'today', raceDate: TODAY, raceNumber: 12 })
+		];
+		expect(favoriteSchedule([], runs, TODAY).runs.map((r) => r.entryId)).toEqual(['today']);
+	});
+
+	it('日付 → R → 馬名の順に並べる', () => {
+		const runs = [
+			run({ entryId: 'late', raceDate: '2026-10-11' }),
+			run({ entryId: 'r11-b', horseId: 'h2', horseName: 'ニバンテ' }),
+			run({ entryId: 'r10', raceNumber: 10 }),
+			run({ entryId: 'r11-a' })
+		];
+		expect(favoriteSchedule([], runs, TODAY).runs.map((r) => r.entryId)).toEqual([
+			'r10',
+			'r11-a',
+			'r11-b',
+			'late'
+		]);
+	});
+
+	it('出走予定の無い推しを分けて返す（走り終えた当日の馬も予定なしに入る）', () => {
+		const horses = [
+			{ horseId: 'h1', horseName: 'イチバンボシ' },
+			{ horseId: 'h2', horseName: 'ニバンテ' },
+			{ horseId: 'h3', horseName: 'サンバンメ' }
+		];
+		const runs = [
+			run({ entryId: 'e1' }),
+			run({ entryId: 'e3', horseId: 'h3', raceDate: TODAY, resultCount: 1 })
+		];
+		expect(favoriteSchedule(horses, runs, TODAY).idle.map((h) => h.horseId)).toEqual(['h2', 'h3']);
 	});
 });

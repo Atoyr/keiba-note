@@ -1,6 +1,7 @@
+import { listFavoriteHorses, listFavoriteRuns } from '$lib/server/services/favorites';
 import { listRecentNotes, listWatchSources } from '$lib/server/services/notes';
 import { listRacesBetween, resolveWeek } from '$lib/server/services/races';
-import { awaitingReview, pickWatchlist } from '$lib/utils/dashboard';
+import { awaitingReview, favoriteSchedule, pickWatchlist } from '$lib/utils/dashboard';
 import { todayJst, weeksBefore } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
 import type { PageServerLoad } from './$types';
@@ -10,12 +11,13 @@ const PAST_WEEKS = 3;
 
 /**
  * ダッシュボード: **次にやること**の画面。上から
- * 今週出走する注目馬 → ふりかえり待ち → 今週のレース → 過去のレース → 最近のメモ。
+ * 今週出走する注目馬 → 推しの出走予定 → ふりかえり待ち → 今週のレース → 過去のレース → 最近のメモ。
  *
  * 目的は「次のレースで勝つための積み上げ」なので、開いた瞬間に
  * 「今週どの馬を狙うか」「どのレースの答え合わせが残っているか」が見えることを優先する。
  * 注目馬は自分が付けた「次走買い／次走消し」の札から、ふりかえり待ちは
  * 予想したのにふりかえっていないレースから組む（→ `$lib/utils/dashboard`）。
+ * 推しの出走予定は今週に限らない。推しを追う理由は「次どこに出るか」なので、先の登録まで出す。
  *
  * レースを「今週」と「過去」に割るのは、**この画面で知りたいことが2つある**から。
  * これから書くレース（今週の開催）と、書いたか確かめたいレース（終わったばかりの開催）で、
@@ -32,19 +34,21 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 
 	const { db, user } = ctx(locals, platform);
 
-	// 週の解決そのものが1クエリ。残りの4本はそれに依存しないので並行に投げる（計5クエリ）。
+	// today はレースの行き先と進み具合を決めるのに要る（結果が出るまでは予想画面 → `isSettled`）。
+	const today = todayJst();
+
+	// 週の解決そのものが1クエリ。残りの6本はそれに依存しないので並行に投げる（計7クエリ）。
 	const week = await resolveWeek(db, 0);
 	const thisWeekRange = { from: week.start, to: week.end };
 
-	const [notes, thisWeek, past, watchSources] = await Promise.all([
+	const [notes, thisWeek, past, watchSources, favoriteHorses, favoriteRuns] = await Promise.all([
 		listRecentNotes(db, user.id, 20),
 		listRacesBetween(db, user.id, thisWeekRange),
 		listRacesBetween(db, user.id, weeksBefore(week, PAST_WEEKS), 'desc'),
-		listWatchSources(db, user.id, thisWeekRange)
+		listWatchSources(db, user.id, thisWeekRange),
+		listFavoriteHorses(db, user.id),
+		listFavoriteRuns(db, user.id, today)
 	]);
-
-	// today はレースの行き先と進み具合を決めるのに要る（結果が出るまでは予想画面 → `isSettled`）。
-	const today = todayJst();
 
 	return {
 		landing: false as const,
@@ -55,6 +59,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		pastWeeks: PAST_WEEKS,
 		today,
 		watchlist: pickWatchlist(watchSources),
+		favorites: favoriteSchedule(favoriteHorses, favoriteRuns, today),
 		// 今週のうち走り終えたものも含める。土曜に予想して日曜の夜に開いたとき、
 		// 土曜のレースの答え合わせが「過去のレース」に落ちるのは来週になってから。
 		awaiting: awaitingReview([...thisWeek, ...past], today)

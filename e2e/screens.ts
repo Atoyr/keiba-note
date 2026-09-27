@@ -14,7 +14,8 @@ import {
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
 	SHARED_NOTE_ID,
-	SHARED_RACE_ID
+	SHARED_RACE_ID,
+	TOGGLE_FAVORITE_HORSE_ID
 } from './seed';
 
 /**
@@ -54,6 +55,8 @@ export const SCREENS: Screen[] = [
 	{ name: 'privacy', path: '/privacy', auth: false },
 	{ name: 'terms', path: '/terms', auth: false },
 	{ name: 'dashboard', path: '/', auth: true },
+	// 推しがまだいないとき（seed の admin には推しもメモも無い）。推しの出走予定の枠に案内が出る。
+	{ name: 'dashboard-no-favorites', path: '/', auth: true, as: 'admin' },
 	{
 		// 最近のメモはページの末尾にある。一番下のメモの `⋯` を開いて、はみ出さないかを見る。
 		name: 'dashboard-note-menu',
@@ -306,7 +309,10 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'horses', path: '/horses', auth: true },
+	// 推しの馬。名前の右に黄色く塗った★（押すと推しから外す）。
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
+	// 推しでない馬。黄色の輪郭だけの☆（押すと推しにする）。
+	{ name: 'horse-not-favorite', path: `/horses/${TOGGLE_FAVORITE_HORSE_ID}`, auth: true },
 	{
 		// 共有と削除は `⋯` に畳んである。共有中の近況メモのメニューを開いた状態。
 		name: 'horse-timeline-note-menu',

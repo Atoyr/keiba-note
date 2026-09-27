@@ -184,3 +184,10 @@ VALUES ('01JLPNOTEEARLYENTRY000001', '01JLPUSER00000000000000000', 'entry', '01J
 INSERT INTO note (id, author_id, kind, horse_id, body, tags, occurred_at)
 VALUES ('01JLPNOTEHORSE00000000001', '01JLPUSER00000000000000000', 'horse', '01JLPHORSE0000000000000001',
 	'1週前追い切りは併せ馬で先着。状態は良さそう。', '[]', date('now', '+9 hours', 'weekday 0', '-6 days'));
+
+-- ---------------------------------------------------------------------------
+-- 推しの馬: ミヤビノカゼ（ダッシュボードの「推しの出走予定」と、馬の画面の「推しから外す」）
+-- ---------------------------------------------------------------------------
+
+INSERT INTO favorite_horse (user_id, horse_id)
+VALUES ('01JLPUSER00000000000000000', '01JLPHORSE0000000000000001');

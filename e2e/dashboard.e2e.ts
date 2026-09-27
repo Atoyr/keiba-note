@@ -14,15 +14,18 @@ const section = (page: Page, heading: string) =>
 	page.locator('main section').filter({ has: page.getByRole('heading', { name: heading }) });
 
 /**
- * 上から「次にやること」の順。狙う馬 → 答え合わせの宿題 → レース → 読み返し。
+ * 上から「次にやること」の順。狙う馬 → 推しの出走予定 → 答え合わせの宿題 → レース → 読み返し。
  * seed には予想だけしたレースがあるので、ふりかえり待ちの枠も出る。
  */
-test('ダッシュボードは注目馬、ふりかえり待ち、今週、過去、メモの順に表示する', async ({ page }) => {
+test('ダッシュボードは注目馬、推し、ふりかえり待ち、今週、過去、メモの順に表示する', async ({
+	page
+}) => {
 	await login(page);
 	await page.goto('/');
 
 	await expect(page.locator('main h2')).toHaveText([
 		'今週出走する注目馬',
+		'推しの出走予定',
 		'ふりかえり待ち',
 		'今週のレース',
 		'過去のレース',
