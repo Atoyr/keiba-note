@@ -10,6 +10,7 @@ races:
     distance: 3930
     trackCondition: 良
     weather: 晴
+    fieldSize: 6
     entries:
       - horseNumber: 1
         bracket: 1
@@ -131,6 +132,7 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 15
     entries:
       - horseNumber: 1
         bracket: 1
