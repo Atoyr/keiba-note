@@ -6,6 +6,7 @@
  * 図は形と大きさの見当をつけるための模式図で、実物のコースの形はなぞっていない
  * （JRA のコース図は著作物なので写さない）。
  */
+import { elevationProfile, type ElevationProfile } from './course-elevation';
 
 /** 周回コース1本。内回り・外回りがある場は2本持つ。 */
 export type CourseLoop = {
@@ -160,6 +161,8 @@ export type CourseMap = {
 	alt: string;
 	/** 図の下に並べる「左回り」「直線 525.9m」など。 */
 	facts: string[];
+	/** スタートからゴールまでの高低断面。数値の無いコース・障害・距離の無いレースは null。 */
+	profile: ElevationProfile | null;
 };
 
 const m = (n: number) => `${n.toLocaleString('ja-JP', { maximumFractionDigits: 1 })}m`;
@@ -212,6 +215,8 @@ export function courseMap(race: CourseMapSource): CourseMap | null {
 	const { width, height } = courseMapSize(spec);
 
 	let facts: string[];
+	// 高低断面に描く最後の直線。内回り・外回りが決まらなければ高低断面も出ないので要らない。
+	let straight: number | null = null;
 	if (straightCourse) {
 		facts = [`直線コース ${m(spec.straightCourse!)}`];
 	} else if (race.surface === '障害') {
@@ -224,15 +229,27 @@ export function courseMap(race: CourseMapSource): CourseMap | null {
 			`直線 ${perLoop(loops, (l) => l.straight)}`,
 			`高低差 ${perLoop(loops, (l) => l.rise)}`
 		];
+		straight = loops[0].straight;
 	}
 
 	const surfaceLabel = straightCourse ? '芝・直線' : loop ? `芝・${loop}` : race.surface;
+	const file = `${spec.slug}-${variant}`;
 	return {
-		file: `${spec.slug}-${variant}`,
+		file,
 		width,
 		height,
 		alt: `${race.course}競馬場のコース図（${surfaceLabel}）`,
-		facts
+		facts,
+		// 障害は専用のコース（襷・坂路）を走るので、平地の高低断面は当てはまらない。
+		profile:
+			race.surface === '障害'
+				? null
+				: elevationProfile(file, race.distance, {
+						straight: straightCourse ? null : straight,
+						// スタンドから見て、左回りと直線コースは左から右へ走ってくる。
+						goalRight: straightCourse || spec.direction === '左',
+						surface: race.surface === 'ダート' ? 'ダート' : '芝'
+					})
 	};
 }
 
@@ -261,8 +278,82 @@ const COLOR = {
 	arrow: '#525252'
 } as const;
 
-/** 角の中心が cx1・cx2、半径 r の陸上トラック形。y は下向き、ホームストレッチが下。 */
-type Oval = { cx1: number; cx2: number; r: number };
+/** 高低断面のグラフを、コース図と同じ馬場の色で塗るため。 */
+export const SURFACE_COLOR = { 芝: COLOR.turf, ダート: COLOR.dirt } as const;
+
+/**
+ * 角の中心が cx1・cx2、半径 r の陸上トラック形。y は下向き、ホームストレッチが下。
+ * `bulge` があれば、2コーナーの途中から外へふくらみ、向正面を斜めに下って
+ * 3〜4コーナーを大きく回り、4コーナーの出口で直線に戻る（中山の外回りの「おむすび形」）。
+ */
+type Oval = { cx1: number; cx2: number; r: number; bulge?: number };
+
+/**
+ * ふくらんだ外回りの形。2コーナーは中心 (cx2 - bulge, 0)・半径 r + bulge の円、
+ * 3〜4コーナーは直線の入口 (cx1, r) で接する半径 r + bulge × BULGE_34 の円で、
+ * 向正面はその2つの円の外側の共通接線。2コーナーのほうを大きくふくらませて、向正面を斜めにする。
+ */
+const BULGE_34 = 0.3;
+
+/** 2コーナー側の円と3〜4コーナー側の円、向正面の両端（y は下向き）。 */
+function bulgeGeometry({ cx1, cx2, r, bulge = 0 }: Oval) {
+	const r2 = r + bulge;
+	const r34 = r + bulge * BULGE_34;
+	// ここだけ y を上向きにして角度を数える（反時計回りが正）。
+	const c2 = { x: cx2 - bulge, y: 0 };
+	const c34 = { x: cx1, y: -r + r34 };
+	const dx = c34.x - c2.x;
+	const dy = c34.y - c2.y;
+	const dist = Math.hypot(dx, dy);
+	// 2つの円を同じ向きに回るときの外側の接線。接点の法線の角度が phi。
+	const phi = Math.atan2(dy, dx) - Math.acos((r2 - r34) / dist);
+	const at = (c: { x: number; y: number }, radius: number) => ({
+		x: c.x + radius * Math.cos(phi),
+		y: -(c.y + radius * Math.sin(phi))
+	});
+	return {
+		r2,
+		r34,
+		phi,
+		from: at(c2, r2),
+		to: at(c34, r34),
+		back: Math.sqrt(dist ** 2 - (r2 - r34) ** 2),
+		// 図のいちばん上（y は下向き）。2コーナーの頂上か、3〜4コーナーの頂上の高いほう。
+		top: -Math.max(
+			phi >= Math.PI / 2 ? r2 : r2 * Math.sin(phi),
+			c34.y + (phi <= Math.PI / 2 ? r34 : r34 * Math.sin(phi))
+		)
+	};
+}
+
+/** 1周の長さ（m）。 */
+function ovalLength(o: Oval): number {
+	const straight = o.cx2 - o.cx1;
+	if (!o.bulge) return 2 * straight + 2 * Math.PI * o.r;
+	const g = bulgeGeometry(o);
+	return (
+		straight + (Math.PI / 2) * o.r + g.r2 * g.phi + g.back + g.r34 * ((3 * Math.PI) / 2 - g.phi)
+	);
+}
+
+/** 一周距離が lap になるふくらみ。長さはふくらみとともに増えるので、二分法で探す。 */
+function solveBulge(base: Oval, lap: number): number {
+	let lo = 0;
+	let hi = base.r * 4;
+	for (let i = 0; i < 60; i++) {
+		const mid = (lo + hi) / 2;
+		if (ovalLength({ ...base, bulge: mid }) < lap) lo = mid;
+		else hi = mid;
+	}
+	return (lo + hi) / 2;
+}
+
+/** 図の上下左右の端（y は下向き）。 */
+function ovalBounds(o: Oval): { left: number; right: number; top: number } {
+	if (!o.bulge) return { left: o.cx1 - o.r, right: o.cx2 + o.r, top: -o.r };
+	const g = bulgeGeometry(o);
+	return { left: o.cx1 - g.r34, right: o.cx2 + o.r, top: g.top };
+}
 
 type Layout = {
 	turf: Oval[];
@@ -281,14 +372,16 @@ type Layout = {
  */
 function layout(spec: CourseSpec): Layout {
 	const [outer, ...inners] = spec.turf;
-	const r = (outer.lap - 2 * (outer.straight + PAST_GOAL)) / (2 * Math.PI);
-	const turf: Oval[] = [{ cx1: -outer.straight, cx2: PAST_GOAL, r }];
-	for (const inner of inners) {
-		// 直線が同じ長さ（中山）なら、違いは1〜2コーナー側にある。
-		// それ以外は、内回りは3〜4コーナーを手前で回って、直線に遅れて入る。
-		const shift12 = inner.straight === outer.straight ? (outer.lap - inner.lap) / 2 : 0;
-		turf.push({ cx1: -inner.straight, cx2: PAST_GOAL - shift12, r });
-	}
+	// 直線が同じ長さ（中山）なら、外回りは2コーナーから外へ分かれて3〜4コーナーを大きく回り、
+	// 4コーナーの出口で内回りに戻る。大きさは内回りで決め、外回りはその外へふくらませる。
+	// それ以外（新潟・京都・阪神）は、内回りが3〜4コーナーを手前で回って、直線に遅れて入る。
+	const bulged = inners.length > 0 && inners[0].straight === outer.straight;
+	const base = bulged ? inners[0] : outer;
+	const r = (base.lap - 2 * (base.straight + PAST_GOAL)) / (2 * Math.PI);
+	const outerOval: Oval = { cx1: -outer.straight, cx2: PAST_GOAL, r };
+	if (bulged) outerOval.bulge = solveBulge(outerOval, outer.lap);
+	const turf: Oval[] = [outerOval];
+	for (const inner of inners) turf.push({ cx1: -inner.straight, cx2: PAST_GOAL, r });
 
 	// ダートは芝の内側に収まる大きさまで縮める（公表値の一周距離から出した半径は、
 	// 帯の幅を取ると芝に重なる場がある）。
@@ -308,10 +401,11 @@ function layout(spec: CourseSpec): Layout {
 			? { x1: -spec.straightCourse, x2: 0, y: r + TURF_WIDTH + GAP }
 			: null;
 
-	const xs = turf.flatMap((o) => [o.cx1 - o.r, o.cx2 + o.r]);
+	const bounds = turf.map(ovalBounds);
+	const xs = bounds.flatMap((b) => [b.left, b.right]);
 	if (straight) xs.push(straight.x1);
 	const half = TURF_WIDTH / 2;
-	const arrowY = -r - half - ARROW_GAP;
+	const arrowY = Math.min(...bounds.map((b) => b.top)) - half - ARROW_GAP;
 	const goalY1 = dirtR - DIRT_WIDTH / 2 - 6;
 	const goalY2 = (straight ? straight.y : r) + half + 16;
 
@@ -336,7 +430,21 @@ export function courseMapSize(spec: CourseSpec): { width: number; height: number
 
 const n = (v: number) => String(Math.round(v * 10) / 10);
 
-function ovalPath({ cx1, cx2, r }: Oval): string {
+function ovalPath(o: Oval): string {
+	const { cx1, cx2, r } = o;
+	if (o.bulge) {
+		const g = bulgeGeometry(o);
+		// 3〜4コーナーの弧が半周を超えるなら大きいほうの弧。
+		const large = (3 * Math.PI) / 2 - g.phi > Math.PI ? 1 : 0;
+		return [
+			`M${n(cx1)} ${n(r)}`,
+			`L${n(cx2)} ${n(r)}`,
+			`A${n(r)} ${n(r)} 0 0 0 ${n(cx2 + r)} 0`,
+			`A${n(g.r2)} ${n(g.r2)} 0 0 0 ${n(g.from.x)} ${n(g.from.y)}`,
+			`L${n(g.to.x)} ${n(g.to.y)}`,
+			`A${n(g.r34)} ${n(g.r34)} 0 ${large} 0 ${n(cx1)} ${n(r)}Z`
+		].join('');
+	}
 	return [
 		`M${n(cx1)} ${n(r)}`,
 		`L${n(cx2)} ${n(r)}`,

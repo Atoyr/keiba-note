@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COURSES } from '$lib/schemas/race';
-import { COURSE_SPECS, courseMap } from './course';
+import { COURSE_SPECS, courseMap, courseMapSvg } from './course';
 
 const race = (course: string, surface: string | null, distance: number | null = null) => ({
 	course,
@@ -89,5 +89,23 @@ describe('courseMap', () => {
 	it('馬場が決まっていない・JRA の10場でないなら出さない', () => {
 		expect(courseMap(race('東京', null))).toBeNull();
 		expect(courseMap(race('大井', 'ダート', 2000))).toBeNull();
+	});
+});
+
+describe('courseMapSvg', () => {
+	it('中山の外回りは、内回りと直線・1コーナーを共にし、2コーナーから外へ分かれて大きく回る', () => {
+		const svg = courseMapSvg(COURSE_SPECS['中山'], 'turf-outer');
+		// 芝の帯（幅 28）は2本。強く描く（緑の）ほうが外回り、薄い灰色が内回り。
+		const bands = [
+			...svg.matchAll(/<path d="([^"]+)" fill="none" stroke="(#\w+)" stroke-width="28"/g)
+		];
+		const outer = bands.find((m) => m[2] === '#3d7a45')![1];
+		const inner = bands.find((m) => m[2] === '#dcdcdc')![1];
+		// 直線（M… L…）から1コーナーの入口までは同じ道。
+		const head = (d: string) => d.slice(0, d.indexOf('A'));
+		expect(head(outer)).toBe(head(inner));
+		// 外回りは 1コーナー・2コーナー・3〜4コーナーの3つの弧と、斜めの向正面。
+		expect(outer.match(/A/g)).toHaveLength(3);
+		expect(inner.match(/A/g)).toHaveLength(2);
 	});
 });

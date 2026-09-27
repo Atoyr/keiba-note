@@ -99,6 +99,9 @@ export const REVIEW_RACE_ID = '01JE2ERACEPAST0000000000000';
  */
 export const EMPTY_RACE_ID = '01JE2ERACEEMPTY00000000000';
 
+/** 中山の芝1200m（外回り）。コース図と高低断面を撮るためだけのレース。出走馬はいない。 */
+export const SPRINT_RACE_ID = '01JE2ERACESPRINT0000000000';
+
 /**
  * **出走馬が1頭も登録されていない開催済みのレース。**
  *

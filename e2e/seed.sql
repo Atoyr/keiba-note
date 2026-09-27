@@ -168,6 +168,11 @@ VALUES ('01JE2ERACEPREVIEW000000000', 3, 3.4, 1.4, 1.8, 4081642200, 4081642260);
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEEMPTY00000000000', '2099-06-06', '阪神', 11, 'E2E出馬表前賞', 'G3', '芝', 1800);
 
+-- 中山の芝1200m（スプリンターズSと同じ外回り）。コース図と高低断面を撮るためだけのレース。
+-- 出走馬を入れず、コースが全幅で出る形にしておく。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, surface, distance, direction)
+VALUES ('01JE2ERACESPRINT0000000000', '2099-10-04', '中山', 11, 'E2E短距離特別', '芝', 1200, '右');
+
 -- **出走馬がまだ1頭も登録されていない開催済みのレース。**
 --
 -- 結果の投入が済んでいない開催はこうなる。ふりかえりは開けるが入力欄は
