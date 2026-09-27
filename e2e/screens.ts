@@ -3,6 +3,8 @@ import { waitForHydration } from './hydration';
 import { failNextAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
 import {
+	ACTUAL_FLOW_18_RACE_ID,
+	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
 	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
@@ -98,6 +100,28 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
+	// 展開の予想を置いていないレース。実際の展開（4角・ゴール前）だけが出る。
+	{ name: 'race-review-actual-flow', path: `/races/${ACTUAL_FLOW_RACE_ID}`, auth: true },
+	// 18頭立て。盤面の1マスに順位2つぶんをまとめる。
+	{ name: 'race-review-actual-flow-18', path: `/races/${ACTUAL_FLOW_18_RACE_ID}`, auth: true },
+	{
+		// 実際の展開を開いたところ（4段の盤面に、1マス2頭ずつ積む）。
+		name: 'race-review-actual-flow-18-open',
+		path: `/races/${ACTUAL_FLOW_18_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '実際の展開' }).click();
+		}
+	},
+	{
+		// 予想ありのレースで実際の展開を開いたところ（盤面の下に予想の隊列）。
+		name: 'race-review-actual-flow-marks-open',
+		path: `/races/${MARKS_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '実際の展開' }).click();
+		}
+	},
 	{
 		// ふりかえりを書きかけたところ。未保存の件数と保存ボタンが下に貼り付く（書くまでは出ない）。
 		name: 'race-review-unsaved',
