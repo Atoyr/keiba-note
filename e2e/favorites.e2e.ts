@@ -32,6 +32,18 @@ test('ダッシュボードに自分の推しの出走予定だけが出る', as
 	await expect(section.getByText(FAVORITE_HORSES.others)).toHaveCount(0);
 });
 
+test('推しがいなければ、どこで推しにするかを案内する', async ({ page }) => {
+	// seed の admin には推しがいない。
+	await login(page, 'admin');
+	await page.goto('/');
+
+	await expect(favorites(page)).toContainText('の画面で「推しにする」を押すと');
+	await expect(favorites(page).getByRole('link', { name: '馬' })).toHaveAttribute(
+		'href',
+		'/horses'
+	);
+});
+
 test('馬の画面で推しにすると出走予定に並び、外すと消える', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/horses/${TOGGLE_FAVORITE_HORSE_ID}`);

@@ -69,7 +69,7 @@
 			<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
 			<Button type="submit" variant="outline" aria-disabled={favoritePending}>
 				<Star class={data.favorite ? 'fill-current' : ''} aria-hidden="true" />
-				{data.favorite ? '推しから外す' : '推しにする'}
+				{favoritePending ? '切り替え中…' : data.favorite ? '推しから外す' : '推しにする'}
 			</Button>
 		</form>
 	</div>

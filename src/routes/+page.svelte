@@ -168,7 +168,8 @@
 					<ul class="mt-2 divide-y border-y">
 						{#each data.favorites.runs as f (f.entryId)}
 							<li class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-2.5 text-sm">
-								<span class="font-mono text-muted-foreground">{formatDateShort(f.raceDate)}</span>
+								<!-- 今週に限らない枠なので年まで出す（年をまたぐ登録があっても読み違えない）。 -->
+								<span class="font-mono text-muted-foreground">{f.raceDate}</span>
 								<a
 									href={resolve('/horses/[id]', { id: f.horseId })}
 									class="font-medium hover:underline"
@@ -196,7 +197,7 @@
 						出走予定の無い推し:
 						{#each data.favorites.idle as h, i (h.horseId)}{#if i > 0}・{/if}<a
 								href={resolve('/horses/[id]', { id: h.horseId })}
-								class="hover:underline">{h.horseName}</a
+								class="underline">{h.horseName}</a
 							>{/each}
 					</p>
 				{/if}

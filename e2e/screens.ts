@@ -55,6 +55,8 @@ export const SCREENS: Screen[] = [
 	{ name: 'privacy', path: '/privacy', auth: false },
 	{ name: 'terms', path: '/terms', auth: false },
 	{ name: 'dashboard', path: '/', auth: true },
+	// 推しがまだいないとき（seed の admin には推しもメモも無い）。推しの出走予定の枠に案内が出る。
+	{ name: 'dashboard-no-favorites', path: '/', auth: true, as: 'admin' },
 	{
 		// 最近のメモはページの末尾にある。一番下のメモの `⋯` を開いて、はみ出さないかを見る。
 		name: 'dashboard-note-menu',
