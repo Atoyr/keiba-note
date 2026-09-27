@@ -56,8 +56,9 @@
 				/>
 			</svg>
 			{#if chart.straight}
+				<!-- 薄い面（muted）の上に乗るので、補足の色（muted-foreground）では 4.5:1 に届かない。 -->
 				<span
-					class="absolute top-0 px-1 text-xs text-muted-foreground {chart.straight.x1 <= 0
+					class="absolute top-0 px-1 text-xs text-foreground {chart.straight.x1 <= 0
 						? 'left-0'
 						: 'right-0'}">直線</span
 				>
