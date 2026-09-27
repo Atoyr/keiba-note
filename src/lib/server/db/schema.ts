@@ -144,6 +144,12 @@ export const race = sqliteTable(
 		 */
 		winnerName: text('winner_name'),
 		runnerUpName: text('runner_up_name'),
+		/**
+		 * ラップ（区間タイム、秒）。スタートから 200m ごと（`[12.8, 11.8, 13.0, …]`）。
+		 * 距離が 200m で割り切れないレースは、最初の区間が端数（2500m なら 100m）。
+		 * 前半・後半3Fはここから出す（`utils/laps.ts`）。取得元の結果ページの値をそのまま持つ。
+		 */
+		laps: text('laps', { mode: 'json' }).$type<number[]>(),
 		/** 発走時刻 `HH:MM`（JST）。オッズを取りに行く時間帯を決める（`services/odds.ts`）。 */
 		startTime: text('start_time'),
 		/**

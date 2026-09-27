@@ -568,6 +568,8 @@ VALUES ('01JE2EPREVIEWMARK700000000', '01JE2EUSER0000000000000000', 'preview', '
 -- メモノミ（着順なし）は通過順も上りも無いまま＝2行目を出さない形（取消なので頭数は6）。
 -- 上りの順位は、上りの入った頭数が頭数（field_size）と同じときだけ出る。
 UPDATE race SET field_size = 6 WHERE id = '01JE2ERACEMARKS00000000000';
+-- ラップ（1800m なので9区間）。前半3F 36.0・後半3F 34.6（後半が1.4秒速い）。予想のペースはスロー。
+UPDATE race SET laps = '[12.6,11.4,12.0,12.5,12.4,12.2,11.6,11.2,11.8]' WHERE id = '01JE2ERACEMARKS00000000000';
 UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1 WHERE id = '01JE2EENTRYMARK10000000000';
 UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2 WHERE id = '01JE2EENTRYMARK20000000000';
 UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3 WHERE id = '01JE2EENTRYMARK30000000000';

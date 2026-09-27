@@ -411,6 +411,26 @@ describe('applyResult', () => {
 		expect(file.toString()).toContain('    winner: ホースA\n    runnerUp: ホースB\n');
 	});
 
+	it('ラップは1行の並びで書き、同じ値なら書き換えない。表が無ければ既存を消さない', async () => {
+		const file = RaceFile.parse(
+			'2026-09-27.yaml',
+			placeholder.replace(
+				'    entries: []',
+				'    entries:\n      - name: ホースA\n        ref: nk-1'
+			)
+		);
+		const race = file.findRace('中山', 11)!;
+		const rows = [result('1', 'ホースA', { finish: 1 })];
+		await applyResult(file, race, { meta: { ...meta, laps: [12.3, 11.0, 13] }, rows }, resolve);
+		// Prettier と同じ書き方（括弧の内側に空白を入れない）。
+		expect(file.toString()).toContain('    laps: [12.3, 11, 13]\n');
+
+		const before = file.toString();
+		await applyResult(file, race, { meta: { ...meta, laps: [12.3, 11.0, 13] }, rows }, resolve);
+		await applyResult(file, race, { meta: { ...meta, laps: undefined }, rows }, resolve);
+		expect(file.toString()).toBe(before);
+	});
+
 	it('降着で着順とタイムの順が食い違っても、負は勝ち馬だけ', () => {
 		const rows = [
 			result('1', 'A', { finish: 1, time: '1:58.5' }),

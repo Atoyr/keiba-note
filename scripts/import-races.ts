@@ -125,6 +125,17 @@ const raceSchema = v.object({
 	winner: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 	runnerUp: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 	/**
+	 * ラップ（区間タイム、秒）。スタートから 200m ごと。距離が 200m で割り切れなければ最初の区間が端数（100m）。
+	 * `data:fetch result` が結果ページの「ラップタイム」から書く。区間の数は距離と合っていること（下の検査）。
+	 */
+	laps: v.optional(
+		v.pipe(
+			v.array(v.pipe(v.number(), v.minValue(5), v.maxValue(20))),
+			v.minLength(1),
+			v.maxLength(25)
+		)
+	),
+	/**
 	 * 取得元のレース ID。`nk-` + netkeiba の race_id（12桁）。`data:fetch entries` が書く。
 	 * **これと `startTime` がある重賞（G1〜G3）だけ、オッズを取りに行く**（docs/product.md 第1章）。
 	 */
@@ -264,7 +275,9 @@ export function statementsFor(file: RaceFile, fileName: string, hash: string): s
 		const sizeCol = writtenCols([
 			['field_size', race.fieldSize],
 			['winner_name', race.winner],
-			['runner_up_name', race.runnerUp]
+			['runner_up_name', race.runnerUp],
+			// ラップ（マイグレーション 0017）も同じ。JSON の配列で持つ（schema.ts の `mode: 'json'`）。
+			['laps', race.laps ? JSON.stringify(race.laps) : undefined]
 		]);
 
 		out.push(
@@ -430,6 +443,16 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 		if (other)
 			errors.push(`${label}: 馬番 ${e.horseNumber} が ${other} と ${e.name} で重複しています`);
 		seen.set(e.horseNumber, e.name);
+	}
+
+	// ラップの区間の数は距離で決まる（200m ごと、端数は最初の区間）。合わなければ別のレースのラップか、途中が欠けている。
+	if (race.laps !== undefined && race.distance !== undefined) {
+		const expected = Math.ceil(race.distance / 200);
+		if (race.laps.length !== expected) {
+			errors.push(
+				`${label}: ラップが ${race.laps.length} 区間あります（${race.distance}m なら ${expected} 区間）`
+			);
+		}
 	}
 
 	// 頭数は entries と別に書くので、打ち間違えると馬柱に「8頭 12着」のような行が出る。

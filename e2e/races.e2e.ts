@@ -396,6 +396,35 @@ test('展開を予想していたレースでは、実際の隊列の下に予�
 	await expect(preview.locator('summary')).toContainText('スタート ③-①⑤');
 });
 
+/**
+ * ★ ラップ。閉じた行に前半3F・後半3Fと差、予想で選んだペースを並べ、開くと折れ線が出る。
+ * seed の E2E印見本特別は 1800m（9区間）で、予想のペースはスロー。
+ */
+test('ふりかえり画面にラップの前半3F・後半3Fが出て、開くと折れ線と区間タイムが出る', async ({
+	page
+}) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}`);
+
+	const laps = page.getByRole('region', { name: 'ラップ' });
+	await expect(laps.locator('summary')).toContainText('前半3F 36.0 · 後半3F 34.6');
+	await expect(laps.locator('summary')).toContainText('後半が1.4秒速い');
+	await expect(laps.locator('summary')).toContainText('予想のペース スロー');
+
+	await laps.locator('summary').click();
+	await expect(laps.getByRole('img', { name: /ラップの折れ線/ })).toBeVisible();
+	await expect(laps).toContainText('12.6-11.4-12.0-12.5-12.4-12.2-11.6-11.2-11.8');
+});
+
+/** ラップの入っていないレースには、ラップの欄を出さない。 */
+test('ラップの入っていないレースには、ラップの欄を出さない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${ACTUAL_FLOW_RACE_ID}`);
+
+	await expect(page.getByRole('region', { name: '実際の展開' })).toBeVisible();
+	await expect(page.getByRole('region', { name: 'ラップ' })).toHaveCount(0);
+});
+
 /** 出走馬を気にしている馬だけ入れたレースでは、2頭の並びが全体の流れに見えるので出さない。 */
 test('走った全頭がそろっていないレースでは、実際の展開を出さない', async ({ page }) => {
 	await login(page);

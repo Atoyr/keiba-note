@@ -169,7 +169,7 @@ export async function getRace(db: Db, id: string): Promise<Race | null> {
  *
  * - 取得元の ID と発走時刻（`data:fetch entries`）: オッズを取りに行く対象を決めるもので、
  *   手で打ち間違えると別のレースのオッズが付く
- * - 頭数・勝ち馬・2着馬（`data:fetch past` / `result`）: 取得元の値をそのまま持つ
+ * - 頭数・勝ち馬・2着馬（`data:fetch past` / `result`）とラップ（`result`）: 取得元の値をそのまま持つ
  */
 export type CreateRaceInput = Omit<
 	Race,
@@ -182,6 +182,7 @@ export type CreateRaceInput = Omit<
 	| 'fieldSize'
 	| 'winnerName'
 	| 'runnerUpName'
+	| 'laps'
 >;
 
 export async function createRace(

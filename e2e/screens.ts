@@ -114,6 +114,15 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
+		// ラップを開いたところ（前半3F・後半3Fを塗った折れ線と区間タイム）。
+		name: 'race-review-laps-open',
+		path: `/races/${MARKS_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: 'ラップ' }).click();
+		}
+	},
+	{
 		// 予想ありのレースで実際の展開を開いたところ（盤面の下に予想の隊列）。
 		name: 'race-review-actual-flow-marks-open',
 		path: `/races/${MARKS_RACE_ID}`,
