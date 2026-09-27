@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import ActualFlow from '$lib/components/ActualFlow.svelte';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import CourseMap from '$lib/components/CourseMap.svelte';
@@ -19,7 +20,7 @@
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { corner4Position, hasCorners, last3fRanks } from '$lib/utils/run-stats';
+	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -56,14 +57,17 @@
 	// （全頭の上りがそろっていないレースでは順位を出さない。→ last3fRanks）。
 	const rows = $derived.by(() => {
 		const ranks = last3fRanks(data.rows, data.race.fieldSize);
-		// 直線のレースは通過順に数字が1つ入るが、回るコーナーが無いので4角は出さない。
-		const corners = hasCorners(data.race);
+		// 直線のレース・通過順が途中で切れた中止の馬は4角の位置を持たない（→ corner4Positions）。
+		const corners = corner4Positions(data.rows, data.race);
 		return data.rows.map((r) => ({
 			...r,
-			corner4: corners ? corner4Position(r.passing) : null,
+			corner4: corners.get(r.entryId) ?? null,
 			last3fRank: ranks.get(r.entryId) ?? null
 		}));
 	});
+
+	// 4角とゴール前の実際の隊列。予想で展開を置いていなくても出す（走った全頭がそろったレースだけ）。
+	const actual = $derived(actualFlow(data.rows, data.race));
 
 	const ta =
 		'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-gray-900 focus:outline-none';
@@ -121,6 +125,13 @@
 	{#if answers.length > 0}
 		<div class="mt-6">
 			<AnswerCheck {answers} />
+		</div>
+	{/if}
+
+	<!-- 実際の展開は答え合わせのすぐ下。予想を置いていたら同じ欄で見比べる。 -->
+	{#if actual}
+		<div class="mt-6">
+			<ActualFlow {actual} predicted={data.myRaceFlow} />
 		</div>
 	{/if}
 

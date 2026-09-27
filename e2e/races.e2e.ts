@@ -1,7 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
+	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
 	MARKS_RACE_ID,
@@ -327,6 +328,60 @@ test('全頭の上りがそろっていないレースでは、上りのタイ�
 
 	await expect(page.locator('form li', { hasText: 'E2Eウチワク' })).toContainText('上り33.8');
 	await expect(page.locator('form').getByTitle(/上り\d位/)).toHaveCount(0);
+});
+
+/** 「実際の展開」の欄。局面（dt）ごとに中身（dd）の文字を返す。 */
+const actualFlowRows = (page: Page) =>
+	page
+		.getByRole('region', { name: '実際の展開' })
+		.locator('dt')
+		.evaluateAll((dts) =>
+			dts.map((dt) => [
+				dt.textContent?.trim(),
+				dt.nextElementSibling?.textContent?.replace(/\s+/g, ' ').trim()
+			])
+		);
+
+/**
+ * ★ **展開を予想していなくても、実際の展開が出る。** 4角は通過順、ゴール前は着順の並び。
+ * seed の E2E実際展開賞は予想もメモも無い6頭立て。①と③は4角で同じ2番手、
+ * ⑥は4角の手前で中止（通過順が3つで切れる）なので、4角にもゴール前にも出ない。
+ */
+test('展開を予想していないレースでも、4角とゴール前の実際の隊列が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${ACTUAL_FLOW_RACE_ID}`);
+
+	expect(await actualFlowRows(page)).toEqual([
+		['4角', '②-①③-④-⑤'],
+		['ゴール前', '①-②-③-④-⑤']
+	]);
+	// 予想が無いので「予想」の段も、開催前の見立ても出ない。
+	await expect(page.getByRole('region', { name: '実際の展開' })).not.toContainText('予想');
+	await expect(page.getByText('開催前の見立て')).toHaveCount(0);
+
+	// 通過順が途中で切れた中止の馬には「4角N番手」を出さない（最後の数字は4角ではない）。
+	await expect(page.locator('form li', { hasText: 'E2Eチュウシ' })).not.toContainText('4角');
+	await expect(page.locator('form li', { hasText: 'E2Eマクリ' })).toContainText('4角2番手→3着');
+});
+
+/** 予想で展開を置いていたら、同じ局面の下に予想の隊列を並べて見比べられる。 */
+test('展開を予想していたレースでは、実際の隊列の下に予想の隊列が並ぶ', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}`);
+
+	expect(await actualFlowRows(page)).toEqual([
+		['4角', '実際③-①-⑥-④-⑤-② 予想③-①⑤-②-④-⑥-⑦'],
+		['ゴール前', '実際①-⑤-③-⑥-②-④ 予想①②-③-⑤-⑦-④-⑥']
+	]);
+});
+
+/** 出走馬を気にしている馬だけ入れたレースでは、2頭の並びが全体の流れに見えるので出さない。 */
+test('走った全頭がそろっていないレースでは、実際の展開を出さない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	await expect(page.getByRole('heading', { name: '答え合わせ' })).toBeVisible();
+	await expect(page.getByRole('region', { name: '実際の展開' })).toHaveCount(0);
 });
 
 /**

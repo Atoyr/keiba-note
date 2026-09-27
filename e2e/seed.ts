@@ -145,6 +145,8 @@ export const MARKS_RACE_ID = '01JE2ERACEMARKS00000000000';
 
 /** 展開の予想を保存するレース（右回り・2頭・メモなし）。印見本のレースの見立てには展開の見本が入っている。 */
 export const FLOW_RACE_ID = '01JE2ERACEFLOW000000000000';
+/** 展開の予想もメモも置いていない、全頭そろった開催済みのレース（ふりかえりの「実際の展開」）。 */
+export const ACTUAL_FLOW_RACE_ID = '01JE2ERACEACTUALFLOW000000';
 
 /** 18頭・枠順前（馬番も枠も無い）。見立てに展開（ハイペース、3局面すべてに18頭）が入っている。 */
 export const FLOW_CROWD_RACE_ID = '01JE2ERACEFLOW180000000000';

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { corner4Position, hasCorners, last3fRanks } from './run-stats';
+import {
+	actualFlow,
+	corner4Position,
+	corner4Positions,
+	hasCorners,
+	last3fRanks
+} from './run-stats';
 
 describe('hasCorners', () => {
 	it('新潟の芝1000m（直線）はコーナーが無い。回りが空でも距離で決まる', () => {
@@ -93,5 +99,88 @@ describe('last3fRanks', () => {
 
 	it('頭数が入っていなければ、そろっているか分からないので数えない', () => {
 		expect(last3fRanks([ran('a', 34.0), ran('b', 34.5)], null).size).toBe(0);
+	});
+});
+
+/** 1頭の結果。馬番 n、着順 finish（中止は null）、通過順 passing。 */
+const horse = (n: number, finish: number | null, passing: string | null) => ({
+	entryId: `e${n}`,
+	horseNumber: n,
+	bracket: n,
+	horseName: `馬${n}`,
+	finishPosition: finish,
+	passing
+});
+
+const turf = { course: '中山', surface: '芝', distance: 2000, direction: '右' };
+
+describe('corner4Positions', () => {
+	it('通過順が途中で切れた中止の馬（コーナーの数より短い）は4角の位置を持たない', () => {
+		const at = corner4Positions(
+			[horse(1, 1, '4-4-3-1'), horse(2, 2, '1-1-1-2'), horse(3, null, '4-4-13')],
+			turf
+		);
+		expect(at.get('e1')).toBe(1);
+		expect(at.get('e2')).toBe(2);
+		expect(at.has('e3')).toBe(false);
+	});
+
+	it('4コーナーを回ってから止まった中止の馬は位置を持つ', () => {
+		const at = corner4Positions([horse(1, 1, '1-1-1-1'), horse(2, null, '10-10-14-18')], turf);
+		expect(at.get('e2')).toBe(18);
+	});
+
+	it('直線のレースでは誰も持たない', () => {
+		const straight = { course: '新潟', surface: '芝', distance: 1000, direction: '直線' };
+		expect(corner4Positions([horse(1, 1, '5')], straight).size).toBe(0);
+	});
+});
+
+describe('actualFlow', () => {
+	it('4角は通過順、ゴール前は着順の並び。同じ位置の馬は1つの列に馬番の順で並ぶ', () => {
+		const flow = actualFlow(
+			[
+				horse(1, 1, '3-3-3-2'),
+				horse(2, 2, '1-1-1-1'),
+				horse(3, 3, '5-5-4-2'),
+				horse(4, 4, '2-2-2-4'),
+				horse(5, null, '4-4-5')
+			],
+			{ ...turf, fieldSize: 5 }
+		);
+		// ⑤は4角の手前で中止。4角にもゴール前にも出ない。
+		expect(flow).toEqual({ corner4: ['②', '①③', '④'], finish: ['①', '②', '③', '④'] });
+	});
+
+	it('同着は同じ列にまとめる', () => {
+		const flow = actualFlow([horse(1, 1, '1-1'), horse(2, 1, '2-2'), horse(3, 3, '3-3')], {
+			...turf,
+			fieldSize: 3
+		});
+		expect(flow?.finish).toEqual(['①②', '③']);
+	});
+
+	it('走った全頭がそろっていない（気にしている馬だけ入れた）レースでは出さない', () => {
+		const rows = [horse(1, 1, '1-1'), horse(7, 7, '5-6')];
+		expect(actualFlow(rows, { ...turf, fieldSize: 16 })).toBeNull();
+		expect(actualFlow(rows, { ...turf, fieldSize: null })).toBeNull();
+	});
+
+	it('取消の馬（着順も通過順も無い）は走った馬に数えない', () => {
+		const flow = actualFlow([horse(1, 1, '1-1'), horse(2, 2, '2-2'), horse(3, null, null)], {
+			...turf,
+			fieldSize: 2
+		});
+		expect(flow?.finish).toEqual(['①', '②']);
+	});
+
+	it('直線のレースはゴール前だけ', () => {
+		const straight = { course: '新潟', surface: '芝', distance: 1000, direction: '直線' };
+		const flow = actualFlow([horse(1, 1, '2'), horse(2, 2, '1')], { ...straight, fieldSize: 2 });
+		expect(flow).toEqual({ corner4: null, finish: ['①', '②'] });
+	});
+
+	it('結果がまだ入っていなければ出さない', () => {
+		expect(actualFlow([horse(1, null, null)], { ...turf, fieldSize: 1 })).toBeNull();
 	});
 });

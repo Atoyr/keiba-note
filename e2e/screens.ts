@@ -3,6 +3,7 @@ import { waitForHydration } from './hydration';
 import { failNextAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
 import {
+	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
 	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
@@ -98,6 +99,8 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
+	// 展開の予想を置いていないレース。実際の展開（4角・ゴール前）だけが出る。
+	{ name: 'race-review-actual-flow', path: `/races/${ACTUAL_FLOW_RACE_ID}`, auth: true },
 	{
 		// ふりかえりを書きかけたところ。未保存の件数と保存ボタンが下に貼り付く（書くまでは出ない）。
 		name: 'race-review-unsaved',
