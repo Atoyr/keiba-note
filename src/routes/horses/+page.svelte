@@ -14,6 +14,8 @@
 		(next) => next.horses as typeof data.horses
 	);
 	export const snapshot = horses.snapshot;
+
+	let listEl = $state<HTMLElement>();
 </script>
 
 <svelte:head><title>馬 — uma-memo</title></svelte:head>
@@ -46,14 +48,14 @@
 	{:else}
 		{#if data.offset > 0}
 			<!-- JS が無いときは「続きを読み込む」で offset 付きのページへ移るので、先頭へ戻る道を置く。 -->
-			<p class="mt-6 text-xs text-gray-500">
+			<p class="mt-6 text-xs text-muted-foreground">
 				{data.offset + 1} 頭目から
 				<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは今開いている URL のまま、offset を外しているだけ（frontend.md 第3章） -->
 				<a href={pageHref(page.url, 0)} class="underline">先頭から見る</a>
 				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			</p>
 		{/if}
-		<ul class="mt-6 divide-y divide-gray-200 border-y border-gray-200">
+		<ul bind:this={listEl} class="mt-6 divide-y divide-gray-200 border-y border-gray-200">
 			{#each horses.items as h (h.id)}
 				<li>
 					<a href={resolve('/horses/[id]', { id: h.id })} class="block py-3 hover:bg-gray-50">
@@ -72,6 +74,7 @@
 		<LoadMore
 			href={horses.href}
 			load={() => horses.loadNext()}
+			list={listEl}
 			shown={data.offset + horses.items.length}
 			unit="頭"
 		/>

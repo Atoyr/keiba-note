@@ -10,12 +10,16 @@
 	 *   JS があれば移らずにその場で足す。キーボードで読む人と、自動で読めなかったときの入口にもなる
 	 * - 読めなければ自動では読み直さない。文を出して「もう一度読み込む」を押してもらう
 	 *   （通信が切れたまま下端で読み直しを繰り返さないため）
+	 * - **ボタンにフォーカスがあったまま読んだら、足した最初の行へフォーカスを移す。** 最後のページを
+	 *   読むとボタンが消えてフォーカスが body に落ち、次の Tab がページの先頭からになる。
+	 *   消えないときも、足した行はボタンの上に入るので、そのままだと読み飛ばすことになる
 	 */
 	let {
 		href,
 		load,
 		shown,
-		unit
+		unit,
+		list
 	}: {
 		/** 次のページの URL。`null` なら続きは無く、何も出さない。 */
 		href: string | null;
@@ -25,20 +29,26 @@
 		shown: number;
 		/** 数える単位（`件`・`頭`）。 */
 		unit: string;
+		/** 行を並べている一覧（`<ul>`）。足した行へフォーカスを移すのに使う。 */
+		list?: HTMLElement;
 	} = $props();
 
 	let status = $state<'idle' | 'loading' | 'error'>('idle');
 	let sentinel = $state<HTMLElement>();
+	let button = $state<HTMLElement | null>(null);
 	let announce = $state('');
 
 	async function more() {
 		if (status === 'loading') return;
 		status = 'loading';
+		const focused = button !== null && document.activeElement === button;
+		const before = list?.children.length ?? 0;
 		try {
 			await load();
 			await tick();
 			status = 'idle';
 			announce = `${shown} ${unit}まで表示しています`;
+			if (focused) list?.children[before]?.querySelector<HTMLElement>('a, button')?.focus();
 		} catch {
 			status = 'error';
 		}
@@ -75,7 +85,14 @@
 				続きを読み込めませんでした。通信を確かめて、もう一度読み込んでください。
 			</p>
 		{/if}
-		<Button {href} variant="outline" size="lg" aria-disabled={status === 'loading'} {onclick}>
+		<Button
+			bind:ref={button}
+			{href}
+			variant="outline"
+			size="lg"
+			aria-disabled={status === 'loading'}
+			{onclick}
+		>
 			{#if status === 'loading'}
 				読み込んでいます…
 			{:else if status === 'error'}

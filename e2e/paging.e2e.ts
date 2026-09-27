@@ -60,6 +60,23 @@ test('馬一覧は「続きを読み込む」を押しても続きが足され�
 });
 
 /**
+ * キーボードで読んだとき。最後のページを読むとボタンが消えるので、そのままだとフォーカスが
+ * body に落ちて次の Tab が先頭からになる。足した最初の行へ移す。
+ */
+test('キーボードで続きを読むと、足した最初の行にフォーカスが移る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, HORSES);
+
+	await loadMore(page).focus();
+	await page.keyboard.press('Enter');
+
+	await expect(horseLinks(page)).toHaveCount(PAGED_LIST.horseCount);
+	await expect(
+		page.getByRole('link', { name: new RegExp(`${PAGED_LIST.horsePrefix}101`) })
+	).toBeFocused();
+});
+
+/**
  * `preloadData` は読めなくても投げず、いまのページのデータを返す。それを「読めた」と取り違えて
  * 黙って何も足さない、ということが無いように、失敗が文で出て押し直せることを見る。
  */
@@ -114,5 +131,18 @@ test.describe('JavaScript が無いとき', () => {
 		await page.getByRole('link', { name: '先頭から見る' }).click();
 		await expect(page).toHaveURL(RACES);
 		await expect(raceLinks(page)).toHaveCount(100);
+	});
+
+	test('馬一覧も、次の100頭のページへ移って先頭へ戻れる', async ({ page }) => {
+		await login(page);
+		await page.goto(HORSES);
+
+		await loadMore(page).click();
+
+		await expect(horseLinks(page)).toHaveCount(PAGED_LIST.horseCount - 100);
+		await expect(page.getByText('101 頭目から')).toBeVisible();
+
+		await page.getByRole('link', { name: '先頭から見る' }).click();
+		await expect(horseLinks(page)).toHaveCount(100);
 	});
 });

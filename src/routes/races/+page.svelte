@@ -23,6 +23,8 @@
 		(next) => next.races as typeof data.races
 	);
 	export const snapshot = races.snapshot;
+
+	let listEl = $state<HTMLElement>();
 </script>
 
 <svelte:head><title>レース — uma-memo</title></svelte:head>
@@ -46,7 +48,7 @@
 	{#if data.total === 0}
 		<RaceListEmpty defaultFilter={data.defaultFilter} {filtered} {admin} />
 	{:else}
-		<p class="mt-6 text-xs text-gray-500">
+		<p class="mt-6 text-xs text-muted-foreground">
 			{data.total} 件
 			{#if data.offset > 0}
 				<!-- JS が無いときは「続きを読み込む」で offset 付きのページへ移るので、先頭へ戻る道を置く。 -->
@@ -56,7 +58,7 @@
 				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			{/if}
 		</p>
-		<ul class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
+		<ul bind:this={listEl} class="mt-2 divide-y divide-gray-200 border-y border-gray-200">
 			{#each races.items as r (r.id)}
 				<li>
 					<!-- 一覧は日付降順なので、上のほうには開催前の重賞が並ぶ。
@@ -93,6 +95,7 @@
 		<LoadMore
 			href={races.href}
 			load={() => races.loadNext()}
+			list={listEl}
 			shown={data.offset + races.items.length}
 			unit="件"
 		/>
