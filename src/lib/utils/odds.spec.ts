@@ -5,6 +5,8 @@ import {
 	formatWinOdds,
 	inOddsWindow,
 	oddsWindowOpens,
+	popularityByNumber,
+	sortByPopularity,
 	startsAt
 } from './odds';
 
@@ -91,5 +93,57 @@ describe('書き方', () => {
 	it('時点は JST の日付と時刻', () => {
 		expect(formatOddsAsOf('2026-09-27T05:30:00.000Z')).toBe('9/27 14:30時点');
 		expect(formatOddsAsOf('2026-09-26T23:05:00.000Z')).toBe('9/27 08:05時点');
+	});
+});
+
+describe('人気', () => {
+	it('単勝オッズの低い順に 1人気から付ける', () => {
+		const p = popularityByNumber([
+			{ horseNumber: 1, winOdds: 12.5 },
+			{ horseNumber: 2, winOdds: 2.1 },
+			{ horseNumber: 3, winOdds: 5.4 }
+		]);
+		expect([p.get(1), p.get(2), p.get(3)]).toEqual([3, 1, 2]);
+	});
+
+	it('同じオッズは同じ人気にし、次はその頭数ぶん飛ばす', () => {
+		const p = popularityByNumber([
+			{ horseNumber: 1, winOdds: 3.4 },
+			{ horseNumber: 2, winOdds: 5.1 },
+			{ horseNumber: 3, winOdds: 5.1 },
+			{ horseNumber: 4, winOdds: 8.0 }
+		]);
+		expect([p.get(1), p.get(2), p.get(3), p.get(4)]).toEqual([1, 2, 2, 4]);
+	});
+
+	it('オッズの無い馬（取消）には付けず、ほかの馬の人気にも数えない', () => {
+		const p = popularityByNumber([
+			{ horseNumber: 1, winOdds: null },
+			{ horseNumber: 2, winOdds: 4.0 }
+		]);
+		expect(p.has(1)).toBe(false);
+		expect(p.get(2)).toBe(1);
+	});
+});
+
+describe('sortByPopularity', () => {
+	it('人気順に並べ、人気の無い馬は後ろ、同じ人気は馬番の順', () => {
+		const rows = [
+			{ id: 'a', horseNumber: 1, popularity: null },
+			{ id: 'b', horseNumber: 2, popularity: 2 },
+			{ id: 'c', horseNumber: 3, popularity: 1 },
+			{ id: 'd', horseNumber: 4, popularity: 2 },
+			{ id: 'e', horseNumber: null, popularity: null }
+		];
+		expect(sortByPopularity(rows).map((r) => r.id)).toEqual(['c', 'b', 'd', 'a', 'e']);
+	});
+
+	it('元の配列は並べ替えない', () => {
+		const rows = [
+			{ horseNumber: 1, popularity: 2 },
+			{ horseNumber: 2, popularity: 1 }
+		];
+		sortByPopularity(rows);
+		expect(rows.map((r) => r.horseNumber)).toEqual([1, 2]);
 	});
 });

@@ -11,6 +11,7 @@ import {
 import { getRaceOdds } from '$lib/server/services/odds';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { popularityByNumber } from '$lib/utils/odds';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -62,6 +63,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
 	const oddsByNumber = new Map(odds?.horses.map((h) => [h.horseNumber, h]) ?? []);
+	// 人気は単勝オッズの順で付ける（取得元の人気は票数で決まるが、持っているのはオッズだけ）。
+	const popularity = popularityByNumber(odds?.horses ?? []);
 
 	// 読めるのは自分のメモだけなので、著者での選り分けは要らない。
 	const myPreview = new Map(
@@ -85,6 +88,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		rows: entries.map((e) => ({
 			...e,
 			odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
+			popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
 			myPreview: myPreview.get(e.entryId) ?? null,
 			history: history.get(e.horseId) ?? [],
 			pastRuns: pastRuns.get(e.horseId) ?? []

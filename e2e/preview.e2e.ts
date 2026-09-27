@@ -62,6 +62,74 @@ test('出走馬の単勝・複勝オッズを、取れた時点とともに出�
 	await expect(row).toContainText(/単勝\s*3\.4\s*複勝\s*1\.4-1\.8/);
 });
 
+/**
+ * 人気は単勝オッズの低い順。同じオッズは同じ人気で、取消（単勝なし）には付けない。
+ * seed の印見本のレースは ①2.8 ②5.1 ③5.1 ④12.4 ⑤31.6 ⑥8.9 ⑦取消。
+ */
+test('単勝オッズから人気を付けて、オッズの行の頭に出す', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}/preview`);
+
+	const row = (name: string) => page.locator('main li[id^="entry-"]', { hasText: name });
+	await expect(row('E2Eホンメイ')).toContainText(/1人気\s*単勝\s*2\.8/);
+	await expect(row('E2Eタイコウ')).toContainText(/2人気\s*単勝\s*5\.1/);
+	await expect(row('E2Eタンアナ')).toContainText(/2人気\s*単勝\s*5\.1/);
+	await expect(row('E2Eケシウマ')).toContainText(/4人気\s*単勝\s*8\.9/);
+	await expect(row('E2Eメモノミ')).toContainText(/単勝\s*-\s*複勝\s*-/);
+	await expect(row('E2Eメモノミ')).not.toContainText('人気');
+});
+
+/**
+ * ★ 人気順に並べ替えられる。並べ替えは離脱ではないので、書きかけがあっても確認を出さず、
+ * 書いたものも消えない（URL を変えずに画面の中で並べ替える）。
+ */
+test('出走馬を人気順に並べ替えられ、書きかけのメモはそのまま残る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/preview`);
+	const names = page.locator('main li[id^="entry-"] a[href^="/horses/"]');
+	const byNumber = [
+		'E2Eホンメイ',
+		'E2Eタイコウ',
+		'E2Eタンアナ',
+		'E2Eレンシタ',
+		'E2Eアナウマ',
+		'E2Eケシウマ',
+		'E2Eメモノミ'
+	];
+	await expect(names).toHaveText(byNumber);
+
+	const body = page.locator('textarea[name="raceNoteBody"]');
+	await body.fill('外差しが決まる馬場。');
+	let asked = false;
+	page.on('dialog', (d) => {
+		asked = true;
+		void d.dismiss();
+	});
+
+	const order = page.getByRole('group', { name: '並び順' });
+	await order.getByRole('button', { name: '人気順' }).click();
+	await expect(order.getByRole('button', { name: '人気順' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+	// 同じ2人気は馬番の順、取消（人気なし）は最後。
+	await expect(names).toHaveText([
+		'E2Eホンメイ',
+		'E2Eタイコウ',
+		'E2Eタンアナ',
+		'E2Eケシウマ',
+		'E2Eレンシタ',
+		'E2Eアナウマ',
+		'E2Eメモノミ'
+	]);
+	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
+	await expect(body).toHaveValue('外差しが決まる馬場。');
+	expect(asked).toBe(false);
+
+	await order.getByRole('button', { name: '馬番順' }).click();
+	await expect(names).toHaveText(byNumber);
+});
+
 test('オッズが1度も取れていないレースでは、オッズの欄を出さない', async ({ page }) => {
 	await login(page);
 	// 出走馬はいるが、race_odds の行が無いレース
@@ -70,6 +138,8 @@ test('オッズが1度も取れていないレースでは、オッズの欄を�
 	await expect(page.locator('main li[id^="entry-"]').first()).toBeVisible();
 	await expect(page.getByText(/のオッズは/)).toHaveCount(0);
 	await expect(page.getByText('単勝')).toHaveCount(0);
+	// 人気も無いので、並べ替えも出さない。
+	await expect(page.getByRole('group', { name: '並び順' })).toHaveCount(0);
 });
 
 /**
@@ -84,9 +154,10 @@ test('出走馬の枠番が枠の札で出る', async ({ page }) => {
 	await expect(bracket).toBeVisible();
 	await expect(bracket).toHaveText('2');
 
-	// 枠の色は馬番を置き換えるものではない。両方出ていること。
-	const row = page.locator('main > form > ul > li').first();
-	await expect(row).toContainText('3');
+	// 枠の色は馬番を置き換えるものではない。両方が1つの札として並んで出ていること。
+	const number = page.getByTitle('3番');
+	await expect(number).toHaveText('3');
+	await expect(bracket.locator('xpath=following-sibling::*[1]')).toHaveAttribute('title', '3番');
 });
 
 /**
