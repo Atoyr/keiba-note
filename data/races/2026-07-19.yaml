@@ -12,6 +12,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 18
+    winner: ゼンダンハヤブサ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -64,6 +65,7 @@ races:
         popularity: 12
         time: "1:58.4"
         margin: "1"
+        timeDiff: 0.4
         passing: "3-3-3-3"
         last3f: 35.7
         weight: 56
@@ -158,6 +160,7 @@ races:
         popularity: 8
         time: "1:59.1"
         margin: "1.3/4"
+        timeDiff: 1.1
         passing: "8-9-8-8"
         last3f: 35.7
         weight: 55.5
@@ -272,6 +275,7 @@ races:
         popularity: 5
         time: "1:58.7"
         margin: "1/2"
+        timeDiff: 0.7
         passing: "8-9-8-8"
         last3f: 35.3
         weight: 57.5

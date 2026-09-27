@@ -358,6 +358,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 15
+    winner: ファウストラーゼン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -580,6 +581,7 @@ races:
         popularity: 3
         time: "1:58.3"
         margin: "クビ"
+        timeDiff: 0.6
         passing: "4-4-4-2"
         last3f: 35.4
         weight: 57

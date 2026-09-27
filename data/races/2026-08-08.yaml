@@ -11,7 +11,39 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: エストゥペンダ
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: レイニング
+        jockey: 戸崎圭太
+        ref: nk-2022104750
+        finish: 4
+        popularity: 2
+        time: "1:45.3"
+        timeDiff: 0.3
+        passing: "7-7"
+        last3f: 32.4
+        weight: 56
+        horseWeight: 462
+        horseWeightDiff: -2
+        odds: 4
+      - horseNumber: 7
+        bracket: 4
+        name: レガーロデルシエロ
+        jockey: 津村明秀
+        ref: nk-2021105661
+        finish: 12
+        popularity: 3
+        time: "1:45.5"
+        timeDiff: 0.5
+        passing: "9-9"
+        last3f: 32.5
+        weight: 56
+        horseWeight: 518
+        horseWeightDiff: 6
+        odds: 5.2
       - horseNumber: 9
         bracket: 5
         name: ジュンブロッサム

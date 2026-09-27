@@ -87,6 +87,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 16
+    winner: ゼットリアン
     entries:
       - horseNumber: 2
         bracket: 1
@@ -124,6 +126,7 @@ races:
         finish: 16
         popularity: 9
         time: "2:05.9"
+        timeDiff: 7.6
         passing: "2-2-4-16"
         last3f: 44.9
         weight: 57

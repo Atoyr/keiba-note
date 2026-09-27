@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 15
+    winner: レーベンスティール
     entries:
       - horseNumber: 6
         bracket: 4
@@ -34,6 +36,7 @@ races:
         finish: 4
         popularity: 3
         time: "2:12.0"
+        timeDiff: 0.2
         passing: "3-3-2-3"
         last3f: 34.6
         weight: 57

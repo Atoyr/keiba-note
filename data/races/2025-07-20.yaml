@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: イングランドアイズ
     entries:
       - horseNumber: 2
         bracket: 1
@@ -68,6 +70,21 @@ races:
         horseWeight: 444
         horseWeightDiff: -10
         odds: 6.1
+      - horseNumber: 8
+        bracket: 4
+        name: ラスカンブレス
+        jockey: 荻野極
+        ref: nk-2021105391
+        finish: 4
+        popularity: 6
+        time: "2:00.3"
+        timeDiff: 0.4
+        passing: "13-13-13-13"
+        last3f: 35.4
+        weight: 56
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 12.1
       - horseNumber: 9
         bracket: 5
         name: リカンカブール
@@ -124,6 +141,21 @@ races:
         horseWeight: 482
         horseWeightDiff: -4
         odds: 6.6
+      - horseNumber: 16
+        bracket: 8
+        name: ディープモンスター
+        jockey: 北村友一
+        ref: nk-2018104475
+        finish: 3
+        popularity: 2
+        time: "2:00.3"
+        timeDiff: 0.4
+        passing: "6-6-7-7"
+        last3f: 36.3
+        weight: 58
+        horseWeight: 470
+        horseWeightDiff: 2
+        odds: 5.8
   - course: 福島
     raceNumber: 3
     name: 2歳未勝利

@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 15
+    winner: サヴォーナ
+    runnerUp: ガイアメンテ
     entries:
       - horseNumber: 2
         bracket: 2
@@ -26,14 +29,15 @@ races:
         horseWeight: 452
         horseWeightDiff: -10
         odds: 3
-      - name: リビアングラス
-        ref: nk-2020105633
+      - horseNumber: 4
         bracket: 3
-        horseNumber: 4
+        name: リビアングラス
         jockey: 古川奈穂
+        ref: nk-2020105633
         finish: 5
         popularity: 7
         time: "1:58.8"
+        timeDiff: 0.4
         passing: "7-7-5-3"
         last3f: 35.3
         weight: 58
@@ -104,6 +108,7 @@ races:
         finish: 1
         popularity: 5
         time: "1:58.4"
+        timeDiff: -0.3
         passing: "3-4-3-2"
         last3f: 35.1
         weight: 58
@@ -623,6 +628,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 15
+    winner: マイネルエニグマ
     entries:
       - horseNumber: 10
         bracket: 6
@@ -632,6 +639,7 @@ races:
         finish: 12
         popularity: 3
         time: "2:00.5"
+        timeDiff: 0.9
         passing: "15-15-14-14"
         last3f: 34
         weight: 57

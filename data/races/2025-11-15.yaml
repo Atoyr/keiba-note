@@ -457,6 +457,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 8
+    winner: アドマイヤクワッズ
+    runnerUp: カヴァレリッツォ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -494,6 +497,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:33.1"
+        timeDiff: 0
         passing: "6-7"
         last3f: 34
         weight: 56

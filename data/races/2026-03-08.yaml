@@ -36,6 +36,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 10
+    winner: バステール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -103,6 +104,7 @@ races:
         popularity: 2
         time: "2:00.3"
         margin: "3/4"
+        timeDiff: 0.1
         passing: "5-5-5-5"
         last3f: 35.4
         weight: 57
@@ -139,6 +141,7 @@ races:
         popularity: 1
         time: "2:00.3"
         margin: "クビ"
+        timeDiff: 0.1
         passing: "3-3-3-2"
         last3f: 35.6
         weight: 57
@@ -491,6 +494,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: ドラゴンブースト
+    runnerUp: サブマリーナ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -514,6 +520,7 @@ races:
         finish: 1
         popularity: 7
         time: "1:44.0"
+        timeDiff: -0.1
         passing: "7-7"
         last3f: 33.9
         weight: 58
@@ -542,6 +549,7 @@ races:
         finish: 8
         popularity: 4
         time: "1:45.1"
+        timeDiff: 1.1
         passing: "3-3"
         last3f: 35.5
         weight: 57

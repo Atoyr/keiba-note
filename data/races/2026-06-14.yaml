@@ -12,6 +12,7 @@ races:
     trackCondition: 重
     weather: 雨
     fieldSize: 18
+    winner: メイショウタバル
     entries:
       - horseNumber: 1
         bracket: 1
@@ -87,6 +88,7 @@ races:
         popularity: 9
         time: "2:14.5"
         margin: "2"
+        timeDiff: 2.4
         passing: "7-7-10-11"
         last3f: 36.8
         weight: 58
@@ -146,6 +148,7 @@ races:
         popularity: 18
         time: "2:13.5"
         margin: "ハナ"
+        timeDiff: 1.4
         passing: "9-9-8-7"
         last3f: 36.1
         weight: 58
@@ -240,6 +243,7 @@ races:
         popularity: 13
         time: "2:13.8"
         margin: "クビ"
+        timeDiff: 1.7
         passing: "3-3-3-3"
         last3f: 36.9
         weight: 58
@@ -351,6 +355,7 @@ races:
         popularity: 16
         time: "2:15.2"
         margin: "クビ"
+        timeDiff: 3.1
         passing: "11-10-8-11"
         last3f: 37.6
         weight: 58
@@ -452,6 +457,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 13
+    winner: マイネルチケット
     entries:
       - horseNumber: 1
         bracket: 1
@@ -489,6 +496,7 @@ races:
         finish: 4
         popularity: 5
         time: "1:20.6"
+        timeDiff: 0.3
         passing: "7-6"
         last3f: 33.5
         weight: 57

@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 15
+    winner: エコロディノス
+    runnerUp: レミージュ
     entries:
       - horseNumber: 4
         bracket: 3
@@ -20,6 +23,7 @@ races:
         finish: 1
         popularity: 2
         time: "2:11.6"
+        timeDiff: -0.2
         passing: "5-5-4-2"
         last3f: 35
         weight: 56

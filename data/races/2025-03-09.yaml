@@ -157,7 +157,24 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 14
+    winner: ファウストラーゼン
     entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ヴィンセンシオ
+        jockey: ルメール
+        ref: nk-2022104832
+        finish: 2
+        popularity: 2
+        time: "2:01.3"
+        timeDiff: 0
+        passing: "1-1-2-2"
+        last3f: 36.9
+        weight: 57
+        horseWeight: 516
+        horseWeightDiff: 10
+        odds: 4.5
       - horseNumber: 6
         bracket: 4
         name: ジュタ

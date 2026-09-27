@@ -361,7 +361,24 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: カピリナ
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ダノンエアズロック
+        jockey: 津村明秀
+        ref: nk-2021105817
+        finish: 2
+        popularity: 2
+        time: "1:32.2"
+        timeDiff: 0
+        passing: "2-2-2"
+        last3f: 34
+        weight: 57
+        horseWeight: 508
+        horseWeightDiff: -4
+        odds: 3.6
       - horseNumber: 2
         bracket: 2
         name: ランフォーヴァウ

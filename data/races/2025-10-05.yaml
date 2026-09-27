@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 18
+    winner: ディープモンスター
+    runnerUp: サンライズアース
     entries:
       - horseNumber: 1
         bracket: 1
@@ -40,6 +43,21 @@ races:
         horseWeight: 448
         horseWeightDiff: 0
         odds: 282.8
+      - horseNumber: 3
+        bracket: 2
+        name: ディープモンスター
+        jockey: 浜中俊
+        ref: nk-2018104475
+        finish: 1
+        popularity: 5
+        time: "2:23.9"
+        timeDiff: -0.1
+        passing: "6-5-7-7"
+        last3f: 34.4
+        weight: 57
+        horseWeight: 466
+        horseWeightDiff: 0
+        odds: 11.3
       - horseNumber: 4
         bracket: 2
         name: アドマイヤテラ
@@ -76,6 +94,7 @@ races:
         finish: 3
         popularity: 15
         time: "2:24.1"
+        timeDiff: 0.2
         passing: "12-12-11-11"
         last3f: 34.3
         weight: 55
@@ -118,6 +137,7 @@ races:
         finish: 7
         popularity: 16
         time: "2:24.4"
+        timeDiff: 0.5
         passing: "12-12-15-14"
         last3f: 34.5
         weight: 57
@@ -180,6 +200,21 @@ races:
         horseWeight: 510
         horseWeightDiff: 6
         odds: 26.2
+      - horseNumber: 18
+        bracket: 8
+        name: ショウナンラプンタ
+        jockey: 松山弘平
+        ref: nk-2021105195
+        finish: 5
+        popularity: 3
+        time: "2:24.2"
+        timeDiff: 0.3
+        passing: "16-17-13-9"
+        last3f: 34.5
+        weight: 57
+        horseWeight: 542
+        horseWeightDiff: -2
+        odds: 5.3
   - course: 東京
     raceNumber: 11
     name: 毎日王冠
@@ -189,6 +224,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 11
+    winner: レーベンスティール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -198,6 +235,7 @@ races:
         finish: 8
         popularity: 9
         time: "1:44.7"
+        timeDiff: 0.7
         passing: "10-11-11"
         last3f: 33.3
         weight: 58
@@ -282,6 +320,7 @@ races:
         finish: 2
         popularity: 2
         time: "1:44.1"
+        timeDiff: 0.1
         passing: "1-1-1"
         last3f: 33.8
         weight: 57
@@ -310,6 +349,7 @@ races:
         finish: 3
         popularity: 1
         time: "1:44.2"
+        timeDiff: 0.2
         passing: "2-2-2"
         last3f: 33.7
         weight: 55

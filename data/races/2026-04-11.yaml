@@ -539,6 +539,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: ウィクトルウェルス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -618,6 +620,7 @@ races:
         finish: 2
         popularity: 4
         time: "2:36.9"
+        timeDiff: 0
         passing: "4-4-5-4"
         last3f: 33.3
         weight: 57

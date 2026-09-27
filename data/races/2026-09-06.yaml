@@ -568,3 +568,30 @@ races:
         horseWeight: 522
         horseWeightDiff: 4
         odds: 30.8
+  - course: 札幌
+    raceNumber: 11
+    name: 丹頂S
+    grade: OP
+    surface: 芝
+    distance: 2600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 14
+    winner: コーチェラバレー
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: ブレイヴロッカー
+        jockey: 斎藤新
+        ref: nk-2020102870
+        finish: 13
+        popularity: 13
+        time: "2:44.8"
+        timeDiff: 4.1
+        passing: "2-2-2-6"
+        last3f: 40.1
+        weight: 56
+        horseWeight: 456
+        horseWeightDiff: 6
+        odds: 24.3

@@ -678,6 +678,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 9
+    winner: アマキヒ
     entries:
       - horseNumber: 2
         bracket: 2
@@ -687,6 +689,7 @@ races:
         finish: 2
         popularity: 2
         time: "3:07.2"
+        timeDiff: 0.3
         passing: "1-1-1-1"
         last3f: 35.4
         weight: 56

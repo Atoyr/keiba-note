@@ -63,6 +63,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: クロワデュノール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -254,6 +256,7 @@ races:
         finish: 4
         popularity: 5
         time: "2:24.1"
+        timeDiff: 0.4
         passing: "2-2-2-2"
         last3f: 34.7
         weight: 57
@@ -269,6 +272,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 18
+    winner: アドマイヤテラ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -396,6 +401,21 @@ races:
         horseWeight: 494
         horseWeightDiff: 0
         odds: 3.3
+      - horseNumber: 11
+        bracket: 6
+        name: ディープモンスター
+        jockey: 松山弘平
+        ref: nk-2018104475
+        finish: 4
+        popularity: 13
+        time: "2:33.4"
+        timeDiff: 0.5
+        passing: "15-16-17-15"
+        last3f: 34.3
+        weight: 58
+        horseWeight: 468
+        horseWeightDiff: -2
+        odds: 49.1
       - horseNumber: 14
         bracket: 7
         name: シルブロン

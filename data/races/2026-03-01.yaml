@@ -36,6 +36,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 14
+    winner: レーベンスティール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -49,6 +50,7 @@ races:
         popularity: 1
         time: "1:45.9"
         margin: "ハナ"
+        timeDiff: 0.8
         passing: "1-1-1-1"
         last3f: 35.2
         weight: 57
@@ -286,6 +288,7 @@ races:
         popularity: 7
         time: "1:45.8"
         margin: "ハナ"
+        timeDiff: 0.7
         passing: "9-10-10-9"
         last3f: 33.9
         weight: 58

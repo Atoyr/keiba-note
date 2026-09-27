@@ -484,6 +484,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 16
+    winner: カゼノランナー
     entries:
       - horseNumber: 7
         bracket: 4
@@ -535,6 +537,7 @@ races:
         finish: 9
         popularity: 10
         time: "1:54.2"
+        timeDiff: 1.1
         passing: "7-7-6-7"
         last3f: 38.6
         weight: 57

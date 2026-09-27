@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: シランケド
     entries:
       - horseNumber: 2
         bracket: 1
@@ -68,6 +70,21 @@ races:
         horseWeight: 474
         horseWeightDiff: -10
         odds: 429.9
+      - horseNumber: 9
+        bracket: 5
+        name: ディープモンスター
+        jockey: 菅原明良
+        ref: nk-2018104475
+        finish: 3
+        popularity: 7
+        time: "1:58.2"
+        timeDiff: 0.2
+        passing: "11-10"
+        last3f: 32.6
+        weight: 57
+        horseWeight: 466
+        horseWeightDiff: -4
+        odds: 22.8
       - name: アスクドゥポルテ
         ref: nk-2020101025
         bracket: 7

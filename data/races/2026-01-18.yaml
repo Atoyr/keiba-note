@@ -12,6 +12,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 13
+    winner: ゲルチュタール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -137,6 +138,7 @@ races:
         popularity: 11
         time: "2:25.7"
         margin: "クビ"
+        timeDiff: 0
         passing: "1-1-1-1"
         last3f: 34.4
         weight: 55
@@ -173,6 +175,7 @@ races:
         popularity: 9
         time: "2:26.0"
         margin: "1.1/2"
+        timeDiff: 0.3
         passing: "3-3-3-3"
         last3f: 34.4
         weight: 56

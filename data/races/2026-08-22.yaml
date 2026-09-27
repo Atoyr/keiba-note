@@ -35,6 +35,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: ショウナンザナドゥ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -50,6 +52,21 @@ races:
         horseWeight: 490
         horseWeightDiff: -6
         odds: 8.9
+      - horseNumber: 4
+        bracket: 2
+        name: ビーアストニッシド
+        jockey: 西村太一
+        ref: nk-2019101348
+        finish: 13
+        popularity: 18
+        time: "1:20.7"
+        timeDiff: 0.5
+        passing: "15-16"
+        last3f: 34.1
+        weight: 58
+        horseWeight: 476
+        horseWeightDiff: -2
+        odds: 317.2
       - horseNumber: 9
         bracket: 5
         name: クルゼイロドスル
@@ -58,6 +75,7 @@ races:
         finish: 14
         popularity: 6
         time: "1:20.9"
+        timeDiff: 0.7
         passing: "11-11"
         last3f: 34.5
         weight: 58
