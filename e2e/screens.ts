@@ -135,6 +135,19 @@ export const SCREENS: Screen[] = [
 	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{
+		// 人気順に並べ替えたところ（同じ2人気は馬番の順、取消で人気の無い馬は最後）。
+		name: 'race-preview-popularity',
+		path: `/races/${MARKS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.getByRole('group', { name: '並び順' })
+				.getByRole('button', { name: '人気順' })
+				.click();
+		}
+	},
+	{
 		// 展開の予想を開き、4コーナーの盤面で置いた馬を1頭選んだところ（入れ替え・外すの操作が出る）。
 		name: 'race-preview-flow',
 		path: `/races/${MARKS_RACE_ID}/preview`,

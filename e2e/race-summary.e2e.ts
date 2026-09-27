@@ -29,7 +29,8 @@ test('印なしのメモも表示し、見出し右側の予想リンクとシ�
 	await expect(page.locator('li', { hasText: 'E2Eメモノミ' })).toContainText(
 		'印は保留。距離延長での走りに注目。'
 	);
-	await expect(page.locator('article li .font-semibold')).toHaveText([
+	// 馬名の並び。枠と馬番の札（HorseNumberBadge）も太字だが、札には title（「3番」）があるので外す。
+	await expect(page.locator('article li .font-semibold:not([title])')).toHaveText([
 		'E2Eホンメイ',
 		'E2Eモウイットウ',
 		'E2Eタイコウ',

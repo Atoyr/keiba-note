@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
-	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
@@ -43,8 +43,7 @@
 				{#each rows as row, i (i)}
 					<li class="space-y-2 p-4">
 						<div class="flex flex-wrap items-center gap-2">
-							<BracketBadge bracket={row.bracket} />
-							<span class="text-sm text-muted-foreground">{row.horseNumber ?? '—'}番</span>
+							<HorseNumberBadge bracket={row.bracket} horseNumber={row.horseNumber} />
 							<span class="font-semibold">{row.horseName}</span>
 							<MarkBadge mark={row.mark} />
 						</div>

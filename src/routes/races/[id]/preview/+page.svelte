@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import BracketBadge from '$lib/components/BracketBadge.svelte';
+	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
@@ -28,9 +29,15 @@
 		previewSaveLabel,
 		savedMessage
 	} from '$lib/utils/note';
-	import { formatOddsAsOf, formatPlaceOdds, formatWinOdds } from '$lib/utils/odds';
+	import {
+		formatOddsAsOf,
+		formatPlaceOdds,
+		formatWinOdds,
+		sortByPopularity
+	} from '$lib/utils/odds';
 	import { flowLeadsRight } from '$lib/utils/race-flow';
 	import { isAdmin } from '$lib/utils/role';
+	import { cn } from '$lib/utils';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -72,6 +79,25 @@
 
 	// コース図を出せるレースか（JRA の10場で、馬場が決まっている）。印と2列に並べるかを決める。
 	const hasCourse = $derived(courseMap(data.race) !== null);
+
+	/**
+	 * 出走馬の並び。既定は馬番順で、オッズが取れていれば人気順にも切り替えられる。
+	 * **URL には載せない。** クエリを変えるとアプリ内の移動になり、書きかけがあると
+	 * DraftKeeper が「離れますか？」と止めてしまう。並べ替えは離脱ではない。
+	 * 行は entryId で key を付けてあるので、並べ替えても書きかけの欄や開いた欄はそのまま動く。
+	 */
+	let order = $state<'number' | 'popularity'>('number');
+	const ORDERS = [
+		{ value: 'number', label: '馬番順' },
+		{ value: 'popularity', label: '人気順' }
+	] as const;
+	const rows = $derived(order === 'popularity' ? sortByPopularity(data.rows) : data.rows);
+
+	/** 切り替えは JS が要るので、動くようになってから出す（JS が無いと押しても何も起きない）。 */
+	let hydrated = $state(false);
+	onMount(() => {
+		hydrated = true;
+	});
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
@@ -283,12 +309,37 @@
 			<!-- 取れた時点を必ず添える。30分おきにしか取らず、失敗した回は前の値が残るので、
 			     「現在の」オッズのようには見せない（product.md 第6章）。 -->
 			{#if data.oddsAsOf}
-				<p class="mt-6 text-xs text-muted-foreground">
-					単勝・複勝のオッズは {formatOddsAsOf(data.oddsAsOf)}
-				</p>
+				<div class="mt-6 flex flex-wrap items-center justify-between gap-2">
+					<p class="text-xs text-muted-foreground">
+						単勝・複勝のオッズは {formatOddsAsOf(data.oddsAsOf)}
+					</p>
+					<!-- 並び順。オッズが無ければ人気も無いので、オッズがあるときだけ出す。 -->
+					{#if hydrated}
+						<div class="flex gap-1 rounded-md bg-muted p-0.5" role="group" aria-label="並び順">
+							{#each ORDERS as o (o.value)}
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									aria-pressed={order === o.value}
+									class={cn(
+										'h-7 px-2.5 text-xs',
+										// 選んでいない側も text-foreground（bg-muted の上の muted は 4.5:1 に届かない）。
+										order === o.value
+											? 'bg-background font-semibold text-foreground shadow-xs hover:bg-background'
+											: 'font-normal text-foreground'
+									)}
+									onclick={() => (order = o.value)}
+								>
+									{o.label}
+								</Button>
+							{/each}
+						</div>
+					{/if}
+				</div>
 			{/if}
 			<ul class="{data.oddsAsOf ? 'mt-2' : 'mt-6'} grid gap-2">
-				{#each data.rows as r (r.entryId)}
+				{#each rows as r (r.entryId)}
 					{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
 					{@const conclusion = latestConclusion(r.history)}
 					<li
@@ -298,12 +349,9 @@
 							: ''}"
 					>
 						<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-							<!-- 枠は色で出す。ふりかえり画面と同じ札にして、
-							     予想で見た枠と結果で見る枠が別物に見えないようにする。 -->
-							<BracketBadge bracket={r.bracket} />
-							<span class="w-6 text-right font-mono text-sm font-medium">
-								{r.horseNumber ?? '−'}
-							</span>
+							<!-- 枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
+							     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。 -->
+							<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
 							<a
 								href={resolve('/horses/[id]', { id: r.horseId })}
 								class="font-medium hover:underline"
@@ -331,7 +379,12 @@
 						<!-- オッズは見出しの行に入れず、専用の1行にする。見出しは馬名と騎手の長さで折り返すので、
 						     そこに入れると馬ごとに位置が変わり（mobile では前回の札と同じ行に落ちる）、縦に見比べられない。 -->
 						{#if data.oddsAsOf}
+							<!-- 人気は先頭に置き、幅を固定する（「10人気」まで入る）。取消で人気が無い馬でも、
+							     単勝・複勝の位置が上下の馬とずれないようにするため。 -->
 							<p class="mt-1.5 ml-7 text-xs text-muted-foreground">
+								<span class="inline-block w-12 font-medium text-foreground">
+									{#if r.popularity}{r.popularity}人気{/if}
+								</span>
 								単勝
 								<span class="font-mono font-medium text-foreground">
 									{formatWinOdds(r.odds?.winOdds ?? null)}
