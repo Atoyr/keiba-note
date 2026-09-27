@@ -446,6 +446,10 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 	}
 
 	// ラップの区間の数は距離で決まる（200m ごと、端数は最初の区間）。合わなければ別のレースのラップか、途中が欠けている。
+	// 距離が無いと、端数の区間（2500m の最初の 100m）を見分けられず、前半3Fに 100m ぶんを足してしまう。
+	if (race.laps !== undefined && race.distance === undefined) {
+		errors.push(`${label}: ラップを書くなら距離（distance）も書いてください`);
+	}
 	if (race.laps !== undefined && race.distance !== undefined) {
 		const expected = Math.ceil(race.distance / 200);
 		if (race.laps.length !== expected) {

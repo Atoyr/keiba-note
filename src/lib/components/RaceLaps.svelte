@@ -27,7 +27,7 @@
 
 	const summary = $derived(lapSummary(laps, distance));
 	const chart = $derived(lapChart(laps, distance));
-	/** 区間タイムの1行。前半・後半3Fに数えた区間は、盤面の隊列の1行と同じ区切り（`-`）で並べる。 */
+	/** 区間タイムの1行。隊列の1行と同じく `-` でつなぎ、区切りでだけ折り返す（`FlowOrder`）。 */
 	const columns = $derived(laps.map((l) => l.toFixed(1)));
 	/**
 	 * 最初の区間が端数（2500m の 100m）なら、その長さ。折れ線は端数の区間を描かない（`lapChart`）ので、
@@ -85,7 +85,7 @@
 						class="absolute inset-0 size-full overflow-visible"
 					>
 						{#each [chart.front, chart.back] as band, i (i)}
-							{#if band}
+							{#if band && chart.shade}
 								<rect
 									x={band.x1 * 10}
 									width={(band.x2 - band.x1) * 10}
@@ -95,7 +95,8 @@
 								/>
 							{/if}
 						{/each}
-						{#each chart.levels as level (level.label)}
+						<!-- キーは添字。目盛りの文字は小数1桁に丸めるので、12.34 と 12.31 のように同じ文字になりうる。 -->
+						{#each chart.levels as level, i (i)}
 							<line
 								x1="0"
 								x2="1000"
@@ -115,7 +116,7 @@
 							vector-effect="non-scaling-stroke"
 						/>
 					</svg>
-					{#each chart.levels as level (level.label)}
+					{#each chart.levels as level, i (i)}
 						<span
 							class="absolute -left-9 w-8 -translate-y-1/2 text-right text-xs text-muted-foreground tabular-nums"
 							style:top="{level.y}%">{level.label}</span
@@ -128,7 +129,7 @@
 			</div>
 			<p class="mt-1 text-sm tabular-nums"><FlowOrder {columns} /></p>
 			<p class="text-xs text-muted-foreground">
-				速い区間ほど上。塗った所が前半3F・後半3F{#if partial}。最初の{partial}mは折れ線に入れない{/if}
+				速い区間ほど上。{#if chart.shade}塗った所が前半3F・後半3F。{/if}{#if partial}最初の{partial}mは折れ線に入れない{/if}
 			</p>
 		</div>
 	</details>

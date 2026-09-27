@@ -232,6 +232,10 @@ describe('data:check の検証', () => {
 		expect(errorsOf(withLaps(1200, 5))).toEqual([
 			'中山11R: ラップが 5 区間あります（1200m なら 6 区間）'
 		]);
+		// 距離が無いと端数の区間を見分けられないので、ラップだけ書くのは落とす。
+		expect(
+			errorsOf(candidates.replace('name: テストS', 'name: テストS\n    laps: [12, 11.5, 11.8]'))
+		).toEqual(['中山11R: ラップを書くなら距離（distance）も書いてください']);
 	});
 
 	it('枠が決まる前の候補は18頭を超えてよい', () => {
@@ -338,10 +342,16 @@ describe('レースの頭数・勝ち馬・2着馬と、出走馬のタイム差
 	it('ラップは JSON の配列で入り、書かなければ既存の値を残す', () => {
 		const db = freshDb();
 		const laps = (d: DatabaseSync) => d.prepare(`SELECT laps FROM race`).get();
-		load(db, candidates.replace('name: テストS', 'name: テストS\n    laps: [12.3, 11.0, 13.5]'));
-		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5]' });
+		load(
+			db,
+			candidates.replace(
+				'name: テストS',
+				'name: テストS\n    distance: 800\n    laps: [12.3, 11.0, 13.5, 12.0]'
+			)
+		);
+		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5,12]' });
 
 		load(db, candidates);
-		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5]' });
+		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5,12]' });
 	});
 });

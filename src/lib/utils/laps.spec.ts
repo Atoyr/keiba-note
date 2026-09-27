@@ -73,6 +73,12 @@ describe('lapChart', () => {
 		expect(c.back).toEqual({ x1: (9 / 12) * 100, x2: 100 });
 	});
 
+	it('1200m 以下は前半3Fと後半3Fで横幅が埋まるので塗らない。1400m からは塗る', () => {
+		expect(lapChart([12.0, 10.8, 11.2, 11.5, 11.4, 12.1], 1200).shade).toBe(false);
+		expect(lapChart([12.0, 10.8, 11.2, 11.5, 11.4], 1000).shade).toBe(false);
+		expect(lapChart([12.0, 10.8, 11.2, 11.5, 11.4, 11.6, 12.1], 1400).shade).toBe(true);
+	});
+
 	it('読み上げの説明に区間タイムと前後半を入れる', () => {
 		expect(lapChart(allComers, 2200).summary).toContain(
 			'前半3F 37.6、後半3F 37.1（後半が0.5秒速い）'

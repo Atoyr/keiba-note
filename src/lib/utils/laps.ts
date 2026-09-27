@@ -62,9 +62,14 @@ export type LapChart = {
 	points: { x: number; y: number; lap: number }[];
 	/** 目盛り（いちばん速い区間といちばん遅い区間）。y は %。 */
 	levels: { y: number; label: string }[];
-	/** 前半3F・後半3Fに塗る範囲（%）。 */
+	/** 前半3F・後半3Fの範囲（%）。文字の位置に使う。 */
 	front: { x1: number; x2: number } | null;
 	back: { x1: number; x2: number } | null;
+	/**
+	 * 範囲を塗るか。1200m 以下は前半3Fと後半3Fで折れ線の横幅が全部埋まる（1000m は重なる）ので、
+	 * 塗っても何も示さない。そのときは塗らない（前半・後半3Fの文字は出す）。
+	 */
+	shade: boolean;
 	/** 読み上げ用の説明。 */
 	summary: string;
 };
@@ -113,6 +118,7 @@ export function lapChart(laps: readonly number[], distance: number | null): LapC
 		levels,
 		front: s ? band(s.frontIndex) : null,
 		back: s ? band(s.backIndex) : null,
+		shade: !!s && band(s.frontIndex).x2 < band(s.backIndex).x1,
 		summary
 	};
 }
