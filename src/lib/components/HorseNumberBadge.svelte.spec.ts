@@ -24,6 +24,12 @@ describe('HorseNumberBadge', () => {
 		await expect.element(screen.getByTitle('5番')).toHaveClass('bg-red-100');
 	});
 
+	it('枠があって馬番が無ければ、馬番の欄は − で「馬番未定」', async () => {
+		const screen = render(HorseNumberBadge, { bracket: 4, horseNumber: null });
+
+		await expect.element(screen.getByTitle('馬番未定')).toHaveTextContent('−');
+	});
+
 	// 枠が決まる前に馬番だけ入ることは無いはずだが、入っても馬番は落とさない。
 	it('枠が無ければ、馬番だけを色の無い面で出す', async () => {
 		const screen = render(HorseNumberBadge, { bracket: null, horseNumber: 7 });

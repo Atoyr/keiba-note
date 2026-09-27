@@ -350,53 +350,66 @@
 							? 'border-red-300 bg-red-50/40'
 							: ''}"
 					>
-						<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-							<!-- 枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
-							     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。 -->
-							<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-							<a
-								href={resolve('/horses/[id]', { id: r.horseId })}
-								class="font-medium hover:underline"
-							>
-								{r.horseName}
-							</a>
-							{#if r.jockey}
-								<span class="text-sm text-muted-foreground">{r.jockey}</span>
-							{/if}
-							<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
-							     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->
-							{#if conclusion}
-								<span
-									class="flex items-center gap-1 text-[11px] text-muted-foreground"
-									title="{conclusion.occurredAt} に付けた札"
+						<!-- 見出しの行は左右に分ける。左（札・馬名・騎手・前回の札）は長さで折り返すので、
+						     その中だけで折り返させる。右（オッズと印）は幅を固定して行の右上に置き、
+						     どの馬でも同じ位置に来るようにする（縦に見比べられる）。 -->
+						<div class="flex items-start gap-2">
+							<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+								<!-- 枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
+								     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。 -->
+								<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+								<a
+									href={resolve('/horses/[id]', { id: r.horseId })}
+									class="font-medium hover:underline"
 								>
-									前回
-									<TagBadges tags={conclusion.tags} />
-								</span>
-							{/if}
-							<span class="flex-1"></span>
-							<MarkBadge mark={r.myPreview?.mark ?? null} />
-						</div>
+									{r.horseName}
+								</a>
+								{#if r.jockey}
+									<span class="text-sm text-muted-foreground">{r.jockey}</span>
+								{/if}
+								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
+								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->
+								{#if conclusion}
+									<span
+										class="flex items-center gap-1 text-[11px] text-muted-foreground"
+										title="{conclusion.occurredAt} に付けた札"
+									>
+										前回
+										<TagBadges tags={conclusion.tags} />
+									</span>
+								{/if}
+							</div>
 
-						<!-- オッズは見出しの行に入れず、専用の1行にする。見出しは馬名と騎手の長さで折り返すので、
-						     そこに入れると馬ごとに位置が変わり（mobile では前回の札と同じ行に落ちる）、縦に見比べられない。 -->
-						{#if data.oddsAsOf}
-							<!-- 人気は先頭に置き、幅を固定する（「10人気」まで入る）。取消で人気が無い馬でも、
-							     単勝・複勝の位置が上下の馬とずれないようにするため。 -->
-							<p class="mt-1.5 ml-7 text-xs text-muted-foreground">
-								<span class="inline-block w-12 font-medium text-foreground">
-									{#if r.popularity}{r.popularity}人気{/if}
-								</span>
-								単勝
-								<span class="font-mono font-medium text-foreground">
-									{formatWinOdds(r.odds?.winOdds ?? null)}
-								</span>
-								<span class="ml-2">複勝</span>
-								<span class="font-mono font-medium text-foreground">
-									{formatPlaceOdds(r.odds?.placeOddsMin ?? null, r.odds?.placeOddsMax ?? null)}
-								</span>
-							</p>
-						{/if}
+							<!-- オッズ。人気・単勝・複勝はそれぞれ幅を固定する（「10人気」「単勝 123.4」
+							     「複勝 10.5-20.3」まで入る）。取消で人気や値が無い馬でも、上下の馬と位置がずれない。
+							     スマホでは1行に並べる幅が無いので、人気・単勝の下に複勝を置く2段にする。 -->
+							{#if data.oddsAsOf}
+								<p
+									class="grid shrink-0 grid-cols-[auto_auto] text-xs leading-6 text-muted-foreground sm:flex"
+								>
+									<span class="w-10 font-medium text-foreground">
+										{#if r.popularity}{r.popularity}人気{/if}
+									</span>
+									<span class="w-16">
+										単勝
+										<span class="font-mono font-medium text-foreground">
+											{formatWinOdds(r.odds?.winOdds ?? null)}
+										</span>
+									</span>
+									<span class="col-span-2 leading-4 sm:w-24 sm:leading-6">
+										複勝
+										<span class="font-mono font-medium text-foreground">
+											{formatPlaceOdds(r.odds?.placeOddsMin ?? null, r.odds?.placeOddsMax ?? null)}
+										</span>
+									</span>
+								</p>
+							{/if}
+
+							<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
+							<span class="flex size-6 shrink-0">
+								<MarkBadge mark={r.myPreview?.mark ?? null} />
+							</span>
+						</div>
 
 						<!-- 馬柱は薄い面に載せて、下に続く「自分のメモ」と見分けられるようにする。
 						     どちらも小さい文字の塊なので、囲いが無いと1つの塊に見える。

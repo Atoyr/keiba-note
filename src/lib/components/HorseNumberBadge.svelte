@@ -27,6 +27,8 @@
 	 *
 	 * - 枠が未確定（NULL）で馬番だけあるときは、馬番を色の無い面で出す
 	 * - 枠も馬番も無い（出馬表が出る前）ときは何も出さない
+	 * - 枠があって馬番が無いときは、馬番の欄に `−` を出し、title を「馬番未定」にする。
+	 *   馬番の欄には必ず title を付ける（馬名と見分ける目印にもなる）
 	 *
 	 * 馬番の幅は2桁に合わせて固定する。1頭1行で縦に並べたときに馬名の頭がそろう。
 	 *
@@ -56,7 +58,7 @@
 		</span>
 		<span
 			class="{numberClass} rounded-r border-l-0 {HORSE_NUMBER_CLASS[bracket]}"
-			title={horseNumber ? `${horseNumber}番` : undefined}
+			title={horseNumber ? `${horseNumber}番` : '馬番未定'}
 		>
 			{horseNumber ?? '−'}
 		</span>
