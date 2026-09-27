@@ -29,6 +29,9 @@
 	 * - 枠も馬番も無い（出馬表が出る前）ときは何も出さない
 	 *
 	 * 馬番の幅は2桁に合わせて固定する。1頭1行で縦に並べたときに馬名の頭がそろう。
+	 *
+	 * 読み上げでは数字が2つ続くだけになる（title は読まれないことが多い）ので、
+	 * 札全体に「2枠3番」という名前を付ける。
 	 */
 	let { bracket, horseNumber }: { bracket: number | null; horseNumber: number | null } = $props();
 
@@ -38,7 +41,11 @@
 </script>
 
 {#if hasBracket && bracket}
-	<span class="inline-flex h-6 shrink-0">
+	<span
+		class="inline-flex h-6 shrink-0"
+		role="img"
+		aria-label="{bracket}枠{horseNumber ? `${horseNumber}番` : ''}"
+	>
 		<span
 			class="inline-flex w-5 items-center justify-center rounded-l border text-xs font-medium {BRACKET_CLASS[
 				bracket
@@ -55,7 +62,12 @@
 		</span>
 	</span>
 {:else if horseNumber}
-	<span class="{numberClass} h-6 shrink-0 rounded border-border bg-muted" title="{horseNumber}番">
+	<span
+		class="{numberClass} h-6 shrink-0 rounded border-border bg-muted"
+		title="{horseNumber}番"
+		role="img"
+		aria-label="{horseNumber}番"
+	>
 		{horseNumber}
 	</span>
 {/if}

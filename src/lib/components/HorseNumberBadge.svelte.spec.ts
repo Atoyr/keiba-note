@@ -11,6 +11,13 @@ describe('HorseNumberBadge', () => {
 		await expect.element(screen.getByTitle('3番')).toHaveTextContent('3');
 	});
 
+	// 読み上げで数字が2つ続くだけにならないよう、札全体に名前を付ける。
+	it('札全体を「2枠3番」と読ませる', async () => {
+		const screen = render(HorseNumberBadge, { bracket: 2, horseNumber: 3 });
+
+		await expect.element(screen.getByRole('img', { name: '2枠3番' })).toBeVisible();
+	});
+
 	it('馬番の面は枠の色を薄くしたもの', async () => {
 		const screen = render(HorseNumberBadge, { bracket: 3, horseNumber: 5 });
 

@@ -309,7 +309,9 @@
 			<!-- 取れた時点を必ず添える。30分おきにしか取らず、失敗した回は前の値が残るので、
 			     「現在の」オッズのようには見せない（product.md 第6章）。 -->
 			{#if data.oddsAsOf}
-				<div class="mt-6 flex flex-wrap items-center justify-between gap-2">
+				<!-- min-h-8 は切り替えの高さ。切り替えは JS が動いてから出るので、先に高さを取っておかないと
+				     出た瞬間に一覧が下へずれる。 -->
+				<div class="mt-6 flex min-h-8 flex-wrap items-center justify-between gap-2">
 					<p class="text-xs text-muted-foreground">
 						単勝・複勝のオッズは {formatOddsAsOf(data.oddsAsOf)}
 					</p>
