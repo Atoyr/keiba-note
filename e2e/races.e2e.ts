@@ -312,7 +312,8 @@ test('各馬の行に、4角の位置から着順・上りの順位・人気が�
 
 	// 通過順も上りも無い馬（着順なし）には2行目を出さない。
 	await expect(row('E2Eメモノミ')).not.toContainText('4角');
-	await expect(row('E2Eメモノミ')).not.toContainText('上り');
+	// 札の「好上り」には当たらないよう、上りのタイム（上り＋数字）で見る。
+	await expect(row('E2Eメモノミ')).not.toContainText(/上り\d/);
 });
 
 /**

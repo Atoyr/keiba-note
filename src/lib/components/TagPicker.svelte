@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { NOTE_TAGS, type NoteTag } from '$lib/schemas/note';
-	import { NOTE_TAG_GROUP, type NoteTagGroup } from '$lib/utils/note';
+	import { NOTE_TAG_GROUP, noteTagLabel, type NoteTagGroup } from '$lib/utils/note';
 
 	/**
 	 * 札を選ぶ。チェックボックスを札の見た目にしたもの。
@@ -38,7 +38,7 @@
 					NOTE_TAG_GROUP[t]
 				]}"
 			>
-				{t}
+				{noteTagLabel(t)}
 			</span>
 		</label>
 	{/each}

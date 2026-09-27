@@ -32,4 +32,10 @@ describe('TagPicker', () => {
 		const empty = render(TagPicker, { name: 'tags.e2' });
 		expect(checked(empty.container)).toEqual([]);
 	});
+
+	it('「好上がり」は画面では「好上り」と出し、送る値は「好上がり」のまま', () => {
+		const screen = render(TagPicker, { name: 'tags.e1' });
+		const input = screen.container.querySelector<HTMLInputElement>('input[value="好上がり"]');
+		expect(input?.nextElementSibling?.textContent?.trim()).toBe('好上り');
+	});
 });
