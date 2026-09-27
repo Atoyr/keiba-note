@@ -39,7 +39,15 @@ export type Screen = {
 	as?: 'user' | 'admin';
 	/** 撮る前に画面を目的の状態にする（`<details>` を開く、入力する など）。 */
 	prepare?: (page: Page) => Promise<void>;
+	/**
+	 * 末尾までスクロールせずに撮る。100件ずつ読む一覧（`LoadMore`）は下端に近づくと続きを読むので、
+	 * スクロールすると撮っている間に行が増え、撮るたびに違う画像になる。
+	 */
+	stayAtTop?: boolean;
 };
+
+/** 下端で続きを読む一覧の「続きを読み込む」。 */
+const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み込む' });
 
 export const SCREENS: Screen[] = [
 	{
@@ -94,9 +102,10 @@ export const SCREENS: Screen[] = [
 			await page.getByRole('alert').waitFor();
 		}
 	},
-	{ name: 'races', path: '/races', auth: true },
+	{ name: 'races', path: '/races', auth: true, stayAtTop: true },
 	// 既定（今年の重賞）を外した全件。条件戦・先の年のレースも並ぶ。
-	{ name: 'races-all', path: '/races?year=', auth: true },
+	// 100件を超えるので、下端に「続きを読み込む」が出る。
+	{ name: 'races-all', path: '/races?year=', auth: true, stayAtTop: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
@@ -362,7 +371,18 @@ export const SCREENS: Screen[] = [
 			await page.getByRole('group', { name: 'メモの札' }).getByText('次走消し').click();
 		}
 	},
-	{ name: 'horses', path: '/horses', auth: true },
+	{ name: 'horses', path: '/horses', auth: true, stayAtTop: true },
+	// 続きを読み込んだあと。2ページ目の馬が足され、下端のボタンは消える。
+	{
+		name: 'horses-loaded',
+		path: '/horses',
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await loadMore(page).click();
+			await expect(loadMore(page)).toHaveCount(0);
+		}
+	},
 	// 推しの馬。名前の右に黄色く塗った★（押すと推しから外す）。
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
 	// 推しでない馬。黄色の輪郭だけの☆（押すと推しにする）。
