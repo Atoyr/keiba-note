@@ -356,14 +356,18 @@
 						<div class="flex items-start gap-2">
 							<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 								<!-- 枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
-								     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。 -->
-								<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-								<a
-									href={resolve('/horses/[id]', { id: r.horseId })}
-									class="font-medium hover:underline"
-								>
-									{r.horseName}
-								</a>
+								     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
+								     札と馬名は折り返さない1組にし、馬名はその中で折り返す。別々に並べると、
+								     スマホで長い馬名（9文字）が札の右に入らず、札だけを残して次の行へ落ちる。 -->
+								<span class="flex min-w-0 items-center gap-2">
+									<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+									<a
+										href={resolve('/horses/[id]', { id: r.horseId })}
+										class="min-w-0 font-medium hover:underline"
+									>
+										{r.horseName}
+									</a>
+								</span>
 								{#if r.jockey}
 									<span class="text-sm text-muted-foreground">{r.jockey}</span>
 								{/if}
@@ -385,18 +389,18 @@
 							     スマホでは1行に並べる幅が無いので、人気・単勝の下に複勝を置く2段にする。 -->
 							{#if data.oddsAsOf}
 								<p
-									class="grid shrink-0 grid-cols-[auto_auto] text-xs leading-6 text-muted-foreground sm:flex"
+									class="grid shrink-0 grid-cols-[auto_auto] gap-x-1 text-xs leading-6 text-muted-foreground sm:flex"
 								>
 									<span class="w-10 font-medium text-foreground">
 										{#if r.popularity}{r.popularity}人気{/if}
 									</span>
-									<span class="w-16">
+									<span class="w-[4.25rem]">
 										単勝
 										<span class="font-mono font-medium text-foreground">
 											{formatWinOdds(r.odds?.winOdds ?? null)}
 										</span>
 									</span>
-									<span class="col-span-2 leading-4 sm:w-24 sm:leading-6">
+									<span class="col-span-2 leading-4 sm:w-28 sm:leading-6">
 										複勝
 										<span class="font-mono font-medium text-foreground">
 											{formatPlaceOdds(r.odds?.placeOddsMin ?? null, r.odds?.placeOddsMax ?? null)}
