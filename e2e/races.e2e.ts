@@ -1,9 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
+	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
+	MARKS_RACE_ID,
 	OTHER_DISTANCE_RACE_ID,
 	OTHER_USER_PREVIEW_BODY,
 	OUTER_PREVIEW_BODY,
@@ -285,6 +287,122 @@ test('ふりかえり画面の上に、予想の印と着順が印の順に並�
 	await expect(answers).toContainText('◎○▲△☆ 2頭中 2頭 馬券内');
 	// 的中は馬券に使う言葉。このアプリは馬券を記録していないので、印には使わない。
 	await expect(answers).not.toContainText(/当たり|外れ|的中/);
+});
+
+/**
+ * 各馬の行に、走りを読むための数字（4角の位置 → 着順・上りの順位・人気）が出る。
+ *
+ * seed の E2E印見本特別では、⑤アナウマが6人気・4角5番手から2着・上り1位、①ホンメイが上り2位、
+ * ⑥ケシウマが上り3位。上りの順位は出走馬全体で数えるので、行ごとの値だけでは決まらない。
+ */
+test('各馬の行に、4角の位置から着順・上りの順位・人気が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}`);
+
+	const row = (name: string) => page.locator('form li', { hasText: name });
+
+	await expect(row('E2Eアナウマ')).toContainText('4角5番手→2着');
+	await expect(row('E2Eアナウマ')).toContainText('6人気');
+	await expect(row('E2Eアナウマ').getByTitle('上り1位')).toHaveText('上り1位 33.7');
+	await expect(row('E2Eホンメイ').getByTitle('上り2位')).toBeVisible();
+	await expect(row('E2Eケシウマ').getByTitle('上り3位')).toBeVisible();
+
+	// 4位以下は順位を出さない。上りのタイムだけ。
+	await expect(row('E2Eタイコウ')).toContainText('上り34.8');
+	await expect(row('E2Eタイコウ').getByTitle(/上り\d位/)).toHaveCount(0);
+
+	// 通過順も上りも無い馬（着順なし）には2行目を出さない。
+	await expect(row('E2Eメモノミ')).not.toContainText('4角');
+	// 札の「好上り」には当たらないよう、上りのタイム（上り＋数字）で見る。
+	await expect(row('E2Eメモノミ')).not.toContainText(/上り\d/);
+});
+
+/**
+ * ★ 出走馬を気にしている馬だけ入れたレースでは、上りの順位を出さない。
+ * 入っている馬の中だけで数えると、1頭しか入っていなければ6着でも「上り1位」になる。
+ * seed の E2E枠色賞は16頭立てで、入っているのは2頭だけ。
+ */
+test('全頭の上りがそろっていないレースでは、上りのタイムだけで順位を出さない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	await expect(page.locator('form li', { hasText: 'E2Eウチワク' })).toContainText('上り33.8');
+	await expect(page.locator('form').getByTitle(/上り\d位/)).toHaveCount(0);
+});
+
+/** 「実際の展開」の欄。局面（見出し）ごとに、盤面の下の隊列の1行を返す。 */
+const actualFlowRows = (page: Page) =>
+	page
+		.getByRole('region', { name: '実際の展開' })
+		.locator('h3')
+		.evaluateAll((hs) =>
+			hs.map((h) => [
+				h.textContent?.trim(),
+				[...(h.parentElement?.querySelectorAll('p') ?? [])].map((p) =>
+					p.textContent?.replace(/\s+/g, '')
+				)
+			])
+		);
+
+/**
+ * ★ **展開を予想していなくても、実際の展開が出る。** 4角は通過順、ゴール前は着順の並び。
+ * seed の E2E実際展開賞は予想もメモも無い6頭立て。①と③は4角で同じ2番手、
+ * ⑥は4角の手前で中止（通過順が3つで切れる）なので、4角にもゴール前にも出ない。
+ */
+test('展開を予想していないレースでも、4角とゴール前の実際の隊列が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${ACTUAL_FLOW_RACE_ID}`);
+
+	expect(await actualFlowRows(page)).toEqual([
+		['4コーナー', ['②-①③-④-⑤']],
+		['ゴール前', ['①-②-③-④-⑤']]
+	]);
+	// 予想と同じ盤面で見せる。①と③は同じ2番手なので、同じマスに積む。
+	// 既定は畳んである。閉じた行に局面ごとの隊列が出て、開くと盤面が出る。
+	const region = page.getByRole('region', { name: '実際の展開' });
+	await expect(region.locator('summary')).toContainText('4角 ②-①③-④-⑤');
+	await expect(region.locator('summary')).toContainText('ゴール前 ①-②-③-④-⑤');
+	const corner4 = page.getByRole('group', { name: '実際の4コーナーの隊列' });
+	await expect(corner4).toBeHidden();
+	await region.locator('summary').click();
+	await expect(corner4).toBeVisible();
+	await expect(corner4.getByText('1番 E2Eサンバンテ（4角2番手）')).toBeAttached();
+	await expect(corner4.getByText('3番 E2Eマクリ（4角2番手）')).toBeAttached();
+	await expect(page.getByRole('group', { name: '実際のゴール前の隊列' })).toBeVisible();
+	// 予想が無いので「予想」の段も、開催前の見立ても出ない。
+	await expect(page.getByRole('region', { name: '実際の展開' })).not.toContainText('予想');
+	await expect(page.getByText('開催前の見立て')).toHaveCount(0);
+
+	// 通過順が途中で切れた中止の馬には「4角N番手」を出さない（最後の数字は4角ではない）。
+	await expect(page.locator('form li', { hasText: 'E2Eチュウシ' })).not.toContainText('4角');
+	await expect(page.locator('form li', { hasText: 'E2Eマクリ' })).toContainText('4角2番手→3着');
+});
+
+/** 予想で展開を置いていたら、同じ局面の下に予想の隊列を並べて見比べられる。 */
+test('展開を予想していたレースでは、実際の隊列の下に予想の隊列が並ぶ', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}`);
+
+	expect(await actualFlowRows(page)).toEqual([
+		['4コーナー', ['実際③-①-⑥-④-⑤-②', '予想③-①⑤-②-④-⑥-⑦']],
+		['ゴール前', ['実際①-⑤-③-⑥-②-④', '予想①②-③-⑤-⑦-④-⑥']]
+	]);
+	// 同じ隊列を「開催前の見立て」の閉じた行に重ねて出さない（予想の盤面は開けば見られる）。
+	const preview = page.locator('details', { hasText: '展開の予想' });
+	// （seed ではスタートと4角の予想が同じ並びなので、並びではなく局面の名前で見る）
+	await expect(preview.locator('summary')).not.toContainText('4角');
+	await expect(preview.locator('summary')).not.toContainText('ゴール前');
+	// スタートの隊列は実際の展開に無いので、閉じた行に残す。
+	await expect(preview.locator('summary')).toContainText('スタート ③-①⑤');
+});
+
+/** 出走馬を気にしている馬だけ入れたレースでは、2頭の並びが全体の流れに見えるので出さない。 */
+test('走った全頭がそろっていないレースでは、実際の展開を出さない', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${BRACKET_RACE_ID}`);
+
+	await expect(page.getByRole('heading', { name: '答え合わせ' })).toBeVisible();
+	await expect(page.getByRole('region', { name: '実際の展開' })).toHaveCount(0);
 });
 
 /**

@@ -119,6 +119,7 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
     entries:
       - horseNumber: 1
         bracket: 1

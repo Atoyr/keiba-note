@@ -48,6 +48,7 @@ races:
     distance: 3110
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 10
     entries:
       - horseNumber: 1
         bracket: 1

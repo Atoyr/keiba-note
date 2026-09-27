@@ -1,6 +1,7 @@
 <script lang="ts">
 	import FlowDigest from '$lib/components/FlowDigest.svelte';
 	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
+	import type { FlowPhase } from '$lib/schemas/race-flow';
 	import { flowDigest, type ResolvedFlow } from '$lib/utils/race-flow';
 	import { cn } from '$lib/utils';
 
@@ -15,7 +16,8 @@
 		flow,
 		titleId,
 		titleClass = '',
-		level = 'h2'
+		level = 'h2',
+		hideDigest = []
 	}: {
 		flow: ResolvedFlow;
 		/** 見出しの段。置く画面の見出しの並びに合わせる。 */
@@ -24,9 +26,14 @@
 		titleId?: string;
 		/** 見出しの文字の見た目。置く画面の見出しに合わせる。 */
 		titleClass?: string;
+		/**
+		 * 閉じた行に隊列を出さない局面。ふりかえりで「実際の展開」が同じ局面の予想の隊列を並べているときに渡す
+		 * （同じ隊列が2回並び、スマホで書く欄が遠くなる）。ほかの局面（スタート）は出す。
+		 */
+		hideDigest?: readonly FlowPhase[];
 	} = $props();
 
-	const digest = $derived(flowDigest(flow));
+	const digest = $derived(flowDigest(flow).filter((d) => !hideDigest.includes(d.phase)));
 </script>
 
 <details class="group">

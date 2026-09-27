@@ -2,11 +2,13 @@
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import ActualFlow from '$lib/components/ActualFlow.svelte';
 	import AnswerCheck from '$lib/components/AnswerCheck.svelte';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
+	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
@@ -19,6 +21,7 @@
 	import { jockeyParam } from '$lib/utils/jockey';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
+	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -49,6 +52,26 @@
 				mark: r.myPreview?.mark ?? null
 			}))
 		)
+	);
+
+	// 4コーナーの位置と上りの順位。上りの順位は走った全頭で数えるので、行ごとには出せない
+	// （全頭の上りがそろっていないレースでは順位を出さない。→ last3fRanks）。
+	const rows = $derived.by(() => {
+		const ranks = last3fRanks(data.rows, data.race.fieldSize);
+		// 直線のレース・通過順が途中で切れた中止の馬は4角の位置を持たない（→ corner4Positions）。
+		const corners = corner4Positions(data.rows, data.race);
+		return data.rows.map((r) => ({
+			...r,
+			corner4: corners.get(r.entryId) ?? null,
+			last3fRank: ranks.get(r.entryId) ?? null
+		}));
+	});
+
+	// 4角とゴール前の実際の隊列。予想で展開を置いていなくても出す（走った全頭がそろったレースだけ）。
+	const actual = $derived(actualFlow(data.rows, data.race));
+	/** 実際の展開が予想の隊列を並べる局面。見立ての閉じた行には重ねて出さない。 */
+	const shownInActual = $derived(
+		(['corner4', 'finish'] as const).filter((p) => actual?.[p] && data.myRaceFlow?.[p].spots.length)
 	);
 
 	const ta =
@@ -107,6 +130,13 @@
 	{#if answers.length > 0}
 		<div class="mt-6">
 			<AnswerCheck {answers} />
+		</div>
+	{/if}
+
+	<!-- 実際の展開は答え合わせのすぐ下。予想を置いていたら同じ欄で見比べる。 -->
+	{#if actual}
+		<div class="mt-6">
+			<ActualFlow {actual} predicted={data.myRaceFlow} />
 		</div>
 	{/if}
 
@@ -176,7 +206,13 @@
 					{#if data.myRaceFlow}
 						<!-- 白い面に載せる。空色の面の上だと、隊列の補足の灰色が 4.5:1 に届かない。 -->
 						<div class="mt-1 rounded-md bg-background px-2 py-1">
-							<RaceFlowDetails flow={data.myRaceFlow} level="h3" titleClass="text-xs" />
+							<!-- 実際の展開の欄が予想の隊列を並べている局面（4角・ゴール前）は、閉じた行に重ねて出さない。 -->
+							<RaceFlowDetails
+								flow={data.myRaceFlow}
+								level="h3"
+								titleClass="text-xs"
+								hideDigest={shownInActual}
+							/>
 						</div>
 					{/if}
 					<a
@@ -203,7 +239,7 @@
 				</p>
 
 				<ul class="mt-2 space-y-5">
-					{#each data.rows as r (r.entryId)}
+					{#each rows as r (r.entryId)}
 						<li class="border-t border-gray-200 pt-3">
 							<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
 								{#if r.finishPosition}
@@ -229,10 +265,26 @@
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span
 									>{/if}
 								{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
-								{#if r.last3f}<span class="text-xs text-gray-500">上り{r.last3f}</span>{/if}
 								<span class="flex-1"></span>
 								<MarkBadge mark={r.myPreview?.mark ?? null} />
 							</div>
+
+							<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
+							     後ろから届いたのか」「上りが速かったのか」が読めない。
+							     スマホで1行に収まるよう、1行目とは分けて小さく出す。 -->
+							{#if r.corner4 !== null || r.last3f !== null || r.popularity}
+								<p
+									class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+								>
+									{#if r.corner4 !== null}
+										<span
+											>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
+										>
+									{/if}
+									<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
+									{#if r.popularity}<span>{r.popularity}人気</span>{/if}
+								</p>
+							{/if}
 
 							<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
 							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->

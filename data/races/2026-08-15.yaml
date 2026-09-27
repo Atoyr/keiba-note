@@ -10,6 +10,7 @@ races:
     distance: 3250
     trackCondition: 良
     weather: 晴
+    fieldSize: 11 # ピーターサイトは競走中止（通過順なし）だが走ったので数える
     entries:
       - horseNumber: 1
         bracket: 1

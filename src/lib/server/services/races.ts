@@ -225,6 +225,8 @@ export type RaceEntryView = {
 	margin: string | null;
 	last3f: number | null;
 	popularity: number | null;
+	/** 通過順（`5-5-4-2`）。ふりかえり画面が4コーナーの位置を出すのに使う。 */
+	passing: string | null;
 };
 
 /** そのレースの出走馬。着順 → 馬番の順に並べる（ふりかえり用）。 */
@@ -242,7 +244,8 @@ export async function listEntries(db: Db, raceId: string): Promise<RaceEntryView
 				finishTime: raceEntry.finishTime,
 				margin: raceEntry.margin,
 				last3f: raceEntry.last3f,
-				popularity: raceEntry.popularity
+				popularity: raceEntry.popularity,
+				passing: raceEntry.passing
 			})
 			.from(raceEntry)
 			.innerJoin(horse, eq(raceEntry.horseId, horse.id))
@@ -408,7 +411,8 @@ export async function listEntriesForPreview(db: Db, raceId: string): Promise<Rac
 			finishTime: raceEntry.finishTime,
 			margin: raceEntry.margin,
 			last3f: raceEntry.last3f,
-			popularity: raceEntry.popularity
+			popularity: raceEntry.popularity,
+			passing: raceEntry.passing
 		})
 		.from(raceEntry)
 		.innerJoin(horse, eq(raceEntry.horseId, horse.id))

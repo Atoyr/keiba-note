@@ -19,7 +19,7 @@ test('共有されたメモは未ログインで開けて、付けた札が出�
 	await expect(page.getByText('次走買い', { exact: true })).toBeVisible();
 	await expect(page.getByText('不利', { exact: true })).toBeVisible();
 	// 付けていない札は出ない（全選択肢を並べてしまっていないこと）。
-	await expect(page.getByText('好上がり', { exact: true })).toHaveCount(0);
+	await expect(page.getByText('好上り', { exact: true })).toHaveCount(0);
 });
 
 /** 403 にすると存在が漏れる。存在しない ID と同じ 404 を返すこと。 */
