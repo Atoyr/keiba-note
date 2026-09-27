@@ -284,8 +284,9 @@ VALUES (
 	'2026-06-21'
 );
 
--- 上りは入っているが、出走馬は気にしている2頭だけで頭数（field_size）も無い。
+-- 上りは入っているが、出走馬は気にしている2頭だけ（実際は16頭立て）。
 -- 入っている馬の中だけで上りの順位を数えると嘘になるので、タイムだけが出る。
+UPDATE race SET field_size = 16 WHERE id = '01JE2ERACEBRACKET000000000';
 UPDATE race_entry SET last_3f = 33.8 WHERE id = '01JE2EENTRYINNER0000000000';
 UPDATE race_entry SET last_3f = 34.1 WHERE id = '01JE2EENTRYOUTER0000000000';
 

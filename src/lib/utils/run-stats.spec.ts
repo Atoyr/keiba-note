@@ -1,5 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import { corner4Position, last3fRanks } from './run-stats';
+import { corner4Position, hasCorners, last3fRanks } from './run-stats';
+
+describe('hasCorners', () => {
+	it('新潟の芝1000m（直線）はコーナーが無い。回りが空でも距離で決まる', () => {
+		expect(hasCorners({ course: '新潟', surface: '芝', distance: 1000, direction: '直線' })).toBe(
+			false
+		);
+		expect(hasCorners({ course: '新潟', surface: '芝', distance: 1000, direction: null })).toBe(
+			false
+		);
+	});
+
+	it('周回コースのレースはコーナーを回る', () => {
+		expect(hasCorners({ course: '新潟', surface: '芝', distance: 1600, direction: '左' })).toBe(
+			true
+		);
+		expect(hasCorners({ course: '新潟', surface: 'ダート', distance: 1200, direction: '左' })).toBe(
+			true
+		);
+		expect(hasCorners({ course: '中山', surface: '芝', distance: 2000, direction: '右' })).toBe(
+			true
+		);
+		expect(hasCorners({ course: '門別', surface: 'ダート', distance: 1200, direction: null })).toBe(
+			true
+		);
+	});
+});
 
 describe('corner4Position', () => {
 	it('通過順の最後の数字を4コーナーの位置にする', () => {

@@ -19,7 +19,7 @@
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { corner4Position, last3fRanks } from '$lib/utils/run-stats';
+	import { corner4Position, hasCorners, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -56,9 +56,11 @@
 	// （全頭の上りがそろっていないレースでは順位を出さない。→ last3fRanks）。
 	const rows = $derived.by(() => {
 		const ranks = last3fRanks(data.rows, data.race.fieldSize);
+		// 直線のレースは通過順に数字が1つ入るが、回るコーナーが無いので4角は出さない。
+		const corners = hasCorners(data.race);
 		return data.rows.map((r) => ({
 			...r,
-			corner4: corner4Position(r.passing),
+			corner4: corners ? corner4Position(r.passing) : null,
 			last3fRank: ranks.get(r.entryId) ?? null
 		}));
 	});

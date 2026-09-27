@@ -5,11 +5,30 @@
  * どちらも結果（`race_entry`）にもう入っている通過順と上りから出せるので、ここで計算する。
  */
 
+import { COURSE_SPECS, isStraightCourse } from './course';
+
+/**
+ * コーナーを回るレースか。**直線のレース（新潟の芝1000m）はコーナーが無い**のに、
+ * 通過順には数字が1つ（`5`）入っているので、そのまま読むと「4角5番手」と出てしまう。
+ * 判定はコース図・展開の盤面と同じ（`isStraightCourse`。回りが空でも距離で決まる）。
+ */
+export function hasCorners(race: {
+	course: string;
+	surface: string | null;
+	distance: number | null;
+	direction: string | null;
+}): boolean {
+	if (race.direction === '直線') return false;
+	const spec = COURSE_SPECS[race.course];
+	return !(spec && isStraightCourse(spec, race));
+}
+
 /**
  * 通過順（`5-5-4-2`）から、4コーナーを回った位置を取る。**最後の数字が4コーナー。**
  *
  * コーナーが2つのレース（`3-2`）も、最後は4コーナーを回ったときの位置。
- * 通過順が無い（直線のレース・取消・まだ入っていない）か数字が読めなければ null。
+ * 通過順が無い（取消・まだ入っていない）か数字が読めなければ null。
+ * 直線のレースかどうかはここでは見ない（→ `hasCorners`）。
  */
 export function corner4Position(passing: string | null): number | null {
 	if (!passing) return null;
