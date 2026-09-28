@@ -523,6 +523,8 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-summary-marks', path: `/races/${MARKS_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-empty', path: `/races/${EMPTY_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },
+	// 共有リンクを SNS に貼ったときの画像（og:image）。画像そのものを開いて撮る。
+	{ name: 'race-summary-shared-og', path: `/shared/races/${SHARED_RACE_ID}/og.png`, auth: false },
 	{ name: 'settings-shares', path: '/settings/shares', auth: true }
 ];
 

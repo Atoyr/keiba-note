@@ -22,6 +22,7 @@
 		"landing:shots": "playwright install chromium && playwright test -c playwright.landing.config.ts",
 		"screens:pr": "node --experimental-strip-types scripts/pr-screens.ts",
 		"course-maps": "node --experimental-strip-types scripts/course-maps.ts",
+		"og-font": "node --experimental-strip-types scripts/og-font.ts",
 		"gen": "wrangler types",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate:local": "wrangler d1 migrations apply k-note --local",
@@ -65,6 +66,7 @@
 		"prettier-plugin-svelte": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"shadcn-svelte": "^1.7.0",
+		"subset-font": "^2.9.0",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"svelte-sonner": "^1.2.1",
@@ -82,6 +84,7 @@
 	"dependencies": {
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
+		"@resvg/resvg-wasm": "2.6.2",
 		"arctic": "^3.7.0",
 		"drizzle-orm": "^0.45.2",
 		"ulidx": "^2.4.1",

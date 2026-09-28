@@ -9,6 +9,11 @@
 // 無いため。tsconfig は checkJs を切っているので、ここは型検査されない。
 //
 // ここから import する TS は wrangler（esbuild）が束ねる。`$lib` は wrangler.toml の alias で解く。
+//
+// 共有の画像（/shared/races/[id]/og.png）を描く resvg の wasm もここで import する。wrangler は .wasm を
+// コンパイル済みの WebAssembly.Module にする。Workers は実行中にバイト列から wasm をコンパイルできず、
+// SvelteKit（Vite）の側では .wasm を import できないので、env に足して渡す（src/lib/server/og/render.ts）。
+import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
 import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
@@ -20,7 +25,7 @@ export default {
 	 * @param {ExecutionContext} ctx
 	 */
 	async fetch(req, env, ctx) {
-		return uncacheFailure(await sveltekit.fetch(req, env, ctx));
+		return uncacheFailure(await sveltekit.fetch(req, { ...env, RESVG_WASM: resvgWasm }, ctx));
 	},
 
 	/**

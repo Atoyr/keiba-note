@@ -100,6 +100,7 @@ pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.y
 pnpm run odds:update --local            # オッズの更新を手元の D1 で1回（本番は odds-update.yml。architecture.md 3-8）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）
 pnpm run course-maps                    # コース図の SVG を src/lib/utils/course.ts から書き出す
+pnpm run og-font                        # 共有の画像のフォント（static/og/）を書き出す（architecture.md 3-7）
 ```
 
 ## コミットと PR
