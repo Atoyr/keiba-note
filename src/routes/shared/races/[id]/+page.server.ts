@@ -15,5 +15,7 @@ export const load: PageServerLoad = async ({ params, locals, platform, setHeader
 		params.id
 	);
 	if (!shared) error(404, 'このページは見つかりません');
-	return shared;
+	// 未ログインの人にだけ末尾の案内を出す（product.md「予想まとめ」）。
+	// 渡すのは真偽だけ。アカウント情報は共有ページのデータに載せない。
+	return { ...shared, signedIn: locals.user !== null };
 };

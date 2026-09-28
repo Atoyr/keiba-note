@@ -472,6 +472,7 @@ where(and(eq(note.id, id), eq(note.visibility, 'unlisted')))
 `race_share` は `(author_id, race_id)` ごとに1件。更新は同じURL、取り消しはコピーを削除し、再共有は新しいID。
 凍結済みの著者は両方の共有ページで404になる。未設定の公開名は「匿名」で、Google名へは戻さない。
 共有ページのレイアウトはログイン中も `user: null` を返し、HTMLやデータ応答にアカウント情報を含めない。
+予想まとめの load が返すのはログインしているかの真偽（`signedIn`）だけで、未ログインの人に案内を出すのに使う。
 
 `/notes/[id]` は `hooks.server.ts` の公開パスに入るため、`locals.user` が null のまま
 load に到達する。共有ページは通常のログイン必須ルートと前提が違う。
