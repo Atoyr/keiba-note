@@ -35,6 +35,7 @@
 	<meta property="og:image:height" content={String(CARD_HEIGHT)} />
 	<meta property="og:image:alt" content={ogDescription} />
 	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:image:alt" content={ogDescription} />
 </svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">

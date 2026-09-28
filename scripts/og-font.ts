@@ -3,9 +3,9 @@
  *
  *   pnpm run og-font
  *
- * Noto Sans JP（google/fonts の可変フォント）を太字（wght 700）に固定し、ASCII と JIS X 0208 の文字
+ * Noto Sans JP（google/fonts の可変フォント）を太字（wght 700）に固定し、ASCII・Latin-1（é・ü など）と JIS X 0208 の文字
  * （かな・記号・第1〜第2水準の漢字）だけに絞って `static/og/` に置く。馬名はカタカナ、レース名と公開名に漢字が入る。
- * JIS X 0208 に無い字（第3水準以上・絵文字）は画像では出ない。
+ * ここに無い字（第3水準以上・絵文字）は画像では空白になる（豆腐は出ない）。
  *
  * Worker は描くときに Static Assets から読む（`lib/server/og/render.ts`）。Worker の本体に束ねないので、
  * Worker の容量には入らない。生成物なので手で直さない。書き出し直したら一緒にコミットする。
@@ -53,9 +53,11 @@ function jisX0208(): string {
 	return [...chars].join('');
 }
 
-function ascii(): string {
+/** ASCII と Latin-1 の文字（0x20〜0x7E、0xA0〜0xFF）。「Café」のような表記のため。 */
+function latin(): string {
 	let s = '';
 	for (let c = 0x20; c <= 0x7e; c++) s += String.fromCharCode(c);
+	for (let c = 0xa0; c <= 0xff; c++) s += String.fromCharCode(c);
 	return s;
 }
 
@@ -67,7 +69,7 @@ async function main() {
 		fetchCached('NotoSansJP[wght].ttf'),
 		fetchCached('OFL.txt')
 	]);
-	const text = ascii() + jisX0208() + EXTRA;
+	const text = latin() + jisX0208() + EXTRA;
 	const subset = await subsetFont(font, text, {
 		targetFormat: 'sfnt',
 		variationAxes: { wght: 700 },

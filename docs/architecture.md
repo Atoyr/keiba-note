@@ -484,8 +484,8 @@ SNS に貼ったときのプレビュー（OGP）も、このコピーと公開�
 - Workers は実行中にバイト列から wasm をコンパイルできず、SvelteKit（Vite）の側では `.wasm` を import できない。
   そこで wrangler が束ねる `src/worker.js` が import し（コンパイル済みの `WebAssembly.Module` になる）、`env.RESVG_WASM` に足して渡す。
   `vite dev` はこの入口を通らないので描けない（503）。確かめるのは E2E（`wrangler dev`）
-- フォントは Noto Sans JP の太字を ASCII と JIS X 0208 に絞ったもの（約 2.7MB。`pnpm run og-font` で書き出してコミット）。
-  Worker の本体には束ねず、`static/og/` に置いて `ASSETS` のバインディングから読む。JIS X 0208 に無い字は画像に出ない
+- フォントは Noto Sans JP の太字を ASCII・Latin-1 と JIS X 0208 に絞ったもの（約 2.7MB。`pnpm run og-font` で書き出してコミット）。
+  Worker の本体には束ねず、`static/og/` に置いて `ASSETS` のバインディングから読む。それ以外の字（第3水準以上の漢字・絵文字）は画像では空白になる
 - wasm の初期化とフォントは isolate ごとに1度だけにし、モジュールスコープに置く（初期化は2度呼ぶと例外）。
   利用者に依らない不変のものなので、第0章の「モジュールスコープに持たせない」（接続とユーザー情報）には当たらない
 - 1枚の描画は手元で初回 60〜80ms、2枚目から 20〜30ms（CPU の上限 1000ms に対して十分低い）。

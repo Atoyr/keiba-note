@@ -18,6 +18,8 @@ import {
 	REVIEW_RACE_ID,
 	SPRINT_RACE_ID,
 	SHARED_NOTE_ID,
+	SHARED_MANY_MARKS_ID,
+	SHARED_OUTLOOK_ID,
 	SHARED_RACE_ID,
 	TOGGLE_FAVORITE_HORSE_ID
 } from './seed';
@@ -525,6 +527,16 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },
 	// 共有リンクを SNS に貼ったときの画像（og:image）。画像そのものを開いて撮る。
 	{ name: 'race-summary-shared-og', path: `/shared/races/${SHARED_RACE_ID}/og.png`, auth: false },
+	{
+		name: 'race-summary-shared-og-many',
+		path: `/shared/races/${SHARED_MANY_MARKS_ID}/og.png`,
+		auth: false
+	},
+	{
+		name: 'race-summary-shared-og-outlook',
+		path: `/shared/races/${SHARED_OUTLOOK_ID}/og.png`,
+		auth: false
+	},
 	{ name: 'settings-shares', path: '/settings/shares', auth: true }
 ];
 
