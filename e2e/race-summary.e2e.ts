@@ -42,6 +42,27 @@ test('印なしのメモも表示し、見出し右側の予想リンクとシ�
 	]);
 });
 
+test('未ログインの人にだけ、共有ページの一番下に紹介ページとログインへの案内を出す', async ({
+	page
+}) => {
+	await gotoHydrated(page, `/shared/races/${SHARED_RACE_ID}`);
+	const guide = page.getByRole('complementary', { name: 'uma-memo で予想を書く' });
+	await expect(guide).toBeVisible();
+	// まとめ本体より下にある。
+	const summary = (await page.locator('article').boundingBox())!;
+	expect((await guide.boundingBox())!.y).toBeGreaterThan(summary.y + summary.height);
+	await expect(guide.getByRole('link', { name: 'できることを見る' })).toHaveAttribute('href', '/');
+	await guide.getByRole('link', { name: 'ログインして始める' }).click();
+	await expect(page).toHaveURL('/login');
+	await expect(page.getByRole('button', { name: 'Google でログイン' })).toBeVisible();
+
+	// ログインしていれば（本人でも他人でも）出さない。
+	await login(page);
+	await gotoHydrated(page, `/shared/races/${SHARED_RACE_ID}`);
+	await expect(page.locator('article')).toBeVisible();
+	await expect(page.getByRole('complementary', { name: 'uma-memo で予想を書く' })).toHaveCount(0);
+});
+
 test('予想をまとめ、公開名で共有・更新・解除できる。本名はHTMLやデータにも出ない', async ({
 	page,
 	browser,

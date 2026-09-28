@@ -524,7 +524,9 @@ export const SCREENS: Screen[] = [
 	// 全印と、印を付けず本文だけ保存した馬を同じまとめに表示する。
 	{ name: 'race-summary-marks', path: `/races/${MARKS_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-empty', path: `/races/${EMPTY_RACE_ID}/summary`, auth: true },
+	// 未ログインなら一番下に紹介ページとログインへの案内が出る。ログイン中は出ない。
 	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },
+	{ name: 'race-summary-shared-signed-in', path: `/shared/races/${SHARED_RACE_ID}`, auth: true },
 	// 共有リンクを SNS に貼ったときの画像（og:image）。画像そのものを開いて撮る。
 	{ name: 'race-summary-shared-og', path: `/shared/races/${SHARED_RACE_ID}/og.png`, auth: false },
 	{

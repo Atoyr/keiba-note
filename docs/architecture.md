@@ -477,6 +477,7 @@ where(and(eq(note.id, id), eq(note.visibility, 'unlisted')))
 `race_share` は `(author_id, race_id)` ごとに1件。更新は同じURL、取り消しはコピーを削除し、再共有は新しいID。
 凍結済みの著者は両方の共有ページで404になる。未設定の公開名は「匿名」で、Google名へは戻さない。
 共有ページのレイアウトはログイン中も `user: null` を返し、HTMLやデータ応答にアカウント情報を含めない。
+予想まとめの load が返すのはログインしているかの真偽（`signedIn`）だけで、未ログインの人に案内を出すのに使う。
 
 SNS に貼ったときのプレビュー（OGP）も、このコピーと公開名だけから組む。印を描いた画像
 `/shared/races/[id]/og.png` は Worker が描く。SVG を `utils/share-card.ts` で組み、`lib/server/og/render.ts` が resvg（wasm）で PNG にする。
