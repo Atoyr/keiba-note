@@ -76,7 +76,7 @@ SvelteKit の `load` + form actions で完結させる。
 両方の共有ページで、ルートレイアウトは `user: null` を返し、本人の閲覧時にもアカウント情報を送らない。
 
 `/shared/races/[id]` は SNS に貼ったときのプレビュー（OGP）を持つ。`og:title`・`og:description`（公開名と印の並び）・
-`og:image`（絶対 URL。`?v=<更新時刻>`）・`twitter:card=summary_large_image`。組み立ては `utils/share-card.ts`。
+`og:image`（絶対 URL。`?v=<更新時刻>-<公開名のハッシュ>`）・`twitter:card=summary_large_image`。組み立ては `utils/share-card.ts`。
 画像は `GET /shared/races/[id]/og.png`（`+server.ts`）。同じコピーと公開名から印の表を描いた 1200×630 の PNG を返す。
 404 の条件と `noindex` / `no-store` は共有ページと同じ。`vite dev` では描けず 503（→ [architecture.md 3-7](./architecture.md)）。
 

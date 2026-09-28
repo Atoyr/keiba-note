@@ -12,6 +12,12 @@ import { CARD_FONT } from '$lib/utils/share-card';
  * **wasm の初期化とフォントは isolate ごとに1度だけ**にし、モジュールスコープに置く。
  * resvg の初期化は2度呼ぶと例外になる。どちらも利用者やリクエストに依らない不変のものなので、
  * 使い回してよい（architecture.md 第0章が止めているのは接続とユーザー情報）。失敗したら捨てて、次で取り直す。
+ *
+ * 初期化は Promise を共有する（同時に2つ走らせると resvg の中の状態が壊れる）。コンパイル済みの
+ * Module から作るだけで通信を待たないので、途中で止まったまま残ることはない。
+ * フォントは読み終えた値だけを持つ。読み込み中の Promise を共有すると、最初のリクエストが途中で
+ * 打ち切られたとき、その Promise が決着しないまま残り、後のリクエストまで待たせうる。
+ * 同時に来たリクエストがそれぞれ読むことはあるが、Static Assets からなので害は無い。
  */
 export type OgAssets = {
 	wasm: WebAssembly.Module;
@@ -19,20 +25,17 @@ export type OgAssets = {
 };
 
 let ready: Promise<void> | undefined;
-let font: Promise<Uint8Array> | undefined;
+let fontBuffer: Uint8Array | undefined;
 
 export async function renderPng(svg: string, assets: OgAssets): Promise<Uint8Array<ArrayBuffer>> {
 	ready ??= initWasm(assets.wasm).catch((e) => {
 		ready = undefined;
 		throw e;
 	});
-	font ??= assets.loadFont().catch((e) => {
-		font = undefined;
-		throw e;
-	});
-	const [, fontBuffer] = await Promise.all([ready, font]);
+	const [, font] = await Promise.all([ready, fontBuffer ?? assets.loadFont()]);
+	fontBuffer ??= font;
 	const resvg = new Resvg(svg, {
-		font: { fontBuffers: [fontBuffer], defaultFontFamily: CARD_FONT }
+		font: { fontBuffers: [font], defaultFontFamily: CARD_FONT }
 	});
 	// wasm 側のメモリは GC で返らないので、使い終わったら自分で返す。
 	try {

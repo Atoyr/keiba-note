@@ -3,6 +3,7 @@ import type { RaceSummary } from './race-summary';
 import {
 	cardDescription,
 	cardTitle,
+	cardVersion,
 	fitText,
 	markedRows,
 	raceSummaryCardSvg,
@@ -61,6 +62,16 @@ describe('cardTitle', () => {
 	});
 });
 
+describe('cardVersion', () => {
+	it('共有内容の更新でも、公開名の変更でも変わる', () => {
+		const v = cardVersion(1790000000, '週末うまメモ');
+		expect(v).toMatch(/^1790000000-[0-9a-z]+$/);
+		expect(cardVersion(1790000000, '週末うまメモ')).toBe(v);
+		expect(cardVersion(1790000001, '週末うまメモ')).not.toBe(v);
+		expect(cardVersion(1790000000, '匿名')).not.toBe(v);
+	});
+});
+
 describe('cardDescription', () => {
 	it('公開名と印の並び。馬番が未確定なら馬名だけ', () => {
 		const rows = [row('○', 5, 'リバティアイランド'), row('◎', null, 'ドウデュース'), row(null, 1)];
@@ -82,8 +93,10 @@ describe('cardDescription', () => {
 });
 
 describe('文字の幅', () => {
-	it('半角は全角の 0.6 倍で見積もる', () => {
-		expect(textWidth('東京11R', 10)).toBeCloseTo(38);
+	it('全角は 1em、半角は字ごとの幅（I は狭く、M・W は広い）で見積もる', () => {
+		expect(textWidth('東京11R', 10)).toBeCloseTo(38.9);
+		expect(textWidth('I', 100)).toBe(34);
+		expect(textWidth('W', 100)).toBe(92);
 	});
 	it('収まらなければ末尾を … にして、幅に収める', () => {
 		expect(fitText('ドウデュース', 10, 100)).toBe('ドウデュース');
@@ -133,6 +146,16 @@ describe('raceSummaryCardSvg', () => {
 		expect(svg).not.toContain('<script>');
 		expect(svg).not.toContain('<b>');
 		expect(svg).toContain('&lt;b&gt;&amp;&quot;&apos;');
+	});
+	it('XML で使えない制御文字は消す（残すと SVG として読めず、画像が作れない）', () => {
+		const svg = raceSummaryCardSvg(
+			summary({ rows: [row('◎', 1, 'ドウ\u0000デュ\u000Bース')] }),
+			'週末\u000Cうま\uFFFEメモ'
+		);
+		// eslint-disable-next-line no-control-regex
+		expect(svg).not.toMatch(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/);
+		expect(texts(svg)).toContain('ドウデュース');
+		expect(texts(svg)).toContain('週末うまメモ の予想');
 	});
 	it('6頭からは2列。10頭を超えたら9頭と「ほか n 頭」', () => {
 		const rows = Array.from({ length: 12 }, (_, i) => row('△', i + 1));

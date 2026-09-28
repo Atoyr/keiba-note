@@ -62,8 +62,8 @@ const markedLabel = (r: Row & { mark: Mark }) =>
 	`${r.mark}${r.horseNumber ? `${r.horseNumber} ` : ''}${r.horseName}`;
 
 /**
- * og:title。ページの `<title>` と同じく、レース名（無ければ開催）と「予想まとめ」。
- * 誰の予想かは説明文と画像に出す。
+ * og:title。開催とレース名（無ければ開催だけ）と「予想まとめ」。SNS のカードでは画像の外に出るので、
+ * どのレースかが分かるよう開催も付ける（ページの `<title>` はレース名だけ）。誰の予想かは説明文と画像に出す。
  */
 export function cardTitle(summary: RaceSummary): string {
 	const { race } = summary;
@@ -83,18 +83,50 @@ export function cardDescription(summary: RaceSummary, authorName: string): strin
 	return truncateChars(body ? `${lead}｜${body}` : lead, 120);
 }
 
+/**
+ * og:image の URL に付ける版（`?v=`）。画像に描くものが変わったら URL も変わるようにして、
+ * SNS に前の画像を使い回させない。共有内容の更新（`updatedAt`）に加えて、公開名も入れる。
+ * 公開名を消して匿名にしたのに、前の名前の画像が残り続けないように。
+ */
+export function cardVersion(updatedAt: number, authorName: string): string {
+	// FNV-1a（32ビット）。暗号である必要はなく、名前が変われば別の値になればよい。
+	let hash = 0x811c9dc5;
+	for (const c of authorName) {
+		hash ^= c.codePointAt(0)!;
+		hash = Math.imul(hash, 0x01000193) >>> 0;
+	}
+	return `${updatedAt}-${hash.toString(36)}`;
+}
+
 function truncateChars(s: string, max: number): string {
 	const chars = [...s];
 	return chars.length <= max ? s : `${chars.slice(0, max - 1).join('')}…`;
 }
 
 /**
- * 文字の幅の見積もり（em）。描く前に幅を測る手段が無いので、太字の Noto Sans JP の字幅で近似する。
- * 半角（ASCII）は 0.6em、それ以外（かな・漢字・全角記号）は 1em。はみ出さないよう、やや広めに見る。
+ * ASCII（0x20〜0x7E）の字幅（1/100 em）。`static/og/` の太字の Noto Sans JP で、resvg に描かせて測ったもの
+ * （2026-09-29）に 0.01em 足してある。英字は I の 0.33em から W の 0.91em まで幅が大きく違うので、一律には見積もらない。
+ */
+// prettier-ignore
+const ASCII_WIDTH = [
+	23, 38, 58, 60, 60, 97, 75, 34, 39, 39, 52, 60, 34, 38, 34, 40, // 空白 ! " # $ % & ' ( ) * + , - . /
+	60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 34, 34, 60, 60, 60, 52, // 0〜9 : ; < = > ?
+	102, 64, 69, 63, 72, 62, 59, 73, 77, 34, 53, 70, 59, 86, 76, 78, // @ A〜O
+	68, 78, 69, 61, 63, 76, 63, 92, 64, 59, 60, 39, 40, 39, 60, 58, // P〜Z [  ] ^ _
+	64, 60, 65, 51, 65, 59, 37, 61, 65, 31, 32, 61, 33, 97, 65, 64, // ` a〜o
+	65, 65, 45, 50, 41, 65, 59, 87, 57, 58, 52, 39, 31, 39, 60 // p〜z { | } ~
+];
+
+/**
+ * 文字の幅の見積もり。描く前に幅を測る手段が無いので、太字の Noto Sans JP の字幅で近似する。
+ * ASCII は測った字幅、それ以外（かな・漢字・全角記号）は 1em。
  */
 export function textWidth(s: string, fontSize: number): number {
 	let em = 0;
-	for (const c of s) em += c.charCodeAt(0) < 0x80 ? 0.6 : 1;
+	for (const c of s) {
+		const code = c.charCodeAt(0);
+		em += code >= 0x20 && code <= 0x7e ? ASCII_WIDTH[code - 0x20] / 100 : 1;
+	}
 	return em * fontSize;
 }
 
@@ -130,11 +162,18 @@ export function wrapText(s: string, fontSize: number, maxWidth: number, maxLines
 	return shown;
 }
 
+/**
+ * `<text>` に入れる文字を逃がす。XML で使えない制御文字（タブ・改行以外の U+0000〜U+001F と U+FFFE・U+FFFF）は
+ * 消す。見立てや公開名に紛れ込むと、SVG として読めず画像が毎回失敗するため。
+ */
 const escapeXml = (s: string) =>
-	s.replace(
-		/[&<>"']/g,
-		(c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!
-	);
+	s
+		// eslint-disable-next-line no-control-regex
+		.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '')
+		.replace(
+			/[&<>"']/g,
+			(c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!
+		);
 
 /**
  * `<text>` を1つ。y は文字の縦の中心で指定する（札の中央に置くことが多いため）。

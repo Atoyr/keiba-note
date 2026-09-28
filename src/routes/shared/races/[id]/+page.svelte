@@ -1,16 +1,22 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import RaceSummary from '$lib/components/RaceSummary.svelte';
-	import { CARD_HEIGHT, CARD_WIDTH, cardDescription, cardTitle } from '$lib/utils/share-card';
+	import {
+		CARD_HEIGHT,
+		CARD_WIDTH,
+		cardDescription,
+		cardTitle,
+		cardVersion
+	} from '$lib/utils/share-card';
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 
 	// SNS に貼ったときのプレビュー（OGP）。印は画像に描き、説明文にも同じ並びを入れる（share-card.ts）。
-	// 画像の URL に更新時刻を付け、「共有内容を更新」したら別の画像として取り直させる。
+	// 画像の URL に版（更新時刻と公開名から作る）を付け、描くものが変わったら別の画像として取り直させる。
 	const ogTitle = $derived(cardTitle(data.content));
 	const ogDescription = $derived(cardDescription(data.content, data.authorName));
 	const ogImage = $derived(
-		`${page.url.origin}/shared/races/${page.params.id}/og.png?v=${data.updatedAt}`
+		`${page.url.origin}/shared/races/${page.params.id}/og.png?v=${cardVersion(data.updatedAt, data.authorName)}`
 	);
 </script>
 

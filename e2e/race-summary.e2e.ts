@@ -168,7 +168,7 @@ test('共有ページは SNS のプレビュー（OGP）に印の並びと、印
 	const image = new URL((await meta('og:image'))!);
 	expect(image.protocol).toMatch(/^https?:$/);
 	expect(image.pathname).toBe(`/shared/races/${SHARED_RACE_ID}/og.png`);
-	expect(image.searchParams.get('v')).toMatch(/^\d+$/);
+	expect(image.searchParams.get('v')).toMatch(/^\d+-[0-9a-z]+$/);
 	expect([await meta('og:image:width'), await meta('og:image:height')]).toEqual(['1200', '630']);
 
 	const res = await page.request.get(image.pathname + image.search);
