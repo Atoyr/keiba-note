@@ -70,7 +70,8 @@ SvelteKit の `load` + form actions で完結させる。
 
 ### ログインした人
 
-予想まとめの公開ルートは `GET /shared/races/[id]`。共有用コピー1件と公開名だけを返す。
+予想まとめの公開ルートは `GET /shared/races/[id]`。共有用コピー1件と公開名、ログインしているかの真偽（`signedIn`。
+未ログインの人にだけ末尾の案内を出すため → [product.md](./product.md#予想まとめ)）だけを返す。
 見つからない・取り消し済み・著者凍結済みは404。`/notes/[id]` と同じ `noindex` / `no-referrer` / `no-store` を付ける。
 両方の共有ページで、ルートレイアウトは `user: null` を返し、本人の閲覧時にもアカウント情報を送らない。
 
