@@ -21,8 +21,9 @@
 	<!-- SNS で流れてきて初めて見る人への入口。まとめを読み終えた一番下に置き、本体の邪魔をしない。
 	     ログイン中（本人を含む）には要らないので出さない（product.md「予想まとめ」）。 -->
 	{#if !data.signedIn}
-		<aside aria-labelledby="guest-guide-heading" class="mt-10 rounded-lg border p-5 sm:p-6">
-			<h2 id="guest-guide-heading" class="text-base font-bold">uma-memo で予想を書く</h2>
+		<!-- 見出しと余白はまとめの区画（RaceSummary）と揃える。本体より強い見出しにしない。 -->
+		<aside aria-labelledby="guest-guide-heading" class="mt-10 rounded-lg border p-4">
+			<h2 id="guest-guide-heading" class="text-sm font-semibold">uma-memo で予想を書く</h2>
 			<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
 				この予想まとめは uma-memo
 				で作られています。出馬表を見ながら印とメモを付け、レースのあとにふりかえる観戦メモです。Google
