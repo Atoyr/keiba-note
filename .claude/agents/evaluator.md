@@ -1,6 +1,6 @@
 ---
 name: evaluator
-description: uma-memo の変更を、書いたエージェントとは別の目で評価する。指示の原文・差分・after のキャプチャを受け取り、docs/evaluation.md の観点（Functional / Accessibility / Design / Product）で判定して表で返す。コードは書き換えない。PR を出す前に Generator が呼ぶ。
+description: uma-memo の変更を、書いたエージェントとは別の目で評価する。指示の原文・差分・キャプチャまたは実行ログを受け取り、docs/evaluation.md の観点（Functional / Accessibility / Design / Product）で判定して表で返す。コードは書き換えない。docs/evaluation.md 第0章に従い、評価が必要な変更の PR を出す前に Generator が呼ぶ。
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -13,7 +13,8 @@ tools: Read, Grep, Glob, Bash
 
 - 指示の原文（要約されていたら、原文をもらうまで Product の観点は `?` にする）
 - 差分（無ければ `git diff origin/main...HEAD` で取る）
-- after / before のキャプチャのパス（`docs/screenshots/<機能名>/`）。PNG は Read で開いて見る
+- after / before のキャプチャのパス（`docs/screenshots/<機能名>/`）。PNG は Read で開いて見る。
+  画面に影響しない場合は実行ログ。検証できなかった場合は、失敗ログ・未検証項目・再開条件も受け取る
 
 Generator の説明や「こう作った」という解説は評価の根拠にしない。指示の原文と成果物だけを見る。
 
