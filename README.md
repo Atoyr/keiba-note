@@ -39,9 +39,35 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。URL
 
 ## セットアップ
 
+### 初回の検証準備
+
+Node.js は **24 系**（[CI](./.github/workflows/ci.yml) の `node-version`）、pnpm は **10.16.1**
+（[package.json](./package.json) の `packageManager`）を使う。両方を用意し、リポジトリのルートで実行する。
+
 ```bash
-pnpm install
-cp .dev.vars.example .dev.vars   # Google OAuth の値を入れる（下記参照）
+node --version                       # v24.x
+pnpm --version                       # 10.16.1
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+pnpm run verify
+```
+
+`verify` は型 → lint → 単体テスト → E2E の順に動く。`vite.config.ts` の単体テストの client プロジェクトも
+実 Chromium を使うため、**`test:unit` より前にブラウザを導入する**。`test:e2e` 内の導入だけでは初回の単体テストに間に合わない。
+Linux でブラウザの OS 依存ライブラリも不足している場合は、利用環境の権限に従い
+`pnpm exec playwright install --with-deps chromium` を使う。権限やネットワークの制約で準備できなければ
+[検証を完了できないとき](./docs/testing.md#1-2-検証を完了できないとき) に従う。
+
+**検証に本番の認証情報は不要。** `.dev.vars` の作成や Google OAuth の設定も、上の検証の前提ではない。
+E2E は専用のローカル D1 と seed のセッションを使い、マイグレーションとデータ準備も自動で行う
+（[testing.md 第3章](./docs/testing.md#3-e2e-の環境)）。本番の D1・シークレット・デプロイには触れない。
+
+### 開発サーバーを使う場合
+
+上の依存関係の導入後、画面を手元で操作するときだけ次を行う。
+
+```bash
+cp .dev.vars.example .dev.vars   # 下記の開発用モック認証、または開発用 Google OAuth を設定
 pnpm run db:migrate:local        # ローカル D1 にマイグレーションを適用
 pnpm run dev
 ```
@@ -61,7 +87,8 @@ https://uma-memo.com/auth/google/callback
 https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
-得られた値を `.dev.vars`（ローカル）と `wrangler secret put`（本番）に入れる。
+開発用の値を `.dev.vars`（ローカル）に入れる。本番のシークレット設定は
+[operations.md](./docs/operations.md) に従って人が行う。エージェントは `wrangler secret` を実行しない。
 
 | 変数                   | 用途                                  |
 | ---------------------- | ------------------------------------- |
