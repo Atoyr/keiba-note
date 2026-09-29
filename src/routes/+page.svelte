@@ -3,6 +3,7 @@
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import LandingPage from '$lib/components/LandingPage.svelte';
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
+	import RacePlace from '$lib/components/RacePlace.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -63,7 +64,7 @@
 					class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-2.5 text-sm hover:bg-gray-50"
 				>
 					<span class="font-mono text-gray-500">{r.date}</span>
-					<span>{r.course}{r.raceNumber ?? ''}R</span>
+					<RacePlace course={r.course} raceNumber={r.raceNumber} />
 					<!-- 名前だけでは格が分からない重賞がある。名前を読む前に格が目に入るよう、前に置く。 -->
 					<GradeBadge grade={r.grade} />
 					<span class="font-medium">{r.name ?? ''}</span>
@@ -180,7 +181,7 @@
 									href={raceHref(f.raceId, { date: f.raceDate, resultCount: f.resultCount })}
 									class="flex flex-wrap items-baseline gap-x-2 hover:underline"
 								>
-									<span>{f.course}{f.raceNumber ?? ''}R</span>
+									<RacePlace course={f.course} raceNumber={f.raceNumber} />
 									<GradeBadge grade={f.grade} />
 									<span>{f.raceName ?? ''}</span>
 								</a>
@@ -219,7 +220,7 @@
 								class="flex flex-wrap items-baseline gap-x-2 rounded-lg border border-amber-300 bg-amber-50/60 px-3 py-2 text-sm hover:bg-amber-50"
 							>
 								<span class="font-mono text-gray-500">{r.date}</span>
-								<span>{r.course}{r.raceNumber ?? ''}R</span>
+								<RacePlace course={r.course} raceNumber={r.raceNumber} />
 								<span class="font-medium">{r.name ?? ''}</span>
 								<span class="ms-auto text-xs text-amber-900">ふりかえりを書く →</span>
 							</a>
