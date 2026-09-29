@@ -3,10 +3,13 @@ import { render } from 'vitest-browser-svelte';
 import RacePlace from './RacePlace.svelte';
 import '../../routes/layout.css';
 
-/** 描いた「中山11R」の幅（px）と、中身がはみ出していないか。 */
+/** 描いた「中山11R」の幅と、最小幅（どちらも px）。 */
 const measure = (props: { course: string; raceNumber: number | null; class?: string }) => {
 	const el = render(RacePlace, props).container.querySelector('span')!;
-	return { width: el.getBoundingClientRect().width, fits: el.scrollWidth <= el.clientWidth };
+	return {
+		width: el.getBoundingClientRect().width,
+		min: parseFloat(getComputedStyle(el).minWidth)
+	};
 };
 
 /**
@@ -22,7 +25,7 @@ describe('RacePlace', () => {
 		const twelve = measure({ course: '札幌', raceNumber: 12, class: cls });
 
 		expect(one.width).toBe(twelve.width);
-		// 最小幅が足りずに「札幌12R」が押し広げていたら、上の一致は偶然でしかない。
-		expect(twelve.fits).toBe(true);
+		// どちらも最小幅ちょうど。「札幌12R」が最小幅を押し広げていないこと（広げていたら 1R より広くなる）。
+		expect(twelve.width).toBe(twelve.min);
 	});
 });
