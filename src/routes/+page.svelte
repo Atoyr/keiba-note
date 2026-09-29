@@ -8,7 +8,7 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
-	import { isReviewNote, noteHeading } from '$lib/utils/note';
+	import { isReviewNote, noteHeading, noteHeadingParts } from '$lib/utils/note';
 	import { raceProgress, type ProgressTone } from '$lib/utils/dashboard';
 	import { formatDateShort, opensReview } from '$lib/utils/date';
 	import { ALL_RACES_QUERY } from '$lib/utils/race-filter';
@@ -298,8 +298,10 @@
 								<span class="font-mono text-gray-500">{n.occurredAt}</span>
 								<KindBadge label={h.kindLabel} />
 								{#if n.raceId}
+									{@const p = noteHeadingParts(n)}
 									<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
-									     ふりかえりのメモは、それが書いてあるふりかえりへ。 -->
+									     ふりかえりのメモは、それが書いてあるふりかえりへ。
+									     格は「(G2)」の文字ではなく札で、上のレース欄と同じくレース名の前に出す（product.md 第6章）。 -->
 									<a
 										href={raceHref(
 											n.raceId,
@@ -308,7 +310,12 @@
 										)}
 										class="hover:underline"
 									>
-										{n.horseName ? `${n.horseName} ${h.label}` : h.label}
+										{#if n.horseName}{n.horseName}{/if}
+										{p.place ?? ''}
+										<GradeBadge grade={p.grade} />
+										{p.raceName ?? ''}
+										{#if p.className}({p.className}){/if}
+										{p.result ?? ''}
 									</a>
 								{:else}
 									<span>{h.label}</span>

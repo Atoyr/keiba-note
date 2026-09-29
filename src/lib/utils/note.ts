@@ -75,16 +75,15 @@ export type NoteHeading = {
 	kindLabel: NoteKindLabel | null;
 };
 
+/** 「中山11R」。場が無ければ null。 */
+function racePlace(n: RaceLabelSource): string | null {
+	return n.course ? `${n.course}${n.raceNumber ?? ''}R` : null;
+}
+
 /** 「中山11R オールカマー (G2)」。格が無ければクラスを代わりに出す（product.md 第6章）。 */
 export function raceLabel(n: RaceLabelSource): string {
 	const tier = n.grade ?? n.className;
-	return [
-		n.course ? `${n.course}${n.raceNumber ?? ''}R` : null,
-		n.raceName,
-		tier ? `(${tier})` : null
-	]
-		.filter(Boolean)
-		.join(' ');
+	return [racePlace(n), n.raceName, tier ? `(${tier})` : null].filter(Boolean).join(' ');
 }
 
 /** ふりかえりのメモ（走ったあとに書くもの）か。レース全体のメモと1頭ごとのメモ。 */
@@ -121,6 +120,35 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 		.join(' ');
 
 	return { label: withResult || 'レース', kindLabel: null };
+}
+
+/** `noteHeading` の見出しを部品に分けたもの。 */
+export type NoteHeadingParts = {
+	/** 「中山11R」。 */
+	place: string | null;
+	/** 格。文字の見出しでは「(G2)」だが、こちらは札（`GradeBadge`）で出す前提で分けて返す。 */
+	grade: string | null;
+	raceName: string | null;
+	/** 格が無いレースのクラス（`1勝クラス`）。格があれば null（札と重ねて出さない）。 */
+	className: string | null;
+	/** 「1着」。出すのはふりかえりのメモだけ（開催前のメモに出さない理由は `noteHeading`）。 */
+	result: string | null;
+};
+
+/**
+ * レースに紐づくメモの見出しを、場・格・レース名・クラス・着順に分けて返す。
+ *
+ * 格を括弧書きではなく札で、**レース名の前**に出したい画面（ダッシュボードの最近のメモ）のため。
+ * 並べる順と「何を出すか」は `noteHeading` と同じにしてある。
+ */
+export function noteHeadingParts(n: NoteHeadingSource): NoteHeadingParts {
+	return {
+		place: racePlace(n),
+		grade: n.grade ?? null,
+		raceName: n.raceName ?? null,
+		className: n.grade ? null : (n.className ?? null),
+		result: isReviewNote(n.kind) && n.finishPosition ? `${n.finishPosition}着` : null
+	};
 }
 
 export type RunHeadingSource = RaceLabelSource & { finishPosition?: number | null };
