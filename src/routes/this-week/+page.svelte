@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import RacePlace from '$lib/components/RacePlace.svelte';
 	import { formatDateShort, isSettled, opensReview } from '$lib/utils/date';
 	import { isAdmin } from '$lib/utils/role';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
@@ -93,9 +94,11 @@
 							class="block rounded-xl border p-3 transition-colors hover:border-foreground/20 hover:bg-accent/40 sm:p-4"
 						>
 							<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-								<span class="font-mono text-sm text-muted-foreground">
-									{r.course}{r.raceNumber ?? ''}R
-								</span>
+								<RacePlace
+									course={r.course}
+									raceNumber={r.raceNumber}
+									class="font-mono text-sm text-muted-foreground"
+								/>
 								<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。 -->
 								<GradeBadge grade={r.grade} />
 								<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>

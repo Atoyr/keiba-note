@@ -62,6 +62,16 @@ test('今週と過去のレースの行で、格の札がレース名の前に�
 	).toHaveText(/福島10R\s*G3\s*E2E先週賞/);
 });
 
+/** 最近のメモの見出しも、格は「(G2)」の文字ではなく札で、レース名の前に出す。レースの行とそろえる。 */
+test('最近のメモの見出しで、格の札がレース名の前に出る', async ({ page }) => {
+	await login(page);
+	await page.goto('/');
+
+	const link = section(page, '最近のメモ').getByRole('link', { name: /E2E別距離賞/ });
+	await expect(link).toHaveText(/^\s*京都11R\s*G2\s*E2E別距離賞\s*$/);
+	await expect(link.getByText('G2', { exact: true })).toBeVisible();
+});
+
 /** 窓は3週で切る。ここが効かないと「過去のレース」が全履歴になる。 */
 test('3週より古いレースはどちらの枠にも出ない', async ({ page }) => {
 	await login(page);

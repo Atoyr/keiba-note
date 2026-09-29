@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import RacePlace from '$lib/components/RacePlace.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import type { PageProps } from './$types';
@@ -62,7 +63,7 @@
 				<li class="px-4 py-3">
 					<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 						<span class="font-mono text-xs text-muted-foreground">{r.date}</span>
-						<span class="text-sm">{r.course}{r.raceNumber ?? ''}R</span>
+						<RacePlace course={r.course} raceNumber={r.raceNumber} class="text-sm" />
 						{#if r.grade}
 							<GradeBadge grade={r.grade} />
 						{:else if r.className}

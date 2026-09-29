@@ -3,6 +3,7 @@ import {
 	conditionLabel,
 	latestConclusion,
 	noteHeading,
+	noteHeadingParts,
 	previewSaveLabel,
 	raceReviewSaveLabel,
 	runHeading,
@@ -52,6 +53,35 @@ describe('noteHeading', () => {
 		expect(noteHeading({ ...race, kind: 'entry', grade: null, className: '1勝クラス' }).label).toBe(
 			'中山11R オールカマー (1勝クラス) 1着'
 		);
+	});
+});
+
+/**
+ * ダッシュボードの最近のメモは、格を括弧書きではなく札で、レース名の前に出す。
+ * そのための部品分け。出すものは `noteHeading` とそろえる。
+ */
+describe('noteHeadingParts', () => {
+	it('格は札で出すので、クラスとは分けて返す', () => {
+		expect(noteHeadingParts({ kind: 'entry', ...race })).toEqual({
+			place: '中山11R',
+			grade: 'G2',
+			raceName: 'オールカマー',
+			className: null,
+			result: '1着'
+		});
+	});
+
+	it('格が無いレースはクラスを返す', () => {
+		const parts = noteHeadingParts({ ...race, kind: 'entry', grade: null, className: '1勝クラス' });
+		expect(parts.grade).toBe(null);
+		expect(parts.className).toBe('1勝クラス');
+	});
+
+	// noteHeading と同じ理由。開催前に書いたメモに、あとから入った着順を出さない。
+	it('開催前のメモには着順を返さない', () => {
+		expect(noteHeadingParts({ kind: 'preview', ...race }).result).toBe(null);
+		expect(noteHeadingParts({ kind: 'race_preview', ...race }).result).toBe(null);
+		expect(noteHeadingParts({ kind: 'race', ...race }).result).toBe('1着');
 	});
 });
 
