@@ -18,7 +18,10 @@ jobs:
     name: 欄が埋まっているか
     runs-on: ubuntu-latest
     steps:
+      # 差分から起動すべきレビュアーを出す（docs/review.md 第6章）。比べるのはマージコミットとその第1親だけなので2つで足りる。
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -26,3 +29,6 @@ jobs:
       - run: node --experimental-strip-types scripts/check-pr-body.ts
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          # checkout は PR を base の先頭にマージしたコミット。第1親と比べれば PR の差分だけになる
+          # （base.sha は本文を直しただけの edited では古いことがあり、その間に main へ入った変更が混ざる）。
+          REVIEW_BASE: HEAD^1

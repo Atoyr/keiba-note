@@ -31,6 +31,11 @@ declare global {
 				 * このリポジトリの Actions に書き込めるだけの fine-grained token。無ければ頼まない。
 				 */
 				GITHUB_DISPATCH_TOKEN?: string;
+				/**
+				 * 共有の画像を描く resvg の wasm（lib/server/og/render.ts）。バインディングではなく、
+				 * src/worker.js が env に足して渡す。vite dev では無い。
+				 */
+				RESVG_WASM?: WebAssembly.Module;
 			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;

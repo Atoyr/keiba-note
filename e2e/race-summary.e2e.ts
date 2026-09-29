@@ -151,6 +151,7 @@ test('予想をまとめ、公開名で共有・更新・解除できる。本�
 	await expect(urlField).toHaveCount(0);
 	await expect(page.getByRole('region', { name: 'この予想を共有' })).toBeFocused();
 	expect((await guest.get(url)).status()).toBe(404);
+	expect((await guest.get(`${url}/og.png`)).status()).toBe(404);
 	await page.getByRole('button', { name: '共有リンクを作る' }).click();
 	await expect(urlField).toBeVisible();
 	const newUrl = await urlField.inputValue();
@@ -163,6 +164,47 @@ test('予想をまとめ、公開名で共有・更新・解除できる。本�
 	await expect(page.getByRole('heading', { name: '共有中のメモ', exact: true })).toBeFocused();
 	expect((await guest.get(newUrl)).status()).toBe(404);
 	await guest.dispose();
+});
+
+test('共有ページは SNS のプレビュー（OGP）に印の並びと、印を描いた画像を出す', async ({
+	browser
+}) => {
+	// クローラーは JS を動かさない。SSR の HTML に入っている meta を読む。
+	const context = await browser.newContext({
+		javaScriptEnabled: false,
+		baseURL: `http://localhost:${process.env.E2E_PORT ?? 4173}`
+	});
+	const page = await context.newPage();
+	await page.goto(`/shared/races/${SHARED_RACE_ID}`);
+	const meta = (key: string) =>
+		page.locator(`meta[property="${key}"], meta[name="${key}"]`).getAttribute('content');
+	expect(await meta('twitter:card')).toBe('summary_large_image');
+	expect(await meta('og:title')).toBe('東京11R E2E印見本賞 予想まとめ');
+	// 印順、同じ印は馬番順。印の無い馬（E2Eメモノミ）は並べない。
+	expect(await meta('og:description')).toMatch(
+		/ の予想｜◎1 E2Eホンメイ ◎9 E2Eモウイットウ ○2 E2Eタイコウ ▲3 E2Eタンアナ △4 E2Eレンシタ ☆5 E2Eアナウマ ×6 E2Eケシウマ$/
+	);
+	// クローラーは別のホストから取りに来るので、画像の URL は絶対 URL にする。
+	// ホストはリクエストのもの（wrangler dev は wrangler.toml の routes のホストに書き換えるので、ここでは比べない）。
+	const image = new URL((await meta('og:image'))!);
+	expect(image.protocol).toMatch(/^https?:$/);
+	expect(image.pathname).toBe(`/shared/races/${SHARED_RACE_ID}/og.png`);
+	expect(image.searchParams.get('v')).toMatch(/^\d+-[0-9a-z]+$/);
+	expect([await meta('og:image:width'), await meta('og:image:height')]).toEqual(['1200', '630']);
+	// 画像の代替テキストは説明文と同じ（X は twitter:image:alt を読む）。
+	expect(await meta('twitter:image:alt')).toBe(await meta('og:description'));
+
+	const res = await page.request.get(image.pathname + image.search);
+	expect(res.status()).toBe(200);
+	expect(res.headers()['content-type']).toBe('image/png');
+	expect(res.headers()['cache-control']).toContain('no-store');
+	const png = await res.body();
+	expect([...png.subarray(1, 4)].map((c) => String.fromCharCode(c)).join('')).toBe('PNG');
+	expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
+	expect((await page.request.get('/shared/races/01JE2ENOSUCHSHARE000000000/og.png')).status()).toBe(
+		404
+	);
+	await context.close();
 });
 
 test('JavaScriptなしでも公開名を保存でき、空欄で既存の共有ページが匿名になる', async ({

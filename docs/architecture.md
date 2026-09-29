@@ -22,6 +22,8 @@
 - 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions に移した。netkeiba は Workers から来たリクエストを
   時間帯によってまとめて 400 で返す。取得と保存は `scripts/odds/` に移り、Worker は netkeiba へ行かない（→ 第0章 / 第1章 / 第2章 / 3-8）
 - 更新日: 2026-09-27 — 騎手（jockeys）を機能の並びに足した（→ 第2章）
+- 更新日: 2026-09-28 — 予想まとめの共有に SNS のプレビュー画像を足した。`src/worker.js` が resvg の wasm を渡し、
+  フォントは Static Assets から読む（→ 第2章 / 3-7 / 5-4）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -221,7 +223,10 @@ service と auth も monitoring を知らない（失敗は投げたままにし
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
 adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
-Cron の入口 `lib/server/race-data/scheduled.ts` だけ（→ 3-5・3-9）。
+Cron の入口 `lib/server/race-data/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）だけ（→ 3-5・3-7・3-9）。
+
+og（`lib/server/og/`。共有の画像を PNG にする）は service と同じ扱いで、SvelteKit も D1 も知らない。
+import してよいのは pure（描く SVG は `utils/share-card.ts` が組む）と `@resvg/resvg-wasm` だけ。機能の軸では share に入る。
 
 odds の型と検査（`lib/server/odds/odds.ts`）は pure と同じ扱いで、何も import しない。予想画面の読み出し（`services/odds.ts`）と、
 GitHub Actions が動かす取得と保存（`scripts/odds/`）の両方から使う。`scripts/` は Worker に束ねられず、Node で直接動く
@@ -473,6 +478,19 @@ where(and(eq(note.id, id), eq(note.visibility, 'unlisted')))
 凍結済みの著者は両方の共有ページで404になる。未設定の公開名は「匿名」で、Google名へは戻さない。
 共有ページのレイアウトはログイン中も `user: null` を返し、HTMLやデータ応答にアカウント情報を含めない。
 予想まとめの load が返すのはログインしているかの真偽（`signedIn`）だけで、未ログインの人に案内を出すのに使う。
+
+SNS に貼ったときのプレビュー（OGP）も、このコピーと公開名だけから組む。印を描いた画像
+`/shared/races/[id]/og.png` は Worker が描く。SVG を `utils/share-card.ts` で組み、`lib/server/og/render.ts` が resvg（wasm）で PNG にする。
+
+- Workers は実行中にバイト列から wasm をコンパイルできず、SvelteKit（Vite）の側では `.wasm` を import できない。
+  そこで wrangler が束ねる `src/worker.js` が import し（コンパイル済みの `WebAssembly.Module` になる）、`env.RESVG_WASM` に足して渡す。
+  `vite dev` はこの入口を通らないので描けない（503）。確かめるのは E2E（`wrangler dev`）
+- フォントは Noto Sans JP の太字を ASCII・Latin-1 と JIS X 0208 に絞ったもの（約 2.7MB。`pnpm run og-font` で書き出してコミット）。
+  Worker の本体には束ねず、`static/og/` に置いて `ASSETS` のバインディングから読む。それ以外の字（第3水準以上の漢字・絵文字）は画像では空白になる
+- wasm の初期化とフォントは isolate ごとに1度だけにし、モジュールスコープに置く（初期化は2度呼ぶと例外）。
+  利用者に依らない不変のものなので、第0章の「モジュールスコープに持たせない」（接続とユーザー情報）には当たらない
+- 1枚の描画は手元で初回 60〜80ms、2枚目から 20〜30ms（CPU の上限 1000ms に対して十分低い）。
+  画像も共有ページと同じく `no-store`。取りに来るのは SNS のクローラーで、1回取れば向こうが持つ
 
 `/notes/[id]` は `hooks.server.ts` の公開パスに入るため、`locals.user` が null のまま
 load に到達する。共有ページは通常のログイン必須ルートと前提が違う。
@@ -747,8 +765,9 @@ Prisma は Workers 対応こそ進んだがバンドルが重く、CPU 時間で
 - **`nodejs_compat` は極力付けない。** 付けると起動時のコストとバンドルが増える。
   Arctic / Oslo / Drizzle-D1 はいずれも Web 標準 API だけで動くため、原則不要
 - `compatibility_date` は初期化時の日付で固定し、上げるときは意図的に上げる
-- Worker のバンドルサイズ上限は圧縮後 3MB（Free）。SvelteKit の SSR コードなら
-  まず当たらないが、重い依存を足すときは意識する
+- Worker のバンドルサイズ上限は圧縮後 3MB（Free）、10MB（Paid）。SvelteKit の SSR コードなら
+  まず当たらないが、重い依存を足すときは意識する。2026-09-28 に共有の画像のため resvg の wasm を足し、
+  圧縮後 約 370KB → 約 1.3MB になった（フォントは Static Assets に置き、ここに入れていない。→ 3-7）
 
 ---
 

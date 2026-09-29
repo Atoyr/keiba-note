@@ -10,11 +10,12 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 
 変更の実装を依頼されたら、原則として **人が成果物を見て判断できる PR** まで進める。
 調査・説明・レビューだけの依頼は結果の報告で完了する。ユーザーが成果物や作業範囲を指定した場合は、その指定を優先する。
-実装依頼の完了条件は次の4つ。検証を完了できない場合は [testing.md 1-2](./docs/testing.md#1-2-検証を完了できないとき) に従い、未完了として引き継ぐ。
+実装依頼の完了条件は次の5つ。検証を完了できない場合は [testing.md 1-2](./docs/testing.md#1-2-検証を完了できないとき) に従い、未完了として引き継ぐ。
 
 - `pnpm run verify` が green（型・lint・単体テスト・E2E）
 - 見た目が変わった画面の before / after が PR 本文の「画面」に貼られている
 - [evaluation.md 第0章](./docs/evaluation.md#0-評価が必要な変更) に従い、「評価」に Evaluator の結果と残る `✗` の理由、または対象外の理由がある
+- [review.md 第0章](./docs/review.md#0-いつ頼むか) に従い、「コードレビュー」に `review:plan` が選んだレビュアーの結果と、採らない `必須` の理由がある（重の `必須` が直っていなければ Draft。[review.md 第3章](./docs/review.md#3-手順)）
 - 判断を入れた箇所が PR 本文の「レビューで見てほしいところ」に書かれている
 
 途中で止めて確認を求めてよいのは、次のときだけ。それ以外は、妥当な判断をして進める。
@@ -34,7 +35,8 @@ AGENTS.md
 ├── design       → docs/design-system.md
 ├── testing      → docs/testing.md
 ├── api          → docs/api.md
-└── evaluation   → docs/evaluation.md
+├── evaluation   → docs/evaluation.md
+└── review       → docs/review.md
 ```
 
 | 分野         | 文書                                             | 何が書いてあるか                                                                  | 開く場面                                       |
@@ -45,6 +47,7 @@ AGENTS.md
 | testing      | [docs/testing.md](./docs/testing.md)             | テストの置き場と約束、E2E の環境、画面カタログ、キャプチャ                        | 毎回（テストを書く・確かめる・撮る）           |
 | api          | [docs/api.md](./docs/api.md)                     | ルートと action の一覧、認証、action の約束、サービス層の関数の約束               | ルート・action・サービス関数を足す・変えるとき |
 | evaluation   | [docs/evaluation.md](./docs/evaluation.md)       | Generator と Evaluator の分け方、評価の観点、返す形                               | PR の前に評価を頼むとき・評価するとき          |
+| review       | [docs/review.md](./docs/review.md)               | 分野ごとのレビュアー（YAML・SQL・フロント・AI プロンプト）、重さの決め方、観点    | PR の前にレビューを頼むとき・レビューするとき  |
 
 ほかに、必要なときだけ読むもの:
 
@@ -66,9 +69,9 @@ AGENTS.md
 4. **`pnpm run verify` を通す。** 今回の変更による失敗は直して回し直す。切り分けと未検証時の出口は [testing.md 1-2](./docs/testing.md#1-2-検証を完了できないとき)
 5. **after を撮って、自分で見る。** `pnpm run screens <機能名> after`。残った画像を開いて、
    指示どおりか・崩れていないかを確かめる。違えば 3 に戻る
-6. **評価の要否を判断する。** [evaluation.md 第0章・第2章](./docs/evaluation.md) に従い、必要なら別のエージェントに評価させる。
-   `✗` を直して 4 から回す。2往復まで。対象外にできる場合は理由を書く
-7. **PR を出す。** `pnpm run screens:pr <機能名>` の出力を「画面」に、評価を「評価」に貼る。
+6. **レビューと評価を頼む。** `pnpm run review:plan` が選んだレビュアー（[review.md](./docs/review.md)）と、[evaluation.md 第0章](./docs/evaluation.md) で必要なら
+   Evaluator を並行で起動する。`必須` と `✗` を事実を確かめて直し、4 から回す。2往復まで。評価を対象外にできる場合は理由を書く
+7. **PR を出す。** `pnpm run screens:pr <機能名>` の出力を「画面」に、評価を「評価」に、レビューを「コードレビュー」に貼る。
    キャプチャはコミットしない（`screens:pr` が画像置き場の `screenshots` ブランチへ上げる。→ [testing.md 5-2](./docs/testing.md)）
 
 画面に影響しない変更は 2 と 5 を飛ばし、代わりに実行ログを PR に貼る。評価の要否は別に判断する。
@@ -100,8 +103,10 @@ pnpm run landing:shots                  # 紹介ページ（未ログインの /
 pnpm run data:check                     # data/ を触ったとき
 pnpm run data:fetch <手順> <日付> <場> <R> # netkeiba から data/races/*.yaml を書く（data/README.md）
 pnpm run odds:update --local            # オッズの更新を手元の D1 で1回（本番は odds-update.yml。architecture.md 3-8）
+pnpm run review:plan                    # PR の前に起動するレビュアーと重さを差分から出す（docs/review.md）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）
 pnpm run course-maps                    # コース図の SVG を src/lib/utils/course.ts から書き出す
+pnpm run og-font                        # 共有の画像のフォント（static/og/）を書き出す（architecture.md 3-7）
 ```
 
 ## コミットと PR
