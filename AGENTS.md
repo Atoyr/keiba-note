@@ -106,6 +106,7 @@ pnpm run odds:update --local            # オッズの更新を手元の D1 で1
 pnpm run review:plan                    # PR の前に起動するレビュアーと重さを差分から出す（docs/review.md）
 pnpm run docs:check                     # 文書のリンクと目次（lint に入っている）
 pnpm run course-maps                    # コース図の SVG を src/lib/utils/course.ts から書き出す
+pnpm run og-font                        # 共有の画像のフォント（static/og/）を書き出す（architecture.md 3-7）
 ```
 
 ## コミットと PR

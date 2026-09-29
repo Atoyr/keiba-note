@@ -111,6 +111,7 @@ export async function getSharedRaceSummary(db: Db, shareId: string) {
 	const [row] = await db
 		.select({
 			content: raceShare.content,
+			updatedAt: raceShare.updatedAt,
 			authorName: sql<string>`coalesce(${user.publicName}, '匿名')`
 		})
 		.from(raceShare)
