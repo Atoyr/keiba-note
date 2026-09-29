@@ -12,6 +12,8 @@
   この文書には、仕組みをなぜこう組むかと、これから入れるものだけを残す
 - 更新日: 2026-09-25 — 2-5 から画面側の2件を外した。`PastRuns.svelte` は #78 で props の型をコンポーネントに置き、
   `src/routes/+page.svelte` は #79 で型を `PageData` から取るようにして直っていた。残りは2件
+- 更新日: 2026-09-30 — 第6層に、分野ごとのレビュアー（YAML・SQL・フロント・AI プロンプト）と、差分から重さを決める
+  `review:plan` を足した（→ 6-2・6-4・7-2、詳細は [review.md](./review.md)）
 - ステータス: 第5層とコンテキスト（第7章）は稼働中。それ以外は設計。実装は 9章の順に別 PR で入れる
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
@@ -79,7 +81,7 @@ flowchart LR
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | 生の色指定が約250箇所。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」 | なし | 本番に触るコマンドの禁止は言葉だけ |
 | 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
-| 6 評価 | なし | なし | 人がキャプチャを見るだけ。指摘が規則に戻る道が無い |
+| 6 評価 | evaluation.md / review.md | `pr-body.yml`（評価の欄と、`review:plan` が選んだレビュアーの結果があるか） | Evaluator と分野ごとのレビュアーが PR の前に見る。指摘が規則に戻るのは人の判断（6-4） |
 
 **機械の強制が無い層は、エージェントが読み落とした時点で破られる。** この設計の中心は、
 第2層と第3層の約束を ESLint に落とし、`pnpm run lint`（＝ `verify` と CI）で止めることにある。
@@ -463,7 +465,7 @@ E2E のビルドだけで、リクエストごとのクエリ数を応答ヘッ�
 | --- | --- | --- | --- |
 | `ci.yml` | 検証 | `data:check` → `check` → `lint`（Prettier・ESLint・`docs:check`）→ 単体テスト | 稼働中。`docs:check` は今回 lint に入れた |
 | `ci.yml` | E2E | `test:e2e`（画面カタログを含む）。キャプチャを artifact `screens` に上げる | 稼働中 |
-| `pr-body.yml` | 欄が埋まっているか | `scripts/check-pr-body.ts`。「何を変えたか」「レビューで見てほしいところ」「なぜ」「画面」「評価」が空なら落ちる | **今回入れた** |
+| `pr-body.yml` | 欄が埋まっているか | `scripts/check-pr-body.ts`。「何を変えたか」「レビューで見てほしいところ」「なぜ」「画面」「評価」「コードレビュー」が空なら落ちる。差分で選ばれたレビュアーの結果か「未実施（理由）」が「コードレビュー」に無くても落ちる（[review.md 第6章](./review.md)） | **今回入れた** |
 | `deploy.yml` | — | リリース時に `ci.yml` を呼び直してからデプロイ | 稼働中（人がリリースする） |
 | `data-import.yml` | — | `main` の `data/races/**` の変更を本番 D1 に投入 | 稼働中 |
 
@@ -542,6 +544,15 @@ flowchart LR
   エージェントどうしで延々と回すより、人が一度見るほうが早い
 - 機械で見られる項目（label・contrast・focus の一部）は、axe を入れたら（5-3）機械に移し、Evaluator からは外す
 
+**Evaluator とは別に、コードそのものを分野ごとのレビュアーに読ませる**（[review.md](./review.md)）。
+Evaluator はできあがった画面と振る舞いを見るので、コードの約束（誰のデータかの絞り込み、マイグレーションで消える行、
+本番に入るデータ、エージェントへの指示の食い違い）は見落とす。レビュアーは YAML・SQL・フロント・AI プロンプトの4つ。
+
+- **誰を起動するかは差分から機械で決める**（`pnpm run review:plan`）。Generator が選ぶと、自分の変更を軽く見積もる
+- **重さ（重・中・軽）を、変わったファイルのパスと行の中身で決める。** 同じサービス層でも、`viewerId` に触れた変更と
+  並び順だけの変更では、読む深さと指摘の扱いを変える。規則は `scripts/review/rules.ts`
+- **起動したかを CI で見る。** 選ばれたレビュアーの結果の見出しか「未実施（理由）」が PR 本文に無ければ `pr-body.yml` が落とす（中身は人が見る）
+
 **CI で Evaluator を回すか。** PR ごとに GitHub Actions から自動で回す形（`anthropics/claude-code-action` など）も取れるが、
 API キーをリポジトリのシークレットに置くことになり、料金もかかる。シークレットの扱いは人が決める約束
 （architecture.md 第0章）なので、今は手元で Generator が呼ぶ形にし、CI に載せるかは人が決める（第8章）。
@@ -566,7 +577,7 @@ API キーをリポジトリのシークレットに置くことになり、料�
 
 1. lint の規則にできるか（第2層・第3層）
 2. テストか画面カタログの検査にできるか（第5層）
-3. evaluation.md の観点にできるか（第6層）
+3. evaluation.md の観点か、review.md の観点・重さの規則（`scripts/review/rules.ts`）にできるか（第6層）
 4. どれも無理なら、原則（product.md）か、第7章の置き場に従って分野の文書の約束にする
 
 昇格したものはこの文書の末尾「昇格の記録」に1行ずつ残す（いつ・どの指摘が・どこに入ったか）。
@@ -601,7 +612,8 @@ AGENTS.md（目次。毎回読む）
 ├── design       → docs/design-system.md  トークン・shadcn の部品・ドメイン部品・大きさと文言
 ├── testing      → docs/testing.md        テストの置き場・E2E・画面カタログ・キャプチャ
 ├── api          → docs/api.md            ルートの一覧・action の約束・サービス層の関数の約束
-└── evaluation   → docs/evaluation.md     Generator と Evaluator の分け方・評価の観点
+├── evaluation   → docs/evaluation.md     Generator と Evaluator の分け方・評価の観点
+└── review       → docs/review.md         分野ごとのレビュアー・重さの決め方・観点
 │
 └── ほか          product.md（何を・なぜ）/ harness.md（この文書）/ operations.md（構築とデプロイ）/
                   data/README.md（出走馬データ）
@@ -642,7 +654,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | **長い作業は進み具合をファイルに残す。** 会話が要約されても続きを拾える | AGENTS.md「作業の手順」の `TASKS.md`（コミットしない） |
 | **サブエージェントの結果は確かめてから採る** | 第6層 6-2（Evaluator の指摘をそのまま採らない） |
 | **確かめていないものは確かめていないと書く** | evaluation.md の `?` |
-| 人のレビューの前にエージェントに差分を見させる | 第6層 6-2（Evaluator）。コードの誤りは `/code-review` も使える |
+| 人のレビューの前にエージェントに差分を見させる | 第6層 6-2（Evaluator と分野ごとのレビュアー）。どれにも当たらないコードは `/code-review` も使える |
 | **人の判断が要ることを先に読ませる** | PR テンプレートの「レビューで見てほしいところ」を2番目に上げた |
 | デザインは「避けたいもの」を並べる | design-system.md 第6章 |
 | 「よく考えて」のような指示は書かない（モデルが自分で考える） | 文書と、Evaluator の定義（`.claude/agents/evaluator.md`） |

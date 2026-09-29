@@ -23,7 +23,7 @@ PR に貼るキャプチャの撮り方。
 | `scripts/` の道具（netkeiba の読み取り・YAML への当てはめなど） | Vitest（node） | `scripts/**/*.spec.ts` | 同上 |
 | 画面の振る舞い・認可・form POST（CSRF） | Playwright（本番ビルド + E2E 専用 D1） | `e2e/*.e2e.ts` | `pnpm run test:e2e` |
 | 全画面が開けること・実行時エラー・mobile ではみ出さないこと | 画面カタログ | `e2e/screens.ts`（1行足す） | 同上 |
-| PR 本文の欄（画面・評価など）が埋まっているか | `scripts/check-pr-body.ts` | `.github/workflows/pr-body.yml` | CI の「PR 本文」（手元では `pnpm run pr:check`） |
+| PR 本文の欄（画面・評価・コードレビューなど）が埋まっているか。選ばれたレビュアーの結果があるか（手元では `REVIEW_BASE=origin/main` も渡す） | `scripts/check-pr-body.ts` | `.github/workflows/pr-body.yml` | CI の「PR 本文」（手元では `pnpm run pr:check`） |
 | 頼まれたものか・使いやすいか | **Evaluator**（書いたのとは別のエージェント） | [evaluation.md](./evaluation.md) | PR 本文の「評価」に ✗ が残る |
 | 見た目が意図どおりか | **人**がキャプチャを見る | `docs/screenshots/<機能名>/` | PR で差し戻す |
 
