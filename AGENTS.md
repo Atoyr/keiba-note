@@ -15,7 +15,7 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 - `pnpm run verify` が green（型・lint・単体テスト・E2E）
 - 見た目が変わった画面の before / after が PR 本文の「画面」に貼られている
 - [evaluation.md 第0章](./docs/evaluation.md#0-評価が必要な変更) に従い、「評価」に Evaluator の結果と残る `✗` の理由、または対象外の理由がある
-- [review.md 第0章](./docs/review.md#0-いつ頼むか) に従い、「コードレビュー」に `review:plan` が選んだレビュアーの結果と、直さない `必須` の理由がある
+- [review.md 第0章](./docs/review.md#0-いつ頼むか) に従い、「コードレビュー」に `review:plan` が選んだレビュアーの結果と、採らない `必須` の理由がある（重の `必須` が直っていなければ Draft。[review.md 第3章](./docs/review.md#3-手順)）
 - 判断を入れた箇所が PR 本文の「レビューで見てほしいところ」に書かれている
 
 途中で止めて確認を求めてよいのは、次のときだけ。それ以外は、妥当な判断をして進める。

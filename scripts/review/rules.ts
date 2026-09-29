@@ -270,9 +270,16 @@ export const RULES: Rule[] = [
 	},
 	{
 		reviewer: 'prompt',
-		path: /^\.claude\/(agents|skills)\//,
+		path: /^\.claude\/(agents|skills|commands)\//,
 		weight: 2,
-		reason: 'サブエージェント・スキルの定義'
+		reason: 'サブエージェント・スキル・コマンドの定義'
+	},
+	{
+		// hook・launch.json など、上に無い Claude Code の設定もエージェントの動きを変える。
+		reviewer: 'prompt',
+		path: /^\.claude\/(?!agents\/|skills\/|commands\/|worktrees\/)/,
+		weight: 2,
+		reason: 'Claude Code の設定'
 	},
 	{
 		reviewer: 'prompt',

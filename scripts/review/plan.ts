@@ -141,7 +141,11 @@ export function planReview(
  */
 export function hasReviewResult(section: string, agent: string): boolean {
 	const heading = new RegExp(`^###\\s*コードレビュー（${agent}[・）]`, 'm');
-	const skipped = new RegExp(`^\\s*(-\\s*)?\`?${agent}\`?\\s*[:：]\\s*未実施`, 'm');
+	// 「未実施」だけでは通さない。理由を括弧で添える（docs/review.md 第0章）。
+	const skipped = new RegExp(
+		`^\\s*(-\\s*)?\`?${agent}\`?\\s*[:：]\\s*未実施\\s*[（(][^）)\\s]`,
+		'm'
+	);
 	return heading.test(section) || skipped.test(section);
 }
 

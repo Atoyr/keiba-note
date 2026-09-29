@@ -217,6 +217,11 @@ describe('hasReviewResult', () => {
 		expect(hasReviewResult('- `reviewer-sql`：未実施（理由）', 'reviewer-sql')).toBe(true);
 		expect(hasReviewResult('### コードレビュー（reviewer-yaml・中）', 'reviewer-sql')).toBe(false);
 	});
+
+	it('理由の無い「未実施」は通さない', () => {
+		expect(hasReviewResult('reviewer-sql: 未実施', 'reviewer-sql')).toBe(false);
+		expect(hasReviewResult('reviewer-sql: 未実施（）', 'reviewer-sql')).toBe(false);
+	});
 });
 
 describe('formatPlan', () => {

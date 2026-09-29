@@ -20,7 +20,7 @@ tools: Read, Grep, Glob, Bash
 差分は自分で取る。コミット前の変更も入れるので、分岐点と作業ツリーを比べる。
 
 ```bash
-git diff $(git merge-base origin/main HEAD) -- <対象ファイル>
+git diff $(git merge-base <基準> HEAD) -- <対象ファイル>   # <基準> は受け取ったもの。無ければ origin/main
 ```
 
 まだ git に載っていない新しいファイルは、そのまま Read で読む。

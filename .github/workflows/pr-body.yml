@@ -18,10 +18,10 @@ jobs:
     name: 欄が埋まっているか
     runs-on: ubuntu-latest
     steps:
-      # 差分から起動すべきレビュアーを出すので、基準のコミットまで取る（docs/review.md 第6章）。
+      # 差分から起動すべきレビュアーを出す（docs/review.md 第6章）。比べるのはマージコミットとその第1親だけなので2つで足りる。
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 24
