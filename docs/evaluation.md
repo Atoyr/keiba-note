@@ -6,7 +6,8 @@
 - **読む場面:** Evaluator として評価するとき。Generator が PR を出す前に、評価を頼むとき
 - **ここに無いもの:** 機械で止める検査（型・lint・E2E・画面カタログ）は [testing.md](./testing.md)、
   見た目の決まりは [design-system.md](./design-system.md)、何を作るかは [product.md](./product.md)、
-  なぜ Generator と Evaluator を分けるかは [harness.md 第6層](./harness.md)
+  なぜ Generator と Evaluator を分けるかは [harness.md 第6層](./harness.md)、
+  コード・データ・指示文を分野ごとに読むレビュアーは [review.md](./review.md)
 - 作成日: 2026-09-23
 
 ---

@@ -177,6 +177,10 @@ jobs:
             echo "## 評価"
             echo
             echo "対象外（Actions が作ったデータの登録のみ。UI も振る舞いも変わらない）"
+            echo
+            echo "## コードレビュー"
+            echo
+            echo "reviewer-yaml: 未実施（Actions が作った PR にはエージェントのレビューが走らない。上の「レビューで見てほしいところ」を人が見る。docs/review.md 第6章）"
           } > "$RUNNER_TEMP/pr-body.txt"
 
           git config user.name "github-actions[bot]"

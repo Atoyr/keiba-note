@@ -30,6 +30,7 @@
 		"deploy": "vite build && wrangler deploy",
 		"docs:check": "node --experimental-strip-types scripts/check-docs.ts",
 		"pr:check": "node --experimental-strip-types scripts/check-pr-body.ts",
+		"review:plan": "node --experimental-strip-types scripts/review-plan.ts",
 		"deploy:staging": "vite build && wrangler preview --name staging",
 		"data:check": "node --experimental-strip-types scripts/import-races.ts --check",
 		"data:fetch": "node --experimental-strip-types scripts/race-data.ts",
