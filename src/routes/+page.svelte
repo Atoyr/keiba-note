@@ -314,7 +314,6 @@
 										{p.place ?? ''}
 										<GradeBadge grade={p.grade} />
 										{p.raceName ?? ''}
-										{#if p.className}({p.className}){/if}
 										{p.result ?? ''}
 									</a>
 								{:else}
