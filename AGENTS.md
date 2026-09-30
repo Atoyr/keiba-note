@@ -62,7 +62,7 @@ AGENTS.md
 
 ## 作業の手順
 
-1. **読む・準備する。** 関係するコード・テスト・分野の文書と product.md の該当章。初回は上のセットアップを済ませる
+1. **読む・準備する。** 関係するコード・テスト・分野の文書と product.md の該当章。Dev Container または [README.md の同等環境](./README.md#セットアップ)で作業し、初回は `pnpm install --frozen-lockfile` → `pnpm run setup` を実行する
 2. **before を撮る。** 画面に関わる変更なら、手を入れる前に `pnpm run screens <機能名> before`
    （→ [testing.md 第5章](./docs/testing.md)）
 3. **実装する。** テストも同時に書く。画面や見せたい状態が増えたら `e2e/screens.ts` に1行足す
@@ -92,8 +92,8 @@ AGENTS.md
 ## コマンド
 
 ```bash
+pnpm run setup                          # 初回に Chromium と OS 依存パッケージを準備
 pnpm run verify                         # check / lint / test（単体テスト + E2E）を全部
-pnpm test                               # 単体テストと E2E を順に実行
 pnpm run test:unit                      # 単体テストを1回
 pnpm run test:watch                     # 単体テストを監視して再実行
 pnpm run test:e2e                       # E2E だけ（ビルドから走る）

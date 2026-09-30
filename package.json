@@ -5,6 +5,7 @@
 	"type": "module",
 	"packageManager": "pnpm@10.16.1",
 	"scripts": {
+		"setup": "playwright install --with-deps chromium",
 		"dev": "vite dev",
 		"build": "wrangler types && vite build",
 		"preview": "wrangler dev --port 4173",

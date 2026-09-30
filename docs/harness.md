@@ -14,7 +14,8 @@
   `src/routes/+page.svelte` は #79 で型を `PageData` から取るようにして直っていた。残りは2件
 - 更新日: 2026-09-30 — 第6層に、分野ごとのレビュアー（YAML・SQL・フロント・AI プロンプト）と、差分から重さを決める
   `review:plan` を足した（→ 6-2・6-4・7-2、詳細は [review.md](./review.md)）
-- ステータス: 第5層・第6層（Evaluator と分野ごとのレビュアー）・コンテキスト（第7章）は稼働中。それ以外は設計。実装は 9章の順に別 PR で入れる
+- 更新日: 2026-09-30 — 第4層に Dev Container と共通の `setup` を位置づけた
+- ステータス: 第4層の Dev Container と `setup`、第5層、第6層（Evaluator と分野ごとのレビュアー）、コンテキスト（第7章）は稼働中。残る構想は設計。実装は 9章の順に別 PR で入れる
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
 - 関連: [AGENTS.md](../AGENTS.md)（目次）/ [product.md](./product.md) / [architecture.md](./architecture.md)
@@ -39,7 +40,7 @@
 ├────────────────────────────────────┤
 │ 3. Design System                   │  どう見せるか
 ├────────────────────────────────────┤
-│ 4. Tools / Runtime                 │  AI が何を操作できるか
+│ 4. Tools / Runtime                 │  何で開発・検証を動かすか
 ├────────────────────────────────────┤
 │ 5. Verification                    │  正しく動くか
 ├────────────────────────────────────┤
@@ -47,7 +48,7 @@
 └────────────────────────────────────┘
 ```
 
-上の3層は「書く前に知っておくこと」、下の3層は「書いたあとに確かめること」。
+上の3層は「書く前に知っておくこと」、第4層は「書く・確かめるための実行環境」、第5・6層は「書いたあとに確かめること」。
 第6層で見つかった指摘は、同じ指摘が二度と来ないように上の層の規則へ戻す（→ 6-4）。
 6層の知識を、エージェントがどの順でどこから読むかは第7章「コンテキストの設計」で決める。
 
@@ -59,7 +60,7 @@ flowchart LR
         L3["3 デザインシステム<br/>shadcn + トークン"]
     end
     subgraph during["書いている間"]
-        L4["4 操作できるもの<br/>pnpm scripts / 権限 / hook"]
+        L4["4 実行環境と操作<br/>Dev Container / pnpm scripts / 権限"]
     end
     subgraph after["書いたあと"]
         L5["5 検証<br/>pnpm run verify / screens"]
@@ -325,17 +326,18 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 
 ---
 
-## 4. Tools / Runtime — AI が何を操作できるか
+## 4. Tools / Runtime — 何で開発・検証を動かすか
 
 ### 4-1. 役割
 
-エージェントが「何を叩けば何が分かるか」を知っていて、「叩いてはいけないもの」は
-叩けないようになっている状態を作る。
+人とエージェントが同じ実行環境で「何を叩けば何が分かるか」を知っていて、
+「叩いてはいけないもの」は叩けないようになっている状態を作る。
 
 ### 4-2. 操作面
 
 | 目的 | コマンド | 所要 |
 | --- | --- | --- |
+| 初回準備 | `pnpm install --frozen-lockfile` / `pnpm run setup` | 数分 |
 | 全部確かめる | `pnpm run verify` | 数分 |
 | 部分だけ | `pnpm run check` / `pnpm run lint` / `pnpm run test:unit` / `pnpm run test:e2e` | 数秒〜数分 |
 | 直す | `pnpm run format` | 数秒 |
@@ -394,7 +396,10 @@ Claude Code 以外のエージェントには効かないので、文章の約�
 
 ### 4-5. 実行環境の前提
 
-- Node 24 / pnpm 10（`packageManager`）。CI と同じ
+- [`.devcontainer/devcontainer.json`](../.devcontainer/devcontainer.json) は Node 24 の Linux 環境を用意する。git と GitHub CLI を使え、`packageManager` の pnpm 10.16.1、依存関係の Wrangler、`pnpm run setup` による Chromium と OS 依存パッケージを揃える。人・Claude Code・Codex・CI の環境差を減らすための第4層 **Tools / Runtime** であり、検証の合否は決めない
+- `postCreateCommand` は `pnpm install --frozen-lockfile` と共通の `pnpm run setup` を呼ぶ。Dev Container がなくても同じ CLI 手順で準備できる。起動方法と代替手順は [README.md「セットアップ」](../README.md#セットアップ) を正にする
+- 検証の入口 `pnpm run verify` と CI の検査は第5層 **Verification** に置く。Dev Container の作成や `setup` の成功を `verify` の代わりにしない
+- 本番 D1・シークレット・デプロイの権限を Dev Container に渡さず、自動セットアップでも実行しない
 - Windows と Linux の両方で動くこと。script は `node --experimental-strip-types` で書き、シェルに依存しない
 - キャプチャは OS でフォントの描画が違う。before / after は同じマシンで撮る（→ [testing.md 第6章](./testing.md)）
 

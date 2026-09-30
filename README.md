@@ -42,20 +42,32 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。URL
 ### 初回の検証準備
 
 Node.js は **24 系**（[CI](./.github/workflows/ci.yml) の `node-version`）、pnpm は **10.16.1**
-（[package.json](./package.json) の `packageManager`）を使う。両方を用意し、リポジトリのルートで実行する。
+（[package.json](./package.json) の `packageManager`）を使う。
+
+**Dev Container:** Docker と Dev Container 対応ツールで clone 済みのリポジトリを開き、`Reopen in Container` を選ぶ。
+[`.devcontainer/devcontainer.json`](./.devcontainer/devcontainer.json) が Node 24、git、GitHub CLI を用意し、
+作成後に Corepack を有効化して以下の `install` と `setup` を実行する。Wrangler はローカル依存関係から使う。
+VS Code の設定や拡張機能は検証の前提ではない。
+Windows で Docker Desktop を使う場合は、WSL2 側の Linux ファイルシステムに clone して開くことを推奨する。
+
+**CLI のみ・Dev Container を使えない場合:** Node 24、Corepack、git、GitHub CLI を用意する。
+Corepack を有効化して `packageManager` 指定の pnpm を使い、リポジトリのルートで実行する。
+Linux では `setup` が Chromium の OS 依存パッケージを入れるため、apt と sudo が使える環境が必要。
+Windows では Chromium の取得を行う。
 
 ```bash
+corepack enable
 node --version                       # v24.x
 pnpm --version                       # 10.16.1
 pnpm install --frozen-lockfile
-pnpm exec playwright install chromium
+pnpm run setup
 pnpm run verify
 ```
 
 `verify` は型 → lint → 単体テスト → E2E の順に動く。`vite.config.ts` の単体テストの client プロジェクトも
-実 Chromium を使うため、**`test:unit` より前にブラウザを導入する**。`test:e2e` 内の導入だけでは初回の単体テストに間に合わない。
-Linux でブラウザの OS 依存ライブラリも不足している場合は、利用環境の権限に従い
-`pnpm exec playwright install --with-deps chromium` を使う。権限やネットワークの制約で準備できなければ
+実 Chromium を使うため、**`test:unit` より前に `setup` を実行する**。`test:e2e` 内の導入だけでは初回の単体テストに間に合わない。
+Linux で OS パッケージの導入権限がない場合は、管理者が Playwright の依存パッケージを用意してから `setup` を再実行する。
+権限やネットワークの制約で準備できなければ
 [検証を完了できないとき](./docs/testing.md#1-2-検証を完了できないとき) に従う。
 
 **検証に本番の認証情報は不要。** `.dev.vars` の作成や Google OAuth の設定も、上の検証の前提ではない。
