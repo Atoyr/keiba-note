@@ -1,0 +1,8 @@
+{
+	"name": "uma-memo",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"postCreateCommand": "sudo corepack enable && CI=true pnpm install --frozen-lockfile && pnpm run setup"
+}
