@@ -613,8 +613,10 @@ sequenceDiagram
 | 入口 | `lib/server/race-data/scheduled.ts`・`/settings/admin` の `?/fetchEntries` | 監視の口と D1 クライアントを作って渡す |
 | 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR |
 
-- Cron は枠順が本番に入る（馬番が付く）まで毎時頼む。Actions は、確定前なら出馬表を1回見て終わり、
-  確定後に PR のブランチと同じ中身なら何もしない。PR ができたら Discord の「デプロイ」に知らせる
+- Cron は枠順が本番に入る（馬番が付く）まで毎時頼む。Actions は、Cron からなら確定前は出馬表を1回見て終わる
+- 起動元（Cron・管理画面）によらず、開いている PR と同じ中身なら何もしない（PR も通知も出ない）。
+  開いている PR が無ければ（PR の作成で落ちてブランチだけ残った・人がマージせずに閉じた、も含む）、作り直して PR を作る。
+  PR ができたら Discord の「デプロイ」に知らせる
 - トークン（`GITHUB_DISPATCH_TOKEN`）は、このリポジトリの Actions に書き込めるだけのもの。漏れても
   できるのはワークフローの起動までで、できた PR は人がマージするまで本番に入らない
 
