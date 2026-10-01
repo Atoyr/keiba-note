@@ -278,15 +278,6 @@ races:
         sire: ディープインパクト
         dam: シスタリーラヴ
         weight: 58
-      - name: ナムラエイハブ
-        jockey: 田山旺佑
-        sex: 牡
-        age: 5
-        ref: nk-2021102895
-        trainer: 長谷川浩大
-        sire: リアルスティール
-        dam: ナムラアン
-        weight: 57
       - name: ファミリータイム
         jockey: 鮫島克駿
         sex: 牡
@@ -296,16 +287,8 @@ races:
         sire: リアルスティール
         dam: プリオバーン
         weight: 57
-      - name: ブレイヴロッカー
-        jockey: 太宰啓介
-        sex: セ
-        age: 6
-        ref: nk-2020102870
-        trainer: 本田優
-        sire: ドゥラメンテ
-        dam: シティイメージ
-        weight: 57
       - name: ヘデントール
+        jockey: 吉田隼人
         sex: 牡
         age: 5
         ref: nk-2021105521
@@ -349,16 +332,8 @@ races:
         sire: ゴールドシップ
         dam: メイショウスイヅキ
         weight: 57
-      - name: ラスカンブレス
-        jockey: 西塚洸二
-        sex: セ
-        age: 5
-        ref: nk-2021105391
-        trainer: 林徹
-        sire: ブリックスアンドモルタル
-        dam: アースライズ
-        weight: 57
       - name: リビアングラス
+        jockey: 小沢大仁
         sex: 牡
         age: 6
         ref: nk-2020105633
@@ -366,3 +341,10 @@ races:
         sire: キズナ
         dam: ディルガ
         weight: 57
+    withdrawn:
+      - name: ナムラエイハブ
+        ref: nk-2021102895
+      - name: ブレイヴロッカー
+        ref: nk-2020102870
+      - name: ラスカンブレス
+        ref: nk-2021105391
