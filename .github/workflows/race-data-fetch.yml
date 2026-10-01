@@ -130,7 +130,9 @@ jobs:
           # Cron は枠順が本番に入るまで毎時起動する。開いている PR が同じ中身なら何もしない
           # （url を出さないので、通知も送らない）。ブランチだけを見ると、PR の作成で落ちた回に
           # push したブランチが残り、そのあとは PR が無いまま何もしなくなる。
-          url=$(gh pr list --head "$branch" --state open --json url --jq '.[0].url // ""')
+          # --head はブランチ名だけで照らすので、同じ名前の fork からの PR も当たる。このリポジトリの PR だけを見る。
+          url=$(gh pr list --head "$branch" --state open --json url,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)][0].url // ""')
           if [ -n "$url" ] && git fetch --quiet origin "$branch" 2>/dev/null && git diff --quiet FETCH_HEAD -- "$file"; then
             echo "開いている PR（$url）と同じ中身なので何もしない"
             exit 0
@@ -194,7 +196,7 @@ jobs:
           git push --quiet --force origin "$branch"
 
           if [ -n "$url" ]; then
-            gh pr edit "$branch" --body-file "$RUNNER_TEMP/pr-body.txt"
+            gh pr edit "$url" --body-file "$RUNNER_TEMP/pr-body.txt"
           else
             url=$(gh pr create --base main --head "$branch" \
               --title "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を取る" \
