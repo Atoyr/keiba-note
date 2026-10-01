@@ -614,7 +614,8 @@ sequenceDiagram
 | 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR |
 
 - Cron は枠順が本番に入る（馬番が付く）まで毎時頼む。Actions は、確定前なら出馬表を1回見て終わり、
-  確定後に PR のブランチと同じ中身なら何もしない。PR ができたら Discord の「デプロイ」に知らせる
+  確定後に開いている PR と同じ中身なら何もしない（ブランチだけ残って PR が無ければ、作り直して PR を作る）。
+  PR ができたら Discord の「デプロイ」に知らせる
 - トークン（`GITHUB_DISPATCH_TOKEN`）は、このリポジトリの Actions に書き込めるだけのもの。漏れても
   できるのはワークフローの起動までで、できた PR は人がマージするまで本番に入らない
 
