@@ -22,14 +22,6 @@ races:
         sire: リアルスティール
         dam: デイトライン
         weight: 55
-      - name: ヴィンセンシオ
-        sex: セ
-        age: 4
-        ref: nk-2022104832
-        trainer: 森一誠
-        sire: リアルスティール
-        dam: シーリア
-        weight: 57
       - name: エルトンバローズ
         jockey: 松若風馬
         sex: 牡
@@ -94,6 +86,7 @@ races:
         dam: トーコーディオーネ
         weight: 57
       - name: ビーアストニッシド
+        jockey: 原優介
         sex: 牡
         age: 7
         ref: nk-2019101348
@@ -147,6 +140,7 @@ races:
         dam: クルミナル
         weight: 57
       - name: レガーロデルシエロ
+        jockey: 戸崎圭太
         sex: 牡
         age: 5
         ref: nk-2021105661
@@ -172,6 +166,9 @@ races:
         sire: ヴィクトワールピサ
         dam: ノッテビアンカ
         weight: 57
+    withdrawn:
+      - name: ヴィンセンシオ
+        ref: nk-2022104832
   - course: 京都
     raceNumber: 11
     name: 京都大賞典
