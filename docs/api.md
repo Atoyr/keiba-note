@@ -136,7 +136,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/horses/[id]` | POST `?/saveProfile` | `nameKana`・`sex`・`birthYear`・`trainer`・`sire` など（**馬名は含まない**） | プロフィールを更新 | 403 |
 | `/races/new` | GET / POST `default` | レースの項目（`raceSchema`） | `303 /races/[id]/entries` | 検証 `fail(400)` / 同じ日付・場・R `fail(409)` / 403 |
 | `/races/[id]/entries` | GET / POST `default` | `rowCount`・`horseName.<i>`・`bracket.<i>`・`horseNumber.<i>` ほか | `303 /races/[id]` | 検証 `fail(400)` / 同じ馬名が2行 `fail(400)` / 馬番か馬の重複（UNIQUE） `fail(409)` / 403 |
-| `/settings/admin` | GET / POST `?/freeze` | `userId` | ユーザーを凍結し、セッションを全部消す | 自分自身は `fail(400)` / 403 |
+| `/settings/admin` | GET / POST `?/freeze` | `userId` | ユーザーを凍結し、セッションと AI との連携（`oauth_grant`。コードとトークンも CASCADE）を全部消す | 自分自身は `fail(400)` / 403 |
 | `/settings/admin` | POST `?/fetchEntries` | `raceId` | そのレースの出走馬の取得を GitHub Actions に頼み、`{ requested }` を返す（D1 には書かない。→ [architecture.md 3-9](./architecture.md)） | 無いレース `fail(404)` / 引けないレース（レース番号なし・race_id が無く当週でもない。`entriesFetchBlocker`）`fail(400)` / トークン未設定 `fail(503)` / GitHub が受け付けない `fail(502)` / 403 |
 
 ### 開発サーバーだけ
