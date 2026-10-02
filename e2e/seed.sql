@@ -773,3 +773,22 @@ FROM s;
 WITH RECURSIVE s(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM s WHERE i < 105)
 INSERT INTO horse (id, name)
 SELECT printf('01JE2EPAGEHORSE%011d', i), printf('E2E一覧ウマ%03d', i) FROM s;
+
+-- MCP の連携（OAuth）。/mcp を叩く E2E と、連携の一覧の画面に使う。
+-- トークンの id は e2e/seed.ts の MCP_TOKENS の SHA-256（セッションと同じ）。期限は 2099 年。
+-- - 自分（E2E ユーザー）が全部（races:read と notes:read）を許した連携
+-- - 自分が races:read だけを許した連携（別のクライアント）
+-- - 別のユーザーが全部を許した連携。**同じ tool でも別の人のメモだけが返る**ことを見る
+INSERT OR REPLACE INTO oauth_client (id, name, redirect_uris) VALUES
+	('uma_client_e2eall', 'E2E クライアント', '["https://claude.ai/api/mcp/auth_callback"]'),
+	('uma_client_e2eraces', 'E2E 読むだけのクライアント', '["http://127.0.0.1:33418/callback"]');
+
+INSERT OR REPLACE INTO oauth_grant (id, user_id, client_id, scopes, last_used_at, created_at) VALUES
+	('01JE2EGRANTALL000000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eall', '["races:read","notes:read"]', 1790000000, 1789000000),
+	('01JE2EGRANTRACES0000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eraces', '["races:read"]', NULL, 1789500000),
+	('01JE2EGRANTOTHER0000000000', '01JE2EOTHERUSER00000000000', 'uma_client_e2eall', '["races:read","notes:read"]', NULL, 1789000000);
+
+INSERT OR REPLACE INTO oauth_token (id, grant_id, kind, scopes, expires_at) VALUES
+	('0e400dfb476f6feb9018d955467c93b966a16d5199d3ccbcae2184afa73e4996', '01JE2EGRANTALL000000000000', 'access', '["races:read","notes:read"]', 4102444800),
+	('1d5a0c60c1912f9524f910f36a82cf5304a14d5a4346eac5bf86fece89eb603d', '01JE2EGRANTRACES0000000000', 'access', '["races:read"]', 4102444800),
+	('ac81b8eb749d9c897fd935dca90c37e0be6458e0c855fb790650a0178db435c5', '01JE2EGRANTOTHER0000000000', 'access', '["races:read","notes:read"]', 4102444800);

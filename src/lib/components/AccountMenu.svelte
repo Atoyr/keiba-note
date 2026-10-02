@@ -58,6 +58,11 @@
 				<a href={resolve('/settings/shares')} {...props}>共有中</a>
 			{/snippet}
 		</DropdownMenu.Item>
+		<DropdownMenu.Item>
+			{#snippet child({ props })}
+				<a href={resolve('/settings/connections')} {...props}>AIとの連携</a>
+			{/snippet}
+		</DropdownMenu.Item>
 		{#if isAdmin(user)}
 			<DropdownMenu.Item>
 				{#snippet child({ props })}

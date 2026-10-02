@@ -277,3 +277,21 @@ export const PAGED_LIST = {
 	horsePrefix: 'E2E一覧ウマ',
 	horseCount: 105
 } as const;
+
+/**
+ * `/mcp` に載せるアクセストークン（seed.sql の oauth_token の id はこれの SHA-256）。
+ * - `all` — 自分が races:read と notes:read を許した連携
+ * - `racesOnly` — 自分が races:read だけを許した連携
+ * - `other` — 別のユーザー（`01JE2EOTHERUSER…`）が全部を許した連携
+ */
+export const MCP_TOKENS = {
+	all: 'e2emcptoken000000000000000000000',
+	racesOnly: 'e2emcpracesonlytoken000000000000',
+	other: 'e2emcpothertoken0000000000000000'
+} as const;
+
+/** seed の MCP クライアント。同意画面のキャプチャに使う（戻り先は登録どおり）。 */
+export const MCP_CLIENT = {
+	id: 'uma_client_e2eall',
+	redirectUri: 'https://claude.ai/api/mcp/auth_callback'
+} as const;

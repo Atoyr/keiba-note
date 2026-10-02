@@ -16,7 +16,41 @@
 import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
+import { handleTokenRequest } from './lib/server/auth/token-endpoint.ts';
+import { createDb } from './lib/server/db/index.ts';
+import { describeError } from './lib/server/monitoring/log.ts';
+import { createMonitor } from './lib/server/monitoring/monitor.ts';
 import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
+
+/**
+ * OAuth のトークンの口（MCP の連携。docs/architecture.md 3-10）。SvelteKit の CSRF の検査が、
+ * Origin の無いフォームの POST（Claude・ChatGPT のサーバーからの要求）を hooks より前に 403 にするので、
+ * ここで先に受ける。Cookie を見ない口なので CSRF の検査が守るものは無い。
+ *
+ * @param {Request} req
+ * @param {Env} env
+ * @param {ExecutionContext} ctx
+ */
+async function oauthToken(req, env, ctx) {
+	const monitor = createMonitor({
+		requestId: req.headers.get('cf-ray') ?? crypto.randomUUID(),
+		environment: env.APP_ENV ?? 'production',
+		webhookUrl: env.DISCORD_WEBHOOK_URL || undefined,
+		waitUntil: (task) => ctx.waitUntil(task)
+	});
+	try {
+		return await handleTokenRequest(req, env.DB ? createDb(env, monitor.onQuery) : null);
+	} catch (e) {
+		monitor.log({
+			level: 'error',
+			event: 'oauth.token.failed',
+			message: 'トークンの要求の処理中に想定外のエラーが起きた',
+			error: describeError(e),
+			dedupeKey: 'oauth.token.failed'
+		});
+		return Response.json({ error: 'server_error' }, { status: 500 });
+	}
+}
 
 export default {
 	/**
@@ -25,6 +59,7 @@ export default {
 	 * @param {ExecutionContext} ctx
 	 */
 	async fetch(req, env, ctx) {
+		if (new URL(req.url).pathname === '/oauth/token') return oauthToken(req, env, ctx);
 		return uncacheFailure(await sveltekit.fetch(req, { ...env, RESVG_WASM: resvgWasm }, ctx));
 	},
 

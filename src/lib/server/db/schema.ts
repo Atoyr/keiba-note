@@ -461,6 +461,85 @@ export const jockeyNote = sqliteTable(
 	]
 );
 
+/**
+ * MCP クライアント（Claude・ChatGPT など）。OAuth の動的クライアント登録（`/oauth/register`）で作られる。
+ *
+ * 登録は誰でもできる（ログイン前のクライアントが自分で登録する仕組み）ので、**これ自体は何の権限も持たない。**
+ * 権限は本人が同意画面で許した `oauth_grant` にだけある。公開クライアントなので秘密鍵も持たない（PKCE で守る）。
+ */
+export const oauthClient = sqliteTable('oauth_client', {
+	/** `client_id`。推測できない乱数。 */
+	id: text('id').primaryKey(),
+	/** クライアントが名乗った名前。同意画面と連携の一覧に出す（自己申告なので、行き先のホストも並べて出す）。 */
+	name: text('name').notNull(),
+	/** 登録された戻り先。認可の要求はこのどれかと一致しなければ受けない（ループバックだけポートを問わない）。 */
+	redirectUris: text('redirect_uris', { mode: 'json' }).$type<string[]>().notNull(),
+	createdAt: createdAt()
+});
+
+/**
+ * 本人がクライアントに許した連携。1人・1クライアントにつき1行。
+ *
+ * 消すと（`/settings/connections` の「連携を解除」）、そこから出した認可コードとトークンが CASCADE で消え、
+ * 次の呼び出しから通らなくなる。
+ */
+export const oauthGrant = sqliteTable(
+	'oauth_grant',
+	{
+		id: text('id').primaryKey(),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		clientId: text('client_id')
+			.notNull()
+			.references(() => oauthClient.id, { onDelete: 'cascade' }),
+		/** 最後の同意で許したスコープ（一覧に出す用）。効くのはトークンごとの `scopes`。 */
+		scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
+		/** 最後にトークンを出し直した時刻（unixepoch）。呼び出しのたびには書かない。 */
+		lastUsedAt: integer('last_used_at'),
+		createdAt: createdAt()
+	},
+	(t) => [uniqueIndex('oauth_grant_user_client').on(t.userId, t.clientId)]
+);
+
+/** 認可コード。1回だけ使え、5分で切れる。セッションと同じく SHA-256 だけを持つ。 */
+export const oauthCode = sqliteTable('oauth_code', {
+	/** コードの SHA-256（hex）。 */
+	id: text('id').primaryKey(),
+	grantId: text('grant_id')
+		.notNull()
+		.references(() => oauthGrant.id, { onDelete: 'cascade' }),
+	scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
+	/** 認可の要求に来た戻り先。トークンの要求でも同じ値が来なければ渡さない。 */
+	redirectUri: text('redirect_uri').notNull(),
+	/** PKCE（S256）の code_challenge。 */
+	codeChallenge: text('code_challenge').notNull(),
+	expiresAt: integer('expires_at').notNull()
+});
+
+/**
+ * アクセストークンとリフレッシュトークン。生の値は持たず SHA-256 だけ（セッションと同じ）。
+ *
+ * リフレッシュトークンは使うたびに作り直す（OAuth 2.1 の公開クライアントの決まり）。使ったものは
+ * 消さずに `used_at` を付けて残し、**同じものがもう一度来たら盗まれたとみなして連携ごと消す。**
+ */
+export const oauthToken = sqliteTable(
+	'oauth_token',
+	{
+		id: text('id').primaryKey(),
+		grantId: text('grant_id')
+			.notNull()
+			.references(() => oauthGrant.id, { onDelete: 'cascade' }),
+		kind: text('kind', { enum: ['access', 'refresh'] }).notNull(),
+		/** このトークンで呼べる範囲。同意のあとで連携のスコープが変わっても、出したときの値で効く。 */
+		scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
+		expiresAt: integer('expires_at').notNull(),
+		usedAt: integer('used_at'),
+		createdAt: createdAt()
+	},
+	(t) => [index('oauth_token_grant').on(t.grantId), index('oauth_token_expires').on(t.expiresAt)]
+);
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session)
 }));

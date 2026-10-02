@@ -45,6 +45,11 @@ declare global {
 		interface Locals {
 			/** hooks.server.ts が埋める。未ログインなら null。 */
 			user: import('$lib/server/auth/session').SessionUser | null;
+			/**
+			 * `/mcp` に Bearer で入ったときに許されているスコープ。hooks.server.ts が埋める。
+			 * Cookie のセッションでは null（画面は OAuth のスコープで動かない）。
+			 */
+			oauthScopes: import('$lib/schemas/oauth').OAuthScope[] | null;
 			/** 開発用のモック認証で入っているか。本番では常に false。 */
 			mockAuth: boolean;
 			/** 動いている環境（production / staging / local）。hooks.server.ts が埋める。 */

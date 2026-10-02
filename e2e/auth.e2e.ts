@@ -59,6 +59,9 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: '/help/webmcp', secret: 'WebMCPの使い方' },
 	{ path: '/settings/shares', secret: null },
 	{ path: '/settings/profile', secret: null },
+	// MCP の連携の一覧と同意画面。同意はログインした本人だけができる（PUBLIC_PATHS に入れない）。
+	{ path: '/settings/connections', secret: 'E2E クライアント' },
+	{ path: '/oauth/authorize', secret: null },
 	{ path: `/races/${PREVIEW_RACE_ID}/summary`, secret: '今回は内枠が向きそう。' },
 	{ path: '/settings/admin', secret: null },
 	{ path: `/horses/${HORSE_ID}`, secret: 'E2E未来賞' },
