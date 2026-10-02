@@ -13,7 +13,8 @@ INSERT OR REPLACE INTO horse (id, name, birth_year)
 VALUES ('01JE2EHORSE000000000000000', 'E2Eテストホース', 2020);
 
 -- 共有中（unlisted）。札を2つ、別々の系統から付ける。
-INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, visibility, occurred_at)
+-- 並行テストがメモを追加しても「最近の20件」から落ちないよう、共有札を確かめる行は作成日時を固定する。
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, visibility, occurred_at, created_at)
 VALUES (
 	'01JE2ESHAREDNOTE0000000000',
 	'01JE2EUSER0000000000000000',
@@ -22,7 +23,8 @@ VALUES (
 	'直線で外に出してから一完歩が速い。',
 	'["次走買い","不利"]',
 	'unlisted',
-	'2026-09-20'
+	'2026-09-20',
+	unixepoch('2099-01-02')
 );
 
 -- 非公開。共有ページからは 404 になること（存在を漏らさないこと）の確認用。
@@ -315,7 +317,8 @@ VALUES (
 --
 -- `PRIVATE_NOTE_ID` を使わないのは、あちらは「非公開なら 404」を見るテストが読むため。
 -- 並列に走ると、共有した瞬間に向こうが 200 を見て落ちる。
-INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, visibility, occurred_at)
+-- この操作対象も「最近の20件」に確実に入るよう、共有札のfixtureと同じく作成日時を固定する。
+INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, visibility, occurred_at, created_at)
 VALUES (
 	'01JE2ETOGGLESHARENOTE00000',
 	'01JE2EUSER0000000000000000',
@@ -324,7 +327,8 @@ VALUES (
 	'共有を切り替えて確かめるメモ。',
 	'[]',
 	'private',
-	'2026-06-01'
+	'2026-06-01',
+	unixepoch('2099-01-01')
 );
 
 -- ダッシュボードの**今週出走する注目馬**用。今週のレース（E2E今週賞）に3頭を足す。
