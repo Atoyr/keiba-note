@@ -63,12 +63,26 @@ test('AI下書きは部分更新・未保存になり、人間のまとめて保
 	// 同じ URL をサーバーから読み、下書きが D1 に届いていないことを確認。
 	const unsaved = await page.request.get(`/races/${WEBMCP_RACE_ID}/preview`);
 	expect(await unsaved.text()).not.toContain('AIの見立て');
-	const dismiss = (dialog: import('@playwright/test').Dialog) => {
-		void dialog.dismiss();
-	};
-	page.once('dialog', dismiss);
+	const warning = page.waitForEvent('dialog').then(async (dialog) => {
+		expect(dialog.type()).toBe('confirm');
+		await dialog.dismiss();
+	});
 	await page.getByRole('link', { name: '予想をまとめて見る' }).click();
+	await warning;
 	await expect(page).toHaveURL(new RegExp(`${WEBMCP_RACE_ID}/preview$`));
+	// 再読み込み後も下書きを復元でき、保存前の本文・札・展開が失われない。
+	page.once('dialog', (dialog) => void dialog.accept());
+	await page.reload();
+	await waitForHydration(page);
+	await page.getByRole('button', { name: '復元する' }).click();
+	await expect(page.locator('[name="raceNoteBody"]')).toHaveValue('AIの見立て');
+	await expect(row(first).locator('textarea')).toHaveValue('人間の本文を維持');
+	await expect(row(second).locator('textarea')).toHaveValue('指定していない馬を維持');
+	await expect(page.getByText('未保存の変更が 3 件あります')).toBeVisible();
+	await editor.locator('summary').click();
+	await expect(editor.getByRole('button', { name: /1番.*（先頭・内）/ })).toBeVisible();
+	await expect(page.locator('[name="flowMemo.start"]')).toHaveValue('ハナへ');
+	expect(posts).toBe(0);
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
 	await expect(page.getByText('保存しました（3 件）')).toBeVisible();
 	expect(posts).toBe(1);
