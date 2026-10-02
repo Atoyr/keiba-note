@@ -8,6 +8,7 @@ import { createTestDb } from '$lib/server/db/test-d1';
 import {
 	ACCESS_TOKEN_TTL_SEC,
 	CODE_TTL_SEC,
+	REFRESH_RETRY_GRACE_SEC,
 	createAuthorizationCode,
 	exchangeAuthorizationCode,
 	listGrants,
@@ -181,13 +182,88 @@ describe('リフレッシュトークン', () => {
 		expect((await validateAccessToken(db, next.access_token, NOW))?.user.id).toBe('A');
 	});
 
-	it('使い回されたら連携ごと消し、新しいトークンも止める', async () => {
+	it('次のトークンを使ったあとで古いものが来たら（盗まれた）、連携ごと消して新しいトークンも止める', async () => {
 		const { client, tokens } = await tokensFor();
-		const input = { refreshToken: tokens.refresh_token, clientId: client.id };
-		const next = (await refreshTokens(db, input, NOW)) as TokenResponse;
-		expect(await refreshTokens(db, input, NOW)).toMatchObject({ error: 'invalid_grant' });
-		expect(await validateAccessToken(db, next.access_token, NOW)).toBe(null);
+		const old = { refreshToken: tokens.refresh_token, clientId: client.id };
+		const next = (await refreshTokens(db, old, NOW)) as TokenResponse;
+		// 正規のクライアントは次のトークンを受け取って使った。
+		const after = (await refreshTokens(
+			db,
+			{ refreshToken: next.refresh_token, clientId: client.id },
+			later(60)
+		)) as TokenResponse;
+		expect(await refreshTokens(db, old, later(120))).toMatchObject({
+			error: 'invalid_grant',
+			reused: true
+		});
+		expect(await validateAccessToken(db, after.access_token, later(120))).toBe(null);
 		expect(await listGrants(db, 'A')).toEqual([]);
+	});
+
+	describe('回線断での送り直し（競馬場など電波の弱い所）', () => {
+		it('応答が届かずに同じトークンで送り直したら、猶予の内なら新しい1組を出し、届かなかった1組は止める', async () => {
+			const { client, tokens } = await tokensFor();
+			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+			const lost = (await refreshTokens(db, input, NOW)) as TokenResponse; // 応答が届かなかった
+			const retried = await refreshTokens(db, input, later(REFRESH_RETRY_GRACE_SEC));
+			expect(retried).toHaveProperty('access_token');
+			const fresh = retried as TokenResponse;
+
+			const t = later(REFRESH_RETRY_GRACE_SEC);
+			expect((await validateAccessToken(db, fresh.access_token, t))?.user.id).toBe('A');
+			expect(await validateAccessToken(db, lost.access_token, t)).toBe(null);
+			expect(await listGrants(db, 'A')).toHaveLength(1);
+
+			// 送り直しのあとも、ふつうに更新を続けられる。
+			expect(
+				await refreshTokens(
+					db,
+					{ refreshToken: fresh.refresh_token, clientId: client.id },
+					later(REFRESH_RETRY_GRACE_SEC + 60)
+				)
+			).toHaveProperty('access_token');
+		});
+
+		it('何度送り直しても、そのたびに前の1組を止めて新しい1組を出す', async () => {
+			const { client, tokens } = await tokensFor();
+			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+			const issued: TokenResponse[] = [];
+			for (let i = 0; i < 3; i++) {
+				issued.push((await refreshTokens(db, input, later(i * 60))) as TokenResponse);
+			}
+			const t = later(180);
+			expect(await validateAccessToken(db, issued[0].access_token, t)).toBe(null);
+			expect(await validateAccessToken(db, issued[1].access_token, t)).toBe(null);
+			expect(await validateAccessToken(db, issued[2].access_token, t)).not.toBe(null);
+		});
+
+		it('猶予を過ぎた送り直しは、盗まれたとみなして連携ごと消す', async () => {
+			const { client, tokens } = await tokensFor();
+			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+			await refreshTokens(db, input, NOW);
+			expect(await refreshTokens(db, input, later(REFRESH_RETRY_GRACE_SEC + 1))).toMatchObject({
+				error: 'invalid_grant',
+				reused: true
+			});
+			expect(await listGrants(db, 'A')).toEqual([]);
+		});
+
+		it('届かなかったはずの1組があとで使われたら（持っていないはずのもの＝盗まれた）、連携ごと消す', async () => {
+			const { client, tokens } = await tokensFor();
+			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+			const lost = (await refreshTokens(db, input, NOW)) as TokenResponse;
+			const fresh = (await refreshTokens(db, input, later(10))) as TokenResponse;
+			expect(
+				await refreshTokens(
+					db,
+					{ refreshToken: lost.refresh_token, clientId: client.id },
+					later(REFRESH_RETRY_GRACE_SEC + 60)
+				)
+			).toMatchObject({ error: 'invalid_grant', reused: true });
+			expect(
+				await validateAccessToken(db, fresh.access_token, later(REFRESH_RETRY_GRACE_SEC + 60))
+			).toBe(null);
+		});
 	});
 
 	it('狭めることはできるが、許されていないスコープへは広げられない', async () => {

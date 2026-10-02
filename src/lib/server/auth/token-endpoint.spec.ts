@@ -127,25 +127,26 @@ describe('handleTokenRequest', () => {
 				})
 			)
 		).json()) as { refresh_token: string };
-		const refresh = form({
-			grant_type: 'refresh_token',
-			refresh_token: first.refresh_token,
-			client_id: clientId
-		});
 		const events: string[] = [];
-		const send = () =>
+		const send = (refreshToken: string) =>
 			handleTokenRequest(
 				new Request(`${ORIGIN}/oauth/token`, {
 					method: 'POST',
 					headers: { 'content-type': 'application/x-www-form-urlencoded' },
-					body: refresh
+					body: form({
+						grant_type: 'refresh_token',
+						refresh_token: refreshToken,
+						client_id: clientId
+					})
 				}),
 				db,
 				(event) => events.push(event)
 			);
-		expect((await send()).status).toBe(200);
+		const next = (await (await send(first.refresh_token)).json()) as { refresh_token: string };
+		// 次のトークンを使ったあとで古いトークンが来る＝送り直しではなく使い回し。
+		expect((await send(next.refresh_token)).status).toBe(200);
 		expect(events).toEqual([]);
-		const reused = await send();
+		const reused = await send(first.refresh_token);
 		expect(await reused.json()).toEqual({
 			error: 'invalid_grant',
 			error_description: expect.any(String)

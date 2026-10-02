@@ -527,6 +527,7 @@ export const oauthCode = sqliteTable(
  *
  * リフレッシュトークンは使うたびに作り直す（OAuth 2.1 の公開クライアントの決まり）。使ったものは
  * 消さずに `used_at` を付けて残し、**同じものがもう一度来たら盗まれたとみなして連携ごと消す。**
+ * ただし応答が届かずに送り直されたもの（30分の内で、次のトークンがまだ使われていない）は受ける（auth/oauth.ts）。
  */
 export const oauthToken = sqliteTable(
 	'oauth_token',
@@ -540,9 +541,18 @@ export const oauthToken = sqliteTable(
 		scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
 		expiresAt: integer('expires_at').notNull(),
 		usedAt: integer('used_at'),
+		/**
+		 * このトークンを出したリフレッシュトークンの id（ハッシュ）。認可コードから出したものは NULL。
+		 * 応答が届かずに同じリフレッシュトークンで送り直されたとき、届かなかった1組を見つけて止めるのに使う。
+		 */
+		parentId: text('parent_id'),
 		createdAt: createdAt()
 	},
-	(t) => [index('oauth_token_grant').on(t.grantId), index('oauth_token_expires').on(t.expiresAt)]
+	(t) => [
+		index('oauth_token_grant').on(t.grantId),
+		index('oauth_token_expires').on(t.expiresAt),
+		index('oauth_token_parent').on(t.parentId)
+	]
 );
 
 export const userRelations = relations(user, ({ many }) => ({

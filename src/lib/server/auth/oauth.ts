@@ -26,6 +26,11 @@ import { hashSessionToken, type SessionUser } from './session';
 export const ACCESS_TOKEN_TTL_SEC = 60 * 60;
 export const REFRESH_TOKEN_TTL_SEC = 30 * 24 * 60 * 60;
 export const CODE_TTL_SEC = 5 * 60;
+/**
+ * リフレッシュの送り直しを受ける猶予。競馬場のように電波の弱い所では、要求は届いたのに応答が届かず、
+ * クライアントが同じリフレッシュトークンで送り直すことがある。電波が戻るまでを見込んで30分。
+ */
+export const REFRESH_RETRY_GRACE_SEC = 30 * 60;
 
 const sec = (now: Date) => Math.floor(now.getTime() / 1000);
 
@@ -142,7 +147,9 @@ async function issueTokens(
 	db: Db,
 	grantId: string,
 	scopes: readonly OAuthScope[],
-	now: Date
+	now: Date,
+	/** どのリフレッシュトークンから出したか（送り直しの判断に使う）。認可コードから出したときは null。 */
+	parentId: string | null = null
 ): Promise<TokenResponse> {
 	const access = generateSecret('uma_at_');
 	const refresh = generateSecret('uma_rt_');
@@ -155,14 +162,16 @@ async function issueTokens(
 				grantId,
 				kind: 'access',
 				scopes: [...scopes],
-				expiresAt: t + ACCESS_TOKEN_TTL_SEC
+				expiresAt: t + ACCESS_TOKEN_TTL_SEC,
+				parentId
 			},
 			{
 				id: hashSessionToken(refresh),
 				grantId,
 				kind: 'refresh',
 				scopes: [...scopes],
-				expiresAt: t + REFRESH_TOKEN_TTL_SEC
+				expiresAt: t + REFRESH_TOKEN_TTL_SEC,
+				parentId
 			}
 		]),
 		db.update(oauthGrant).set({ lastUsedAt: t }).where(eq(oauthGrant.id, grantId))
@@ -221,6 +230,7 @@ async function activeGrant(db: Db, grantId: string) {
 
 /**
  * リフレッシュトークン → 新しい1組。古いリフレッシュトークンは使用済みにする。
+ * 応答が届かずに同じトークンで送り直されたときは、猶予の内なら受ける（`acceptRetry`）。
  *
  * 使用済みの印は `used_at IS NULL` を条件にした UPDATE で付ける。同じトークンで2つの要求が
  * 同時に来ても、印を付けられるのは片方だけになる。**印を付けられなかった＝使い回し**なので、
@@ -250,12 +260,13 @@ export async function refreshTokens(
 	if (!row || row.clientId !== input.clientId)
 		return invalidGrant('リフレッシュトークンが無効です');
 
+	const t = sec(now);
 	const claimed = await db
 		.update(oauthToken)
-		.set({ usedAt: sec(now) })
+		.set({ usedAt: t })
 		.where(and(eq(oauthToken.id, id), isNull(oauthToken.usedAt)))
 		.returning({ id: oauthToken.id });
-	if (claimed.length === 0) {
+	if (claimed.length === 0 && !(await acceptRetry(db, id, row.usedAt, t))) {
 		await db.delete(oauthGrant).where(eq(oauthGrant.id, row.grantId));
 		return {
 			...invalidGrant('使用済みのリフレッシュトークンです。連携を解除しました'),
@@ -275,7 +286,44 @@ export async function refreshTokens(
 		// 外せないスコープは狭めても残す（空の scope で何も呼べないトークンを出さない）。
 		scopes = sortScopes([...REQUIRED_SCOPES, ...asked]);
 	}
-	return issueTokens(db, row.grantId, scopes, now);
+	return issueTokens(db, row.grantId, scopes, now, id);
+}
+
+/**
+ * 使用済みのリフレッシュトークンが来たとき、**応答が届かなかった送り直し**なら受ける。
+ *
+ * 送り直しとみなすのは、前に使われてから猶予の内で、そのとき出した次のリフレッシュトークンが
+ * まだ使われていないとき。応答が届かなかったなら、クライアントはその1組を持っていないので使えない。
+ * 受けるときは、その届かなかった1組を止める（アクセストークンは消し、リフレッシュトークンには
+ * 使用済みの印を付ける。あとでそれが来たら、持っていないはずのものが使われた＝盗まれたと分かる）。
+ *
+ * 次のリフレッシュトークンが既に使われていれば、正規のクライアントは受け取っていた。
+ * 古いトークンが来るのは盗まれたときなので受けない（呼ぶ側が連携ごと消す）。
+ * 印は `used_at IS NULL` を条件に付けるので、同時に来ても受けられるのは1つだけ。
+ */
+async function acceptRetry(
+	db: Db,
+	refreshId: string,
+	usedAt: number | null,
+	t: number
+): Promise<boolean> {
+	if (usedAt === null || t - usedAt > REFRESH_RETRY_GRACE_SEC) return false;
+	const superseded = await db
+		.update(oauthToken)
+		.set({ usedAt: t })
+		.where(
+			and(
+				eq(oauthToken.parentId, refreshId),
+				eq(oauthToken.kind, 'refresh'),
+				isNull(oauthToken.usedAt)
+			)
+		)
+		.returning({ id: oauthToken.id });
+	if (superseded.length === 0) return false;
+	await db
+		.delete(oauthToken)
+		.where(and(eq(oauthToken.parentId, refreshId), eq(oauthToken.kind, 'access')));
+	return true;
 }
 
 export type AccessTokenAuth = {

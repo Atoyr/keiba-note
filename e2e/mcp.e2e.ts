@@ -483,23 +483,51 @@ test.describe('OAuth の全行程', () => {
 		expect(res?.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
 	});
 
-	test('リフレッシュトークンは1回きり。使い回すと連携ごと止まる', async ({ page, request }) => {
+	test('回線断で応答が届かず同じリフレッシュトークンを送り直しても、連携は切れずに使い続けられる', async ({
+		page,
+		request
+	}) => {
+		// 競馬場のように電波の弱い所では、要求は届いたのに応答が届かないことがある。
 		const { clientId, tokens } = await connect(page, request);
-		const first = await exchange(request, {
+		const refresh = {
 			grant_type: 'refresh_token',
 			refresh_token: tokens.refresh_token,
 			client_id: clientId
-		});
-		expect(first.status).toBe(200);
-		expect((await mcp(request, first.json.access_token, rpc('tools/list'))).status()).toBe(200);
+		};
+		const lost = await exchange(request, refresh); // クライアントには届かなかった応答
+		expect(lost.status).toBe(200);
+		const retried = await exchange(request, refresh);
+		expect(retried.status).toBe(200);
 
-		const reused = await exchange(request, {
-			grant_type: 'refresh_token',
-			refresh_token: tokens.refresh_token,
-			client_id: clientId
+		expect((await mcp(request, retried.json.access_token, rpc('tools/list'))).status()).toBe(200);
+		// 届かなかった1組は止まっている（持っていないはずのものが使われないように）。
+		expect((await mcp(request, lost.json.access_token, rpc('tools/list'))).status()).toBe(401);
+		// 送り直しのあとも更新を続けられる。
+		const next = await exchange(request, {
+			...refresh,
+			refresh_token: retried.json.refresh_token
 		});
+		expect(next.status).toBe(200);
+	});
+
+	test('次のトークンを使ったあとで古いリフレッシュトークンが来たら（盗まれた）、連携ごと止まる', async ({
+		page,
+		request
+	}) => {
+		const { clientId, tokens } = await connect(page, request);
+		const refresh = { grant_type: 'refresh_token', client_id: clientId };
+		const first = await exchange(request, { ...refresh, refresh_token: tokens.refresh_token });
+		// 正規のクライアントは次のトークンを受け取り、使った。
+		const second = await exchange(request, {
+			...refresh,
+			refresh_token: first.json.refresh_token
+		});
+		expect(second.status).toBe(200);
+		expect((await mcp(request, second.json.access_token, rpc('tools/list'))).status()).toBe(200);
+
+		const reused = await exchange(request, { ...refresh, refresh_token: tokens.refresh_token });
 		expect(reused.json.error).toBe('invalid_grant');
-		expect((await mcp(request, first.json.access_token, rpc('tools/list'))).status()).toBe(401);
+		expect((await mcp(request, second.json.access_token, rpc('tools/list'))).status()).toBe(401);
 	});
 
 	test('「AIとの連携」で解除すると、そのトークンはすぐ通らない', async ({ page, request }) => {
