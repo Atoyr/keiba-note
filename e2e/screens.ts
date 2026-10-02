@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
 import { failNextAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
+import { preparePredictionDraft } from './webmcp';
 import {
 	ACTUAL_FLOW_18_RACE_ID,
 	ACTUAL_FLOW_RACE_ID,
@@ -52,6 +53,12 @@ export type Screen = {
 const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み込む' });
 
 export const SCREENS: Screen[] = [
+	{
+		name: 'race-preview-ai-draft',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: preparePredictionDraft
+	},
 	{
 		// 紹介ページのキャプチャは loading="lazy" なので、下まで送って全部の読み込みを待つ
 		// （待たないと、画面の外にあった画像が空の枠のまま写る）。

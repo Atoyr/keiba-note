@@ -164,6 +164,11 @@ flowchart TB
 
 ### 各層の責務
 
+予想画面の WebMCP は UI 層の追加の入口で、`lib/webmcp/` から検証層と純粋なフォーム変換を使う。
+読みは既存 `load` の本人向けデータ、書きは既存フォームの未保存入力だけに閉じる。
+サーバー型の import・追加クエリ・保存 API は持たない。最終保存経路は既存 form action のまま
+（→ [frontend.md 第8章](./frontend.md#8-webmcp-の予想下書き)、[api.md 第4章](./api.md#4-action-を書くときの約束)）。
+
 | 層 | 置き場所 | やること | **やらないこと** |
 | --- | --- | --- | --- |
 | ① UI | `+page.svelte`, `lib/components/` | 表示、フォームの組み立て | DB アクセス、認可判断 |

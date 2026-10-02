@@ -77,7 +77,7 @@ export const sortSpots = (spots: FlowSpot[]): FlowSpot[] =>
  *
  * 画面が作る値なので、形が違うのは手で書き換えたときだけ。ここで弾いて 400 にする。
  */
-const spotSchema = v.object({
+export const spotSchema = v.object({
 	entryId: v.pipe(v.string(), v.minLength(1)),
 	x: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(FLOW_COLS - 1)),
 	y: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(FLOW_LANES.length - 1))

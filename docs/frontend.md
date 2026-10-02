@@ -117,3 +117,30 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   ヘッダの警告帯からユーザーを切り替えられる（`/dev/mock-user`。`dev` のときだけ存在する）
 - 開発サーバーは手元の D1（`.wrangler/state`）を見る。PR に貼るキャプチャはこちらでは撮らない
   （→ [testing.md 第5章](./testing.md)）
+
+## 8. WebMCP の予想下書き
+
+`/races/[id]/preview` では、対応ブラウザの `document.modelContext` にだけ2つの tool を登録する
+（[現行 WebMCP draft](https://webmachinelearning.github.io/webmcp/)、2026-10-02 確認）。
+非対応や登録拒否でも通常フォームをそのまま使える。ブラウザの型と登録処理は `src/lib/webmcp/` に閉じる。
+
+- `get_prediction_context`: 本人向けの既存 `load` のレース・オッズ・過去メモ・過去走を整形する。
+  `myCurrentPrediction` は `DraftKeeper.snapshot()` の現在の入力を優先する。
+  過去メモは指示でなく信頼できないデータとして扱うよう description と `untrustedContentHint` で伝える。
+- `apply_prediction_draft`: `predictionDraftSchema` で受信値を検証し、予想と展開の全 `entryId` が
+  現在の `data.rows` にあることを確かめてから `predictionDraftToFields()` → `DraftKeeper.apply()` に渡す。
+  どれかが不正なら全体を拒否する。submit・サーバー呼び出しはしない。
+
+`DraftKeeper.apply()` は復元と同じ内部処理を使う。変更した欄に泡立たない `change` を送り、
+`RaceFlowEditor` の直接 listener が hidden とペースの値から盤面を更新する。
+`tick()` 後の正規化されたフォームを読んで未保存件数と localStorage 下書きを更新する。
+離脱警告と「まとめて保存」は人間入力と同じもの。成功時は内容確認を促す toast を出す。
+
+ページのブラウザ effect はレース・ユーザー・出走馬の変更で旧登録を `AbortController.abort()` して
+登録し直す。登録失敗時にも片方だけ残さない。旧 callback は abort 後に実行を拒否する。
+同じルートの別レースへの SPA 遷移ではフォームをレース id で key にし、DraftKeeper の保存済み基準と
+盤面を新レースの値で作り直す。
+
+JSON Schema は [Valibot の公式変換](https://valibot.dev/guides/json-schema/) で生成する。
+JSON Schema で表せない重複チェックは生成時だけ除外し、受信時には Valibot で必ず検証する。
+実験的 API の実装差があるため、CI は登録と abort の境界を模した環境で検証し、実験フラグを必須にしない。

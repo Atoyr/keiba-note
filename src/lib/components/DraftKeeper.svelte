@@ -202,6 +202,15 @@
 		timer = setTimeout(() => writeDraft(diff), 400);
 	}
 
+	/** 外部入力も復元と同じ同期を通し、保存せず未保存の下書きにする。 */
+	export async function apply(values: FieldValues): Promise<void> {
+		if (!form) return;
+		applyFields(values);
+		// hidden の change で更新された盤面が正規化した値を読み直す。
+		await tick();
+		onInput();
+	}
+
 	function restore() {
 		if (!form || !restorable) return;
 		applyFields(restorable.fields);

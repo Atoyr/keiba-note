@@ -139,6 +139,39 @@ Actions が `wrangler d1 execute` で `race_odds` に書く（→ [architecture.
 
 ## 4. action を書くときの約束
 
+### 予想画面の WebMCP（HTTP ではない口）
+
+対応ブラウザで予想画面を表示している間だけ有効。型とライフサイクルは
+[frontend.md 第8章](./frontend.md#8-webmcp-の予想下書き)。専用 REST API・MCP Server・LLM 呼び出しは作らない。
+
+| tool | 入力 | 結果 |
+| --- | --- | --- |
+| `get_prediction_context` | 空の object | レースの id・名称・日付・コース・馬場・距離・馬場状態・天候、`oddsAsOf`（Unix 秒か null）、同条件の本人メモ、`entryId` 付き出走馬・オッズ・現在の予想・本人の履歴・過去走。read-only / untrusted content |
+| `apply_prediction_draft` | 下記の `PredictionDraft` | `{ status: 'applied', saved: false }`。フォームの部分更新のみ。成功 toast と既存の未保存管理に反映 |
+
+`PredictionDraft` の正は `src/lib/schemas/prediction-draft.ts`。
+
+```ts
+type PredictionDraft = {
+  race?: { body?: string; pace?: Pace | null; flow?: RaceFlow | null };
+  entries: { entryId: string; body?: string; tags?: NoteTag[]; mark?: Mark | null }[];
+};
+```
+
+- プロパティ未指定は維持。本文 `""`、印 `null`、札 `[]`、ペース `null` は明示クリア。
+- `flow` 指定は既存 `RaceFlow` の全体（pace と start / corner4 / finish の spots / memo）。
+  `flow: null` はペースと3局面をクリアする。flow 未指定なら展開に触らない。
+  `race.pace` と `race.flow.pace` の同時指定は同じ値である必要がある。
+- 本文は既存の `bodySchema`（最大10000文字）、印・札・ペースは既存定数、座標は既存 `spotSchema`、
+  展開メモは `FLOW_MEMO_MAX` で検証する。未知の印・札・構造、重複出走馬、同じ局面の馬・マスの重複は拒否する。
+- 失敗は `{ status: 'rejected', reason, ... }`。`invalid_input` は message、`unknown_entry` は entryId を返す。
+  他の reason は `inactive_page`（旧ページ・中断）、`form_unavailable`、`conflicting_pace`、
+  `flow_unavailable`（出走馬0頭で展開欄がない）。失敗時は1欄も適用しない。
+- `apply_prediction_draft` による D1 保存はない。最終保存は既存 POST `default` と
+  `savePreviewNotes()` のみ。保存時の DB 正による出走馬再検証を維持する。
+
+### 共通の約束
+
 - **入力は Valibot で型を付けてから使う。** スキーマは `src/lib/schemas/`。失敗は
   `fail(400, { message })` で返す。`message` は画面にそのまま出る日本語にする
 - **行の構成は DB を正とする。** `body.<entryId>` の `entryId` はフォームから拾わず、
