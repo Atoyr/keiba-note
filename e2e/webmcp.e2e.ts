@@ -216,7 +216,12 @@ test('予想から使い方を開くとツールを解除し、戻ると登録�
 	await login(page);
 	await mockPredictionTools(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
-	await page.getByRole('link', { name: 'WebMCPの使い方' }).click();
+	const helpLink = page.getByRole('link', { name: 'WebMCPの使い方' });
+	const target = await helpLink.boundingBox();
+	expect(target).not.toBeNull();
+	expect(target!.height).toBeGreaterThanOrEqual(24);
+	expect(target!.width).toBeGreaterThanOrEqual(24);
+	await helpLink.click();
 	await expect(page).toHaveURL('/help/webmcp');
 	await expect(page.getByRole('heading', { name: 'WebMCPの使い方', exact: true })).toBeVisible();
 	await expect(

@@ -153,7 +153,7 @@
 	<p class="mt-3 text-sm">
 		<a
 			href={resolve('/help/webmcp')}
-			class="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+			class="inline-flex min-h-6 items-center text-muted-foreground underline underline-offset-4 hover:text-foreground"
 			>WebMCPの使い方</a
 		>
 	</p>
