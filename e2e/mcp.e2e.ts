@@ -414,6 +414,29 @@ test.describe('OAuth の全行程', () => {
 		});
 	}
 
+	test('未ログインで開いても、ログインのあと同じ要求のまま同意画面に戻る', async ({
+		page,
+		request
+	}) => {
+		const clientId = await register(request, 'E2E 未ログイン');
+		const { challenge } = pkce();
+		const path = authorizeUrl(clientId, challenge);
+		await page.goto(path);
+		// hooks がクエリごと redirect に入れる。PKCE と state が欠けないこと。
+		await expect(page).toHaveURL(`/login?redirect=${encodeURIComponent(path)}`);
+		const back = new URL(page.url()).searchParams.get('redirect')!;
+		expect(back).toBe(path);
+
+		// Google でのログインの代わりに seed のセッションを載せ、ログイン後の行き先へ進む。
+		await login(page);
+		const callback = captureCallback(page);
+		await gotoHydrated(page, back);
+		await page.getByRole('button', { name: '許可する' }).click();
+		const url = await callback;
+		expect(url.searchParams.get('code')).toBeTruthy();
+		expect(url.searchParams.get('state')).toBe('e2e-state');
+	});
+
 	test('登録と違う戻り先には飛ばさず、この画面で止める', async ({ page, request }) => {
 		const clientId = await register(request, 'E2E 戻り先');
 		await login(page);

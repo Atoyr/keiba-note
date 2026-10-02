@@ -23,10 +23,10 @@
 	>
 		AIとの連携
 	</h1>
+	<!-- 文の途中で改行すると、和文の間に空白が入る。文ごとに span に分けて折り返させる。 -->
 	<p class="mt-1 text-sm text-muted-foreground">
-		Claude や ChatGPT
-		から、レースのデータとあなたのメモを読めるようにします（MCP）。読むことだけができ、
-		書き込み・共有・削除はできません。
+		<span>Claude や ChatGPT から、レースのデータとあなたのメモを読めるようにします（MCP）。</span
+		><span>読むことだけができ、書き込み・共有・削除はできません。</span>
 	</p>
 
 	<section class="mt-6 rounded-lg border p-4" aria-labelledby="mcp-url-heading">

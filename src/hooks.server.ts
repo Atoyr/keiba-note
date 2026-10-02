@@ -108,6 +108,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// 通らなければログインへ飛ばさず 401 と、認可の案内の場所を返す（MCP の認可の仕様）。
 	if (event.url.pathname === MCP_PATH) {
 		const bearer = /^Bearer[ ]+(\S+)$/i.exec(event.request.headers.get('authorization') ?? '')?.[1];
+		// DB に届かないのはトークンのせいではない。401 にするとクライアントがトークンを捨ててしまう。
+		if (bearer && !db) {
+			return json(
+				{ error: 'temporarily_unavailable' },
+				{ status: 503, headers: { 'Cache-Control': 'no-store' } }
+			);
+		}
 		const auth = bearer && db ? await validateAccessToken(db, bearer) : null;
 		if (!auth) {
 			return json(
