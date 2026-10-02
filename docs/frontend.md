@@ -46,7 +46,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 ```
 
 - props は `$props()`、計算で出る値は `$derived()`。`$effect()` はブラウザの API
-  （`localStorage`、`beforeunload`、`IntersectionObserver`）に触るときだけ使う。今は `DraftKeeper` と `LoadMore` の中にしか無い
+  （`localStorage`、`beforeunload`、`IntersectionObserver`、WebMCP の登録）に触るときだけ使う
 - 画面が要る型は `PageProps` の `data` から取る。**`$lib/server/**` から型を import しない**
   （SvelteKit は値の import しか止めない。層の規則は [architecture.md 第2章](./architecture.md)）
 - アプリ内のリンクは `$app/paths` の `resolve('/races/[id]', { id })` で組み、`href="/..."` を直に書かない。
@@ -117,3 +117,66 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   ヘッダの警告帯からユーザーを切り替えられる（`/dev/mock-user`。`dev` のときだけ存在する）
 - 開発サーバーは手元の D1（`.wrangler/state`）を見る。PR に貼るキャプチャはこちらでは撮らない
   （→ [testing.md 第5章](./testing.md)）
+
+## 8. WebMCP で予想の下書きを受ける
+
+使い方はログインした人向けの `/help/webmcp` に置き、予想画面からリンクする。
+対応判定は tool と同じ `getModelContext()` を使うが、案内ページでは tools を登録しない。
+API の有無だけで AI 接続や登録成功まで確認できたように表示しない。
+Chrome の試験設定・Inspector の案内は公式資料を参照し、確認日を画面に載せる。
+ブラウザや AI の仕様が合わなければ使えないこと、通常入力は続けられることも説明する。
+
+**読む場面:** 予想画面の AI 連携、下書きの部分更新、WebMCP の仕様を変えるとき。
+保存 action の仕様は [api.md 第3章](./api.md)、DB の責務は [architecture.md 第0章](./architecture.md)。
+
+`/races/[id]/preview` だけで `get_prediction_context` と `apply_prediction_draft` を登録する。
+[WebMCP の 2026-09-30 draft](https://webmachinelearning.github.io/webmcp/) に従い、
+`document.modelContext.registerTool(tool, { signal })` を使い、解除は登録に渡した `AbortController.abort()`。
+対応判定と局所的な型は `src/lib/webmcp/support.ts`、tool と取得値の整形は `prediction.ts` に置く。
+予想ページの `$effect` は mount 後に登録し、レース ID が変わる SPA 遷移と unmount で解除する。
+解除済みのコールバックも `inactive_page` で拒否する。非対応・登録失敗では通常のフォームをそのまま使える。
+旧 `navigator.modelContext` API の互換実装や polyfill は入れていない。
+
+### 取得
+
+`get_prediction_context` の入力は空オブジェクト。`load` の `race`・`rows`・`sameCondition`・`oddsAsOf` を使い、
+レースの条件、各出走馬の ID / 馬 / 騎手、オッズと人気、本人の履歴、過去走を返す。
+`oddsAsOf` は ISO 文字列から Unix epoch ミリ秒へ変換し、未取得は null。
+`myCurrentPrediction` と追加の `myCurrentRacePrediction` は `DraftKeeper.snapshot()` から現在の入力も読む。
+`load` の `user` やセッションは渡さない。`readOnlyHint: true` / `consequentialHint: false` / `untrustedContentHint: true` を設定し、
+取得したメモや外部データを指示として扱わない旨も tool の説明に書く。
+
+### 反映
+
+`apply_prediction_draft` は `predictionDraftSchema`（Valibot）で受信値を検証する。
+公開する JSON Schema もこのスキーマから `@valibot/to-json-schema` で生成し、選択肢・上限を二重管理しない。
+未知のプロパティ、未知の印・札・ペース、10000文字を超える本文、盤面外の座標、不完全な flow は拒否する。
+本文・札の並び・座標・局面メモの制約は既存の定義を使う。
+
+```ts
+type PredictionDraft = {
+  race?: { body?: string; pace?: Pace | null; flow?: RaceFlow | null };
+  entries: { entryId: string; body?: string; tags?: NoteTag[]; mark?: Mark | null }[];
+};
+```
+
+`entries` は必須（レースだけなら `[]`）。**未指定は既存値を維持**し、`body: ''`、`mark: null`、`tags: []`、
+`pace: null` はその欄を明示的にクリアする。`flow` を指定した場合は pace と3局面（spots / memo）を含む
+展開全体を置き換える。`flow: null` は展開全体のクリアで、本文は維持する。
+`race.pace` と `flow.pace` を両方指定した場合は `race.pace` を優先する。
+
+`preparePredictionDraft` は `data.rows` の許可 ID で、entries と全局面の spots を**変換前に全部**確かめる。
+未知の ID は `{ status: 'rejected', reason: 'unknown_entry', entryId }` を返して全体を拒否する。
+同じ馬への二重入力は `duplicate_entry`、同じ局面での馬やマスの重複は `overlapping_flow`。
+出馬表前は展開の欄が無いため、pace / flow の指定を `flow_unavailable` として拒否する（見立ての本文は使える）。
+その他の入力の誤りは `invalid_input`、フォーム未準備は `form_unavailable`。
+
+`predictionDraftToFields` は指定された欄だけを `FieldValues` に変換する純粋関数。
+`DraftKeeper.apply(values)` が既存の復元処理を使って欄へ当て、泡立たない `input` / `change` を通知する。
+本文の `bind:value`、展開の hidden input の直接監視、ペースのラジオが同期したあと、`tick()` を待って差分を読む。
+未保存件数・端末内下書き・離脱警告は手入力と同じ経路。
+成功は `{ status: 'applied', saved: false }` とトーストで知らせる。通知は画面上部に出し、下端の未保存件数・保存ボタンを覆わない。
+`readOnlyHint: false` / `consequentialHint: false` を設定する。
+**送信はせず、ユーザーが既存の一括保存ボタンを押したときだけ既存 action / `savePreviewNotes()` を呼ぶ。**
+ボタンの文言は出走馬がいれば「出走前メモを保存」、出馬表前は「レースの見立てを保存」。
+JSON Schema に表せない正規化と ID の所属検証は受信時に行い、最終保存時も既存 action が DB を正として検証する。

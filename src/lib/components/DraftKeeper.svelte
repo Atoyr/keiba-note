@@ -108,6 +108,15 @@
 		return form ? readValues(form) : null;
 	}
 
+	/** 外から受けた部分下書きも、復元と同じ経路で未保存に数える。submit はしない。 */
+	export async function apply(values: FieldValues): Promise<void> {
+		if (!form) return;
+		applyFields(values);
+		// 展開の盤面や bind:value が欄へ書き戻すのを待ってから、差分を読む。
+		await tick();
+		onInput();
+	}
+
 	/**
 	 * 保存が通って、`update()` で画面を描き直したあとに呼ぶ。送った値（`sent`）を新しい
 	 * 「保存済み」にし、下書きを捨てる。
@@ -161,7 +170,12 @@
 	 */
 	function applyFields(values: FieldValues) {
 		if (!form) return;
-		const notify = (el: EventTarget) => el.dispatchEvent(new Event('change'));
+		const notify = (el: EventTarget) => {
+			// Textarea / Input の bind:value は input、展開の盤面は change を聞く。
+			// どちらも泡立てず、差分の再計算は呼び出し側で一度行う。
+			el.dispatchEvent(new Event('input'));
+			el.dispatchEvent(new Event('change'));
+		};
 		const check = (node: HTMLInputElement, on: boolean) => {
 			if (node.checked === on) return;
 			node.checked = on;

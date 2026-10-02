@@ -56,6 +56,7 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	// `/` は紹介ページのために完全一致で公開している。その下まで開いていないこと。
 	{ path: '/races', secret: null },
 	{ path: '/this-week', secret: null },
+	{ path: '/help/webmcp', secret: 'WebMCPの使い方' },
 	{ path: '/settings/shares', secret: null },
 	{ path: '/settings/profile', secret: null },
 	{ path: `/races/${PREVIEW_RACE_ID}/summary`, secret: '今回は内枠が向きそう。' },

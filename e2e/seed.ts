@@ -137,6 +137,13 @@ export const THIS_WEEK_RACES = {
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 
+/** WebMCP の保存 E2E 専用。他の予想テストが保存するレースと分ける。 */
+export const WEBMCP_RACE_ID = '01JE2ERACEWEBMCP0000000000';
+export const WEBMCP_ENTRY_IDS = [
+	'01JE2EWEBMCPENTRY100000000',
+	'01JE2EWEBMCPENTRY200000000'
+] as const;
+
 /** 枠の色を見るレース。出走2頭の枠は1枠（白）と8枠（桃）。 */
 export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
 

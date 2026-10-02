@@ -39,6 +39,7 @@
 	import { flowLeadsRight } from '$lib/utils/race-flow';
 	import { isAdmin } from '$lib/utils/role';
 	import { cn } from '$lib/utils';
+	import { registerPredictionTools } from '$lib/webmcp/prediction';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -99,6 +100,24 @@
 	onMount(() => {
 		hydrated = true;
 	});
+
+	// SvelteKit は別レースでもページを再利用する。race.id ごとに古い登録を abort する。
+	$effect(() => {
+		if (!hydrated || !keeper || !formEl) return;
+		const editor = keeper;
+		const raceId = data.race.id;
+		return registerPredictionTools({
+			getData: () => data,
+			getFields: () => editor.snapshot(),
+			applyFields: (values) => editor.apply(values),
+			isCurrent: () => data.race.id === raceId,
+			onApplied: () =>
+				// 反映直後も、下端の未保存件数と保存ボタンを読めるよう上部へ出す。
+				toast.success('AIの予想を下書きに反映しました。保存前に内容を確認してください', {
+					position: 'top-center'
+				})
+		});
+	});
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
@@ -131,6 +150,13 @@
 			</Button>
 		{/if}
 	</div>
+	<p class="mt-3 text-sm">
+		<a
+			href={resolve('/help/webmcp')}
+			class="inline-flex min-h-6 items-center text-muted-foreground underline underline-offset-4 hover:text-foreground"
+			>WebMCPの使い方</a
+		>
+	</p>
 
 	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
 	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。

@@ -54,6 +54,7 @@
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
 		"@types/node": "^22",
+		"@valibot/to-json-schema": "^1.8.0",
 		"@vitest/browser-playwright": "^4.1.8",
 		"bits-ui": "^2.19.2",
 		"cn": "^0.3.0",

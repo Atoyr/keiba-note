@@ -203,6 +203,11 @@ main から消したあとも見える。
 
 ## 7. 限界
 
+- **WebMCP は実験フラグを CI の前提にしない。** `e2e/webmcp.ts` が `document.modelContext.registerTool`
+  と登録用 AbortSignal の境界をモックする。実際の予想画面で、取得・部分反映・未保存・既存 action による保存・
+  SPA 遷移での解除を `webmcp.e2e.ts` が確かめる。ブラウザと AI Browser Agent 間の実接続はこの検証に含まない。
+  `DraftKeeper.svelte.spec.ts` は実 Chromium で公開 apply と入力部品・展開図の同期、下書き、離脱警告を確かめる。
+
 - **admin の画面は `/settings/admin` だけがカタログにある。** seed に admin のユーザーとセッション
   （`ADMIN_SESSION_TOKEN`）があり、`Screen` の `as: 'admin'` で開く。`/races/new`・`/races/[id]/entries` も
   同じように1行足せば撮れる

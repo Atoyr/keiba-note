@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
 import { failNextAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
+import { applyPrediction, mockPredictionTools } from './webmcp';
 import {
 	ACTUAL_FLOW_18_RACE_ID,
 	ACTUAL_FLOW_RACE_ID,
@@ -52,6 +53,20 @@ export type Screen = {
 const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み込む' });
 
 export const SCREENS: Screen[] = [
+	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
+	{
+		name: 'webmcp-guide-supported',
+		path: '/help/webmcp',
+		auth: true,
+		prepare: async (page) => {
+			await mockPredictionTools(page);
+			await page.reload();
+			await waitForHydration(page);
+			await expect(
+				page.getByText('このブラウザには、uma-memoが使うWebMCPの対応APIがあります。')
+			).toBeVisible();
+		}
+	},
 	{
 		// 紹介ページのキャプチャは loading="lazy" なので、下まで送って全部の読み込みを待つ
 		// （待たないと、画面の外にあった画像が空の枠のまま写る）。
@@ -298,6 +313,33 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await page.getByText('書き直す', { exact: true }).click();
+		}
+	},
+	{
+		name: 'race-preview-ai-draft',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await mockPredictionTools(page);
+			await page.reload();
+			await waitForHydration(page);
+			await expect.poll(() => page.evaluate(() => window.__predictionTools.size)).toBe(2);
+			const entryId = await page.locator('textarea[name^="body."]').getAttribute('name');
+			await page.getByText('書き直す', { exact: true }).click();
+			await applyPrediction(page, {
+				race: { body: '前半から流れそう。差し中心。', pace: 'ハイ' },
+				entries: [
+					{
+						entryId: entryId!.slice(5),
+						mark: '◎',
+						body: '前走不利。展開が向きそう。',
+						tags: ['不利']
+					}
+				]
+			});
+			await expect(
+				page.locator('[data-sonner-toaster][data-y-position="top"] [data-sonner-toast]')
+			).toBeVisible();
 		}
 	},
 	{
