@@ -201,6 +201,24 @@ describe('プロトコル', () => {
 		).toEqual({ kind: 'accepted' });
 	});
 
+	it('id を持つのに形が崩れた要求は、通知として黙って捨てずに -32600 で返す', async () => {
+		for (const msg of [
+			{ jsonrpc: '2.0', id: 7, method: 42 },
+			{ jsonrpc: '2.0', id: null, method: 'tools/list' },
+			{ jsonrpc: '2.0', id: {}, method: 'ping' }
+		]) {
+			const reply = await handleMcpMessage(msg, ctx());
+			expect(reply).toMatchObject({ kind: 'json', status: 400 });
+			expect(body(reply).error?.code).toBe(-32600);
+		}
+	});
+
+	it('クライアントからの応答（result を持つ）には返事をしない', async () => {
+		expect(await handleMcpMessage({ jsonrpc: '2.0', id: 1, result: {} }, ctx())).toEqual({
+			kind: 'accepted'
+		});
+	});
+
 	it('バッチと壊れた要求は 400', async () => {
 		expect(await handleMcpMessage([], ctx())).toMatchObject({ status: 400 });
 		expect(await handleMcpMessage({ hello: 1 }, ctx())).toMatchObject({ status: 400 });

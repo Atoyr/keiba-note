@@ -37,6 +37,23 @@ export function requestedScopes(scope: string | null | undefined): OAuthScope[] 
 	return sortScopes([...REQUIRED_SCOPES, ...(known.length > 0 ? known : OAUTH_SCOPES)]);
 }
 
+/**
+ * 同意のときに許すスコープ。求められたもののうち本人がチェックを残したものと、外せないもの。
+ * **求められていないスコープは、チェックの値に足して送られても許さない。**
+ */
+export function grantedScopes(
+	requested: readonly OAuthScope[],
+	checked: readonly string[]
+): OAuthScope[] {
+	return sortScopes([...REQUIRED_SCOPES, ...requested.filter((s) => checked.includes(s))]);
+}
+
+/** 同意のフォームの、本人の操作の部分。押されたボタンとチェックを残したスコープ。 */
+export const consentSchema = v.object({
+	decision: v.picklist(['allow', 'deny']),
+	scope_grant: v.array(v.pipe(v.string(), v.maxLength(100)))
+});
+
 /** 文字列（DB の JSON から読んだものなど）のうち、今あるスコープだけを残す。 */
 export function knownScopes(scopes: readonly string[]): OAuthScope[] {
 	return sortScopes(scopes.filter(isScope));

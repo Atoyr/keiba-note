@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { isOwnResource, tokenRequestSchema } from '$lib/schemas/oauth';
 import type { Db } from '$lib/server/db';
+import { readLimitedText } from './limited-body';
 import { exchangeAuthorizationCode, refreshTokens, type TokenError } from './oauth';
 
 /**
@@ -13,7 +14,12 @@ import { exchangeAuthorizationCode, refreshTokens, type TokenError } from './oau
  *
  * SvelteKit を import しない（Request と Response だけ）。
  */
-export async function handleTokenRequest(request: Request, db: Db | null): Promise<Response> {
+export async function handleTokenRequest(
+	request: Request,
+	db: Db | null,
+	/** 監視に残す出来事（リフレッシュトークンの使い回し）。src/worker.js が monitor.log につなぐ。 */
+	warn: (event: string, message: string) => void = () => {}
+): Promise<Response> {
 	if (request.method !== 'POST') {
 		return new Response(null, { status: 405, headers: { Allow: 'POST' } });
 	}
@@ -23,7 +29,10 @@ export async function handleTokenRequest(request: Request, db: Db | null): Promi
 	if (!type.startsWith('application/x-www-form-urlencoded')) {
 		return invalidRequest('application/x-www-form-urlencoded で送ってください');
 	}
-	const form = new URLSearchParams(await request.text());
+	const text = await readLimitedText(request);
+	if (text === null)
+		return reply({ error: 'invalid_request', error_description: '本文が大きすぎます' }, 413);
+	const form = new URLSearchParams(text);
 	const fields: Record<string, string> = {};
 	for (const [k, val] of form) {
 		// 同じ項目が2回来たら受けない（RFC 6749 3.2）。
@@ -58,7 +67,14 @@ export async function handleTokenRequest(request: Request, db: Db | null): Promi
 					clientId: input.client_id,
 					scope: input.scope
 				});
-	if ('error' in result) return reply(result, statusOf(result));
+	if ('error' in result) {
+		const { reused, ...error } = result;
+		if (reused) {
+			// 盗まれたリフレッシュトークンが使われた可能性がある。連携は消してあるが、気づけるように残す。
+			warn('oauth.refresh.reused', 'リフレッシュトークンが使い回されたので連携を解除した');
+		}
+		return reply(error, statusOf(result));
+	}
 	return reply(result, 200);
 }
 

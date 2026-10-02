@@ -130,6 +130,8 @@ export type TokenResponse = {
 export type TokenError = {
 	error: 'invalid_grant' | 'invalid_scope' | 'invalid_client';
 	error_description: string;
+	/** リフレッシュトークンの使い回しを見つけて連携を消したとき。監視に残す（応答には載せない）。 */
+	reused?: true;
 };
 
 /**
@@ -255,7 +257,10 @@ export async function refreshTokens(
 		.returning({ id: oauthToken.id });
 	if (claimed.length === 0) {
 		await db.delete(oauthGrant).where(eq(oauthGrant.id, row.grantId));
-		return invalidGrant('使用済みのリフレッシュトークンです。連携を解除しました');
+		return {
+			...invalidGrant('使用済みのリフレッシュトークンです。連携を解除しました'),
+			reused: true
+		};
 	}
 	if (row.expiresAt <= sec(now)) return invalidGrant('リフレッシュトークンの期限が切れています');
 	if (!(await activeGrant(db, row.grantId))) return invalidGrant('リフレッシュトークンが無効です');

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
 import {
 	clientRegistrationSchema,
+	consentSchema,
+	grantedScopes,
 	isAllowedRedirectUri,
 	isOwnResource,
 	knownScopes,
@@ -31,6 +33,32 @@ describe('requestedScopes', () => {
 
 	it('DB に残った知らないスコープは効かない', () => {
 		expect(knownScopes(['notes:write', 'notes:read'])).toEqual(['notes:read']);
+	});
+});
+
+describe('grantedScopes（同意で許すスコープ）', () => {
+	it('チェックを残したものだけ。外せない races:read は必ず入る', () => {
+		expect(grantedScopes(['races:read', 'notes:read'], ['notes:read'])).toEqual([
+			'races:read',
+			'notes:read'
+		]);
+		// チェックを全部外しても races:read だけになる（空にはならない）。
+		expect(grantedScopes(['races:read', 'notes:read'], [])).toEqual(['races:read']);
+	});
+
+	it('求められていないスコープは、チェックの値に足して送られても許さない', () => {
+		// アプリは races:read だけを求めた。フォームを書き換えて notes:read や知らない値を足しても広がらない。
+		expect(grantedScopes(['races:read'], ['notes:read', 'notes:write', 'admin'])).toEqual([
+			'races:read'
+		]);
+	});
+});
+
+describe('consentSchema', () => {
+	it('押されたボタンは allow か deny だけ', () => {
+		expect(v.is(consentSchema, { decision: 'allow', scope_grant: [] })).toBe(true);
+		expect(v.is(consentSchema, { decision: 'yes', scope_grant: [] })).toBe(false);
+		expect(v.is(consentSchema, { scope_grant: [] })).toBe(false);
 	});
 });
 

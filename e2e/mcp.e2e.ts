@@ -261,8 +261,34 @@ test.describe('他人のデータが見えない', () => {
 		// 同じレースでも、数えるのはトークンの持ち主のメモだけ。別のユーザーがこのレースに書いたのは
 		// 出走前メモ1本で、自分のメモ（OUTER_PREVIEW_BODY など）を足して数えていない。
 		expect(mine.races[0].id).toBe(BRACKET_RACE_ID);
-		expect(mine.races[0].myNoteCount).toBeGreaterThanOrEqual(1);
 		expect(theirs.races[0].myNoteCount).toBe(1);
+	});
+
+	test('自分のメモの件数は、自分のメモの tool が返す本数と同じ（他人のぶんを足さない）', async ({
+		request
+	}) => {
+		// ほかの E2E がこのレースにメモを書くことがあるので、固定の数ではなく、同じときに読んだ本数と比べる。
+		// 他人の1本を数えていれば、いつまでたっても1本多く、一致しない。
+		const read = async () => {
+			const list = JSON.parse(
+				(
+					await toolText(
+						await callTool(request, MCP_TOKENS.all, 'search_races', { q: 'E2E枠色賞' })
+					)
+				).content[0].text
+			);
+			const notes = JSON.parse(
+				(
+					await toolText(
+						await callTool(request, MCP_TOKENS.all, 'get_my_race_notes', {
+							raceId: BRACKET_RACE_ID
+						})
+					)
+				).content[0].text
+			);
+			return list.races[0].myNoteCount - notes.notes.length;
+		};
+		await expect.poll(read).toBe(0);
 	});
 });
 

@@ -2,11 +2,12 @@ import { fail, redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
 import {
 	authorizeRequestSchema,
+	consentSchema,
+	grantedScopes,
 	isOwnResource,
 	redirectUriMatches,
 	requestedScopes,
 	REQUIRED_SCOPES,
-	sortScopes,
 	type AuthorizeRequest
 } from '$lib/schemas/oauth';
 import { createAuthorizationCode, getClient } from '$lib/server/auth/oauth';
@@ -122,10 +123,15 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const raw = pick((k) => form.get(k)?.toString() ?? null);
 		const checked = await check(db, raw, url.origin);
-		if (checked.kind === 'invalid') return fail(400, { invalid: checked.message });
+		if (checked.kind === 'invalid') return fail(400, { message: checked.message });
 		const { request: req } = checked;
+		const consent = v.safeParse(consentSchema, {
+			decision: form.get('decision')?.toString(),
+			scope_grant: form.getAll('scope_grant').map(String)
+		});
+		if (!consent.success) return fail(400, { message: '操作を受け付けられませんでした。' });
 
-		if (form.get('decision') !== 'allow') {
+		if (consent.output.decision !== 'allow') {
 			redirect(
 				303,
 				callbackUrl(req.redirect_uri, url.origin, req.state, {
@@ -135,13 +141,7 @@ export const actions: Actions = {
 			);
 		}
 
-		// 許せるのは、求められたスコープのうち本人がチェックを残したものと、外せないもの。
-		const asked = requestedScopes(req.scope);
-		const checkedScopes = form.getAll('scope_grant').map(String);
-		const scopes = sortScopes([
-			...REQUIRED_SCOPES,
-			...asked.filter((s) => checkedScopes.includes(s))
-		]);
+		const scopes = grantedScopes(requestedScopes(req.scope), consent.output.scope_grant);
 
 		const code = await createAuthorizationCode(db, {
 			userId: user.id,
@@ -150,7 +150,7 @@ export const actions: Actions = {
 			redirectUri: req.redirect_uri,
 			codeChallenge: req.code_challenge
 		});
-		if (!code) return fail(400, { invalid: '戻り先がアプリの登録と一致しません。' });
+		if (!code) return fail(400, { message: '戻り先がアプリの登録と一致しません。' });
 		redirect(303, callbackUrl(req.redirect_uri, url.origin, req.state, { code }));
 	}
 };

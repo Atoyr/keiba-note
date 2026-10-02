@@ -107,6 +107,52 @@ describe('handleTokenRequest', () => {
 		expect(get.status).toBe(405);
 	});
 
+	it('大きすぎる本文は読み切らずに 413（Content-Length を偽っても）', async () => {
+		const big = 'grant_type=refresh_token&x=' + 'a'.repeat(20_000);
+		expect((await post(big)).status).toBe(413);
+		const lying = await post(big, { 'content-length': '10' });
+		expect(lying.status).toBe(413);
+	});
+
+	it('リフレッシュトークンの使い回しは、連携を消したうえで監視に知らせる（応答には載せない）', async () => {
+		const { clientId, code } = await codeFor();
+		const first = (await (
+			await post(
+				form({
+					grant_type: 'authorization_code',
+					code,
+					redirect_uri: REDIRECT,
+					client_id: clientId,
+					code_verifier: VERIFIER
+				})
+			)
+		).json()) as { refresh_token: string };
+		const refresh = form({
+			grant_type: 'refresh_token',
+			refresh_token: first.refresh_token,
+			client_id: clientId
+		});
+		const events: string[] = [];
+		const send = () =>
+			handleTokenRequest(
+				new Request(`${ORIGIN}/oauth/token`, {
+					method: 'POST',
+					headers: { 'content-type': 'application/x-www-form-urlencoded' },
+					body: refresh
+				}),
+				db,
+				(event) => events.push(event)
+			);
+		expect((await send()).status).toBe(200);
+		expect(events).toEqual([]);
+		const reused = await send();
+		expect(await reused.json()).toEqual({
+			error: 'invalid_grant',
+			error_description: expect.any(String)
+		});
+		expect(events).toEqual(['oauth.refresh.reused']);
+	});
+
 	it('DB が無ければ 503', async () => {
 		const res = await handleTokenRequest(
 			new Request(`${ORIGIN}/oauth/token`, { method: 'POST' }),

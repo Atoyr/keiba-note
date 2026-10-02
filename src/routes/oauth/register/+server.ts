@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { clientRegistrationSchema } from '$lib/schemas/oauth';
+import { readLimitedText } from '$lib/server/auth/limited-body';
 import { registerClient } from '$lib/server/auth/oauth';
 import { createDb } from '$lib/server/db';
 import type { RequestHandler } from './$types';
@@ -15,9 +16,16 @@ export const POST: RequestHandler = async ({ request, platform, locals }) => {
 	if (!platform?.env?.DB) {
 		return json({ error: 'temporarily_unavailable' }, { status: 503 });
 	}
+	const text = await readLimitedText(request);
+	if (text === null) {
+		return json(
+			{ error: 'invalid_client_metadata', error_description: '本文が大きすぎます' },
+			{ status: 413 }
+		);
+	}
 	let body: unknown;
 	try {
-		body = await request.json();
+		body = JSON.parse(text);
 	} catch {
 		return json(
 			{ error: 'invalid_client_metadata', error_description: 'JSON として読めません' },

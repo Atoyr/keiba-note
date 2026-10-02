@@ -71,10 +71,14 @@ export async function handleMcpMessage(message: unknown, ctx: McpContext): Promi
 
 	const request = v.safeParse(requestSchema, message);
 	if (!request.success) {
-		// 通知（id が無い）と、クライアントからの応答には返事をしない（202）。
-		if (v.is(notificationSchema, message)) return { kind: 'accepted' };
-		if (typeof message === 'object' && message && 'result' in message) return { kind: 'accepted' };
-		return failure(null, -32600, 'JSON-RPC の要求ではありません', 400);
+		const obj = typeof message === 'object' && message !== null ? message : {};
+		// 通知（id を持たない）と、クライアントからの応答（result か error を持つ）には返事をしない（202）。
+		// **id を持つのに形が崩れた要求を通知とみなさない。** 黙って捨てると、クライアントが返事を待ったまま止まる。
+		if (!('id' in obj) && v.is(notificationSchema, message)) return { kind: 'accepted' };
+		if ('id' in obj && ('result' in obj || 'error' in obj)) return { kind: 'accepted' };
+		const id =
+			'id' in obj && (typeof obj.id === 'string' || typeof obj.id === 'number') ? obj.id : null;
+		return failure(id, -32600, 'JSON-RPC の要求ではありません', 400);
 	}
 	const { id, method, params } = request.output;
 

@@ -5,7 +5,7 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
-	const invalid = $derived(form?.invalid ?? data.invalid);
+	const invalid = $derived(form?.message ?? data.invalid);
 </script>
 
 <svelte:head><title>連携の許可 — uma-memo</title></svelte:head>

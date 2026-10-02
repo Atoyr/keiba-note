@@ -49,7 +49,7 @@ SvelteKit の `load` + form actions で完結させる。
 | --- | --- | --- |
 | 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/shared/races/`・`/privacy`・`/terms`・`/api/health`・`/.well-known/oauth-protected-resource`・`/.well-known/oauth-authorization-server`・`/oauth/register`）のパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
-| MCP クライアント（`/mcp` だけ） | hooks が `Authorization: Bearer` のアクセストークンを検証し、`locals.user`（許した本人）と `locals.oauthScopes` を載せる。**Cookie は見ない** | `401` と `WWW-Authenticate: Bearer resource_metadata=…`（ログインへ飛ばさない） |
+| MCP クライアント（`/mcp` だけ） | hooks が `Authorization: Bearer` のアクセストークンを検証し、`locals.user`（許した本人）と `locals.oauthScopes` を載せる。**Cookie は見ない** | `401` と `WWW-Authenticate: Bearer resource_metadata=…`（ログインへ飛ばさない）。Bearer はあるが DB に届かないときは `503 temporarily_unavailable`（401 にするとクライアントがトークンを捨てる） |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
 | admin | `ctxAdmin(locals, platform)` | 403 |
 
@@ -150,7 +150,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
-| `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / tool の入力の誤り・見つからないは `200` の `isError: true` |
+| `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / Bearer はあるが DB に届かない `503` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / tool の入力の誤り・見つからないは `200` の `isError: true` |
 | `/mcp` | GET・DELETE | — | — | `405`（サーバーから流す SSE とセッションは持たない） |
 
 tools（どれも読むだけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:

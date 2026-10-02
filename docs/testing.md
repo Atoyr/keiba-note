@@ -70,6 +70,8 @@ Evaluator が必要な条件は [evaluation.md 第0章](./evaluation.md#0-評価
 - **画面・ルーティング・認可を触ったら E2E を足すか直す。** 未ログインで開けないこと、
   他人の id で開けないことを見る。未ログインの確認は `e2e/auth.e2e.ts` の `PROTECTED` に1行足す
   （認証は hooks で一律に効くので、画面ごとに別のテストを書かない）
+- **MCP の tool やスコープを足したら、スコープ不足と他人のデータの確認を単体と E2E の両方に足す**
+  （`/mcp` は 302 でなく 401 なので `PROTECTED` では確かめられない。何を足すかは [architecture.md 3-10](./architecture.md)）
 - **form POST を足したら E2E で確かめる。** CSRF の検証は本番ビルドでしか効かない（`vite dev` では通ってしまう）
 - **E2E で入力欄に書く・送信する前は hydration を待つ。** `gotoHydrated` か `waitForHydration`
   （`e2e/hydration.ts`）を使う。`page.goto` が待つのは load までで、hydration はそのあとに走る。
