@@ -721,6 +721,8 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /jockeys/[name]               ★騎手＝自分のまとめ + 騎乗のタイムライン（乗った馬の自分のメモ）
 /settings/profile             プロフィール（公開用の名前を設定）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
+/settings/connections         AIとの連携（MCP の接続先 URL・許可したアプリ）＝**連携を解除する場所**
+/oauth/authorize              AI のアプリへの同意画面（メモを読ませるかを選ぶ。architecture.md 3-10）
 
 ── admin のみ ────────────────────────────────────────────
 /races/new                    レース登録

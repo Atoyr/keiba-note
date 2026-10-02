@@ -24,6 +24,8 @@
 - 更新日: 2026-09-27 — 騎手（jockeys）を機能の並びに足した（→ 第2章）
 - 更新日: 2026-09-28 — 予想まとめの共有に SNS のプレビュー画像を足した。`src/worker.js` が resvg の wasm を渡し、
   フォントは Static Assets から読む（→ 第2章 / 3-7 / 5-4）
+- 更新日: 2026-10-03 — MCP の口（`/mcp`）と、その認可サーバー（OAuth 2.1）を足した。`/mcp` は Bearer だけで入り、
+  トークンの口は `src/worker.js` が SvelteKit より先に受ける（→ 第0章 / 第2章 / 3-10）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -47,6 +49,9 @@
   接続やユーザー情報を持たせない。Workers の実行環境は複数のリクエストで使い回される（→ 3-1）
 - **認証の判断は `src/hooks.server.ts` に閉じる。** ルートは `locals.user` だけを見る。
   ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）
+- **`/mcp` は Bearer（OAuth のアクセストークン）だけで入り、Bearer は `/mcp` でしか効かない。**
+  `/mcp` で Cookie を見ると他サイトから本人として叩かれ（CSRF）、画面で Bearer を見ると漏れたトークンで画面に入られる。
+  MCP の tool の `viewerId` はトークンの持ち主で、入力からは受けない（→ 3-10）
 - **依存は一方向。** サービス層（`src/lib/server/services/`）は SvelteKit を import しない。
   画面側はサーバーのコードを型ですら import しない（→ 第2章）
 - 1リクエストの D1 クエリは10以内（Free の頃の上限は50。Paid では上限でなくレビューで守る）。超えそうなら JOIN か `batch()` にまとめる（→ 7-1）
@@ -169,6 +174,7 @@ flowchart TB
 | ① UI | `+page.svelte`, `lib/components/` | 表示、フォームの組み立て | DB アクセス、認可判断 |
 | ① UI の WebMCP 境界 | `lib/webmcp/` | tool 登録・解除、load の値の整形、下書きを既存フォームへ渡す | DB アクセス、HTTP、submit、LLM 呼び出し |
 | ② ルート | `+page.server.ts`, `+server.ts`, `hooks.server.ts` | HTTP の入出力、Cookie、リダイレクト | 業務ルール、SQL |
+| ② ルートの MCP | `lib/server/mcp/` | JSON-RPC の読み書き、tool の入力の検証と返す項目の選び出し、スコープの確認 | SQL、認証の判断、HTTP のステータス |
 | ③ 検証 | `lib/schemas/` | `FormData` / クエリ文字列を型付きの入力に変換 | DB アクセス |
 | ④ サービス | `lib/server/services/`, `lib/server/auth/` | 業務ルール、`author_id` での絞り込み、`batch()` の構成 | HTTP を知ること |
 | ⑤ データアクセス | `lib/server/db/` | Drizzle でのクエリ組み立て、型定義 | 業務ルール |
@@ -224,7 +230,12 @@ service と auth も monitoring を知らない（失敗は投げたままにし
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
 adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
-Cron の入口 `lib/server/race-data/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）だけ（→ 3-5・3-7・3-9）。
+Cron の入口 `lib/server/race-data/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）と、
+OAuth のトークンの口（`lib/server/auth/token-endpoint.ts` と、それに渡す `createDb`・monitoring）だけ（→ 3-5・3-7・3-9・3-10）。
+
+mcp（`lib/server/mcp/`。MCP の JSON-RPC と tools）は endpoint と同じ扱いで、`routes/mcp/+server.ts` だけが使う。
+import してよいのは pure と service と、db の型 `Db` だけ。SvelteKit・auth・`drizzle-orm` は import しない
+（SQL はサービス層、誰かの判断は hooks）。
 
 og（`lib/server/og/`。共有の画像を PNG にする）は service と同じ扱いで、SvelteKit も D1 も知らない。
 import してよいのは pure（描く SVG は `utils/share-card.ts` が組む）と `@resvg/resvg-wasm` だけ。機能の軸では share に入る。
@@ -623,6 +634,58 @@ sequenceDiagram
   PR ができたら Discord の「デプロイ」に知らせる
 - トークン（`GITHUB_DISPATCH_TOKEN`）は、このリポジトリの Actions に書き込めるだけのもの。漏れても
   できるのはワークフローの起動までで、できた PR は人がマージするまで本番に入らない
+
+### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読む
+
+Claude・ChatGPT（スマホのアプリを含む）から読めるように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバーを置く。
+ブラウザの中で動く WebMCP（[frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)）は試験的なまま残す。
+**読むだけ。** 書く・共有する・消す tool とスコープはまだ無い。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as MCP クライアント（Claude・ChatGPT のサーバー）
+    participant B as 本人のブラウザ
+    participant W as Worker
+    participant D as D1
+
+    C->>W: POST /mcp（トークンなし）
+    W-->>C: 401 WWW-Authenticate: resource_metadata=…
+    C->>W: GET /.well-known/oauth-protected-resource/mcp・/.well-known/oauth-authorization-server
+    C->>W: POST /oauth/register（動的クライアント登録）
+    W->>D: oauth_client
+    C->>B: /oauth/authorize?…&code_challenge（PKCE S256）
+    B->>W: 同意画面（ログインが要る）→「許可する」（メモを読ませるかを選べる）
+    W->>D: oauth_grant（本人×クライアント）・oauth_code（ハッシュ・5分・1回きり）
+    W-->>B: 303 戻り先?code&state&iss
+    C->>W: POST /oauth/token（code + code_verifier）※ src/worker.js が受ける
+    W->>D: コードを消す → oauth_token（アクセス1時間・リフレッシュ30日。ハッシュ）
+    C->>W: POST /mcp（Authorization: Bearer）
+    W->>D: hooks がトークン → 本人とスコープ（1クエリ）
+    W->>D: tool → サービス層（viewerId = 本人）
+```
+
+| 層 | 置き場所 | 持つもの |
+| --- | --- | --- |
+| 案内 | `routes/.well-known/*`・`lib/server/auth/oauth-metadata.ts` | RFC 9728 / RFC 8414 のメタデータ（公開。DB に触らない） |
+| 登録 | `routes/oauth/register/+server.ts` | 公開クライアントだけを登録（戻り先は https かループバック） |
+| 同意 | `routes/oauth/authorize/` | 要求の検証・スコープの選択・コードの発行。枠に入れさせない（`X-Frame-Options`） |
+| トークン | `src/worker.js` → `lib/server/auth/token-endpoint.ts` | フォームの読み取り・`resource` の確認 |
+| 認可の中身 | `lib/server/auth/oauth.ts` | PKCE・コードとトークンの発行と検証・リフレッシュのローテーション・連携の一覧と解除 |
+| 入口の判断 | `hooks.server.ts` | `/mcp` だけ Bearer を検証し、`locals.user` と `locals.oauthScopes` を載せる |
+| MCP | `routes/mcp/+server.ts` → `lib/server/mcp/` | JSON-RPC（initialize / ping / tools/list / tools/call）。スコープが足りなければ 403 `insufficient_scope` |
+| 解除 | `/settings/connections` | 本人の連携の一覧と解除（CASCADE でコードとトークンも消える） |
+
+- **トークンの口だけ SvelteKit に通さない。** トークンの要求は Origin の無いフォームの POST で、SvelteKit の CSRF の検査が
+  hooks より前に 403 にする（パスごとに外す設定は無い）。この口は Cookie を見ないので、検査が守るものが無い。
+  `vite dev` では `src/worker.js` を通らないので、この口は 404 になる（E2E は `wrangler dev` で通る）
+- **スコープ:** `races:read`（マスタ。外せない）と `notes:read`（本人のメモ。同意画面で外せる）。足りない tool は
+  tools/list に出さず、呼ばれたら動かさずに 403。`races:read` だけのときは、レースの一覧に添える「自分のメモの件数」も出さない
+- **返す項目は tool で1つずつ選ぶ。** サービスの戻り値を広げて返さない（書いた人の名前・公開範囲・`created_by`・`profile_memo` を出さない）
+- **リフレッシュトークンは1回きり。** 使用済みの印は `used_at IS NULL` を条件にした UPDATE で付け、付けられなければ
+  使い回し＝盗まれたとみなして連携ごと消す
+- MCP はステートレスで、応答は JSON（SSE なし）。SDK を使わないのは `nodejs_compat` を付けないため（第0章）
+- クライアントの登録は誰でもできる。行は増えるが、本人が許可するまで何も読めない。使われない登録の掃除はまだしていない
 
 ---
 
