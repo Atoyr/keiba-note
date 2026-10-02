@@ -213,16 +213,9 @@ races:
     ref: nk-202608040211
     startTime: "15:30"
     entries:
-      - name: アクアヴァーナル
-        jockey: 松山弘平
-        sex: 牝
-        age: 5
-        ref: nk-2021105433
-        trainer: 四位洋文
-        sire: エピファネイア
-        dam: エイプリルミスト
-        weight: 55
-      - name: ウエストナウ
+      - horseNumber: 1
+        bracket: 1
+        name: ウエストナウ
         jockey: 横山和生
         sex: 牡
         age: 5
@@ -231,7 +224,9 @@ races:
         sire: キズナ
         dam: ファヴォーラ
         weight: 57
-      - name: ヴェルテンベルク
+      - horseNumber: 2
+        bracket: 1
+        name: ヴェルテンベルク
         jockey: 古川吉洋
         sex: 牡
         age: 6
@@ -240,70 +235,9 @@ races:
         sire: キタサンブラック
         dam: マルカアイチャン
         weight: 57
-      - name: ヴェルミセル
-        jockey: 川又賢治
-        sex: 牝
-        age: 6
-        ref: nk-2020103945
-        trainer: 吉村圭司
-        sire: ゴールドシップ
-        dam: マルーンドロップ
-        weight: 55
-      - name: エコロディノス
-        jockey: 田口貫太
-        sex: 牡
-        age: 4
-        ref: nk-2022105073
-        trainer: 大久保龍志
-        sire: キタサンブラック
-        dam: ミスティックリップス
-        weight: 57
-      - name: キングスコール
-        jockey: 吉田豊
-        sex: 牡
-        age: 4
-        ref: nk-2022104207
-        trainer: 矢作芳人
-        sire: ドゥラメンテ
-        dam: レインオンザデューン
-        weight: 57
-      - name: サヴォーナ
-        jockey: 斎藤新
-        sex: 牡
-        age: 6
-        ref: nk-2020100734
-        trainer: 中竹和也
-        sire: キズナ
-        dam: テイケイラピッド
-        weight: 57
-      - name: サフィラ
-        jockey: 北村友一
-        sex: 牝
-        age: 5
-        ref: nk-2021105541
-        trainer: 池添学
-        sire: ハーツクライ
-        dam: サロミナ
-        weight: 55
-      - name: ショウナンラプンタ
-        jockey: 池添謙一
-        sex: 牡
-        age: 5
-        ref: nk-2021105195
-        trainer: 高野友和
-        sire: キズナ
-        dam: フリアアステカ
-        weight: 57
-      - name: ダノンシーマ
-        jockey: 川田将雅
-        sex: 牡
-        age: 4
-        ref: nk-2022104645
-        trainer: 中内田充正
-        sire: キタサンブラック
-        dam: インクルードベティ
-        weight: 57
-      - name: ディープモンスター
+      - horseNumber: 3
+        bracket: 2
+        name: ディープモンスター
         jockey: 浜中俊
         sex: 牡
         age: 8
@@ -312,16 +246,9 @@ races:
         sire: ディープインパクト
         dam: シスタリーラヴ
         weight: 58
-      - name: ファミリータイム
-        jockey: 鮫島克駿
-        sex: 牡
-        age: 5
-        ref: nk-2021100651
-        trainer: 石坂公一
-        sire: リアルスティール
-        dam: プリオバーン
-        weight: 57
-      - name: ヘデントール
+      - horseNumber: 4
+        bracket: 2
+        name: ヘデントール
         jockey: 吉田隼人
         sex: 牡
         age: 5
@@ -330,16 +257,42 @@ races:
         sire: ルーラーシップ
         dam: コルコバード
         weight: 58
-      - name: マイネルエンペラー
-        jockey: 吉村誠之助
+      - horseNumber: 5
+        bracket: 3
+        name: ヴェルミセル
+        jockey: 川又賢治
+        sex: 牝
+        age: 6
+        ref: nk-2020103945
+        trainer: 吉村圭司
+        sire: ゴールドシップ
+        dam: マルーンドロップ
+        weight: 55
+      - horseNumber: 6
+        bracket: 3
+        name: アクアヴァーナル
+        jockey: 松山弘平
+        sex: 牝
+        age: 5
+        ref: nk-2021105433
+        trainer: 四位洋文
+        sire: エピファネイア
+        dam: エイプリルミスト
+        weight: 55
+      - horseNumber: 7
+        bracket: 4
+        name: リビアングラス
+        jockey: 小沢大仁
         sex: 牡
         age: 6
-        ref: nk-2020105786
-        trainer: 清水久詞
-        sire: ゴールドシップ
-        dam: マイネテレジア
+        ref: nk-2020105633
+        trainer: 矢作芳人
+        sire: キズナ
+        dam: ディルガ
         weight: 57
-      - name: ミクニインスパイア
+      - horseNumber: 8
+        bracket: 4
+        name: ミクニインスパイア
         jockey: M.デムーロ
         sex: 牡
         age: 4
@@ -348,7 +301,9 @@ races:
         sire: アドマイヤマーズ
         dam: シルクヴィーナス
         weight: 57
-      - name: ミステリーウェイ
+      - horseNumber: 9
+        bracket: 5
+        name: ミステリーウェイ
         jockey: 松本大輝
         sex: セ
         age: 8
@@ -357,7 +312,64 @@ races:
         sire: ジャスタウェイ
         dam: ジプシーハイウェイ
         weight: 58
-      - name: メイショウブレゲ
+      - horseNumber: 10
+        bracket: 5
+        name: マイネルエンペラー
+        jockey: 吉村誠之助
+        sex: 牡
+        age: 6
+        ref: nk-2020105786
+        trainer: 清水久詞
+        sire: ゴールドシップ
+        dam: マイネテレジア
+        weight: 57
+      - horseNumber: 11
+        bracket: 6
+        name: ファミリータイム
+        jockey: 鮫島克駿
+        sex: 牡
+        age: 5
+        ref: nk-2021100651
+        trainer: 石坂公一
+        sire: リアルスティール
+        dam: プリオバーン
+        weight: 57
+      - horseNumber: 12
+        bracket: 6
+        name: エコロディノス
+        jockey: 田口貫太
+        sex: 牡
+        age: 4
+        ref: nk-2022105073
+        trainer: 大久保龍志
+        sire: キタサンブラック
+        dam: ミスティックリップス
+        weight: 57
+      - horseNumber: 13
+        bracket: 7
+        name: サフィラ
+        jockey: 北村友一
+        sex: 牝
+        age: 5
+        ref: nk-2021105541
+        trainer: 池添学
+        sire: ハーツクライ
+        dam: サロミナ
+        weight: 55
+      - horseNumber: 14
+        bracket: 7
+        name: サヴォーナ
+        jockey: 斎藤新
+        sex: 牡
+        age: 6
+        ref: nk-2020100734
+        trainer: 中竹和也
+        sire: キズナ
+        dam: テイケイラピッド
+        weight: 57
+      - horseNumber: 15
+        bracket: 7
+        name: メイショウブレゲ
         jockey: 酒井学
         sex: 牡
         age: 7
@@ -366,14 +378,38 @@ races:
         sire: ゴールドシップ
         dam: メイショウスイヅキ
         weight: 57
-      - name: リビアングラス
-        jockey: 小沢大仁
+      - horseNumber: 16
+        bracket: 8
+        name: ショウナンラプンタ
+        jockey: 池添謙一
         sex: 牡
-        age: 6
-        ref: nk-2020105633
-        trainer: 矢作芳人
+        age: 5
+        ref: nk-2021105195
+        trainer: 高野友和
         sire: キズナ
-        dam: ディルガ
+        dam: フリアアステカ
+        weight: 57
+      - horseNumber: 17
+        bracket: 8
+        name: キングスコール
+        jockey: 吉田豊
+        sex: 牡
+        age: 4
+        ref: nk-2022104207
+        trainer: 矢作芳人
+        sire: ドゥラメンテ
+        dam: レインオンザデューン
+        weight: 57
+      - horseNumber: 18
+        bracket: 8
+        name: ダノンシーマ
+        jockey: 川田将雅
+        sex: 牡
+        age: 4
+        ref: nk-2022104645
+        trainer: 中内田充正
+        sire: キタサンブラック
+        dam: インクルードベティ
         weight: 57
     withdrawn:
       - name: ナムラエイハブ
