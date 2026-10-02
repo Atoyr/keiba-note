@@ -77,7 +77,7 @@ export const sortSpots = (spots: FlowSpot[]): FlowSpot[] =>
  *
  * 画面が作る値なので、形が違うのは手で書き換えたときだけ。ここで弾いて 400 にする。
  */
-const spotSchema = v.object({
+export const flowSpotSchema = v.object({
 	entryId: v.pipe(v.string(), v.minLength(1)),
 	x: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(FLOW_COLS - 1)),
 	y: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(FLOW_LANES.length - 1))
@@ -94,7 +94,7 @@ const spotsFieldSchema = v.pipe(
 			return NEVER;
 		}
 	}),
-	v.array(spotSchema, '展開の隊列を読み取れませんでした'),
+	v.array(flowSpotSchema, '展開の隊列を読み取れませんでした'),
 	// 1頭は1か所、1マスには1頭。重なっていたら先に来たほうを残す。
 	v.transform((spots) => {
 		const horses = new Set<string>();
@@ -123,22 +123,24 @@ export function parseFlowSpots(raw: string): FlowSpot[] {
 	try {
 		const xs = JSON.parse(raw) as unknown;
 		if (!Array.isArray(xs)) return [];
-		const ok = xs.filter((x) => v.is(spotSchema, x));
+		const ok = xs.filter((x) => v.is(flowSpotSchema, x));
 		return v.parse(spotsFieldSchema, JSON.stringify(ok));
 	} catch {
 		return [];
 	}
 }
 
+export const flowMemoSchema = v.pipe(
+	v.string(),
+	v.trim(),
+	v.maxLength(FLOW_MEMO_MAX, `展開のメモは${FLOW_MEMO_MAX}文字までです`)
+);
+
 const phaseFieldSchema = v.object({
 	spots: spotsFieldSchema,
 	// 見立ての本文と同じく前後の空白を削る。保存のあと欄が削った値で描き直されても、
 	// 下書きの比べ方（utils/draft.ts の sameValue）が前後の空白を無視するので「未保存」にはならない。
-	memo: v.pipe(
-		v.optional(v.string(), ''),
-		v.trim(),
-		v.maxLength(FLOW_MEMO_MAX, `展開のメモは${FLOW_MEMO_MAX}文字までです`)
-	)
+	memo: v.optional(flowMemoSchema, '')
 });
 
 /**

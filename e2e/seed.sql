@@ -607,6 +607,13 @@ INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number)
 VALUES ('01JE2EFLOWENTRY10000000000', '01JE2ERACEFLOW000000000000', '01JE2EFLOWHORSE10000000000', 1, 1),
        ('01JE2EFLOWENTRY20000000000', '01JE2ERACEFLOW000000000000', '01JE2EFLOWHORSE20000000000', 2, 2);
 
+-- WebMCP の下書き→保存専用。共通の馬を使い、保存先のレースと出走馬は分ける。
+INSERT INTO race (id, date, course, race_number, name, surface, distance, direction)
+VALUES ('01JE2ERACEWEBMCP0000000000', '2099-05-12', '京都', 12, 'E2E AI下書き賞', '芝', 2200, '右');
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number)
+VALUES ('01JE2EWEBMCPENTRY100000000', '01JE2ERACEWEBMCP0000000000', '01JE2EFLOWHORSE10000000000', 1, 1),
+       ('01JE2EWEBMCPENTRY200000000', '01JE2ERACEWEBMCP0000000000', '01JE2EFLOWHORSE20000000000', 2, 2);
+
 -- 18頭・枠順前（馬番も枠も無い）で3局面すべてに展開を置いたレース。畳んだ行の折り返しと高さ、頭2文字のコマを撮る。
 INSERT INTO race (id, date, course, race_number, name, surface, distance)
 VALUES ('01JE2ERACEFLOW180000000000', '2099-05-07', '阪神', 11, 'E2E多頭数賞', '芝', 2400);

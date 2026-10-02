@@ -39,6 +39,7 @@
 	import { flowLeadsRight } from '$lib/utils/race-flow';
 	import { isAdmin } from '$lib/utils/role';
 	import { cn } from '$lib/utils';
+	import { registerPredictionTools } from '$lib/webmcp/prediction';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -98,6 +99,24 @@
 	let hydrated = $state(false);
 	onMount(() => {
 		hydrated = true;
+	});
+
+	// SvelteKit は別レースでもページを再利用する。race.id ごとに古い登録を abort する。
+	$effect(() => {
+		if (!hydrated || !keeper || !formEl) return;
+		const editor = keeper;
+		const raceId = data.race.id;
+		return registerPredictionTools({
+			getData: () => data,
+			getFields: () => editor.snapshot(),
+			applyFields: (values) => editor.apply(values),
+			isCurrent: () => data.race.id === raceId,
+			onApplied: () =>
+				// 反映直後も、下端の未保存件数と保存ボタンを読めるよう上部へ出す。
+				toast.success('AIの予想を下書きに反映しました。保存前に内容を確認してください', {
+					position: 'top-center'
+				})
+		});
 	});
 </script>
 

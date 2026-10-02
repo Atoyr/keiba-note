@@ -22,6 +22,9 @@
 
 SvelteKit の `load` + form actions で完結させる。
 
+予想画面の WebMCP tools はブラウザ内の読み取りと未保存フォーム更新だけで、HTTP の口は増やさない。
+保存は既存 action のまま。tool の仕様は [frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)。
+
 - 読み: `+page.server.ts` の `load` がサービス層を呼ぶ
 - 書き: form actions。JavaScript が無効でも動く（プログレッシブエンハンスメント）
 - `+server.ts` は、フォームでも画面でもない HTTP（OAuth のリダイレクト、ログアウト、死活監視）にだけ使う

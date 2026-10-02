@@ -167,6 +167,7 @@ flowchart TB
 | 層 | 置き場所 | やること | **やらないこと** |
 | --- | --- | --- | --- |
 | ① UI | `+page.svelte`, `lib/components/` | 表示、フォームの組み立て | DB アクセス、認可判断 |
+| ① UI の WebMCP 境界 | `lib/webmcp/` | tool 登録・解除、load の値の整形、下書きを既存フォームへ渡す | DB アクセス、HTTP、submit、LLM 呼び出し |
 | ② ルート | `+page.server.ts`, `+server.ts`, `hooks.server.ts` | HTTP の入出力、Cookie、リダイレクト | 業務ルール、SQL |
 | ③ 検証 | `lib/schemas/` | `FormData` / クエリ文字列を型付きの入力に変換 | DB アクセス |
 | ④ サービス | `lib/server/services/`, `lib/server/auth/` | 業務ルール、`author_id` での絞り込み、`batch()` の構成 | HTTP を知ること |
@@ -240,6 +241,9 @@ race-data（`lib/server/race-data/`。出走馬の取得を Actions に頼む）
   `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
   止めるが `import type` は通す
 - **SQL は db と service（と auth）にしか無い。** `drizzle-orm` をルートやコンポーネントから import しない
+- **WebMCP も UI 側。** `lib/webmcp/` が import してよいのは pure（schemas / utils）だけ。
+  API と型の変動をこの境界に閉じ、`load` が本人に渡した材料を再利用する。新しい問い合わせ経路や保存責務は持たない。
+  tool の入出力と下書きの扱いは [frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)。
 
 パッケージ単位の禁止:
 
