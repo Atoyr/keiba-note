@@ -150,6 +150,13 @@
 			</Button>
 		{/if}
 	</div>
+	<p class="mt-3 text-sm">
+		<a
+			href={resolve('/help/webmcp')}
+			class="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+			>WebMCPの使い方</a
+		>
+	</p>
 
 	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
 	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。

@@ -53,6 +53,20 @@ export type Screen = {
 const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み込む' });
 
 export const SCREENS: Screen[] = [
+	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
+	{
+		name: 'webmcp-guide-supported',
+		path: '/help/webmcp',
+		auth: true,
+		prepare: async (page) => {
+			await mockPredictionTools(page);
+			await page.reload();
+			await waitForHydration(page);
+			await expect(
+				page.getByText('このブラウザには、uma-memoが使うWebMCPの対応APIがあります。')
+			).toBeVisible();
+		}
+	},
 	{
 		// 紹介ページのキャプチャは loading="lazy" なので、下まで送って全部の読み込みを待つ
 		// （待たないと、画面の外にあった画像が空の枠のまま写る）。

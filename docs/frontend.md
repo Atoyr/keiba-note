@@ -120,6 +120,12 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 ## 8. WebMCP で予想の下書きを受ける
 
+使い方はログインした人向けの `/help/webmcp` に置き、予想画面からリンクする。
+対応判定は tool と同じ `getModelContext()` を使うが、案内ページでは tools を登録しない。
+API の有無だけで AI 接続や登録成功まで確認できたように表示しない。
+Chrome の試験設定・Inspector の案内は公式資料を参照し、確認日を画面に載せる。
+ブラウザや AI の仕様が合わなければ使えないこと、通常入力は続けられることも説明する。
+
 **読む場面:** 予想画面の AI 連携、下書きの部分更新、WebMCP の仕様を変えるとき。
 保存 action の仕様は [api.md 第3章](./api.md)、DB の責務は [architecture.md 第0章](./architecture.md)。
 

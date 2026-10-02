@@ -714,6 +714,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /races                        レース一覧（日付降順。既定は今年の重賞 → 下の `/races`。100件ずつ）
 /races/[id]                   ★レース詳細＝ふりかえりの主戦場
 /races/[id]/preview           ★出馬表 + 馬柱 + 予想印（出走前メモ）
+/help/webmcp                  WebMCPの使い方（準備・依頼例・下書きの確認と保存）
 /horses                       馬一覧・名前で絞る（100頭ずつ → 下の「長い一覧」）
 /horses/[id]                  ★馬詳細＝プロフィール + タイムライン
 /jockeys                      騎手一覧・名前と自分の札で絞る

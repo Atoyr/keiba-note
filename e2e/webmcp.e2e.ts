@@ -211,3 +211,37 @@ test('モバイルのAI反映通知は表示中も保存ボタンを覆わない
 	expect(saveBox).not.toBeNull();
 	expect(noticeBox!.y + noticeBox!.height).toBeLessThanOrEqual(saveBox!.y);
 });
+
+test('予想から使い方を開くとツールを解除し、戻ると登録し直す', async ({ page }) => {
+	await login(page);
+	await mockPredictionTools(page);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	await page.getByRole('link', { name: 'WebMCPの使い方' }).click();
+	await expect(page).toHaveURL('/help/webmcp');
+	await expect(page.getByRole('heading', { name: 'WebMCPの使い方', exact: true })).toBeVisible();
+	await expect(
+		page.getByText('このブラウザには、uma-memoが使うWebMCPの対応APIがあります。')
+	).toBeVisible();
+	await expect.poll(() => page.evaluate(() => window.__predictionTools.size)).toBe(0);
+	await page.goBack();
+	await expect(page).toHaveURL(new RegExp(`${PREVIEW_RACE_ID}/preview`));
+	await expect.poll(() => page.evaluate(() => window.__predictionTools.size)).toBe(2);
+	const current = (await page.evaluate(async () =>
+		window.__predictionTools.get('get_prediction_context')!.execute({})
+	)) as PredictionContext;
+	expect(current.race.id).toBe(PREVIEW_RACE_ID);
+});
+
+test('非対応でも使い方が読めて、通常のレース選択に進める', async ({ page }) => {
+	await login(page);
+	await page.addInitScript(() =>
+		Object.defineProperty(document, 'modelContext', { configurable: true, value: undefined })
+	);
+	await gotoHydrated(page, '/help/webmcp');
+	await expect(
+		page.getByText('このブラウザでは、uma-memoが使うWebMCPの対応APIが見つかりません。')
+	).toBeVisible();
+	await expect(page.getByRole('heading', { name: '4. 下書きを確認して保存する' })).toBeVisible();
+	await page.getByRole('link', { name: 'レースを選ぶ' }).click();
+	await expect(page).toHaveURL('/races');
+});
