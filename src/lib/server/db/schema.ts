@@ -503,19 +503,24 @@ export const oauthGrant = sqliteTable(
 );
 
 /** 認可コード。1回だけ使え、5分で切れる。セッションと同じく SHA-256 だけを持つ。 */
-export const oauthCode = sqliteTable('oauth_code', {
-	/** コードの SHA-256（hex）。 */
-	id: text('id').primaryKey(),
-	grantId: text('grant_id')
-		.notNull()
-		.references(() => oauthGrant.id, { onDelete: 'cascade' }),
-	scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
-	/** 認可の要求に来た戻り先。トークンの要求でも同じ値が来なければ渡さない。 */
-	redirectUri: text('redirect_uri').notNull(),
-	/** PKCE（S256）の code_challenge。 */
-	codeChallenge: text('code_challenge').notNull(),
-	expiresAt: integer('expires_at').notNull()
-});
+export const oauthCode = sqliteTable(
+	'oauth_code',
+	{
+		/** コードの SHA-256（hex）。 */
+		id: text('id').primaryKey(),
+		grantId: text('grant_id')
+			.notNull()
+			.references(() => oauthGrant.id, { onDelete: 'cascade' }),
+		scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
+		/** 認可の要求に来た戻り先。トークンの要求でも同じ値が来なければ渡さない。 */
+		redirectUri: text('redirect_uri').notNull(),
+		/** PKCE（S256）の code_challenge。 */
+		codeChallenge: text('code_challenge').notNull(),
+		expiresAt: integer('expires_at').notNull()
+	},
+	// 連携の解除（CASCADE）と同意し直しでの削除用と、期限切れの掃除用。
+	(t) => [index('oauth_code_grant').on(t.grantId), index('oauth_code_expires').on(t.expiresAt)]
+);
 
 /**
  * アクセストークンとリフレッシュトークン。生の値は持たず SHA-256 だけ（セッションと同じ）。

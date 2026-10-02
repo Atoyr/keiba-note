@@ -211,12 +211,64 @@ describe('リフレッシュトークン', () => {
 		]);
 	});
 
+	it('空の scope で狭めても、外せない races:read は残る', async () => {
+		const { client, tokens } = await tokensFor();
+		const r = (await refreshTokens(
+			db,
+			{ refreshToken: tokens.refresh_token, clientId: client.id, scope: '' },
+			NOW
+		)) as TokenResponse;
+		expect(r.scope).toBe('races:read');
+	});
+
 	it('別のクライアントからは使えない', async () => {
 		const { tokens } = await tokensFor();
 		const other = await registerClient(db, { name: 'Other', redirectUris: [REDIRECT] });
 		expect(
 			await refreshTokens(db, { refreshToken: tokens.refresh_token, clientId: other.id }, NOW)
 		).toMatchObject({ error: 'invalid_grant' });
+	});
+});
+
+describe('同意し直し', () => {
+	it('メモを外して同意し直すと、前のトークン（notes:read 付き）は使えない', async () => {
+		const { client, tokens } = await tokensFor('A', ['races:read', 'notes:read']);
+		// 同じクライアントにもう一度、races:read だけで同意する。
+		const code = await createAuthorizationCode(
+			db,
+			{
+				userId: 'A',
+				clientId: client.id,
+				scopes: ['races:read'],
+				redirectUri: REDIRECT,
+				codeChallenge: CHALLENGE
+			},
+			NOW
+		);
+		expect(code).not.toBeNull();
+		expect(await validateAccessToken(db, tokens.access_token, NOW)).toBe(null);
+		expect(
+			await refreshTokens(db, { refreshToken: tokens.refresh_token, clientId: client.id }, NOW)
+		).toMatchObject({ error: 'invalid_grant' });
+		// 一覧の表示と、効くスコープがそろう。
+		expect((await listGrants(db, 'A'))[0].scopes).toEqual(['races:read']);
+	});
+
+	it('期限の切れた使われなかったコードは、次の同意で消える', async () => {
+		await authorize('A');
+		await authorize('B'); // 別の連携。NOW + 期限を過ぎたあとの同意で消える
+		await createAuthorizationCode(
+			db,
+			{
+				userId: 'A',
+				clientId: (await registerClient(db, { name: 'C', redirectUris: [REDIRECT] })).id,
+				scopes: ['races:read'],
+				redirectUri: REDIRECT,
+				codeChallenge: CHALLENGE
+			},
+			later(CODE_TTL_SEC + 1)
+		);
+		expect(sqlite.prepare('SELECT count(*) AS n FROM oauth_code').get()).toEqual({ n: 1 });
 	});
 });
 

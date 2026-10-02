@@ -31,7 +31,7 @@ import { safeRedirect } from '$lib/utils/redirect';
  * `/api/health` は死活監視（GitHub Actions の health.yml）が外から叩く。返すのは
  * `{"status":"ok"}` か `{"status":"error"}` だけで、DB の中身は出さない（docs/monitoring.md）。
  *
- * `/.well-known/` と `/oauth/register` は MCP クライアントが連携の前に読む・登録する口
+ * `/.well-known/oauth-*` と `/oauth/register` は MCP クライアントが連携の前に読む・登録する口
  * （docs/api.md 第2章）。案内と、権限を持たないクライアントの行を作るだけで、誰のデータにも触らない。
  * 同意画面の `/oauth/authorize` は入れない（ログインした本人だけが許可できる）。
  * `/oauth/token` は SvelteKit に来る前に src/worker.js が受けるので、ここには要らない。
@@ -48,7 +48,9 @@ const PUBLIC_PATHS = [
 	'/privacy',
 	'/terms',
 	'/api/health',
-	'/.well-known/',
+	// `/.well-known/` ごとは開けない。下に足したルートが黙って公開になる。
+	'/.well-known/oauth-protected-resource',
+	'/.well-known/oauth-authorization-server',
 	'/oauth/register'
 ];
 
@@ -84,6 +86,9 @@ function createRequestMonitor(event: RequestEvent): Monitor {
 /**
  * 認証の判断はここに閉じ込める。ルートからは `locals.user` しか見ない。
  * どの認証方式を使っているかを知っているのはこのファイルだけ。
+ *
+ * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
+ * **ここに足したもの（レート制限など）はその口には効かない**（docs/architecture.md 3-10）。
  */
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;

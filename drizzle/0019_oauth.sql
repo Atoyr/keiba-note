@@ -15,6 +15,8 @@ CREATE TABLE `oauth_code` (
 	FOREIGN KEY (`grant_id`) REFERENCES `oauth_grant`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE INDEX `oauth_code_grant` ON `oauth_code` (`grant_id`);--> statement-breakpoint
+CREATE INDEX `oauth_code_expires` ON `oauth_code` (`expires_at`);--> statement-breakpoint
 CREATE TABLE `oauth_grant` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,

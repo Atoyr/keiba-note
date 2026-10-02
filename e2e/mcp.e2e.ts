@@ -3,12 +3,15 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import {
+	BOTH_NOTED_HORSE_ID,
 	BRACKET_RACE_ID,
 	MCP_TOKENS,
+	OTHER_GRANT,
 	OTHER_USER_PREVIEW_BODY,
 	OTHER_USER_SAME_CONDITION_BODY,
 	OUTER_PREVIEW_BODY,
-	SESSION_TOKEN
+	SESSION_TOKEN,
+	TOGGLE_SHARE_NOTE_BODY
 } from './seed';
 
 /**
@@ -200,6 +203,39 @@ test.describe('他人のデータが見えない', () => {
 		expect(race).not.toContain(OUTER_PREVIEW_BODY);
 	});
 
+	test('馬のメモも、トークンの持ち主のぶんだけ', async ({ request }) => {
+		// 同じ馬に、自分の近況メモと別のユーザーの出走前メモがある。
+		const horse = async (token: string) =>
+			(
+				await toolText(
+					await callTool(request, token, 'get_my_horse_notes', { horseId: BOTH_NOTED_HORSE_ID })
+				)
+			).content[0].text;
+		const mine = await horse(MCP_TOKENS.all);
+		expect(mine).toContain(TOGGLE_SHARE_NOTE_BODY);
+		expect(mine).not.toContain(OTHER_USER_PREVIEW_BODY);
+		const theirs = await horse(MCP_TOKENS.other);
+		expect(theirs).toContain(OTHER_USER_PREVIEW_BODY);
+		expect(theirs).not.toContain(TOGGLE_SHARE_NOTE_BODY);
+	});
+
+	test('「AIとの連携」に他人の連携は出ず、他人の連携は解除できない', async ({ page, request }) => {
+		await login(page);
+		await gotoHydrated(page, '/settings/connections');
+		await expect(page.getByText('E2E クライアント', { exact: true })).toBeVisible();
+		await expect(page.getByText(OTHER_GRANT.clientName)).toHaveCount(0);
+
+		// 他人の grantId を送っても 404。相手のトークンはそのまま使える。
+		const res = await page.request.post('/settings/connections?/revoke', {
+			form: { grantId: OTHER_GRANT.id },
+			headers: { origin: new URL(page.url()).origin },
+			maxRedirects: 0
+		});
+		// Accept が */* なので SvelteKit は action の結果を JSON で返す（失敗は type: 'failure'）。
+		expect(await res.json()).toMatchObject({ type: 'failure', status: 404 });
+		expect((await mcp(request, MCP_TOKENS.other, rpc('tools/list'))).status()).toBe(200);
+	});
+
 	test('入力に user の id を足しても、読む相手は変わらず、要求ごと断る', async ({ request }) => {
 		const result = await toolText(
 			await callTool(request, MCP_TOKENS.all, 'list_my_recent_notes', {
@@ -357,22 +393,26 @@ test.describe('OAuth の全行程', () => {
 		expect(url.searchParams.get('code')).toBeNull();
 	});
 
-	test('別のサーバー向け（resource が違う）なら、同意を出さずに invalid_target で戻す', async ({
-		page,
-		request
-	}) => {
-		const clientId = await register(request, 'E2E resource');
-		await login(page);
-		const res = await page.request.get(
-			authorizeUrl(clientId, pkce().challenge, { resource: 'https://other.example/mcp' }),
-			{ maxRedirects: 0 }
-		);
-		expect(res.status()).toBe(302);
-		const url = new URL(res.headers()['location']);
-		expect(url.origin + url.pathname).toBe(REDIRECT);
-		expect(url.searchParams.get('error')).toBe('invalid_target');
-		expect(url.searchParams.get('code')).toBeNull();
-	});
+	for (const [what, extra] of [
+		['別のサーバー向け（resource が違う）', { resource: 'https://other.example/mcp' }],
+		['PKCE が無い', { code_challenge: '' }],
+		['response_type が code でない', { response_type: 'token' }]
+	] as const) {
+		test(`${what}要求は、戻り先へ飛ばさず（オープンリダイレクトにしない）この画面で止める`, async ({
+			page,
+			request
+		}) => {
+			// 登録は誰でもでき、戻り先も https ならどこでも登録できる。誤りで戻り先へ飛ばすと、
+			// わざと誤った要求を踏ませるだけで、本人が何も押さずに外のサイトへ送れてしまう。
+			const clientId = await register(request, 'E2E 誤った要求');
+			await login(page);
+			const res = await page.request.get(authorizeUrl(clientId, pkce().challenge, extra), {
+				maxRedirects: 0
+			});
+			expect(res.status()).toBe(200);
+			expect(await res.text()).toContain('連携を始められません');
+		});
+	}
 
 	test('登録と違う戻り先には飛ばさず、この画面で止める', async ({ page, request }) => {
 		const clientId = await register(request, 'E2E 戻り先');

@@ -295,3 +295,15 @@ export const MCP_CLIENT = {
 	id: 'uma_client_e2eall',
 	redirectUri: 'https://claude.ai/api/mcp/auth_callback'
 } as const;
+
+/** 別のユーザーの連携（seed.sql の oauth_grant）。自分の一覧に出ず、自分からは解除できない。 */
+export const OTHER_GRANT = {
+	id: '01JE2EGRANTOTHER0000000000',
+	clientName: 'E2E 別ユーザーのクライアント'
+} as const;
+
+/**
+ * 自分のメモ（TOGGLE_SHARE_NOTE_BODY・印○）と別のユーザーの出走前メモ（OTHER_USER_PREVIEW_BODY）の両方がある馬
+ * （E2E枠色賞の内枠、E2Eウチワク）。
+ */
+export const BOTH_NOTED_HORSE_ID = '01JE2EHORSEC00000000000000';

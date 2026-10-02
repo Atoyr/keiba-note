@@ -778,15 +778,17 @@ SELECT printf('01JE2EPAGEHORSE%011d', i), printf('E2E一覧ウマ%03d', i) FROM 
 -- トークンの id は e2e/seed.ts の MCP_TOKENS の SHA-256（セッションと同じ）。期限は 2099 年。
 -- - 自分（E2E ユーザー）が全部（races:read と notes:read）を許した連携
 -- - 自分が races:read だけを許した連携（別のクライアント）
--- - 別のユーザーが全部を許した連携。**同じ tool でも別の人のメモだけが返る**ことを見る
+-- - 別のユーザーが全部を許した連携（別のクライアント名）。**同じ tool でも別の人のメモだけが返る**こと、
+--   自分の「AIとの連携」に出ず、自分からは解除できないことを見る
 INSERT OR REPLACE INTO oauth_client (id, name, redirect_uris) VALUES
 	('uma_client_e2eall', 'E2E クライアント', '["https://claude.ai/api/mcp/auth_callback"]'),
-	('uma_client_e2eraces', 'E2E 読むだけのクライアント', '["http://127.0.0.1:33418/callback"]');
+	('uma_client_e2eraces', 'E2E 読むだけのクライアント', '["http://127.0.0.1:33418/callback"]'),
+	('uma_client_e2eother', 'E2E 別ユーザーのクライアント', '["https://chatgpt.com/connector_platform_oauth_redirect"]');
 
 INSERT OR REPLACE INTO oauth_grant (id, user_id, client_id, scopes, last_used_at, created_at) VALUES
 	('01JE2EGRANTALL000000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eall', '["races:read","notes:read"]', 1790000000, 1789000000),
 	('01JE2EGRANTRACES0000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eraces', '["races:read"]', NULL, 1789500000),
-	('01JE2EGRANTOTHER0000000000', '01JE2EOTHERUSER00000000000', 'uma_client_e2eall', '["races:read","notes:read"]', NULL, 1789000000);
+	('01JE2EGRANTOTHER0000000000', '01JE2EOTHERUSER00000000000', 'uma_client_e2eother', '["races:read","notes:read"]', NULL, 1789000000);
 
 INSERT OR REPLACE INTO oauth_token (id, grant_id, kind, scopes, expires_at) VALUES
 	('0e400dfb476f6feb9018d955467c93b966a16d5199d3ccbcae2184afa73e4996', '01JE2EGRANTALL000000000000', 'access', '["races:read","notes:read"]', 4102444800),

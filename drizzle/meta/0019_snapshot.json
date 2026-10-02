@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e82d5ac6-4d5f-4987-a95d-fb1ce990b0e9",
+  "id": "f367fded-e068-45fb-809e-04ccafe56459",
   "prevId": "51491b9f-cd17-483a-9560-4553f1d702ae",
   "tables": {
     "data_import": {
@@ -659,7 +659,22 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "oauth_code_grant": {
+          "name": "oauth_code_grant",
+          "columns": [
+            "grant_id"
+          ],
+          "isUnique": false
+        },
+        "oauth_code_expires": {
+          "name": "oauth_code_expires",
+          "columns": [
+            "expires_at"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "oauth_code_grant_id_oauth_grant_id_fk": {
           "name": "oauth_code_grant_id_oauth_grant_id_fk",

@@ -1,10 +1,16 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeBase64urlNoPadding } from '@oslojs/encoding';
-import { and, eq, isNull, lt } from 'drizzle-orm';
+import { and, eq, isNull, lt, lte, or } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { oauthClient, oauthCode, oauthGrant, oauthToken, user } from '$lib/server/db/schema';
-import { knownScopes, redirectUriMatches, sortScopes, type OAuthScope } from '$lib/schemas/oauth';
+import {
+	knownScopes,
+	redirectUriMatches,
+	REQUIRED_SCOPES,
+	sortScopes,
+	type OAuthScope
+} from '$lib/schemas/oauth';
 import { hashSessionToken, type SessionUser } from './session';
 
 /**
@@ -64,6 +70,10 @@ export async function getClient(db: Db, clientId: string): Promise<OAuthClientVi
  * 本人が同意画面で「許可する」を押したときに呼ぶ。連携（grant）を作るか、あれば許したスコープを
  * 置き換え、認可コードを1つ出す。
  *
+ * **同意し直したら、その連携の前のトークンとコードを消す。** 残すと、メモのチェックを外して同意し直しても
+ * 前のリフレッシュトークンが notes:read を持ったまま生き続け、一覧の表示（grant のスコープ）と食い違う。
+ * ついでに、どの連携のものでも期限の切れたコードを消す（交換されなかったコードはほかに消す経路が無い）。
+ *
  * 戻り先がクライアントの登録と合うかは呼ぶ側（ルート）が確かめてから呼ぶが、ここでも確かめる。
  */
 export async function createAuthorizationCode(
@@ -91,14 +101,20 @@ export async function createAuthorizationCode(
 		.returning({ id: oauthGrant.id });
 
 	const code = generateSecret('uma_ac_');
-	await db.insert(oauthCode).values({
-		id: hashSessionToken(code),
-		grantId: grant.id,
-		scopes,
-		redirectUri: input.redirectUri,
-		codeChallenge: input.codeChallenge,
-		expiresAt: sec(now) + CODE_TTL_SEC
-	});
+	await db.batch([
+		db.delete(oauthToken).where(eq(oauthToken.grantId, grant.id)),
+		db
+			.delete(oauthCode)
+			.where(or(eq(oauthCode.grantId, grant.id), lte(oauthCode.expiresAt, sec(now)))),
+		db.insert(oauthCode).values({
+			id: hashSessionToken(code),
+			grantId: grant.id,
+			scopes,
+			redirectUri: input.redirectUri,
+			codeChallenge: input.codeChallenge,
+			expiresAt: sec(now) + CODE_TTL_SEC
+		})
+	]);
 	return code;
 }
 
@@ -251,7 +267,8 @@ export async function refreshTokens(
 		if (asked.some((s) => !(current as string[]).includes(s))) {
 			return { error: 'invalid_scope', error_description: '許可されていないスコープです' };
 		}
-		scopes = knownScopes(asked);
+		// 外せないスコープは狭めても残す（空の scope で何も呼べないトークンを出さない）。
+		scopes = sortScopes([...REQUIRED_SCOPES, ...asked]);
 	}
 	return issueTokens(db, row.grantId, scopes, now);
 }
