@@ -47,7 +47,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | 誰が | 仕組み | 通らなかったとき |
 | --- | --- | --- |
-| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/shared/races/`・`/privacy`・`/terms`・`/api/health`・`/.well-known/`・`/oauth/register`）のパスと、その下。**`/` だけは完全一致** | — |
+| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/shared/races/`・`/privacy`・`/terms`・`/api/health`・`/.well-known/oauth-protected-resource`・`/.well-known/oauth-authorization-server`・`/oauth/register`）のパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | MCP クライアント（`/mcp` だけ） | hooks が `Authorization: Bearer` のアクセストークンを検証し、`locals.user`（許した本人）と `locals.oauthScopes` を載せる。**Cookie は見ない** | `401` と `WWW-Authenticate: Bearer resource_metadata=…`（ログインへ飛ばさない） |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
