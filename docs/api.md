@@ -32,7 +32,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 - 読み: `+page.server.ts` の `load` がサービス層を呼ぶ
 - 書き: form actions。JavaScript が無効でも動く（プログレッシブエンハンスメント）
-- `+server.ts` は、フォームでも画面でもない HTTP（OAuth のリダイレクト、ログアウト、死活監視）にだけ使う
+- `+server.ts` は、フォームでも画面でもない HTTP（OAuth のリダイレクト、ログアウト、死活監視、MCP の `/mcp`・`/.well-known/oauth-*`・`/oauth/register`）にだけ使う
 
 画面遷移ごとに API を叩く SPA にすると、リクエストが増え、実装も二重になる（→ [architecture.md 5-3](./architecture.md)）。
 
@@ -124,8 +124,8 @@ SvelteKit の `load` + form actions で完結させる。
 | `/settings/shares` | POST `default` | `noteId`・`visibility`（`private`\|`unlisted`）・`redirect` | 公開範囲を切り替え、`redirect` があれば `303` で戻す | 他人のメモ・無いメモは `fail(404)` |
 | `/settings/shares` | POST `default` | `raceId`（メモの操作とは排他） | 本人の予想まとめの共有を取り消す | 検証 `fail(400)` / 解除の失敗 `fail(503)` |
 | `/auth/logout` | POST | — | セッションを破棄して `303 /login` | — |
-| `/oauth/authorize` | GET | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge`・`code_challenge_method=S256`・`state`・`scope`・`resource` | 同意画面（アプリの名前・戻り先のホスト・スコープ）。`X-Frame-Options: DENY`・`no-store` | `client_id` か `redirect_uri` が違えば**戻り先へ飛ばさず**画面に出す / それ以外は `302` 戻り先に `error`（`invalid_request`・`invalid_target` など） |
-| `/oauth/authorize` | POST `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied` | GET と同じ |
+| `/oauth/authorize` | GET | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge`・`code_challenge_method=S256`・`state`・`scope`・`resource` | 同意画面（アプリの名前・戻り先のホスト・スコープ）。`X-Frame-Options: DENY`・`no-store` | 要求の誤り（クライアント・戻り先・PKCE・`response_type`・`resource`）は**戻り先へ飛ばさず**画面に出す（オープンリダイレクトにしない） |
+| `/oauth/authorize` | POST `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied`。同じクライアントへの前のトークンは消す | 要求の誤り `fail(400)`（画面に出す） |
 | `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・戻り先のホスト・スコープ・日付） | — |
 | `/settings/connections` | POST `?/revoke` | `grantId` | 本人の連携を解除（コードとトークンも消える） | 検証 `fail(400)` / 他人の連携・無い連携 `fail(404)` |
 

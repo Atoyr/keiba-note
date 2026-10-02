@@ -338,7 +338,9 @@ Google Cloud Console の OAuth クライアントには、リダイレクト URI
 
 ### セキュリティ上の押さえどころ
 
-- **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する（`csrf.checkOrigin`）。これを無効化しない
+- **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する（`csrf.checkOrigin`）。これを無効化しない。
+  例外は OAuth のトークンの口 `/oauth/token` だけで、`src/worker.js` が SvelteKit より先に受ける（Cookie を見ない口なので
+  検査が守るものが無い。→ [architecture.md 3-10](./architecture.md)）
 - **state / PKCE** — Arctic が生成するものをそのまま使い、callback で必ず照合する
 - **オープンリダイレクト** — `?redirect=` は `/` で始まる相対パスのみ許可する（`//evil.com` を弾く）
 - **共有ページ** — 未ログインで到達できる唯一のルート。`noindex` / `no-referrer` / `no-store` と
@@ -390,6 +392,17 @@ erDiagram
 
 - `INDEX session_user ON session(user_id)` — 「全端末からログアウト」用
 - `INDEX session_expires ON session(expires_at)` — 期限切れの一括削除用
+
+### oauth_client / oauth_grant / oauth_code / oauth_token（AI との連携）
+
+MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませるための表（→ [architecture.md 3-10](./architecture.md)）。
+
+| 表 | 1行 | 消えるとき |
+| --- | --- | --- |
+| `oauth_client` | 動的登録されたクライアント（名前・戻り先）。**何の権限も持たない** | まだ消さない |
+| `oauth_grant` | 本人×クライアントの連携（許したスコープ）。`UNIQUE(user_id, client_id)` | 本人の解除・リフレッシュトークンの使い回し・凍結・user の削除（CASCADE） |
+| `oauth_code` | 認可コード（SHA-256・5分・1回きり） | 交換・同意し直し・期限切れのあとの次の同意・grant の削除 |
+| `oauth_token` | アクセス（1時間）とリフレッシュ（30日・使ったら `used_at`）。SHA-256 だけ | 同意し直し・grant の削除・期限切れのあとの次の発行 |
 
 ### horse
 

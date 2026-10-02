@@ -83,7 +83,7 @@ AGENTS.md
 詳細と理由はリンク先。見出しだけここに置く。
 
 - メモを読む関数は `viewerId` を必須で受け、WHERE に `author_id = :viewer` を入れる（[architecture.md 第0章](./docs/architecture.md)）
-- 認証は `hooks.server.ts` だけが判断する。ログイン不要のパスは `PUBLIC_PATHS` だけ（[api.md 第2章](./docs/api.md)）
+- 認証は `hooks.server.ts` だけが判断する。ログイン不要のパスは `PUBLIC_PATHS` だけ。`/mcp` は Bearer だけ・Bearer は `/mcp` だけ（[api.md 第2章](./docs/api.md)・[architecture.md 3-10](./docs/architecture.md)）
 - 画面側はサーバーのコードを型ですら import しない。サービス層は SvelteKit を import しない（[architecture.md 第2章](./docs/architecture.md)）
 - `src/lib/components/ui/` と `drizzle/` の生成物は手で直さない（[design-system.md](./docs/design-system.md) / [architecture.md 第0章](./docs/architecture.md)）
 - 本番の D1（`--remote`）・`wrangler secret`・`deploy` は叩かない。人が行う
