@@ -111,8 +111,9 @@ const IP_LITERAL = /^(\d{1,3}(\.\d{1,3}){3}|\[[0-9a-f:.]+\])$/i;
  * `client_id` として受けてよい URL か。Claude はこの方式を推奨している。
  *
  * - `https:` で、パスがある（ホストだけの URL は受けない）
- * - フラグメント・ユーザー名とパスワード・クエリを持たず、`.` と `..` のセグメントを持たない
- * - ホストが IP アドレスの直書きでない（社内のアドレスなどを取りに行かせない）
+ * - フラグメント・ユーザー名とパスワード・クエリを持たず、`.` と `..` のセグメントを持たない。正規化しても変わらない
+ * - ホストが IP アドレスの直書き・`localhost`・末尾のドット付きでない。名前で私的なアドレスを指すものまでは
+ *   形では弾けないので、Workers の fetch が私的なネットワークへ届かないことに頼っている
  *
  * `allowLoopback` は E2E だけで使う（手元のサーバーが置いた文書を `http://localhost` で読む）。
  * 本番では設定しない（wrangler.toml に無く、playwright.config.ts の `--var` だけが付ける）。
@@ -131,9 +132,14 @@ export function isClientIdMetadataUrl(clientId: string, allowLoopback = false): 
 	if (url.hash || url.search || clientId.includes('#') || clientId.includes('?')) return false;
 	if (url.username || url.password) return false;
 	if (url.pathname === '/' || url.pathname === '') return false;
+	// 正規化しても変わらない URL だけ。`%2e%2e`・`\`・`:443`・大文字のホストなどで、取りに行く先と
+	// 文書の client_id を比べる文字列がずれないように（fetch は正規化したあとの URL へ行く）。
+	if (url.href !== clientId) return false;
 	if (url.protocol === 'http:') return allowLoopback && url.hostname === 'localhost';
 	if (url.protocol !== 'https:') return false;
-	return !IP_LITERAL.test(url.hostname) && url.hostname.includes('.');
+	const host = url.hostname;
+	if (host.endsWith('.') || host === 'localhost' || host.endsWith('.localhost')) return false;
+	return !IP_LITERAL.test(host) && host.includes('.');
 }
 
 /** Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。 */

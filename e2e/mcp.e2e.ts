@@ -828,3 +828,14 @@ test.describe('Client ID Metadata Document', () => {
 		await expect(page.getByRole('heading', { name: '連携を始められません' })).toBeVisible();
 	});
 });
+
+test('「AIとの連携」では、CIMD のクライアントに提供元を出し、動的登録のクライアントには出さない', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, '/settings/connections');
+	const metadata = page.getByRole('listitem').filter({ hasText: 'E2E メタデータのクライアント' });
+	await expect(metadata.getByText('提供元: client.example')).toBeVisible();
+	const registered = page.getByRole('listitem').filter({ hasText: 'E2E 読むだけのクライアント' });
+	await expect(registered.getByText(/提供元/)).toHaveCount(0);
+});

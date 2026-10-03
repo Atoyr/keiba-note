@@ -799,3 +799,8 @@ INSERT OR REPLACE INTO oauth_token (id, grant_id, kind, scopes, expires_at) VALU
 -- 文書は取りに行かせない（fetched_at を 2099 年にして、保存した内容を使わせる）。
 INSERT OR REPLACE INTO oauth_client (id, name, redirect_uris, source, fetched_at) VALUES
 	('https://client.example/uma-memo/client-metadata.json', 'E2E メタデータのクライアント', '["https://claude.ai/api/mcp/auth_callback"]', 'metadata', 4102444800);
+
+-- 自分が CIMD のクライアントに許した連携。「AIとの連携」に「提供元: client.example」が出るのを撮る・確かめる。
+UPDATE oauth_client SET connected_at = 1789600000 WHERE id = 'https://client.example/uma-memo/client-metadata.json';
+INSERT OR REPLACE INTO oauth_grant (id, user_id, client_id, scopes, last_used_at, created_at) VALUES
+	('01JE2EGRANTMETADATA0000000', '01JE2EUSER0000000000000000', 'https://client.example/uma-memo/client-metadata.json', '["races:read","notes:read"]', NULL, 1789600000);

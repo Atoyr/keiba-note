@@ -129,6 +129,11 @@ describe('isClientIdMetadataUrl', () => {
 		'http://claude.ai/c.json',
 		'ftp://claude.ai/c.json',
 		'uma_client_abc',
+		'https://claude.ai/x/%2e%2e/c.json',
+		'https://CLAUDE.ai/c.json',
+		'https://claude.ai:443/c.json',
+		'https://localhost./c.json',
+		'https://app.localhost/c.json',
 		`https://claude.ai/${'a'.repeat(2001)}`
 	])('%s は受けない', (url) => {
 		expect(isClientIdMetadataUrl(url)).toBe(false);

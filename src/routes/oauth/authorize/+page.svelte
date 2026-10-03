@@ -29,11 +29,7 @@
 			</p>
 		</div>
 		<p class="mt-3 text-sm text-muted-foreground">
-			{#if data.client.provider}
-				提供元は、アプリの情報が置かれているアドレスで確かめたものです。心当たりが無ければ許可しないでください。
-			{:else}
-				アプリの名前はアプリ自身が名乗ったものです。心当たりが無ければ許可しないでください。
-			{/if}
+			アプリの名前はアプリ自身が名乗ったものです。{#if data.client.provider}提供元は、アプリの情報が置かれているアドレスで確かめたものです。{/if}心当たりが無ければ許可しないでください。
 		</p>
 
 		<form method="POST" class="mt-6 space-y-6">

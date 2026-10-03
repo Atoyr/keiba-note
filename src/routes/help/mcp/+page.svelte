@@ -153,6 +153,11 @@
 				なら claude.ai、ChatGPT なら chatgpt.com であることを確かめてください。
 			</li>
 			<li>
+				Claude で推奨の「Use Claude's published identity」を選んだときは「提供元:
+				claude.ai」のように出ます。提供元は、アプリの情報が置かれているアドレスで uma-memo
+				が確かめたものです。
+			</li>
+			<li>
 				「{SCOPE_LABELS['races:read']}」は連携に必要で外せません。
 			</li>
 			<li>
@@ -203,10 +208,12 @@
 			<div>
 				<dt class="font-semibold">許可画面に「連携を始められません」と出る</dt>
 				<dd class="mt-1">
-					アプリ側の設定が uma-memo
-					と合っていません。コネクタを削除して、上の手順で追加し直してください。Claude の「OAuth
-					client」で「Use your own OAuth client」を選んでいたら、推奨の「Use Claude's published
-					identity」か「Register automatically」にしてください。
+					「アプリの情報を取得できませんでした」「混み合っています」と出たときは、アプリ側の一時的な不調か
+					uma-memo
+					側の混雑です。しばらくしてから、アプリ側でもう一度つないでください。それ以外のときは、アプリ側の設定が
+					uma-memo と合っていません。コネクタを削除して、上の手順で追加し直してください。Claude
+					の「OAuth client」で「Use your own OAuth client」を選んでいたら、推奨の「Use Claude's
+					published identity」か「Register automatically」にしてください。
 				</dd>
 			</div>
 			<div>

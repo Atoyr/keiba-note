@@ -52,8 +52,9 @@ type Checked =
 	  };
 
 /**
- * 認可の要求を確かめる。読み取りは client の1クエリだけ。client_id が Client ID Metadata Document の URL なら、
- * 24時間に1回その文書を取りに行く（auth/client-metadata.ts）。
+ * 認可の要求を確かめる。読み取りは client の1クエリ。client_id が Client ID Metadata Document の URL なら、
+ * 24時間に1回その文書を取りに行き、oauth_client に保存する（auth/client-metadata.ts）。GET の load でも書くのは
+ * この保存だけで、取ってきた内容のキャッシュにあたる（docs/api.md 第1章の例外）。
  */
 async function check(
 	db: Db,
@@ -63,9 +64,24 @@ async function check(
 ): Promise<Checked> {
 	const clientId = raw.client_id ?? '';
 	const redirectUri = raw.redirect_uri ?? '';
-	const client = clientId ? await resolveClient(db, clientId, { allowLoopback }) : null;
+	const resolved = clientId
+		? await resolveClient(db, clientId, { allowLoopback })
+		: ({ ok: false, reason: 'unknown' } as const);
 	const invalid = (message: string) => ({ kind: 'invalid' as const, message });
-	if (!client) return invalid('このアプリは登録されていません。');
+	if (!resolved.ok) {
+		if (resolved.reason === 'unavailable') {
+			return invalid(
+				`アプリの情報（${new URL(clientId).host}）を取得できませんでした。しばらくしてから、アプリ側でもう一度つないでください。`
+			);
+		}
+		if (resolved.reason === 'busy') {
+			return invalid(
+				'新しいアプリの受け付けが混み合っています。しばらくしてからやり直してください。'
+			);
+		}
+		return invalid('このアプリは登録されていません。');
+	}
+	const { client } = resolved;
 	if (!redirectUriMatches(client.redirectUris, redirectUri)) {
 		return invalid('戻り先がアプリの登録と一致しません。');
 	}

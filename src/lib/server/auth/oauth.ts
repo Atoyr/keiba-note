@@ -99,14 +99,26 @@ export async function registerClient(
 	const expired = db
 		.select({ id: oauthClient.id })
 		.from(oauthClient)
-		.where(and(lte(oauthClient.createdAt, t - UNUSED_CLIENT_TTL_SEC), neverConnected))
+		// CIMD の行は auth/client-metadata.ts が取得の時刻で掃除する。ここは動的登録の行だけ。
+		.where(
+			and(
+				lte(oauthClient.createdAt, t - UNUSED_CLIENT_TTL_SEC),
+				neverConnected,
+				eq(oauthClient.source, 'registered')
+			)
+		)
 		.limit(100);
 	const recent = db
 		.select({ id: oauthClient.id })
 		.from(oauthClient)
-		.where(gt(oauthClient.createdAt, t - CLIENT_REGISTRATION_WINDOW_SEC))
+		.where(
+			and(
+				gt(oauthClient.createdAt, t - CLIENT_REGISTRATION_WINDOW_SEC),
+				eq(oauthClient.source, 'registered')
+			)
+		)
 		.limit(CLIENT_REGISTRATION_LIMIT);
-	// 数えるのは動的登録だけ。CIMD の行はログインした本人が同意画面を開いたときにしか増えない。
+	// 数えるのは動的登録だけ。CIMD の行は auth/client-metadata.ts が別の上限で数える。
 	const pending = db
 		.select({ id: oauthClient.id })
 		.from(oauthClient)
