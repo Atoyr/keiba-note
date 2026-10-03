@@ -722,7 +722,11 @@ test('登録の案内は「AIとの連携」から開け、接続先の URL と 
 	await expect(page).toHaveURL('/help/mcp');
 	await expect(page.getByRole('heading', { level: 1, name: 'AIとの連携の始め方' })).toBeVisible();
 	// 接続先は /mcp。登録に使う URL をそのまま写せること。
-	await expect(page.getByText(/^https?:\/\/[^\s]+\/mcp$/)).toBeVisible();
+	const mcpUrl = (await page.getByText(/^https?:\/\/[^\s]+\/mcp$/).textContent())!.trim();
+	await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+	await page.getByRole('button', { name: 'URL をコピー' }).click();
+	await expect(page.getByText('接続先の URL をコピーしました。')).toBeVisible();
+	expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(mcpUrl);
 	await expect(page.getByRole('heading', { name: 'Claude に追加する' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'ChatGPT に追加する' })).toBeVisible();
 	// Claude の推奨の方式（Client ID Metadata Document）に対応したので、推奨のままでよいと案内している。

@@ -158,6 +158,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `LoadMore` | 100件ずつ読む一覧の下端。近づくと続きを読み、「続きを読み込む」（`Button variant="outline"`。JS が無いときは次のページへのリンク）でも読める。読めなければ `role="alert"` の文と「もう一度読み込む」。行を足すのは `utils/paged-list.svelte.ts` の `PagedList` |
 | `NoteMenu` / `AnswerCheck` / `DraftKeeper` / `SaveBar` | メモの `⋯` メニュー・的中の確認・書きかけの保持・未保存のときだけ出る保存ボタン |
 | `AccountMenu` | ヘッダのアバター |
+| `McpUrl` | MCP の接続先の URL と「URL をコピー」。ヘルプ（`/help/mcp`）と「AIとの連携」で使う。コピーできなければ URL を選んだ状態にして、手でのコピーを頼む |
 | `AppEnvMark` | ファビコンと、ステージングの帯（→ 2-4） |
 | `LegalDocument` | プライバシーポリシーと利用規約の枠（見出し・制定日と改定日・戻り先） |
 | `GoogleLogin` / `LandingPage` | 「Google でログイン」と規約への同意の一文・未ログインのトップの紹介ページ（使う順の3段階に機能とキャプチャを並べる。キャプチャは `pnpm run landing:shots` で撮る → [testing.md 第8章](./testing.md)） |
