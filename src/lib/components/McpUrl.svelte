@@ -1,15 +1,25 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button/index.js';
 
 	/**
 	 * MCP の接続先の URL と、コピーのボタン。ヘルプ（/help/mcp）と「AIとの連携」で同じものを出す。
-	 * コピーできない環境（クリップボードの許可が無いなど）では、URL を選んだ状態にして手でコピーしてもらう。
+	 * コピーできたらトーストで知らせる（design-system.md 第3章）。できなければ（クリップボードの許可が無いなど）
+	 * URL を選んだ状態にし、手でのコピーを頼む文を画面に残す。
+	 * ボタンは JS が動いてから出す（JS が無いと押しても何も起きない。URL は文として見えているので手で写せる）。
 	 */
 	let { url }: { url: string } = $props();
 
+	let ready = $state(false);
 	let status = $state<'idle' | 'copied' | 'manual'>('idle');
 	let box = $state<HTMLElement>();
 	let timer: ReturnType<typeof setTimeout> | undefined;
+
+	onMount(() => {
+		ready = true;
+		return () => clearTimeout(timer);
+	});
 
 	function selectUrl() {
 		if (!box) return;
@@ -25,6 +35,7 @@
 		try {
 			await navigator.clipboard.writeText(url);
 			status = 'copied';
+			toast.success('接続先の URL をコピーしました');
 			timer = setTimeout(() => (status = 'idle'), 2000);
 		} catch {
 			selectUrl();
@@ -38,22 +49,21 @@
 		<p bind:this={box} class="flex-1 rounded-md bg-muted px-3 py-2 font-mono text-sm break-all">
 			{url}
 		</p>
-		<Button
-			type="button"
-			variant="outline"
-			size="sm"
-			onclick={copy}
-			class="self-start sm:self-auto"
-		>
-			{status === 'copied' ? 'コピーしました' : 'URL をコピー'}
-		</Button>
-	</div>
-	<!-- 読み上げの領域は最初から置いておく（後から足すと読まれないことがある）。空のあいだは余白を取らない。 -->
-	<p class="mt-2 text-sm text-muted-foreground empty:mt-0" aria-live="polite">
-		{#if status === 'copied'}
-			接続先の URL をコピーしました。
-		{:else if status === 'manual'}
-			コピーできませんでした。選んだ URL を長押しか右クリックでコピーしてください。
+		{#if ready}
+			<Button
+				type="button"
+				variant="outline"
+				size="sm"
+				onclick={copy}
+				class="self-start sm:self-auto"
+			>
+				{status === 'copied' ? 'コピーしました' : 'URL をコピー'}
+			</Button>
 		{/if}
-	</p>
+	</div>
+	{#if status === 'manual'}
+		<p role="alert" class="mt-2 text-sm text-destructive">
+			コピーできませんでした。選んだ URL を長押しか右クリックでコピーしてください。
+		</p>
+	{/if}
 </div>

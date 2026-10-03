@@ -725,7 +725,7 @@ test('登録の案内は「AIとの連携」から開け、接続先の URL と 
 	const mcpUrl = (await page.getByText(/^https?:\/\/[^\s]+\/mcp$/).textContent())!.trim();
 	await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.getByRole('button', { name: 'URL をコピー' }).click();
-	await expect(page.getByText('接続先の URL をコピーしました。')).toBeVisible();
+	await expect(page.getByText('接続先の URL をコピーしました')).toBeVisible();
 	expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(mcpUrl);
 	await expect(page.getByRole('heading', { name: 'Claude に追加する' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'ChatGPT に追加する' })).toBeVisible();

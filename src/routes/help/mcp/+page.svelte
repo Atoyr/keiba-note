@@ -15,7 +15,7 @@
 
 <!--
 	Claude・ChatGPT の画面の名前と手順は、各社の公式の案内（2026年10月3日確認）に合わせている。
-	ChatGPT の画面の名前は、日本語表示の実際の画面（2026年10月4日確認）に合わせている。
+	ChatGPT の手順2〜5の画面の名前は、日本語表示の実際の画面（2026年10月4日確認）に合わせている。
 	画面が変わったら、確認日と一緒に直す。
 -->
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -120,7 +120,7 @@
 		<p class="mt-3 text-sm leading-relaxed">
 			Plus・Pro・Business・Enterprise・Education の各プランの<strong>Web 版だけ</strong
 			>で使えます。スマホの ChatGPT アプリでは使えません。Business
-			以上では、管理者が開発者モードを許可している必要があります。画面の名前は日本語表示のものです。
+			以上では、管理者が開発者モードを許可している必要があります。手順2〜5の画面の名前は日本語表示のもの、手順1と6は公式の案内にある英語表示のものです。
 		</p>
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
 			<li>chatgpt.com の「Settings」→「Security and login」で「Developer mode」をオンにします。</li>
@@ -130,7 +130,7 @@
 			</li>
 			<li>
 				名前に「uma-memo」を入れます。「接続タイプ」は「サーバーURL」のまま、URL に上の接続先の URL
-				を入れ、「認証」は「OAuth」を選びます。「OAuth の詳細設定」は変えなくて構いません。
+				を入れ、「認証」は「OAuth」を選びます。「OAuthの詳細設定」は変えなくて構いません。
 			</li>
 			<li>
 				注意書きを読んで「理解したうえで続けます」にチェックを入れ、「プラグインとして作成」を押します。
@@ -154,7 +154,7 @@
 				href="https://developers.openai.com/api/docs/guides/developer-mode"
 				class={link}
 				referrerpolicy="no-referrer">OpenAI 公式の案内</a
-			>と、日本語表示の画面をもとにしています（2026年10月4日確認）。
+			>と、日本語表示の「プラグイン」の画面をもとにしています（2026年10月4日確認）。
 		</p>
 	</section>
 
