@@ -144,11 +144,7 @@ export function isClientIdMetadataUrl(clientId: string, allowLoopback = false): 
 
 /**
  * Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。
- *
- * 公開クライアント（`none`）として振る舞えるものだけを受ける。`token_endpoint_auth_method` が無いか `none` のもの、
- * または別の方式を選んでいても `token_endpoint_auth_methods_supported` に `none` を挙げているもの。
- * ChatGPT の文書は `private_key_jwt` を選びつつ `none` も挙げていて、認可サーバーの案内
- * （`token_endpoint_auth_methods_supported: ['none']`）を見て `none` で来る。
+ * 公開クライアント（`none`）として使えるものだけを受ける。条件と理由は architecture.md 3-10。
  */
 export const clientMetadataDocumentSchema = v.pipe(
 	v.object({
@@ -160,18 +156,23 @@ export const clientMetadataDocumentSchema = v.pipe(
 			v.maxLength(10),
 			v.check((uris) => uris.every(isAllowedRedirectUri), '戻り先は https かループバックだけです')
 		),
-		token_endpoint_auth_method: v.optional(v.pipe(v.string(), v.maxLength(100))),
-		token_endpoint_auth_methods_supported: v.optional(
-			v.pipe(v.array(v.pipe(v.string(), v.maxLength(100))), v.maxLength(20))
-		)
+		token_endpoint_auth_method: v.optional(v.unknown()),
+		// 判定にしか使わないので形は問わない（崩れていても none 以外の方式を受けないだけ）。
+		token_endpoint_auth_methods_supported: v.optional(v.unknown())
 	}),
 	v.check(
 		(doc) =>
 			doc.token_endpoint_auth_method === undefined ||
 			doc.token_endpoint_auth_method === 'none' ||
-			(doc.token_endpoint_auth_methods_supported?.includes('none') ?? false),
+			(Array.isArray(doc.token_endpoint_auth_methods_supported) &&
+				doc.token_endpoint_auth_methods_supported.includes('none')),
 		'公開クライアント（none）として使えるものだけを受けます'
-	)
+	),
+	v.transform(({ client_id, client_name, redirect_uris }) => ({
+		client_id,
+		client_name,
+		redirect_uris
+	}))
 );
 
 /** 動的クライアント登録（RFC 7591）。ほかの項目（logo_uri など）は読み捨てる。 */

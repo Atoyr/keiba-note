@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
 import {
+	clientMetadataDocumentSchema,
 	clientRegistrationSchema,
 	isClientIdMetadataUrl,
 	consentSchema,
@@ -107,6 +108,52 @@ describe('clientRegistrationSchema', () => {
 		expect(v.is(clientRegistrationSchema, { redirect_uris: ['http://evil.example/cb'] })).toBe(
 			false
 		);
+	});
+});
+
+describe('clientMetadataDocumentSchema', () => {
+	const base = {
+		client_id: 'https://chatgpt.com/oauth/client.json',
+		redirect_uris: ['https://chatgpt.com/connector_platform_oauth_redirect']
+	};
+	const ok = (over: Record<string, unknown>) =>
+		v.is(clientMetadataDocumentSchema, { ...base, ...over });
+
+	it('方式が無いか none なら、一覧の形によらず受ける', () => {
+		expect(ok({})).toBe(true);
+		expect(ok({ token_endpoint_auth_method: 'none' })).toBe(true);
+		expect(
+			ok({ token_endpoint_auth_method: 'none', token_endpoint_auth_methods_supported: 'x' })
+		).toBe(true);
+	});
+
+	it('別の方式でも、一覧に none があれば受ける', () => {
+		for (const method of ['private_key_jwt', 'client_secret_basic']) {
+			expect(
+				ok({
+					token_endpoint_auth_method: method,
+					token_endpoint_auth_methods_supported: ['none', method]
+				})
+			).toBe(true);
+		}
+	});
+
+	it('別の方式で、一覧に none が無い・一覧の形が崩れている・表記が違うなら受けない', () => {
+		const m = { token_endpoint_auth_method: 'private_key_jwt' };
+		expect(ok(m)).toBe(false);
+		expect(ok({ ...m, token_endpoint_auth_methods_supported: ['private_key_jwt'] })).toBe(false);
+		expect(ok({ ...m, token_endpoint_auth_methods_supported: 'none' })).toBe(false);
+		expect(ok({ ...m, token_endpoint_auth_methods_supported: ['None', ' none'] })).toBe(false);
+		expect(ok({ token_endpoint_auth_method: 'None' })).toBe(false);
+	});
+
+	it('判定に使った項目は出力に残さない', () => {
+		const out = v.parse(clientMetadataDocumentSchema, {
+			...base,
+			token_endpoint_auth_method: 'private_key_jwt',
+			token_endpoint_auth_methods_supported: ['none']
+		});
+		expect(out).toEqual({ ...base, client_name: '' });
 	});
 });
 
