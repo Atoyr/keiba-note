@@ -4,27 +4,19 @@ name: オッズの更新
 # Worker（Cloudflare）からは取らない。netkeiba は Workers から来たリクエストを時間帯によってまとめて
 # 400 で返すため（docs/architecture.md 3-8）。
 #
-# UTC で書く。JST 7:05〜25:05（翌 1:05）の30分おき。
-#   "5,35 22-23,0-15 * * *" … JST 7:05〜24:35
-#   "5 16 * * *"            … JST 25:05 の1回（上の式では拾えない）
-# 0分・30分を避けて5分ずらしている。GitHub の schedule は毎時0分に混んで遅れやすく、
-# 発走の直前の回（15:40 発走なら 15:35）が発走後にずれると対象から外れてしまうため。
-# ネットの前日発売は夜間も売っているので 25:00 まで回す。25:00〜7:00 は回さない。
-# 取りに行くのは時間帯に入ったレース（src/lib/utils/odds.ts の inOddsWindow）がある回だけで、
-# 無い回は D1 を1回読んで終わる。
-#
-# GitHub の schedule は数分〜十数分遅れることがあり、混んでいると飛ばされることもある。
-# 30分おきの目安として扱う。
+# 起動するのは Worker の Cron（src/lib/server/odds/scheduled.ts）。JST 7:05〜25:05（翌 1:05）の30分おきに、
+# 取りに行く時間帯（src/lib/utils/odds.ts の inOddsWindow）に入った重賞があるときだけ workflow_dispatch で起動する。
+# GitHub の schedule は使わない。混んでいると大半の回を飛ばし（1日37回のうち5回しか起動しなかった）、
+# 起動しても数時間遅れることがあったため。人は Actions の画面から手で起動してもよい（対象が無ければ D1 を1回読んで終わる）。
+# 本番の D1 に書き、取得元へも行くので、エージェントは起動しない。
 on:
-  schedule:
-    - cron: '5,35 22-23,0-15 * * *'
-    - cron: '5 16 * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# 前の回が遅れて残っていたら、重ねずに待つ。deploy の群には入れない
+# 前の回が遅れて残っていたら、重ねずに待つ。待てるのは1本だけで、新しい回が来ると古い待ちは取り消される
+# （各回が起動した時刻で対象を選び直すので、取り消されても取り漏れない）。deploy の群には入れない
 # （同じ群に待ちが2つ並ぶと古いほうが消され、デプロイが飛ぶ）。
 concurrency:
   group: odds-update
@@ -33,6 +25,8 @@ concurrency:
 jobs:
   update:
     name: 更新
+    # 本番の D1 に書くので main からだけ。Worker は ref: main で起動する。手でほかのブランチを選んでも動かさない
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

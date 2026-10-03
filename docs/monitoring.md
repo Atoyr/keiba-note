@@ -14,6 +14,7 @@ GitHub Actions の結果の通知、外からの死活監視。
 - 更新日: 2026-09-25 — 出走馬の取得の依頼（Cron・管理画面）の event と、`race-data-fetch.yml` の通知を足した（→ 第3章 / 第7章）
 - 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions（`odds-update.yml`）に移した。
   `odds.*` のログは Workers Logs ではなく Actions の run に出る（→ 第1章 / 第3章 / 第7章）
+- 更新日: 2026-10-03 — オッズの更新の起動を Worker の Cron に移し、`odds.dispatch` の event を足した（→ 第1章 / 第3章）
 
 ---
 
@@ -26,7 +27,7 @@ Worker（hooks.server.ts が1リクエストに1つ monitor を作る）
 
 GitHub Actions（discord-notify.yml）
  ├─ health.yml（30分ごとに /api/health）落ちた・戻ったときだけ → Discord「障害」
- ├─ odds-update.yml（30分ごとにオッズの更新）人の手が要る失敗のときだけ → Discord「障害」
+ ├─ odds-update.yml（Worker の Cron が起動するオッズの更新）人の手が要る失敗のときだけ → Discord「障害」
  ├─ main の CI の失敗 ──────────────┐
  ├─ 本番デプロイの成功・失敗 ───────┼→ Discord「デプロイ」
  └─ 本番へのレースデータ投入の失敗 ─┘
@@ -93,10 +94,13 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
 | `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
 | `entries.dispatch.failed` | warn / error | error だけ | `/settings/admin` の `?/fetchEntries` | 管理画面から頼めなかった。届かなかったときは warn。トークン未設定は画面に出すだけでログにしない |
+| `odds.dispatch` | info / warn / error | 下の表 | `lib/server/odds/request.ts` | Cron がオッズの更新を GitHub Actions に頼んだ（成否どちらも）。対象のレースがあった回だけ出す。`raceIds`・`success`・`errorType` を載せる |
+| `odds.dispatch.failed` | error | する | `lib/server/odds/scheduled.ts` | 対象のレースを選ぶところで落ちた |
 
 ### オッズの更新（GitHub Actions）のログ
 
 オッズは Worker ではなく GitHub Actions（`odds-update.yml` → `scripts/odds-update.ts`）が取る（→ [architecture.md 3-8](./architecture.md)）。
+Actions を起動するのは Worker の Cron で、その記録は上の `odds.dispatch`（Workers Logs）に残る。
 ログは **Workers Logs には出ず、Actions の run のログ**に JSON で1行ずつ出る。形は Worker のログと揃えてある。
 
 | event | level | 通知 | どこで | いつ |
@@ -132,6 +136,9 @@ run を失敗で終え、`discord-notify.yml` が「障害」のチャンネル�
 | `rate-limited` | warn | する | GitHub の API の制限。その回の残りは頼まない |
 | `auth` | error | する | トークンが通らない（期限切れ・権限不足）。その回の残りは頼まない |
 | `http` / `unknown` | error | する | ワークフローが main に無い（404）・inputs が合わない（422）など |
+
+`odds.dispatch` の重さも同じ表のとおり（`requestId` は `cron-odds-<起動時刻>`）。ただし1回の Cron で頼むのは1回だけなので「残りは頼まない」は無く、
+`network` は30分後の回でまた頼む。
 
 リクエストと同じく、Cron の1回で送る通知は1件まで（先に起きたほう）。
 

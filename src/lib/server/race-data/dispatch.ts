@@ -1,5 +1,6 @@
 /**
  * 出走馬の取得を GitHub Actions（`.github/workflows/race-data-fetch.yml`）に頼む。
+ * ワークフローを起動する部分（`dispatchWorkflow`）は、オッズの更新の起動（`lib/server/odds/`）も使う。
  *
  * **Worker は netkeiba へ行かず、D1 にも書かない。** 出馬表を取って `data/races/*.yaml` に書き、
  * PR を作るのは Actions。本番に入るのは人がその PR をマージしたとき。出走馬データの正は YAML のまま
@@ -76,6 +77,18 @@ export async function dispatchEntriesFetch(
 	config: DispatchConfig,
 	req: EntriesFetchRequest
 ): Promise<void> {
+	await dispatchWorkflow(config, ENTRIES_WORKFLOW, workflowInputs(req));
+}
+
+/**
+ * このリポジトリの main のワークフローを `workflow_dispatch` で起動する。
+ * オッズの更新（`lib/server/odds/request.ts`）も、起動の合図にこれを使う。
+ */
+export async function dispatchWorkflow(
+	config: DispatchConfig,
+	workflow: string,
+	inputs: Record<string, string> = {}
+): Promise<void> {
 	const { token, repository } = config;
 	if (!token || !repository || !REPOSITORY.test(repository)) {
 		throw new DispatchError(
@@ -85,7 +98,7 @@ export async function dispatchEntriesFetch(
 	}
 
 	const fetchFn = config.fetchFn ?? fetch;
-	const url = `https://api.github.com/repos/${repository}/actions/workflows/${ENTRIES_WORKFLOW}/dispatches`;
+	const url = `https://api.github.com/repos/${repository}/actions/workflows/${workflow}/dispatches`;
 	let res: Response;
 	try {
 		res = await fetchFn(url, {
@@ -97,7 +110,7 @@ export async function dispatchEntriesFetch(
 				'User-Agent': 'uma-memo',
 				'X-GitHub-Api-Version': '2022-11-28'
 			},
-			body: JSON.stringify({ ref: 'main', inputs: workflowInputs(req) }),
+			body: JSON.stringify({ ref: 'main', inputs }),
 			signal: AbortSignal.timeout(10_000)
 		});
 	} catch (e) {

@@ -51,8 +51,12 @@ subrequests = 1000
 [alias]
 "$lib" = "./src/lib"
 
-# オッズの更新は Worker の Cron ではなく GitHub Actions（.github/workflows/odds-update.yml）がする。
-# netkeiba は Workers から来たリクエストを時間帯によってまとめて 400 で返す（docs/architecture.md 3-8）。
+# Cron は2つの用途で動く。どちらも GitHub Actions を起動するだけで、Worker から netkeiba へは行かない。
+#
+# オッズの更新の依頼（src/lib/server/odds/scheduled.ts の ODDS_CRONS と同じ文字列にする）。
+# JST 7:05〜25:05（翌 1:05）の30分おき。取りに行く時間帯に入った重賞があれば、Actions（odds-update.yml）を起動する。
+# 取得元から取るのは Actions。netkeiba は Workers から来たリクエストを時間帯によってまとめて 400 で返し、
+# GitHub の schedule は混んでいると大半の回を飛ばすので、この分け方にしている（docs/architecture.md 3-8）。
 #
 # 出走馬の取得の依頼（src/lib/server/race-data/scheduled.ts の ENTRIES_CRON と同じ文字列にする）。
 # 1-10 時 = JST 10:05〜19:05 の毎時。枠順を待っている重賞（1〜3日後で馬番が未入力）があれば、
@@ -60,7 +64,7 @@ subrequests = 1000
 #
 # Workers Previews（ステージング）では Cron は動かない。
 [triggers]
-crons = ["5 1-10 * * *"]
+crons = ["5 1-10 * * *", "5,35 22-23,0-15 * * *", "5 16 * * *"]
 
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。

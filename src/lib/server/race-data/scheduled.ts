@@ -14,7 +14,8 @@ import { requestEntriesFetch, type EntriesLogEntry } from './request';
 /**
  * 出走馬の取得を頼む Cron。UTC で書く。1-10 時 = JST 10:05〜19:05 の毎時。
  * **wrangler.toml の `[triggers] crons` と同じ文字列にすること**（`worker.js` がこれで出し分ける）。
- * オッズの Cron（毎時 0 分・30 分）と同じ時刻に重ならないよう 5 分にしてある。
+ * 毎時 0 分は混みやすいので 5 分にしてある。オッズの Cron（`lib/server/odds/scheduled.ts`）と時刻は重なるが、
+ * 式ごとに別々に起動されるので互いに影響しない。
  */
 export const ENTRIES_CRON = '5 1-10 * * *';
 

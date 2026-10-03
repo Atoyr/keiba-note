@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { getRaceOdds } from './odds';
+import { getRaceOdds, listOddsTargetIds } from './odds';
 
 // 書き込み（取得した値の保存）は GitHub Actions 側（scripts/odds/store.spec.ts）で見る。ここは読むだけ。
 let db: Db;
@@ -31,5 +31,49 @@ describe('getRaceOdds', () => {
 				{ horseNumber: 2, winOdds: null, placeOddsMin: null, placeOddsMax: null }
 			]
 		});
+	});
+});
+
+describe('listOddsTargetIds', () => {
+	// 2026-09-26（土）12:00 JST
+	const NOW = new Date('2026-09-26T03:00:00Z');
+
+	beforeEach(() => {
+		sqlite.exec(`DELETE FROM race`);
+		sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, grade, start_time, external_ref) VALUES
+			('G1', '2026-09-27', '中山', 11, 'G1（前々日の 18:30 から）', 'G1', '15:40', 'nk-202606040911'),
+			('G2', '2026-09-27', '阪神', 11, 'G2（前日の 18:30 から）', 'G2', '15:35', 'nk-202609040911'),
+			('PAST', '2026-09-26', '中山', 11, '発走済みの G3', 'G3', '11:00', 'nk-202606040811'),
+			('TODAY', '2026-09-26', '阪神', 11, 'これからの G3', 'G3', '15:30', 'nk-202609040811'),
+			('NOREF', '2026-09-26', '中山', 10, 'ref の無い G3', 'G3', '15:00', NULL),
+			('OP', '2026-09-26', '阪神', 10, 'OP', 'OP', '14:50', 'nk-202609040810')`);
+	});
+
+	it('取りに行く時間帯に入った、ref と発走時刻のある重賞だけを返す', async () => {
+		expect(await listOddsTargetIds(db, NOW)).toEqual(['TODAY', 'G1']);
+	});
+
+	it('時間帯は格で決まる（G2・G3 は前日の 18:30 から）', async () => {
+		// 2026-09-26（土）18:30 JST
+		const evening = new Date('2026-09-26T09:30:00Z');
+		expect(await listOddsTargetIds(db, evening)).toEqual(['G2', 'G1']);
+	});
+
+	it('日付をまたいだ深夜の回（25:00 まで）も、前の晩からの続きとして選ぶ', async () => {
+		// 土 25:05（日 1:05）。「今日」は日曜になるが、日曜の重賞はどちらも窓の中
+		expect(await listOddsTargetIds(db, new Date('2026-09-26T16:05:00Z'))).toEqual(['G2', 'G1']);
+	});
+
+	it('3日後のレースは G1 でもまだ選ばない', async () => {
+		sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, grade, start_time, external_ref) VALUES
+			('G1L', '2026-09-29', '中山', 11, '3日後の G1', 'G1', '15:40', 'nk-202606041011')`);
+		expect(await listOddsTargetIds(db, NOW)).not.toContain('G1L');
+	});
+
+	it('発走まで1分を切ったレースは外す（Actions が D1 を読む頃には発走を過ぎている）', async () => {
+		// 土 15:29:30。TODAY は 15:30 発走
+		expect(await listOddsTargetIds(db, new Date('2026-09-26T06:29:30Z'))).toEqual(['G1']);
+		// 土 15:25。まだ選ぶ
+		expect(await listOddsTargetIds(db, new Date('2026-09-26T06:25:00Z'))).toContain('TODAY');
 	});
 });

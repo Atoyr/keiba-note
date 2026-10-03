@@ -91,7 +91,7 @@ describe('requestEntriesFetch', () => {
 });
 
 describe('ENTRIES_CRON', () => {
-	// worker.js はこの文字列で Cron を出し分ける。wrangler.toml とずれると、オッズの処理が走るだけになる。
+	// worker.js はこの文字列で Cron を出し分ける。wrangler.toml とずれると、出走馬の取得が頼まれなくなる。
 	it('wrangler.toml の crons に同じ文字列で入っている', () => {
 		const toml = readFileSync('wrangler.toml', 'utf8');
 		const crons = /^crons\s*=\s*\[(.*)\]$/m.exec(toml)?.[1] ?? '';
