@@ -58,4 +58,22 @@ describe('listOddsTargetIds', () => {
 		const evening = new Date('2026-09-26T09:30:00Z');
 		expect(await listOddsTargetIds(db, evening)).toEqual(['G2', 'G1']);
 	});
+
+	it('日付をまたいだ深夜の回（25:00 まで）も、前の晩からの続きとして選ぶ', async () => {
+		// 土 25:05（日 1:05）。「今日」は日曜になるが、日曜の重賞はどちらも窓の中
+		expect(await listOddsTargetIds(db, new Date('2026-09-26T16:05:00Z'))).toEqual(['G2', 'G1']);
+	});
+
+	it('3日後のレースは G1 でもまだ選ばない', async () => {
+		sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, grade, start_time, external_ref) VALUES
+			('G1L', '2026-09-29', '中山', 11, '3日後の G1', 'G1', '15:40', 'nk-202606041011')`);
+		expect(await listOddsTargetIds(db, NOW)).not.toContain('G1L');
+	});
+
+	it('発走まで1分を切ったレースは外す（Actions が D1 を読む頃には発走を過ぎている）', async () => {
+		// 土 15:29:30。TODAY は 15:30 発走
+		expect(await listOddsTargetIds(db, new Date('2026-09-26T06:29:30Z'))).toEqual(['G1']);
+		// 土 15:25。まだ選ぶ
+		expect(await listOddsTargetIds(db, new Date('2026-09-26T06:25:00Z'))).toContain('TODAY');
+	});
 });

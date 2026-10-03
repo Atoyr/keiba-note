@@ -7,14 +7,16 @@ name: オッズの更新
 # 起動するのは Worker の Cron（src/lib/server/odds/scheduled.ts）。JST 7:05〜25:05（翌 1:05）の30分おきに、
 # 取りに行く時間帯（src/lib/utils/odds.ts の inOddsWindow）に入った重賞があるときだけ workflow_dispatch で起動する。
 # GitHub の schedule は使わない。混んでいると大半の回を飛ばし（1日37回のうち5回しか起動しなかった）、
-# 起動しても数時間遅れることがあったため。手で起動してもよい（対象が無ければ D1 を1回読んで終わる）。
+# 起動しても数時間遅れることがあったため。人は Actions の画面から手で起動してもよい（対象が無ければ D1 を1回読んで終わる）。
+# 本番の D1 に書き、取得元へも行くので、エージェントは起動しない。
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# 前の回が遅れて残っていたら、重ねずに待つ。deploy の群には入れない
+# 前の回が遅れて残っていたら、重ねずに待つ。待てるのは1本だけで、新しい回が来ると古い待ちは取り消される
+# （各回が起動した時刻で対象を選び直すので、取り消されても取り漏れない）。deploy の群には入れない
 # （同じ群に待ちが2つ並ぶと古いほうが消され、デプロイが飛ぶ）。
 concurrency:
   group: odds-update
@@ -23,6 +25,8 @@ concurrency:
 jobs:
   update:
     name: 更新
+    # 本番の D1 に書くので main からだけ。Worker は ref: main で起動する。手でほかのブランチを選んでも動かさない
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:

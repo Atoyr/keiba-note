@@ -22,7 +22,12 @@ beforeEach(() => {
 function run(dispatch: () => Promise<void>) {
 	const logs: OddsLogEntry[] = [];
 	const spy = vi.fn(dispatch);
-	const summary = requestOddsUpdate({ db, dispatch: spy, log: (e) => logs.push(e), now: () => NOW });
+	const summary = requestOddsUpdate({
+		db,
+		dispatch: spy,
+		log: (e) => logs.push(e),
+		now: () => NOW
+	});
 	return { summary, logs, spy };
 }
 

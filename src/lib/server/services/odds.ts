@@ -42,11 +42,20 @@ export async function getRaceOdds(db: Db, raceId: string): Promise<StoredRaceOdd
 }
 
 /**
+ * Actions を起動してから、取得のスクリプトが D1 を読むまでにかかる時間の見込み。
+ * 実測は20秒ほど（2026-10 の run の created → 取得のステップの開始）。余裕を見て1分にする。
+ */
+const ACTIONS_LEAD_MS = 60_000;
+
+/**
  * いまオッズを取りに行く時間帯に入っているレースの ID。Cron（`lib/server/odds/request.ts`）が、
  * GitHub Actions を起動するかどうかを決めるのに使う。**ここは読むだけ。**
  *
  * 選び方は Actions 側の `targetsSql`・`pickTargets`（scripts/odds/store.ts）と同じにする。
  * D1 で「重賞」「今日から2日後まで」「ref・発走時刻あり」まで絞り、時間帯（`inOddsWindow`）は取ってから切る。
+ *
+ * **違うのは、発走まで `ACTIONS_LEAD_MS` を切ったレースを外すことだけ。** Actions は起動してから自分の時刻で
+ * 選び直すので、発走の直前に起動しても、Actions が D1 を読む頃には発走を過ぎて何もせずに終わる。
  */
 export async function listOddsTargetIds(db: Db, now: Date): Promise<string[]> {
 	const today = todayJst(now);
@@ -62,7 +71,12 @@ export async function listOddsTargetIds(db: Db, now: Date): Promise<string[]> {
 			)
 		)
 		.orderBy(asc(race.date), asc(race.startTime));
+	const ready = new Date(now.getTime() + ACTIONS_LEAD_MS);
 	return rows.flatMap((r) =>
-		r.startTime && inOddsWindow(r.date, r.startTime, r.grade, now) ? [r.id] : []
+		r.startTime &&
+		inOddsWindow(r.date, r.startTime, r.grade, now) &&
+		inOddsWindow(r.date, r.startTime, r.grade, ready)
+			? [r.id]
+			: []
 	);
 }
