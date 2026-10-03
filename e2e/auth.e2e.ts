@@ -57,6 +57,7 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: '/races', secret: null },
 	{ path: '/this-week', secret: null },
 	{ path: '/help/webmcp', secret: 'WebMCPの使い方' },
+	{ path: '/help/mcp', secret: 'AIとの連携の始め方' },
 	{ path: '/settings/shares', secret: null },
 	{ path: '/settings/profile', secret: null },
 	// MCP の連携の一覧と同意画面。同意はログインした本人だけができる（PUBLIC_PATHS に入れない）。

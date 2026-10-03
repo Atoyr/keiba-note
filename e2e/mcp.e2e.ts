@@ -710,3 +710,19 @@ test('トークンの口は Origin の無いフォームの POST を受ける（
 	expect(res.status()).toBe(400);
 	expect((await res.json()).error).toBe('invalid_request');
 });
+
+test('登録の案内は「AIとの連携」から開け、接続先の URL と Claude・ChatGPT の手順を出す', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, '/settings/connections');
+	await page.getByRole('link', { name: 'AIとの連携の始め方（Claude・ChatGPT での手順）' }).click();
+	await expect(page).toHaveURL('/help/mcp');
+	await expect(page.getByRole('heading', { level: 1, name: 'AIとの連携の始め方' })).toBeVisible();
+	// 接続先は /mcp。登録に使う URL をそのまま写せること。
+	await expect(page.getByText(/^https?:\/\/[^\s]+\/mcp$/)).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Claude に追加する' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'ChatGPT に追加する' })).toBeVisible();
+	// uma-memo が対応していない Claude の推奨の方式を選ばないよう案内している。
+	await expect(page.getByText('Register automatically').first()).toBeVisible();
+});

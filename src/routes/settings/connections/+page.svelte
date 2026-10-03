@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import { tick } from 'svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { SCOPE_LABELS } from '$lib/schemas/oauth';
@@ -34,14 +35,19 @@
 		<p class="mt-2 rounded bg-muted px-3 py-2 font-mono text-sm break-all">{data.mcpUrl}</p>
 		<ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
 			<li>
-				Claude: Web 版の設定の「コネクタ」でカスタムコネクタを追加し、この URL
+				Claude: Web 版かデスクトップ版でカスタムコネクタを追加し、この URL
 				を入れます。追加したコネクタはスマホのアプリでも使えます。
 			</li>
-			<li>ChatGPT: 開発者モードを有効にし、この URL でアプリ（コネクタ）を作ります。</li>
+			<li>ChatGPT: Web 版の開発者モードでアプリを作ります。スマホのアプリでは使えません。</li>
 			<li>
 				追加するとこのサイトの許可画面が開きます。メモを読ませたくなければ、そこで「メモ」のチェックを外してください。
 			</li>
 		</ul>
+		<p class="mt-3 text-sm">
+			<a href={resolve('/help/mcp')} class="text-primary underline underline-offset-4"
+				>AIとの連携の始め方（Claude・ChatGPT での手順）</a
+			>
+		</p>
 	</section>
 
 	<section class="mt-6" aria-labelledby="grants-heading">
