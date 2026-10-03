@@ -303,6 +303,11 @@ describe('save_my_race_preview', () => {
 		const out = data(await save({ entries: [{ entryId: 'E', body: '', mark: null, tags: [] }] }));
 		expect(out.entries).toEqual([{ entryId: 'E', result: 'cleared' }]);
 		expect(notes('A').map((n) => n.kind)).toEqual(['race_preview']);
+		// 同じ出走馬に B の出走前メモがあっても、消えるのは A の行だけ（DELETE の WHERE に author_id）。
+		expect(notes('B')).toEqual([
+			expect.objectContaining({ kind: 'preview', body: '他人の出走前メモ', mark: '▲' }),
+			expect.objectContaining({ kind: 'race_preview', body: '他人の見立て' })
+		]);
 	});
 
 	it('他人のメモには触れず、トークンの持ち主のメモだけを書く', async () => {
@@ -357,6 +362,19 @@ describe('save_my_race_preview', () => {
 		const before = [notes('A'), notes('B')];
 		expect(body(await save(args)).result?.isError).toBe(true);
 		expect([notes('A'), notes('B')]).toEqual(before);
+	});
+
+	it('見立ての本文を空にしても、保存済みの展開は残る', async () => {
+		sqlite.exec(
+			`UPDATE note SET flow = '{"pace":"スロー","start":{"spots":[],"memo":"x"},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}' WHERE id = 'NA1'`
+		);
+		expect(data(await save({ raceNote: { body: '' } })).raceNote).toBe('cleared');
+		const row = sqlite.prepare(`SELECT body, flow FROM note WHERE id = 'NA1'`).get() as {
+			body: string;
+			flow: string;
+		};
+		expect(row.body).toBe('');
+		expect(JSON.parse(row.flow).pace).toBe('スロー');
 	});
 
 	it('無いレースは tool の誤り', async () => {

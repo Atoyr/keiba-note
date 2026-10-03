@@ -30,7 +30,7 @@ SvelteKit の `load` + form actions で完結させる。
 予想画面の WebMCP tools はブラウザ内の読み取りと未保存フォーム更新だけで、HTTP の口は増やさない。
 保存は既存 action のまま。tool の仕様は [frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)。
 
-例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
+例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む。許せば予想を書く）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
 画面の代わりではなく AI のクライアント向けで、読むのが中心。書けるのは本人が `notes:write` を許したときの予想だけで、
 form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [architecture.md 3-10](./architecture.md)）。
 ほかに、同意画面（`/oauth/authorize`）の GET の `load` だけは D1 に書く。Client ID Metadata Document を取ってきた内容を
@@ -170,7 +170,7 @@ tools（書くのは `save_my_race_preview` だけ。`viewerId` はトークン�
 | `get_my_race_notes` | `notes:read` | `raceId` | そのレースの自分の見立て・ふりかえり・各馬のメモ・印・札・展開 |
 | `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
 | `list_my_recent_notes` | `notes:read` | `limit`（1〜50） | 自分の最近のメモ |
-| `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` と馬ごとに `saved`・`cleared`・`unchanged`）。本文は返さない。省いた馬・項目・展開はそのまま。出走馬でない `entryId`・空の入力は何も書かずに `isError` |
+| `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`。見立ての `cleared` は本文を空にしたことで、展開があれば行は残る）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目・展開はそのまま。出走馬でない `entryId`・空の入力は何も書かずに `isError` |
 
 ### HTTP でない口 — Cron Trigger
 

@@ -28,7 +28,7 @@
 	<p class="mt-1 text-sm text-muted-foreground">
 		<span>Claude や ChatGPT から、レースのデータとあなたのメモを読めるようにします（MCP）。</span
 		><span>許可すれば、あなたの予想（見立て・印・札・出走前メモ）も書けます。</span><span
-			>ふりかえり・近況メモの書き込みと、共有・削除はできません。</span
+			>ふりかえり・近況メモの書き込みと、共有、予想以外のメモの削除はできません。</span
 		>
 	</p>
 

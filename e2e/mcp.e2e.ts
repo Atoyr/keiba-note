@@ -246,6 +246,35 @@ test.describe('予想を書く（save_my_race_preview）', () => {
 		expect(JSON.parse(mine).notes).toEqual([]);
 	});
 
+	test('同じ出走馬に別の人のトークンで書いて消しても、持ち主のメモは残る', async ({ request }) => {
+		const { id, entryIds, body } = MCP_WRITE_RACE;
+		// 自分（all）は E2E AI予想賞にメモを持たない。全部空で送ると「消す」になるが、自分の行が無いので何も残らない
+		// （自分の画面とキャプチャに混ざらない）。別のユーザーの出走前メモは消えてはいけない。
+		const cleared = await toolText(
+			await callTool(request, MCP_TOKENS.all, 'save_my_race_preview', {
+				raceId: id,
+				entries: [{ entryId: entryIds.a, body: '', mark: null, tags: [] }]
+			})
+		);
+		expect(cleared.isError).toBeUndefined();
+		const others = JSON.parse(
+			(
+				await toolText(
+					await callTool(request, MCP_TOKENS.other, 'get_my_race_notes', { raceId: id })
+				)
+			).content[0].text
+		).notes as { entryId: string | null; body: string; tags: string[] }[];
+		expect(others).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ entryId: entryIds.a, body, tags: ['不利'] })
+			])
+		);
+		const mine = (
+			await toolText(await callTool(request, MCP_TOKENS.all, 'get_my_race_notes', { raceId: id }))
+		).content[0].text;
+		expect(JSON.parse(mine).notes).toEqual([]);
+	});
+
 	test('別のレースの出走馬には書けない', async ({ request }) => {
 		const res = await toolText(
 			await callTool(request, MCP_TOKENS.other, 'save_my_race_preview', {
