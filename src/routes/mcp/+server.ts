@@ -1,4 +1,5 @@
 import { error, json } from '@sveltejs/kit';
+import { readLimitedText } from '$lib/server/auth/limited-body';
 import { bearerChallenge } from '$lib/server/auth/oauth-metadata';
 import { handleMcpMessage, PROTOCOL_VERSIONS } from '$lib/server/mcp/protocol';
 import { ctx } from '$lib/server/util';
@@ -27,9 +28,17 @@ export const POST: RequestHandler = async ({ request, locals, platform, url }) =
 	const scopes = locals.oauthScopes;
 	if (!scopes) error(401, 'アクセストークンが必要です');
 
+	// tool の引数は検索条件と ID だけ。本文を読みながら 8 KiB で止める。
+	const text = await readLimitedText(request);
+	if (text === null) {
+		return json(
+			{ jsonrpc: '2.0', id: null, error: { code: -32600, message: '本文が大きすぎます' } },
+			{ status: 413, headers: { 'Cache-Control': 'no-store' } }
+		);
+	}
 	let message: unknown;
 	try {
-		message = await request.json();
+		message = JSON.parse(text);
 	} catch {
 		return json(
 			{ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'JSON として読めません' } },

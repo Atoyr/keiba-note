@@ -2,7 +2,11 @@ import { json } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { clientRegistrationSchema } from '$lib/schemas/oauth';
 import { readLimitedText } from '$lib/server/auth/limited-body';
-import { registerClient } from '$lib/server/auth/oauth';
+import {
+	ClientRegistrationLimitError,
+	CLIENT_REGISTRATION_WINDOW_SEC,
+	registerClient
+} from '$lib/server/auth/oauth';
 import { createDb } from '$lib/server/db';
 import type { RequestHandler } from './$types';
 
@@ -47,7 +51,25 @@ export const POST: RequestHandler = async ({ request, platform, locals }) => {
 	const client = await registerClient(db, {
 		name: parsed.output.client_name,
 		redirectUris: parsed.output.redirect_uris
+	}).catch((cause: unknown) => {
+		if (cause instanceof ClientRegistrationLimitError) return null;
+		throw cause;
 	});
+	if (!client) {
+		return json(
+			{
+				error: 'temporarily_unavailable',
+				error_description: '登録が混み合っています。時間をおいて再試行してください'
+			},
+			{
+				status: 429,
+				headers: {
+					'Retry-After': String(CLIENT_REGISTRATION_WINDOW_SEC),
+					'Cache-Control': 'no-store'
+				}
+			}
+		);
+	}
 	return json(
 		{
 			client_id: client.id,

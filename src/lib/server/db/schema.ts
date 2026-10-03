@@ -467,15 +467,19 @@ export const jockeyNote = sqliteTable(
  * 登録は誰でもできる（ログイン前のクライアントが自分で登録する仕組み）ので、**これ自体は何の権限も持たない。**
  * 権限は本人が同意画面で許した `oauth_grant` にだけある。公開クライアントなので秘密鍵も持たない（PKCE で守る）。
  */
-export const oauthClient = sqliteTable('oauth_client', {
-	/** `client_id`。推測できない乱数。 */
-	id: text('id').primaryKey(),
-	/** クライアントが名乗った名前。同意画面と連携の一覧に出す（自己申告なので、行き先のホストも並べて出す）。 */
-	name: text('name').notNull(),
-	/** 登録された戻り先。認可の要求はこのどれかと一致しなければ受けない（ループバックだけポートを問わない）。 */
-	redirectUris: text('redirect_uris', { mode: 'json' }).$type<string[]>().notNull(),
-	createdAt: createdAt()
-});
+export const oauthClient = sqliteTable(
+	'oauth_client',
+	{
+		/** `client_id`。推測できない乱数。 */
+		id: text('id').primaryKey(),
+		/** クライアントが名乗った名前。同意画面と連携の一覧に出す（自己申告なので、行き先のホストも並べて出す）。 */
+		name: text('name').notNull(),
+		/** 登録された戻り先。認可の要求はこのどれかと一致しなければ受けない（ループバックだけポートを問わない）。 */
+		redirectUris: text('redirect_uris', { mode: 'json' }).$type<string[]>().notNull(),
+		createdAt: createdAt()
+	},
+	(t) => [index('oauth_client_created').on(t.createdAt)]
+);
 
 /**
  * 本人がクライアントに許した連携。1人・1クライアントにつき1行。
@@ -499,7 +503,10 @@ export const oauthGrant = sqliteTable(
 		lastUsedAt: integer('last_used_at'),
 		createdAt: createdAt()
 	},
-	(t) => [uniqueIndex('oauth_grant_user_client').on(t.userId, t.clientId)]
+	(t) => [
+		uniqueIndex('oauth_grant_user_client').on(t.userId, t.clientId),
+		index('oauth_grant_client').on(t.clientId)
+	]
 );
 
 /** 認可コード。1回だけ使え、5分で切れる。セッションと同じく SHA-256 だけを持つ。 */

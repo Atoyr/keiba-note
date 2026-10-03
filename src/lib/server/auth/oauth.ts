@@ -1,6 +1,6 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeBase64urlNoPadding } from '@oslojs/encoding';
-import { and, eq, exists, gt, isNull, lt, lte, ne, notExists, sql } from 'drizzle-orm';
+import { and, eq, exists, gt, inArray, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { oauthClient, oauthCode, oauthGrant, oauthToken, user } from '$lib/server/db/schema';
@@ -50,25 +50,78 @@ export function verifyPkce(codeVerifier: string, codeChallenge: string): boolean
 
 export type OAuthClientView = { id: string; name: string; redirectUris: string[] };
 
+export const CLIENT_REGISTRATION_LIMIT = 100;
+export const CLIENT_REGISTRATION_WINDOW_SEC = 60;
+export const UNUSED_CLIENT_LIMIT = 1000;
+export const UNUSED_CLIENT_TTL_SEC = 24 * 60 * 60;
+
+export class ClientRegistrationLimitError extends Error {}
+
+const clientHasGrant = (db: Db) =>
+	exists(
+		db.select({ id: oauthGrant.id }).from(oauthGrant).where(eq(oauthGrant.clientId, oauthClient.id))
+	);
+
 /** 動的クライアント登録。誰でも呼べるので、登録だけでは何の権限も生まない。 */
 export async function registerClient(
 	db: Db,
-	input: { name: string; redirectUris: string[] }
+	input: { name: string; redirectUris: string[] },
+	now = new Date()
 ): Promise<OAuthClientView> {
 	const client = {
 		id: generateSecret('uma_client_', 16),
 		name: input.name || '名前の無いアプリ',
 		redirectUris: input.redirectUris
 	};
-	await db.insert(oauthClient).values(client);
+	const t = sec(now);
+	const unused = notExists(
+		db.select({ id: oauthGrant.id }).from(oauthGrant).where(eq(oauthGrant.clientId, oauthClient.id))
+	);
+	// 削除も件数を区切る。連携のある登録は消さない。INSERT 自体で上限を判定し、同時登録でも超えない。
+	const expired = db
+		.select({ id: oauthClient.id })
+		.from(oauthClient)
+		.where(and(lte(oauthClient.createdAt, t - UNUSED_CLIENT_TTL_SEC), unused))
+		.limit(100);
+	const recent = db
+		.select({ id: oauthClient.id })
+		.from(oauthClient)
+		.where(gt(oauthClient.createdAt, t - CLIENT_REGISTRATION_WINDOW_SEC))
+		.limit(CLIENT_REGISTRATION_LIMIT);
+	const pending = db
+		.select({ id: oauthClient.id })
+		.from(oauthClient)
+		.where(unused)
+		.limit(UNUSED_CLIENT_LIMIT);
+	const [, inserted] = await db.batch([
+		db.delete(oauthClient).where(inArray(oauthClient.id, expired)),
+		db
+			.insert(oauthClient)
+			.select(
+				sql`SELECT ${client.id}, ${client.name}, ${JSON.stringify(client.redirectUris)}, ${t}
+			WHERE (SELECT count(*) FROM (${recent})) < ${CLIENT_REGISTRATION_LIMIT}
+			AND (SELECT count(*) FROM (${pending})) < ${UNUSED_CLIENT_LIMIT}`
+			)
+			.returning({ id: oauthClient.id })
+	]);
+	if (inserted.length === 0) throw new ClientRegistrationLimitError('クライアント登録の上限です');
 	return client;
 }
 
-export async function getClient(db: Db, clientId: string): Promise<OAuthClientView | null> {
+export async function getClient(
+	db: Db,
+	clientId: string,
+	now = new Date()
+): Promise<OAuthClientView | null> {
 	const rows = await db
 		.select({ id: oauthClient.id, name: oauthClient.name, redirectUris: oauthClient.redirectUris })
 		.from(oauthClient)
-		.where(eq(oauthClient.id, clientId))
+		.where(
+			and(
+				eq(oauthClient.id, clientId),
+				or(gt(oauthClient.createdAt, sec(now) - UNUSED_CLIENT_TTL_SEC), clientHasGrant(db))
+			)
+		)
 		.limit(1);
 	return rows.at(0) ?? null;
 }
@@ -94,7 +147,7 @@ export async function createAuthorizationCode(
 	},
 	now = new Date()
 ): Promise<string | null> {
-	const client = await getClient(db, input.clientId);
+	const client = await getClient(db, input.clientId, now);
 	if (!client || !redirectUriMatches(client.redirectUris, input.redirectUri)) return null;
 
 	const scopes = sortScopes(input.scopes);
@@ -352,6 +405,14 @@ export async function refreshTokens(
 			: await judgeRetry(db, id, row.usedAt, t);
 	switch (retry.state) {
 		case 'accept': {
+			if ('scopes' in retry) {
+				// 再送は最初に確定した更新と同じ権限だけ。省略で親の広い権限へ戻さない。
+				const issuedScopes = knownScopes(retry.scopes);
+				if (input.scope !== undefined && scopes.join(' ') !== issuedScopes.join(' ')) {
+					return { error: 'invalid_scope', error_description: '最初の更新とスコープが異なります' };
+				}
+				scopes = issuedScopes;
+			}
 			const tokens = await issueTokens(db, row.grantId, scopes, now, id, retry.refreshId);
 			if (tokens) return row.usedAt === null ? tokens : { ...tokens, retried: true };
 			// 同意し直し・解除と、別の要求が先に更新した場合を分ける。
@@ -396,11 +457,18 @@ async function judgeRetry(
 	refreshId: string,
 	usedAt: number | null,
 	t: number
-): Promise<{ state: 'accept'; refreshId: string } | { state: 'inflight' | 'theft' }> {
+): Promise<
+	{ state: 'accept'; refreshId: string; scopes: string[] } | { state: 'inflight' | 'theft' }
+> {
 	if (usedAt === null) return { state: 'inflight' };
 	if (t - usedAt > REFRESH_RETRY_GRACE_SEC) return { state: 'theft' };
 	const children = await db
-		.select({ id: oauthToken.id, kind: oauthToken.kind, usedAt: oauthToken.usedAt })
+		.select({
+			id: oauthToken.id,
+			kind: oauthToken.kind,
+			usedAt: oauthToken.usedAt,
+			scopes: oauthToken.scopes
+		})
 		.from(oauthToken)
 		.where(eq(oauthToken.parentId, refreshId));
 	// 子が無いのは、元の要求が新しい1組を入れている途中（数秒）のときだけ。それより後なら、子を持たない
@@ -408,7 +476,7 @@ async function judgeRetry(
 	if (children.length === 0) return { state: t - usedAt <= INFLIGHT_SEC ? 'inflight' : 'theft' };
 	if (children.some((c) => c.kind === 'access' && c.usedAt !== null)) return { state: 'theft' };
 	const next = children.find((c) => c.kind === 'refresh' && c.usedAt === null);
-	return next ? { state: 'accept', refreshId: next.id } : { state: 'theft' };
+	return next ? { state: 'accept', refreshId: next.id, scopes: next.scopes } : { state: 'theft' };
 }
 
 export type AccessTokenAuth = {

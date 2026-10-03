@@ -7,6 +7,11 @@ import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
 import {
 	ACCESS_TOKEN_TTL_SEC,
+	getClient,
+	ClientRegistrationLimitError,
+	CLIENT_REGISTRATION_LIMIT,
+	UNUSED_CLIENT_LIMIT,
+	UNUSED_CLIENT_TTL_SEC,
 	CODE_TTL_SEC,
 	REFRESH_RETRY_GRACE_SEC,
 	createAuthorizationCode,
@@ -540,4 +545,134 @@ describe('listGrants', () => {
 			scopes: ['races:read']
 		});
 	});
+});
+
+describe('登録の上限と期限', () => {
+	const input = { name: 'Client', redirectUris: [REDIRECT] };
+	it('同時登録でも毎分の上限を超えず、60秒後に再開できる', async () => {
+		const results = await Promise.allSettled(
+			Array.from({ length: CLIENT_REGISTRATION_LIMIT + 2 }, () => registerClient(db, input, NOW))
+		);
+		expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(CLIENT_REGISTRATION_LIMIT);
+		expect(
+			results
+				.filter((r) => r.status === 'rejected')
+				.every((r) => r.status === 'rejected' && r.reason instanceof ClientRegistrationLimitError)
+		).toBe(true);
+		await expect(registerClient(db, input, later(59))).rejects.toThrow(
+			ClientRegistrationLimitError
+		);
+		await expect(registerClient(db, input, later(60))).resolves.toHaveProperty('id');
+	});
+	it('未連携が1000件なら保存せず、期限切れを削除して受け直す', async () => {
+		const insert = sqlite.prepare(
+			'INSERT INTO oauth_client (id, name, redirect_uris, created_at) VALUES (?, ?, ?, ?)'
+		);
+		for (let i = 0; i < UNUSED_CLIENT_LIMIT; i++)
+			insert.run(
+				`pending-${i}`,
+				'Client',
+				JSON.stringify([REDIRECT]),
+				Math.floor(NOW.getTime() / 1000)
+			);
+		await expect(registerClient(db, input, later(60))).rejects.toThrow(
+			ClientRegistrationLimitError
+		);
+		expect(sqlite.prepare('SELECT count(*) AS n FROM oauth_client').get()).toMatchObject({
+			n: UNUSED_CLIENT_LIMIT
+		});
+		await expect(registerClient(db, input, later(UNUSED_CLIENT_TTL_SEC))).resolves.toHaveProperty(
+			'id'
+		);
+		expect(sqlite.prepare('SELECT count(*) AS n FROM oauth_client').get()).toMatchObject({
+			n: UNUSED_CLIENT_LIMIT - 100 + 1
+		});
+	});
+	it('期限切れの未連携は認可できず、連携済みの登録とトークンは掃除後も残る', async () => {
+		const unused = await registerClient(db, input, NOW);
+		const { client, tokens } = await tokensFor();
+		sqlite.prepare('UPDATE oauth_client SET created_at = ?').run(Math.floor(NOW.getTime() / 1000));
+		expect(await getClient(db, unused.id, later(UNUSED_CLIENT_TTL_SEC - 1))).not.toBeNull();
+		expect(await getClient(db, unused.id, later(UNUSED_CLIENT_TTL_SEC))).toBeNull();
+		expect(
+			await createAuthorizationCode(
+				db,
+				{
+					userId: 'A',
+					clientId: unused.id,
+					scopes: ['races:read'],
+					redirectUri: REDIRECT,
+					codeChallenge: CHALLENGE
+				},
+				later(UNUSED_CLIENT_TTL_SEC)
+			)
+		).toBeNull();
+		await registerClient(db, input, later(UNUSED_CLIENT_TTL_SEC));
+		expect(
+			sqlite.prepare('SELECT id FROM oauth_client WHERE id = ?').get(unused.id)
+		).toBeUndefined();
+		expect(await getClient(db, client.id, later(UNUSED_CLIENT_TTL_SEC))).not.toBeNull();
+		expect(
+			await refreshTokens(
+				db,
+				{ clientId: client.id, refreshToken: tokens.refresh_token },
+				later(UNUSED_CLIENT_TTL_SEC)
+			)
+		).toHaveProperty('access_token');
+	});
+});
+
+describe('再送時のスコープ固定', () => {
+	it('縮小後の省略再送を繰り返しても、メモ権限を復活させない', async () => {
+		const { client, tokens } = await tokensFor();
+		const input = { clientId: client.id, refreshToken: tokens.refresh_token };
+		const narrowed = (await refreshTokens(
+			db,
+			{ ...input, scope: 'races:read' },
+			NOW
+		)) as TokenResponse;
+		expect(narrowed.scope).toBe('races:read');
+		const retry = (await refreshTokens(db, input, later(10))) as TokenResponse;
+		expect(retry.scope).toBe('races:read');
+		const retry2 = (await refreshTokens(
+			db,
+			{ ...input, scope: 'races:read' },
+			later(20)
+		)) as TokenResponse;
+		expect(retry2.scope).toBe('races:read');
+		expect(await validateAccessToken(db, narrowed.access_token, later(20))).toBeNull();
+		expect(await validateAccessToken(db, retry.access_token, later(20))).toBeNull();
+		expect(await validateAccessToken(db, retry2.access_token, later(20))).toMatchObject({
+			scopes: ['races:read']
+		});
+		expect(
+			await refreshTokens(
+				db,
+				{ clientId: client.id, refreshToken: retry2.refresh_token },
+				later(30)
+			)
+		).toMatchObject({ scope: 'races:read' });
+	});
+	it.each(['races:read', 'races:read notes:read'])(
+		'異なるスコープの再送を断り、確定済みトークンを保持する: %s',
+		async (firstScope) => {
+			const { client, tokens } = await tokensFor();
+			const input = { clientId: client.id, refreshToken: tokens.refresh_token };
+			const issued = (await refreshTokens(
+				db,
+				{ ...input, scope: firstScope },
+				NOW
+			)) as TokenResponse;
+			const before = sqlite.prepare('SELECT * FROM oauth_token ORDER BY id').all();
+			expect(
+				await refreshTokens(
+					db,
+					{ ...input, scope: firstScope === 'races:read' ? 'races:read notes:read' : 'races:read' },
+					later(10)
+				)
+			).toMatchObject({ error: 'invalid_scope' });
+			expect(sqlite.prepare('SELECT * FROM oauth_token ORDER BY id').all()).toEqual(before);
+			expect(await validateAccessToken(db, issued.access_token, later(10))).not.toBeNull();
+		}
+	);
 });

@@ -93,6 +93,18 @@ test.describe('案内（メタデータ）', () => {
 });
 
 test.describe('/mcp の認証', () => {
+	test('認証済みでも大きな本文は413、上限内のpingは200', async ({ request }) => {
+		const headers = {
+			authorization: `Bearer ${MCP_TOKENS.all}`,
+			'content-type': 'application/json'
+		};
+		const message = JSON.stringify(rpc('ping'));
+		for (const size of [8192, 8193]) {
+			const response = await request.post('/mcp', { headers, data: message.padEnd(size, ' ') });
+			expect(response.status()).toBe(size === 8192 ? 200 : 413);
+		}
+	});
+
 	test('トークンが無ければ 401 と、認可の案内の場所を返す（ログインへ飛ばさない）', async ({
 		request
 	}) => {
@@ -366,6 +378,39 @@ async function connect(page: Page, request: APIRequestContext, keepNotes = true)
 }
 
 test.describe('OAuth の全行程', () => {
+	test('縮小した更新を省略で再送してもメモの権限は戻らず、異なる条件は拒否する', async ({
+		page,
+		request
+	}) => {
+		const { clientId, tokens } = await connect(page, request);
+		const input = {
+			grant_type: 'refresh_token',
+			refresh_token: tokens.refresh_token,
+			client_id: clientId
+		};
+		const narrowed = await exchange(request, { ...input, scope: 'races:read' });
+		expect(narrowed.status).toBe(200);
+		const mismatch = await exchange(request, { ...input, scope: 'races:read notes:read' });
+		expect(mismatch.status).toBe(400);
+		expect(mismatch.json.error).toBe('invalid_scope');
+		const retried = await exchange(request, input);
+		expect(retried.status).toBe(200);
+		expect(retried.json.scope).toBe('races:read');
+		expect(
+			(await callTool(request, retried.json.access_token, 'list_my_recent_notes')).status()
+		).toBe(403);
+		expect((await mcp(request, narrowed.json.access_token, rpc('ping'))).status()).toBe(401);
+		const updated = await exchange(request, {
+			...input,
+			refresh_token: retried.json.refresh_token
+		});
+		expect(updated.status).toBe(200);
+		expect(updated.json.scope).toBe('races:read');
+		expect(
+			(await callTool(request, updated.json.access_token, 'list_my_recent_notes')).status()
+		).toBe(403);
+	});
+
 	test('メモを外して再同意すると古い連携は失効し、新しいトークンの更新でもメモの権限は戻らない', async ({
 		page,
 		request

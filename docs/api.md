@@ -81,7 +81,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/api/health` | GET | — | 死活監視。D1 に `select 1` が通れば `200 {"status":"ok"}`。状態以外は返さない。`Cache-Control: no-store`（→ [monitoring.md 第6章](./monitoring.md)） | `503 {"status":"error"}` |
 | `/.well-known/oauth-protected-resource`（と `/mcp` 付き） | GET | — | 保護されたリソースのメタデータ（RFC 9728）。`resource`・`authorization_servers`・`scopes_supported` | — |
 | `/.well-known/oauth-authorization-server` | GET | — | 認可サーバーのメタデータ（RFC 8414）。PKCE は S256 だけ・公開クライアントだけ | — |
-| `/oauth/register` | POST（JSON） | `client_name`・`redirect_uris`（1〜5。https かループバックの http）・`token_endpoint_auth_method`（`none` だけ） | `201` と `client_id`。何の権限も持たない | `400 invalid_redirect_uri` / `invalid_client_metadata` |
+| `/oauth/register` | POST（JSON） | `client_name`・`redirect_uris`（1〜5。https かループバックの http）・`token_endpoint_auth_method`（`none` だけ） | `201` と `client_id`。何の権限も持たない | `400 invalid_redirect_uri` / `invalid_client_metadata`・`413` 本文超過・`429 temporarily_unavailable` 登録上限（`Retry-After: 60`。上限と期限は architecture.md 3-10） |
 | `/oauth/token` | POST（フォーム） | `grant_type=authorization_code`（`code`・`redirect_uri`・`client_id`・`code_verifier`）か `refresh_token`（`refresh_token`・`client_id`・`scope` で狭められる）。`resource` は自分の `/mcp` だけ | アクセス（1時間）とリフレッシュ（30日・1回きり。応答が届かずに30分の内に同じものを送り直したとき、出したアクセストークンが使われていなければ、届かなかった1組を止めて出し直す）。`no-store` | `400 invalid_grant`（コードの再利用・PKCE・戻り先・期限・別のクライアント）/ `invalid_scope` / `invalid_target` / `unsupported_grant_type`。使い回されたリフレッシュトークン（出したトークンが使われたあと・猶予を過ぎたあと）は連携ごと消す。同時更新の競合・処理中の送り直しは連携を保持して `503 temporarily_unavailable`（`Retry-After: 1`）  |
 | `/notes/[id]` | GET | — | unlisted のメモ1件。`X-Robots-Tag: noindex, nofollow`・`Referrer-Policy: no-referrer`・`Cache-Control: private, no-store` | **404**（private でも存在しなくても同じ） |
 
@@ -150,7 +150,7 @@ SvelteKit の `load` + form actions で完結させる。
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
-| `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / Bearer はあるが DB に届かない `503` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / tool の入力の誤り・見つからないは `200` の `isError: true` |
+| `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / Bearer はあるが DB に届かない `503` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / 本文が8 KiBを超える `413` / tool の入力の誤り・見つからないは `200` の `isError: true` |
 | `/mcp` | GET・DELETE | — | — | `405`（サーバーから流す SSE とセッションは持たない） |
 
 tools（どれも読むだけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:
