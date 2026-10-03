@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f367fded-e068-45fb-809e-04ccafe56459",
+  "id": "d815531c-105a-47a7-84b6-c7b4b0e631b1",
   "prevId": "51491b9f-cd17-483a-9560-4553f1d702ae",
   "tables": {
     "data_import": {
@@ -598,6 +598,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "connected_at": {
+          "name": "connected_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -607,7 +614,23 @@
           "default": "(unixepoch())"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "oauth_client_created": {
+          "name": "oauth_client_created",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false
+        },
+        "oauth_client_unconnected": {
+          "name": "oauth_client_unconnected",
+          "columns": [
+            "connected_at",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -749,6 +772,13 @@
             "client_id"
           ],
           "isUnique": true
+        },
+        "oauth_grant_client": {
+          "name": "oauth_grant_client",
+          "columns": [
+            "client_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -828,6 +858,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -849,6 +886,13 @@
           "name": "oauth_token_expires",
           "columns": [
             "expires_at"
+          ],
+          "isUnique": false
+        },
+        "oauth_token_parent": {
+          "name": "oauth_token_parent",
+          "columns": [
+            "parent_id"
           ],
           "isUnique": false
         }

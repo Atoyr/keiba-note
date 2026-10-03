@@ -476,9 +476,19 @@ export const oauthClient = sqliteTable(
 		name: text('name').notNull(),
 		/** 登録された戻り先。認可の要求はこのどれかと一致しなければ受けない（ループバックだけポートを問わない）。 */
 		redirectUris: text('redirect_uris', { mode: 'json' }).$type<string[]>().notNull(),
+		/**
+		 * 初めて連携（同意）した時刻。NULL は一度も連携していない登録で、数の上限と24時間の期限の対象になる。
+		 * 一度でも連携した登録は、連携が解除されたあとも残す（同じアプリからつなぎ直せるように）。
+		 */
+		connectedAt: integer('connected_at'),
 		createdAt: createdAt()
 	},
-	(t) => [index('oauth_client_created').on(t.createdAt)]
+	(t) => [
+		// 直近の登録の数（毎分の上限）。
+		index('oauth_client_created').on(t.createdAt),
+		// 一度も連携していない登録の数と、期限切れの掃除。
+		index('oauth_client_unconnected').on(t.connectedAt, t.createdAt)
+	]
 );
 
 /**

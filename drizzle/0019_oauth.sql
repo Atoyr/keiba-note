@@ -2,9 +2,12 @@ CREATE TABLE `oauth_client` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`redirect_uris` text NOT NULL,
+	`connected_at` integer,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint
+CREATE INDEX `oauth_client_created` ON `oauth_client` (`created_at`);--> statement-breakpoint
+CREATE INDEX `oauth_client_unconnected` ON `oauth_client` (`connected_at`,`created_at`);--> statement-breakpoint
 CREATE TABLE `oauth_code` (
 	`id` text PRIMARY KEY NOT NULL,
 	`grant_id` text NOT NULL,
@@ -29,6 +32,7 @@ CREATE TABLE `oauth_grant` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `oauth_grant_user_client` ON `oauth_grant` (`user_id`,`client_id`);--> statement-breakpoint
+CREATE INDEX `oauth_grant_client` ON `oauth_grant` (`client_id`);--> statement-breakpoint
 CREATE TABLE `oauth_token` (
 	`id` text PRIMARY KEY NOT NULL,
 	`grant_id` text NOT NULL,
@@ -36,9 +40,11 @@ CREATE TABLE `oauth_token` (
 	`scopes` text NOT NULL,
 	`expires_at` integer NOT NULL,
 	`used_at` integer,
+	`parent_id` text,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	FOREIGN KEY (`grant_id`) REFERENCES `oauth_grant`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE INDEX `oauth_token_grant` ON `oauth_token` (`grant_id`);--> statement-breakpoint
-CREATE INDEX `oauth_token_expires` ON `oauth_token` (`expires_at`);
+CREATE INDEX `oauth_token_expires` ON `oauth_token` (`expires_at`);--> statement-breakpoint
+CREATE INDEX `oauth_token_parent` ON `oauth_token` (`parent_id`);

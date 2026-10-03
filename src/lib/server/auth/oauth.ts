@@ -1,6 +1,20 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeBase64urlNoPadding } from '@oslojs/encoding';
-import { and, eq, exists, gt, inArray, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm';
+import {
+	and,
+	eq,
+	exists,
+	gt,
+	inArray,
+	isNotNull,
+	isNull,
+	lt,
+	lte,
+	ne,
+	notExists,
+	or,
+	sql
+} from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { oauthClient, oauthCode, oauthGrant, oauthToken, user } from '$lib/server/db/schema';
@@ -20,7 +34,8 @@ import { hashSessionToken, type SessionUser } from './session';
  * - 生のコードとトークンは DB に入れない。セッションと同じ SHA-256 だけを持つ
  * - PKCE（S256）を必ず確かめる。公開クライアントなので、コードを横取りされてもこれで止まる
  * - トークンが連れてくるのは grant の持ち主だけ。**誰のデータを読むかはトークンで決まり、入力では選べない**
- * - リフレッシュトークンは1回きり。使い回しが来たら盗まれたとみなして連携（grant）ごと消す
+ * - リフレッシュトークンは1回きり。使い回しが来たら盗まれたとみなして連携（grant）ごと消す。
+ *   ただし回線断で応答が届かなかった送り直しは受ける（`judgeRetry`。docs/architecture.md 3-10）
  */
 
 export const ACCESS_TOKEN_TTL_SEC = 60 * 60;
@@ -31,8 +46,6 @@ export const CODE_TTL_SEC = 5 * 60;
  * クライアントが同じリフレッシュトークンで送り直すことがある。電波が戻るまでを見込んで30分。
  */
 export const REFRESH_RETRY_GRACE_SEC = 30 * 60;
-/** 元の要求の処理中（印を付けてから新しい1組を入れ終えるまで）とみなす長さ。D1 の往復数回分に余裕を持たせる。 */
-const INFLIGHT_SEC = 60;
 
 const sec = (now: Date) => Math.floor(now.getTime() / 1000);
 
@@ -57,10 +70,12 @@ export const UNUSED_CLIENT_TTL_SEC = 24 * 60 * 60;
 
 export class ClientRegistrationLimitError extends Error {}
 
-const clientHasGrant = (db: Db) =>
-	exists(
-		db.select({ id: oauthGrant.id }).from(oauthGrant).where(eq(oauthGrant.clientId, oauthClient.id))
-	);
+/**
+ * 一度も連携していない登録。誰でも登録できるので、これだけを数の上限と24時間の期限の対象にする。
+ * **今 grant があるかでは決めない。** 解除・使い回しの検出・凍結で grant が消えた登録も期限で消すと、
+ * 同じアプリ（手元に client_id を持っている）からつなぎ直せなくなる。
+ */
+const neverConnected = isNull(oauthClient.connectedAt);
 
 /** 動的クライアント登録。誰でも呼べるので、登録だけでは何の権限も生まない。 */
 export async function registerClient(
@@ -74,14 +89,11 @@ export async function registerClient(
 		redirectUris: input.redirectUris
 	};
 	const t = sec(now);
-	const unused = notExists(
-		db.select({ id: oauthGrant.id }).from(oauthGrant).where(eq(oauthGrant.clientId, oauthClient.id))
-	);
-	// 削除も件数を区切る。連携のある登録は消さない。INSERT 自体で上限を判定し、同時登録でも超えない。
+	// 削除も件数を区切る。一度でも連携した登録は消さない。INSERT 自体で上限を判定し、同時登録でも超えない。
 	const expired = db
 		.select({ id: oauthClient.id })
 		.from(oauthClient)
-		.where(and(lte(oauthClient.createdAt, t - UNUSED_CLIENT_TTL_SEC), unused))
+		.where(and(lte(oauthClient.createdAt, t - UNUSED_CLIENT_TTL_SEC), neverConnected))
 		.limit(100);
 	const recent = db
 		.select({ id: oauthClient.id })
@@ -91,14 +103,15 @@ export async function registerClient(
 	const pending = db
 		.select({ id: oauthClient.id })
 		.from(oauthClient)
-		.where(unused)
+		.where(neverConnected)
 		.limit(UNUSED_CLIENT_LIMIT);
 	const [, inserted] = await db.batch([
 		db.delete(oauthClient).where(inArray(oauthClient.id, expired)),
 		db
 			.insert(oauthClient)
 			.select(
-				sql`SELECT ${client.id}, ${client.name}, ${JSON.stringify(client.redirectUris)}, ${t}
+				// 列は schema.ts の oauthClient の並び（id・name・redirect_uris・connected_at・created_at）。
+				sql`SELECT ${client.id}, ${client.name}, ${JSON.stringify(client.redirectUris)}, NULL, ${t}
 			WHERE (SELECT count(*) FROM (${recent})) < ${CLIENT_REGISTRATION_LIMIT}
 			AND (SELECT count(*) FROM (${pending})) < ${UNUSED_CLIENT_LIMIT}`
 			)
@@ -119,7 +132,10 @@ export async function getClient(
 		.where(
 			and(
 				eq(oauthClient.id, clientId),
-				or(gt(oauthClient.createdAt, sec(now) - UNUSED_CLIENT_TTL_SEC), clientHasGrant(db))
+				or(
+					gt(oauthClient.createdAt, sec(now) - UNUSED_CLIENT_TTL_SEC),
+					isNotNull(oauthClient.connectedAt)
+				)
 			)
 		)
 		.limit(1);
@@ -162,6 +178,11 @@ export async function createAuthorizationCode(
 		db
 			.insert(oauthGrant)
 			.values({ id: grantId, userId: input.userId, clientId: input.clientId, scopes }),
+		// 初めて連携した時刻。これがある登録は期限で消さない（解除のあとも同じアプリからつなぎ直せる）。
+		db
+			.update(oauthClient)
+			.set({ connectedAt: sec(now) })
+			.where(and(eq(oauthClient.id, input.clientId), isNull(oauthClient.connectedAt))),
 		db.insert(oauthCode).values({
 			id: hashSessionToken(code),
 			grantId,
@@ -420,8 +441,6 @@ export async function refreshTokens(
 				return invalidGrant('同意が更新または解除されています');
 			return refreshInFlight();
 		}
-		case 'inflight':
-			return refreshInFlight();
 		case 'theft':
 			await db.delete(oauthGrant).where(eq(oauthGrant.id, row.grantId));
 			return {
@@ -443,8 +462,6 @@ const refreshInFlight = (): TokenError => ({
  * - `accept` — 応答が届かなかった送り直し。前に使われてから猶予の内で、そのとき出したアクセストークンが
  *   **一度も使われていない**（リフレッシュするのは tool を呼ぶためなので、受け取っていればすぐ使う）。
  *   次のリフレッシュトークンの ID を返す。印と届かなかったアクセストークンの削除は発行の batch で行う。
- * - `inflight` — 元の要求をまだ処理している（印を付ける前・新しい1組を入れる前）か、同時に来た送り直しが
- *   先に受けた。連携は消さず、トークンも出さない
  * - `theft` — 出したアクセストークンが使われた・次のリフレッシュトークンが使われた・猶予を過ぎた。
  *   正規のクライアントは受け取っていたので、古いトークンが来るのは盗まれたとき
  *
@@ -455,12 +472,9 @@ const refreshInFlight = (): TokenError => ({
 async function judgeRetry(
 	db: Db,
 	refreshId: string,
-	usedAt: number | null,
+	usedAt: number,
 	t: number
-): Promise<
-	{ state: 'accept'; refreshId: string; scopes: string[] } | { state: 'inflight' | 'theft' }
-> {
-	if (usedAt === null) return { state: 'inflight' };
+): Promise<{ state: 'accept'; refreshId: string; scopes: string[] } | { state: 'theft' }> {
 	if (t - usedAt > REFRESH_RETRY_GRACE_SEC) return { state: 'theft' };
 	const children = await db
 		.select({
@@ -471,9 +485,9 @@ async function judgeRetry(
 		})
 		.from(oauthToken)
 		.where(eq(oauthToken.parentId, refreshId));
-	// 子が無いのは、元の要求が新しい1組を入れている途中（数秒）のときだけ。それより後なら、子を持たない
-	// トークン（送り直しで止めた1組＝持っていないはずのもの）が使われた。
-	if (children.length === 0) return { state: t - usedAt <= INFLIGHT_SEC ? 'inflight' : 'theft' };
+	// 使用済みの印と子の INSERT は同じ batch で確定する（issueTokens）。印があって子が無いのは、送り直しで
+	// 止めた1組（届かなかったはずのもの）だけ。それが使われたなら持っていないはずのもの＝盗まれた。
+	if (children.length === 0) return { state: 'theft' };
 	if (children.some((c) => c.kind === 'access' && c.usedAt !== null)) return { state: 'theft' };
 	const next = children.find((c) => c.kind === 'refresh' && c.usedAt === null);
 	return next ? { state: 'accept', refreshId: next.id, scopes: next.scopes } : { state: 'theft' };

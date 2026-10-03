@@ -268,6 +268,8 @@ describe('リフレッシュトークン', () => {
 		});
 
 		it.each([
+			// 止めてから60秒以内でも待たずに検出する（以前は「処理中」とみなして見逃していた）。
+			['止めた直後', 20],
 			['猶予の内', 120],
 			['猶予の外', REFRESH_RETRY_GRACE_SEC + 60]
 		])(
@@ -299,22 +301,6 @@ describe('リフレッシュトークン', () => {
 				reused: true
 			});
 			expect(await listGrants(db, 'A')).toEqual([]);
-		});
-
-		it('元の要求の処理中に送り直しが来ても、連携は消さずトークンも出さない', async () => {
-			const { client, tokens } = await tokensFor();
-			// 元の要求が印を付けたが、新しい1組をまだ入れていない状態。
-			sqlite
-				.prepare('UPDATE oauth_token SET used_at = ? WHERE kind = ? AND parent_id IS NULL')
-				.run(Math.floor(NOW.getTime() / 1000), 'refresh');
-			const r = await refreshTokens(
-				db,
-				{ refreshToken: tokens.refresh_token, clientId: client.id },
-				later(2)
-			);
-			expect(r).toMatchObject({ error: 'temporarily_unavailable' });
-			expect(r).not.toHaveProperty('reused');
-			expect(await listGrants(db, 'A')).toHaveLength(1);
 		});
 
 		it('同じ送り直しが同時に2つ来ても、生きているアクセストークンは1つだけで、連携は残る', async () => {
@@ -587,6 +573,39 @@ describe('登録の上限と期限', () => {
 		expect(sqlite.prepare('SELECT count(*) AS n FROM oauth_client').get()).toMatchObject({
 			n: UNUSED_CLIENT_LIMIT - 100 + 1
 		});
+	});
+	it('連携を解除した登録も、24時間を過ぎてから同じアプリでつなぎ直せ、掃除で消えない', async () => {
+		// 解除・使い回しの検出・凍結で grant が消えても、手元に client_id を持つアプリは同じ登録で認可に来る。
+		const { client } = await tokensFor();
+		const [grant] = await listGrants(db, 'A');
+		expect(await revokeGrant(db, grant.id, 'A')).toBe(true);
+		sqlite.prepare('UPDATE oauth_client SET created_at = ?').run(Math.floor(NOW.getTime() / 1000));
+		const after = later(UNUSED_CLIENT_TTL_SEC + 60);
+		await registerClient(db, input, after); // 掃除が走る
+		expect(sqlite.prepare('SELECT id FROM oauth_client WHERE id = ?').get(client.id)).toBeDefined();
+		expect(await getClient(db, client.id, after)).not.toBeNull();
+		expect(
+			await createAuthorizationCode(
+				db,
+				{
+					userId: 'A',
+					clientId: client.id,
+					scopes: ['races:read'],
+					redirectUri: REDIRECT,
+					codeChallenge: CHALLENGE
+				},
+				after
+			)
+		).not.toBeNull();
+	});
+	it('一度でも連携した登録は、未連携の上限に数えない', async () => {
+		const { client } = await tokensFor();
+		const [grant] = await listGrants(db, 'A');
+		await revokeGrant(db, grant.id, 'A');
+		const row = sqlite
+			.prepare('SELECT connected_at AS c FROM oauth_client WHERE id = ?')
+			.get(client.id) as { c: number | null };
+		expect(row.c).not.toBeNull();
 	});
 	it('期限切れの未連携は認可できず、連携済みの登録とトークンは掃除後も残る', async () => {
 		const unused = await registerClient(db, input, NOW);
