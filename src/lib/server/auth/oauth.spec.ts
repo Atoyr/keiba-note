@@ -1,7 +1,7 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase64urlNoPadding } from '@oslojs/encoding';
 import { createHash } from 'node:crypto';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
@@ -56,6 +56,20 @@ async function tokensFor(userId = 'A', scopes?: ('races:read' | 'notes:read')[])
 		NOW
 	);
 	return { client, tokens: t as TokenResponse };
+}
+
+/** 発行直前で1要求だけ止め、その間に別の要求を最後まで進める。 */
+function pauseNextBatch() {
+	const entered = Promise.withResolvers<void>();
+	const released = Promise.withResolvers<void>();
+	const batch = db.batch.bind(db);
+	const spy = vi.spyOn(db, 'batch').mockImplementationOnce(async (queries) => {
+		spy.mockRestore();
+		entered.resolve();
+		await released.promise;
+		return batch(queries);
+	});
+	return { entered: entered.promise, resume: () => released.resolve() };
 }
 
 describe('PKCE', () => {
@@ -293,7 +307,7 @@ describe('リフレッシュトークン', () => {
 				{ refreshToken: tokens.refresh_token, clientId: client.id },
 				later(2)
 			);
-			expect(r).toMatchObject({ error: 'invalid_grant' });
+			expect(r).toMatchObject({ error: 'temporarily_unavailable' });
 			expect(r).not.toHaveProperty('reused');
 			expect(await listGrants(db, 'A')).toHaveLength(1);
 		});
@@ -315,6 +329,45 @@ describe('リフレッシュトークン', () => {
 			expect(alive).toHaveLength(1);
 			expect(await listGrants(db, 'A')).toHaveLength(1);
 		});
+	});
+
+	it.each([false, true])(
+		'保存失敗で使用済みの印も新規トークンも残らず、再試行できる（送り直し=%s）',
+		async (retry) => {
+			const { client, tokens } = await tokensFor();
+			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+			if (retry) await refreshTokens(db, input, NOW);
+			const before = sqlite.prepare('SELECT * FROM oauth_token ORDER BY id').all();
+			sqlite.exec(`CREATE TRIGGER fail_issue BEFORE UPDATE OF last_used_at ON oauth_grant
+			BEGIN SELECT RAISE(ABORT, 'injected save failure'); END`);
+			await expect(refreshTokens(db, input, later(10))).rejects.toThrow();
+			expect(sqlite.prepare('SELECT * FROM oauth_token ORDER BY id').all()).toEqual(before);
+			expect(await listGrants(db, 'A')).toHaveLength(1);
+			sqlite.exec('DROP TRIGGER fail_issue');
+			const fresh = await refreshTokens(db, input, later(120));
+			expect(fresh).toHaveProperty('access_token');
+			expect(
+				(await validateAccessToken(db, (fresh as TokenResponse).access_token, later(120)))?.user.id
+			).toBe('A');
+		}
+	);
+
+	it('同じ未使用トークンの同時更新は片方が成功し、もう片方は再試行できる', async () => {
+		const { client, tokens } = await tokensFor();
+		const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+		const pause = pauseNextBatch();
+		const first = refreshTokens(db, input, NOW);
+		await pause.entered;
+		const second = await refreshTokens(db, input, NOW);
+		pause.resume();
+		const delayed = await first;
+		const success = [second, delayed].filter((r): r is TokenResponse => 'access_token' in r);
+		expect(success).toHaveLength(1);
+		expect([second, delayed].find((r) => 'error' in r)).toMatchObject({
+			error: 'temporarily_unavailable'
+		});
+		expect(await listGrants(db, 'A')).toHaveLength(1);
+		expect(await refreshTokens(db, input, later(2))).toHaveProperty('access_token');
 	});
 
 	it('狭めることはできるが、許されていないスコープへは広げられない', async () => {
@@ -358,6 +411,82 @@ describe('リフレッシュトークン', () => {
 });
 
 describe('同意し直し', () => {
+	it.each(['code', 'refresh', 'retry'] as const)(
+		'発行直前にメモを外して再同意すると、古い%s処理から権限を復活できない',
+		async (flow) => {
+			const { client, code } = await authorize();
+			const exchange = (value: string) =>
+				exchangeAuthorizationCode(
+					db,
+					{
+						code: value,
+						clientId: client.id,
+						redirectUri: REDIRECT,
+						codeVerifier: VERIFIER
+					},
+					NOW
+				);
+			const original = flow === 'code' ? null : ((await exchange(code)) as TokenResponse);
+			const input = { refreshToken: original?.refresh_token ?? '', clientId: client.id };
+			if (flow === 'retry') await refreshTokens(db, input, NOW);
+			const pause = pauseNextBatch();
+			const pending = flow === 'code' ? exchange(code) : refreshTokens(db, input, NOW);
+			await pause.entered;
+			const newCode = await createAuthorizationCode(
+				db,
+				{
+					userId: 'A',
+					clientId: client.id,
+					scopes: ['races:read'],
+					redirectUri: REDIRECT,
+					codeChallenge: CHALLENGE
+				},
+				NOW
+			);
+			pause.resume();
+			expect(await pending).toMatchObject({ error: 'invalid_grant' });
+			expect(sqlite.prepare('SELECT count(*) AS n FROM oauth_token').get()).toEqual({ n: 0 });
+			expect((await listGrants(db, 'A'))[0].scopes).toEqual(['races:read']);
+			const fresh = (await exchange(newCode!)) as TokenResponse;
+			expect((await validateAccessToken(db, fresh.access_token, NOW))?.scopes).toEqual([
+				'races:read'
+			]);
+			expect(
+				(
+					(await refreshTokens(
+						db,
+						{ refreshToken: fresh.refresh_token, clientId: client.id },
+						NOW
+					)) as TokenResponse
+				).scope
+			).toBe('races:read');
+		}
+	);
+
+	it('再同意のコード保存が失敗したら、前の連携・トークンを維持する', async () => {
+		const { client, tokens } = await tokensFor();
+		const [before] = await listGrants(db, 'A');
+		sqlite.exec(`CREATE TRIGGER fail_consent BEFORE INSERT ON oauth_code
+			BEGIN SELECT RAISE(ABORT, 'injected consent failure'); END`);
+		await expect(
+			createAuthorizationCode(
+				db,
+				{
+					userId: 'A',
+					clientId: client.id,
+					scopes: ['races:read'],
+					redirectUri: REDIRECT,
+					codeChallenge: CHALLENGE
+				},
+				NOW
+			)
+		).rejects.toThrow();
+		expect(await listGrants(db, 'A')).toEqual([before]);
+		expect((await validateAccessToken(db, tokens.access_token, NOW))?.scopes).toEqual([
+			'races:read',
+			'notes:read'
+		]);
+	});
 	it('メモを外して同意し直すと、前のトークン（notes:read 付き）は使えない', async () => {
 		const { client, tokens } = await tokensFor('A', ['races:read', 'notes:read']);
 		// 同じクライアントにもう一度、races:read だけで同意する。

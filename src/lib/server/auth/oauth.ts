@@ -1,6 +1,6 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeBase64urlNoPadding } from '@oslojs/encoding';
-import { and, eq, isNull, lt, lte, or } from 'drizzle-orm';
+import { and, eq, exists, gt, isNull, lt, lte, ne, notExists, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { oauthClient, oauthCode, oauthGrant, oauthToken, user } from '$lib/server/db/schema';
@@ -98,24 +98,20 @@ export async function createAuthorizationCode(
 	if (!client || !redirectUriMatches(client.redirectUris, input.redirectUri)) return null;
 
 	const scopes = sortScopes(input.scopes);
-	const [grant] = await db
-		.insert(oauthGrant)
-		.values({ id: ulid(), userId: input.userId, clientId: input.clientId, scopes })
-		.onConflictDoUpdate({
-			target: [oauthGrant.userId, oauthGrant.clientId],
-			set: { scopes }
-		})
-		.returning({ id: oauthGrant.id });
-
+	// ID を同意の世代にする。同じスコープに戻した場合も、古い処理は新しい grant に発行できない。
+	const grantId = ulid();
 	const code = generateSecret('uma_ac_');
 	await db.batch([
-		db.delete(oauthToken).where(eq(oauthToken.grantId, grant.id)),
 		db
-			.delete(oauthCode)
-			.where(or(eq(oauthCode.grantId, grant.id), lte(oauthCode.expiresAt, sec(now)))),
+			.delete(oauthGrant)
+			.where(and(eq(oauthGrant.userId, input.userId), eq(oauthGrant.clientId, input.clientId))),
+		db.delete(oauthCode).where(lte(oauthCode.expiresAt, sec(now))),
+		db
+			.insert(oauthGrant)
+			.values({ id: grantId, userId: input.userId, clientId: input.clientId, scopes }),
 		db.insert(oauthCode).values({
 			id: hashSessionToken(code),
-			grantId: grant.id,
+			grantId,
 			scopes,
 			redirectUri: input.redirectUri,
 			codeChallenge: input.codeChallenge,
@@ -135,15 +131,15 @@ export type TokenResponse = {
 
 /** トークンの口で返す誤り（RFC 6749 5.2）。 */
 export type TokenError = {
-	error: 'invalid_grant' | 'invalid_scope' | 'invalid_client';
+	error: 'invalid_grant' | 'invalid_scope' | 'invalid_client' | 'temporarily_unavailable';
 	error_description: string;
 	/** リフレッシュトークンの使い回しを見つけて連携を消したとき。監視に残す（応答には載せない）。 */
 	reused?: true;
 };
 
 /**
- * アクセストークンとリフレッシュトークンを1組出す。ついでに、この連携の期限切れのトークンを掃除する
- * （呼ばれるのは1時間に1回程度なので、溜まらないようにここで消す）。
+ * 同意の世代と未使用状態を INSERT 時にも照合し、1組の保存・使用済みの印・掃除を1つの batch で確定する。
+ * 別の要求が先に確定した場合は何も書かず null。途中で DB が失敗すれば全体がロールバックされる。
  */
 async function issueTokens(
 	db: Db,
@@ -151,41 +147,102 @@ async function issueTokens(
 	scopes: readonly OAuthScope[],
 	now: Date,
 	/** どのリフレッシュトークンから出したか（送り直しの判断に使う）。認可コードから出したときは null。 */
-	parentId: string | null = null
-): Promise<TokenResponse> {
+	parentId: string | null = null,
+	/** 使用済みにするトークン。送り直しでは、届かなかった1組のリフレッシュトークンを指定する。 */
+	refreshId: string | null = parentId
+): Promise<TokenResponse | null> {
 	const access = generateSecret('uma_at_');
 	const refresh = generateSecret('uma_rt_');
+	const accessId = hashSessionToken(access);
 	const t = sec(now);
-	await db.batch([
-		db.delete(oauthToken).where(and(eq(oauthToken.grantId, grantId), lt(oauthToken.expiresAt, t))),
-		// 送り直しを受けたとき、届かなかった1組のアクセストークンを止める（ふつうの更新では当たる行が無い）。
+	const active = exists(
+		db
+			.select({ id: oauthGrant.id })
+			.from(oauthGrant)
+			.innerJoin(user, eq(oauthGrant.userId, user.id))
+			.where(and(eq(oauthGrant.id, grantId), isNull(user.deletedAt)))
+	);
+	const unused = refreshId
+		? exists(
+				db
+					.select({ id: oauthToken.id })
+					.from(oauthToken)
+					.where(
+						and(
+							eq(oauthToken.id, refreshId),
+							eq(oauthToken.grantId, grantId),
+							eq(oauthToken.kind, 'refresh'),
+							isNull(oauthToken.usedAt),
+							gt(oauthToken.expiresAt, t)
+						)
+					)
+			)
+		: sql`true`;
+	const retryUnused =
+		refreshId !== parentId
+			? notExists(
+					db
+						.select({ id: oauthToken.id })
+						.from(oauthToken)
+						.where(
+							and(
+								eq(oauthToken.parentId, parentId!),
+								eq(oauthToken.kind, 'access'),
+								sql`${oauthToken.usedAt} IS NOT NULL`
+							)
+						)
+				)
+			: sql`true`;
+	const saved = exists(
+		db.select({ id: oauthToken.id }).from(oauthToken).where(eq(oauthToken.id, accessId))
+	);
+	const [inserted] = await db.batch([
+		// 全列を表の順で選ぶ（insert/select）。2行とも同じ条件で入るので、片方だけ保存されることはない。
+		db
+			.insert(oauthToken)
+			.select(
+				sql`
+			SELECT issued.id, ${grantId}, issued.kind, ${JSON.stringify(scopes)},
+				issued.expires_at, NULL, ${parentId}, ${t}
+			FROM (
+				SELECT ${accessId} AS id, 'access' AS kind, ${t + ACCESS_TOKEN_TTL_SEC} AS expires_at
+				UNION ALL SELECT ${hashSessionToken(refresh)}, 'refresh', ${t + REFRESH_TOKEN_TTL_SEC}
+			) AS issued
+			WHERE ${active} AND ${unused} AND ${retryUnused}
+		`
+			)
+			.returning({ id: oauthToken.id }),
+		...(refreshId
+			? [
+					db
+						.update(oauthToken)
+						.set({ usedAt: t })
+						.where(and(eq(oauthToken.id, refreshId), saved))
+				]
+			: []),
 		...(parentId
 			? [
 					db
 						.delete(oauthToken)
-						.where(and(eq(oauthToken.parentId, parentId), eq(oauthToken.kind, 'access')))
+						.where(
+							and(
+								eq(oauthToken.parentId, parentId),
+								eq(oauthToken.kind, 'access'),
+								ne(oauthToken.id, accessId),
+								saved
+							)
+						)
 				]
 			: []),
-		db.insert(oauthToken).values([
-			{
-				id: hashSessionToken(access),
-				grantId,
-				kind: 'access',
-				scopes: [...scopes],
-				expiresAt: t + ACCESS_TOKEN_TTL_SEC,
-				parentId
-			},
-			{
-				id: hashSessionToken(refresh),
-				grantId,
-				kind: 'refresh',
-				scopes: [...scopes],
-				expiresAt: t + REFRESH_TOKEN_TTL_SEC,
-				parentId
-			}
-		]),
-		db.update(oauthGrant).set({ lastUsedAt: t }).where(eq(oauthGrant.id, grantId))
+		db
+			.delete(oauthToken)
+			.where(and(eq(oauthToken.grantId, grantId), lt(oauthToken.expiresAt, t), saved)),
+		db
+			.update(oauthGrant)
+			.set({ lastUsedAt: t })
+			.where(and(eq(oauthGrant.id, grantId), saved))
 	]);
+	if (inserted.length === 0) return null;
 	return {
 		access_token: access,
 		token_type: 'Bearer',
@@ -223,7 +280,10 @@ export async function exchangeAuthorizationCode(
 	if (!verifyPkce(input.codeVerifier, row.codeChallenge)) {
 		return invalidGrant('code_verifier が一致しません');
 	}
-	return issueTokens(db, row.grantId, knownScopes(row.scopes), now);
+	return (
+		(await issueTokens(db, row.grantId, knownScopes(row.scopes), now)) ??
+		invalidGrant('同意が更新または解除されています')
+	);
 }
 
 /** 連携が生きていて、持ち主が退会していないか。 */
@@ -242,9 +302,8 @@ async function activeGrant(db: Db, grantId: string) {
  * リフレッシュトークン → 新しい1組。古いリフレッシュトークンは使用済みにする。
  * 応答が届かずに同じトークンで送り直されたときは、猶予の内なら受ける（`acceptRetry`）。
  *
- * 使用済みの印は `used_at IS NULL` を条件にした UPDATE で付ける。同じトークンで2つの要求が
- * 同時に来ても、印を付けられるのは片方だけになる。**印を付けられなかった＝使い回し**なので、
- * 連携ごと消してどちらのトークンも使えなくする（盗んだ側が先に使っていた場合に備える）。
+ * 未使用状態の照合・新しい1組の保存・使用済みの印を同じ batch で行う。同じ状態を読んだ要求のうち
+ * 1つだけ確定でき、競合した要求には失効ではなく再試行可能なエラーを返す。
  *
  * `scope` で今より狭いスコープを求められたら、それで出す。広げることはできない。
  */
@@ -287,21 +346,21 @@ export async function refreshTokens(
 		scopes = sortScopes([...REQUIRED_SCOPES, ...asked]);
 	}
 
-	const claimed = await db
-		.update(oauthToken)
-		.set({ usedAt: t })
-		.where(and(eq(oauthToken.id, id), isNull(oauthToken.usedAt)))
-		.returning({ id: oauthToken.id });
-	if (claimed.length > 0) return issueTokens(db, row.grantId, scopes, now, id);
-
-	switch (await judgeRetry(db, id, row.usedAt, t)) {
-		case 'accept':
-			return { ...(await issueTokens(db, row.grantId, scopes, now, id)), retried: true };
+	const retry =
+		row.usedAt === null
+			? { state: 'accept' as const, refreshId: id }
+			: await judgeRetry(db, id, row.usedAt, t);
+	switch (retry.state) {
+		case 'accept': {
+			const tokens = await issueTokens(db, row.grantId, scopes, now, id, retry.refreshId);
+			if (tokens) return row.usedAt === null ? tokens : { ...tokens, retried: true };
+			// 同意し直し・解除と、別の要求が先に更新した場合を分ける。
+			if (!(await activeGrant(db, row.grantId)))
+				return invalidGrant('同意が更新または解除されています');
+			return refreshInFlight();
+		}
 		case 'inflight':
-			// 連携は消さない。元の要求が終われば、次の送り直しは受けられる。
-			return invalidGrant(
-				'同じリフレッシュトークンの要求を処理しています。少し待って送り直してください'
-			);
+			return refreshInFlight();
 		case 'theft':
 			await db.delete(oauthGrant).where(eq(oauthGrant.id, row.grantId));
 			return {
@@ -311,14 +370,18 @@ export async function refreshTokens(
 	}
 }
 
+const refreshInFlight = (): TokenError => ({
+	error: 'temporarily_unavailable',
+	error_description: '同じリフレッシュトークンの要求を処理しています。少し待って送り直してください'
+});
+
 /**
  * 使用済みのリフレッシュトークンが来たときの判断。競馬場のスマホのように電波の弱い所では、要求は届いたのに
  * 応答が届かず、クライアントが同じトークンで送り直すことがある。それを盗まれたトークンと分ける。
  *
  * - `accept` — 応答が届かなかった送り直し。前に使われてから猶予の内で、そのとき出したアクセストークンが
  *   **一度も使われていない**（リフレッシュするのは tool を呼ぶためなので、受け取っていればすぐ使う）。
- *   次のリフレッシュトークンに使用済みの印を付ける（あとでそれが来たら、持っていないはずのもの＝盗まれた）。
- *   届かなかったアクセストークンは、新しい1組を出す batch で消す（`issueTokens`）
+ *   次のリフレッシュトークンの ID を返す。印と届かなかったアクセストークンの削除は発行の batch で行う。
  * - `inflight` — 元の要求をまだ処理している（印を付ける前・新しい1組を入れる前）か、同時に来た送り直しが
  *   先に受けた。連携は消さず、トークンも出さない
  * - `theft` — 出したアクセストークンが使われた・次のリフレッシュトークンが使われた・猶予を過ぎた。
@@ -333,31 +396,19 @@ async function judgeRetry(
 	refreshId: string,
 	usedAt: number | null,
 	t: number
-): Promise<'accept' | 'inflight' | 'theft'> {
-	if (usedAt === null) return 'inflight';
-	if (t - usedAt > REFRESH_RETRY_GRACE_SEC) return 'theft';
+): Promise<{ state: 'accept'; refreshId: string } | { state: 'inflight' | 'theft' }> {
+	if (usedAt === null) return { state: 'inflight' };
+	if (t - usedAt > REFRESH_RETRY_GRACE_SEC) return { state: 'theft' };
 	const children = await db
-		.select({ kind: oauthToken.kind, usedAt: oauthToken.usedAt })
+		.select({ id: oauthToken.id, kind: oauthToken.kind, usedAt: oauthToken.usedAt })
 		.from(oauthToken)
 		.where(eq(oauthToken.parentId, refreshId));
 	// 子が無いのは、元の要求が新しい1組を入れている途中（数秒）のときだけ。それより後なら、子を持たない
 	// トークン（送り直しで止めた1組＝持っていないはずのもの）が使われた。
-	if (children.length === 0) return t - usedAt <= INFLIGHT_SEC ? 'inflight' : 'theft';
-	if (children.some((c) => c.kind === 'access' && c.usedAt !== null)) return 'theft';
-	if (!children.some((c) => c.kind === 'refresh' && c.usedAt === null)) return 'theft';
-	// 印は `used_at IS NULL` を条件に付けるので、同時に来た送り直しのうち受けられるのは1つだけ。
-	const claimed = await db
-		.update(oauthToken)
-		.set({ usedAt: t })
-		.where(
-			and(
-				eq(oauthToken.parentId, refreshId),
-				eq(oauthToken.kind, 'refresh'),
-				isNull(oauthToken.usedAt)
-			)
-		)
-		.returning({ id: oauthToken.id });
-	return claimed.length > 0 ? 'accept' : 'inflight';
+	if (children.length === 0) return { state: t - usedAt <= INFLIGHT_SEC ? 'inflight' : 'theft' };
+	if (children.some((c) => c.kind === 'access' && c.usedAt !== null)) return { state: 'theft' };
+	const next = children.find((c) => c.kind === 'refresh' && c.usedAt === null);
+	return next ? { state: 'accept', refreshId: next.id } : { state: 'theft' };
 }
 
 export type AccessTokenAuth = {

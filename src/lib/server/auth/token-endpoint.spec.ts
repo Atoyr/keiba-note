@@ -1,9 +1,9 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase64urlNoPadding } from '@oslojs/encoding';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { createAuthorizationCode, registerClient, validateAccessToken } from './oauth';
+import { createAuthorizationCode, listGrants, registerClient, validateAccessToken } from './oauth';
 import { handleTokenRequest } from './token-endpoint';
 
 let db: Db;
@@ -197,5 +197,48 @@ describe('handleTokenRequest', () => {
 			null
 		);
 		expect(res.status).toBe(503);
+	});
+
+	it('同時更新の競合はトークンの失効ではなく503で返し、連携を保持して再試行できる', async () => {
+		const { clientId, code } = await codeFor();
+		const initial = await post(
+			form({
+				grant_type: 'authorization_code',
+				code,
+				redirect_uri: REDIRECT,
+				client_id: clientId,
+				code_verifier: VERIFIER
+			})
+		);
+		const tokens = (await initial.json()) as { refresh_token: string };
+		const body = form({
+			grant_type: 'refresh_token',
+			refresh_token: tokens.refresh_token,
+			client_id: clientId
+		});
+		const entered = Promise.withResolvers<void>();
+		const released = Promise.withResolvers<void>();
+		const batch = db.batch.bind(db);
+		const spy = vi.spyOn(db, 'batch').mockImplementationOnce(async (queries) => {
+			spy.mockRestore();
+			entered.resolve();
+			await released.promise;
+			return batch(queries);
+		});
+		const first = post(body);
+		await entered.promise;
+		const second = await post(body);
+		released.resolve();
+		const conflict = await first;
+		expect(second.status).toBe(200);
+		expect(conflict.status).toBe(503);
+		expect(conflict.headers.get('retry-after')).toBe('1');
+		expect(conflict.headers.get('cache-control')).toBe('no-store');
+		expect(await conflict.json()).toEqual({
+			error: 'temporarily_unavailable',
+			error_description: expect.any(String)
+		});
+		expect(await listGrants(db, 'A')).toHaveLength(1);
+		expect((await post(body)).status).toBe(200);
 	});
 });

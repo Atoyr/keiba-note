@@ -366,6 +366,78 @@ async function connect(page: Page, request: APIRequestContext, keepNotes = true)
 }
 
 test.describe('OAuth の全行程', () => {
+	test('メモを外して再同意すると古い連携は失効し、新しいトークンの更新でもメモの権限は戻らない', async ({
+		page,
+		request
+	}) => {
+		const { clientId, tokens } = await connect(page, request);
+		const consent = await page.context().newPage();
+		const { verifier, challenge } = pkce();
+		const callback = captureCallback(consent);
+		await gotoHydrated(consent, authorizeUrl(clientId, challenge));
+		await consent.getByLabel('あなたのメモ・見立て・印・札を読む').uncheck();
+		await consent.getByRole('button', { name: '許可する' }).click();
+		const code = (await callback).searchParams.get('code')!;
+		expect((await mcp(request, tokens.access_token, rpc('tools/list'))).status()).toBe(401);
+		const old = await exchange(request, {
+			grant_type: 'refresh_token',
+			refresh_token: tokens.refresh_token,
+			client_id: clientId
+		});
+		expect(old.status).toBe(400);
+		expect(old.json.error).toBe('invalid_grant');
+		const fresh = await exchange(request, {
+			grant_type: 'authorization_code',
+			code,
+			redirect_uri: REDIRECT,
+			client_id: clientId,
+			code_verifier: verifier
+		});
+		expect(fresh.status).toBe(200);
+		expect(fresh.json.scope).toBe('races:read');
+		const updated = await exchange(request, {
+			grant_type: 'refresh_token',
+			refresh_token: fresh.json.refresh_token,
+			client_id: clientId
+		});
+		expect(updated.status).toBe(200);
+		expect(updated.json.scope).toBe('races:read');
+		expect(
+			(await callTool(request, updated.json.access_token, 'list_my_recent_notes')).status()
+		).toBe(403);
+	});
+
+	test('同時更新で失効エラーを返さず、連携と使えるトークンを残す', async ({ page, request }) => {
+		const { clientId, tokens } = await connect(page, request);
+		const results = await Promise.all(
+			Array.from({ length: 4 }, () =>
+				exchange(request, {
+					grant_type: 'refresh_token',
+					refresh_token: tokens.refresh_token,
+					client_id: clientId
+				})
+			)
+		);
+		const issued = results.filter((r) => r.status === 200);
+		expect(issued.length).toBeGreaterThanOrEqual(1);
+		for (const result of results.filter((r) => r.status !== 200)) {
+			expect(result.status).toBe(503);
+			expect(result.json.error).toBe('temporarily_unavailable');
+		}
+		const alive = [];
+		for (const result of issued) {
+			if ((await mcp(request, result.json.access_token, rpc('tools/list'))).status() === 200)
+				alive.push(result);
+		}
+		expect(alive).toHaveLength(1);
+		const updated = await exchange(request, {
+			grant_type: 'refresh_token',
+			refresh_token: alive[0].json.refresh_token,
+			client_id: clientId
+		});
+		expect(updated.status).toBe(200);
+	});
+
 	test('登録 → 同意 → トークン → tool。コードは2度使えない', async ({ page, request }) => {
 		const { clientId, code, verifier, tokens } = await connect(page, request);
 		expect(tokens.scope).toBe('races:read notes:read');

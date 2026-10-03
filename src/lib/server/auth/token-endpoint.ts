@@ -73,7 +73,11 @@ export async function handleTokenRequest(
 			// 盗まれたリフレッシュトークンが使われた可能性がある。連携は消してあるが、気づけるように残す。
 			log('warn', 'oauth.refresh.reused', 'リフレッシュトークンが使い回されたので連携を解除した');
 		}
-		return reply(error, statusOf(result));
+		return reply(
+			error,
+			statusOf(result),
+			result.error === 'temporarily_unavailable' ? { 'Retry-After': '1' } : {}
+		);
 	}
 	const { retried, ...tokens } = 'retried' in result ? result : { ...result, retried: undefined };
 	if (retried) {
@@ -83,7 +87,8 @@ export async function handleTokenRequest(
 	return reply(tokens, 200);
 }
 
-const statusOf = (e: TokenError) => (e.error === 'invalid_client' ? 401 : 400);
+const statusOf = (e: TokenError) =>
+	e.error === 'temporarily_unavailable' ? 503 : e.error === 'invalid_client' ? 401 : 400;
 
 const invalidRequest = (error_description: string) =>
 	reply({ error: 'invalid_request', error_description }, 400);
@@ -101,13 +106,14 @@ function basicClientId(header: string | null): string | null {
 }
 
 /** トークンを含む応答はどこにも残させない（RFC 6749 5.1）。 */
-function reply(body: unknown, status: number): Response {
+function reply(body: unknown, status: number, headers: Record<string, string> = {}): Response {
 	return new Response(JSON.stringify(body), {
 		status,
 		headers: {
 			'Content-Type': 'application/json',
 			'Cache-Control': 'no-store',
-			Pragma: 'no-cache'
+			Pragma: 'no-cache',
+			...headers
 		}
 	});
 }

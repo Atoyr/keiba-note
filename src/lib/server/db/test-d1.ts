@@ -34,7 +34,7 @@ class Statement {
 		return this.#prepare().columns().length > 0;
 	}
 
-	async all() {
+	all() {
 		return { results: this.#prepare().all(...this.params), success: true, meta: {} };
 	}
 
@@ -48,7 +48,7 @@ class Statement {
 		return stmt.all(...this.params);
 	}
 
-	async run() {
+	run() {
 		const r = this.#prepare().run(...this.params);
 		return {
 			results: [],
@@ -66,7 +66,8 @@ function binding(sqlite: DatabaseSync) {
 			sqlite.exec('BEGIN');
 			try {
 				const results = [];
-				for (const s of statements) results.push(await (s.isReader() ? s.all() : s.run()));
+				// SQLite の実行は同期。途中で await すると、別の batch や読み取りが割り込んでしまう。
+				for (const s of statements) results.push(s.isReader() ? s.all() : s.run());
 				sqlite.exec('COMMIT');
 				return results;
 			} catch (e) {
