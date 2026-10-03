@@ -142,19 +142,38 @@ export function isClientIdMetadataUrl(clientId: string, allowLoopback = false): 
 	return !IP_LITERAL.test(host) && host.includes('.');
 }
 
-/** Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。 */
-export const clientMetadataDocumentSchema = v.object({
-	client_id: v.pipe(v.string(), v.maxLength(CLIENT_ID_MAX)),
-	client_name: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(100)), ''),
-	redirect_uris: v.pipe(
-		v.array(v.pipe(v.string(), v.maxLength(2000))),
-		v.minLength(1),
-		v.maxLength(10),
-		v.check((uris) => uris.every(isAllowedRedirectUri), '戻り先は https かループバックだけです')
+/**
+ * Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。
+ * 公開クライアント（`none`）として使えるものだけを受ける。条件と理由は architecture.md 3-10。
+ */
+export const clientMetadataDocumentSchema = v.pipe(
+	v.object({
+		client_id: v.pipe(v.string(), v.maxLength(CLIENT_ID_MAX)),
+		client_name: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(100)), ''),
+		redirect_uris: v.pipe(
+			v.array(v.pipe(v.string(), v.maxLength(2000))),
+			v.minLength(1),
+			v.maxLength(10),
+			v.check((uris) => uris.every(isAllowedRedirectUri), '戻り先は https かループバックだけです')
+		),
+		token_endpoint_auth_method: v.optional(v.unknown()),
+		// 判定にしか使わないので形は問わない（崩れていても none 以外の方式を受けないだけ）。
+		token_endpoint_auth_methods_supported: v.optional(v.unknown())
+	}),
+	v.check(
+		(doc) =>
+			doc.token_endpoint_auth_method === undefined ||
+			doc.token_endpoint_auth_method === 'none' ||
+			(Array.isArray(doc.token_endpoint_auth_methods_supported) &&
+				doc.token_endpoint_auth_methods_supported.includes('none')),
+		'公開クライアント（none）として使えるものだけを受けます'
 	),
-	// 公開クライアントだけ。書いていなければ公開クライアントとして扱う（秘密を受け取る口が無い）。
-	token_endpoint_auth_method: v.optional(v.literal('none'))
-});
+	v.transform(({ client_id, client_name, redirect_uris }) => ({
+		client_id,
+		client_name,
+		redirect_uris
+	}))
+);
 
 /** 動的クライアント登録（RFC 7591）。ほかの項目（logo_uri など）は読み捨てる。 */
 export const clientRegistrationSchema = v.object({
