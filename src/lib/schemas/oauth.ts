@@ -142,19 +142,37 @@ export function isClientIdMetadataUrl(clientId: string, allowLoopback = false): 
 	return !IP_LITERAL.test(host) && host.includes('.');
 }
 
-/** Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。 */
-export const clientMetadataDocumentSchema = v.object({
-	client_id: v.pipe(v.string(), v.maxLength(CLIENT_ID_MAX)),
-	client_name: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(100)), ''),
-	redirect_uris: v.pipe(
-		v.array(v.pipe(v.string(), v.maxLength(2000))),
-		v.minLength(1),
-		v.maxLength(10),
-		v.check((uris) => uris.every(isAllowedRedirectUri), '戻り先は https かループバックだけです')
-	),
-	// 公開クライアントだけ。書いていなければ公開クライアントとして扱う（秘密を受け取る口が無い）。
-	token_endpoint_auth_method: v.optional(v.literal('none'))
-});
+/**
+ * Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。
+ *
+ * 公開クライアント（`none`）として振る舞えるものだけを受ける。`token_endpoint_auth_method` が無いか `none` のもの、
+ * または別の方式を選んでいても `token_endpoint_auth_methods_supported` に `none` を挙げているもの。
+ * ChatGPT の文書は `private_key_jwt` を選びつつ `none` も挙げていて、認可サーバーの案内
+ * （`token_endpoint_auth_methods_supported: ['none']`）を見て `none` で来る。
+ */
+export const clientMetadataDocumentSchema = v.pipe(
+	v.object({
+		client_id: v.pipe(v.string(), v.maxLength(CLIENT_ID_MAX)),
+		client_name: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(100)), ''),
+		redirect_uris: v.pipe(
+			v.array(v.pipe(v.string(), v.maxLength(2000))),
+			v.minLength(1),
+			v.maxLength(10),
+			v.check((uris) => uris.every(isAllowedRedirectUri), '戻り先は https かループバックだけです')
+		),
+		token_endpoint_auth_method: v.optional(v.pipe(v.string(), v.maxLength(100))),
+		token_endpoint_auth_methods_supported: v.optional(
+			v.pipe(v.array(v.pipe(v.string(), v.maxLength(100))), v.maxLength(20))
+		)
+	}),
+	v.check(
+		(doc) =>
+			doc.token_endpoint_auth_method === undefined ||
+			doc.token_endpoint_auth_method === 'none' ||
+			(doc.token_endpoint_auth_methods_supported?.includes('none') ?? false),
+		'公開クライアント（none）として使えるものだけを受けます'
+	)
+);
 
 /** 動的クライアント登録（RFC 7591）。ほかの項目（logo_uri など）は読み捨てる。 */
 export const clientRegistrationSchema = v.object({

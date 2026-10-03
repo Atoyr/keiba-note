@@ -81,6 +81,34 @@ describe('resolveClient（Client ID Metadata Document）', () => {
 		expect(calls[0].init.redirect).toBe('manual');
 	});
 
+	it('private_key_jwt を選んでいても none を挙げていれば受ける（ChatGPT の文書の形）', async () => {
+		const chatgpt = 'https://chatgpt.com/oauth/client.json';
+		const { fetcher } = fakeFetch(() =>
+			json({
+				client_id: chatgpt,
+				client_uri: 'https://chatgpt.com/',
+				redirect_uris: ['https://chatgpt.com/connector_platform_oauth_redirect'],
+				token_endpoint_auth_method: 'private_key_jwt',
+				token_endpoint_auth_methods_supported: ['none', 'private_key_jwt'],
+				grant_types: ['authorization_code', 'refresh_token'],
+				response_types: ['code'],
+				client_name: 'ChatGPT',
+				logo_uri: 'https://persistent.oaistatic.com/sonic/misc/openai-logo.png',
+				token_endpoint_auth_signing_alg: 'RS256',
+				jwks_uri: 'https://chatgpt.com/oauth/jwks.json'
+			})
+		);
+		expect(await resolveClient(db, chatgpt, { now: NOW, fetcher })).toEqual({
+			ok: true,
+			client: {
+				id: chatgpt,
+				name: 'ChatGPT',
+				redirectUris: ['https://chatgpt.com/connector_platform_oauth_redirect'],
+				source: 'metadata'
+			}
+		});
+	});
+
 	it('24時間は保存したものを使い、過ぎたら取り直す', async () => {
 		const { fetcher, calls } = fakeFetch();
 		await resolveClient(db, CLIENT_ID, { now: NOW, fetcher });
@@ -134,6 +162,16 @@ describe('resolveClient（Client ID Metadata Document）', () => {
 		[
 			'秘密鍵を使うクライアント',
 			() => json(doc({ token_endpoint_auth_method: 'client_secret_basic' }))
+		],
+		[
+			'none を挙げずに別の方式を使うクライアント',
+			() =>
+				json(
+					doc({
+						token_endpoint_auth_method: 'private_key_jwt',
+						token_endpoint_auth_methods_supported: ['private_key_jwt']
+					})
+				)
 		]
 	])('%s なら使わず（unavailable）、何も保存しない', async (_why, respond) => {
 		const { fetcher } = fakeFetch(respond);
