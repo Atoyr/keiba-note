@@ -101,6 +101,55 @@ export function redirectUriMatches(registered: readonly string[], requested: str
 	});
 }
 
+/** `client_id` の長さの上限。Client ID Metadata Document では URL そのものが client_id になる。 */
+export const CLIENT_ID_MAX = 2000;
+
+const IP_LITERAL = /^(\d{1,3}(\.\d{1,3}){3}|\[[0-9a-f:.]+\])$/i;
+
+/**
+ * Client ID Metadata Document（CIMD。MCP 2025-11-25 の認可・draft-ietf-oauth-client-id-metadata-document）の
+ * `client_id` として受けてよい URL か。Claude はこの方式を推奨している。
+ *
+ * - `https:` で、パスがある（ホストだけの URL は受けない）
+ * - フラグメント・ユーザー名とパスワード・クエリを持たず、`.` と `..` のセグメントを持たない
+ * - ホストが IP アドレスの直書きでない（社内のアドレスなどを取りに行かせない）
+ *
+ * `allowLoopback` は E2E だけで使う（手元のサーバーが置いた文書を `http://localhost` で読む）。
+ * 本番では設定しない（wrangler.toml に無く、playwright.config.ts の `--var` だけが付ける）。
+ */
+export function isClientIdMetadataUrl(clientId: string, allowLoopback = false): boolean {
+	if (clientId.length > CLIENT_ID_MAX) return false;
+	let url: URL;
+	try {
+		url = new URL(clientId);
+	} catch {
+		return false;
+	}
+	// URL は `..` を勝手に畳むので、元の文字列で確かめる。
+	const rawPath = clientId.replace(/^[a-z]+:\/\/[^/]*/i, '');
+	if (rawPath.split('/').some((seg) => seg === '.' || seg === '..')) return false;
+	if (url.hash || url.search || clientId.includes('#') || clientId.includes('?')) return false;
+	if (url.username || url.password) return false;
+	if (url.pathname === '/' || url.pathname === '') return false;
+	if (url.protocol === 'http:') return allowLoopback && url.hostname === 'localhost';
+	if (url.protocol !== 'https:') return false;
+	return !IP_LITERAL.test(url.hostname) && url.hostname.includes('.');
+}
+
+/** Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。 */
+export const clientMetadataDocumentSchema = v.object({
+	client_id: v.pipe(v.string(), v.maxLength(CLIENT_ID_MAX)),
+	client_name: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(100)), ''),
+	redirect_uris: v.pipe(
+		v.array(v.pipe(v.string(), v.maxLength(2000))),
+		v.minLength(1),
+		v.maxLength(10),
+		v.check((uris) => uris.every(isAllowedRedirectUri), '戻り先は https かループバックだけです')
+	),
+	// 公開クライアントだけ。書いていなければ公開クライアントとして扱う（秘密を受け取る口が無い）。
+	token_endpoint_auth_method: v.optional(v.literal('none'))
+});
+
 /** 動的クライアント登録（RFC 7591）。ほかの項目（logo_uri など）は読み捨てる。 */
 export const clientRegistrationSchema = v.object({
 	client_name: v.optional(v.pipe(v.string(), v.trim(), v.maxLength(100)), ''),
@@ -124,7 +173,7 @@ const pkceString = v.pipe(v.string(), v.regex(/^[A-Za-z0-9\-._~]{43,128}$/));
 /** 認可の要求（`/oauth/authorize` の GET と、同意のフォームの hidden）。 */
 export const authorizeRequestSchema = v.object({
 	response_type: v.literal('code'),
-	client_id: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
+	client_id: v.pipe(v.string(), v.minLength(1), v.maxLength(CLIENT_ID_MAX)),
 	redirect_uri: v.pipe(v.string(), v.minLength(1), v.maxLength(2000)),
 	code_challenge: pkceString,
 	// OAuth 2.1 は plain を禁じる。S256 だけ。
@@ -141,14 +190,14 @@ export const tokenRequestSchema = v.variant('grant_type', [
 		grant_type: v.literal('authorization_code'),
 		code: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
 		redirect_uri: v.pipe(v.string(), v.minLength(1), v.maxLength(2000)),
-		client_id: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
+		client_id: v.pipe(v.string(), v.minLength(1), v.maxLength(CLIENT_ID_MAX)),
 		code_verifier: pkceString,
 		resource: v.optional(v.pipe(v.string(), v.maxLength(2000)))
 	}),
 	v.object({
 		grant_type: v.literal('refresh_token'),
 		refresh_token: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
-		client_id: v.pipe(v.string(), v.minLength(1), v.maxLength(200)),
+		client_id: v.pipe(v.string(), v.minLength(1), v.maxLength(CLIENT_ID_MAX)),
 		scope: v.optional(v.pipe(v.string(), v.maxLength(500))),
 		resource: v.optional(v.pipe(v.string(), v.maxLength(2000)))
 	})

@@ -1,3 +1,5 @@
+import { createServer, type Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { createHash, randomBytes } from 'node:crypto';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
@@ -723,6 +725,106 @@ test('登録の案内は「AIとの連携」から開け、接続先の URL と 
 	await expect(page.getByText(/^https?:\/\/[^\s]+\/mcp$/)).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'Claude に追加する' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'ChatGPT に追加する' })).toBeVisible();
-	// uma-memo が対応していない Claude の推奨の方式を選ばないよう案内している。
-	await expect(page.getByText('Register automatically').first()).toBeVisible();
+	// Claude の推奨の方式（Client ID Metadata Document）に対応したので、推奨のままでよいと案内している。
+	await expect(page.getByText("「Use Claude's published identity」").first()).toBeVisible();
+});
+
+/**
+ * Client ID Metadata Document（Claude の推奨の方式）。テストが手元に立てたサーバーに文書を置き、
+ * Worker に取りに行かせる。本番は https だけだが、E2E は OAUTH_CIMD_ALLOW_LOOPBACK=1（playwright.config.ts）で
+ * http://localhost を許している。
+ */
+test.describe('Client ID Metadata Document', () => {
+	let server: Server;
+	let base = '';
+	const served = new Map<string, unknown>();
+
+	test.beforeAll(async () => {
+		server = createServer((req, res) => {
+			const body = served.get(req.url ?? '');
+			if (!body) {
+				res.writeHead(404).end();
+				return;
+			}
+			res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(body));
+		});
+		await new Promise<void>((r) => server.listen(0, r));
+		base = `http://localhost:${(server.address() as AddressInfo).port}`;
+	});
+	test.afterAll(() => new Promise<void>((r) => server.close(() => r())));
+
+	/** 文書を置いて、その URL（＝client_id）を返す。テストごとに別のパスにする（並列で走るため）。 */
+	function publish(over: Record<string, unknown> = {}) {
+		const path = `/client-${randomBytes(4).toString('hex')}.json`;
+		const clientId = `${base}${path}`;
+		served.set(path, {
+			client_id: clientId,
+			client_name: 'E2E メタデータのアプリ',
+			redirect_uris: [REDIRECT],
+			token_endpoint_auth_method: 'none',
+			...over
+		});
+		return clientId;
+	}
+
+	test('案内（メタデータ）が対応を示す', async ({ request }) => {
+		const as = await (await request.get('/.well-known/oauth-authorization-server')).json();
+		expect(as.client_id_metadata_document_supported).toBe(true);
+	});
+
+	test('登録なしで、文書の URL を client_id にして同意 → トークン → tool まで通る', async ({
+		page,
+		request
+	}) => {
+		const clientId = publish();
+		const { verifier, challenge } = pkce();
+		await login(page);
+		const callback = captureCallback(page);
+		await gotoHydrated(page, authorizeUrl(clientId, challenge));
+		await expect(page.getByText('E2E メタデータのアプリ')).toBeVisible();
+		// 名前は自己申告だが、提供元は文書を置いたアドレスで確かめたもの。
+		await expect(page.getByText(`提供元: ${new URL(clientId).host}`)).toBeVisible();
+		await page.getByRole('button', { name: '許可する' }).click();
+		const code = (await callback).searchParams.get('code')!;
+
+		const { status, json } = await exchange(request, {
+			grant_type: 'authorization_code',
+			code,
+			redirect_uri: REDIRECT,
+			client_id: clientId,
+			code_verifier: verifier
+		});
+		expect(status).toBe(200);
+		expect((await mcp(request, json.access_token, rpc('tools/list'))).status()).toBe(200);
+
+		// 別の client_id（動的登録のもの）でこのコードやトークンは使えない。
+		const other = await exchange(request, {
+			grant_type: 'refresh_token',
+			refresh_token: json.refresh_token,
+			client_id: await register(request, 'E2E 別')
+		});
+		expect(other.json.error).toBe('invalid_grant');
+	});
+
+	for (const [what, over] of [
+		[
+			'文書の client_id が URL と違う（別のクライアントの文書を指させない）',
+			{ client_id: 'https://evil.example/c.json' }
+		],
+		['要求の戻り先が文書に無い', { redirect_uris: ['https://other.example/cb'] }]
+	] as const) {
+		test(`${what}なら、同意画面で止めて戻り先へ飛ばさない`, async ({ page }) => {
+			const clientId = publish(over);
+			await login(page);
+			await gotoHydrated(page, authorizeUrl(clientId, pkce().challenge));
+			await expect(page.getByRole('heading', { name: '連携を始められません' })).toBeVisible();
+			await expect(page.getByRole('button', { name: '許可する' })).toHaveCount(0);
+		});
+	}
+
+	test('文書が無い（404）なら、同意画面で止める', async ({ page }) => {
+		await login(page);
+		await gotoHydrated(page, authorizeUrl(`${base}/missing.json`, pkce().challenge));
+		await expect(page.getByRole('heading', { name: '連携を始められません' })).toBeVisible();
+	});
 });

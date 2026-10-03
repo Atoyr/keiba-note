@@ -3,6 +3,8 @@ CREATE TABLE `oauth_client` (
 	`name` text NOT NULL,
 	`redirect_uris` text NOT NULL,
 	`connected_at` integer,
+	`source` text DEFAULT 'registered' NOT NULL,
+	`fetched_at` integer,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL
 );
 --> statement-breakpoint

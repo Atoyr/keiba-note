@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
 import {
 	clientRegistrationSchema,
+	isClientIdMetadataUrl,
 	consentSchema,
 	grantedScopes,
 	isAllowedRedirectUri,
@@ -106,6 +107,37 @@ describe('clientRegistrationSchema', () => {
 		expect(v.is(clientRegistrationSchema, { redirect_uris: ['http://evil.example/cb'] })).toBe(
 			false
 		);
+	});
+});
+
+describe('isClientIdMetadataUrl', () => {
+	it('パスのある https の URL を受ける', () => {
+		expect(isClientIdMetadataUrl('https://claude.ai/oauth/client.json')).toBe(true);
+	});
+
+	it.each([
+		'https://claude.ai',
+		'https://claude.ai/',
+		'https://claude.ai/a/../b.json',
+		'https://claude.ai/./c.json',
+		'https://claude.ai/c.json#x',
+		'https://claude.ai/c.json?x=1',
+		'https://user:pw@claude.ai/c.json',
+		'https://10.0.0.1/c.json',
+		'https://[::1]/c.json',
+		'https://intranet/c.json',
+		'http://claude.ai/c.json',
+		'ftp://claude.ai/c.json',
+		'uma_client_abc',
+		`https://claude.ai/${'a'.repeat(2001)}`
+	])('%s は受けない', (url) => {
+		expect(isClientIdMetadataUrl(url)).toBe(false);
+	});
+
+	it('http://localhost は E2E の許可があるときだけ受ける', () => {
+		expect(isClientIdMetadataUrl('http://localhost:5555/c.json')).toBe(false);
+		expect(isClientIdMetadataUrl('http://localhost:5555/c.json', true)).toBe(true);
+		expect(isClientIdMetadataUrl('http://127.0.0.1:5555/c.json', true)).toBe(false);
 	});
 });
 

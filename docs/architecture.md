@@ -112,7 +112,8 @@ flowchart TB
 ```
 
 外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは GitHub Actions だけが行き、
-Worker は行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。それ以外は Cloudflare の中で完結する。
+Worker は行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。ほかに、AI のクライアント（Claude など）が Client ID Metadata Document を使うとき、ログインした本人が同意画面を開いた
+ときだけ、そのクライアントの HTTPS の URL から文書を取りに行く（→ 3-10）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -714,6 +715,15 @@ sequenceDiagram
 - MCP はステートレスで、応答は JSON（SSE なし）。SDK を使わないのは `nodejs_compat` を付けないため（第0章）
 - `/mcp`・`/oauth/register`・`/oauth/token` の本文は読み取り中に 8 KiB で止め、超えたら 413。
   Content-Length が無い場合や小さく偽った場合も同じ上限を使う
+- **クライアントの識別は2通り。** 動的クライアント登録（`/oauth/register`。id は uma-memo が振る）と、
+  Client ID Metadata Document（CIMD。Claude の推奨。`client_id` が文書の HTTPS の URL。`auth/client-metadata.ts`）。
+  CIMD は登録の口を通らず、同意画面を開いたときに文書を取りに行き、`oauth_client` に `source = 'metadata'` で入れて24時間使う。
+  - **Worker が外の URL を取りに行く唯一の経路。** 取りに行くのはログインした本人が同意画面を開いたときだけで、誰でも叩ける口からは行かない。
+    URL は https・パスあり・クエリ／フラグメント／認証情報／`.` と `..` のセグメント／IP の直書きなし。リダイレクトを追わず、5秒・5 KiB・JSON だけ
+  - 文書の `client_id` が URL と完全に一致し、戻り先が https かループバックで、公開クライアント（`none`）のときだけ使う。
+    取り直しに失敗したら古い内容は使わない
+  - 名前は自己申告だが、URL のホストは文書を置いた提供元として確かめられるので、同意画面と「AIとの連携」に「提供元」として出す
+  - CIMD の行は動的登録の上限（未連携1,000件）に数えない。E2E だけ `OAUTH_CIMD_ALLOW_LOOPBACK=1` で `http://localhost` を許す
 - クライアントの登録は誰でもできるが、全体で直近60秒に100件、**一度も連携していない**登録（`oauth_client.connected_at` が NULL）は1,000件まで。
   条件付き INSERT で判定し、同時要求でも上限を超えない。超過時は 429 と `Retry-After: 60` を返す。
   一度も連携していない登録は作成から24時間で認可に使えなくなり、次の登録要求で期限切れを最大100件ずつ削除する。

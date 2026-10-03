@@ -481,6 +481,15 @@ export const oauthClient = sqliteTable(
 		 * 一度でも連携した登録は、連携が解除されたあとも残す（同じアプリからつなぎ直せるように）。
 		 */
 		connectedAt: integer('connected_at'),
+		/**
+		 * どこから来た登録か。`registered` は動的クライアント登録（`/oauth/register`。id は uma-memo が振る）。
+		 * `metadata` は Client ID Metadata Document（id は文書の HTTPS の URL。同意画面を開いたときに取得する）。
+		 */
+		source: text('source', { enum: ['registered', 'metadata'] })
+			.notNull()
+			.default('registered'),
+		/** `metadata` の文書を最後に取得した時刻。24時間を過ぎたら、次に同意画面を開いたときに取り直す。 */
+		fetchedAt: integer('fetched_at'),
 		createdAt: createdAt()
 	},
 	(t) => [

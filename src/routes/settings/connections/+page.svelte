@@ -57,6 +57,9 @@
 				{#each data.grants as g (g.id)}
 					<li class="space-y-2 rounded-lg border p-4">
 						<p class="font-medium break-words">{g.clientName}</p>
+						{#if g.provider}
+							<p class="text-sm break-all">提供元: {g.provider}</p>
+						{/if}
 						<p class="text-sm break-all text-muted-foreground">
 							戻り先: {g.redirectHosts.join('、')}
 						</p>

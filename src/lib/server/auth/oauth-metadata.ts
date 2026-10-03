@@ -37,7 +37,9 @@ export function authorizationServerMetadata(origin: string) {
 		grant_types_supported: ['authorization_code', 'refresh_token'],
 		token_endpoint_auth_methods_supported: ['none'],
 		code_challenge_methods_supported: ['S256'],
-		authorization_response_iss_parameter_supported: true
+		authorization_response_iss_parameter_supported: true,
+		// Client ID Metadata Document（Claude の推奨）。動的登録（registration_endpoint）と両方を受ける。
+		client_id_metadata_document_supported: true
 	};
 }
 

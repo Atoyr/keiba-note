@@ -794,3 +794,8 @@ INSERT OR REPLACE INTO oauth_token (id, grant_id, kind, scopes, expires_at) VALU
 	('0e400dfb476f6feb9018d955467c93b966a16d5199d3ccbcae2184afa73e4996', '01JE2EGRANTALL000000000000', 'access', '["races:read","notes:read"]', 4102444800),
 	('1d5a0c60c1912f9524f910f36a82cf5304a14d5a4346eac5bf86fece89eb603d', '01JE2EGRANTRACES0000000000', 'access', '["races:read"]', 4102444800),
 	('ac81b8eb749d9c897fd935dca90c37e0be6458e0c855fb790650a0178db435c5', '01JE2EGRANTOTHER0000000000', 'access', '["races:read","notes:read"]', 4102444800);
+
+-- Client ID Metadata Document（CIMD）のクライアント。同意画面で「提供元」が出るのを撮る。
+-- 文書は取りに行かせない（fetched_at を 2099 年にして、保存した内容を使わせる）。
+INSERT OR REPLACE INTO oauth_client (id, name, redirect_uris, source, fetched_at) VALUES
+	('https://client.example/uma-memo/client-metadata.json', 'E2E メタデータのクライアント', '["https://claude.ai/api/mcp/auth_callback"]', 'metadata', 4102444800);

@@ -8,7 +8,8 @@
 export const OAUTH_BODY_LIMIT = 8 * 1024;
 
 export async function readLimitedText(
-	request: Request,
+	/** 受けた要求か、取りに行った応答（Client ID Metadata Document）。どちらも本文を数えながら読む。 */
+	request: Request | Response,
 	limit = OAUTH_BODY_LIMIT
 ): Promise<string | null> {
 	const declared = Number(request.headers.get('content-length'));

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d815531c-105a-47a7-84b6-c7b4b0e631b1",
+  "id": "31665140-b739-4891-ad97-69e622cc7874",
   "prevId": "51491b9f-cd17-483a-9560-4553f1d702ae",
   "tables": {
     "data_import": {
@@ -600,6 +600,21 @@
         },
         "connected_at": {
           "name": "connected_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'registered'"
+        },
+        "fetched_at": {
+          "name": "fetched_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

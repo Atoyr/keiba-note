@@ -10,7 +10,8 @@ import {
 	REQUIRED_SCOPES,
 	type AuthorizeRequest
 } from '$lib/schemas/oauth';
-import { createAuthorizationCode, getClient } from '$lib/server/auth/oauth';
+import { resolveClient } from '$lib/server/auth/client-metadata';
+import { createAuthorizationCode } from '$lib/server/auth/oauth';
 import type { Db } from '$lib/server/db';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
@@ -26,6 +27,10 @@ import type { Actions, PageServerLoad } from './$types';
  *
  * 同意のフォームは load の値を信じず、hidden の値を同じ手順でもう一度確かめる。
  */
+
+/** E2E だけで `OAUTH_CIMD_ALLOW_LOOPBACK=1`（app.d.ts）。本番では常に false。 */
+const allowLoopback = (platform: App.Platform | undefined) =>
+	platform?.env?.OAUTH_CIMD_ALLOW_LOOPBACK === '1';
 
 const FIELDS = [
 	'response_type',
@@ -43,14 +48,22 @@ type Checked =
 	| {
 			kind: 'ok';
 			request: AuthorizeRequest;
-			client: { id: string; name: string; redirectHost: string };
+			client: { id: string; name: string; redirectHost: string; provider: string | null };
 	  };
 
-/** 認可の要求を確かめる。読み取りは client の1クエリだけ。 */
-async function check(db: Db, raw: Record<string, string>, origin: string): Promise<Checked> {
+/**
+ * 認可の要求を確かめる。読み取りは client の1クエリだけ。client_id が Client ID Metadata Document の URL なら、
+ * 24時間に1回その文書を取りに行く（auth/client-metadata.ts）。
+ */
+async function check(
+	db: Db,
+	raw: Record<string, string>,
+	origin: string,
+	allowLoopback: boolean
+): Promise<Checked> {
 	const clientId = raw.client_id ?? '';
 	const redirectUri = raw.redirect_uri ?? '';
-	const client = clientId ? await getClient(db, clientId) : null;
+	const client = clientId ? await resolveClient(db, clientId, { allowLoopback }) : null;
 	const invalid = (message: string) => ({ kind: 'invalid' as const, message });
 	if (!client) return invalid('このアプリは登録されていません。');
 	if (!redirectUriMatches(client.redirectUris, redirectUri)) {
@@ -66,7 +79,13 @@ async function check(db: Db, raw: Record<string, string>, origin: string): Promi
 	return {
 		kind: 'ok',
 		request: parsed.output,
-		client: { id: client.id, name: client.name, redirectHost: new URL(redirectUri).host }
+		client: {
+			id: client.id,
+			name: client.name,
+			redirectHost: new URL(redirectUri).host,
+			// 名前は自己申告。CIMD なら client_id の URL のホストが、文書を置いた提供元として確かめられる。
+			provider: client.source === 'metadata' ? new URL(client.id).host : null
+		}
 	};
 }
 
@@ -104,7 +123,7 @@ export const load: PageServerLoad = async ({ url, locals, platform, setHeaders }
 	});
 	const { db } = ctx(locals, platform);
 	const raw = pick((k) => url.searchParams.get(k));
-	const checked = await check(db, raw, url.origin);
+	const checked = await check(db, raw, url.origin, allowLoopback(platform));
 	if (checked.kind === 'invalid') return { invalid: checked.message } as const;
 
 	const scopes = requestedScopes(checked.request.scope);
@@ -122,7 +141,7 @@ export const actions: Actions = {
 		const { db, user } = ctx(locals, platform);
 		const form = await request.formData();
 		const raw = pick((k) => form.get(k)?.toString() ?? null);
-		const checked = await check(db, raw, url.origin);
+		const checked = await check(db, raw, url.origin, allowLoopback(platform));
 		if (checked.kind === 'invalid') return fail(400, { message: checked.message });
 		const { request: req } = checked;
 		const consent = v.safeParse(consentSchema, {

@@ -21,12 +21,19 @@
 		<h1 class="text-xl font-bold tracking-tight">アプリとの連携を許可しますか</h1>
 		<div class="mt-4 rounded-lg border p-4">
 			<p class="font-semibold break-words">{data.client.name}</p>
+			{#if data.client.provider}
+				<p class="mt-1 text-sm break-all">提供元: {data.client.provider}</p>
+			{/if}
 			<p class="mt-1 text-sm break-all text-muted-foreground">
 				許可すると、{data.client.redirectHost} に戻ります
 			</p>
 		</div>
 		<p class="mt-3 text-sm text-muted-foreground">
-			アプリの名前はアプリ自身が名乗ったものです。心当たりが無ければ許可しないでください。
+			{#if data.client.provider}
+				提供元は、アプリの情報が置かれているアドレスで確かめたものです。心当たりが無ければ許可しないでください。
+			{:else}
+				アプリの名前はアプリ自身が名乗ったものです。心当たりが無ければ許可しないでください。
+			{/if}
 		</p>
 
 		<form method="POST" class="mt-6 space-y-6">

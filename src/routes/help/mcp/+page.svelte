@@ -83,11 +83,10 @@
 				「Add custom connector」を押し、名前に「uma-memo」、URL に上の接続先の URL を入れます。
 			</li>
 			<li>
-				認証の設定が出たら、「Authentication」は「Sign in now」、「OAuth client」は
-				<strong>「Register automatically」</strong>を選びます。
-				<span class="text-muted-foreground"
-					>推奨と書かれた「Use Claude's published identity」には uma-memo
-					がまだ対応していないので、選ぶと接続できません。</span
+				認証の設定が出たら、「Authentication」は「Sign in now」を選びます。「OAuth client」は推奨の<strong
+					>「Use Claude's published identity」</strong
+				>のままで構いません。<span class="text-muted-foreground"
+					>「Register automatically」でもつながります。</span
 				>
 			</li>
 			<li>
@@ -204,8 +203,10 @@
 			<div>
 				<dt class="font-semibold">許可画面に「連携を始められません」と出る</dt>
 				<dd class="mt-1">
-					アプリ側の設定が uma-memo と合っていません。Claude では「OAuth client」が「Register
-					automatically」になっているかを確かめ、コネクタを削除して追加し直してください。
+					アプリ側の設定が uma-memo
+					と合っていません。コネクタを削除して、上の手順で追加し直してください。Claude の「OAuth
+					client」で「Use your own OAuth client」を選んでいたら、推奨の「Use Claude's published
+					identity」か「Register automatically」にしてください。
 				</dd>
 			</div>
 			<div>

@@ -61,7 +61,13 @@ export function verifyPkce(codeVerifier: string, codeChallenge: string): boolean
 	return encodeBase64urlNoPadding(sha256(new TextEncoder().encode(codeVerifier))) === codeChallenge;
 }
 
-export type OAuthClientView = { id: string; name: string; redirectUris: string[] };
+export type OAuthClientView = {
+	id: string;
+	name: string;
+	redirectUris: string[];
+	/** `metadata` なら id は HTTPS の URL で、そのホストが提供元（名前と違って自己申告ではない）。 */
+	source: 'registered' | 'metadata';
+};
 
 export const CLIENT_REGISTRATION_LIMIT = 100;
 export const CLIENT_REGISTRATION_WINDOW_SEC = 60;
@@ -100,25 +106,26 @@ export async function registerClient(
 		.from(oauthClient)
 		.where(gt(oauthClient.createdAt, t - CLIENT_REGISTRATION_WINDOW_SEC))
 		.limit(CLIENT_REGISTRATION_LIMIT);
+	// 数えるのは動的登録だけ。CIMD の行はログインした本人が同意画面を開いたときにしか増えない。
 	const pending = db
 		.select({ id: oauthClient.id })
 		.from(oauthClient)
-		.where(neverConnected)
+		.where(and(neverConnected, eq(oauthClient.source, 'registered')))
 		.limit(UNUSED_CLIENT_LIMIT);
 	const [, inserted] = await db.batch([
 		db.delete(oauthClient).where(inArray(oauthClient.id, expired)),
 		db
 			.insert(oauthClient)
 			.select(
-				// 列は schema.ts の oauthClient の並び（id・name・redirect_uris・connected_at・created_at）。
-				sql`SELECT ${client.id}, ${client.name}, ${JSON.stringify(client.redirectUris)}, NULL, ${t}
+				// 列は schema.ts の oauthClient の並び（id・name・redirect_uris・connected_at・source・fetched_at・created_at）。
+				sql`SELECT ${client.id}, ${client.name}, ${JSON.stringify(client.redirectUris)}, NULL, 'registered', NULL, ${t}
 			WHERE (SELECT count(*) FROM (${recent})) < ${CLIENT_REGISTRATION_LIMIT}
 			AND (SELECT count(*) FROM (${pending})) < ${UNUSED_CLIENT_LIMIT}`
 			)
 			.returning({ id: oauthClient.id })
 	]);
 	if (inserted.length === 0) throw new ClientRegistrationLimitError('クライアント登録の上限です');
-	return client;
+	return { ...client, source: 'registered' };
 }
 
 export async function getClient(
@@ -127,14 +134,21 @@ export async function getClient(
 	now = new Date()
 ): Promise<OAuthClientView | null> {
 	const rows = await db
-		.select({ id: oauthClient.id, name: oauthClient.name, redirectUris: oauthClient.redirectUris })
+		.select({
+			id: oauthClient.id,
+			name: oauthClient.name,
+			redirectUris: oauthClient.redirectUris,
+			source: oauthClient.source
+		})
 		.from(oauthClient)
 		.where(
 			and(
 				eq(oauthClient.id, clientId),
 				or(
 					gt(oauthClient.createdAt, sec(now) - UNUSED_CLIENT_TTL_SEC),
-					isNotNull(oauthClient.connectedAt)
+					isNotNull(oauthClient.connectedAt),
+					// CIMD は取り直した時刻から数える（auth/client-metadata.ts が24時間ごとに取り直す）。
+					gt(oauthClient.fetchedAt, sec(now) - UNUSED_CLIENT_TTL_SEC)
 				)
 			)
 		)
@@ -542,6 +556,8 @@ export async function validateAccessToken(
 export type GrantView = {
 	id: string;
 	clientName: string;
+	/** Client ID Metadata Document のクライアントの提供元（client_id の URL のホスト）。動的登録なら null。 */
+	provider: string | null;
 	/** 戻り先のホスト。名前は自己申告なので、どこへ渡したかをこちらで見せる。 */
 	redirectHosts: string[];
 	scopes: OAuthScope[];
@@ -554,6 +570,8 @@ export async function listGrants(db: Db, userId: string): Promise<GrantView[]> {
 	const rows = await db
 		.select({
 			id: oauthGrant.id,
+			clientId: oauthClient.id,
+			clientSource: oauthClient.source,
 			clientName: oauthClient.name,
 			redirectUris: oauthClient.redirectUris,
 			scopes: oauthGrant.scopes,
@@ -564,8 +582,9 @@ export async function listGrants(db: Db, userId: string): Promise<GrantView[]> {
 		.innerJoin(oauthClient, eq(oauthGrant.clientId, oauthClient.id))
 		.where(eq(oauthGrant.userId, userId))
 		.orderBy(oauthGrant.createdAt);
-	return rows.map(({ redirectUris, scopes, ...r }) => ({
+	return rows.map(({ clientId, clientSource, redirectUris, scopes, ...r }) => ({
 		...r,
+		provider: clientSource === 'metadata' ? new URL(clientId).host : null,
 		redirectHosts: [...new Set(redirectUris.map((u) => new URL(u).host))],
 		scopes: knownScopes(scopes)
 	}));

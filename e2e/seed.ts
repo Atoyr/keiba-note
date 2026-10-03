@@ -307,3 +307,9 @@ export const OTHER_GRANT = {
  * （E2E枠色賞の内枠、E2Eウチワク）。
  */
 export const BOTH_NOTED_HORSE_ID = '01JE2EHORSEC00000000000000';
+
+/** Client ID Metadata Document のクライアント（seed.sql。文書は取りに行かず保存した内容を使う）。 */
+export const MCP_METADATA_CLIENT = {
+	id: 'https://client.example/uma-memo/client-metadata.json',
+	redirectUri: 'https://claude.ai/api/mcp/auth_callback'
+} as const;

@@ -23,6 +23,7 @@ import {
 	SHARED_OUTLOOK_ID,
 	SHARED_RACE_ID,
 	MCP_CLIENT,
+	MCP_METADATA_CLIENT,
 	TOGGLE_FAVORITE_HORSE_ID
 } from './seed';
 
@@ -606,6 +607,19 @@ export const SCREENS: Screen[] = [
 		path: `/oauth/authorize?${new URLSearchParams({
 			client_id: MCP_CLIENT.id,
 			redirect_uri: 'https://evil.example/cb'
+		})}`,
+		auth: true
+	},
+	// Client ID Metadata Document のクライアントの同意画面。名前の下に「提供元」が出る。
+	{
+		name: 'oauth-authorize-metadata',
+		path: `/oauth/authorize?${new URLSearchParams({
+			response_type: 'code',
+			client_id: MCP_METADATA_CLIENT.id,
+			redirect_uri: MCP_METADATA_CLIENT.redirectUri,
+			code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+			code_challenge_method: 'S256',
+			state: 'screens'
 		})}`,
 		auth: true
 	}
