@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { MCP_BODY_LIMIT } from '$lib/server/auth/limited-body';
 import { POST } from './+server';
 
 vi.mock('$lib/server/util', () => ({ ctx: () => ({ db: {}, user: { id: 'A' } }) }));
@@ -34,20 +35,25 @@ describe('MCP 本文の上限', () => {
 			error: { code: -32600 }
 		});
 		expect(cancel).toHaveBeenCalledOnce();
-		expect(reads).toBeLessThanOrEqual(4);
+		expect(reads).toBeLessThanOrEqual(MCP_BODY_LIMIT / 4096 + 1);
 	});
 
-	it.each([8192, 8193])('UTF-8 の %i バイト境界を確かめる', async (bytes) => {
-		const json = JSON.stringify({
-			jsonrpc: '2.0',
-			id: 1,
-			method: 'ping',
-			padding: 'あ'.repeat(100)
-		});
-		const body = json + ' '.repeat(bytes - new TextEncoder().encode(json).length);
-		const response = await post(new Request('https://uma-memo.test/mcp', { method: 'POST', body }));
-		expect(response.status).toBe(bytes === 8192 ? 200 : 413);
-	});
+	it.each([MCP_BODY_LIMIT, MCP_BODY_LIMIT + 1])(
+		'UTF-8 の %i バイト境界を確かめる',
+		async (bytes) => {
+			const json = JSON.stringify({
+				jsonrpc: '2.0',
+				id: 1,
+				method: 'ping',
+				padding: 'あ'.repeat(100)
+			});
+			const body = json + ' '.repeat(bytes - new TextEncoder().encode(json).length);
+			const response = await post(
+				new Request('https://uma-memo.test/mcp', { method: 'POST', body })
+			);
+			expect(response.status).toBe(bytes === MCP_BODY_LIMIT ? 200 : 413);
+		}
+	);
 
 	it('上限内の不正 JSON は解析エラーで返す', async () => {
 		const response = await post(

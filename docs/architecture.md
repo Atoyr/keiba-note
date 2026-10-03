@@ -31,6 +31,7 @@
 - 更新日: 2026-10-03 — オッズの更新の起動を GitHub の schedule から Worker の Cron（`workflow_dispatch`）に移した。
   schedule は混んでいると大半の回を飛ばしていた。取得元へ行くのは引き続き Actions だけ（→ 第1章 / 第2章 / 3-8）
 - 更新日: 2026-10-04 — Client ID Metadata Document で、`none` も使えると書いた ChatGPT の文書（`private_key_jwt` を選んでいる）を受けるようにした（→ 3-10）
+- 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`）とスコープ `notes:write` を足した。`/mcp` の本文の上限を 64 KiB にした（→ 3-10）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -673,11 +674,11 @@ sequenceDiagram
   ただし同じトークンで起動する `odds-update.yml`（3-8）は、本番の D1 の `race_odds` に直接書く。
   書くのは main のコードが取得元から取って検査を通した値だけで、起動する人がその中身を決めることはできない
 
-### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読む
+### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読み書きする
 
-Claude・ChatGPT（スマホのアプリを含む）から読めるように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバーを置く。
+Claude・ChatGPT（スマホのアプリを含む）から読める（許せば予想を書ける）ように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバーを置く。
 ブラウザの中で動く WebMCP（[frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)）は試験的なまま残す。
-**読むだけ。** 書く・共有する・消す tool とスコープはまだ無い。
+**書けるのは本人の予想（見立て・印・札・出走前メモ）だけ。** ふりかえり・近況メモ・展開を書く tool と、共有する・消す tool とスコープは無い。
 
 ```mermaid
 sequenceDiagram
@@ -725,8 +726,21 @@ sequenceDiagram
 - **トークンの口だけ SvelteKit に通さない。** トークンの要求は Origin の無いフォームの POST で、SvelteKit の CSRF の検査が
   hooks より前に 403 にする（パスごとに外す設定は無い）。この口は Cookie を見ないので、検査が守るものが無い。
   `vite dev` では `src/worker.js` を通らないので、この口は 404 になる（E2E は `wrangler dev` で通る）
-- **スコープ:** `races:read`（マスタ。外せない）と `notes:read`（本人のメモ。同意画面で外せる）。足りない tool は
-  tools/list に出さず、呼ばれたら動かさずに 403。`races:read` だけのときは、レースの一覧に添える「自分のメモの件数」も出さない
+- **スコープ:** `races:read`（マスタ。外せない）と `notes:read`（本人のメモ。同意画面で外せる）と `notes:write`（本人の予想を書く。同意画面で外せる）。
+  足りない tool は tools/list に出さず、呼ばれたら動かさずに 403。`races:read` だけのときは、レースの一覧に添える「自分のメモの件数」も出さない。
+  `notes:write` が加わる前の連携は持っていないので、書かせるには本人が連携し直す（スコープは更新で広がらない）
+- **書く tool（`save_my_race_preview`）は、渡した見立て・渡した馬の渡した項目だけを書き換える。** 省いた項目は今の値で埋め、
+  省いた馬と見立てには触らない（AI が一部だけ渡して、ほかの馬のメモが消えないように）。本文・印・札がすべて空になった馬は消える（画面の保存と同じ）。
+  - 出走馬は DB を正とする。`entryId` がそのレースの出走馬でなければ何も書かず、`horse_id` は入力から受けない（予想画面の action と同じ）
+  - 展開（`flow`）は渡さないので触らない（`savePreviewNotes` に `raceNote.flow` を渡さない）
+  - 返すのは書いた結果（見立ては `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`）だけで、本文は返さない。
+    見立ての `cleared` は本文を空にしたことで、保存済みの展開があれば行は残る（`raceNoteStatements`）。`notes:read` の無い連携に、省いた項目の今の値を見せない
+  - tools/list の `annotations` で `readOnlyHint: false`・`destructiveHint: true` を名乗る。クライアントが実行の前に本人に確かめる目安になる
+  - 残る弱さ: AI が読んだメモ・レース名に書かれた指示（プロンプトインジェクション）で呼ばれうる。tool の説明と initialize の
+    instructions で「本人が書き込みをはっきり頼んだときだけ」と書いているが、強制はできない。最悪でも本人の予想の上書きと消去までで、
+    共有・ほかの種類のメモ・他人のメモには届かない
+  - 残る弱さ: 今の値を読んでから batch で書くまでは1つのトランザクションでない。その間に本人が予想画面で保存すると、
+    tool が省いた項目は読んだときの値に戻る。届くのは本人のメモの中だけ
 - **返す項目は tool で1つずつ選ぶ。** サービスの戻り値を広げて返さない（書いた人の名前・公開範囲・`created_by`・`profile_memo` を出さない）
 - **リフレッシュトークンは1回きり。ただし回線断での送り直しは受ける**（`auth/oauth.ts` の `judgeRetry`）。競馬場のスマホのように
   電波の弱い所では、要求は届いたのに応答が届かず、クライアントが同じトークンで送り直すことがある。使用済みのトークンが来たとき:
@@ -756,7 +770,7 @@ sequenceDiagram
   発行の INSERT もその世代が有効か確かめるので、処理中だった古いコード交換・更新・送り直しから以前の権限を復活できない。
   同意の保存に失敗したときは、前の連携を維持する。許可した日と最終利用日は新しい同意のものになる
 - MCP はステートレスで、応答は JSON（SSE なし）。SDK を使わないのは `nodejs_compat` を付けないため（第0章）
-- `/mcp`・`/oauth/register`・`/oauth/token` の本文は読み取り中に 8 KiB で止め、超えたら 413。
+- `/oauth/register`・`/oauth/token` の本文は読み取り中に 8 KiB、`/mcp` は 64 KiB（予想を書く tool が見立てと出走馬ぶんの本文を運ぶ）で止め、超えたら 413。
   Content-Length が無い場合や小さく偽った場合も同じ上限を使う
 - **クライアントの識別は2通り。** 動的クライアント登録（`/oauth/register`。id は uma-memo が振る）と、
   Client ID Metadata Document（CIMD。Claude の推奨。`client_id` が文書の HTTPS の URL。`auth/client-metadata.ts`）。

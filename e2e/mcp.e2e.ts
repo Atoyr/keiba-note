@@ -8,6 +8,7 @@ import {
 	BOTH_NOTED_HORSE_ID,
 	BRACKET_RACE_ID,
 	MCP_TOKENS,
+	MCP_WRITE_RACE,
 	OTHER_GRANT,
 	OTHER_USER_PREVIEW_BODY,
 	OTHER_USER_SAME_CONDITION_BODY,
@@ -21,6 +22,7 @@ import {
  *
  * 見ていること:
  * - スコープ: races:read だけの連携ではメモの tool が出ず、呼ぶと 403（insufficient_scope）
+ * - 書き込み: save_my_race_preview は渡した馬の渡した項目だけを書き、書いた人のメモにしか触れない
  * - 他人のデータ: 同じ tool でもトークンの持ち主のメモだけ。入力で相手を選べない
  * - 経路を混ぜない: /mcp は Cookie では入れず、Bearer で画面には入れない
  * - 連携の解除・リフレッシュトークンの使い回しで、トークンが止まる
@@ -75,6 +77,7 @@ async function toolNames(request: APIRequestContext, token: string) {
 }
 
 const NOTE_TOOLS = ['get_my_race_notes', 'get_my_horse_notes', 'list_my_recent_notes'];
+const WRITE_LABEL = 'あなたの予想（見立て・印・札・出走前メモ）を書く';
 
 test.describe('案内（メタデータ）', () => {
 	test('未ログインで読め、/mcp と認可の口を指している', async ({ request }) => {
@@ -82,7 +85,7 @@ test.describe('案内（メタデータ）', () => {
 		expect(prm.status()).toBe(200);
 		const resource = await prm.json();
 		expect(resource.resource).toMatch(/\/mcp$/);
-		expect(resource.scopes_supported).toEqual(['races:read', 'notes:read']);
+		expect(resource.scopes_supported).toEqual(['races:read', 'notes:read', 'notes:write']);
 
 		const as = await (await request.get('/.well-known/oauth-authorization-server')).json();
 		expect(as).toMatchObject({
@@ -101,9 +104,11 @@ test.describe('/mcp の認証', () => {
 			'content-type': 'application/json'
 		};
 		const message = JSON.stringify(rpc('ping'));
-		for (const size of [8192, 8193]) {
+		// 予想を書く tool のために、OAuth の口（8 KiB）より大きい 64 KiB（limited-body.ts の MCP_BODY_LIMIT）。
+		const limit = 64 * 1024;
+		for (const size of [limit, limit + 1]) {
 			const response = await request.post('/mcp', { headers, data: message.padEnd(size, ' ') });
-			expect(response.status()).toBe(size === 8192 ? 200 : 413);
+			expect(response.status()).toBe(size === limit ? 200 : 413);
 		}
 	});
 
@@ -180,6 +185,117 @@ test.describe('スコープ', () => {
 		);
 		expect(result.isError).toBeUndefined();
 		expect(result.content[0].text).toContain('E2Eウチワク');
+	});
+});
+
+test.describe('予想を書く（save_my_race_preview）', () => {
+	// 書くのは別のユーザーのトークンだけ。自分（E2E ユーザー）の画面とキャプチャに混ざらない。
+	test('渡した項目だけを書き、省いた本文と札は残る。自分のトークンからは見えない', async ({
+		request
+	}) => {
+		const { id, entryIds, body } = MCP_WRITE_RACE;
+		const saved = await toolText(
+			await callTool(request, MCP_TOKENS.other, 'save_my_race_preview', {
+				raceId: id,
+				raceNote: { body: 'AIと決めた見立て' },
+				entries: [
+					{ entryId: entryIds.a, mark: '◎' },
+					{ entryId: entryIds.b, body: 'AIと決めたメモ', tags: ['馬場一致'] }
+				]
+			})
+		);
+		expect(saved.isError).toBeUndefined();
+		expect(JSON.parse(saved.content[0].text)).toEqual({
+			raceId: id,
+			raceNote: 'saved',
+			entries: [
+				{ entryId: entryIds.a, result: 'saved' },
+				{ entryId: entryIds.b, result: 'saved' }
+			]
+		});
+
+		const notes = JSON.parse(
+			(
+				await toolText(
+					await callTool(request, MCP_TOKENS.other, 'get_my_race_notes', { raceId: id })
+				)
+			).content[0].text
+		).notes as {
+			kind: string;
+			entryId: string | null;
+			body: string;
+			mark: string | null;
+			tags: string[];
+		}[];
+		expect(notes).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ kind: 'race_preview', body: 'AIと決めた見立て' }),
+				expect.objectContaining({ entryId: entryIds.a, body, mark: '◎', tags: ['不利'] }),
+				expect.objectContaining({
+					entryId: entryIds.b,
+					body: 'AIと決めたメモ',
+					mark: null,
+					tags: ['馬場一致']
+				})
+			])
+		);
+
+		const mine = (
+			await toolText(await callTool(request, MCP_TOKENS.all, 'get_my_race_notes', { raceId: id }))
+		).content[0].text;
+		expect(JSON.parse(mine).notes).toEqual([]);
+	});
+
+	test('同じ出走馬に別の人のトークンで書いて消しても、持ち主のメモは残る', async ({ request }) => {
+		const { id, entryIds, body } = MCP_WRITE_RACE;
+		// 自分（all）は E2E AI予想賞にメモを持たない。全部空で送ると「消す」になるが、自分の行が無いので何も残らない
+		// （自分の画面とキャプチャに混ざらない）。別のユーザーの出走前メモは消えてはいけない。
+		const cleared = await toolText(
+			await callTool(request, MCP_TOKENS.all, 'save_my_race_preview', {
+				raceId: id,
+				entries: [{ entryId: entryIds.a, body: '', mark: null, tags: [] }]
+			})
+		);
+		expect(cleared.isError).toBeUndefined();
+		const others = JSON.parse(
+			(
+				await toolText(
+					await callTool(request, MCP_TOKENS.other, 'get_my_race_notes', { raceId: id })
+				)
+			).content[0].text
+		).notes as { entryId: string | null; body: string; tags: string[] }[];
+		expect(others).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ entryId: entryIds.a, body, tags: ['不利'] })
+			])
+		);
+		const mine = (
+			await toolText(await callTool(request, MCP_TOKENS.all, 'get_my_race_notes', { raceId: id }))
+		).content[0].text;
+		expect(JSON.parse(mine).notes).toEqual([]);
+	});
+
+	test('別のレースの出走馬には書けない', async ({ request }) => {
+		const res = await toolText(
+			await callTool(request, MCP_TOKENS.other, 'save_my_race_preview', {
+				raceId: MCP_WRITE_RACE.id,
+				entries: [{ entryId: '01JE2EWEBMCPENTRY100000000', mark: '◎' }]
+			})
+		);
+		expect(res.isError).toBe(true);
+		expect(res.content[0].text).toContain('出走馬ではありません');
+	});
+
+	test('races:read だけの連携では一覧に出ず、呼ぶと 403（insufficient_scope）', async ({
+		request
+	}) => {
+		expect(await toolNames(request, MCP_TOKENS.racesOnly)).not.toContain('save_my_race_preview');
+		const res = await callTool(request, MCP_TOKENS.racesOnly, 'save_my_race_preview', {
+			raceId: MCP_WRITE_RACE.id,
+			raceNote: { body: '書けてはいけない' }
+		});
+		expect(res.status()).toBe(403);
+		expect(res.headers()['www-authenticate']).toContain('scope="notes:write"');
 	});
 });
 
@@ -353,8 +469,11 @@ async function exchange(
 	return { status: res.status(), json: await res.json() };
 }
 
-/** 登録 → 同意 → コード → トークン。`keepNotes` を外すとメモのチェックを外して許可する。 */
-async function connect(page: Page, request: APIRequestContext, keepNotes = true) {
+/**
+ * 登録 → 同意 → コード → トークン。`keepNotes` を外すとメモ（読む・書く）のチェックを外して許可する。
+ * `keepWrite` を外すと、予想を書くのチェックだけを外す。
+ */
+async function connect(page: Page, request: APIRequestContext, keepNotes = true, keepWrite = true) {
 	const clientId = await register(request, `E2E フロー ${randomBytes(4).toString('hex')}`);
 	const { verifier, challenge } = pkce();
 	await login(page);
@@ -362,6 +481,7 @@ async function connect(page: Page, request: APIRequestContext, keepNotes = true)
 	await gotoHydrated(page, authorizeUrl(clientId, challenge));
 	await expect(page.getByRole('heading', { name: 'アプリとの連携を許可しますか' })).toBeVisible();
 	if (!keepNotes) await page.getByLabel('あなたのメモ・見立て・印・札を読む').uncheck();
+	if (!keepNotes || !keepWrite) await page.getByLabel(WRITE_LABEL).uncheck();
 	await page.getByRole('button', { name: '許可する' }).click();
 	const url = await callback;
 	expect(url.searchParams.get('state')).toBe('e2e-state');
@@ -423,6 +543,7 @@ test.describe('OAuth の全行程', () => {
 		const callback = captureCallback(consent);
 		await gotoHydrated(consent, authorizeUrl(clientId, challenge));
 		await consent.getByLabel('あなたのメモ・見立て・印・札を読む').uncheck();
+		await consent.getByLabel(WRITE_LABEL).uncheck();
 		await consent.getByRole('button', { name: '許可する' }).click();
 		const code = (await callback).searchParams.get('code')!;
 		expect((await mcp(request, tokens.access_token, rpc('tools/list'))).status()).toBe(401);
@@ -487,7 +608,7 @@ test.describe('OAuth の全行程', () => {
 
 	test('登録 → 同意 → トークン → tool。コードは2度使えない', async ({ page, request }) => {
 		const { clientId, code, verifier, tokens } = await connect(page, request);
-		expect(tokens.scope).toBe('races:read notes:read');
+		expect(tokens.scope).toBe('races:read notes:read notes:write');
 		expect(await toolNames(request, tokens.access_token)).toContain('get_my_race_notes');
 
 		const again = await exchange(request, {
@@ -506,6 +627,18 @@ test.describe('OAuth の全行程', () => {
 		expect(tokens.scope).toBe('races:read');
 		const res = await callTool(request, tokens.access_token, 'list_my_recent_notes');
 		expect(res.status()).toBe(403);
+	});
+
+	test('同意で予想を書くのチェックだけを外すと、読めるが書けない', async ({ page, request }) => {
+		const { tokens } = await connect(page, request, true, false);
+		expect(tokens.scope).toBe('races:read notes:read');
+		expect(await toolNames(request, tokens.access_token)).not.toContain('save_my_race_preview');
+		const res = await callTool(request, tokens.access_token, 'save_my_race_preview', {
+			raceId: MCP_WRITE_RACE.id,
+			raceNote: { body: '書けてはいけない' }
+		});
+		expect(res.status()).toBe(403);
+		expect(res.headers()['www-authenticate']).toContain('scope="notes:write"');
 	});
 
 	test('PKCE の verifier が違えばトークンを出さない', async ({ page, request }) => {

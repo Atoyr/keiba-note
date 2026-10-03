@@ -1,14 +1,16 @@
 import * as v from 'valibot';
 
 /**
- * MCP クライアントに許すスコープ。**どれも読むだけ。** 書く・共有する・消すスコープはまだ無い。
+ * MCP クライアントに許すスコープ。共有する・消すスコープは無い。
  *
  * - `races:read` — 全員に共通のマスタ（レース・出走馬・オッズ・馬）。連携するなら必ず許す
  * - `notes:read` — 本人のメモ・見立て・印・札。同意画面で外せる
+ * - `notes:write` — 本人の予想（見立て・印・札・出走前メモ）を書く。同意画面で外せる。
+ *   ふりかえり・近況メモ・展開・共有には触れない（architecture.md 3-10）
  *
  * 足すときは、サーバーの tool（`lib/server/mcp/tools.ts`）の `scope` と、同意画面の文言も足す。
  */
-export const OAUTH_SCOPES = ['races:read', 'notes:read'] as const;
+export const OAUTH_SCOPES = ['races:read', 'notes:read', 'notes:write'] as const;
 export type OAuthScope = (typeof OAUTH_SCOPES)[number];
 
 /** 同意画面で外せないスコープ。これが無いと tool が1つも呼べない。 */
@@ -16,7 +18,8 @@ export const REQUIRED_SCOPES: readonly OAuthScope[] = ['races:read'];
 
 export const SCOPE_LABELS: Record<OAuthScope, string> = {
 	'races:read': 'レース・出走馬・オッズ・馬の情報を読む',
-	'notes:read': 'あなたのメモ・見立て・印・札を読む'
+	'notes:read': 'あなたのメモ・見立て・印・札を読む',
+	'notes:write': 'あなたの予想（見立て・印・札・出走前メモ）を書く'
 };
 
 const isScope = (s: string): s is OAuthScope => (OAUTH_SCOPES as readonly string[]).includes(s);

@@ -15,8 +15,8 @@ import {
 
 describe('requestedScopes', () => {
 	it('scope が無ければ全部を求めたとみなす', () => {
-		expect(requestedScopes(undefined)).toEqual(['races:read', 'notes:read']);
-		expect(requestedScopes('')).toEqual(['races:read', 'notes:read']);
+		expect(requestedScopes(undefined)).toEqual(['races:read', 'notes:read', 'notes:write']);
+		expect(requestedScopes('')).toEqual(['races:read', 'notes:read', 'notes:write']);
 	});
 
 	it('races:read だけを求められたら、メモは含めない', () => {
@@ -27,14 +27,18 @@ describe('requestedScopes', () => {
 		expect(requestedScopes('notes:read')).toEqual(['races:read', 'notes:read']);
 	});
 
-	it('知らないスコープは捨てる。書き込みのような無いスコープで広がらない', () => {
-		expect(requestedScopes('openid races:read notes:write admin')).toEqual(['races:read']);
-		// 知っているものが1つも無いときは全部（読むだけの2つ）。
-		expect(requestedScopes('openid profile')).toEqual(['races:read', 'notes:read']);
+	it('notes:write だけでも、外せない races:read を足す。メモを読む権限は足さない', () => {
+		expect(requestedScopes('notes:write')).toEqual(['races:read', 'notes:write']);
+	});
+
+	it('知らないスコープは捨てる。消すような無いスコープで広がらない', () => {
+		expect(requestedScopes('openid races:read notes:delete admin')).toEqual(['races:read']);
+		// 知っているものが1つも無いときは全部。
+		expect(requestedScopes('openid profile')).toEqual(['races:read', 'notes:read', 'notes:write']);
 	});
 
 	it('DB に残った知らないスコープは効かない', () => {
-		expect(knownScopes(['notes:write', 'notes:read'])).toEqual(['notes:read']);
+		expect(knownScopes(['notes:delete', 'notes:read'])).toEqual(['notes:read']);
 	});
 });
 
@@ -46,6 +50,13 @@ describe('grantedScopes（同意で許すスコープ）', () => {
 		]);
 		// チェックを全部外しても races:read だけになる（空にはならない）。
 		expect(grantedScopes(['races:read', 'notes:read'], [])).toEqual(['races:read']);
+	});
+
+	it('書き込みのチェックを外せば、読むだけの連携になる', () => {
+		expect(grantedScopes(['races:read', 'notes:read', 'notes:write'], ['notes:read'])).toEqual([
+			'races:read',
+			'notes:read'
+		]);
 	});
 
 	it('求められていないスコープは、チェックの値に足して送られても許さない', () => {

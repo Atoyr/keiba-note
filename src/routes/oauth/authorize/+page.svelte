@@ -64,7 +64,11 @@
 					{/each}
 				</ul>
 				<p class="mt-3 text-sm text-muted-foreground">
-					読むことだけができます。メモの書き込み・共有・削除はできません。
+					{#if data.scopes.includes('notes:write')}
+						書き込めるのは予想（見立て・印・札・出走前メモ）だけです。ふりかえり・近況メモの書き込みと、メモの共有、予想以外のメモの削除はできません。
+					{:else}
+						読むことだけができます。メモの書き込み・共有・削除はできません。
+					{/if}
 				</p>
 			</fieldset>
 			<div class="flex flex-wrap gap-3">

@@ -104,6 +104,22 @@ describe('savePreviewNotes', () => {
 		]);
 	});
 
+	it('raceNote を渡さなければ、見立てに触らず出走馬のメモだけを書く', async () => {
+		const { db, ops } = fakeDb();
+
+		const result = await savePreviewNotes(
+			db,
+			{ raceId: 'r1', entries: [{ ...entry(), mark: '◎' }] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([
+			{ kind: 'insert', values: expect.objectContaining({ kind: 'preview', mark: '◎' }) }
+		]);
+		expect(result).toEqual({ saved: 1, cleared: 0 });
+	});
+
 	it('印が無くても札だけで出走前メモを残す', async () => {
 		const { db, ops } = fakeDb();
 
