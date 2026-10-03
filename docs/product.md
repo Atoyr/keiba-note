@@ -395,7 +395,7 @@ erDiagram
 
 ### oauth_client / oauth_grant / oauth_code / oauth_token（AI との連携）
 
-MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませるための表（→ [architecture.md 3-10](./architecture.md)）。
+MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませる（予想は書かせる）ための表（→ [architecture.md 3-10](./architecture.md)）。
 
 | 表 | 1行 | 消えるとき |
 | --- | --- | --- |
@@ -736,7 +736,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /settings/profile             プロフィール（公開用の名前を設定）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
 /settings/connections         AIとの連携（MCP の接続先 URL・許可したアプリ）＝**連携を解除する場所**
-/oauth/authorize              AI のアプリへの同意画面（メモを読ませるかを選ぶ。architecture.md 3-10）
+/oauth/authorize              AI のアプリへの同意画面（メモを読ませるか・予想を書かせるかを選ぶ。architecture.md 3-10）
 
 ── admin のみ ────────────────────────────────────────────
 /races/new                    レース登録

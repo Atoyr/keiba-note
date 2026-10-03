@@ -9,8 +9,10 @@ import { TOOLS } from './tools';
 let db: Db;
 let sqlite: DatabaseSync;
 
-const ALL: OAuthScope[] = ['races:read', 'notes:read'];
+const ALL: OAuthScope[] = ['races:read', 'notes:read', 'notes:write'];
+const READ_ONLY: OAuthScope[] = ['races:read', 'notes:read'];
 const RACES_ONLY: OAuthScope[] = ['races:read'];
+const WRITE_ONLY: OAuthScope[] = ['races:read', 'notes:write'];
 
 /** 自分（A）のメモと他人（B）のメモを、同じレース・同じ馬に1本ずつ置く。 */
 beforeEach(() => {
@@ -59,6 +61,13 @@ describe('スコープ', () => {
 			).result!.tools!.map((t) => t.name);
 
 		expect(await list(RACES_ONLY)).toEqual(['search_races', 'get_race', 'get_horse']);
+		expect(await list(READ_ONLY)).not.toContain('save_my_race_preview');
+		expect(await list(WRITE_ONLY)).toEqual([
+			'search_races',
+			'get_race',
+			'get_horse',
+			'save_my_race_preview'
+		]);
 		expect(await list(ALL)).toEqual(TOOLS.map((t) => t.name));
 		expect(await list([])).toEqual([]);
 	});
@@ -231,9 +240,129 @@ describe('プロトコル', () => {
 		expect(reply.error?.code).toBe(-32601);
 	});
 
-	it('どの tool も読むだけと名乗り、入力は余計な項目を受けない', () => {
+	it('どの tool も入力は余計な項目を受けない', () => {
 		for (const t of TOOLS) {
 			expect(t.input.type).toBe('strict_object');
 		}
+	});
+
+	it('読むだけと名乗るのは notes:write の要らない tool だけ', async () => {
+		const tools = body(
+			await handleMcpMessage({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, ctx())
+		).result!.tools! as unknown as { name: string; annotations: { readOnlyHint: boolean } }[];
+		for (const t of tools) {
+			const write = TOOLS.find((x) => x.name === t.name)!.scope === 'notes:write';
+			expect(t.annotations.readOnlyHint).toBe(!write);
+		}
+	});
+});
+
+describe('save_my_race_preview', () => {
+	type Row = { author_id: string; kind: string; body: string; mark: string | null; tags: string };
+	const notes = (author: string) =>
+		sqlite
+			.prepare(
+				`SELECT author_id, kind, body, mark, tags FROM note WHERE author_id = ? AND race_id = 'R' ORDER BY kind`
+			)
+			.all(author) as Row[];
+	const save = (args: Record<string, unknown>, scopes = ALL, viewerId = 'A') =>
+		call('save_my_race_preview', { raceId: 'R', ...args }, scopes, viewerId);
+
+	it('notes:write が無いトークンでは、動かさずに 403（insufficient_scope）', async () => {
+		const before = notes('A');
+		const reply = await save({ entries: [{ entryId: 'E', mark: '×' }] }, READ_ONLY);
+		expect(reply).toMatchObject({ kind: 'insufficientScope', scope: 'notes:write' });
+		expect(notes('A')).toEqual(before);
+	});
+
+	it('渡した項目だけを書き換え、省いた項目と見立てはそのまま残す', async () => {
+		const out = data(await save({ entries: [{ entryId: 'E', mark: '○' }] }));
+		expect(out).toEqual({
+			raceId: 'R',
+			raceNote: 'unchanged',
+			entries: [{ entryId: 'E', result: 'saved' }]
+		});
+		expect(notes('A')).toEqual([
+			expect.objectContaining({ kind: 'preview', body: '自分の出走前メモ', mark: '○' }),
+			expect.objectContaining({ kind: 'race_preview', body: '自分の見立て' })
+		]);
+	});
+
+	it('見立てと札を書ける。札は決まった順にそろえる', async () => {
+		await save({
+			raceNote: { body: '  新しい見立て  ' },
+			entries: [{ entryId: 'E', body: '新しいメモ', tags: ['好上がり', '次走買い'] }]
+		});
+		const [preview, race] = notes('A');
+		expect(race.body).toBe('新しい見立て');
+		expect(preview).toMatchObject({ body: '新しいメモ', mark: '◎' });
+		expect(JSON.parse(preview.tags)).toEqual(['次走買い', '好上がり']);
+	});
+
+	it('本文・印・札をすべて空にした馬の出走前メモは消える', async () => {
+		const out = data(await save({ entries: [{ entryId: 'E', body: '', mark: null, tags: [] }] }));
+		expect(out.entries).toEqual([{ entryId: 'E', result: 'cleared' }]);
+		expect(notes('A').map((n) => n.kind)).toEqual(['race_preview']);
+	});
+
+	it('他人のメモには触れず、トークンの持ち主のメモだけを書く', async () => {
+		const others = notes('B');
+		await save({ raceNote: { body: 'Aが書いた' }, entries: [{ entryId: 'E', mark: '×' }] });
+		expect(notes('B')).toEqual(others);
+
+		await save({ entries: [{ entryId: 'E', mark: '△' }] }, ALL, 'B');
+		expect(notes('B')).toEqual([
+			expect.objectContaining({ kind: 'preview', body: '他人の出走前メモ', mark: '△' }),
+			expect.objectContaining({ kind: 'race_preview', body: '他人の見立て' })
+		]);
+		expect(notes('A')[0].mark).toBe('×');
+	});
+
+	it('notes:read が無くても書けるが、省いた項目の今の値は返さない', async () => {
+		const reply = await save({ entries: [{ entryId: 'E', mark: '▲' }] }, WRITE_ONLY);
+		expect(JSON.stringify(reply)).not.toContain('自分の');
+		expect(notes('A')[0]).toMatchObject({ body: '自分の出走前メモ', mark: '▲' });
+	});
+
+	it('別のレースの出走馬には書けない', async () => {
+		sqlite.exec(`
+			INSERT INTO race (id, date, course, race_number, name) VALUES ('R2', '2099-10-05', '京都', 11, '別のレース');
+			INSERT INTO race_entry (id, race_id, horse_id, horse_number) VALUES ('E2', 'R2', 'H', 1);
+		`);
+		const reply = body(await save({ entries: [{ entryId: 'E2', mark: '◎' }] }));
+		expect(reply.result?.isError).toBe(true);
+		expect(reply.result?.content[0].text).toContain('出走馬ではありません');
+		expect(
+			sqlite.prepare(`SELECT count(*) AS n FROM note WHERE race_entry_id = 'E2'`).get()
+		).toEqual({ n: 0 });
+	});
+
+	it.each([
+		['何も渡さない', {}],
+		['知らない印', { entries: [{ entryId: 'E', mark: '★' }] }],
+		['知らない札', { entries: [{ entryId: 'E', tags: ['勝負'] }] }],
+		[
+			'同じ馬を2回',
+			{
+				entries: [
+					{ entryId: 'E', mark: '◎' },
+					{ entryId: 'E', mark: '×' }
+				]
+			}
+		],
+		['horseId を渡す', { entries: [{ entryId: 'E', horseId: 'H', mark: '◎' }] }],
+		['展開を渡す', { raceNote: { body: 'x', flow: {} } }],
+		['書く人を渡す', { authorId: 'B', raceNote: { body: 'x' } }]
+	])('%s と tool の誤りで、何も書かない', async (_, args) => {
+		const before = [notes('A'), notes('B')];
+		expect(body(await save(args)).result?.isError).toBe(true);
+		expect([notes('A'), notes('B')]).toEqual(before);
+	});
+
+	it('無いレースは tool の誤り', async () => {
+		const reply = body(
+			await call('save_my_race_preview', { raceId: 'nope', raceNote: { body: 'x' } })
+		);
+		expect(reply.result?.isError).toBe(true);
 	});
 });

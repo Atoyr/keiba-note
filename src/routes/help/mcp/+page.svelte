@@ -21,8 +21,9 @@
 	<h1 class="mt-1 text-2xl font-bold">AIとの連携の始め方</h1>
 	<p class="mt-3 leading-relaxed">
 		Claude や ChatGPT に uma-memo をつなぐと、AI
-		がレース・出走馬・オッズ・馬の情報と、あなたのメモを読んで予想の相談に乗れるようになります（MCP）。AI
-		ができるのは読むことだけで、メモの書き込み・共有・削除はできません。
+		がレース・出走馬・オッズ・馬の情報と、あなたのメモを読んで予想の相談に乗れるようになります（MCP）。許可すれば、AI
+		と決めた予想（見立て・印・札・出走前メモ）を AI
+		に書き込ませることもできます。ふりかえり・近況メモの書き込みと、メモの共有・削除はできません。
 	</p>
 
 	<Card.Root class="mt-6 gap-3 py-4">
@@ -164,11 +165,17 @@
 				「{SCOPE_LABELS['notes:read']}」はチェックを外せます。外すと、AI
 				はあなたのメモを読めません。
 			</li>
+			<li>
+				「{SCOPE_LABELS['notes:write']}」もチェックを外せます。外すと、AI
+				は読むだけになります。残すと、AI
+				はあなたが頼んだときにレースの見立てと各馬の印・札・出走前メモを書き換えます。展開の予想・ふりかえり・近況メモには触れません。
+			</li>
 			<li>「許可しない」を押せば、何も許可せずに終わります。</li>
 		</ul>
 		<p class="mt-3 text-sm leading-relaxed">
 			メモを読ませると、メモの内容は AI
-			のサービスに送られます。各サービスのデータの扱いを確かめてから許可してください。
+			のサービスに送られます。各サービスのデータの扱いを確かめてから許可してください。予想を書かせるときは、AI
+			が書き換えたあとで予想画面を見て確かめてください。
 		</p>
 	</section>
 
@@ -182,7 +189,7 @@
 				<div>
 					<dt class="font-mono font-medium break-all">{t.name}</dt>
 					<dd class="mt-1 leading-relaxed text-muted-foreground">
-						{t.title}{#if t.scope === 'notes:read'}（メモを許可したときだけ）{/if}
+						{t.title}{#if t.scope === 'notes:read'}（メモを読むのを許可したときだけ）{:else if t.scope === 'notes:write'}（予想を書くのを許可したときだけ）{/if}
 					</dd>
 				</div>
 			{/each}
@@ -196,9 +203,14 @@
 			で出走馬とオッズを読んでください。 get_my_race_notes
 			で私の見立てと印も読み、過去のメモと食い違う点があれば教えてください。
 		</blockquote>
+		<p class="mt-3 text-sm leading-relaxed">AI と決めた予想を残したいときは、こう頼みます。</p>
+		<blockquote class="mt-3 rounded-md border bg-muted/50 p-4 text-sm leading-relaxed">
+			いまの話で決めた印と、各馬の短いメモを save_my_race_preview
+			で天皇賞（秋）の予想に書いてください。私が書いてある本文は消さないでください。
+		</blockquote>
 		<p class="mt-3 text-sm leading-relaxed">
-			AI が考えた予想を残したいときは、予想画面で自分で書いて保存してください。AI から uma-memo
-			には書き込めません。
+			AI
+			が書くのは、頼んだ馬の頼んだ項目だけです。書いたあとは予想画面で確かめ、直したければそこで直してください。
 		</p>
 	</section>
 
@@ -220,6 +232,12 @@
 				<dt class="font-semibold">AI がメモを読めない</dt>
 				<dd class="mt-1">
 					許可画面でメモのチェックを外した可能性があります。「AIとの連携」でその連携を解除し、アプリ側でコネクタを接続し直して、メモにチェックを入れたまま許可してください。
+				</dd>
+			</div>
+			<div>
+				<dt class="font-semibold">AI が予想を書けないと言う</dt>
+				<dd class="mt-1">
+					予想の書き込みを許可していません。書き込みが加わる前につないだ連携も同じです。「AIとの連携」でその連携を解除し、アプリ側でコネクタを接続し直して、予想を書くのにチェックを入れたまま許可してください。
 				</dd>
 			</div>
 			<div>
