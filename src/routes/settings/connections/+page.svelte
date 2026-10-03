@@ -33,16 +33,11 @@
 	<section class="mt-6 rounded-lg border p-4" aria-labelledby="mcp-url-heading">
 		<h2 id="mcp-url-heading" class="font-semibold">接続先の URL</h2>
 		<p class="mt-2 rounded bg-muted px-3 py-2 font-mono text-sm break-all">{data.mcpUrl}</p>
-		<ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-			<li>
-				Claude: Web 版かデスクトップ版でカスタムコネクタを追加し、この URL
-				を入れます。追加したコネクタはスマホのアプリでも使えます。
-			</li>
-			<li>ChatGPT: Web 版の開発者モードでアプリを作ります。スマホのアプリでは使えません。</li>
-			<li>
-				追加するとこのサイトの許可画面が開きます。メモを読ませたくなければ、そこで「メモ」のチェックを外してください。
-			</li>
-		</ul>
+		<!-- 手順は /help/mcp に1か所だけ置く。各社の画面が変わったときに片方だけ古くならないように。 -->
+		<p class="mt-3 text-sm text-muted-foreground">
+			Claude か ChatGPT でコネクタを追加するときに、この URL
+			を入れます。追加するとこのサイトの許可画面が開きます。
+		</p>
 		<p class="mt-3 text-sm">
 			<a href={resolve('/help/mcp')} class="text-primary underline underline-offset-4"
 				>AIとの連携の始め方（Claude・ChatGPT での手順）</a

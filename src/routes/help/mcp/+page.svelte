@@ -170,41 +170,18 @@
 
 	<section class="mt-8" aria-labelledby="tools">
 		<h2 id="tools" class="text-lg font-bold">AI が使える tool</h2>
+		<p class="mt-3 text-sm leading-relaxed">
+			AI は次の tool で uma-memo を読みます。頼むときに名前を書くと、AI が迷いません。
+		</p>
 		<dl class="mt-3 space-y-3 rounded-md border p-4 text-sm">
-			<div>
-				<dt class="font-mono font-medium break-all">search_races</dt>
-				<dd class="mt-1 leading-relaxed text-muted-foreground">レースを名前と開催年で探します。</dd>
-			</div>
-			<div>
-				<dt class="font-mono font-medium break-all">get_race</dt>
-				<dd class="mt-1 leading-relaxed text-muted-foreground">
-					レースの条件・出走馬・着順・オッズとその時点を読みます。
-				</dd>
-			</div>
-			<div>
-				<dt class="font-mono font-medium break-all">get_horse</dt>
-				<dd class="mt-1 leading-relaxed text-muted-foreground">
-					馬のプロフィールと出走歴を読みます。
-				</dd>
-			</div>
-			<div>
-				<dt class="font-mono font-medium break-all">get_my_race_notes</dt>
-				<dd class="mt-1 leading-relaxed text-muted-foreground">
-					そのレースのあなたの見立て・メモ・印・札・展開を読みます（メモを許可したときだけ）。
-				</dd>
-			</div>
-			<div>
-				<dt class="font-mono font-medium break-all">get_my_horse_notes</dt>
-				<dd class="mt-1 leading-relaxed text-muted-foreground">
-					その馬についてのあなたのメモを読みます（メモを許可したときだけ）。
-				</dd>
-			</div>
-			<div>
-				<dt class="font-mono font-medium break-all">list_my_recent_notes</dt>
-				<dd class="mt-1 leading-relaxed text-muted-foreground">
-					あなたの最近のメモを読みます（メモを許可したときだけ）。
-				</dd>
-			</div>
+			{#each data.tools as t (t.name)}
+				<div>
+					<dt class="font-mono font-medium break-all">{t.name}</dt>
+					<dd class="mt-1 leading-relaxed text-muted-foreground">
+						{t.title}{#if t.scope === 'notes:read'}（メモを許可したときだけ）{/if}
+					</dd>
+				</div>
+			{/each}
 		</dl>
 	</section>
 
@@ -240,15 +217,23 @@
 			<div>
 				<dt class="font-semibold">急につながらなくなった</dt>
 				<dd class="mt-1">
-					連携が解除されています。自分で解除したとき、同じ連携の古い鍵が使われた（盗まれた可能性がある）と
-					uma-memo が判断したときに起きます。アプリ側でコネクタを接続し直してください。
+					<p>アプリ側でコネクタを接続し直してください。どの原因でも、接続し直せば戻ります。</p>
+					<ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+						<li>
+							30日ほど使わずにいて、接続の期限が切れた（「AIとの連携」の一覧には残ったままです）
+						</li>
+						<li>「AIとの連携」で連携を解除した</li>
+						<li>
+							同じ連携の古い鍵が使われ、盗まれた可能性があると uma-memo が判断して連携を止めた
+						</li>
+					</ul>
 				</dd>
 			</div>
 			<div>
 				<dt class="font-semibold">競馬場で電波が弱く、途中で失敗した</dt>
 				<dd class="mt-1">
-					そのまま、もう一度 AI
-					に頼んでください。通信が途切れても、30分以内のやり直しなら連携は切れません。
+					電波の戻る所で、もう一度 AI
+					に頼んでください。途中で途切れても、多くの場合は頼み直すだけで戻ります。戻らなければ、上の「急につながらなくなった」のとおり接続し直してください。
 				</dd>
 			</div>
 			<div>
