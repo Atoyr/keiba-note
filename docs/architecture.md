@@ -24,6 +24,10 @@
 - 更新日: 2026-09-27 — 騎手（jockeys）を機能の並びに足した（→ 第2章）
 - 更新日: 2026-09-28 — 予想まとめの共有に SNS のプレビュー画像を足した。`src/worker.js` が resvg の wasm を渡し、
   フォントは Static Assets から読む（→ 第2章 / 3-7 / 5-4）
+- 更新日: 2026-10-03 — MCP の口（`/mcp`）と、その認可サーバー（OAuth 2.1）を足した。`/mcp` は Bearer だけで入り、
+  トークンの口は `src/worker.js` が SvelteKit より先に受ける（→ 第0章 / 第2章 / 3-10）
+- 更新日: 2026-10-03 — Client ID Metadata Document（Claude の推奨の認証方式）を受けるようにした。外部依存に
+  AI のクライアントが置いた文書が加わり、Worker が同意画面から取りに行く（→ 第0章 / 第1章 / 3-10）
 - 更新日: 2026-10-03 — オッズの更新の起動を GitHub の schedule から Worker の Cron（`workflow_dispatch`）に移した。
   schedule は混んでいると大半の回を飛ばしていた。取得元へ行くのは引き続き Actions だけ（→ 第1章 / 第2章 / 3-8）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
@@ -48,7 +52,12 @@
 - **D1 クライアントはリクエストごとに `createDb(platform.env, locals.monitor.onQuery)` で作る。** モジュールスコープに
   接続やユーザー情報を持たせない。Workers の実行環境は複数のリクエストで使い回される（→ 3-1）
 - **認証の判断は `src/hooks.server.ts` に閉じる。** ルートは `locals.user` だけを見る。
-  ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）
+  ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）。
+  例外は OAuth のトークンの口 `/oauth/token` だけで、`src/worker.js` が SvelteKit より先に受け、コード・PKCE・
+  リフレッシュトークンで判断する（Cookie を見ない。`PUBLIC_PATHS` には足さない。→ 3-10）
+- **`/mcp` は Bearer（OAuth のアクセストークン）だけで入り、Bearer は `/mcp` でしか効かない。**
+  `/mcp` で Cookie を見ると他サイトから本人として叩かれ（CSRF）、画面で Bearer を見ると漏れたトークンで画面に入られる。
+  MCP の tool の `viewerId` はトークンの持ち主で、入力からは受けない（→ 3-10）
 - **依存は一方向。** サービス層（`src/lib/server/services/`）は SvelteKit を import しない。
   画面側はサーバーのコードを型ですら import しない（→ 第2章）
 - 1リクエストの D1 クエリは10以内（Free の頃の上限は50。Paid では上限でなくレビューで守る）。超えそうなら JOIN か `batch()` にまとめる（→ 7-1）
@@ -60,6 +69,9 @@
   取得元に固有の処理（URL・応答の形）は `scripts/odds/<取得元>/` の外に出さない（→ 3-8）
 - **出走馬の取得を Worker から頼むときは、GitHub Actions を起動するだけ。** Worker は出馬表を取りに行かず、
   D1 にも書かない。Actions が YAML を書いて PR を作り、マージで入る（下の「DB とデータ」の経路のまま。→ 3-9）
+- **利用者が渡した URL へ Worker が取りに行くのは、Client ID Metadata Document だけ。** 入口はログインが要る同意画面に限り、
+  URL の形を絞り、リダイレクトを追わず、時間と大きさに上限を置く（`auth/client-metadata.ts`）。
+  ほかの口で、入力の URL へ取りに行く処理を足さない（→ 3-10）
 
 ### DB とデータ
 
@@ -106,8 +118,10 @@ flowchart TB
     GH -->|"オッズの書き込み（wrangler d1 execute）"| D
 ```
 
-外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは GitHub Actions だけが行き、
-Worker は行かない（→ 3-8）。GitHub へは出走馬の取得とオッズの更新を Actions に頼むときだけ行く（→ 3-8・3-9）。それ以外は Cloudflare の中で完結する。
+外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API と、AI のクライアントが置いた Client ID Metadata Document の4つ**。
+netkeiba へは GitHub Actions だけが行き、Worker は行かない（→ 3-8）。GitHub へは出走馬の取得とオッズの更新を Actions に頼むときだけ行く（→ 3-8・3-9）。
+Client ID Metadata Document へは、ログインした本人が同意画面を開いたときと「許可する」を押したときだけ、
+クライアントが `client_id` に書いた HTTPS の URL へ取りに行く（24時間は保存した内容を使う。→ 3-10）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -171,6 +185,7 @@ flowchart TB
 | ① UI | `+page.svelte`, `lib/components/` | 表示、フォームの組み立て | DB アクセス、認可判断 |
 | ① UI の WebMCP 境界 | `lib/webmcp/` | tool 登録・解除、load の値の整形、下書きを既存フォームへ渡す | DB アクセス、HTTP、submit、LLM 呼び出し |
 | ② ルート | `+page.server.ts`, `+server.ts`, `hooks.server.ts` | HTTP の入出力、Cookie、リダイレクト | 業務ルール、SQL |
+| ② ルートの MCP | `lib/server/mcp/` | JSON-RPC の読み書き、tool の入力の検証と返す項目の選び出し、スコープの確認、応答の種類（200・400・スコープ不足）を決める | SQL、認証の判断、HTTP のヘッダ（`WWW-Authenticate` などはルートが付ける） |
 | ③ 検証 | `lib/schemas/` | `FormData` / クエリ文字列を型付きの入力に変換 | DB アクセス |
 | ④ サービス | `lib/server/services/`, `lib/server/auth/` | 業務ルール、`author_id` での絞り込み、`batch()` の構成 | HTTP を知ること |
 | ⑤ データアクセス | `lib/server/db/` | Drizzle でのクエリ組み立て、型定義 | 業務ルール |
@@ -226,7 +241,12 @@ service と auth も monitoring を知らない（失敗は投げたままにし
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
 adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
-Cron の入口 `lib/server/race-data/scheduled.ts`・`lib/server/odds/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）だけ（→ 3-5・3-7・3-9）。
+Cron の入口 `lib/server/race-data/scheduled.ts`・`lib/server/odds/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）と、
+OAuth のトークンの口（`lib/server/auth/token-endpoint.ts` と、それに渡す `createDb`・monitoring）だけ（→ 3-5・3-7・3-8・3-9・3-10）。
+
+mcp（`lib/server/mcp/`。MCP の JSON-RPC と tools）は endpoint と同じ扱いで、`routes/mcp/+server.ts` だけが使う。
+import してよいのは pure と service と、db の型 `Db` だけ。SvelteKit・auth・`drizzle-orm` は import しない
+（SQL はサービス層、誰かの判断は hooks）。
 
 og（`lib/server/og/`。共有の画像を PNG にする）は service と同じ扱いで、SvelteKit も D1 も知らない。
 import してよいのは pure（描く SVG は `utils/share-card.ts` が組む）と `@resvg/resvg-wasm` だけ。機能の軸では share に入る。
@@ -652,6 +672,115 @@ sequenceDiagram
   ただし同じトークンで起動する `odds-update.yml`（3-8）は、本番の D1 の `race_odds` に直接書く。
   書くのは main のコードが取得元から取って検査を通した値だけで、起動する人がその中身を決めることはできない
 
+### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読む
+
+Claude・ChatGPT（スマホのアプリを含む）から読めるように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバーを置く。
+ブラウザの中で動く WebMCP（[frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)）は試験的なまま残す。
+**読むだけ。** 書く・共有する・消す tool とスコープはまだ無い。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as MCP クライアント（Claude・ChatGPT のサーバー）
+    participant B as 本人のブラウザ
+    participant W as Worker
+    participant D as D1
+
+    C->>W: POST /mcp（トークンなし）
+    W-->>C: 401 WWW-Authenticate: resource_metadata=…
+    C->>W: GET /.well-known/oauth-protected-resource/mcp・/.well-known/oauth-authorization-server
+    alt 動的クライアント登録
+        C->>W: POST /oauth/register
+        W->>D: oauth_client（source = registered）
+        C->>B: /oauth/authorize?client_id=<uma-memo が振った id>&…&code_challenge（PKCE S256）
+    else Client ID Metadata Document（Claude の推奨）
+        C->>B: /oauth/authorize?client_id=https://…/文書&…&code_challenge（PKCE S256）
+        B->>W: GET /oauth/authorize（ログインが要る）
+        W->>C: GET client_id の URL（24時間に1回。5秒・5 KiB・リダイレクトを追わない）
+        W->>D: oauth_client（source = metadata・fetched_at）
+    end
+    B->>W: 同意画面（ログインが要る）→「許可する」（メモを読ませるかを選べる）
+    W->>D: oauth_grant（本人×クライアント）・oauth_code（ハッシュ・5分・1回きり）
+    W-->>B: 303 戻り先?code&state&iss
+    C->>W: POST /oauth/token（code + code_verifier）※ src/worker.js が受ける
+    W->>D: コードを消す → oauth_token（アクセス1時間・リフレッシュ30日。ハッシュ）
+    C->>W: POST /mcp（Authorization: Bearer）
+    W->>D: hooks がトークン → 本人とスコープ（1クエリ）
+    W->>D: tool → サービス層（viewerId = 本人）
+```
+
+| 層 | 置き場所 | 持つもの |
+| --- | --- | --- |
+| 案内 | `routes/.well-known/*`・`lib/server/auth/oauth-metadata.ts` | RFC 9728 / RFC 8414 のメタデータ（公開。DB に触らない） |
+| 登録 | `routes/oauth/register/+server.ts` | 公開クライアントだけを登録（戻り先は https かループバック） |
+| 文書の取得 | `lib/server/auth/client-metadata.ts` | Client ID Metadata Document の取得・検証・24時間の保存・未連携の行の上限と掃除 |
+| 同意 | `routes/oauth/authorize/` | 要求の検証・スコープの選択・コードの発行。枠に入れさせない（`X-Frame-Options`） |
+| トークン | `src/worker.js` → `lib/server/auth/token-endpoint.ts` | フォームの読み取り・`resource` の確認 |
+| 認可の中身 | `lib/server/auth/oauth.ts` | PKCE・コードとトークンの発行と検証・リフレッシュのローテーション・連携の一覧と解除 |
+| 入口の判断 | `hooks.server.ts` | `/mcp` だけ Bearer を検証し、`locals.user` と `locals.oauthScopes` を載せる |
+| MCP | `routes/mcp/+server.ts` → `lib/server/mcp/` | JSON-RPC（initialize / ping / tools/list / tools/call）。スコープが足りなければ 403 `insufficient_scope` |
+| 解除 | `/settings/connections` | 本人の連携の一覧と解除（CASCADE でコードとトークンも消える） |
+
+- **トークンの口だけ SvelteKit に通さない。** トークンの要求は Origin の無いフォームの POST で、SvelteKit の CSRF の検査が
+  hooks より前に 403 にする（パスごとに外す設定は無い）。この口は Cookie を見ないので、検査が守るものが無い。
+  `vite dev` では `src/worker.js` を通らないので、この口は 404 になる（E2E は `wrangler dev` で通る）
+- **スコープ:** `races:read`（マスタ。外せない）と `notes:read`（本人のメモ。同意画面で外せる）。足りない tool は
+  tools/list に出さず、呼ばれたら動かさずに 403。`races:read` だけのときは、レースの一覧に添える「自分のメモの件数」も出さない
+- **返す項目は tool で1つずつ選ぶ。** サービスの戻り値を広げて返さない（書いた人の名前・公開範囲・`created_by`・`profile_memo` を出さない）
+- **リフレッシュトークンは1回きり。ただし回線断での送り直しは受ける**（`auth/oauth.ts` の `judgeRetry`）。競馬場のスマホのように
+  電波の弱い所では、要求は届いたのに応答が届かず、クライアントが同じトークンで送り直すことがある。使用済みのトークンが来たとき:
+  - **受ける**: 前に使われてから30分（`REFRESH_RETRY_GRACE_SEC`）の内で、そのとき出したアクセストークンが**一度も使われていない**
+    （リフレッシュするのは tool を呼ぶためなので、受け取っていればすぐ使う。アクセストークンは初めて使われた時刻を `used_at` に1回だけ残す）。
+    届かなかった1組を止め（`parent_id` で辿る）、最初の更新で確定したスコープのまま新しい1組を出す。
+    再送で `scope` を省略しても縮小前の権限には戻らず、明示したスコープが最初の更新と異なれば `invalid_scope` で断る。
+    Workers Logs に info を残す
+  - **連携を消さずに断る**: 同じ未使用状態を読んだ別の要求が先に更新したときは `503 temporarily_unavailable` と `Retry-After: 1` を返す。
+    トークンを捨てさせる `invalid_grant` と区別する（MCP 公式 SDK は `invalid_grant` でトークンを捨てるが、
+    `temporarily_unavailable` では捨てない。ただし `Retry-After` は読まず、次の tool 呼び出しの更新で回復する）
+  - **盗まれたとみなして連携ごと消す**: 出したアクセストークンが使われた・次のリフレッシュトークンが使われた・30分を過ぎた・
+    止めた1組があとで使われた（止めた直後でも待たない）。使用済みの印と子の INSERT は同じ batch で確定するので、
+    「印があって子が無い」のは送り直しで止めた1組だけで、処理中と取り違えることは無い。Workers Logs に warn を残す
+  - 残る弱さ: 正規のクライアントが新しいアクセストークンを初めて使うまで（ふつうは数秒）の間に盗まれた古いトークンが来ると受けてしまう。
+    その場合も、正規のクライアントが次に更新したときに見つかって連携ごと消える。
+    また、正規のクライアントが同じリフレッシュトークンで同時に2回更新し、後の要求が先の確定のあとに届くと送り直しとして受け、
+    先の1組を止める。クライアントが先の応答のほうを残すと、次の更新で盗まれたとみなされて連携が切れる（実クライアントでは未確認）
+  - **発行をまとめて確定する**: 同意の世代・未使用状態を条件に新しい1組を INSERT し、使用済みの印・届かなかったアクセスの削除・掃除を
+    同じ D1 `batch()` で行う。保存が失敗すれば印もロールバックされ、通常更新・送り直しのどちらも元の状態から再試行できる
+- **tool やスコープを足したら、テストも同じ形で足す。** スコープが足りないトークンでは tools/list に出ず 403 になること、
+  別のユーザーのトークンでは相手のデータしか返らないこと（入力で相手を選べないこと）を、単体（`mcp/protocol.spec.ts`）と
+  E2E（`e2e/mcp.e2e.ts`）の両方で確かめる
+- **同意画面は、要求の誤りで戻り先へ飛ばさない。** 登録は誰でもでき、戻り先は https ならどこでも登録できるので、
+  誤りで飛ばすとオープンリダイレクトになる。戻り先へ送るのは本人が「許可する」「許可しない」を押したときだけ
+- 同意し直したら grant の ID を世代として切り替え、前の grant と子のトークン・コードを CASCADE で消し、新しい grant とコードを同じ batch で作る。
+  発行の INSERT もその世代が有効か確かめるので、処理中だった古いコード交換・更新・送り直しから以前の権限を復活できない。
+  同意の保存に失敗したときは、前の連携を維持する。許可した日と最終利用日は新しい同意のものになる
+- MCP はステートレスで、応答は JSON（SSE なし）。SDK を使わないのは `nodejs_compat` を付けないため（第0章）
+- `/mcp`・`/oauth/register`・`/oauth/token` の本文は読み取り中に 8 KiB で止め、超えたら 413。
+  Content-Length が無い場合や小さく偽った場合も同じ上限を使う
+- **クライアントの識別は2通り。** 動的クライアント登録（`/oauth/register`。id は uma-memo が振る）と、
+  Client ID Metadata Document（CIMD。Claude の推奨。`client_id` が文書の HTTPS の URL。`auth/client-metadata.ts`）。
+  CIMD は登録の口を通らず、同意画面を開いたときに文書を取りに行き、`oauth_client` に `source = 'metadata'` で入れて24時間使う。
+  - **利用者が渡した URL（client_id）へ Worker が取りに行く経路。** 取りに行くのはログインした本人が同意画面を開いたときと「許可する」を押したときだけで、誰でも叩ける口からは行かない。
+    URL は https・パスあり・クエリ／フラグメント／認証情報／`.` と `..` のセグメント／IP の直書きなし。リダイレクトを追わず、5秒・5 KiB・JSON だけ
+  - 文書の `client_id` が URL と完全に一致し、戻り先が https かループバックで、公開クライアント（`none`）のときだけ使う。
+    取り直しに失敗したら古い内容は使わない
+  - 名前は自己申告だが、URL のホストは文書を置いた提供元として確かめられるので、同意画面と「AIとの連携」に「提供元」として出す
+  - CIMD の行は動的登録の上限に数えず、一度も連携していない CIMD の行を別に1,000件まで（超えたら同意画面で「混み合っています」）。取ってから24時間を過ぎた未連携の行は次の取得のときに最大100件ずつ消す。E2E だけ `OAUTH_CIMD_ALLOW_LOOPBACK=1` で `http://localhost` を許す
+  - 同意画面の GET の `load` で `oauth_client` に書く。取ってきた文書のキャッシュにあたり、本人の権限は何も変えない（[api.md 第1章](./api.md)の例外）
+  - 残る弱さ: 本人ごとの取得の頻度は数えていない（ログインした本人が URL を変えて開き直せば、そのたびに取りに行く）。
+    同意画面の GET は他サイトから開かせることもできるので、ログイン中の本人に文書を取りに行かせることはできる（できるのは
+    取得と未連携の行を1つ増やすことまでで、許可は本人が押さないと出ない）。名前で私的なアドレスを指すホストは形では弾けず、
+    Workers の fetch が私的なネットワークへ届かないことに頼っている
+- クライアントの登録は誰でもできるが、全体で直近60秒に100件、**一度も連携していない**登録（`oauth_client.connected_at` が NULL）は1,000件まで。
+  条件付き INSERT で判定し、同時要求でも上限を超えない。超過時は 429 と `Retry-After: 60` を返す。
+  一度も連携していない登録は作成から24時間で認可に使えなくなり、次の登録要求で期限切れを最大100件ずつ削除する。
+  **一度でも連携した登録は、連携が解除・使い回しの検出・凍結で消えたあとも消さない。** 公式 SDK は `invalid_grant` で
+  トークンだけを捨て、手元の client_id のまま認可に来るので、登録を消すと同じアプリからつなぎ直せなくなる。
+  登録が来なければ期限切れの行は残るが、認可には使えない。
+  この制限は D1 の保存行数と登録頻度を抑えるもので、要求そのものの到達やDB読み取りを止めるものではない。
+  全体の上限なので、上限に達すると正規クライアントの新規登録も待つ（既存の連携は引き続き使える）。
+  Cloudflare 側のレート制限はこの実装に含めない
+
 ---
 
 ## 4. デプロイ構成
@@ -951,7 +1080,8 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 
 ## 9. この構成の要約
 
-- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、GitHub Actions だけが行くオッズの取得元
+- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、GitHub Actions だけが行くオッズの取得元と GitHub の API、
+  同意画面から取りに行く AI のクライアントの文書（Client ID Metadata Document）
 - **層は6つ、依存は一方向。** 要は「サービス層が SvelteKit を知らない」の1点。
   これだけでテストが書け、将来の API 追加にも耐える
 - **データアクセスは必ず ④→⑤→⑥ を通る。** ルートから直接 SQL を書かない。

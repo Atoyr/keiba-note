@@ -338,7 +338,9 @@ Google Cloud Console の OAuth クライアントには、リダイレクト URI
 
 ### セキュリティ上の押さえどころ
 
-- **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する（`csrf.checkOrigin`）。これを無効化しない
+- **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する（`csrf.checkOrigin`）。これを無効化しない。
+  例外は OAuth のトークンの口 `/oauth/token` だけで、`src/worker.js` が SvelteKit より先に受ける（Cookie を見ない口なので
+  検査が守るものが無い。→ [architecture.md 3-10](./architecture.md)）
 - **state / PKCE** — Arctic が生成するものをそのまま使い、callback で必ず照合する
 - **オープンリダイレクト** — `?redirect=` は `/` で始まる相対パスのみ許可する（`//evil.com` を弾く）
 - **共有ページ** — 未ログインで到達できる唯一のルート。`noindex` / `no-referrer` / `no-store` と
@@ -390,6 +392,17 @@ erDiagram
 
 - `INDEX session_user ON session(user_id)` — 「全端末からログアウト」用
 - `INDEX session_expires ON session(expires_at)` — 期限切れの一括削除用
+
+### oauth_client / oauth_grant / oauth_code / oauth_token（AI との連携）
+
+MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませるための表（→ [architecture.md 3-10](./architecture.md)）。
+
+| 表 | 1行 | 消えるとき |
+| --- | --- | --- |
+| `oauth_client` | 動的登録されたクライアントか、Client ID Metadata Document から取ったクライアント（`source`。名前・戻り先・取った時刻 `fetched_at`）。**何の権限も持たない** | 一度も連携しておらず（`connected_at` が NULL）、動的登録なら登録から24時間過ぎたあとの次の登録時、Client ID Metadata Document なら取ってから24時間過ぎたあとの次の文書の取得時。一度でも連携したものは消さない（上限は動的登録と別に数える。上限と削除件数は architecture.md 3-10） |
+| `oauth_grant` | 本人×クライアントの連携（許したスコープ）。`UNIQUE(user_id, client_id)` | 本人の解除・リフレッシュトークンの使い回し・凍結・user の削除（CASCADE） |
+| `oauth_code` | 認可コード（SHA-256・5分・1回きり） | 交換・同意し直し・期限切れのあとの次の同意・grant の削除 |
+| `oauth_token` | アクセス（1時間。初めて使われた時刻を `used_at`）とリフレッシュ（30日・使ったら `used_at`）。SHA-256 だけ。`parent_id` で出したリフレッシュトークンを辿る（回線断での送り直しの判断） | 同意し直し・grant の削除・期限切れのあとの次の発行 |
 
 ### horse
 
@@ -715,12 +728,15 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /races/[id]                   ★レース詳細＝ふりかえりの主戦場
 /races/[id]/preview           ★出馬表 + 馬柱 + 予想印（出走前メモ）
 /help/webmcp                  WebMCPの使い方（準備・依頼例・下書きの確認と保存）
+/help/mcp                     AIとの連携の始め方（Claude・ChatGPT へのコネクタの追加・許可画面・tool・困ったとき）
 /horses                       馬一覧・名前で絞る（100頭ずつ → 下の「長い一覧」）
 /horses/[id]                  ★馬詳細＝プロフィール + タイムライン
 /jockeys                      騎手一覧・名前と自分の札で絞る
 /jockeys/[name]               ★騎手＝自分のまとめ + 騎乗のタイムライン（乗った馬の自分のメモ）
 /settings/profile             プロフィール（公開用の名前を設定）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
+/settings/connections         AIとの連携（MCP の接続先 URL・許可したアプリ）＝**連携を解除する場所**
+/oauth/authorize              AI のアプリへの同意画面（メモを読ませるかを選ぶ。architecture.md 3-10）
 
 ── admin のみ ────────────────────────────────────────────
 /races/new                    レース登録

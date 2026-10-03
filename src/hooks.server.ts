@@ -1,6 +1,14 @@
 import { dev } from '$app/environment';
-import { redirect, type Handle, type HandleServerError, type RequestEvent } from '@sveltejs/kit';
+import {
+	json,
+	redirect,
+	type Handle,
+	type HandleServerError,
+	type RequestEvent
+} from '@sveltejs/kit';
 import { createDb } from '$lib/server/db';
+import { validateAccessToken } from '$lib/server/auth/oauth';
+import { bearerChallenge, MCP_PATH } from '$lib/server/auth/oauth-metadata';
 import { describeError } from '$lib/server/monitoring/log';
 import { createMonitor, type Monitor } from '$lib/server/monitoring/monitor';
 import { SESSION_COOKIE, validateSession } from '$lib/server/auth/session';
@@ -23,6 +31,11 @@ import { safeRedirect } from '$lib/utils/redirect';
  * `/api/health` は死活監視（GitHub Actions の health.yml）が外から叩く。返すのは
  * `{"status":"ok"}` か `{"status":"error"}` だけで、DB の中身は出さない（docs/monitoring.md）。
  *
+ * `/.well-known/oauth-*` と `/oauth/register` は MCP クライアントが連携の前に読む・登録する口
+ * （docs/api.md 第2章）。案内と、権限を持たないクライアントの行を作るだけで、誰のデータにも触らない。
+ * 同意画面の `/oauth/authorize` は入れない（ログインした本人だけが許可できる）。
+ * `/oauth/token` は SvelteKit に来る前に src/worker.js が受けるので、ここには要らない。
+ *
  * `/robots.txt` はここに要らない。`static/` の実ファイルは Workers Static Assets が
  * 直接返し、**Worker 自体が起動しない**ので hooks を通らない。
  */
@@ -34,7 +47,11 @@ const PUBLIC_PATHS = [
 	'/shared/races/',
 	'/privacy',
 	'/terms',
-	'/api/health'
+	'/api/health',
+	// `/.well-known/` ごとは開けない。下に足したルートが黙って公開になる。
+	'/.well-known/oauth-protected-resource',
+	'/.well-known/oauth-authorization-server',
+	'/oauth/register'
 ];
 
 function isPublic(pathname: string): boolean {
@@ -69,9 +86,13 @@ function createRequestMonitor(event: RequestEvent): Monitor {
 /**
  * 認証の判断はここに閉じ込める。ルートからは `locals.user` しか見ない。
  * どの認証方式を使っているかを知っているのはこのファイルだけ。
+ *
+ * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
+ * **ここに足したもの（レート制限など）はその口には効かない**（docs/architecture.md 3-10）。
  */
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
+	event.locals.oauthScopes = null;
 	event.locals.mockAuth = false;
 	event.locals.appEnv = appEnv(event.platform);
 	event.locals.monitor = createRequestMonitor(event);
@@ -79,6 +100,42 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const db = event.platform?.env?.DB
 		? createDb(event.platform.env, event.locals.monitor.onQuery)
 		: null;
+
+	// --- MCP（/mcp）は Bearer だけ ---------------------------------------------
+	// Cookie のセッションもモック認証も見ない。逆に、ほかのパスは Authorization を見ない
+	// （このファイルで Bearer を読むのはここだけ）。経路を混ぜると、ブラウザの Cookie で
+	// 他サイトから /mcp を叩かれる（CSRF）か、漏れたトークンで画面に入られる。
+	// 通らなければログインへ飛ばさず 401 と、認可の案内の場所を返す（MCP の認可の仕様）。
+	if (event.url.pathname === MCP_PATH) {
+		const bearer = /^Bearer[ ]+(\S+)$/i.exec(event.request.headers.get('authorization') ?? '')?.[1];
+		// DB に届かないのはトークンのせいではない。401 にするとクライアントがトークンを捨ててしまう。
+		if (bearer && !db) {
+			return json(
+				{ error: 'temporarily_unavailable' },
+				{ status: 503, headers: { 'Cache-Control': 'no-store' } }
+			);
+		}
+		const auth = bearer && db ? await validateAccessToken(db, bearer) : null;
+		if (!auth) {
+			return json(
+				{ error: 'invalid_token', error_description: 'アクセストークンが必要です' },
+				{
+					status: 401,
+					headers: {
+						'WWW-Authenticate': bearerChallenge(
+							event.url.origin,
+							bearer ? { code: 'invalid_token' } : undefined
+						),
+						'Cache-Control': 'no-store'
+					}
+				}
+			);
+		}
+		event.locals.user = auth.user;
+		event.locals.oauthScopes = auth.scopes;
+		return resolve(event);
+	}
+	// -------------------------------------------------------------------------
 
 	// --- 開発用のモック認証 --------------------------------------------------
 	// `dev` は本番ビルドで静的に false になり、この分岐はバンドルから消える。

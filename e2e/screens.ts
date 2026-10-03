@@ -22,6 +22,8 @@ import {
 	SHARED_MANY_MARKS_ID,
 	SHARED_OUTLOOK_ID,
 	SHARED_RACE_ID,
+	MCP_CLIENT,
+	MCP_METADATA_CLIENT,
 	TOGGLE_FAVORITE_HORSE_ID
 } from './seed';
 
@@ -54,6 +56,8 @@ const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み
 
 export const SCREENS: Screen[] = [
 	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
+	// MCP（Claude・ChatGPT のコネクタ）の登録の案内。
+	{ name: 'mcp-guide', path: '/help/mcp', auth: true },
 	{
 		name: 'webmcp-guide-supported',
 		path: '/help/webmcp',
@@ -581,7 +585,44 @@ export const SCREENS: Screen[] = [
 		path: `/shared/races/${SHARED_OUTLOOK_ID}/og.png`,
 		auth: false
 	},
-	{ name: 'settings-shares', path: '/settings/shares', auth: true }
+	{ name: 'settings-shares', path: '/settings/shares', auth: true },
+	// AI との連携（MCP）。seed に自分の連携が2つ（全部を許したもの・レースだけのもの）ある。
+	{ name: 'settings-connections', path: '/settings/connections', auth: true },
+	// 同意画面。seed のクライアントと登録どおりの戻り先で開く（許可は押さない）。
+	{
+		name: 'oauth-authorize',
+		path: `/oauth/authorize?${new URLSearchParams({
+			response_type: 'code',
+			client_id: MCP_CLIENT.id,
+			redirect_uri: MCP_CLIENT.redirectUri,
+			code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+			code_challenge_method: 'S256',
+			state: 'screens'
+		})}`,
+		auth: true
+	},
+	// 登録と違う戻り先。戻り先へ飛ばさず、この画面で止める。
+	{
+		name: 'oauth-authorize-invalid',
+		path: `/oauth/authorize?${new URLSearchParams({
+			client_id: MCP_CLIENT.id,
+			redirect_uri: 'https://evil.example/cb'
+		})}`,
+		auth: true
+	},
+	// Client ID Metadata Document のクライアントの同意画面。名前の下に「提供元」が出る。
+	{
+		name: 'oauth-authorize-metadata',
+		path: `/oauth/authorize?${new URLSearchParams({
+			response_type: 'code',
+			client_id: MCP_METADATA_CLIENT.id,
+			redirect_uri: MCP_METADATA_CLIENT.redirectUri,
+			code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+			code_challenge_method: 'S256',
+			state: 'screens'
+		})}`,
+		auth: true
+	}
 ];
 
 /** 撮る幅。mobile は iPhone 14 相当。 */

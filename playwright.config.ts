@@ -19,8 +19,9 @@ export default defineConfig({
 	// wrangler dev は .dev.vars を読むので、手元に Discord の Webhook を置いていても
 	// E2E から通知が飛ばないよう空で上書きする（--var が .dev.vars より勝つ）。
 	// GitHub のトークンも同じ。手元に置いていても、E2E から Actions を起動しない。
+	// OAUTH_CIMD_ALLOW_LOOPBACK は E2E だけ。テストが立てた http://localhost の Client ID Metadata Document を読ませる。
 	webServer: {
-		command: `node --experimental-strip-types e2e/seed.ts && npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN:`,
+		command: `node --experimental-strip-types e2e/seed.ts && npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN: --var OAUTH_CIMD_ALLOW_LOOPBACK:1`,
 		port: PORT
 	},
 	testMatch: '**/*.e2e.{ts,js}'

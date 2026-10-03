@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { and, desc, eq } from 'drizzle-orm';
 import * as v from 'valibot';
-import { note, session, user } from '$lib/server/db/schema';
+import { note, oauthGrant, session, user } from '$lib/server/db/schema';
 import { describeError } from '$lib/server/monitoring/log';
 import {
 	DispatchError,
@@ -151,6 +151,8 @@ export const actions: Actions = {
 		await db.batch([
 			db.update(user).set({ deletedAt: now, updatedAt: now }).where(eq(user.id, targetId)),
 			db.delete(session).where(eq(session.userId, targetId)),
+			// AI との連携（MCP）も切る。トークンは退会で止まるが、凍結を戻したときに生き返らせない。
+			db.delete(oauthGrant).where(eq(oauthGrant.userId, targetId)),
 			db
 				.update(note)
 				.set({ visibility: 'private', updatedAt: now })

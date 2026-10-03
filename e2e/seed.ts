@@ -277,3 +277,39 @@ export const PAGED_LIST = {
 	horsePrefix: 'E2E一覧ウマ',
 	horseCount: 105
 } as const;
+
+/**
+ * `/mcp` に載せるアクセストークン（seed.sql の oauth_token の id はこれの SHA-256）。
+ * - `all` — 自分が races:read と notes:read を許した連携
+ * - `racesOnly` — 自分が races:read だけを許した連携
+ * - `other` — 別のユーザー（`01JE2EOTHERUSER…`）が全部を許した連携
+ */
+export const MCP_TOKENS = {
+	all: 'e2emcptoken000000000000000000000',
+	racesOnly: 'e2emcpracesonlytoken000000000000',
+	other: 'e2emcpothertoken0000000000000000'
+} as const;
+
+/** seed の MCP クライアント。同意画面のキャプチャに使う（戻り先は登録どおり）。 */
+export const MCP_CLIENT = {
+	id: 'uma_client_e2eall',
+	redirectUri: 'https://claude.ai/api/mcp/auth_callback'
+} as const;
+
+/** 別のユーザーの連携（seed.sql の oauth_grant）。自分の一覧に出ず、自分からは解除できない。 */
+export const OTHER_GRANT = {
+	id: '01JE2EGRANTOTHER0000000000',
+	clientName: 'E2E 別ユーザーのクライアント'
+} as const;
+
+/**
+ * 自分のメモ（TOGGLE_SHARE_NOTE_BODY・印○）と別のユーザーの出走前メモ（OTHER_USER_PREVIEW_BODY）の両方がある馬
+ * （E2E枠色賞の内枠、E2Eウチワク）。
+ */
+export const BOTH_NOTED_HORSE_ID = '01JE2EHORSEC00000000000000';
+
+/** Client ID Metadata Document のクライアント（seed.sql。文書は取りに行かず保存した内容を使う）。 */
+export const MCP_METADATA_CLIENT = {
+	id: 'https://client.example/uma-memo/client-metadata.json',
+	redirectUri: 'https://claude.ai/api/mcp/auth_callback'
+} as const;
