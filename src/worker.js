@@ -42,7 +42,7 @@ async function oauthToken(req, env, ctx) {
 		return await handleTokenRequest(
 			req,
 			env.DB ? createDb(env, monitor.onQuery) : null,
-			(event, message) => monitor.log({ level: 'warn', event, message })
+			(level, event, message) => monitor.log({ level, event, message })
 		);
 	} catch (e) {
 		monitor.log({

@@ -140,7 +140,7 @@ describe('handleTokenRequest', () => {
 					})
 				}),
 				db,
-				(event) => events.push(event)
+				(_level, event) => events.push(event)
 			);
 		const next = (await (await send(first.refresh_token)).json()) as { refresh_token: string };
 		// 次のトークンを使ったあとで古いトークンが来る＝送り直しではなく使い回し。
@@ -152,6 +152,43 @@ describe('handleTokenRequest', () => {
 			error_description: expect.any(String)
 		});
 		expect(events).toEqual(['oauth.refresh.reused']);
+	});
+
+	it('回線断の送り直しを受けたことを監視に残す（応答には載せない）', async () => {
+		const { clientId, code } = await codeFor();
+		const first = (await (
+			await post(
+				form({
+					grant_type: 'authorization_code',
+					code,
+					redirect_uri: REDIRECT,
+					client_id: clientId,
+					code_verifier: VERIFIER
+				})
+			)
+		).json()) as { refresh_token: string };
+		const events: string[] = [];
+		const send = () =>
+			handleTokenRequest(
+				new Request(`${ORIGIN}/oauth/token`, {
+					method: 'POST',
+					headers: { 'content-type': 'application/x-www-form-urlencoded' },
+					body: form({
+						grant_type: 'refresh_token',
+						refresh_token: first.refresh_token,
+						client_id: clientId
+					})
+				}),
+				db,
+				(_level, event) => events.push(event)
+			);
+		expect((await send()).status).toBe(200); // 届かなかった応答
+		const retried = await send();
+		expect(retried.status).toBe(200);
+		expect(Object.keys(await retried.json()).sort()).toEqual(
+			['access_token', 'expires_in', 'refresh_token', 'scope', 'token_type'].sort()
+		);
+		expect(events).toEqual(['oauth.refresh.retried']);
 	});
 
 	it('DB が無ければ 503', async () => {

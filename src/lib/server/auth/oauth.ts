@@ -31,6 +31,8 @@ export const CODE_TTL_SEC = 5 * 60;
  * クライアントが同じリフレッシュトークンで送り直すことがある。電波が戻るまでを見込んで30分。
  */
 export const REFRESH_RETRY_GRACE_SEC = 30 * 60;
+/** 元の要求の処理中（印を付けてから新しい1組を入れ終えるまで）とみなす長さ。D1 の往復数回分に余裕を持たせる。 */
+const INFLIGHT_SEC = 60;
 
 const sec = (now: Date) => Math.floor(now.getTime() / 1000);
 
@@ -156,6 +158,14 @@ async function issueTokens(
 	const t = sec(now);
 	await db.batch([
 		db.delete(oauthToken).where(and(eq(oauthToken.grantId, grantId), lt(oauthToken.expiresAt, t))),
+		// 送り直しを受けたとき、届かなかった1組のアクセストークンを止める（ふつうの更新では当たる行が無い）。
+		...(parentId
+			? [
+					db
+						.delete(oauthToken)
+						.where(and(eq(oauthToken.parentId, parentId), eq(oauthToken.kind, 'access')))
+				]
+			: []),
 		db.insert(oauthToken).values([
 			{
 				id: hashSessionToken(access),
@@ -242,8 +252,9 @@ export async function refreshTokens(
 	db: Db,
 	input: { refreshToken: string; clientId: string; scope?: string },
 	now = new Date()
-): Promise<TokenResponse | TokenError> {
+): Promise<(TokenResponse & { retried?: true }) | TokenError> {
 	const id = hashSessionToken(input.refreshToken);
+	const t = sec(now);
 	const rows = await db
 		.select({
 			grantId: oauthToken.grantId,
@@ -257,25 +268,14 @@ export async function refreshTokens(
 		.where(and(eq(oauthToken.id, id), eq(oauthToken.kind, 'refresh')))
 		.limit(1);
 	const row = rows.at(0);
-	if (!row || row.clientId !== input.clientId)
+	if (!row || row.clientId !== input.clientId) {
 		return invalidGrant('リフレッシュトークンが無効です');
-
-	const t = sec(now);
-	const claimed = await db
-		.update(oauthToken)
-		.set({ usedAt: t })
-		.where(and(eq(oauthToken.id, id), isNull(oauthToken.usedAt)))
-		.returning({ id: oauthToken.id });
-	if (claimed.length === 0 && !(await acceptRetry(db, id, row.usedAt, t))) {
-		await db.delete(oauthGrant).where(eq(oauthGrant.id, row.grantId));
-		return {
-			...invalidGrant('使用済みのリフレッシュトークンです。連携を解除しました'),
-			reused: true
-		};
 	}
-	if (row.expiresAt <= sec(now)) return invalidGrant('リフレッシュトークンの期限が切れています');
-	if (!(await activeGrant(db, row.grantId))) return invalidGrant('リフレッシュトークンが無効です');
 
+	// 行だけで決まる検査は、使用済みの印を付ける前に済ませる。印を付けてから落ちると、送り直しを受けた
+	// ときに届かなかった1組だけ止めて新しい1組を出さず、クライアントの手元に使えるトークンが残らない。
+	if (row.expiresAt <= t) return invalidGrant('リフレッシュトークンの期限が切れています');
+	if (!(await activeGrant(db, row.grantId))) return invalidGrant('リフレッシュトークンが無効です');
 	const current = knownScopes(row.scopes);
 	let scopes = current;
 	if (input.scope !== undefined) {
@@ -286,29 +286,67 @@ export async function refreshTokens(
 		// 外せないスコープは狭めても残す（空の scope で何も呼べないトークンを出さない）。
 		scopes = sortScopes([...REQUIRED_SCOPES, ...asked]);
 	}
-	return issueTokens(db, row.grantId, scopes, now, id);
+
+	const claimed = await db
+		.update(oauthToken)
+		.set({ usedAt: t })
+		.where(and(eq(oauthToken.id, id), isNull(oauthToken.usedAt)))
+		.returning({ id: oauthToken.id });
+	if (claimed.length > 0) return issueTokens(db, row.grantId, scopes, now, id);
+
+	switch (await judgeRetry(db, id, row.usedAt, t)) {
+		case 'accept':
+			return { ...(await issueTokens(db, row.grantId, scopes, now, id)), retried: true };
+		case 'inflight':
+			// 連携は消さない。元の要求が終われば、次の送り直しは受けられる。
+			return invalidGrant(
+				'同じリフレッシュトークンの要求を処理しています。少し待って送り直してください'
+			);
+		case 'theft':
+			await db.delete(oauthGrant).where(eq(oauthGrant.id, row.grantId));
+			return {
+				...invalidGrant('使用済みのリフレッシュトークンです。連携を解除しました'),
+				reused: true
+			};
+	}
 }
 
 /**
- * 使用済みのリフレッシュトークンが来たとき、**応答が届かなかった送り直し**なら受ける。
+ * 使用済みのリフレッシュトークンが来たときの判断。競馬場のスマホのように電波の弱い所では、要求は届いたのに
+ * 応答が届かず、クライアントが同じトークンで送り直すことがある。それを盗まれたトークンと分ける。
  *
- * 送り直しとみなすのは、前に使われてから猶予の内で、そのとき出した次のリフレッシュトークンが
- * まだ使われていないとき。応答が届かなかったなら、クライアントはその1組を持っていないので使えない。
- * 受けるときは、その届かなかった1組を止める（アクセストークンは消し、リフレッシュトークンには
- * 使用済みの印を付ける。あとでそれが来たら、持っていないはずのものが使われた＝盗まれたと分かる）。
+ * - `accept` — 応答が届かなかった送り直し。前に使われてから猶予の内で、そのとき出したアクセストークンが
+ *   **一度も使われていない**（リフレッシュするのは tool を呼ぶためなので、受け取っていればすぐ使う）。
+ *   次のリフレッシュトークンに使用済みの印を付ける（あとでそれが来たら、持っていないはずのもの＝盗まれた）。
+ *   届かなかったアクセストークンは、新しい1組を出す batch で消す（`issueTokens`）
+ * - `inflight` — 元の要求をまだ処理している（印を付ける前・新しい1組を入れる前）か、同時に来た送り直しが
+ *   先に受けた。連携は消さず、トークンも出さない
+ * - `theft` — 出したアクセストークンが使われた・次のリフレッシュトークンが使われた・猶予を過ぎた。
+ *   正規のクライアントは受け取っていたので、古いトークンが来るのは盗まれたとき
  *
- * 次のリフレッシュトークンが既に使われていれば、正規のクライアントは受け取っていた。
- * 古いトークンが来るのは盗まれたときなので受けない（呼ぶ側が連携ごと消す）。
- * 印は `used_at IS NULL` を条件に付けるので、同時に来ても受けられるのは1つだけ。
+ * 残る弱さ: 正規のクライアントが新しいアクセストークンを初めて使うまでの間（ふつうは数秒）に、盗まれた古い
+ * トークンが使われると受けてしまう。その場合も正規のクライアントが次に更新したとき（持っているトークンに
+ * 使用済みの印が付いている）に見つかり、連携ごと消える。
  */
-async function acceptRetry(
+async function judgeRetry(
 	db: Db,
 	refreshId: string,
 	usedAt: number | null,
 	t: number
-): Promise<boolean> {
-	if (usedAt === null || t - usedAt > REFRESH_RETRY_GRACE_SEC) return false;
-	const superseded = await db
+): Promise<'accept' | 'inflight' | 'theft'> {
+	if (usedAt === null) return 'inflight';
+	if (t - usedAt > REFRESH_RETRY_GRACE_SEC) return 'theft';
+	const children = await db
+		.select({ kind: oauthToken.kind, usedAt: oauthToken.usedAt })
+		.from(oauthToken)
+		.where(eq(oauthToken.parentId, refreshId));
+	// 子が無いのは、元の要求が新しい1組を入れている途中（数秒）のときだけ。それより後なら、子を持たない
+	// トークン（送り直しで止めた1組＝持っていないはずのもの）が使われた。
+	if (children.length === 0) return t - usedAt <= INFLIGHT_SEC ? 'inflight' : 'theft';
+	if (children.some((c) => c.kind === 'access' && c.usedAt !== null)) return 'theft';
+	if (!children.some((c) => c.kind === 'refresh' && c.usedAt === null)) return 'theft';
+	// 印は `used_at IS NULL` を条件に付けるので、同時に来た送り直しのうち受けられるのは1つだけ。
+	const claimed = await db
 		.update(oauthToken)
 		.set({ usedAt: t })
 		.where(
@@ -319,11 +357,7 @@ async function acceptRetry(
 			)
 		)
 		.returning({ id: oauthToken.id });
-	if (superseded.length === 0) return false;
-	await db
-		.delete(oauthToken)
-		.where(and(eq(oauthToken.parentId, refreshId), eq(oauthToken.kind, 'access')));
-	return true;
+	return claimed.length > 0 ? 'accept' : 'inflight';
 }
 
 export type AccessTokenAuth = {
@@ -332,7 +366,7 @@ export type AccessTokenAuth = {
 };
 
 /**
- * `/mcp` の Bearer を確かめる。hooks.server.ts だけが呼ぶ。1クエリ。
+ * `/mcp` の Bearer を確かめる。hooks.server.ts だけが呼ぶ。1クエリ（初めて使われたときだけ、印を付ける1クエリが増える）。
  *
  * アクセストークンだけを受ける（リフレッシュトークンを Bearer に載せても通さない）。
  * 期限切れ・連携の解除・退会のどれでも null。
@@ -346,6 +380,7 @@ export async function validateAccessToken(
 		.select({
 			scopes: oauthToken.scopes,
 			expiresAt: oauthToken.expiresAt,
+			usedAt: oauthToken.usedAt,
 			id: user.id,
 			email: user.email,
 			displayName: user.displayName,
@@ -360,6 +395,13 @@ export async function validateAccessToken(
 		.limit(1);
 	const row = rows.at(0);
 	if (!row || row.expiresAt <= sec(now) || row.deletedAt !== null) return null;
+	// 初めて使われた時刻を1回だけ残す。リフレッシュの送り直しか盗まれたトークンかの判断に使う（judgeRetry）。
+	if (row.usedAt === null) {
+		await db
+			.update(oauthToken)
+			.set({ usedAt: sec(now) })
+			.where(and(eq(oauthToken.id, hashSessionToken(token)), isNull(oauthToken.usedAt)));
+	}
 	const { id, email, displayName, avatarUrl, role } = row;
 	return { user: { id, email, displayName, avatarUrl, role }, scopes: knownScopes(row.scopes) };
 }

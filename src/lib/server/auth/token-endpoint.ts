@@ -17,8 +17,8 @@ import { exchangeAuthorizationCode, refreshTokens, type TokenError } from './oau
 export async function handleTokenRequest(
 	request: Request,
 	db: Db | null,
-	/** 監視に残す出来事（リフレッシュトークンの使い回し）。src/worker.js が monitor.log につなぐ。 */
-	warn: (event: string, message: string) => void = () => {}
+	/** 監視に残す出来事（リフレッシュトークンの使い回し・送り直し）。src/worker.js が monitor.log につなぐ。 */
+	log: (level: 'info' | 'warn', event: string, message: string) => void = () => {}
 ): Promise<Response> {
 	if (request.method !== 'POST') {
 		return new Response(null, { status: 405, headers: { Allow: 'POST' } });
@@ -71,11 +71,16 @@ export async function handleTokenRequest(
 		const { reused, ...error } = result;
 		if (reused) {
 			// 盗まれたリフレッシュトークンが使われた可能性がある。連携は消してあるが、気づけるように残す。
-			warn('oauth.refresh.reused', 'リフレッシュトークンが使い回されたので連携を解除した');
+			log('warn', 'oauth.refresh.reused', 'リフレッシュトークンが使い回されたので連携を解除した');
 		}
 		return reply(error, statusOf(result));
 	}
-	return reply(result, 200);
+	const { retried, ...tokens } = 'retried' in result ? result : { ...result, retried: undefined };
+	if (retried) {
+		// 応答が届かなかった送り直しを受けた。多すぎれば猶予の見直しの材料になる。
+		log('info', 'oauth.refresh.retried', 'リフレッシュトークンの送り直しを受けた');
+	}
+	return reply(tokens, 200);
 }
 
 const statusOf = (e: TokenError) => (e.error === 'invalid_client' ? 401 : 400);

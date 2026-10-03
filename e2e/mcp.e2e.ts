@@ -510,6 +510,21 @@ test.describe('OAuth の全行程', () => {
 		expect(next.status).toBe(200);
 	});
 
+	test('新しいアクセストークンを使ったあとで古いリフレッシュトークンが来たら（盗まれた）、30分の内でも連携ごと止まる', async ({
+		page,
+		request
+	}) => {
+		const { clientId, tokens } = await connect(page, request);
+		const refresh = { grant_type: 'refresh_token', client_id: clientId };
+		const first = await exchange(request, { ...refresh, refresh_token: tokens.refresh_token });
+		// 応答を受け取った正規のクライアントは、新しいアクセストークンですぐ tool を呼ぶ。
+		expect((await mcp(request, first.json.access_token, rpc('tools/list'))).status()).toBe(200);
+
+		const stolen = await exchange(request, { ...refresh, refresh_token: tokens.refresh_token });
+		expect(stolen.json.error).toBe('invalid_grant');
+		expect((await mcp(request, first.json.access_token, rpc('tools/list'))).status()).toBe(401);
+	});
+
 	test('次のトークンを使ったあとで古いリフレッシュトークンが来たら（盗まれた）、連携ごと止まる', async ({
 		page,
 		request

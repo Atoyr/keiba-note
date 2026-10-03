@@ -248,21 +248,72 @@ describe('リフレッシュトークン', () => {
 			expect(await listGrants(db, 'A')).toEqual([]);
 		});
 
-		it('届かなかったはずの1組があとで使われたら（持っていないはずのもの＝盗まれた）、連携ごと消す', async () => {
+		it.each([
+			['猶予の内', 120],
+			['猶予の外', REFRESH_RETRY_GRACE_SEC + 60]
+		])(
+			'届かなかったはずの1組があとで使われたら（持っていないはずのもの＝盗まれた）、%sでも連携ごと消す',
+			async (_when, at) => {
+				const { client, tokens } = await tokensFor();
+				const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+				const lost = (await refreshTokens(db, input, NOW)) as TokenResponse;
+				const fresh = (await refreshTokens(db, input, later(10))) as TokenResponse;
+				expect(
+					await refreshTokens(
+						db,
+						{ refreshToken: lost.refresh_token, clientId: client.id },
+						later(at)
+					)
+				).toMatchObject({ error: 'invalid_grant', reused: true });
+				expect(await validateAccessToken(db, fresh.access_token, later(at))).toBe(null);
+			}
+		);
+
+		it('出したアクセストークンが使われたあとで古いリフレッシュトークンが来たら、猶予の内でも盗まれたとみなす', async () => {
+			// 応答を受け取ったクライアントは、新しいアクセストークンをすぐ使う。使われていれば送り直しではない。
 			const { client, tokens } = await tokensFor();
 			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
-			const lost = (await refreshTokens(db, input, NOW)) as TokenResponse;
-			const fresh = (await refreshTokens(db, input, later(10))) as TokenResponse;
-			expect(
-				await refreshTokens(
-					db,
-					{ refreshToken: lost.refresh_token, clientId: client.id },
-					later(REFRESH_RETRY_GRACE_SEC + 60)
-				)
-			).toMatchObject({ error: 'invalid_grant', reused: true });
-			expect(
-				await validateAccessToken(db, fresh.access_token, later(REFRESH_RETRY_GRACE_SEC + 60))
-			).toBe(null);
+			const next = (await refreshTokens(db, input, NOW)) as TokenResponse;
+			expect(await validateAccessToken(db, next.access_token, later(5))).not.toBe(null);
+			expect(await refreshTokens(db, input, later(60))).toMatchObject({
+				error: 'invalid_grant',
+				reused: true
+			});
+			expect(await listGrants(db, 'A')).toEqual([]);
+		});
+
+		it('元の要求の処理中に送り直しが来ても、連携は消さずトークンも出さない', async () => {
+			const { client, tokens } = await tokensFor();
+			// 元の要求が印を付けたが、新しい1組をまだ入れていない状態。
+			sqlite
+				.prepare('UPDATE oauth_token SET used_at = ? WHERE kind = ? AND parent_id IS NULL')
+				.run(Math.floor(NOW.getTime() / 1000), 'refresh');
+			const r = await refreshTokens(
+				db,
+				{ refreshToken: tokens.refresh_token, clientId: client.id },
+				later(2)
+			);
+			expect(r).toMatchObject({ error: 'invalid_grant' });
+			expect(r).not.toHaveProperty('reused');
+			expect(await listGrants(db, 'A')).toHaveLength(1);
+		});
+
+		it('同じ送り直しが同時に2つ来ても、生きているアクセストークンは1つだけで、連携は残る', async () => {
+			const { client, tokens } = await tokensFor();
+			const input = { refreshToken: tokens.refresh_token, clientId: client.id };
+			await refreshTokens(db, input, NOW); // 届かなかった応答
+			const results = await Promise.all([
+				refreshTokens(db, input, later(30)),
+				refreshTokens(db, input, later(30))
+			]);
+			const issued = results.filter((r): r is TokenResponse => 'access_token' in r);
+			expect(issued.length).toBeGreaterThanOrEqual(1);
+			const alive = [];
+			for (const r of issued) {
+				if (await validateAccessToken(db, r.access_token, later(31))) alive.push(r);
+			}
+			expect(alive).toHaveLength(1);
+			expect(await listGrants(db, 'A')).toHaveLength(1);
 		});
 	});
 

@@ -540,6 +540,10 @@ export const oauthToken = sqliteTable(
 		/** このトークンで呼べる範囲。同意のあとで連携のスコープが変わっても、出したときの値で効く。 */
 		scopes: text('scopes', { mode: 'json' }).$type<string[]>().notNull(),
 		expiresAt: integer('expires_at').notNull(),
+		/**
+		 * リフレッシュトークンは使った時刻（使用済みの印）。アクセストークンは初めて /mcp で使われた時刻
+		 * （リフレッシュの送り直しか盗まれたトークンかを分ける。auth/oauth.ts の judgeRetry）。
+		 */
 		usedAt: integer('used_at'),
 		/**
 		 * このトークンを出したリフレッシュトークンの id（ハッシュ）。認可コードから出したものは NULL。
