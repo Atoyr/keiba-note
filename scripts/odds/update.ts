@@ -1,5 +1,6 @@
 /**
- * オッズの更新。GitHub Actions（`odds-update.yml` → `scripts/odds-update.ts`）から30分おきに呼ばれる。
+ * オッズの更新。GitHub Actions（`odds-update.yml` → `scripts/odds-update.ts`）から呼ばれる。
+ * Actions は Worker の Cron が30分おきに、取りに行く重賞があるときだけ起動する。
  *
  * 1. D1 から、いま取りに行ってよいレースを選ぶ（`store.listTargets`。ref・発走時刻がある重賞で、格で決まる時間帯に入ったもの）
  * 2. **1レースずつ順に**取りに行く。並列にしない。レースの間は間を空ける

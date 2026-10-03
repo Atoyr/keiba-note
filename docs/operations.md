@@ -6,6 +6,7 @@ README から運用の手順だけを切り出したもの。日々の開発で�
 - 作成日: 2026-09-23 — README の「Cloudflare に構築する」「デプロイ（GitHub Actions）」を移設
 - 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てる手順を足した（→ 名前について / 独自ドメインへ移す）
 - 更新日: 2026-09-25 — 出走馬の取得を Actions に頼むトークン（`GITHUB_DISPATCH_TOKEN`）と、Actions に PR を作らせる設定を足した（→ 6 / 動かすのに必要な設定 5）
+- 更新日: 2026-10-03 — オッズの更新も `GITHUB_DISPATCH_TOKEN` で Worker の Cron から起動するようにした（→ 6 / デプロイ）
 
 ---
 
@@ -151,15 +152,15 @@ pnpm exec wrangler secret put GITHUB_DISPATCH_TOKEN
 
 `ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
 
-`GITHUB_DISPATCH_TOKEN` は、出走馬の取得を GitHub Actions（`race-data-fetch.yml`）に頼むトークン
-（→ [architecture.md 3-9](./architecture.md)）。入れなければ、枠順の定期取得と管理画面の「出走馬を取得」だけが止まる。
+`GITHUB_DISPATCH_TOKEN` は、出走馬の取得（`race-data-fetch.yml`）とオッズの更新（`odds-update.yml`）を GitHub Actions に頼むトークン
+（→ [architecture.md 3-8・3-9](./architecture.md)）。入れなければ、枠順の定期取得と管理画面の「出走馬を取得」と、オッズの更新が止まる。
 GitHub > Settings > Developer settings > Fine-grained tokens で次のように作る。
 
 | 項目 | 設定 |
 | --- | --- |
 | Resource owner / Repository access | `Atoyr` / Only select repositories → `keiba-note` |
 | Repository permissions | `Actions: Read and write` だけ（Metadata: Read は自動で付く） |
-| Expiration | 1年以内。切れると Cron が `entries.dispatch`（`auth`）で知らせる |
+| Expiration | 1年以内。切れると Cron が `entries.dispatch`・`odds.dispatch`（`auth`）で知らせる |
 
 リポジトリ名は `wrangler.toml` の `[vars]` の `GITHUB_REPOSITORY`（シークレットではない）。
 Actions 側にも設定が1つ要る（→ 下の「動かすのに必要な設定」の 5）。
@@ -230,8 +231,9 @@ main の CI 成功            → staging.yml     ステージング D1 更新 �
 main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
 ```
 
-オッズの更新 `odds-update.yml` は JST 7:05〜25:05 の30分おきに netkeiba からオッズを取り、`race_odds` に
-`wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)）。使うのは下の `CLOUDFLARE_API_TOKEN` の `D1 : Edit`。
+オッズの更新 `odds-update.yml` は、Worker の Cron が JST 7:05〜25:05 の30分おきに（取りに行く重賞があるときだけ）起動する。
+netkeiba からオッズを取り、`race_odds` に `wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)）。
+使うのは下の `CLOUDFLARE_API_TOKEN` の `D1 : Edit`。起動には `GITHUB_DISPATCH_TOKEN`（上の 6）を使う。
 
 ほかに監視のためのものが2本ある。`health.yml`（30分ごとに本番の `/api/health` を叩く）と、
 Discord へ送る部品の `discord-notify.yml`（→ [monitoring.md 第7章](./monitoring.md)）。

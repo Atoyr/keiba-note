@@ -57,7 +57,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 					user.id
 				)
 			: Promise.resolve([]),
-		// Cron が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
+		// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
 		getRaceOdds(db, params.id)
 	]);
 

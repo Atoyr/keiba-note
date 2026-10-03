@@ -24,6 +24,8 @@
 - 更新日: 2026-09-27 — 騎手（jockeys）を機能の並びに足した（→ 第2章）
 - 更新日: 2026-09-28 — 予想まとめの共有に SNS のプレビュー画像を足した。`src/worker.js` が resvg の wasm を渡し、
   フォントは Static Assets から読む（→ 第2章 / 3-7 / 5-4）
+- 更新日: 2026-10-03 — オッズの更新の起動を GitHub の schedule から Worker の Cron（`workflow_dispatch`）に移した。
+  schedule は混んでいると大半の回を飛ばしていた。取得元へ行くのは引き続き Actions だけ（→ 第1章 / 第2章 / 3-8）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -90,7 +92,7 @@ flowchart TB
     G["Google<br/>OAuth 2.0 / OIDC"]
     N["netkeiba<br/>オッズ（単勝・複勝）"]
     GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る<br/>オッズを取って D1 に書く"]
-    CR["Cron Trigger<br/>毎時"]
+    CR["Cron Trigger<br/>毎時・30分おき"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -99,13 +101,13 @@ flowchart TB
     W -->|"認可リダイレクト・トークン交換"| G
     W -->|"HTML"| U
     CR -->|"scheduled"| W
-    W -->|"出走馬の取得の依頼（Cron・管理画面）"| GH
+    W -->|"出走馬の取得の依頼（Cron・管理画面）<br/>オッズの更新の依頼（Cron）"| GH
     GH -->|"オッズの取得（30分おき）"| N
     GH -->|"オッズの書き込み（wrangler d1 execute）"| D
 ```
 
 外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは GitHub Actions だけが行き、
-Worker は行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。それ以外は Cloudflare の中で完結する。
+Worker は行かない（→ 3-8）。GitHub へは出走馬の取得とオッズの更新を Actions に頼むときだけ行く（→ 3-8・3-9）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -224,7 +226,7 @@ service と auth も monitoring を知らない（失敗は投げたままにし
 
 Worker の入口 `src/worker.js` は SvelteKit の外（adapter の Worker を包むだけ）で、import するのは
 adapter の成果物と `lib/server/asset-cache.ts`（SvelteKit も DB も知らない関数1つ）と、
-Cron の入口 `lib/server/race-data/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）だけ（→ 3-5・3-7・3-9）。
+Cron の入口 `lib/server/race-data/scheduled.ts`・`lib/server/odds/scheduled.ts` と、共有の画像を描く resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）だけ（→ 3-5・3-7・3-9）。
 
 og（`lib/server/og/`。共有の画像を PNG にする）は service と同じ扱いで、SvelteKit も D1 も知らない。
 import してよいのは pure（描く SVG は `utils/share-card.ts` が組む）と `@resvg/resvg-wasm` だけ。機能の軸では share に入る。
@@ -233,6 +235,8 @@ odds の型と検査（`lib/server/odds/odds.ts`）は pure と同じ扱いで�
 GitHub Actions が動かす取得と保存（`scripts/odds/`）の両方から使う。`scripts/` は Worker に束ねられず、Node で直接動く
 （`scripts/` から読む `src/` のファイルは、相対パスに `.ts` まで書く）。取得元に固有の処理は `scripts/odds/netkeiba/` の中に閉じ、
 `odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない。
+Cron から Actions を起動する `lib/server/odds/scheduled.ts`・`request.ts` は、下の race-data と同じ分け方
+（`scheduled.ts` は endpoint、`request.ts` は service と同じ扱い）。起動には race-data の `dispatch.ts` を使う（odds は races の右なので使ってよい）。
 
 race-data（`lib/server/race-data/`。出走馬の取得を Actions に頼む）も同じ分け方。`scheduled.ts` は endpoint と同じ扱いで、
 `dispatch.ts`・`request.ts` は service と同じ扱い（monitoring を知らない）。機能の軸では races に入る。
@@ -511,23 +515,30 @@ load に到達する。共有ページは通常のログイン必須ルートと
 
 ### 3-8. オッズの取得 — GitHub Actions だけが外へ取りに行く
 
-予想画面に出す単勝・複勝のオッズは、GitHub Actions（`odds-update.yml`）が30分おきに取得元から取って `race_odds` に書き、
+予想画面に出す単勝・複勝のオッズは、GitHub Actions（`odds-update.yml`）が取得元から取って `race_odds` に書き、
 画面は D1 の値を読むだけ（→ [product.md 第1章「例外 — オッズ」](./product.md)）。**Worker は取得元へ行かない。**
+Actions を30分おきに起動するのは Worker の Cron で、取りに行く時間帯に入った重賞があるときだけ `workflow_dispatch` で起動する。
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant A as odds-update.yml<br/>（JST 7:05〜25:05 の30分おき）
-    participant S as scripts/odds-update.ts
+    participant C as Cron（JST 7:05〜25:05 の30分おき）
+    participant W as lib/server/odds/（Worker）
+    participant G as GitHub API
+    participant A as odds-update.yml
     participant U as scripts/odds/update.ts
-    participant D as D1（wrangler d1 execute --remote）
+    participant D as D1
     participant P as NetkeibaOddsProvider
     participant N as netkeiba
 
-    A->>S: pnpm run odds:update
-    S->>U: updateOdds（store・provider・log）
-    U->>D: 今日から2日後まで・ref と発走時刻ありの重賞（targetsSql）
-    Note over U: 取りに行く時間帯に入っているものだけ残す（pickTargets）<br/>無ければここで終わり（取得元へは行かない）
+    C->>W: scheduled
+    W->>D: 時間帯に入った重賞（listOddsTargetIds）
+    Note over W: 無ければここで終わり（GitHub へも行かない）
+    W->>G: workflow_dispatch（odds-update.yml）
+    G->>A: 起動
+    A->>U: pnpm run odds:update → updateOdds
+    U->>D: 今日から2日後まで・ref と発走時刻ありの重賞（targetsSql。wrangler d1 execute --remote）
+    Note over U: 取りに行く時間帯に入っているものだけ残す（pickTargets）
     loop 1レースずつ（間を1秒あける）
         U->>P: getRaceOdds
         P->>N: GET api_get_jra_odds.html?type=1
@@ -537,7 +548,7 @@ sequenceDiagram
         Note over U: validateRaceOdds
         U->>D: 馬ごとの upsert ＋ 応答に無い馬番の削除を1回で（saveOddsSql）
     end
-    S-->>A: 人の手が要る失敗があれば終了コード 1 → Discord
+    A-->>A: 人の手が要る失敗があれば終了コード 1 → Discord
 ```
 
 | 層 | 置き場所 | 持つもの |
@@ -547,6 +558,7 @@ sequenceDiagram
 | 手順 | `scripts/odds/update.ts` | 順番・再試行・ログの重さ。対象の選び方と保存は `OddsStore` として受け取る |
 | 保存 | `scripts/odds/store.ts` | 対象を選ぶ SQL と保存の SQL。値を文字列に埋める（`wrangler d1 execute` はバインドを受けない） |
 | 入口 | `scripts/odds-update.ts` | `wrangler d1 execute` の store・provider・ログを作って渡す。**取得元を替えるときに直すのはここだけ** |
+| 起動 | `src/lib/server/odds/scheduled.ts`・`request.ts` | Worker の Cron。時間帯に入った重賞があれば `odds-update.yml` を起動する（`race-data/dispatch.ts` の `dispatchWorkflow`）。取得元へは行かない |
 | 読み出し | `src/lib/server/services/odds.ts` | 予想画面の `getRaceOdds`。Worker が触るのはここだけ |
 
 **なぜ Worker で取らないか。** 最初は Worker の Cron で取っていたが、netkeiba の手前の CloudFront が、Cloudflare Workers から
@@ -556,7 +568,17 @@ Workers の外向きの IP は多くの Worker で共有されていて、その
 
 - D1 へは `data:import:remote` と同じく `CLOUDFLARE_API_TOKEN` で `wrangler d1 execute --remote` する。1回の起動で
   読むのが1回、書くのが対象のレースごとに1回
-- GitHub の schedule は数分〜十数分遅れることがあり、混んでいると飛ばされることもある。30分おきは目安で、画面は「何時時点」を出す
+
+**なぜ起動を Worker の Cron にするか。** はじめは GitHub の schedule で30分おきに起動していたが、1日37回のうち
+5回ほどしか起動せず、起動しても数時間遅れることがあった（2026-09-27〜10-02）。schedule は混んでいると間引かれる。
+Cloudflare の Cron は時刻どおりに動き、`workflow_dispatch` は間引かれない。Worker がするのは GitHub の API を1回叩くことだけで、
+取得元へは行かない（上の CloudFront の制限には当たらない）。
+
+- 対象が無い回（ほとんどの回）は Worker が D1 を1回読んで終わり、Actions は起動しない
+- 起動の合図とその後の Actions で2回、同じ選び方をする（Worker は `services/odds.ts` の `listOddsTargetIds`、Actions は `store.ts`）。
+  Actions の起動が遅れて発走を過ぎたら、Actions 側で対象から外れて何もしない
+- トークンは出走馬の取得と同じ `GITHUB_DISPATCH_TOKEN`（このリポジトリの `Actions: Read and write`。→ 3-9）
+- Actions の起動は数十秒〜1分ほどかかる。30分おきは目安で、画面は「何時時点」を出す
 - 手元では `pnpm run odds:update --local` で、ローカルの D1 に向けて1回ぶん動く（取得元へは本当に行く）
 
 **取得元への負荷を抑える約束**（取得元に止められたら機能ごと失う）:
@@ -569,7 +591,7 @@ Workers の外向きの IP は多くの Worker で共有されていて、その
   | G2・G3 | 前日の 18:30（前日発売のオッズが出始める頃） | 土 14回 + 日 18回 = 32回 |
   | L・OP・条件戦 | 取りに行かない | 0回 |
 
-  どれも発走まで。ワークフローは JST 7:05〜25:05（翌 1:05）に回す（混む毎時0分を避けて5分ずらす）。ネットの前日発売は夜間も売っているので 25:00 まで取り、
+  どれも発走まで。Cron は JST 7:05〜25:05（翌 1:05）に回す（混む毎時0分を避けて5分ずらす）。ネットの前日発売は夜間も売っているので 25:00 まで取り、
   25:00〜7:00 は取りに行かない。発売前は取得元が予想オッズしか返さず、
   何も保存しない（`not-available`）
 - 1レースずつ順に取り、間を1秒あける。並列にしない
