@@ -399,7 +399,7 @@ MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だ
 
 | 表 | 1行 | 消えるとき |
 | --- | --- | --- |
-| `oauth_client` | 動的登録されたクライアントか、Client ID Metadata Document から取ったクライアント（`source`。名前・戻り先・取った時刻 `fetched_at`）。**何の権限も持たない** | 一度も連携しておらず（`connected_at` が NULL）、登録から24時間過ぎたあとの次の登録時。一度でも連携した登録は消さない（上限と削除件数は architecture.md 3-10） |
+| `oauth_client` | 動的登録されたクライアントか、Client ID Metadata Document から取ったクライアント（`source`。名前・戻り先・取った時刻 `fetched_at`）。**何の権限も持たない** | 一度も連携しておらず（`connected_at` が NULL）、動的登録なら登録から24時間過ぎたあとの次の登録時、Client ID Metadata Document なら取ってから24時間過ぎたあとの次の文書の取得時。一度でも連携したものは消さない（上限は動的登録と別に数える。上限と削除件数は architecture.md 3-10） |
 | `oauth_grant` | 本人×クライアントの連携（許したスコープ）。`UNIQUE(user_id, client_id)` | 本人の解除・リフレッシュトークンの使い回し・凍結・user の削除（CASCADE） |
 | `oauth_code` | 認可コード（SHA-256・5分・1回きり） | 交換・同意し直し・期限切れのあとの次の同意・grant の削除 |
 | `oauth_token` | アクセス（1時間。初めて使われた時刻を `used_at`）とリフレッシュ（30日・使ったら `used_at`）。SHA-256 だけ。`parent_id` で出したリフレッシュトークンを辿る（回線断での送り直しの判断） | 同意し直し・grant の削除・期限切れのあとの次の発行 |

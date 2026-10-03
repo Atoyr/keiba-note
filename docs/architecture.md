@@ -26,6 +26,8 @@
   フォントは Static Assets から読む（→ 第2章 / 3-7 / 5-4）
 - 更新日: 2026-10-03 — MCP の口（`/mcp`）と、その認可サーバー（OAuth 2.1）を足した。`/mcp` は Bearer だけで入り、
   トークンの口は `src/worker.js` が SvelteKit より先に受ける（→ 第0章 / 第2章 / 3-10）
+- 更新日: 2026-10-03 — Client ID Metadata Document（Claude の推奨の認証方式）を受けるようにした。外部依存に
+  AI のクライアントが置いた文書が加わり、Worker が同意画面から取りに行く（→ 第0章 / 第1章 / 3-10）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -65,6 +67,9 @@
   取得元に固有の処理（URL・応答の形）は `scripts/odds/<取得元>/` の外に出さない（→ 3-8）
 - **出走馬の取得を Worker から頼むときは、GitHub Actions を起動するだけ。** Worker は出馬表を取りに行かず、
   D1 にも書かない。Actions が YAML を書いて PR を作り、マージで入る（下の「DB とデータ」の経路のまま。→ 3-9）
+- **利用者が渡した URL へ Worker が取りに行くのは、Client ID Metadata Document だけ。** 入口はログインが要る同意画面に限り、
+  URL の形を絞り、リダイレクトを追わず、時間と大きさに上限を置く（`auth/client-metadata.ts`）。
+  ほかの口で、入力の URL へ取りに行く処理を足さない（→ 3-10）
 
 ### DB とデータ
 
@@ -111,9 +116,10 @@ flowchart TB
     GH -->|"オッズの書き込み（wrangler d1 execute）"| D
 ```
 
-外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API の3つ**。netkeiba へは GitHub Actions だけが行き、
-Worker は行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。ほかに、AI のクライアント（Claude など）が Client ID Metadata Document を使うとき、ログインした本人が同意画面を開いた
-ときだけ、そのクライアントの HTTPS の URL から文書を取りに行く（→ 3-10）。それ以外は Cloudflare の中で完結する。
+外部依存は **Google OAuth と、オッズの取得元（netkeiba）と、GitHub の API と、AI のクライアントが置いた Client ID Metadata Document の4つ**。
+netkeiba へは GitHub Actions だけが行き、Worker は行かない（→ 3-8）。GitHub へは出走馬の取得を Actions に頼むときだけ行く（→ 3-9）。
+Client ID Metadata Document へは、ログインした本人が同意画面を開いたときと「許可する」を押したときだけ、
+クライアントが `client_id` に書いた HTTPS の URL へ取りに行く（24時間は保存した内容を使う。→ 3-10）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
 
 ### なぜこの形になるか
@@ -655,9 +661,16 @@ sequenceDiagram
     C->>W: POST /mcp（トークンなし）
     W-->>C: 401 WWW-Authenticate: resource_metadata=…
     C->>W: GET /.well-known/oauth-protected-resource/mcp・/.well-known/oauth-authorization-server
-    C->>W: POST /oauth/register（動的クライアント登録）
-    W->>D: oauth_client
-    C->>B: /oauth/authorize?…&code_challenge（PKCE S256）
+    alt 動的クライアント登録
+        C->>W: POST /oauth/register
+        W->>D: oauth_client（source = registered）
+        C->>B: /oauth/authorize?client_id=<uma-memo が振った id>&…&code_challenge（PKCE S256）
+    else Client ID Metadata Document（Claude の推奨）
+        C->>B: /oauth/authorize?client_id=https://…/文書&…&code_challenge（PKCE S256）
+        B->>W: GET /oauth/authorize（ログインが要る）
+        W->>C: GET client_id の URL（24時間に1回。5秒・5 KiB・リダイレクトを追わない）
+        W->>D: oauth_client（source = metadata・fetched_at）
+    end
     B->>W: 同意画面（ログインが要る）→「許可する」（メモを読ませるかを選べる）
     W->>D: oauth_grant（本人×クライアント）・oauth_code（ハッシュ・5分・1回きり）
     W-->>B: 303 戻り先?code&state&iss
@@ -672,6 +685,7 @@ sequenceDiagram
 | --- | --- | --- |
 | 案内 | `routes/.well-known/*`・`lib/server/auth/oauth-metadata.ts` | RFC 9728 / RFC 8414 のメタデータ（公開。DB に触らない） |
 | 登録 | `routes/oauth/register/+server.ts` | 公開クライアントだけを登録（戻り先は https かループバック） |
+| 文書の取得 | `lib/server/auth/client-metadata.ts` | Client ID Metadata Document の取得・検証・24時間の保存・未連携の行の上限と掃除 |
 | 同意 | `routes/oauth/authorize/` | 要求の検証・スコープの選択・コードの発行。枠に入れさせない（`X-Frame-Options`） |
 | トークン | `src/worker.js` → `lib/server/auth/token-endpoint.ts` | フォームの読み取り・`resource` の確認 |
 | 認可の中身 | `lib/server/auth/oauth.ts` | PKCE・コードとトークンの発行と検証・リフレッシュのローテーション・連携の一覧と解除 |
@@ -723,7 +737,12 @@ sequenceDiagram
   - 文書の `client_id` が URL と完全に一致し、戻り先が https かループバックで、公開クライアント（`none`）のときだけ使う。
     取り直しに失敗したら古い内容は使わない
   - 名前は自己申告だが、URL のホストは文書を置いた提供元として確かめられるので、同意画面と「AIとの連携」に「提供元」として出す
-  - CIMD の行は動的登録の上限に数えず、一度も連携していない CIMD の行を別に1,000件まで（超えたら同意画面で「混み合っています」）。取ってから24時間を過ぎた未連携の行は次の取得のときに消す。E2E だけ `OAUTH_CIMD_ALLOW_LOOPBACK=1` で `http://localhost` を許す
+  - CIMD の行は動的登録の上限に数えず、一度も連携していない CIMD の行を別に1,000件まで（超えたら同意画面で「混み合っています」）。取ってから24時間を過ぎた未連携の行は次の取得のときに最大100件ずつ消す。E2E だけ `OAUTH_CIMD_ALLOW_LOOPBACK=1` で `http://localhost` を許す
+  - 同意画面の GET の `load` で `oauth_client` に書く。取ってきた文書のキャッシュにあたり、本人の権限は何も変えない（[api.md 第1章](./api.md)の例外）
+  - 残る弱さ: 本人ごとの取得の頻度は数えていない（ログインした本人が URL を変えて開き直せば、そのたびに取りに行く）。
+    同意画面の GET は他サイトから開かせることもできるので、ログイン中の本人に文書を取りに行かせることはできる（できるのは
+    取得と未連携の行を1つ増やすことまでで、許可は本人が押さないと出ない）。名前で私的なアドレスを指すホストは形では弾けず、
+    Workers の fetch が私的なネットワークへ届かないことに頼っている
 - クライアントの登録は誰でもできるが、全体で直近60秒に100件、**一度も連携していない**登録（`oauth_client.connected_at` が NULL）は1,000件まで。
   条件付き INSERT で判定し、同時要求でも上限を超えない。超過時は 429 と `Retry-After: 60` を返す。
   一度も連携していない登録は作成から24時間で認可に使えなくなり、次の登録要求で期限切れを最大100件ずつ削除する。
@@ -1033,7 +1052,8 @@ D1 は1データベースにつき1スレッドで、クエリを1つずつ処�
 
 ## 9. この構成の要約
 
-- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、GitHub Actions だけが行くオッズの取得元
+- **サーバーもコンテナもない。** Worker 1つと D1 1つ、外部依存は Google OAuth と、GitHub Actions だけが行くオッズの取得元と GitHub の API、
+  同意画面から取りに行く AI のクライアントの文書（Client ID Metadata Document）
 - **層は6つ、依存は一方向。** 要は「サービス層が SvelteKit を知らない」の1点。
   これだけでテストが書け、将来の API 追加にも耐える
 - **データアクセスは必ず ④→⑤→⑥ を通る。** ルートから直接 SQL を書かない。

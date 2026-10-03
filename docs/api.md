@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-10-03 — Client ID Metadata Document を受け、同意画面の `load` が文書のキャッシュを書く例外を足した（→ 第1章 / 第3章）
 - 更新日: 2026-10-03 — MCP の口（`/mcp`）と OAuth 2.1 の口（`/.well-known/*`・`/oauth/*`）、
   `/settings/connections`、`auth/oauth.ts` を足した（→ 第1章 / 第2章 / 第3章 / 第5章）
 - 更新日: 2026-09-28 — 予想まとめの共有ページに OGP を付け、SNS のプレビュー用の画像 `/shared/races/[id]/og.png` を足した（→ 第3章）
@@ -29,6 +30,8 @@ SvelteKit の `load` + form actions で完結させる。
 
 例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
 画面の代わりではなく AI のクライアント向けで、読むだけ。中身はサービス層を呼ぶだけ（→ [architecture.md 3-10](./architecture.md)）。
+ほかに、同意画面（`/oauth/authorize`）の GET の `load` だけは D1 に書く。Client ID Metadata Document を取ってきた内容を
+`oauth_client` に24時間保存するキャッシュで、本人の権限は何も変えない（許可は form action の `POST`）。
 
 - 読み: `+page.server.ts` の `load` がサービス層を呼ぶ
 - 書き: form actions。JavaScript が無効でも動く（プログレッシブエンハンスメント）
@@ -127,7 +130,7 @@ SvelteKit の `load` + form actions で完結させる。
 | `/auth/logout` | POST | — | セッションを破棄して `303 /login` | — |
 | `/oauth/authorize` | GET | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge`・`code_challenge_method=S256`・`state`・`scope`・`resource` | 同意画面（アプリの名前・戻り先のホスト・スコープ。Client ID Metadata Document なら提供元のホスト）。`client_id` が HTTPS の URL なら、その文書を取りに行く（24時間は保存した内容を使う）。`X-Frame-Options: DENY`・`no-store` | 要求の誤り（クライアント・戻り先・PKCE・`response_type`・`resource`）は**戻り先へ飛ばさず**画面に出す（オープンリダイレクトにしない） |
 | `/oauth/authorize` | POST `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied`。同じクライアントへの前のトークンは消す | 要求の誤り `fail(400)`（画面に出す） |
-| `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・戻り先のホスト・スコープ・日付） | — |
+| `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・Client ID Metadata Document なら提供元のホスト・戻り先のホスト・スコープ・日付） | — |
 | `/settings/connections` | POST `?/revoke` | `grantId` | 本人の連携を解除（コードとトークンも消える） | 検証 `fail(400)` / 他人の連携・無い連携 `fail(404)` |
 
 ### admin だけ（`ctxAdmin`）
