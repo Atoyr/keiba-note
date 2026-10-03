@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
 	DispatchError,
 	dispatchEntriesFetch,
+	dispatchWorkflow,
 	isDispatchConfigured,
 	workflowInputs,
 	type EntriesFetchRequest
@@ -95,5 +96,18 @@ describe('dispatchEntriesFetch', () => {
 		await expect(dispatchEntriesFetch(config(fetchFn), REQ)).rejects.toMatchObject({
 			kind: 'network'
 		});
+	});
+});
+
+describe('dispatchWorkflow', () => {
+	it('inputs を渡さなければ空で、名前を渡したワークフローを起動する', async () => {
+		const fetchFn = vi.fn(async () => new Response(null, { status: 204 }));
+		await dispatchWorkflow(config(fetchFn), 'odds-update.yml');
+
+		const [url, init] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
+		expect(url).toBe(
+			'https://api.github.com/repos/Atoyr/keiba-note/actions/workflows/odds-update.yml/dispatches'
+		);
+		expect(JSON.parse(init.body as string)).toEqual({ ref: 'main', inputs: {} });
 	});
 });

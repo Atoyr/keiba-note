@@ -1,5 +1,6 @@
 /**
- * オッズの更新を1回ぶん回す。GitHub Actions（`.github/workflows/odds-update.yml`）が30分おきに呼ぶ。
+ * オッズの更新を1回ぶん回す。GitHub Actions（`.github/workflows/odds-update.yml`）が呼ぶ。
+ * Actions を30分おきに起動するのは Worker の Cron（`src/lib/server/odds/scheduled.ts`）。
  *
  * **取得は Worker ではなくここでする。** netkeiba の手前（CloudFront）は、Cloudflare Workers から来たリクエストを
  * 時間帯によってまとめて 400 で返す（レースのある日の日中はほぼ取れない）。GitHub Actions からは同じ時間帯でも取れた

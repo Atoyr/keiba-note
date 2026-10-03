@@ -1,6 +1,7 @@
 // Worker の入口（wrangler.toml の main）。adapter-cloudflare が作る Worker を包み、
-// 返す前にレスポンスを直す。Cron Trigger（出走馬の取得の依頼）もここで受ける。
-// オッズの更新は Worker ではなく GitHub Actions がする（scripts/odds-update.ts。docs/architecture.md 3-8）。
+// 返す前にレスポンスを直す。Cron Trigger（出走馬の取得とオッズの更新を Actions に頼む）もここで受ける。
+// オッズを取得元から取るのは Worker ではなく GitHub Actions（scripts/odds-update.ts）。Worker は起動の合図を出すだけ
+// （docs/architecture.md 3-8）。
 //
 // adapter は adapter の設定（wrangler.adapter.toml）の main に Worker を書き出し、そこを
 // 消してから書く。このファイルを adapter の main にすると上書きされるので、分けている。
@@ -20,6 +21,7 @@ import { handleTokenRequest } from './lib/server/auth/token-endpoint.ts';
 import { createDb } from './lib/server/db/index.ts';
 import { describeError } from './lib/server/monitoring/log.ts';
 import { createMonitor } from './lib/server/monitoring/monitor.ts';
+import { ODDS_CRONS, runOddsCron } from './lib/server/odds/scheduled.ts';
 import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
 
 /**
@@ -76,6 +78,8 @@ export default {
 		// Cron は式ごとに別々に起動される。どの式で起きたかで出し分ける（wrangler.toml の crons）。
 		if (controller.cron === ENTRIES_CRON) {
 			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime));
+		} else if (ODDS_CRONS.includes(controller.cron)) {
+			ctx.waitUntil(runOddsCron(env, ctx, controller.scheduledTime));
 		}
 	}
 };

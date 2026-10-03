@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-10-03 — オッズの更新を Actions に頼む Cron と、`services/odds.ts` の `listOddsTargetIds` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-10-03 — Client ID Metadata Document を受け、同意画面の `load` が文書のキャッシュを書く例外を足した（→ 第1章 / 第3章）
 - 更新日: 2026-10-03 — MCP の口（`/mcp`）と OAuth 2.1 の口（`/.well-known/*`・`/oauth/*`）、
   `/settings/connections`、`auth/oauth.ts` を足した（→ 第1章 / 第2章 / 第3章 / 第5章）
@@ -173,12 +174,13 @@ tools（どれも読むだけ。`viewerId` はトークンの持ち主で、入�
 | 起動 | 入口 | すること |
 | --- | --- | --- |
 | `5 1-10 * * *`（UTC。JST 10:05〜19:05 の毎時） | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 1〜3日後の重賞で馬番がまだ無いレースの出走馬の取得を、GitHub Actions に頼む（枠順が確定していなければ Actions は何も書かない。→ [architecture.md 3-9](./architecture.md)） |
+| `5,35 22-23,0-15 * * *`・`5 16 * * *`（UTC。JST 7:05〜25:05 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | オッズを取りに行く時間帯に入った重賞があれば、GitHub Actions（`odds-update.yml`）を起動する（→ [architecture.md 3-8](./architecture.md)） |
 
 ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。
 ログインの概念は無い（誰の操作でもない）。
 
-オッズの更新は Worker の Cron ではなく GitHub Actions（`odds-update.yml`）がする。Worker の口は無く、
-Actions が `wrangler d1 execute` で `race_odds` に書く（→ [architecture.md 3-8](./architecture.md)）。
+オッズを取得元から取って `race_odds` に書くのは GitHub Actions（`odds-update.yml`）で、Worker の Cron は起動の合図を出すだけ。
+Actions が `wrangler d1 execute` で書く（→ [architecture.md 3-8](./architecture.md)）。
 
 ## 4. action を書くときの約束
 
@@ -236,7 +238,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | --- | --- | --- |
 | `services/horses.ts` | `listHorses`・`getHorse`・`getHorseEntries` | `findOrCreateHorse`・`updateHorseProfile` |
 | `services/races.ts` | `listRaces`・`countRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
-| `services/odds.ts` | `getRaceOdds` | —（GitHub Actions が `scripts/odds/store.ts` の SQL で書く。→ [architecture.md 3-8](./architecture.md)） |
+| `services/odds.ts` | `getRaceOdds`・`listOddsTargetIds` | —（GitHub Actions が `scripts/odds/store.ts` の SQL で書く。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | `listEntriesFetchTargets`・`listUpcomingRaces`・`entriesFetchBlocker`（D1 を読まない判定） | —（出馬表は YAML の PR で入る） |
 | `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |
 | `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
