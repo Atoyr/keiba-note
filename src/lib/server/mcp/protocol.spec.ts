@@ -3,6 +3,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { OAuthScope } from '$lib/schemas/oauth';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
+import { MCP_WEEKLY_LIMITS, mcpWeekStart } from '$lib/utils/mcp-quota';
 import { handleMcpMessage, type McpReply } from './protocol';
 import { TOOLS } from './tools';
 
@@ -186,6 +187,82 @@ describe('tools', () => {
 
 	it('知らない tool はプロトコルの誤り', async () => {
 		expect(body(await call('delete_note', {})).error?.code).toBe(-32602);
+	});
+});
+
+describe('週ごとの上限', () => {
+	const usage = () =>
+		sqlite.prepare("SELECT reads, writes FROM mcp_usage WHERE user_id = 'A'").get() as
+			{ reads: number; writes: number } | undefined;
+	/** 今週の行を直接置いて、上限の状態を作る。 */
+	const put = (reads: number, writes: number) =>
+		sqlite
+			.prepare(
+				"INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes, updated_at) VALUES ('A', ?, ?, ?, 0)"
+			)
+			.run(mcpWeekStart(new Date()), reads, writes);
+
+	it('呼ぶと数える。読む tool は reads、書く tool は writes', async () => {
+		await call('get_race', { raceId: 'R' });
+		expect(usage()).toEqual({ reads: 1, writes: 0 });
+		await call('save_my_race_preview', { raceId: 'R', raceNote: { body: '見立て' } });
+		expect(usage()).toEqual({ reads: 1, writes: 1 });
+	});
+
+	it('読み取りが上限だと、読む tool は動かさずに誤りで返す。書く tool は通る', async () => {
+		put(MCP_WEEKLY_LIMITS.read, 0);
+		const reply = await call('get_race', { raceId: 'R' });
+		expect(reply).toMatchObject({ kind: 'json', status: 200 });
+		const b = body(reply);
+		expect(b.result?.isError).toBe(true);
+		expect(b.result?.content[0].text).toMatch(
+			/^今週の読み取りの上限（500回）に達しました。\d+月\d+日（水）12:00（日本時間）に戻ります。$/
+		);
+		expect(usage()).toEqual({ reads: MCP_WEEKLY_LIMITS.read, writes: 0 });
+
+		const saved = body(
+			await call('save_my_race_preview', { raceId: 'R', raceNote: { body: 'x' } })
+		);
+		expect(saved.result?.isError).toBeUndefined();
+		expect(usage()).toEqual({ reads: MCP_WEEKLY_LIMITS.read, writes: 1 });
+	});
+
+	it('書き込みが上限だと、書く tool は動かさずに誤りで返す。読む tool は通る', async () => {
+		put(0, MCP_WEEKLY_LIMITS.write);
+		const b = body(await call('save_my_race_preview', { raceId: 'R', raceNote: { body: 'x' } }));
+		expect(b.result?.isError).toBe(true);
+		expect(b.result?.content[0].text).toContain('今週の書き込みの上限（100回）に達しました');
+		expect(
+			sqlite.prepare("SELECT count(*) AS n FROM note WHERE author_id = 'A' AND body = 'x'").get()
+		).toEqual({ n: 0 });
+
+		expect(body(await call('get_race', { raceId: 'R' })).result?.isError).toBeUndefined();
+	});
+
+	it('ほかのユーザーの上限には影響されない', async () => {
+		put(MCP_WEEKLY_LIMITS.read, MCP_WEEKLY_LIMITS.write);
+		expect(body(await call('get_race', { raceId: 'R' }, ALL, 'B')).result?.isError).toBeUndefined();
+	});
+
+	it('tools/list・入力の誤り・スコープ不足・知らない tool は数えない', async () => {
+		await handleMcpMessage(
+			{ jsonrpc: '2.0', id: 1, method: 'tools/list' },
+			{ db, viewerId: 'A', scopes: ALL }
+		);
+		await call('search_races', { limit: 1000 });
+		await call('get_my_race_notes', { raceId: 'R' }, RACES_ONLY);
+		await call('delete_note', {});
+		expect(usage()).toBeUndefined();
+	});
+
+	it('initialize の説明に、上限があることを書く', async () => {
+		const reply = body(
+			await handleMcpMessage(
+				{ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} },
+				{ db, viewerId: 'A', scopes: ALL }
+			)
+		);
+		expect(JSON.stringify(reply)).toContain('週ごとの回数の上限');
 	});
 });
 

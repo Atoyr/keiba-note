@@ -585,6 +585,24 @@ export const oauthToken = sqliteTable(
 	]
 );
 
+/**
+ * MCP の tool の呼び出しの、今週の回数。**1人1行**で、週が変わったら上書きする（行は週ごとに増えない）。
+ *
+ * 連携（`oauth_grant`）ごとではなくユーザーごとに数える。Claude と ChatGPT の両方をつないでも上限は合算で、
+ * 連携を作り直しても逃れられない。`week_start` はその週の始まり（水曜 12:00 JST）の unix 秒で、
+ * 数える側（`services/mcp-usage.ts`）が今週と違えば 0 から数え直す。上限の数字は `utils/mcp-quota.ts`。
+ * 管理者が行を消すと 0 に戻る（次の呼び出しで作り直される）。
+ */
+export const mcpUsage = sqliteTable('mcp_usage', {
+	userId: text('user_id')
+		.primaryKey()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	weekStart: integer('week_start').notNull(),
+	reads: integer('reads').notNull().default(0),
+	writes: integer('writes').notNull().default(0),
+	updatedAt: updatedAt()
+});
+
 export const userRelations = relations(user, ({ many }) => ({
 	sessions: many(session)
 }));

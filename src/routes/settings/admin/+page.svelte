@@ -170,6 +170,32 @@
 						<Button type="submit" variant="outline" size="sm">凍結</Button>
 					</form>
 				{/if}
+				{#if u.mcpUsage}
+					<!-- 利用量は名前の行の下に1行で置く。同じ行に並べると、凍結のボタンと日付が折り返す。 -->
+					<div class="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
+						<span class="text-xs text-gray-600">
+							AI 読み取り {u.mcpUsage.read}%・書き込み {u.mcpUsage.write}%
+						</span>
+						<form
+							method="POST"
+							action="?/resetMcpUsage"
+							use:enhance={() =>
+								({ update }) =>
+									update()}
+							onsubmit={(e) => {
+								if (
+									!confirm(
+										`${u.displayName} の今週の AI の利用量（読み取り・書き込み）を 0% に戻します。`
+									)
+								)
+									e.preventDefault();
+							}}
+						>
+							<input type="hidden" name="userId" value={u.id} />
+							<Button type="submit" variant="outline" size="sm">AI の利用量をリセット</Button>
+						</form>
+					</div>
+				{/if}
 			</li>
 		{/each}
 	</ul>

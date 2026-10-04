@@ -28,6 +28,8 @@ Cloudflare Workers 上で動かす。
   乗った馬の自分のメモを重ねる（→ 第5章 jockey_note / 第6章 `/jockeys` と `/jockeys/[name]`）
 - 更新日: 2026-09-27 — レース一覧と馬一覧を100件ずつ読み、下端で続きを足すようにした（それまではレース100件・馬200件で切れていた。
   → 第6章「長い一覧」）
+- 更新日: 2026-10-04 — AI との連携（MCP）に、ユーザーごと・週ごと（水曜 12:00 区切り）の読み取り・書き込みの回数の上限を置いた。
+  本人は「AIとの連携」で %、管理者は管理画面で各ユーザーの % を見て 0 に戻せる（→ 第5章 `mcp_usage` / 第6章）
 - ステータス: 確定（実装着手可）
 - **読む場面:** 機能を足す・変えるとき。何を・なぜ作るか、画面に何を出すか、やらないと決めたことを確かめるとき
 - 関連: [architecture.md](./architecture.md) — アーキテクチャ / コスト / 技術選定の根拠
@@ -402,6 +404,7 @@ MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だ
 | `oauth_client` | 動的登録されたクライアントか、Client ID Metadata Document から取ったクライアント（`source`。名前・戻り先・取った時刻 `fetched_at`）。**何の権限も持たない** | 一度も連携しておらず（`connected_at` が NULL）、動的登録なら登録から24時間過ぎたあとの次の登録時、Client ID Metadata Document なら取ってから24時間過ぎたあとの次の文書の取得時。一度でも連携したものは消さない（上限は動的登録と別に数える。上限と削除件数は architecture.md 3-10） |
 | `oauth_grant` | 本人×クライアントの連携（許したスコープ）。`UNIQUE(user_id, client_id)` | 本人の解除・リフレッシュトークンの使い回し・凍結・user の削除（CASCADE） |
 | `oauth_code` | 認可コード（SHA-256・5分・1回きり） | 交換・同意し直し・期限切れのあとの次の同意・grant の削除 |
+| `mcp_usage` | ユーザーごとの今週の tool の呼び出し回数（`week_start`・`reads`・`writes`）。1人1行で、週が変わったら上書き | 管理者のリセット・user の削除（CASCADE） |
 | `oauth_token` | アクセス（1時間。初めて使われた時刻を `used_at`）とリフレッシュ（30日・使ったら `used_at`）。SHA-256 だけ。`parent_id` で出したリフレッシュトークンを辿る（回線断での送り直しの判断） | 同意し直し・grant の削除・期限切れのあとの次の発行 |
 
 ### horse
@@ -735,7 +738,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /jockeys/[name]               ★騎手＝自分のまとめ + 騎乗のタイムライン（乗った馬の自分のメモ）
 /settings/profile             プロフィール（公開用の名前を設定）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
-/settings/connections         AIとの連携（MCP の接続先 URL・許可したアプリ）＝**連携を解除する場所**
+/settings/connections         AIとの連携（MCP の接続先 URL・今週の利用量（%）・許可したアプリ）＝**連携を解除する場所**
 /oauth/authorize              AI のアプリへの同意画面（メモを読ませるか・予想を書かせるかを選ぶ。architecture.md 3-10）
 
 ── admin のみ ────────────────────────────────────────────
@@ -744,7 +747,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /races/[id]/entries           出走馬の一括入力・編集
 /horses/new                   馬登録（未実装。馬は出走馬の入力か YAML で作られる）
 /horses/[id]/edit             馬情報編集（`/horses/[id]` にインラインで実装済み。**馬名は含まない** → 第9章 #13）
-/settings/admin               ユーザー一覧・凍結、マスタの削除、出走馬の取得の依頼（Actions が YAML の PR を作る）
+/settings/admin               ユーザー一覧・凍結・AI の利用量（%）のリセット、マスタの削除、出走馬の取得の依頼（Actions が YAML の PR を作る）
 ```
 
 `/invite/[code]` と `/settings/members` は招待の廃止に伴って削除する（→ 第4章）。

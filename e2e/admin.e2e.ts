@@ -57,3 +57,42 @@ test('トークンが無いまま取得を送っても、頼まずに理由を�
 	// 押したボタンからフォーカスが外れていない
 	await expect(button).toBeFocused();
 });
+
+test('AI の利用量が % で並び、リセットすると 0 に戻って表示が消える', async ({ page }) => {
+	await login(page, 'admin');
+	await gotoHydrated(page, '/settings/admin');
+
+	// リセット専用のユーザー（seed: 読み取り 500/500 = 100%、書き込み 50/100 = 50%）。
+	// 並列で走るほかのテストと共有しない行なので、消してよい。
+	const row = page.getByRole('listitem').filter({ hasText: 'E2E リセット対象' });
+	await expect(row.getByText('AI 読み取り 100%・書き込み 50%')).toBeVisible();
+
+	// 使っていない（0% 同士・行が無い）ユーザーには出ない
+	const other = page.getByRole('listitem').filter({ hasText: 'E2E 管理者' });
+	await expect(other.getByText(/AI 読み取り/)).toHaveCount(0);
+	await expect(other.getByRole('button', { name: 'AI の利用量をリセット' })).toHaveCount(0);
+
+	page.once('dialog', (d) => d.accept());
+	await row.getByRole('button', { name: 'AI の利用量をリセット' }).click();
+
+	await expect(row.getByText(/AI 読み取り/)).toHaveCount(0);
+	await expect(row.getByRole('button', { name: 'AI の利用量をリセット' })).toHaveCount(0);
+});
+
+test('一般のユーザーは、AI の利用量のリセットを直接送っても断られる', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, '/');
+	const res = await page.request.post('/settings/admin?/resetMcpUsage', {
+		form: { userId: '01JE2EUSER0000000000000000' },
+		headers: { origin: new URL(page.url()).origin },
+		maxRedirects: 0
+	});
+	expect(res.status()).toBe(403);
+
+	// 消えていない
+	await gotoHydrated(page, '/settings/connections');
+	await expect(page.getByRole('progressbar', { name: '読み取り' })).toHaveAttribute(
+		'aria-valuenow',
+		/^(2[4-9]|3\d)$/
+	);
+});
