@@ -44,7 +44,7 @@ async function authorize(
 	userId = 'A',
 	scopes: ('races:read' | 'notes:read')[] = ['races:read', 'notes:read']
 ) {
-	const client = await registerClient(db, { name: 'Claude', redirectUris: [REDIRECT] });
+	const client = await registerClient(db, { name: 'Claude', redirectUris: [REDIRECT] }, NOW);
 	const code = await createAuthorizationCode(
 		db,
 		{ userId, clientId: client.id, scopes, redirectUri: REDIRECT, codeChallenge: CHALLENGE },
@@ -134,7 +134,7 @@ describe('認可コード', () => {
 	});
 
 	it('別のクライアント・別の戻り先・期限切れでは出さない', async () => {
-		const other = await registerClient(db, { name: 'Other', redirectUris: [REDIRECT] });
+		const other = await registerClient(db, { name: 'Other', redirectUris: [REDIRECT] }, NOW);
 		for (const [patch, when] of [
 			[{ clientId: other.id }, NOW],
 			[{ redirectUri: 'https://claude.ai/other' }, NOW],
@@ -151,14 +151,18 @@ describe('認可コード', () => {
 	});
 
 	it('登録に無い戻り先にはコードを出さない', async () => {
-		const client = await registerClient(db, { name: 'Claude', redirectUris: [REDIRECT] });
-		const code = await createAuthorizationCode(db, {
-			userId: 'A',
-			clientId: client.id,
-			scopes: ['races:read'],
-			redirectUri: 'https://evil.example/cb',
-			codeChallenge: CHALLENGE
-		});
+		const client = await registerClient(db, { name: 'Claude', redirectUris: [REDIRECT] }, NOW);
+		const code = await createAuthorizationCode(
+			db,
+			{
+				userId: 'A',
+				clientId: client.id,
+				scopes: ['races:read'],
+				redirectUri: 'https://evil.example/cb',
+				codeChallenge: CHALLENGE
+			},
+			NOW
+		);
 		expect(code).toBeNull();
 	});
 });
@@ -394,7 +398,7 @@ describe('リフレッシュトークン', () => {
 
 	it('別のクライアントからは使えない', async () => {
 		const { tokens } = await tokensFor();
-		const other = await registerClient(db, { name: 'Other', redirectUris: [REDIRECT] });
+		const other = await registerClient(db, { name: 'Other', redirectUris: [REDIRECT] }, NOW);
 		expect(
 			await refreshTokens(db, { refreshToken: tokens.refresh_token, clientId: other.id }, NOW)
 		).toMatchObject({ error: 'invalid_grant' });
@@ -508,7 +512,7 @@ describe('同意し直し', () => {
 			db,
 			{
 				userId: 'A',
-				clientId: (await registerClient(db, { name: 'C', redirectUris: [REDIRECT] })).id,
+				clientId: (await registerClient(db, { name: 'C', redirectUris: [REDIRECT] }, NOW)).id,
 				scopes: ['races:read'],
 				redirectUri: REDIRECT,
 				codeChallenge: CHALLENGE
