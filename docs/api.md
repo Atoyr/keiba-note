@@ -12,6 +12,7 @@
 - 更新日: 2026-10-03 — オッズの更新を Actions に頼む Cron と、`services/odds.ts` の `listOddsTargetIds` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-10-03 — Client ID Metadata Document を受け、同意画面の `load` が文書のキャッシュを書く例外を足した（→ 第1章 / 第3章）
 - 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`・スコープ `notes:write`）を足した。`/mcp` の本文の上限を 64 KiB にした（→ 第1章 / 第3章）
+- 更新日: 2026-10-04 — MCP の週ごとの回数の上限を足した。`/settings/connections` が今週の利用量を返し、`/settings/admin` に `?/resetMcpUsage` を足した（→ 第3章）
 - 更新日: 2026-10-03 — MCP の口（`/mcp`）と OAuth 2.1 の口（`/.well-known/*`・`/oauth/*`）、
   `/settings/connections`、`auth/oauth.ts` を足した（→ 第1章 / 第2章 / 第3章 / 第5章）
 - 更新日: 2026-09-28 — 予想まとめの共有ページに OGP を付け、SNS のプレビュー用の画像 `/shared/races/[id]/og.png` を足した（→ 第3章）
@@ -133,7 +134,7 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 | `/auth/logout` | POST | — | セッションを破棄して `303 /login` | — |
 | `/oauth/authorize` | GET | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge`・`code_challenge_method=S256`・`state`・`scope`・`resource` | 同意画面（アプリの名前・戻り先のホスト・スコープ。Client ID Metadata Document なら提供元のホスト）。`client_id` が HTTPS の URL なら、その文書を取りに行く（24時間は保存した内容を使う）。`X-Frame-Options: DENY`・`no-store` | 要求の誤り（クライアント・戻り先・PKCE・`response_type`・`resource`）は**戻り先へ飛ばさず**画面に出す（オープンリダイレクトにしない） |
 | `/oauth/authorize` | POST `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied`。同じクライアントへの前のトークンは消す | 要求の誤り `fail(400)`（画面に出す） |
-| `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・Client ID Metadata Document なら提供元のホスト・戻り先のホスト・スコープ・日付） | — |
+| `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・Client ID Metadata Document なら提供元のホスト・戻り先のホスト・スコープ・日付）、今週の利用量（読み取り・書き込みの %・次に 0 に戻る時刻） | — |
 | `/settings/connections` | POST `?/revoke` | `grantId` | 本人の連携を解除（コードとトークンも消える） | 検証 `fail(400)` / 他人の連携・無い連携 `fail(404)` |
 
 ### admin だけ（`ctxAdmin`）
@@ -144,6 +145,7 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 | `/races/new` | GET / POST `default` | レースの項目（`raceSchema`） | `303 /races/[id]/entries` | 検証 `fail(400)` / 同じ日付・場・R `fail(409)` / 403 |
 | `/races/[id]/entries` | GET / POST `default` | `rowCount`・`horseName.<i>`・`bracket.<i>`・`horseNumber.<i>` ほか | `303 /races/[id]` | 検証 `fail(400)` / 同じ馬名が2行 `fail(400)` / 馬番か馬の重複（UNIQUE） `fail(409)` / 403 |
 | `/settings/admin` | GET / POST `?/freeze` | `userId` | ユーザーを凍結し、セッションと AI との連携（`oauth_grant`。コードとトークンも CASCADE）を全部消す | 自分自身は `fail(400)` / 403 |
+| `/settings/admin` | POST `?/resetMcpUsage` | `userId` | そのユーザーの今週の MCP の利用量（読み取り・書き込み）を 0 に戻す（`mcp_usage` の行を消す）。行が無くても成功 | 検証 `fail(400)` / 403 |
 | `/settings/admin` | POST `?/fetchEntries` | `raceId` | そのレースの出走馬の取得を GitHub Actions に頼み、`{ requested }` を返す（D1 には書かない。→ [architecture.md 3-9](./architecture.md)） | 無いレース `fail(404)` / 引けないレース（レース番号なし・race_id が無く当週でもない。`entriesFetchBlocker`）`fail(400)` / トークン未設定 `fail(503)` / GitHub が受け付けない `fail(502)` / 403 |
 
 ### 開発サーバーだけ

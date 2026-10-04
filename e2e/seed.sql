@@ -815,3 +815,25 @@ INSERT OR REPLACE INTO oauth_client (id, name, redirect_uris, source, fetched_at
 UPDATE oauth_client SET connected_at = 1789600000 WHERE id = 'https://client.example/uma-memo/client-metadata.json';
 INSERT OR REPLACE INTO oauth_grant (id, user_id, client_id, scopes, last_used_at, created_at) VALUES
 	('01JE2EGRANTMETADATA0000000', '01JE2EUSER0000000000000000', 'https://client.example/uma-memo/client-metadata.json', '["races:read","notes:read"]', NULL, 1789600000);
+
+-- MCP の今週の利用量。week_start は今週の始まり（水曜 12:00 JST = 水曜 03:00 UTC）を SQL で出す
+-- （1970-01-07 水曜 03:00 UTC = 529200 秒から、7日 = 604800 秒ごと）。
+-- - E2E ユーザー: 読み取り 123/500 = 24%、書き込み 7/100 = 7%。「AIとの連携」の「今週の利用量」に出る。
+--   MCP の E2E で呼んで数が増えても、% が大きく変わらない程度にしてある。
+-- - リセット専用のユーザー: 管理画面でリセットする E2E だけが使う（並列で走るので、ほかのテストと共有しない）。
+INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
+	('01JE2EUSER0000000000000000',
+	 ((CAST(strftime('%s', 'now') AS INTEGER) - 529200) / 604800) * 604800 + 529200, 123, 7);
+
+INSERT OR REPLACE INTO user (id, google_sub, email, display_name, role)
+VALUES ('01JE2EMCPRESETUSER000000000', 'e2e-mcp-reset-google-sub', 'mcp-reset@example.invalid', 'E2E リセット対象', 'user');
+
+INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
+	('01JE2EMCPRESETUSER000000000',
+	 ((CAST(strftime('%s', 'now') AS INTEGER) - 529200) / 604800) * 604800 + 529200, 500, 50);
+
+-- サイト管理者の今週の利用量（読み取り 500/500 = 100%、書き込み 30/100 = 30%）。
+-- 「AIとの連携」の上限に達した状態を撮る（screens: settings-connections-limit）。管理者のトークンで MCP を呼ぶ E2E は無い。
+INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
+	('01JE2EADMIN000000000000000',
+	 ((CAST(strftime('%s', 'now') AS INTEGER) - 529200) / 604800) * 604800 + 529200, 500, 30);

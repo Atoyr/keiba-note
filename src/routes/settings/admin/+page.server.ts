@@ -9,6 +9,7 @@ import {
 	isDispatchConfigured
 } from '$lib/server/race-data/dispatch';
 import { entriesFetchBlocker, listUpcomingRaces } from '$lib/server/services/entries-fetch';
+import { listWeeklyMcpUsage, resetMcpUsage } from '$lib/server/services/mcp-usage';
 import { getRace } from '$lib/server/services/races';
 import { ctxAdmin } from '$lib/server/util';
 import { addDays, currentWeek, todayJst } from '$lib/utils/date';
@@ -21,6 +22,7 @@ import type { Actions, PageServerLoad } from './$types';
  * ユーザーの凍結だけで、メモを覗くことではない（product.md 第4章）。
  */
 const freezeSchema = v.object({ userId: v.pipe(v.string(), v.minLength(1)) });
+const resetMcpUsageSchema = v.object({ userId: v.pipe(v.string(), v.minLength(1)) });
 const fetchEntriesSchema = v.object({ raceId: v.pipe(v.string(), v.minLength(1)) });
 
 /** 出走馬を取りに行かせるレースを並べる期間（今日から）。登録は開催の約2週間前から出る。 */
@@ -35,8 +37,8 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 	const { db } = ctxAdmin(locals, platform);
 	const today = todayJst();
 
-	// 出すのはアカウントの素性だけ。メモの件数すら出さない
-	// （本文を見せなくても「何か書いている」ことは漏れる）。
+	// 出すのはアカウントの素性と、AI の連携（MCP）の今週の利用量（%）だけ。メモの件数すら出さない
+	// （本文を見せなくても「何か書いている」ことは漏れる）。利用量はリセットの要否を決めるために出す。
 	const usersQuery = db
 		.select({
 			id: user.id,
@@ -50,9 +52,10 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		.orderBy(desc(user.createdAt))
 		.limit(200);
 
-	const [users, races] = await Promise.all([
+	const [users, races, mcpWeekly] = await Promise.all([
 		usersQuery,
-		listUpcomingRaces(db, { from: today, to: addDays(today, UPCOMING_DAYS - 1) })
+		listUpcomingRaces(db, { from: today, to: addDays(today, UPCOMING_DAYS - 1) }),
+		listWeeklyMcpUsage(db)
 	]);
 
 	const weekEnd = currentWeek(
@@ -60,7 +63,11 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		races.map((r) => r.date)
 	).end;
 	return {
-		users,
+		users: users.map((u) => {
+			// 今週の行があるユーザーだけ出す（1回でも使っていれば、% が 0 でもリセットできるように）。
+			const w = mcpWeekly.get(u.id);
+			return { ...u, mcpUsage: w ? { read: w.read.percent, write: w.write.percent } : null };
+		}),
 		races: races.map(({ externalRef, ...r }) => ({
 			...r,
 			/** 押せない理由。null なら押せる。 */
@@ -71,6 +78,23 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 };
 
 export const actions: Actions = {
+	/**
+	 * 1人分の AI の利用量（今週の読み取り・書き込み）を 0 に戻す。行を消すだけなので、対象が無くても成功（冪等）。
+	 * 自分自身も戻せる。他人のメモには触れない。
+	 */
+	resetMcpUsage: async ({ request, locals, platform }) => {
+		const { db } = ctxAdmin(locals, platform);
+
+		const form = await request.formData();
+		const parsed = v.safeParse(resetMcpUsageSchema, {
+			userId: form.get('userId')?.toString() ?? ''
+		});
+		if (!parsed.success) return fail(400, { message: '操作を受け付けられませんでした' });
+
+		await resetMcpUsage(db, parsed.output.userId);
+		return { mcpReset: parsed.output.userId };
+	},
+
 	/**
 	 * 出走馬の取得を GitHub Actions に頼む。**ここでは netkeiba へ行かず、D1 にも書かない**
 	 * （lib/server/race-data/dispatch.ts）。Actions が出馬表を YAML に書いて PR を作り、
