@@ -59,14 +59,14 @@
 					<tr class="align-top">
 						<td class="py-2 pr-3">ChatGPT</td>
 						<td class="py-2 pr-3">Web 版</td>
-						<td class="py-2">使えない（Web 版だけ）</td>
+						<td class="py-2">使える（Web 版で追加したあと）</td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 		<p class="mt-3 text-sm leading-relaxed">
-			競馬場でスマホから使うなら Claude です。家で Web 版の Claude に uma-memo
-			を追加しておくと、スマホの Claude アプリでもそのまま使えます。
+			競馬場でスマホから使うときも、先にパソコンなどの Web 版で uma-memo
+			を追加しておけば、スマホのアプリでそのまま使えます。
 		</p>
 	</section>
 
@@ -119,8 +119,10 @@
 	<section class="mt-8" aria-labelledby="chatgpt">
 		<h2 id="chatgpt" class="text-lg font-bold">ChatGPT に追加する</h2>
 		<p class="mt-3 text-sm leading-relaxed">
-			Plus・Pro・Business・Enterprise・Education の各プランの<strong>Web 版だけ</strong
-			>で使えます。スマホの ChatGPT アプリでは使えません。画面の名前は日本語表示のものです。
+			Plus・Pro・Business・Enterprise・Education の各プランで使えます。追加は<strong
+				>Web 版で</strong
+			>行います。Web 版で追加したあとは、スマホの ChatGPT
+			アプリでも使えます。画面の名前は日本語表示のものです。
 		</p>
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
 			<li>
@@ -141,8 +143,8 @@
 				でログインします。
 			</li>
 			<li>
-				会話で頼むときは、uma-memo と使う tool の名前をはっきり書くと、AI
-				が迷いません（下の「頼み方の例」）。
+				<strong>会話ごとに</strong>、uma-memo を使うよう頼むか、プラグインから uma-memo
+				を選びます。使う tool の名前もはっきり書くと、AI が迷いません（下の「頼み方の例」）。
 			</li>
 		</ol>
 		<p class="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -256,9 +258,11 @@
 				</dd>
 			</div>
 			<div>
-				<dt class="font-semibold">スマホの ChatGPT に uma-memo が出てこない</dt>
+				<dt class="font-semibold">ChatGPT が uma-memo を使わない</dt>
 				<dd class="mt-1">
-					ChatGPT のスマホのアプリでは使えません。Web 版か、Claude を使ってください。
+					ChatGPT では会話ごとに選ぶ必要があります。「uma-memo で〜」と頼むか、プラグインから
+					uma-memo を選んでください。スマホのアプリで出てこないときは、先に Web
+					版で追加してください。
 				</dd>
 			</div>
 		</dl>
