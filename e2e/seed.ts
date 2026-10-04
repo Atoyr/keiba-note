@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { setTimeout as sleep } from 'node:timers/promises';
 
 /**
  * E2E 専用のローカル D1 の置き場。開発用の `.wrangler/state` とは分けてある。
@@ -70,10 +71,74 @@ function seed(state: string, sqlFile: string) {
 	wrangler(`d1 execute k-note --file ${file}`, state);
 }
 
-// テストは定数を import するだけ。直接起動されたときだけ流す。
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * JST の 0 時まで、これ以下しか残っていないときは、0 時を過ぎるまで seed を待つ。
+ *
+ * 15 分にしたのは、seed のあとビルドとテストが 0 時をまたがないようにするため。
+ * CI の E2E はビルド込みで約5分、手元はそれより遅いことがある。
+ */
+export const SEED_MIDNIGHT_MARGIN_MS = 15 * 60 * 1000;
+
+/** 0 時ちょうどで流すと時計のずれで前日になりうるので、0 時を過ぎてから少し余分に待つ。 */
+const SEED_MIDNIGHT_EXTRA_MS = 5 * 1000;
+
+/**
+ * seed を流す前に待つべきミリ秒（待たなくてよければ 0）。
+ *
+ * seed.sql の `date('now', '+9 hours')` は、流した瞬間の「今日」に固定される。
+ * 一方サーバーの「今日」は実時刻で進む。seed とテストの間に JST の 0 時をまたぐと、
+ * 日曜が月曜になるなど `currentWeek`（src/lib/utils/date.ts）が次の週へ切り替わり、
+ * 「今日のレース」が /this-week や管理画面から消えてテストが落ちる。
+ * サーバーの時計は偽れない（workerd では `Date` を差し替えられず、
+ * サーバー側の `new Date()` / `Date.now()` は多数ある）ので、0 時の直前は 0 時を過ぎるまで待つ。
+ */
+export function waitBeforeSeed(now: Date): number {
+	// JST は UTC+9 固定（夏時間なし）。JST のその日の経過ミリ秒から、0 時までの残りを出す。
+	const elapsed = (now.getTime() + 9 * HOUR_MS) % DAY_MS;
+	const remaining = DAY_MS - elapsed;
+	return remaining <= SEED_MIDNIGHT_MARGIN_MS ? remaining + SEED_MIDNIGHT_EXTRA_MS : 0;
+}
+
+/** Playwright の webServer の起動待ちの既定値。 */
+const WEB_SERVER_TIMEOUT_MS = 60 * 1000;
+
+/**
+ * webServer の `timeout`。seed が待つ日は、待ちの最大ぶんを足す（足さないと待っている間にタイムアウトする）。
+ *
+ * 設定を読む時刻と seed が待つかを決める時刻は別なので、`waitBeforeSeed(now)` をそのまま足すと
+ * 23:45 の直前に設定を読み、直後に seed が始まった日に足りない。1 分先の時刻でも見て、
+ * どちらかで待つなら最大ぶんを足す。
+ */
+export function webServerTimeout(now: Date): number {
+	const mayWait =
+		waitBeforeSeed(now) > 0 || waitBeforeSeed(new Date(now.getTime() + WEB_SERVER_TIMEOUT_MS)) > 0;
+	return mayWait
+		? WEB_SERVER_TIMEOUT_MS + SEED_MIDNIGHT_MARGIN_MS + SEED_MIDNIGHT_EXTRA_MS
+		: WEB_SERVER_TIMEOUT_MS;
+}
+
+async function main() {
+	const wait = waitBeforeSeed(new Date());
+	if (wait > 0) {
+		console.log(
+			`JST の 0 時まで ${Math.ceil(wait / 60_000)} 分以内のため、日付をまたがないよう 0 時を過ぎるまで ${Math.ceil(wait / 1000)} 秒待ってから seed を流す`
+		);
+		await sleep(wait);
+	}
 	if (process.argv[2] === 'landing') seed(LANDING_STATE, LANDING_SEED);
 	else seed(E2E_STATE, 'e2e/seed.sql');
+}
+
+// テストは定数を import するだけ。直接起動されたときだけ流す。
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+	// トップレベル await は使わない（Playwright が設定ファイル経由で import するとき CJS になりうる）。
+	main().catch((error) => {
+		console.error(error);
+		process.exit(1);
+	});
 }
 
 /** 共有中のメモ。`/notes/[id]` で開ける。 */

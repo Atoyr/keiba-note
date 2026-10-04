@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { LANDING_STATE } from './e2e/seed';
+import { LANDING_STATE, webServerTimeout } from './e2e/seed';
 
 /**
  * 紹介ページ（未ログインの `/`）に載せるキャプチャを撮る設定（`pnpm run landing:shots`）。
@@ -13,7 +13,9 @@ const PORT = Number(process.env.LANDING_PORT ?? 4183);
 export default defineConfig({
 	webServer: {
 		command: `node --experimental-strip-types e2e/seed.ts landing && npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${LANDING_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN:`,
-		port: PORT
+		port: PORT,
+		// seed が JST の 0 時をまたがないよう待つことがある（e2e/seed.ts）。その日は起動待ちを伸ばす。
+		timeout: webServerTimeout(new Date())
 	},
 	use: { baseURL: `http://localhost:${PORT}` },
 	testDir: 'e2e/landing',

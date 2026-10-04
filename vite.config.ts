@@ -42,8 +42,12 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
-					// scripts/ は Node で動く道具（データ投入など）。ここの単体テストも Node で回す。
-					include: ['src/**/*.{test,spec}.{js,ts}', 'scripts/**/*.{test,spec}.ts'],
+					// scripts/ は Node で動く道具（データ投入など）、e2e/ の seed.ts も Node で動く。ここの単体テストも Node で回す。
+					include: [
+						'src/**/*.{test,spec}.{js,ts}',
+						'scripts/**/*.{test,spec}.ts',
+						'e2e/**/*.{test,spec}.ts'
+					],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
 				}
 			}
