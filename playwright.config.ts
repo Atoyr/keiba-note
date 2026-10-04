@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { E2E_STATE } from './e2e/seed';
+import { E2E_STATE, webServerTimeout } from './e2e/seed';
 
 /**
  * プレビューサーバーのポート。既定は 4173。
@@ -22,7 +22,9 @@ export default defineConfig({
 	// OAUTH_CIMD_ALLOW_LOOPBACK は E2E だけ。テストが立てた http://localhost の Client ID Metadata Document を読ませる。
 	webServer: {
 		command: `node --experimental-strip-types e2e/seed.ts && npm run build && pnpm exec wrangler dev --port ${PORT} --persist-to ${E2E_STATE} --var DISCORD_WEBHOOK_URL: --var GITHUB_DISPATCH_TOKEN: --var OAUTH_CIMD_ALLOW_LOOPBACK:1`,
-		port: PORT
+		port: PORT,
+		// seed が JST の 0 時をまたがないよう待つことがある（e2e/seed.ts）。その日は起動待ちを伸ばす。
+		timeout: webServerTimeout(new Date())
 	},
 	testMatch: '**/*.e2e.{ts,js}'
 });

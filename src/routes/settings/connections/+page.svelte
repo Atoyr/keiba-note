@@ -4,8 +4,10 @@
 	import { tick } from 'svelte';
 	import McpUrl from '$lib/components/McpUrl.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Progress } from '$lib/components/ui/progress/index.js';
 	import { SCOPE_LABELS } from '$lib/schemas/oauth';
 	import { todayJst } from '$lib/utils/date';
+	import { formatMcpReset } from '$lib/utils/mcp-quota';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -13,6 +15,11 @@
 	let heading = $state<HTMLHeadingElement>();
 
 	const day = (sec: number) => todayJst(new Date(sec * 1000));
+
+	const meters = $derived([
+		{ id: 'read', label: '読み取り', ...data.usage.read },
+		{ id: 'write', label: '書き込み', ...data.usage.write }
+	]);
 </script>
 
 <svelte:head><title>AIとの連携 — uma-memo</title></svelte:head>
@@ -45,6 +52,38 @@
 			<a href={resolve('/help/mcp')} class="text-primary underline underline-offset-4"
 				>AIとの連携の始め方（Claude・ChatGPT での手順）</a
 			>
+		</p>
+	</section>
+
+	<section class="mt-6 rounded-lg border p-4" aria-labelledby="usage-heading">
+		<h2 id="usage-heading" class="font-semibold">今週の利用量</h2>
+		<p class="mt-1 text-sm text-muted-foreground">
+			AI
+			がメモやレースのデータを読み書きした回数の、1週間の上限に対する割合です。つないだアプリすべての合計です。
+		</p>
+		<ul class="mt-3 space-y-3">
+			{#each meters as m (m.id)}
+				<li>
+					<div class="flex items-baseline justify-between text-sm">
+						<span id="usage-{m.id}">{m.label}</span>
+						<span class="font-medium tabular-nums">{m.percent}%</span>
+					</div>
+					<Progress
+						value={m.percent}
+						aria-labelledby="usage-{m.id}"
+						aria-valuetext="{m.percent}%"
+						class="mt-1 h-2"
+					/>
+					{#if m.percent >= 100}
+						<p class="mt-1 text-sm">
+							上限に達しました。AI からの{m.label}は次に戻るまでできません。
+						</p>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+		<p class="mt-3 text-xs text-muted-foreground">
+			毎週水曜 12:00 に 0% に戻ります（次は {formatMcpReset(data.usage.resetAt)}）。
 		</p>
 	</section>
 

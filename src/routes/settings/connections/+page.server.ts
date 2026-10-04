@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { listGrants, revokeGrant } from '$lib/server/auth/oauth';
 import { MCP_PATH } from '$lib/server/auth/oauth-metadata';
+import { getMcpUsage } from '$lib/server/services/mcp-usage';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -11,7 +12,8 @@ import type { Actions, PageServerLoad } from './$types';
  */
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
 	const { db, user } = ctx(locals, platform);
-	return { mcpUrl: `${url.origin}${MCP_PATH}`, grants: await listGrants(db, user.id) };
+	const [grants, usage] = await Promise.all([listGrants(db, user.id), getMcpUsage(db, user.id)]);
+	return { mcpUrl: `${url.origin}${MCP_PATH}`, grants, usage };
 };
 
 export const actions: Actions = {

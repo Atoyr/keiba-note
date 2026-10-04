@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { tick } from 'svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import RacePlace from '$lib/components/RacePlace.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -14,6 +15,9 @@
 	 * ボタンは disabled にしない（押したボタンからフォーカスが外れ、キーボードの位置が迷子になる）。
 	 */
 	let pendingRaceId = $state<string | null>(null);
+	/** 利用量をリセットしている最中のユーザー。二度押しを止める（押したボタンは disabled にしない）。 */
+	let pendingResetId = $state<string | null>(null);
+	let usersHeading = $state<HTMLHeadingElement>();
 
 	const fmtDate = (unix: number) =>
 		new Date(unix * 1000).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' });
@@ -27,7 +31,11 @@
 
 	/** 出走馬の取得の結果は、押した行の下に出す。凍結の失敗だけが画面の上に出る。 */
 	const fetchResult = $derived(form?.raceId ? form : null);
-	const pageMessage = $derived(form && !form.raceId ? form.message : null);
+	const pageMessage = $derived(form && !form.raceId && 'message' in form ? form.message : null);
+	/** 利用量をリセットしたユーザー。成功の文を「ユーザー」の見出しの下に出す。 */
+	const resetUser = $derived(
+		form && 'mcpReset' in form ? data.users.find((u) => u.id === form.mcpReset) : undefined
+	);
 </script>
 
 <svelte:head><title>管理 — uma-memo</title></svelte:head>
@@ -136,7 +144,21 @@
 		</ul>
 	{/if}
 
-	<h2 class="mt-8 text-sm font-bold">ユーザー</h2>
+	<h2
+		bind:this={usersHeading}
+		tabindex="-1"
+		class="mt-8 text-sm font-bold focus-visible:outline-2 focus-visible:outline-ring"
+	>
+		ユーザー
+	</h2>
+	{#if resetUser}
+		<p
+			class="mt-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
+			role="status"
+		>
+			{resetUser.displayName} の AI の利用量を 0% に戻しました。
+		</p>
+	{/if}
 	<ul class="mt-2 divide-y divide-gray-100 rounded-lg border border-gray-200">
 		{#each data.users as u (u.id)}
 			<li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
@@ -168,6 +190,51 @@
 						<input type="hidden" name="userId" value={u.id} />
 						<Button type="submit" variant="outline" size="sm">凍結</Button>
 					</form>
+				{/if}
+				{#if u.mcpUsage}
+					<!-- 利用量は名前の行の下に1行で置く。同じ行に並べると、凍結のボタンと日付が折り返す。 -->
+					<div class="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
+						<span class="text-xs text-muted-foreground">
+							AI 読み取り {u.mcpUsage.read}%・書き込み {u.mcpUsage.write}%
+						</span>
+						<form
+							method="POST"
+							action="?/resetMcpUsage"
+							use:enhance={({ cancel }) => {
+								if (pendingResetId !== null) return cancel();
+								// 確かめは enhance の中で。onsubmit の preventDefault は enhance が見ずに送ってしまう。
+								if (
+									!confirm(
+										`${u.displayName} の今週の AI の利用量（読み取り・書き込み）を 0% に戻します。`
+									)
+								)
+									return cancel();
+								pendingResetId = u.id;
+								return async ({ result, update }) => {
+									try {
+										await update();
+										await tick();
+										// 成功したときだけ。失敗の文は画面の上に出るので、フォーカスを動かさない。
+										if (result.type === 'success') usersHeading?.focus();
+									} finally {
+										pendingResetId = null;
+									}
+								};
+							}}
+						>
+							<input type="hidden" name="userId" value={u.id} />
+							<Button
+								type="submit"
+								variant="outline"
+								size="sm"
+								aria-label={pendingResetId === u.id
+									? undefined
+									: `${u.displayName} の AI の利用量を 0% に戻す`}
+							>
+								{pendingResetId === u.id ? '戻しています…' : 'AI の利用量を 0% に戻す'}
+							</Button>
+						</form>
+					</div>
 				{/if}
 			</li>
 		{/each}

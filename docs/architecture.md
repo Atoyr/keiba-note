@@ -32,6 +32,7 @@
   schedule は混んでいると大半の回を飛ばしていた。取得元へ行くのは引き続き Actions だけ（→ 第1章 / 第2章 / 3-8）
 - 更新日: 2026-10-04 — Client ID Metadata Document で、`none` も使えると書いた ChatGPT の文書（`private_key_jwt` を選んでいる）を受けるようにした（→ 3-10）
 - 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`）とスコープ `notes:write` を足した。`/mcp` の本文の上限を 64 KiB にした（→ 3-10）
+- 更新日: 2026-10-04 — MCP の tool の呼び出しに、ユーザーごと・週ごと（水曜 12:00 JST 区切り）の回数の上限を置いた。読みと書きで別の枠。管理者が1人ずつ 0 に戻せる（→ 3-10）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -721,7 +722,8 @@ sequenceDiagram
 | 認可の中身 | `lib/server/auth/oauth.ts` | PKCE・コードとトークンの発行と検証・リフレッシュのローテーション・連携の一覧と解除 |
 | 入口の判断 | `hooks.server.ts` | `/mcp` だけ Bearer を検証し、`locals.user` と `locals.oauthScopes` を載せる |
 | MCP | `routes/mcp/+server.ts` → `lib/server/mcp/` | JSON-RPC（initialize / ping / tools/list / tools/call）。スコープが足りなければ 403 `insufficient_scope` |
-| 解除 | `/settings/connections` | 本人の連携の一覧と解除（CASCADE でコードとトークンも消える） |
+| 解除 | `/settings/connections` | 本人の連携の一覧と解除（CASCADE でコードとトークンも消える）・今週の利用量（%） |
+| 上限 | `lib/server/services/mcp-usage.ts`・`lib/utils/mcp-quota.ts` | 週ごとの回数の上限（`mcp_usage`。1人1行）。数字と週の区切りは `mcp-quota.ts` だけに置く |
 
 - **トークンの口だけ SvelteKit に通さない。** トークンの要求は Origin の無いフォームの POST で、SvelteKit の CSRF の検査が
   hooks より前に 403 にする（パスごとに外す設定は無い）。この口は Cookie を見ないので、検査が守るものが無い。
@@ -741,6 +743,16 @@ sequenceDiagram
     共有・ほかの種類のメモ・他人のメモには届かない
   - 残る弱さ: 今の値を読んでから batch で書くまでは1つのトランザクションでない。その間に本人が予想画面で保存すると、
     tool が省いた項目は読んだときの値に戻る。届くのは本人のメモの中だけ
+- **tool の呼び出しは、ユーザーごとに週の回数の上限がある**（回数は `MCP_WEEKLY_LIMITS`。読み取りと書き込みで別の枠）。
+  - 単位は連携でなくユーザー。Claude と ChatGPT をつないでも合算で、連携を作り直しても逃れられない
+  - 週の区切りは水曜 12:00 JST（UTC+9 固定なので水曜 03:00 UTC）。週が変わったら読み・書きとも 0 から
+  - 数えるのは `tools/call` で、スコープと入力の検証を通ったあと、tool を動かす前に1つ（tool が「見つからない」を返しても数える）。
+    initialize・ping・tools/list・通知・知らない tool 名・403・入力の誤りは数えない。読み取りか書き込みかは tool の `readOnly` で決まる
+  - **数えるのと判定は1クエリ**（`INSERT … ON CONFLICT DO UPDATE … WHERE … RETURNING`）。読んでから書くと、並んだ呼び出しが上限を超える
+  - 上限に達したら tool を動かさず、tool の誤り（`isError`、HTTP 200）で戻る日時を返す。JSON-RPC の誤りにすると連携の故障に見える
+  - 本人は `/settings/connections` で %、管理者は `/settings/admin` で各ユーザーの % を見て、1人ずつ 0 に戻せる（行を消す）。
+    管理画面は利用者の活動の量（メモの件数など）を出さない（`routes/settings/admin/+page.server.ts` の load。本文を見せなくても「何か書いている」ことは漏れる）。
+    その例外で、出すのは今週の % だけ（リセットの要否を判断するため）。回数・tool の名前・連携の名前は出さない
 - **返す項目は tool で1つずつ選ぶ。** サービスの戻り値を広げて返さない（書いた人の名前・公開範囲・`created_by`・`profile_memo` を出さない）
 - **リフレッシュトークンは1回きり。ただし回線断での送り直しは受ける**（`auth/oauth.ts` の `judgeRetry`）。競馬場のスマホのように
   電波の弱い所では、要求は届いたのに応答が届かず、クライアントが同じトークンで送り直すことがある。使用済みのトークンが来たとき:

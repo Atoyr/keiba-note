@@ -349,6 +349,24 @@ test.describe('他人のデータが見えない', () => {
 		expect(theirs).not.toContain(TOGGLE_SHARE_NOTE_BODY);
 	});
 
+	test('「AIとの連携」に今週の利用量が % で出る', async ({ page }) => {
+		await login(page);
+		await gotoHydrated(page, '/settings/connections');
+		await expect(page.getByRole('heading', { name: '今週の利用量' })).toBeVisible();
+
+		// seed は読み取り 123/500（24%）・書き込み 7/100（7%）。ほかのテストの呼び出しで数が少し増えてもよい。
+		const read = page.getByRole('progressbar', { name: '読み取り' });
+		const write = page.getByRole('progressbar', { name: '書き込み' });
+		await expect(read).toHaveAttribute('aria-valuenow', /^(2[4-9]|3\d)$/);
+		await expect(write).toHaveAttribute('aria-valuenow', /^(7|8|9|1\d)$/);
+		const percent = await read.getAttribute('aria-valuenow');
+		await expect(page.getByText(`${percent}%`, { exact: true }).first()).toBeVisible();
+		await expect(
+			page.getByText(/毎週水曜 12:00 に 0% に戻ります（次は \d+月\d+日（水）12:00）。/)
+		).toBeVisible();
+		await expect(page.getByText('上限に達しました')).toHaveCount(0);
+	});
+
 	test('「AIとの連携」に他人の連携は出ず、他人の連携は解除できない', async ({ page, request }) => {
 		await login(page);
 		await gotoHydrated(page, '/settings/connections');

@@ -257,6 +257,18 @@
 				</dd>
 			</div>
 			<div>
+				<dt class="font-semibold">「今週の読み取り（書き込み）の上限に達しました」と言われた</dt>
+				<dd class="mt-1">
+					AI
+					が読み書きできる回数には、1週間ごとの上限があります（読み取りと書き込みで別です）。毎週水曜
+					12:00 に戻るので、それまで待ってください。今の利用量は
+					<a
+						href={resolve('/settings/connections')}
+						class="text-primary underline underline-offset-4">AIとの連携</a
+					>の画面で見られます。
+				</dd>
+			</div>
+			<div>
 				<dt class="font-semibold">急につながらなくなった</dt>
 				<dd class="mt-1">
 					<p>アプリ側で uma-memo を接続し直してください。どの原因でも、接続し直せば戻ります。</p>
