@@ -528,7 +528,7 @@ flowchart LR
 | 受け取るもの | 指示・コード・文書 | **指示の原文**・差分・キャプチャまたは実行ログ・evaluation.md（詳細は同文書の第2章） |
 | 受け取らないもの | — | Generator の説明や意図の解説 |
 | 書き換え | する | しない（読むだけ） |
-| 実体 | いま作業しているエージェント | Claude Code では `.claude/agents/evaluator.md` のサブエージェント。ほかのエージェントでは新しいセッション |
+| 実体 | いま作業しているエージェント（Claude Code では設計をするメインのセッションと、実装をする `.claude/agents/implementer.md` を合わせたもの。CLAUDE.md） | Claude Code では `.claude/agents/evaluator.md` のサブエージェント。ほかのエージェントでは新しいセッション |
 
 観点は4つに分け、項目と「機械が見ている部分」を [evaluation.md 第3章](./evaluation.md) に置く。
 
