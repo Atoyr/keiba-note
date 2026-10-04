@@ -73,6 +73,16 @@ test('AI の利用量が % で並び、リセットすると 0 に戻って表�
 	await expect(other.getByRole('button', { name: /AI の利用量を 0% に戻す/ })).toHaveCount(0);
 
 	const reset = row.getByRole('button', { name: 'E2E リセット対象 の AI の利用量を 0% に戻す' });
+	const posts: string[] = [];
+	page.on('request', (r) => {
+		if (r.method() === 'POST' && r.url().includes('resetMcpUsage')) posts.push(r.url());
+	});
+
+	// 確かめのダイアログで「キャンセル」なら送らない（use:enhance は onsubmit の preventDefault を見ない）
+	page.once('dialog', (d) => d.dismiss());
+	await reset.click();
+	await expect(row.getByText('AI 読み取り 100%・書き込み 50%')).toBeVisible();
+
 	page.once('dialog', (d) => d.accept());
 	await reset.click();
 
@@ -83,6 +93,8 @@ test('AI の利用量が % で並び、リセットすると 0 に戻って表�
 	await expect(row.getByText(/AI 読み取り/)).toHaveCount(0);
 	await expect(reset).toHaveCount(0);
 	await expect(page.getByRole('heading', { name: 'ユーザー' })).toBeFocused();
+	// キャンセルした1回目は送られていない
+	expect(posts).toHaveLength(1);
 });
 
 test('一般のユーザーは、AI の利用量のリセットを直接送っても断られる', async ({ page }) => {

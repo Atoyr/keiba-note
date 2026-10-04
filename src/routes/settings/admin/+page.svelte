@@ -203,24 +203,24 @@
 							action="?/resetMcpUsage"
 							use:enhance={({ cancel }) => {
 								if (pendingResetId !== null) return cancel();
-								pendingResetId = u.id;
-								return async ({ update }) => {
-									try {
-										await update();
-										await tick();
-										usersHeading?.focus();
-									} finally {
-										pendingResetId = null;
-									}
-								};
-							}}
-							onsubmit={(e) => {
+								// 確かめは enhance の中で。onsubmit の preventDefault は enhance が見ずに送ってしまう。
 								if (
 									!confirm(
 										`${u.displayName} の今週の AI の利用量（読み取り・書き込み）を 0% に戻します。`
 									)
 								)
-									e.preventDefault();
+									return cancel();
+								pendingResetId = u.id;
+								return async ({ result, update }) => {
+									try {
+										await update();
+										await tick();
+										// 成功したときだけ。失敗の文は画面の上に出るので、フォーカスを動かさない。
+										if (result.type === 'success') usersHeading?.focus();
+									} finally {
+										pendingResetId = null;
+									}
+								};
 							}}
 						>
 							<input type="hidden" name="userId" value={u.id} />
