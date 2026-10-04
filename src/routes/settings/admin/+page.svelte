@@ -154,16 +154,15 @@
 					<form
 						method="POST"
 						action="?/freeze"
-						use:enhance={() =>
-							({ update }) =>
-								update()}
-						onsubmit={(e) => {
+						use:enhance={({ cancel }) => {
+							// 確かめは enhance の中で。onsubmit の preventDefault は enhance が見ずに送ってしまう。
 							if (
 								!confirm(
 									`${u.displayName} を凍結します。ログインできなくなり、共有中のメモも非公開に戻ります。`
 								)
 							)
-								e.preventDefault();
+								return cancel();
+							return ({ update }) => update();
 						}}
 					>
 						<input type="hidden" name="userId" value={u.id} />

@@ -119,6 +119,11 @@ VALUES (
 	4102444800
 );
 
+-- 管理画面で「凍結」を押される専用のユーザー。凍結は戻せないので、ほかのテストと共有しない。
+-- メモもセッションも持たせない（凍結されても、ほかの画面の前提が変わらないように）。
+INSERT OR REPLACE INTO user (id, google_sub, email, display_name, role)
+VALUES ('01JE2EFREEZEUSER0000000000', 'e2e-freeze-google-sub', 'freeze@example.invalid', 'E2E 凍結対象', 'user');
+
 -- 予想画面（/races/[id]/preview）専用の1レース。
 --
 -- **馬タイムライン用の行とは別に立てる。** あちらの「E2E未来賞」は
