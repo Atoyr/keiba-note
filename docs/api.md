@@ -106,7 +106,7 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
 | `/` | GET | — | 自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
-| `/help/mcp` | GET | — | MCP（Claude・ChatGPT のコネクタ）の登録の案内と接続先 URL。DB に触らない | — |
+| `/help/mcp` | GET | — | MCP（Claude・ChatGPT のプラグイン）の登録の案内と接続先 URL。DB に触らない | — |
 | `/help/webmcp` | GET | — | WebMCPの使い方。ブラウザの対応確認・準備・予想画面での下書き反映と保存。toolsは登録しない | — |
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
 | `/races` | GET | `year`・`grade`（複数）・`q`・`offset` | レース一覧を `offset` 件目から100件と、条件に当たる総数。画面は下端で `offset` を付けてこの `load` を `preloadData` で呼び、続きを足す | 未知の値は捨てる。`offset` が数字でなければ 0 |

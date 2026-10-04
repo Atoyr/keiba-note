@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import McpUrl from '$lib/components/McpUrl.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { SCOPE_LABELS } from '$lib/schemas/oauth';
@@ -13,7 +14,8 @@
 <svelte:head><title>AIとの連携の始め方 — uma-memo</title></svelte:head>
 
 <!--
-	Claude・ChatGPT の画面の名前と手順は、各社の公式の案内（2026年10月3日確認）に合わせている。
+	Claude の画面の名前と手順は、Claude 公式の案内（2026年10月3日確認）に合わせている。
+	ChatGPT の手順は、日本語表示の実際の画面（2026年10月4日確認）に合わせている。
 	画面が変わったら、確認日と一緒に直す。
 -->
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -31,9 +33,9 @@
 			<h2 class="font-semibold">接続先の URL</h2>
 		</Card.Header>
 		<Card.Content class="space-y-2 text-sm leading-relaxed">
-			<p class="rounded-md bg-muted px-3 py-2 font-mono break-all">{data.mcpUrl}</p>
+			<McpUrl url={data.mcpUrl} />
 			<p class="text-muted-foreground">
-				AI のアプリでコネクタを追加するときに、この URL を入れます。
+				AI のアプリに uma-memo を追加するときに、この URL を入れます。
 			</p>
 		</Card.Content>
 	</Card.Root>
@@ -57,22 +59,23 @@
 					</tr>
 					<tr class="align-top">
 						<td class="py-2 pr-3">ChatGPT</td>
-						<td class="py-2 pr-3">Web 版（開発者モード）</td>
-						<td class="py-2">使えない（Web 版だけ）</td>
+						<td class="py-2 pr-3">Web 版</td>
+						<td class="py-2">使える（Web 版で追加したあと）</td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 		<p class="mt-3 text-sm leading-relaxed">
-			競馬場でスマホから使うなら Claude です。家で Web 版の Claude
-			にコネクタを追加しておくと、スマホの Claude アプリでもそのまま使えます。
+			競馬場でスマホから使うときも、先にパソコンなどの Web 版で uma-memo
+			を追加しておけば、スマホのアプリでそのまま使えます。
 		</p>
 	</section>
 
 	<section class="mt-8" aria-labelledby="claude">
 		<h2 id="claude" class="text-lg font-bold">Claude に追加する</h2>
 		<p class="mt-3 text-sm leading-relaxed">
-			Free・Pro・Max の各プランで追加できます（Free は独自のコネクタ1つまで）。Team・Enterprise
+			Free・Pro・Max の各プランで追加できます（Free は独自のプラグイン1つまで。Claude
+			の画面では「Connectors」と呼びます）。Team・Enterprise
 			では組織のオーナーが追加します。画面の名前は英語表示のものです。日本語表示では同じ場所の項目を選んでください。
 		</p>
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
@@ -101,7 +104,7 @@
 			</li>
 		</ol>
 		<p class="mt-3 text-sm leading-relaxed">
-			追加したコネクタは、次に Claude の iOS・Android
+			追加したプラグインは、次に Claude の iOS・Android
 			アプリにログインしたときから使えます。スマホのアプリからの追加は Claude
 			側で試験中のため、追加は Web 版かデスクトップ版で行ってください。
 		</p>
@@ -117,32 +120,40 @@
 	<section class="mt-8" aria-labelledby="chatgpt">
 		<h2 id="chatgpt" class="text-lg font-bold">ChatGPT に追加する</h2>
 		<p class="mt-3 text-sm leading-relaxed">
-			Plus・Pro・Business・Enterprise・Education の各プランの<strong>Web 版だけ</strong
-			>で使えます。スマホの ChatGPT アプリでは使えません。Business
-			以上では、管理者が開発者モードを許可している必要があります。
+			Plus・Pro・Business・Enterprise・Education の各プランで使えます。追加は<strong
+				>Web 版で</strong
+			>行います。Web 版で追加したあとは、スマホの ChatGPT
+			アプリでも使えます。画面の名前は日本語表示のものです。
 		</p>
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
-			<li>chatgpt.com の「Settings」→「Security and login」で「Developer mode」をオンにします。</li>
 			<li>
-				サイドバーの「Plugins」で「+」を押し、MCP のアプリを作ります。名前に「uma-memo」、URL
-				に上の接続先の URL を入れ、認証は「OAuth」を選びます。
+				chatgpt.com
+				のサイドバーの「プラグイン」を開き、「カスタムプラグインを追加」を押します。「カスタム MCP
+				サーバーを作成」の画面が開きます。
 			</li>
-			<li>作成すると uma-memo の許可画面が開きます（下の「許可画面で選ぶこと」）。</li>
 			<li>
-				会話の「+」メニューから「Developer mode」を選び、uma-memo を選びます。使う tool
-				の名前をはっきり書くと、AI が迷いません（下の「頼み方の例」）。
+				名前に「uma-memo」を入れます。「接続タイプ」は「サーバーURL」のまま、URL に上の接続先の URL
+				を入れ、「認証」は「OAuth」を選びます。「OAuthの詳細設定」は変えなくて構いません。
+			</li>
+			<li>
+				注意書きを読んで「理解したうえで続けます」にチェックを入れ、「プラグインとして作成」を押します。
+			</li>
+			<li>
+				「uma-memo を接続する」の画面で「uma-memo に進む」を押すと、uma-memo
+				の許可画面が開きます（下の「許可画面で選ぶこと」）。ログインしていなければ、先に Google
+				でログインします。
+			</li>
+			<li>
+				<strong>会話ごとに</strong>、uma-memo を使うよう頼むか、プラグインから uma-memo
+				を選びます。使う tool の名前もはっきり書くと、AI が迷いません（下の「頼み方の例」）。
 			</li>
 		</ol>
 		<p class="mt-3 text-sm leading-relaxed text-muted-foreground">
-			開発者モードは、ChatGPT
-			では「危険度が高い」設定として扱われています。信頼できるアプリだけをつないでください。
+			ChatGPT も、カスタムの MCP
+			サーバーの利用にはリスクが伴うと注意しています。信頼できるサーバーだけをつないでください。
 		</p>
 		<p class="mt-2 text-xs text-muted-foreground">
-			<a
-				href="https://developers.openai.com/api/docs/guides/developer-mode"
-				class={link}
-				referrerpolicy="no-referrer">OpenAI 公式の案内</a
-			>をもとにしています（2026年10月3日確認）。
+			日本語表示の ChatGPT の画面をもとにしています（2026年10月4日確認）。
 		</p>
 	</section>
 
@@ -225,27 +236,30 @@
 					「アプリの情報を取得できませんでした」「混み合っています」と出たときは、アプリ側の一時的な不調か
 					uma-memo
 					側の混雑です。しばらくしてから、アプリ側でもう一度つないでください。それ以外のときは、アプリ側の設定が
-					uma-memo と合っていません。コネクタを削除して、上の手順で追加し直してください。Claude
-					の「OAuth client」で「Use your own OAuth client」を選んでいたら、推奨の「Use Claude's
-					published identity」か「Register automatically」にしてください。
+					uma-memo と合っていません。アプリ側で uma-memo
+					を削除して、上の手順で追加し直してください。Claude の「OAuth client」で「Use your own
+					OAuth client」を選んでいたら、推奨の「Use Claude's published identity」か「Register
+					automatically」にしてください。
 				</dd>
 			</div>
 			<div>
 				<dt class="font-semibold">AI がメモを読めない</dt>
 				<dd class="mt-1">
-					許可画面でメモのチェックを外した可能性があります。「AIとの連携」でその連携を解除し、アプリ側でコネクタを接続し直して、メモにチェックを入れたまま許可してください。
+					許可画面でメモのチェックを外した可能性があります。「AIとの連携」でその連携を解除し、アプリ側で
+					uma-memo を接続し直して、メモにチェックを入れたまま許可してください。
 				</dd>
 			</div>
 			<div>
 				<dt class="font-semibold">AI が予想を書けないと言う</dt>
 				<dd class="mt-1">
-					予想の書き込みを許可していません。書き込みが加わる前につないだ連携も同じです。「AIとの連携」でその連携を解除し、アプリ側でコネクタを接続し直して、予想を書くのにチェックを入れたまま許可してください。
+					予想の書き込みを許可していません。書き込みが加わる前につないだ連携も同じです。「AIとの連携」でその連携を解除し、アプリ側で
+					uma-memo を接続し直して、予想を書くのにチェックを入れたまま許可してください。
 				</dd>
 			</div>
 			<div>
 				<dt class="font-semibold">急につながらなくなった</dt>
 				<dd class="mt-1">
-					<p>アプリ側でコネクタを接続し直してください。どの原因でも、接続し直せば戻ります。</p>
+					<p>アプリ側で uma-memo を接続し直してください。どの原因でも、接続し直せば戻ります。</p>
 					<ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
 						<li>
 							30日ほど使わずにいて、接続の期限が切れた（「AIとの連携」の一覧には残ったままです）
@@ -265,9 +279,11 @@
 				</dd>
 			</div>
 			<div>
-				<dt class="font-semibold">スマホの ChatGPT に uma-memo が出てこない</dt>
+				<dt class="font-semibold">ChatGPT が uma-memo を使わない</dt>
 				<dd class="mt-1">
-					ChatGPT のスマホのアプリでは使えません。Web 版か、Claude を使ってください。
+					ChatGPT では会話ごとに選ぶ必要があります。「uma-memo で〜」と頼むか、プラグインから
+					uma-memo を選んでください。スマホのアプリで出てこないときは、先に Web
+					版で追加してください。
 				</dd>
 			</div>
 		</dl>

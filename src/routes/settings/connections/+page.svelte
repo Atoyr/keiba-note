@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { tick } from 'svelte';
+	import McpUrl from '$lib/components/McpUrl.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { SCOPE_LABELS } from '$lib/schemas/oauth';
 	import { todayJst } from '$lib/utils/date';
@@ -34,10 +35,10 @@
 
 	<section class="mt-6 rounded-lg border p-4" aria-labelledby="mcp-url-heading">
 		<h2 id="mcp-url-heading" class="font-semibold">接続先の URL</h2>
-		<p class="mt-2 rounded bg-muted px-3 py-2 font-mono text-sm break-all">{data.mcpUrl}</p>
+		<div class="mt-2"><McpUrl url={data.mcpUrl} /></div>
 		<!-- 手順は /help/mcp に1か所だけ置く。各社の画面が変わったときに片方だけ古くならないように。 -->
 		<p class="mt-3 text-sm text-muted-foreground">
-			Claude か ChatGPT でコネクタを追加するときに、この URL
+			Claude か ChatGPT に uma-memo を追加するときに、この URL
 			を入れます。追加するとこのサイトの許可画面が開きます。
 		</p>
 		<p class="mt-3 text-sm">

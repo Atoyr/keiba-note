@@ -56,7 +56,7 @@ const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み
 
 export const SCREENS: Screen[] = [
 	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
-	// MCP（Claude・ChatGPT のコネクタ）の登録の案内。
+	// MCP（Claude・ChatGPT のプラグイン）の登録の案内。
 	{ name: 'mcp-guide', path: '/help/mcp', auth: true },
 	{
 		name: 'webmcp-guide-supported',
