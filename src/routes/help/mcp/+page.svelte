@@ -14,7 +14,7 @@
 <svelte:head><title>AIとの連携の始め方 — uma-memo</title></svelte:head>
 
 <!--
-	Claude・ChatGPT の画面の名前と手順は、各社の公式の案内（2026年10月3日確認）に合わせている。
+	Claude の画面の名前と手順は、Claude 公式の案内（2026年10月3日確認）に合わせている。
 	ChatGPT の手順は、日本語表示の実際の画面（2026年10月4日確認）に合わせている。
 	画面が変わったら、確認日と一緒に直す。
 -->
@@ -34,7 +34,7 @@
 		<Card.Content class="space-y-2 text-sm leading-relaxed">
 			<McpUrl url={data.mcpUrl} />
 			<p class="text-muted-foreground">
-				AI のアプリでプラグインを追加するときに、この URL を入れます。
+				AI のアプリに uma-memo を追加するときに、この URL を入れます。
 			</p>
 		</Card.Content>
 	</Card.Root>
@@ -65,15 +65,16 @@
 			</table>
 		</div>
 		<p class="mt-3 text-sm leading-relaxed">
-			競馬場でスマホから使うなら Claude です。家で Web 版の Claude
-			にプラグインを追加しておくと、スマホの Claude アプリでもそのまま使えます。
+			競馬場でスマホから使うなら Claude です。家で Web 版の Claude に uma-memo
+			を追加しておくと、スマホの Claude アプリでもそのまま使えます。
 		</p>
 	</section>
 
 	<section class="mt-8" aria-labelledby="claude">
 		<h2 id="claude" class="text-lg font-bold">Claude に追加する</h2>
 		<p class="mt-3 text-sm leading-relaxed">
-			Free・Pro・Max の各プランで追加できます（Free は独自のプラグイン1つまで）。Team・Enterprise
+			Free・Pro・Max の各プランで追加できます（Free は独自のプラグイン1つまで。Claude
+			の画面では「Connectors」と呼びます）。Team・Enterprise
 			では組織のオーナーが追加します。画面の名前は英語表示のものです。日本語表示では同じ場所の項目を選んでください。
 		</p>
 		<ol class="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
@@ -219,21 +220,23 @@
 					「アプリの情報を取得できませんでした」「混み合っています」と出たときは、アプリ側の一時的な不調か
 					uma-memo
 					側の混雑です。しばらくしてから、アプリ側でもう一度つないでください。それ以外のときは、アプリ側の設定が
-					uma-memo と合っていません。プラグインを削除して、上の手順で追加し直してください。Claude
-					の「OAuth client」で「Use your own OAuth client」を選んでいたら、推奨の「Use Claude's
-					published identity」か「Register automatically」にしてください。
+					uma-memo と合っていません。アプリ側で uma-memo
+					を削除して、上の手順で追加し直してください。Claude の「OAuth client」で「Use your own
+					OAuth client」を選んでいたら、推奨の「Use Claude's published identity」か「Register
+					automatically」にしてください。
 				</dd>
 			</div>
 			<div>
 				<dt class="font-semibold">AI がメモを読めない</dt>
 				<dd class="mt-1">
-					許可画面でメモのチェックを外した可能性があります。「AIとの連携」でその連携を解除し、アプリ側でプラグインを接続し直して、メモにチェックを入れたまま許可してください。
+					許可画面でメモのチェックを外した可能性があります。「AIとの連携」でその連携を解除し、アプリ側で
+					uma-memo を接続し直して、メモにチェックを入れたまま許可してください。
 				</dd>
 			</div>
 			<div>
 				<dt class="font-semibold">急につながらなくなった</dt>
 				<dd class="mt-1">
-					<p>アプリ側でプラグインを接続し直してください。どの原因でも、接続し直せば戻ります。</p>
+					<p>アプリ側で uma-memo を接続し直してください。どの原因でも、接続し直せば戻ります。</p>
 					<ul class="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
 						<li>
 							30日ほど使わずにいて、接続の期限が切れた（「AIとの連携」の一覧には残ったままです）

@@ -36,7 +36,7 @@
 		<div class="mt-2"><McpUrl url={data.mcpUrl} /></div>
 		<!-- 手順は /help/mcp に1か所だけ置く。各社の画面が変わったときに片方だけ古くならないように。 -->
 		<p class="mt-3 text-sm text-muted-foreground">
-			Claude か ChatGPT でプラグインを追加するときに、この URL
+			Claude か ChatGPT に uma-memo を追加するときに、この URL
 			を入れます。追加するとこのサイトの許可画面が開きます。
 		</p>
 		<p class="mt-3 text-sm">
