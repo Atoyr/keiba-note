@@ -44,7 +44,9 @@ async function authorize(
 	userId = 'A',
 	scopes: ('races:read' | 'notes:read')[] = ['races:read', 'notes:read']
 ) {
-	const client = await registerClient(db, { name: 'Claude', redirectUris: [REDIRECT] });
+	// 登録も NOW で行う。実際の時計で登録すると、NOW から24時間を過ぎた日には登録の掃除が
+	// NOW に作った未連携の行を消し、テストが日付で落ちる。
+	const client = await registerClient(db, { name: 'Claude', redirectUris: [REDIRECT] }, NOW);
 	const code = await createAuthorizationCode(
 		db,
 		{ userId, clientId: client.id, scopes, redirectUri: REDIRECT, codeChallenge: CHALLENGE },

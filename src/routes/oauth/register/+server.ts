@@ -13,7 +13,7 @@ import type { RequestHandler } from './$types';
 /**
  * 動的クライアント登録（RFC 7591）。**ログイン不要**（PUBLIC_PATHS）。
  *
- * Claude・ChatGPT はコネクタを足すときにここで自分を登録する。登録だけでは何も読めない
+ * Claude・ChatGPT はプラグインを足すときにここで自分を登録する。登録だけでは何も読めない
  * （本人が同意画面で許可して初めて grant ができる）。受けるのは公開クライアントだけで、秘密鍵は出さない。
  */
 export const POST: RequestHandler = async ({ request, platform, locals }) => {
