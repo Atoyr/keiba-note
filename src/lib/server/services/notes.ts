@@ -623,8 +623,11 @@ export type PreviewNoteInput = {
 	/**
 	 * レースの見立て。本文が空で展開も無ければ「書かない／消す」。
 	 * `flow` は null で「展開を消す」、undefined で「展開に触らない」（→ `raceNoteStatements`）。
+	 *
+	 * **`raceNote` ごと undefined なら、見立てに触らない。** MCP の tool は渡された馬だけを書き、
+	 * 渡されなかった見立てを消さない。画面のフォームは必ず渡す。
 	 */
-	raceNote: { body: string; flow?: RaceFlow | null };
+	raceNote?: { body: string; flow?: RaceFlow | null };
 	entries: {
 		entryId: string;
 		horseId: string;
@@ -654,20 +657,22 @@ export async function savePreviewNotes(
 	let saved = 0;
 	let cleared = 0;
 
-	const raceBody = input.raceNote.body.trim();
-	const flow = input.raceNote.flow;
-	statements.push(
-		...raceNoteStatements(db, {
-			authorId,
-			raceId: input.raceId,
-			kind: 'race_preview',
-			body: raceBody,
-			flow,
-			occurredAt
-		})
-	);
-	if (raceBody || flow) saved++;
-	else cleared++;
+	if (input.raceNote) {
+		const raceBody = input.raceNote.body.trim();
+		const flow = input.raceNote.flow;
+		statements.push(
+			...raceNoteStatements(db, {
+				authorId,
+				raceId: input.raceId,
+				kind: 'race_preview',
+				body: raceBody,
+				flow,
+				occurredAt
+			})
+		);
+		if (raceBody || flow) saved++;
+		else cleared++;
+	}
 
 	for (const e of input.entries) {
 		const body = e.body.trim();

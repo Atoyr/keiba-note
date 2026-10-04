@@ -28,7 +28,9 @@
 	<!-- 文の途中で改行すると、和文の間に空白が入る。文ごとに span に分けて折り返させる。 -->
 	<p class="mt-1 text-sm text-muted-foreground">
 		<span>Claude や ChatGPT から、レースのデータとあなたのメモを読めるようにします（MCP）。</span
-		><span>読むことだけができ、書き込み・共有・削除はできません。</span>
+		><span>許可すれば、あなたの予想（見立て・印・札・出走前メモ）も書けます。</span><span
+			>ふりかえり・近況メモの書き込みと、共有、予想以外のメモの削除はできません。</span
+		>
 	</p>
 
 	<section class="mt-6 rounded-lg border p-4" aria-labelledby="mcp-url-heading">
@@ -101,7 +103,7 @@
 				{/each}
 			</ul>
 			<p class="mt-3 text-xs text-muted-foreground">
-				解除すると、そのアプリはすぐに読めなくなります。もう一度使うときは、アプリの側で接続し直してください。
+				解除すると、そのアプリはすぐに読み書きできなくなります。もう一度使うときは、アプリの側で接続し直してください。
 			</p>
 		{/if}
 	</section>
