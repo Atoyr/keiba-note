@@ -831,3 +831,9 @@ VALUES ('01JE2EMCPRESETUSER000000000', 'e2e-mcp-reset-google-sub', 'mcp-reset@ex
 INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
 	('01JE2EMCPRESETUSER000000000',
 	 ((CAST(strftime('%s', 'now') AS INTEGER) - 529200) / 604800) * 604800 + 529200, 500, 50);
+
+-- サイト管理者の今週の利用量（読み取り 500/500 = 100%、書き込み 30/100 = 30%）。
+-- 「AIとの連携」の上限に達した状態を撮る（screens: settings-connections-limit）。管理者のトークンで MCP を呼ぶ E2E は無い。
+INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
+	('01JE2EADMIN000000000000000',
+	 ((CAST(strftime('%s', 'now') AS INTEGER) - 529200) / 604800) * 604800 + 529200, 500, 30);

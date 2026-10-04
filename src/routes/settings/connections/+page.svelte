@@ -4,6 +4,7 @@
 	import { tick } from 'svelte';
 	import McpUrl from '$lib/components/McpUrl.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Progress } from '$lib/components/ui/progress/index.js';
 	import { SCOPE_LABELS } from '$lib/schemas/oauth';
 	import { todayJst } from '$lib/utils/date';
 	import { formatMcpReset } from '$lib/utils/mcp-quota';
@@ -67,17 +68,12 @@
 						<span id="usage-{m.id}">{m.label}</span>
 						<span class="font-medium tabular-nums">{m.percent}%</span>
 					</div>
-					<div
-						role="progressbar"
+					<Progress
+						value={m.percent}
 						aria-labelledby="usage-{m.id}"
-						aria-valuemin={0}
-						aria-valuemax={100}
-						aria-valuenow={m.percent}
 						aria-valuetext="{m.percent}%"
-						class="mt-1 h-2 overflow-hidden rounded-full bg-muted"
-					>
-						<div class="h-full bg-primary" style:width="{m.percent}%"></div>
-					</div>
+						class="mt-1 h-2"
+					/>
 					{#if m.percent >= 100}
 						<p class="mt-1 text-sm">
 							上限に達しました。AI からの{m.label}は次に戻るまでできません。

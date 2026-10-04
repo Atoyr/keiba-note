@@ -55,12 +55,20 @@ export async function consumeMcpQuota(
 	return { ok: false, limit, resetAt: mcpNextReset(now) };
 }
 
+type Meter = { used: number; limit: number; percent: number };
+
 export type McpUsage = {
-	read: { used: number; limit: number; percent: number };
-	write: { used: number; limit: number; percent: number };
+	read: Meter;
+	write: Meter;
 	/** 次に 0 に戻る時刻（unix 秒）。 */
 	resetAt: number;
 };
+
+const meter = (used: number, limit: number): Meter => ({
+	used,
+	limit,
+	percent: quotaPercent(used, limit)
+});
 
 /** 今週の使った回数と割合。行が無い・週が違えば 0。 */
 export async function getMcpUsage(
@@ -74,21 +82,35 @@ export async function getMcpUsage(
 		.where(eq(mcpUsage.userId, userId))
 		.limit(1);
 	const current = row && row.weekStart === mcpWeekStart(now) ? row : null;
-	const reads = current?.reads ?? 0;
-	const writes = current?.writes ?? 0;
 	return {
-		read: {
-			used: reads,
-			limit: MCP_WEEKLY_LIMITS.read,
-			percent: quotaPercent(reads, MCP_WEEKLY_LIMITS.read)
-		},
-		write: {
-			used: writes,
-			limit: MCP_WEEKLY_LIMITS.write,
-			percent: quotaPercent(writes, MCP_WEEKLY_LIMITS.write)
-		},
+		read: meter(current?.reads ?? 0, MCP_WEEKLY_LIMITS.read),
+		write: meter(current?.writes ?? 0, MCP_WEEKLY_LIMITS.write),
 		resetAt: mcpNextReset(now)
 	};
+}
+
+/**
+ * 今週の行があるユーザーの利用量（管理画面用）。前週の行は 0 と同じなので含めない。
+ * 行を持つのは AI を使ったユーザーだけなので、件数は少ない。
+ */
+export async function listWeeklyMcpUsage(
+	db: Db,
+	now: Date = new Date()
+): Promise<Map<string, { read: Meter; write: Meter }>> {
+	const rows = await db
+		.select({ userId: mcpUsage.userId, reads: mcpUsage.reads, writes: mcpUsage.writes })
+		.from(mcpUsage)
+		.where(eq(mcpUsage.weekStart, mcpWeekStart(now)))
+		.limit(1000);
+	return new Map(
+		rows.map((r) => [
+			r.userId,
+			{
+				read: meter(r.reads, MCP_WEEKLY_LIMITS.read),
+				write: meter(r.writes, MCP_WEEKLY_LIMITS.write)
+			}
+		])
+	);
 }
 
 /** 管理者のリセット。行を消す（次の呼び出しで 0 から作り直される）。消した行があったかを返す。 */

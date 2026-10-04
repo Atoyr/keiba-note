@@ -588,6 +588,8 @@ export const SCREENS: Screen[] = [
 	{ name: 'settings-shares', path: '/settings/shares', auth: true },
 	// AI との連携（MCP）。seed に自分の連携が2つ（全部を許したもの・レースだけのもの）ある。
 	{ name: 'settings-connections', path: '/settings/connections', auth: true },
+	// 上限に達した状態。seed の管理者に、読み取り 100%・書き込み 30% の今週の行を置いてある。
+	{ name: 'settings-connections-limit', path: '/settings/connections', auth: true, as: 'admin' },
 	// 同意画面。seed のクライアントと登録どおりの戻り先で開く（許可は押さない）。
 	{
 		name: 'oauth-authorize',

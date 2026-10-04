@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { and, desc, eq } from 'drizzle-orm';
 import * as v from 'valibot';
-import { mcpUsage, note, oauthGrant, session, user } from '$lib/server/db/schema';
+import { note, oauthGrant, session, user } from '$lib/server/db/schema';
 import { describeError } from '$lib/server/monitoring/log';
 import {
 	DispatchError,
@@ -9,11 +9,10 @@ import {
 	isDispatchConfigured
 } from '$lib/server/race-data/dispatch';
 import { entriesFetchBlocker, listUpcomingRaces } from '$lib/server/services/entries-fetch';
-import { resetMcpUsage } from '$lib/server/services/mcp-usage';
+import { listWeeklyMcpUsage, resetMcpUsage } from '$lib/server/services/mcp-usage';
 import { getRace } from '$lib/server/services/races';
 import { ctxAdmin } from '$lib/server/util';
 import { addDays, currentWeek, todayJst } from '$lib/utils/date';
-import { MCP_WEEKLY_LIMITS, mcpWeekStart, quotaPercent } from '$lib/utils/mcp-quota';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -47,22 +46,16 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 			displayName: user.displayName,
 			role: user.role,
 			deletedAt: user.deletedAt,
-			createdAt: user.createdAt,
-			mcpReads: mcpUsage.reads,
-			mcpWrites: mcpUsage.writes
+			createdAt: user.createdAt
 		})
 		.from(user)
-		// 今週の行だけ結ぶ（前週の行は 0 と同じ扱い）。
-		.leftJoin(
-			mcpUsage,
-			and(eq(mcpUsage.userId, user.id), eq(mcpUsage.weekStart, mcpWeekStart(new Date())))
-		)
 		.orderBy(desc(user.createdAt))
 		.limit(200);
 
-	const [users, races] = await Promise.all([
+	const [users, races, mcpWeekly] = await Promise.all([
 		usersQuery,
-		listUpcomingRaces(db, { from: today, to: addDays(today, UPCOMING_DAYS - 1) })
+		listUpcomingRaces(db, { from: today, to: addDays(today, UPCOMING_DAYS - 1) }),
+		listWeeklyMcpUsage(db)
 	]);
 
 	const weekEnd = currentWeek(
@@ -70,11 +63,10 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		races.map((r) => r.date)
 	).end;
 	return {
-		users: users.map(({ mcpReads, mcpWrites, ...u }) => {
-			const read = quotaPercent(mcpReads ?? 0, MCP_WEEKLY_LIMITS.read);
-			const write = quotaPercent(mcpWrites ?? 0, MCP_WEEKLY_LIMITS.write);
-			// 行が無い・0% 同士のユーザーには出さない（リセットする意味が無い）。
-			return { ...u, mcpUsage: read === 0 && write === 0 ? null : { read, write } };
+		users: users.map((u) => {
+			// 今週の行があるユーザーだけ出す（1回でも使っていれば、% が 0 でもリセットできるように）。
+			const w = mcpWeekly.get(u.id);
+			return { ...u, mcpUsage: w ? { read: w.read.percent, write: w.write.percent } : null };
 		}),
 		races: races.map(({ externalRef, ...r }) => ({
 			...r,
@@ -100,7 +92,7 @@ export const actions: Actions = {
 		if (!parsed.success) return fail(400, { message: '操作を受け付けられませんでした' });
 
 		await resetMcpUsage(db, parsed.output.userId);
-		return { mcpReset: true };
+		return { mcpReset: parsed.output.userId };
 	},
 
 	/**

@@ -67,16 +67,22 @@ test('AI の利用量が % で並び、リセットすると 0 に戻って表�
 	const row = page.getByRole('listitem').filter({ hasText: 'E2E リセット対象' });
 	await expect(row.getByText('AI 読み取り 100%・書き込み 50%')).toBeVisible();
 
-	// 使っていない（0% 同士・行が無い）ユーザーには出ない
-	const other = page.getByRole('listitem').filter({ hasText: 'E2E 管理者' });
+	// 今週の行が無いユーザーには出ない
+	const other = page.getByRole('listitem').filter({ hasText: 'E2E 別ユーザー' });
 	await expect(other.getByText(/AI 読み取り/)).toHaveCount(0);
-	await expect(other.getByRole('button', { name: 'AI の利用量をリセット' })).toHaveCount(0);
+	await expect(other.getByRole('button', { name: /AI の利用量を 0% に戻す/ })).toHaveCount(0);
 
+	const reset = row.getByRole('button', { name: 'E2E リセット対象 の AI の利用量を 0% に戻す' });
 	page.once('dialog', (d) => d.accept());
-	await row.getByRole('button', { name: 'AI の利用量をリセット' }).click();
+	await reset.click();
 
+	// 行ごと消えるので、結果は「ユーザー」の見出しの下に出し、フォーカスもそこへ移す
+	await expect(page.getByRole('status')).toHaveText(
+		'E2E リセット対象 の AI の利用量を 0% に戻しました。'
+	);
 	await expect(row.getByText(/AI 読み取り/)).toHaveCount(0);
-	await expect(row.getByRole('button', { name: 'AI の利用量をリセット' })).toHaveCount(0);
+	await expect(reset).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'ユーザー' })).toBeFocused();
 });
 
 test('一般のユーザーは、AI の利用量のリセットを直接送っても断られる', async ({ page }) => {

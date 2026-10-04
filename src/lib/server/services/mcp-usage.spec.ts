@@ -3,7 +3,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
 import { MCP_WEEKLY_LIMITS, mcpNextReset, mcpWeekStart } from '$lib/utils/mcp-quota';
-import { consumeMcpQuota, getMcpUsage, resetMcpUsage } from './mcp-usage';
+import { consumeMcpQuota, getMcpUsage, listWeeklyMcpUsage, resetMcpUsage } from './mcp-usage';
 
 let db: Db;
 let sqlite: DatabaseSync;
@@ -110,5 +110,19 @@ describe('getMcpUsage / resetMcpUsage', () => {
 		put('B', WEEK, 9, 9);
 		await resetMcpUsage(db, 'A');
 		expect(row('B')).toMatchObject({ reads: 9, writes: 9 });
+	});
+});
+
+describe('listWeeklyMcpUsage', () => {
+	it('今週の行があるユーザーだけを、回数と % で返す。前週の行は含めない', async () => {
+		put('A', WEEK, 1, 0);
+		put('B', WEEK - 7 * 86400, 500, 100);
+		const m = await listWeeklyMcpUsage(db, NOW);
+		expect([...m.keys()]).toEqual(['A']);
+		expect(m.get('A')).toEqual({
+			read: { used: 1, limit: 500, percent: 0 },
+			write: { used: 0, limit: 100, percent: 0 }
+		});
+		expect((await listWeeklyMcpUsage(db, NEXT_WEEK)).size).toBe(0);
 	});
 });
