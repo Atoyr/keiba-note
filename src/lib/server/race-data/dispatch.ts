@@ -10,6 +10,8 @@
  * fine-grained token（docs/operations.md）。
  */
 
+import type { EntriesStage } from '$lib/server/services/entries-fetch';
+
 export const ENTRIES_WORKFLOW = 'race-data-fetch.yml';
 
 export type EntriesFetchRequest = {
@@ -22,6 +24,8 @@ export type EntriesFetchRequest = {
 	requireConfirmed: boolean;
 	/** PR 本文に書く起動元。 */
 	trigger: 'cron' | 'admin';
+	/** Cron の段（候補・出走馬・枠順）。Cron だけが付ける。PR 本文の「なぜ」に使う。 */
+	stage?: EntriesStage;
 };
 
 /**
@@ -69,7 +73,8 @@ export function workflowInputs(req: EntriesFetchRequest): Record<string, string>
 		race_number: String(req.raceNumber),
 		...(raceId ? { race_id: raceId } : {}),
 		require_confirmed: String(req.requireConfirmed),
-		trigger: req.trigger
+		trigger: req.trigger,
+		...(req.stage ? { stage: req.stage } : {})
 	};
 }
 

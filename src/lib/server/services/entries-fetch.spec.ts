@@ -29,8 +29,11 @@ beforeEach(() => {
 });
 
 describe('listEntriesFetchTargets', () => {
-	it('1〜3日後の重賞のうち、馬番がまだ1頭も無いものを開催順に返す', async () => {
-		expect(await listEntriesFetchTargets(db, NOW)).toEqual([
+	const ids = async (stage: Parameters<typeof listEntriesFetchTargets>[2], now = NOW) =>
+		(await listEntriesFetchTargets(db, now, stage)).map((t) => t.raceId);
+
+	it('frames は1〜3日後の重賞のうち、馬番がまだ1頭も無いものを開催順に返す', async () => {
+		expect(await listEntriesFetchTargets(db, NOW, 'frames')).toEqual([
 			{
 				raceId: 'SAT',
 				date: '2026-09-26',
@@ -48,10 +51,35 @@ describe('listEntriesFetchTargets', () => {
 		]);
 	});
 
+	it('entries は4日後まで（G1 も G2/G3 も）', async () => {
+		expect(await ids('entries')).toEqual(['SAT', 'SPR', 'FAR']);
+	});
+
+	it('candidates は G2/G3 が8日後まで、G1 が15日後まで', async () => {
+		sqlite.exec(`INSERT INTO race (id, date, course, race_number, name, grade, external_ref) VALUES
+			('G2-8', '2026-10-02', '東京', 11, '8日後の G2', 'G2', NULL),
+			('G2-9', '2026-10-03', '東京', 11, '9日後の G2', 'G2', NULL),
+			('G1-15', '2026-10-09', '東京', 11, '15日後の G1', 'G1', 'nk-202605040111'),
+			('G1-16', '2026-10-10', '東京', 11, '16日後の G1', 'G1', NULL)`);
+		expect(await ids('candidates')).toEqual(['SAT', 'SPR', 'FAR', 'G2-8', 'G1-15']);
+		// frames・entries の窓には入らない
+		expect(await ids('entries')).not.toContain('G2-8');
+		expect(await ids('frames')).not.toContain('G1-15');
+	});
+
+	it('どの段でも、当日・格が重賞でない・R が無いレースは外れる', async () => {
+		for (const stage of ['candidates', 'entries', 'frames'] as const) {
+			const got = await ids(stage);
+			expect(got).not.toContain('TODAY');
+			expect(got).not.toContain('OP');
+			expect(got).not.toContain('NORACE');
+		}
+	});
+
 	it('枠順の PR が入って馬番が付いたら外れる', async () => {
 		sqlite.exec(`UPDATE race_entry SET horse_number = 3 WHERE id = 'E1'`);
-		const ids = (await listEntriesFetchTargets(db, NOW)).map((t) => t.raceId);
-		expect(ids).toEqual(['SAT']);
+		expect(await ids('frames')).toEqual(['SAT']);
+		expect(await ids('candidates')).not.toContain('SPR');
 	});
 });
 
