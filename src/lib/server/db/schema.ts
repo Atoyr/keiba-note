@@ -164,7 +164,9 @@ export const race = sqliteTable(
 	},
 	(t) => [
 		index('race_date').on(t.date),
-		uniqueIndex('race_ident').on(t.date, t.course, t.raceNumber)
+		uniqueIndex('race_ident').on(t.date, t.course, t.raceNumber),
+		// 重賞の画面（/graded-races/[name]）が `name IN (別名すべて)` で引く。全件スキャンを避ける。
+		index('race_name').on(t.name)
 	]
 );
 
@@ -459,6 +461,29 @@ export const jockeyNote = sqliteTable(
 		primaryKey({ columns: [t.userId, t.jockey] }),
 		check('jockey_note_tags_json', sql`json_valid(tags)`)
 	]
+);
+
+/**
+ * 重賞の傾向のメモ。1人・1重賞につき1本（本文だけ。札は無い）。**本人だけのもの**で、
+ * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
+ *
+ * 重賞はマスタの表を持たない。レース名（`race.name`）を `gradedRaceKey`（`$lib/utils/graded-race`）で
+ * 寄せた名前が鍵になる。年ごとにレース名が揺れるので、別名の表で同じ重賞に束ねる。
+ * 本文が空なら行ごと消す（`jockey_note` と同じ形）。
+ */
+export const gradedRaceNote = sqliteTable(
+	'graded_race_note',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		/** `gradedRaceKey` で寄せたレース名。 */
+		raceKey: text('race_key').notNull(),
+		body: text('body').notNull(),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.raceKey] })]
 );
 
 /**

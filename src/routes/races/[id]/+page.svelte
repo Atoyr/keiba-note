@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -88,6 +89,17 @@
 		<Button href={resolve('/races/[id]/summary', { id: data.race.id })} variant="outline" size="sm"
 			>予想をまとめて見る</Button
 		>
+		{#if isGraded(data.race.grade) && data.race.name}
+			<Button
+				href={resolve('/graded-races/[name]', {
+					name: gradedRaceParam(gradedRaceKey(data.race.name))
+				})}
+				variant="outline"
+				size="sm"
+			>
+				重賞のタイムライン
+			</Button>
+		{/if}
 		<Button href={resolve('/races/[id]/preview', { id: data.race.id })} variant="outline" size="sm">
 			予想（過去メモを見る）
 		</Button>

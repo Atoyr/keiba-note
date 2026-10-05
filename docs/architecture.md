@@ -33,6 +33,7 @@
 - 更新日: 2026-10-04 — Client ID Metadata Document で、`none` も使えると書いた ChatGPT の文書（`private_key_jwt` を選んでいる）を受けるようにした（→ 3-10）
 - 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`）とスコープ `notes:write` を足した。`/mcp` の本文の上限を 64 KiB にした（→ 3-10）
 - 更新日: 2026-10-04 — MCP の tool の呼び出しに、ユーザーごと・週ごと（水曜 12:00 JST 区切り）の回数の上限を置いた。読みと書きで別の枠。管理者が1人ずつ 0 に戻せる（→ 3-10）
+- 更新日: 2026-10-05 — 重賞（graded）を機能の並びに足した（→ 第2章）
 - 更新日: 2026-10-05 — 出走馬の取得の Cron を、毎時の枠順待ちから、発表に合わせた3段（日曜の候補・木曜の出走馬・金曜の枠順）にした（→ 第1章 / 3-9）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
@@ -286,13 +287,16 @@ race-data（`lib/server/race-data/`。出走馬の取得を Actions に頼む）
 機能は次の順に並べ、**右は左を使ってよいが、左は右を使わない**。順位で並べるので循環は起こりえない。
 
 ```
-horses ← races ← odds ← notes ← jockeys ← share ← dashboard
-  馬     レース・     オッズ  メモ・見立て・  騎手の    共有     ダッシュボード・
-         出馬表・枠           印・タグ・的中  まとめ・  リンク   今週
-                                             騎乗
+horses ← races ← odds ← notes ← jockeys ← graded ← share ← dashboard
+  馬     レース・     オッズ  メモ・見立て・  騎手の    重賞の   共有     ダッシュボード・
+         出馬表・枠           印・タグ・的中  まとめ・  傾向・   リンク   今週
+                                             騎乗      年ごとの
+                                                       メモ
 ```
 
 jockeys（騎手）はマスタの表を持たず、出走馬（`race_entry.jockey`）の名前で束ねる。騎乗（races）に自分のメモ（notes）を重ねるので notes の右に置く。
+graded（重賞）も同じくマスタの表を持たず、レース名を別名の表（`utils/graded-race.ts`）で寄せた鍵で束ねる。
+年ごとのレース（races）に自分のメモ・印（notes）を重ねるので notes の右に置く。
 
 - 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
   `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない

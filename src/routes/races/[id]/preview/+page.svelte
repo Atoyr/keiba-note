@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
@@ -135,6 +136,17 @@
 		<Button href={resolve('/races/[id]/summary', { id: data.race.id })} variant="outline" size="sm"
 			>予想をまとめて見る</Button
 		>
+		{#if isGraded(data.race.grade) && data.race.name}
+			<Button
+				href={resolve('/graded-races/[name]', {
+					name: gradedRaceParam(gradedRaceKey(data.race.name))
+				})}
+				variant="outline"
+				size="sm"
+			>
+				重賞のタイムライン
+			</Button>
+		{/if}
 		{#if !data.upcoming}
 			<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
 				ふりかえりを書く

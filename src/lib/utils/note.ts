@@ -66,7 +66,16 @@ export type NoteHeadingSource = RaceLabelSource & {
  * 行の種別を示す小さな札。**アプリが決めるもの**で、ユーザーは選べない
  * （ユーザーが付ける札は `NoteTag`）。表示は `KindBadge`。
  */
-export type NoteKindLabel = '見立て' | '出走前' | '近況' | '出走' | '出走予定';
+export type NoteKindLabel =
+	| '見立て'
+	| '出走前'
+	| '近況'
+	| '出走'
+	| '出走予定'
+	/** 重賞のタイムライン（`/graded-races/[name]`）の年ごとの行。 */
+	| '予想'
+	| 'ふりかえり'
+	| '開催予定';
 
 export type NoteHeading = {
 	/** 「中山11R オールカマー (G2) 1着」のような見出し。 */
