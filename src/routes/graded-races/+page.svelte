@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { formatDateShort } from '$lib/utils/date';
@@ -58,8 +59,7 @@
 								{#if item.hasTrend || item.notedYears > 0}
 									<span class="flex shrink-0 items-center gap-2">
 										{#if item.hasTrend}
-											<span class="rounded-md border px-1.5 text-xs text-muted-foreground"
-												>傾向</span
+											<Badge variant="outline" class="font-normal text-muted-foreground">傾向</Badge
 											>
 										{/if}
 										{#if item.notedYears > 0}

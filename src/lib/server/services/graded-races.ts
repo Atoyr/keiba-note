@@ -371,14 +371,16 @@ export type CurrentGrade = {
 	grade: 'G1' | 'G2' | 'G3';
 	/** その格のレースの年。 */
 	year: string;
-	/** 今年のレースの格か（false = 今年のレースは未登録で、いちばん新しい年の格）。 */
+	/** 今年のレースの格か（false = 今年は重賞でないか未登録で、いちばん新しい年の格）。 */
 	isThisYear: boolean;
+	/** 今年のレースは登録されているが G1〜G3 でない（格が下がった）。見出しで「未登録」と言わないため。 */
+	thisYearNotGraded: boolean;
 	/** 格を決めたレース（見出しの名前・日付・場所に使う）。 */
 	race: SeriesRace;
 };
 
 /**
- * 見出しの格。今年のレースがあればその格、無ければいちばん新しい重賞のレースの格。
+ * 見出しの格。今年のレースが G1〜G3 ならその格、そうでなければ（未登録・重賞でない）いちばん新しい重賞のレースの格。
  * G1〜G3 のレースが1つも無ければ null（＝重賞ではない）。
  */
 export function currentGrade(races: SeriesRace[], thisYear: string): CurrentGrade | null {
@@ -392,6 +394,7 @@ export function currentGrade(races: SeriesRace[], thisYear: string): CurrentGrad
 		grade: picked.grade,
 		year: picked.date.slice(0, 4),
 		isThisYear: !!thisYearRace,
+		thisYearNotGraded: !thisYearRace && races.some((r) => r.date.startsWith(thisYear)),
 		race: picked
 	};
 }

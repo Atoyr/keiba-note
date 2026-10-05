@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
@@ -19,8 +19,9 @@
 	/**
 	 * 傾向の入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。
 	 * JS が無いと失敗の画面は描き直されるので、失敗したときは開いたまま始める（失敗のメッセージと入力が見える）。
+	 * 見るのは最初の描画の `form` だけ（JS があるときの失敗は、開いた欄の中でそのまま出る）。
 	 */
-	let editing = $state(!!form?.message);
+	let editing = $state(untrack(() => !!form?.message));
 	let pending = $state(false);
 	let toggle = $state<HTMLElement>();
 
@@ -37,6 +38,8 @@
 		{#if head.isThisYear}
 			<span>格は{head.year}年のもの</span>
 			<span>{formatDateShort(head.race.date)} {conditionLabel(head.race) ?? head.race.course}</span>
+		{:else if head.thisYearNotGraded}
+			<span>{head.year}年の格（今年は重賞ではありません）</span>
 		{:else}
 			<span>{head.year}年の格（今年のレースは未登録）</span>
 		{/if}

@@ -288,7 +288,18 @@ describe('見出しの格', () => {
 		expect(currentGrade(races, '2026')).toMatchObject({
 			grade: 'G2',
 			year: '2025',
-			isThisYear: false
+			isThisYear: false,
+			thisYearNotGraded: false
+		});
+	});
+
+	it('今年のレースが G1〜G3 でなければ、未登録と分けて「今年は重賞でない」とする', () => {
+		const races = [seriesRace('r26', '2026-09-27', 'OP'), seriesRace('r25', '2025-09-28', 'G3')];
+		expect(currentGrade(races, '2026')).toMatchObject({
+			grade: 'G3',
+			year: '2025',
+			isThisYear: false,
+			thisYearNotGraded: true
 		});
 	});
 
