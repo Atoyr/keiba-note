@@ -255,9 +255,10 @@ async function main() {
 			if (parsed.rows.length === 0) {
 				fail(`出馬表に馬がいません（race_id ${raceId}）。登録前か、ページの構造が変わっています。`);
 			}
-			// 定期取得（.github/workflows/race-data-fetch.yml）は枠順を待っている。候補の入れ替えだけで
-			// PR を作らないよう、確定前は書かずに終える。騎手・調教師を引く前に止めるので、取得は1〜2回で済む。
+			// 金曜の定期取得（.github/workflows/race-data-fetch.yml）は枠順を入れる段なので、未確定なら書かずに終える
+			// （ワークフローが Discord に知らせる）。騎手・調教師を引く前に止めるので、取得は1〜2回で済む。
 			if (args.requireConfirmed && !isShutubaConfirmed(parsed.rows)) {
+				// 「枠順未確定のため書きません」は race-data-fetch.yml が grep して通知を出す。文言を変えるならそちらも直す。
 				console.log(
 					`${t.date} ${t.course}${t.raceNumber}R（${raceId}）: 枠順未確定のため書きません`
 				);

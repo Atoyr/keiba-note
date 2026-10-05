@@ -58,13 +58,13 @@ subrequests = 1000
 # 取得元から取るのは Actions。netkeiba は Workers から来たリクエストを時間帯によってまとめて 400 で返し、
 # GitHub の schedule は混んでいると大半の回を飛ばすので、この分け方にしている（docs/architecture.md 3-8）。
 #
-# 出走馬の取得の依頼（src/lib/server/race-data/scheduled.ts の ENTRIES_CRON と同じ文字列にする）。
-# 1-10 時 = JST 10:05〜19:05 の毎時。枠順を待っている重賞（1〜3日後で馬番が未入力）があれば、
-# GitHub Actions（race-data-fetch.yml）に出馬表を取らせて YAML の PR を作らせる。netkeiba へは Worker から行かない。
+# 出走馬の取得の依頼（src/lib/server/race-data/scheduled.ts の ENTRIES_CRONS と同じ文字列にする）。
+# 重賞の出馬表が決まる3つの時刻に、段ごとに GitHub Actions（race-data-fetch.yml）に出馬表を取らせて YAML の PR を作らせる。
+# 日曜 JST 16:30（候補）・木曜 JST 15:30 と 17:30（出走馬）・金曜 JST 11:30（枠順）。netkeiba へは Worker から行かない。
 #
 # Workers Previews（ステージング）では Cron は動かない。
 [triggers]
-crons = ["5 1-10 * * *", "5,35 22-23,0-15 * * *", "5 16 * * *"]
+crons = ["30 7 * * sun", "30 6,8 * * thu", "30 2 * * fri", "5,35 22-23,0-15 * * *", "5 16 * * *"]
 
 # 通知（Discord）に出す環境の名前（docs/monitoring.md）。シークレットではない。
 # ローカルは hooks.server.ts が `dev` を見て local にする。

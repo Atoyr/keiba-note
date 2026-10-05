@@ -33,6 +33,7 @@
 - 更新日: 2026-10-04 — Client ID Metadata Document で、`none` も使えると書いた ChatGPT の文書（`private_key_jwt` を選んでいる）を受けるようにした（→ 3-10）
 - 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`）とスコープ `notes:write` を足した。`/mcp` の本文の上限を 64 KiB にした（→ 3-10）
 - 更新日: 2026-10-04 — MCP の tool の呼び出しに、ユーザーごと・週ごと（水曜 12:00 JST 区切り）の回数の上限を置いた。読みと書きで別の枠。管理者が1人ずつ 0 に戻せる（→ 3-10）
+- 更新日: 2026-10-05 — 出走馬の取得の Cron を、毎時の枠順待ちから、発表に合わせた3段（日曜の候補・木曜の出走馬・金曜の枠順）にした（→ 第1章 / 3-9）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -107,7 +108,7 @@ flowchart TB
     G["Google<br/>OAuth 2.0 / OIDC"]
     N["netkeiba<br/>オッズ（単勝・複勝）"]
     GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る<br/>オッズを取って D1 に書く"]
-    CR["Cron Trigger<br/>毎時・30分おき"]
+    CR["Cron Trigger<br/>出走馬は日・木・金の決まった時刻<br/>オッズは30分おき"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -641,7 +642,7 @@ Cloudflare の Cron は時刻どおりに動き、`workflow_dispatch` は間引�
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as Cron（5 1-10 * * * UTC）/ 管理画面
+    participant C as Cron（日・木・金）/ 管理画面
     participant W as race-data/（Worker）
     participant D as D1
     participant G as GitHub API
@@ -649,12 +650,12 @@ sequenceDiagram
     participant N as netkeiba
 
     C->>W: scheduled / POST ?/fetchEntries
-    W->>D: 1〜3日後の重賞で馬番が未入力のもの（Cron）/ そのレース（管理画面）
-    W->>G: workflow_dispatch（日付・場・R・race_id）
+    W->>D: 段ごとの日数に入る重賞で馬番が未入力のもの（Cron）/ そのレース（管理画面）
+    W->>G: workflow_dispatch（日付・場・R・race_id・段）
     Note over W: ここで終わり。netkeiba へは行かず、D1 にも書かない
     G->>A: 起動
     A->>N: 出馬表（data:fetch entries）
-    Note over A: Cron からは枠順が確定していなければ何も書かない
+    Note over A: 金曜の枠順の回は、枠順が確定していなければ何も書かない
     A->>A: data:check → PR を作る（同じ中身の PR があれば何もしない）
 ```
 
@@ -666,7 +667,24 @@ sequenceDiagram
 | 入口 | `lib/server/race-data/scheduled.ts`・`/settings/admin` の `?/fetchEntries` | 監視の口と D1 クライアントを作って渡す |
 | 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR |
 
-- Cron は枠順が本番に入る（馬番が付く）まで毎時頼む。Actions は、Cron からなら確定前は出馬表を1回見て終わる
+- Cron は JRA の発表に合わせて3段で頼む。段は Cron の式で決まる（`race-data/scheduled.ts` の `ENTRIES_CRONS`）。
+  対象はどの段も重賞（G1〜G3）で、レース番号があり、馬番がまだ1頭も無いもの（枠順の PR がマージされると外れる）
+
+  | 段 | Cron（UTC）= JST | 発表 | 対象（今日から何日後） | 確定待ち |
+  | --- | --- | --- | --- | --- |
+  | `candidates`（候補） | `30 7 * * sun` = 日曜 16:30 | 日曜 16時に翌週の重賞の候補。G1 はその1週前 | G2・G3 は1〜8日後、G1 は1〜15日後 | しない |
+  | `entries`（出走馬） | `30 6,8 * * thu` = 木曜 15:30・17:30 | 木曜 14時〜16時すぎ | 1〜4日後 | しない |
+  | `frames`（枠順） | `30 2 * * fri` = 金曜 11:30 | 金曜 10時すぎ | 1〜3日後 | する |
+
+- 木曜の回は発表の前でも出馬表をそのまま書く。発表前なら候補のままで、開いている PR か main と同じ中身になり何も出ない。
+  発表後は出馬表に無い候補が withdrawn に移る。木曜に枠順が出るレース（G1・土曜の重賞）は、木曜の回で枠・馬番まで入る。
+  表の「金曜10時すぎ」は日曜の重賞の枠順
+- race_id（`external_ref`）の無いレースは、Actions が netkeiba のレース一覧から引く。一覧には、特別登録が済んだ重賞なら
+  2週先の G1 でも出る（2026-10-06（火）に 10-18 の秋華賞が出ることを確かめた）。引けなければ Actions が落ちて Discord に知らせる。
+  管理画面のボタンは、登録前のレースを押させないよう、race_id の無い当週より先のレースを止めたままにしている（`entriesFetchBlocker`）
+- 決まった時刻に1回ずつしか頼まない。その回が落ちたら（GitHub に届かない・Actions が落ちる。どちらも Discord に知らせる）、管理画面の「出走馬を取得」で取り直す。
+  金曜の回で枠順がまだ確定していなければ、Actions は何も書かずに Discord の「デプロイ」に知らせる（取り直しのきっかけ）。
+  祝日で発表の曜日がずれる週も、管理画面から取り直す
 - 起動元（Cron・管理画面）によらず、開いている PR と同じ中身なら何もしない（PR も通知も出ない）。
   開いている PR が無ければ（PR の作成で落ちてブランチだけ残った・人がマージせずに閉じた、も含む）、作り直して PR を作る。
   PR ができたら Discord の「デプロイ」に知らせる

@@ -22,7 +22,7 @@ import { createDb } from './lib/server/db/index.ts';
 import { describeError } from './lib/server/monitoring/log.ts';
 import { createMonitor } from './lib/server/monitoring/monitor.ts';
 import { ODDS_CRONS, runOddsCron } from './lib/server/odds/scheduled.ts';
-import { ENTRIES_CRON, runEntriesCron } from './lib/server/race-data/scheduled.ts';
+import { entriesStageOf, runEntriesCron } from './lib/server/race-data/scheduled.ts';
 
 /**
  * OAuth のトークンの口（MCP の連携。docs/architecture.md 3-10）。SvelteKit の CSRF の検査が、
@@ -76,8 +76,9 @@ export default {
 	 */
 	async scheduled(controller, env, ctx) {
 		// Cron は式ごとに別々に起動される。どの式で起きたかで出し分ける（wrangler.toml の crons）。
-		if (controller.cron === ENTRIES_CRON) {
-			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime));
+		const stage = entriesStageOf(controller.cron);
+		if (stage) {
+			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime, stage));
 		} else if (ODDS_CRONS.includes(controller.cron)) {
 			ctx.waitUntil(runOddsCron(env, ctx, controller.scheduledTime));
 		}

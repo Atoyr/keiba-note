@@ -178,7 +178,7 @@ tools（書くのは `save_my_race_preview` だけ。`viewerId` はトークン�
 
 | 起動 | 入口 | すること |
 | --- | --- | --- |
-| `5 1-10 * * *`（UTC。JST 10:05〜19:05 の毎時） | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 1〜3日後の重賞で馬番がまだ無いレースの出走馬の取得を、GitHub Actions に頼む（枠順が確定していなければ Actions は何も書かない。→ [architecture.md 3-9](./architecture.md)） |
+| `30 7 * * sun`・`30 6,8 * * thu`・`30 2 * * fri`（UTC。JST 日曜 16:30・木曜 15:30 と 17:30・金曜 11:30） | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 候補・出走馬・枠順の発表に合わせ、馬番がまだ無い重賞の出走馬の取得を GitHub Actions に頼む。段ごとの対象と、枠順が確定していなければ書かない回は [architecture.md 3-9](./architecture.md) |
 | `5,35 22-23,0-15 * * *`・`5 16 * * *`（UTC。JST 7:05〜25:05 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | オッズを取りに行く時間帯に入った重賞があれば、GitHub Actions（`odds-update.yml`）を起動する（→ [architecture.md 3-8](./architecture.md)） |
 
 ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。

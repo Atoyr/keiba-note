@@ -15,6 +15,7 @@ GitHub Actions の結果の通知、外からの死活監視。
 - 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions（`odds-update.yml`）に移した。
   `odds.*` のログは Workers Logs ではなく Actions の run に出る（→ 第1章 / 第3章 / 第7章）
 - 更新日: 2026-10-03 — オッズの更新の起動を Worker の Cron に移し、`odds.dispatch` の event を足した（→ 第1章 / 第3章）
+- 更新日: 2026-10-05 — 出走馬の取得の Cron を3段（候補・出走馬・枠順）にし、`entries.dispatch` に `stage` を載せ、`network` も通知するようにした（→ 第3章）
 
 ---
 
@@ -90,7 +91,7 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
 | `monitoring.discord.failed` | error | — | `discord.ts` | 通知そのものが送れなかった（ログにだけ出る） |
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
-| `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる |
+| `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`stage`・`raceId`・`race`・`success`・`errorType` を載せる |
 | `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
 | `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
 | `entries.dispatch.failed` | warn / error | error だけ | `/settings/admin` の `?/fetchEntries` | 管理画面から頼めなかった。届かなかったときは warn。トークン未設定は画面に出すだけでログにしない |
@@ -126,12 +127,12 @@ run を失敗で終え、`discord-notify.yml` が「障害」のチャンネル�
 | `invalid` | error | する | 値がおかしいので保存しなかった |
 | `unknown` | error | する | 上のどれでもない（D1 への保存の失敗など） |
 
-`entries.dispatch` の重さも `errorType`（`DispatchError` の種類）で決める。`requestId` は `cron-entries-<起動時刻>`。
+`entries.dispatch` の重さも `errorType`（`DispatchError` の種類）で決める。`requestId` は `cron-entries-<段>-<起動時刻>`。
 
 | errorType | level | 通知 | 意味 |
 | --- | --- | --- | --- |
 | （成功） | info | しない | 頼んだ |
-| `network` | warn | しない | GitHub に届かなかった・5xx。1時間後の回でまた頼む |
+| `network` | warn | する | GitHub に届かなかった・5xx。その回の次のレースへは進む。各段1回きりなので、管理画面から取り直す |
 | `not-configured` | warn | する | `GITHUB_DISPATCH_TOKEN` が無い。その回の残りは頼まない |
 | `rate-limited` | warn | する | GitHub の API の制限。その回の残りは頼まない |
 | `auth` | error | する | トークンが通らない（期限切れ・権限不足）。その回の残りは頼まない |
