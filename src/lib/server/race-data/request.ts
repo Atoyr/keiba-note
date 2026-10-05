@@ -1,16 +1,19 @@
 /**
- * 枠順を待っている重賞の出走馬の取得を、GitHub Actions に頼む。Cron（`scheduled.ts`）から毎時呼ばれる。
+ * 重賞の出走馬の取得を、GitHub Actions に頼む。Cron（`scheduled.ts`）が決まった時刻に、段ごとに呼ぶ。
  *
- * 1. D1 から、枠順を待っているレースを選ぶ（`listEntriesFetchTargets`）
- * 2. 1レースずつ Actions を起動する。Actions は枠順が確定していなければ何も書かずに終える
+ * 段は3つ（`EntriesStage`）。日曜の `candidates`（候補が決まる）、木曜の `entries`（出走馬の発表）、
+ * 金曜の `frames`（枠・馬番の発表）。
  *
- * 取りに行く時刻の判断（確定したかどうか）は Actions 側の出馬表で決まる。ここは「まだ入っていない」
- * レースを毎時知らせるだけ。枠順の PR がマージされて馬番が入ると、対象から外れる。
+ * 1. D1 から、その段の窓に入った重賞を選ぶ（`listEntriesFetchTargets`）
+ * 2. 1レースずつ Actions を起動する。`frames` だけは枠順が確定していなければ何も書かずに終える
+ *    （`requireConfirmed`）。`candidates`・`entries` は出馬表をそのまま書く
+ *
+ * 枠順の PR がマージされて馬番が入ると、対象から外れる。
  *
  * ログの出し方（通知するかどうか）は呼び出し側に渡す `log` が決める。ここは monitoring を知らない。
  */
 import type { Db } from '$lib/server/db';
-import { listEntriesFetchTargets } from '$lib/server/services/entries-fetch';
+import { listEntriesFetchTargets, type EntriesStage } from '$lib/server/services/entries-fetch';
 import { DispatchError, type DispatchErrorKind, type EntriesFetchRequest } from './dispatch';
 
 export type EntriesLogEntry = {
@@ -29,6 +32,8 @@ export type RequestEntriesDeps = {
 	db: Db;
 	dispatch: (req: EntriesFetchRequest) => Promise<void>;
 	log: (entry: EntriesLogEntry) => void;
+	/** Cron の段。 */
+	stage: EntriesStage;
 	now?: () => Date;
 };
 
@@ -51,7 +56,9 @@ export async function requestEntriesFetch(
 	deps: RequestEntriesDeps
 ): Promise<RequestEntriesSummary> {
 	const now = deps.now ?? (() => new Date());
-	const targets = await listEntriesFetchTargets(deps.db, now());
+	const { stage } = deps;
+	const at = now();
+	const targets = await listEntriesFetchTargets(deps.db, at, stage);
 	const summary: RequestEntriesSummary = {
 		targets: targets.length,
 		requested: 0,
@@ -62,6 +69,7 @@ export async function requestEntriesFetch(
 	for (const t of targets) {
 		const base = {
 			event: 'entries.dispatch',
+			stage,
 			raceId: t.raceId,
 			race: `${t.date} ${t.course}${t.raceNumber}R`
 		};
@@ -71,8 +79,9 @@ export async function requestEntriesFetch(
 				course: t.course,
 				raceNumber: t.raceNumber,
 				externalRef: t.externalRef,
-				requireConfirmed: true,
-				trigger: 'cron'
+				requireConfirmed: stage === 'frames',
+				trigger: 'cron',
+				stage
 			});
 			summary.requested++;
 			deps.log({
@@ -103,13 +112,13 @@ export async function requestEntriesFetch(
 
 /**
  * 失敗の種類ごとの重さ。**通知するのは人が手を入れる必要があるものだけ。**
- * 一時的に届かなかった1回では知らせない（1時間後の回でまた頼む）。
+ * 各段1回きりなので、届かなかった回も知らせて管理画面から取り直させる。
  */
 const LOG_BY_KIND: Record<
 	DispatchErrorKind | 'unknown',
 	Pick<EntriesLogEntry, 'level' | 'message' | 'notify'>
 > = {
-	// シークレットを入れるまでは毎時これになる。重賞の週だけ数回なので、知らせて気づかせる
+	// シークレットを入れるまでは Cron の回ごとにこれになる。重賞の週だけ週に数回なので、知らせて気づかせる
 	'not-configured': {
 		level: 'warn',
 		message: 'GitHub のトークンが無いので、出走馬の取得を頼めない',
@@ -121,7 +130,7 @@ const LOG_BY_KIND: Record<
 		message: 'GitHub の API の制限に当たった。この回の残りは頼まない',
 		notify: true
 	},
-	network: { level: 'warn', message: 'GitHub に届かなかった', notify: false },
+	network: { level: 'warn', message: 'GitHub に届かなかった', notify: true },
 	http: { level: 'error', message: 'GitHub が出走馬の取得を受け付けなかった' },
 	unknown: { level: 'error', message: '出走馬の取得を頼めなかった' }
 };

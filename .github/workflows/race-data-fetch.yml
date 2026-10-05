@@ -1,7 +1,8 @@
 name: 出走馬の取得
 
 # Worker から workflow_dispatch で起動される（src/lib/server/race-data/）。
-#   cron  … 枠順を待っている重賞を毎時（require_confirmed: true。確定するまでは何も書かない）
+#   cron  … 重賞の出馬表が決まる時刻に、段（stage）ごとに。日曜の候補・木曜の出走馬は出馬表をそのまま書く。
+#           金曜の枠順（stage: frames）は require_confirmed: true で、確定するまでは何も書かない
 #   admin … 管理画面の「出走馬を取得」（候補でも枠順でも、その時点の出馬表を書く）
 #
 # netkeiba の出馬表を `data:fetch entries` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
@@ -36,6 +37,11 @@ on:
         type: boolean
         required: false
         default: false
+      stage:
+        description: 'Cron の段（candidates / entries / frames）。PR 本文の「なぜ」に使う。Cron 以外は空'
+        type: string
+        required: false
+        default: ''
       trigger:
         description: '起動元（cron / admin / manual）。PR 本文に書く'
         type: string
@@ -63,6 +69,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       pr_url: ${{ steps.pr.outputs.url }}
+      unconfirmed: ${{ steps.fetch.outputs.unconfirmed }}
     # 入力は環境変数で渡す。run の中に ${{ }} で埋め込むと、値がシェルとして解釈されうる。
     env:
       DATE: ${{ inputs.date }}
@@ -70,6 +77,7 @@ jobs:
       RACE_NUMBER: ${{ inputs.race_number }}
       RACE_ID: ${{ inputs.race_id }}
       REQUIRE_CONFIRMED: ${{ inputs.require_confirmed }}
+      STAGE: ${{ inputs.stage }}
       TRIGGER: ${{ inputs.trigger }}
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -78,6 +86,7 @@ jobs:
           [[ "$DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::date が YYYY-MM-DD ではありません"; exit 1; }
           [[ "$RACE_NUMBER" =~ ^([1-9]|1[0-2])$ ]] || { echo "::error::race_number が 1〜12 ではありません"; exit 1; }
           [[ -z "$RACE_ID" || "$RACE_ID" =~ ^[0-9]{12}$ ]] || { echo "::error::race_id が12桁の数字ではありません"; exit 1; }
+          [[ -z "$STAGE" || "$STAGE" =~ ^(candidates|entries|frames)$ ]] || { echo "::error::stage が candidates / entries / frames のどれでもありません"; exit 1; }
           # course が JRA の10場かは data:fetch が見る
 
       - uses: actions/checkout@v4
@@ -99,11 +108,16 @@ jobs:
           restore-keys: race-data-people-
 
       - name: 出馬表を取る
+        id: fetch
         run: |
           args=(entries "$DATE" "$COURSE" "$RACE_NUMBER")
           if [ -n "$RACE_ID" ]; then args+=(--race-id "$RACE_ID"); fi
           if [ "$REQUIRE_CONFIRMED" = "true" ]; then args+=(--require-confirmed); fi
           pnpm run --silent data:fetch "${args[@]}" | tee "$RUNNER_TEMP/fetch.log"
+          # 金曜の回は1日1回しか取らない。枠順が未確定で終わったら、黙らずに知らせる（notify-unconfirmed）
+          if [ "$STAGE" = "frames" ] && grep -q "枠順未確定のため書きません" "$RUNNER_TEMP/fetch.log"; then
+            echo "unconfirmed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: 差分を見る
         id: diff
@@ -127,7 +141,7 @@ jobs:
           branch="data-fetch/${DATE}-${COURSE}${RACE_NUMBER}R"
           file="data/races/${DATE}.yaml"
 
-          # Cron は枠順が本番に入るまで毎時起動する。開いている PR が同じ中身なら何もしない
+          # 同じレースは段ごとに何度も取る（候補・出走馬・枠順）。開いている PR が同じ中身なら何もしない
           # （url を出さないので、通知も送らない）。ブランチだけを見ると、PR の作成で落ちた回に
           # push したブランチが残り、そのあとは PR が無いまま何もしなくなる。
           # --head はブランチ名だけで照らすので、同じ名前の fork からの PR も当たる。このリポジトリの PR だけを見る。
@@ -139,7 +153,12 @@ jobs:
           fi
 
           if [ "$TRIGGER" = "cron" ]; then
-            why="枠順が確定したため（Cron が毎時、枠順を待っている重賞の出馬表を見ている）。"
+            case "$STAGE" in
+              candidates) why="日曜の候補の決定に合わせて Cron が出馬表（登録馬）を取ったため。" ;;
+              entries) why="木曜の出走馬の発表に合わせて Cron が出馬表を取ったため（枠順が出ていれば枠・馬番まで入る）。" ;;
+              frames) why="金曜の枠順の発表に合わせて Cron が出馬表を取り、枠順が確定していたため。" ;;
+              *) why="Cron が重賞の出馬表を取ったため。" ;;
+            esac
           else
             why="${TRIGGER} から取得を頼まれたため。"
           fi
@@ -191,7 +210,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch --quiet -c "$branch"
           git add -- "$file"
-          git commit --quiet -m "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を netkeiba から取る" -m "起動元: ${TRIGGER}"
+          git commit --quiet -m "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を netkeiba から取る" -m "起動元: ${TRIGGER}${STAGE:+（段: ${STAGE}）}"
           # Actions だけが書くブランチなので、作り直して上書きする。
           git push --quiet --force origin "$branch"
 
@@ -216,6 +235,21 @@ jobs:
       level: success
       title: 出走馬の PR ができた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
       description: ${{ needs.fetch.outputs.pr_url }} をマージすると本番に入ります。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+
+  # 金曜の回で枠順が未確定だった。1日1回しか取らないので、知らせないと誰も気づかない。
+  notify-unconfirmed:
+    name: 枠順の未確定を通知
+    needs: [fetch]
+    if: needs.fetch.outputs.unconfirmed == 'true' && needs.fetch.result == 'success'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      channel: deploy
+      level: warn
+      title: 枠順がまだ出ていない（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
+      description: 金曜の Cron の回で枠順が未確定だった。発表を待って管理画面の「出走馬を取得」で取り直してください。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

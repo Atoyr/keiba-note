@@ -55,7 +55,9 @@
 	<h2 class="mt-8 text-sm font-bold">出走馬の取得</h2>
 	<p class="mt-1 text-xs text-muted-foreground">
 		netkeiba の出馬表を GitHub Actions が取り、data/races の YAML を書き換える PR を作ります。
-		枠順の前なら候補、後なら枠・馬番が入ります。重賞は枠順が出ると毎時の Cron でも取りに行きます。
+		その時点の出馬表に合わせて、候補 → 出走馬 →
+		枠・馬番の順に入ります。重賞は日曜（候補）・木曜（出走馬）・金曜（枠順）の決まった時刻に Cron
+		でも取りに行きます。
 	</p>
 	{#if !data.entriesFetch.configured}
 		<p class="mt-2 rounded border bg-muted px-3 py-2 text-xs text-muted-foreground">

@@ -1,4 +1,4 @@
-import { and, asc, between, count, eq, inArray, isNotNull, notExists, sql } from 'drizzle-orm';
+import { and, asc, between, count, eq, inArray, isNotNull, notExists, or, sql } from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { race, raceEntry } from '$lib/server/db/schema';
 import { addDays, todayJst } from '$lib/utils/date';
@@ -10,14 +10,29 @@ import { addDays, todayJst } from '$lib/utils/date';
  * （docs/architecture.md 第0章）。レースと出走馬は全員に共通のマスタなので `viewerId` で絞らない。
  */
 
-/** Cron が枠順を待つ格。オッズと同じく重賞だけ。 */
+/** Cron が取りに行く格。オッズと同じく重賞だけ。 */
 export const ENTRIES_FETCH_GRADES = ['G1', 'G2', 'G3'] as const;
 
 /**
- * 開催の何日前から枠順を待つか。G1 は木曜に枠順が出るので、日曜の G1 は3日前。
- * 土曜のレースは木曜（2日前）、日曜のレースは金曜（2日前）、月曜の祝日開催は金曜（3日前）。
+ * Cron の3段。重賞の出馬表は、候補（日曜16時）→ 出走馬（木曜午後）→ 枠・馬番（金曜午前）の順に決まる。
+ *
+ * - `candidates` … 日曜の夕方。翌週の重賞の候補（登録馬）が決まる。G1 はその1週前の日曜に決まる
+ * - `entries` … 木曜の午後。出走馬が発表される。出馬表に無い候補は withdrawn へ移る
+ * - `frames` … 金曜の午前。枠・馬番が発表される。確定するまで何も書かない
  */
-const WAIT_FROM_DAYS = 3;
+export type EntriesStage = 'candidates' | 'entries' | 'frames';
+
+/**
+ * 段ごとの、開催までの日数の窓（今日から数えて 1〜N 日後。両端を含む）。
+ * G1 と G2/G3 で上限が違うのは candidates だけ（G1 は候補が1週早く決まる）。
+ */
+export const ENTRIES_FETCH_WINDOWS: Readonly<
+	Record<EntriesStage, { g1Max: number; otherMax: number }>
+> = {
+	candidates: { g1Max: 15, otherMax: 8 },
+	entries: { g1Max: 4, otherMax: 4 },
+	frames: { g1Max: 3, otherMax: 3 }
+};
 
 export type EntriesFetchTarget = {
 	raceId: string;
@@ -28,14 +43,19 @@ export type EntriesFetchTarget = {
 };
 
 /**
- * Cron が出走馬を取りに行かせるレース。**重賞で、開催が1〜3日後で、まだ馬番が1頭も入っていないもの。**
+ * 段（`EntriesStage`）が取りに行かせるレース。**重賞で、開催が段の窓に入り、まだ馬番が1頭も入っていないもの。**
+ * 窓は `ENTRIES_FETCH_WINDOWS`。
  *
- * 馬番が入った（枠順の PR がマージされて本番に入った）時点で外れる。それまでは毎時選ばれるが、
- * Actions 側は枠順が確定するまで何も書かず、同じ中身の PR があれば何もしない。
+ * 馬番が入った（枠順の PR がマージされて本番に入った）時点で外れる。
  * レース番号が無いレースは取得元のページを引けないので外す。
  */
-export async function listEntriesFetchTargets(db: Db, now: Date): Promise<EntriesFetchTarget[]> {
+export async function listEntriesFetchTargets(
+	db: Db,
+	now: Date,
+	stage: EntriesStage
+): Promise<EntriesFetchTarget[]> {
 	const today = todayJst(now);
+	const { g1Max, otherMax } = ENTRIES_FETCH_WINDOWS[stage];
 	return db
 		.select({
 			raceId: race.id,
@@ -47,8 +67,13 @@ export async function listEntriesFetchTargets(db: Db, now: Date): Promise<Entrie
 		.from(race)
 		.where(
 			and(
-				inArray(race.grade, [...ENTRIES_FETCH_GRADES]),
-				between(race.date, addDays(today, 1), addDays(today, WAIT_FROM_DAYS)),
+				or(
+					and(eq(race.grade, 'G1'), between(race.date, addDays(today, 1), addDays(today, g1Max))),
+					and(
+						inArray(race.grade, ['G2', 'G3']),
+						between(race.date, addDays(today, 1), addDays(today, otherMax))
+					)
+				),
 				isNotNull(race.raceNumber),
 				notExists(
 					db

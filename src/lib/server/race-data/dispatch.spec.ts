@@ -35,6 +35,11 @@ describe('workflowInputs', () => {
 		});
 	});
 
+	it('stage があれば inputs に入れ、無ければ入れない', () => {
+		expect(workflowInputs({ ...REQ, stage: 'frames' })).toMatchObject({ stage: 'frames' });
+		expect(workflowInputs(REQ)).not.toHaveProperty('stage');
+	});
+
 	it('race_id が読めなければ渡さない（Actions がレース一覧から引く）', () => {
 		expect(workflowInputs({ ...REQ, externalRef: null })).not.toHaveProperty('race_id');
 		expect(workflowInputs({ ...REQ, externalRef: 'jra-123' })).not.toHaveProperty('race_id');
