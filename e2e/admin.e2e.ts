@@ -58,6 +58,33 @@ test('トークンが無いまま取得を送っても、頼まずに理由を�
 	await expect(button).toBeFocused();
 });
 
+test('凍結は確かめのダイアログで OK のときだけ送り、キャンセルなら送らない', async ({ page }) => {
+	await login(page, 'admin');
+	await gotoHydrated(page, '/settings/admin');
+
+	const posts: string[] = [];
+	page.on('request', (r) => {
+		if (r.method() === 'POST' && r.url().includes('/freeze')) posts.push(r.url());
+	});
+
+	// 凍結は戻せないので、ほかのテストと共有しない専用のユーザーで押す（e2e/seed.sql）
+	const row = page.getByRole('listitem').filter({ hasText: 'E2E 凍結対象' });
+	const freeze = row.getByRole('button', { name: '凍結' });
+
+	// キャンセルなら送らない（use:enhance は onsubmit の preventDefault を見ずに送る）
+	const dialog = page.waitForEvent('dialog');
+	page.once('dialog', (d) => void d.dismiss());
+	await freeze.click();
+	expect((await dialog).message()).toContain('E2E 凍結対象 を凍結します');
+	await expect(freeze).toBeFocused();
+
+	page.once('dialog', (d) => void d.accept());
+	await freeze.click();
+	await expect(row.getByText('凍結済み')).toBeVisible();
+	// キャンセルした1回目は送られていない（送っていれば、2回目より先に出ている）
+	expect(posts).toHaveLength(1);
+});
+
 test('AI の利用量が % で並び、リセットすると 0 に戻って表示が消える', async ({ page }) => {
 	await login(page, 'admin');
 	await gotoHydrated(page, '/settings/admin');
