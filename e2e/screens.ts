@@ -11,6 +11,7 @@ import {
 	EMPTY_RACE_ID,
 	FLOW_CROWD_RACE_ID,
 	FLOW_RACE_ID,
+	GRADED_RACE,
 	HORSE_ID,
 	JOCKEYS,
 	MARKS_RACE_ID,
@@ -470,6 +471,19 @@ export const SCREENS: Screen[] = [
 	},
 	// まとめがまだ無い騎手（1騎乗だけ）。
 	{ name: 'jockey-no-summary', path: `/jockeys/${encodeURIComponent(JOCKEYS.rookie)}`, auth: true },
+	// 重賞の一覧。今年の重賞が月ごとに並び、メモのある年の数と「傾向」の札が右に出る。
+	{ name: 'graded-races', path: '/graded-races', auth: true },
+	// 重賞の画面。傾向のメモと、年ごとの予想・ふりかえり・印（今年は開催予定、去年は別名のレース名、一昨年はメモなし）。
+	{ name: 'graded-race', path: `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`, auth: true },
+	{
+		// 傾向を書いているところ。
+		name: 'graded-race-trend-editing',
+		path: `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.getByText('＋ 傾向を書く').click();
+		}
+	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
 	{

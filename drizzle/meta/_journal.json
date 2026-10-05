@@ -148,6 +148,13 @@
       "when": 1791123111385,
       "tag": "0020_odd_luke_cage",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1791211029810,
+      "tag": "0021_special_riptide",
+      "breakpoints": true
     }
   ]
 }

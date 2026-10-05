@@ -842,3 +842,34 @@ INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
 INSERT OR REPLACE INTO mcp_usage (user_id, week_start, reads, writes) VALUES
 	('01JE2EADMIN000000000000000',
 	 ((CAST(strftime('%s', 'now') AS INTEGER) - 529200) / 604800) * 604800 + 529200, 500, 30);
+
+-- 重賞（/graded-races）。重賞はレース名を別名の表で寄せた鍵で束ねる。
+-- 別名の表（src/lib/utils/graded-race.ts）にある実名を使う: 今年・一昨年は「オールカマー」、去年は別名の「産経賞オールカマー」。
+-- 日付は seed を流した年の12/31（今年は未来のまま。去年・一昨年は同じ月日）。
+-- seed を 12/31 に流すと今年の行は開催予定にならず、graded-races.e2e.ts の開催予定の確認が落ちる
+-- （年に1日。0時をまたぐのと同じく、今回の変更による失敗ではない）。
+-- 今年は未来で何も書かない。去年は見立て（ペース付き）・ふりかえり・印2つ・勝ち馬あり。一昨年はメモなし。
+-- メモは一般ユーザーのものだけ（admin にはメモを書かない）。別のユーザーが去年に書いたメモと傾向は、どこにも出てはいけない。
+INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, track_condition, winner_name)
+VALUES
+	('01JE2ERACEGRADEDTHIS000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days'), '中山', 11, 'オールカマー', 'G2', '芝', 2200, NULL, NULL),
+	('01JE2ERACEGRADEDLAST000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), '中山', 11, '産経賞オールカマー', 'G3', '芝', 2200, '良', 'E2E重賞イチバン'),
+	('01JE2ERACEGRADEDPREV000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-2 years'), '中山', 11, 'オールカマー', 'G3', '芝', 2200, '重', NULL);
+INSERT INTO horse (id, name, birth_year) VALUES
+	('01JE2EHORSEGRADED10000000', 'E2E重賞イチバン', 2020),
+	('01JE2EHORSEGRADED20000000', 'E2E重賞ニバン', 2020);
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_position) VALUES
+	('01JE2EENTRYGRADED10000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED10000000', 3, 5, 1),
+	('01JE2EENTRYGRADED20000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED20000000', 2, 3, 4);
+INSERT INTO note (id, author_id, kind, race_id, body, flow, occurred_at, created_at)
+VALUES ('01JE2EGRADEDOUTLOOK0000000', '01JE2EUSER0000000000000000', 'race_preview', '01JE2ERACEGRADEDLAST000000', 'E2E重賞の見立て。内枠の先行馬が残る。', '{"pace":"スロー","start":{"spots":[],"memo":""},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07'));
+INSERT INTO note (id, author_id, kind, race_id, body, tags, occurred_at, created_at)
+VALUES ('01JE2EGRADEDREVIEW00000000', '01JE2EUSER0000000000000000', 'race', '01JE2ERACEGRADEDLAST000000', 'E2E重賞のふりかえり。スローで前が残った。', '["ペース合わず"]', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07'));
+INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
+VALUES
+	('01JE2EGRADEDMARK1000000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED10000000', '01JE2EENTRYGRADED10000000', 'E2E重賞の1頭ごとのメモ。出してはいけない。', '[]', '◎', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07')),
+	('01JE2EGRADEDMARK2000000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED20000000', '01JE2EENTRYGRADED20000000', '', '[]', '▲', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07'));
+INSERT INTO note (id, author_id, kind, race_id, body, occurred_at, created_at)
+VALUES ('01JE2EGRADEDOTHER0000000000', '01JE2EOTHERUSER00000000000', 'race_preview', '01JE2ERACEGRADEDLAST000000', '他人の重賞の見立て。見えてはいけない。', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07'));
+INSERT INTO graded_race_note (user_id, race_key, body)
+VALUES ('01JE2EOTHERUSER00000000000', 'オールカマー', '他人の傾向のメモ。見えてはいけない。');

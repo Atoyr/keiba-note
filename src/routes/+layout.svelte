@@ -72,10 +72,14 @@
 
 {#if data.user && !bare}
 	<header class="border-b border-gray-200">
-		<nav class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:px-6">
+		<!-- スマホ（390px）では間を詰める。導線が5つになり、gap-x-4 のままだとアバターが2行目に落ちる。 -->
+		<nav
+			class="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 sm:gap-x-4 sm:px-6"
+		>
 			<a href={resolve('/')} class="font-bold tracking-tight">uma-memo</a>
 			<a href={resolve('/this-week')} class="text-sm text-gray-600 hover:underline">今週</a>
 			<a href={resolve('/races')} class="text-sm text-gray-600 hover:underline">レース</a>
+			<a href={resolve('/graded-races')} class="text-sm text-gray-600 hover:underline">重賞</a>
 			<a href={resolve('/horses')} class="text-sm text-gray-600 hover:underline">馬</a>
 			<a href={resolve('/jockeys')} class="text-sm text-gray-600 hover:underline">騎手</a>
 			<span class="flex-1"></span>

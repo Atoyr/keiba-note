@@ -388,3 +388,21 @@ export const MCP_METADATA_CLIENT = {
 	id: 'https://client.example/uma-memo/client-metadata.json',
 	redirectUri: 'https://claude.ai/api/mcp/auth_callback'
 } as const;
+
+/**
+ * 重賞（/graded-races）。今年・一昨年は「オールカマー」、去年は別名の「産経賞オールカマー」で、同じ重賞に束ねられる。
+ * 日付は seed を流した年の12/31。去年だけメモがある（見立て・ふりかえり・印2つ）。別のユーザーのメモと傾向は出てはいけない。
+ */
+export const GRADED_RACE = {
+	key: 'オールカマー',
+	aliasName: '産経賞オールカマー',
+	thisYearRaceId: '01JE2ERACEGRADEDTHIS000000',
+	lastYearRaceId: '01JE2ERACEGRADEDLAST000000',
+	outlook: 'E2E重賞の見立て。内枠の先行馬が残る。',
+	review: 'E2E重賞のふりかえり。スローで前が残った。',
+	winner: 'E2E重賞イチバン',
+	otherUserOutlook: '他人の重賞の見立て。見えてはいけない。',
+	otherUserTrend: '他人の傾向のメモ。見えてはいけない。',
+	/** 1頭ごとのメモの本文。年ごとのメモには出さない。 */
+	horseNoteBody: 'E2E重賞の1頭ごとのメモ。出してはいけない。'
+} as const;

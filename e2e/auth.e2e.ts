@@ -66,6 +66,8 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: `/races/${PREVIEW_RACE_ID}/summary`, secret: '今回は内枠が向きそう。' },
 	{ path: '/settings/admin', secret: null },
 	{ path: `/horses/${HORSE_ID}`, secret: 'E2E未来賞' },
+	{ path: '/graded-races', secret: null },
+	{ path: '/graded-races/xxx', secret: null },
 	{ path: '/jockeys', secret: null },
 	{ path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}`, secret: JOCKEYS.mainSummary },
 	{ path: `/races/${BRACKET_RACE_ID}`, secret: 'E2Eウチワク' },
