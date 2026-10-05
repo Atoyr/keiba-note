@@ -1,3 +1,11 @@
 onlyBuiltDependencies:
   - workerd
   - esbuild
+
+# 上流が古い版に固定している推移的依存の脆弱性を避ける（Dependabot #1・#2）。
+# 上流が直したら外す
+overrides:
+  # drizzle-kit 0.31 が使う @esbuild-kit/core-utils が esbuild 0.18 を固定している
+  '@esbuild-kit/core-utils>esbuild': ^0.25.0
+  # @sveltejs/kit 2.x が cookie ^0.6.0 を固定している
+  '@sveltejs/kit>cookie': ^0.7.0
