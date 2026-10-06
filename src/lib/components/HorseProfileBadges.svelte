@@ -4,7 +4,8 @@
 	 * 性齢は `牡4`（馬齢は `currentYear - birthYear`）。性だけなら `牡`、馬齢だけなら `4歳`。
 	 * ラベルと値の組なので `dl` で組み、読み上げで「父 ○○」と対になるようにする。性齢は札の字だけで伝わるので
 	 * ラベルは読み上げ専用（sr-only）。
-	 * 性別や血統に色の意味は無いので、塗らずに罫線と `bg-muted` の札で出す（`JockeyTagBadges` と同じ考え方）。
+	 * 性別や血統に色の意味は無いので、塗らずに罫線だけの札で出す（`JockeyTagBadges` と同じ考え方）。
+	 * 面を `bg-muted` にするとラベルの `text-muted-foreground` が 4.5:1 に届かない（約 4.35:1）ので、地は `bg-background`。
 	 */
 	let {
 		sex,
@@ -41,7 +42,7 @@
 	);
 
 	const chip =
-		'inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-0.5 text-xs';
+		'inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-xs';
 </script>
 
 {#if sexAge || labelled.length > 0}
