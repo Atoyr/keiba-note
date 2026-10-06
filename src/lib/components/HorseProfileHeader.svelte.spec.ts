@@ -75,7 +75,7 @@ describe('HorseProfileHeader', () => {
 	it('null の項目は出さない。項目が1つも無い行は描かない', () => {
 		const screen = render(HorseProfileHeader, { ...base, sire: 'チチ', trainer: '調教師A' });
 
-		expect(rows(screen.container)).toEqual([[[['父', 'チチ']][0]], [[['調教師', '調教師A']][0]]]);
+		expect(rows(screen.container)).toEqual([[['父', 'チチ']], [['調教師', '調教師A']]]);
 	});
 
 	it('所属だけ・調教師だけの行でも出る（右に寄る）', () => {

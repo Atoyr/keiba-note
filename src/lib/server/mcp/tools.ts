@@ -175,7 +175,7 @@ export const TOOLS = [
 	tool({
 		name: 'get_horse',
 		title: '馬のプロフィールと出走歴',
-		description: `馬のプロフィール（性・生年・調教師・父母）と、新しい順の出走歴を返します。${UNTRUSTED}`,
+		description: `馬のプロフィール（性・生年・生年月日・調教師・父母・母父）と、新しい順の出走歴を返します。${UNTRUSTED}`,
 		scope: 'races:read',
 		readOnly: true,
 		input: v.strictObject({ horseId: id, limit: limit(100) }),

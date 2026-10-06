@@ -34,7 +34,7 @@
 <svelte:head><title>{data.horse.name} — uma-memo</title></svelte:head>
 
 {#snippet heading()}
-	<div class="flex items-center gap-1">
+	<div class="flex min-w-0 items-center gap-1">
 		<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
 		<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
 		     二重に押しても行き来しない。

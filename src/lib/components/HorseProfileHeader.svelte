@@ -162,13 +162,15 @@
 {/snippet}
 
 <div class="flex flex-col gap-2 {className}">
-	<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+	<div class="flex flex-nowrap items-center gap-x-3">
 		{@render heading()}
 		{#if born || sexItem}
 			{@const s = sexItem ? chip({ tone: sexItem.tone }) : null}
-			<dl class="ms-auto flex items-center gap-2">
+			<dl
+				class="ms-auto flex shrink-0 flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-2"
+			>
 				{#if born}
-					<div class="text-sm text-muted-foreground">
+					<div class="text-xs text-muted-foreground sm:text-sm">
 						<dt class="sr-only">{born.label}</dt>
 						<dd>{born.text}</dd>
 					</div>

@@ -146,7 +146,7 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
-| `/horses/[id]` | POST `?/saveProfile` | `nameKana`・`sex`・`birthYear`・`birthDate`（生年月日。生年が空なら年を補い、年が違えば `fail(400)`）・`damSire`（母父）・`trainer`・`trainingCenter`（所属）・`sire` など（**馬名は含まない**） | プロフィールを更新 | 性別・所属が選択肢に無い `fail(400)` / 403 |
+| `/horses/[id]` | POST `?/saveProfile` | `nameKana`・`sex`・`birthYear`・`birthDate`（生年月日。生年が空なら年を補い、年が違えば `fail(400)`）・`damSire`（母父）・`trainer`・`trainingCenter`（所属）・`sire` など（**馬名は含まない**） | プロフィールを更新 | 性別・所属が選択肢に無い・生年月日が実在しない・生年と生年月日の年が違う `fail(400)` / 同じ名前・同じ生年の馬がいる `fail(409)` / 403 |
 | `/races/new` | GET / POST `default` | レースの項目（`raceSchema`） | `303 /races/[id]/entries` | 検証 `fail(400)` / 同じ日付・場・R `fail(409)` / 403 |
 | `/races/[id]/entries` | GET / POST `default` | `rowCount`・`horseName.<i>`・`bracket.<i>`・`horseNumber.<i>` ほか | `303 /races/[id]` | 検証 `fail(400)` / 同じ馬名が2行 `fail(400)` / 馬番か馬の重複（UNIQUE） `fail(409)` / 403 |
 | `/settings/admin` | GET / POST `?/freeze` | `userId` | ユーザーを凍結し、セッションと AI との連携（`oauth_grant`。コードとトークンも CASCADE）を全部消す | 自分自身は `fail(400)` / 403 |
