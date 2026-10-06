@@ -9,7 +9,7 @@
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
-	import HorseProfileBadges from '$lib/components/HorseProfileBadges.svelte';
+	import HorseProfileHeader from '$lib/components/HorseProfileHeader.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
@@ -33,8 +33,8 @@
 
 <svelte:head><title>{data.horse.name} — uma-memo</title></svelte:head>
 
-<main class="mx-auto max-w-3xl px-6 py-8">
-	<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+{#snippet heading()}
+	<div class="flex items-center gap-1">
 		<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
 		<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
 		     二重に押しても行き来しない。
@@ -83,6 +83,20 @@
 			</Button>
 		</form>
 	</div>
+{/snippet}
+
+<main class="mx-auto max-w-3xl px-6 py-8">
+	<HorseProfileHeader
+		{heading}
+		sex={data.horse.sex}
+		birthDate={data.horse.birthDate}
+		birthYear={data.horse.birthYear}
+		sire={data.horse.sire}
+		dam={data.horse.dam}
+		damSire={data.horse.damSire}
+		trainer={data.horse.trainer}
+		trainingCenter={data.horse.trainingCenter}
+	/>
 	{#if form && 'favorite' in form}<noscript
 			><p class="mt-1 text-sm">
 				{form.favorite
@@ -90,16 +104,6 @@
 					: '推しから外しました。'}
 			</p></noscript
 		>{/if}
-	<HorseProfileBadges
-		sex={data.horse.sex}
-		birthYear={data.horse.birthYear}
-		currentYear={Number(data.today.slice(0, 4))}
-		sire={data.horse.sire}
-		dam={data.horse.dam}
-		trainer={data.horse.trainer}
-		trainingCenter={data.horse.trainingCenter}
-		class="mt-2"
-	/>
 
 	{#if data.horse.profileMemo}
 		<p
@@ -145,6 +149,10 @@
 				<input type="number" name="birthYear" value={data.horse.birthYear ?? ''} class={input} />
 			</label>
 			<label class="text-sm">
+				<span class="font-medium">生年月日</span>
+				<input type="date" name="birthDate" value={data.horse.birthDate ?? ''} class={input} />
+			</label>
+			<label class="text-sm">
 				<span class="font-medium">調教師</span>
 				<input name="trainer" value={data.horse.trainer ?? ''} class={input} />
 			</label>
@@ -171,6 +179,10 @@
 			<label class="text-sm">
 				<span class="font-medium">母</span>
 				<input name="dam" value={data.horse.dam ?? ''} class={input} />
+			</label>
+			<label class="text-sm">
+				<span class="font-medium">母父</span>
+				<input name="damSire" value={data.horse.damSire ?? ''} class={input} />
 			</label>
 			<label class="col-span-2 text-sm">
 				<span class="font-medium">プロフィールメモ</span>

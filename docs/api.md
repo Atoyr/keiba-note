@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-10-07 — `/horses/[id]` の `?/saveProfile` に `birthDate`・`damSire` を足した（→ 第3章）
 - 更新日: 2026-10-03 — オッズの更新を Actions に頼む Cron と、`services/odds.ts` の `listOddsTargetIds` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-10-03 — Client ID Metadata Document を受け、同意画面の `load` が文書のキャッシュを書く例外を足した（→ 第1章 / 第3章）
 - 更新日: 2026-10-05 — 重賞の一覧と画面（`/graded-races`・`/graded-races/[name]` の `?/saveTrend`）と `services/graded-races.ts` を足した（→ 第3章 / 第5章）
@@ -145,7 +146,7 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
-| `/horses/[id]` | POST `?/saveProfile` | `nameKana`・`sex`・`birthYear`・`trainer`・`trainingCenter`（所属）・`sire` など（**馬名は含まない**） | プロフィールを更新 | 性別・所属が選択肢に無い `fail(400)` / 403 |
+| `/horses/[id]` | POST `?/saveProfile` | `nameKana`・`sex`・`birthYear`・`birthDate`（生年月日。生年が空なら年を補い、年が違えば `fail(400)`）・`damSire`（母父）・`trainer`・`trainingCenter`（所属）・`sire` など（**馬名は含まない**） | プロフィールを更新 | 性別・所属が選択肢に無い `fail(400)` / 403 |
 | `/races/new` | GET / POST `default` | レースの項目（`raceSchema`） | `303 /races/[id]/entries` | 検証 `fail(400)` / 同じ日付・場・R `fail(409)` / 403 |
 | `/races/[id]/entries` | GET / POST `default` | `rowCount`・`horseName.<i>`・`bracket.<i>`・`horseNumber.<i>` ほか | `303 /races/[id]` | 検証 `fail(400)` / 同じ馬名が2行 `fail(400)` / 馬番か馬の重複（UNIQUE） `fail(409)` / 403 |
 | `/settings/admin` | GET / POST `?/freeze` | `userId` | ユーザーを凍結し、セッションと AI との連携（`oauth_grant`。コードとトークンも CASCADE）を全部消す | 自分自身は `fail(400)` / 403 |
@@ -172,7 +173,7 @@ tools（書くのは `save_my_race_preview` だけ。`viewerId` はトークン�
 | --- | --- | --- | --- |
 | `search_races` | `races:read` | `q`・`year`・`limit`（1〜50） | レース（新しい順）。`notes:read` もあれば `myNoteCount`（自分のメモの件数） |
 | `get_race` | `races:read` | `raceId` | レースの条件・出走馬（馬番・騎手・着順）・オッズとその時点 |
-| `get_horse` | `races:read` | `horseId`・`limit`（1〜100） | 馬のプロフィール（性・生年・調教師・父母）と出走歴 |
+| `get_horse` | `races:read` | `horseId`・`limit`（1〜100） | 馬のプロフィール（性・生年・生年月日・調教師・父母・母父）と出走歴 |
 | `get_my_race_notes` | `notes:read` | `raceId` | そのレースの自分の見立て・ふりかえり・各馬のメモ・印・札・展開 |
 | `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
 | `list_my_recent_notes` | `notes:read` | `limit`（1〜50） | 自分の最近のメモ |

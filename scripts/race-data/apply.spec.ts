@@ -328,7 +328,7 @@ races:
 });
 
 describe('applyProfile', () => {
-	it('性・馬齢・調教師・血統を上書きする。馬齢はレースの年で数える', () => {
+	it('性・馬齢・生年月日・調教師・血統を上書きする。馬齢はレースの年で数える', () => {
 		const file = RaceFile.parse(
 			'2026-09-27.yaml',
 			placeholder.replace(
@@ -345,16 +345,18 @@ describe('applyProfile', () => {
 				name: 'ホースA',
 				sex: 'セ',
 				birthYear: 2021,
+				birthDate: '2021-04-04',
 				trainer: '転厩先',
 				trainingCenter: '栗東',
 				sire: '父',
-				dam: '母'
+				dam: '母',
+				damSire: '母父'
 			},
 			2026
 		);
 		expect(log).toEqual(['~ ホースA']);
 		expect(file.toString()).toContain(
-			'      - name: ホースA\n        sex: セ\n        age: 5\n        ref: nk-1\n        trainer: 転厩先\n        trainingCenter: 栗東\n        sire: 父\n        dam: 母\n'
+			'      - name: ホースA\n        sex: セ\n        age: 5\n        birthDate: 2021-04-04\n        ref: nk-1\n        trainer: 転厩先\n        trainingCenter: 栗東\n        sire: 父\n        dam: 母\n        damSire: 母父\n'
 		);
 	});
 });

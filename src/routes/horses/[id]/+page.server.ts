@@ -118,10 +118,12 @@ export const actions: Actions = {
 			nameKana: field('nameKana'),
 			sex: field('sex'),
 			birthYear: field('birthYear'),
+			birthDate: field('birthDate'),
 			trainer: field('trainer'),
 			trainingCenter: field('trainingCenter'),
 			sire: field('sire'),
 			dam: field('dam'),
+			damSire: field('damSire'),
 			profileMemo: field('profileMemo')
 		});
 		if (!parsed.success) {

@@ -191,9 +191,11 @@ export const TOOLS = [
 						name: horse.name,
 						sex: horse.sex,
 						birthYear: horse.birthYear,
+						birthDate: horse.birthDate,
 						trainer: horse.trainer,
 						sire: horse.sire,
-						dam: horse.dam
+						dam: horse.dam,
+						damSire: horse.damSire
 					},
 					runs: runs.map((r) => ({
 						raceId: r.raceId,

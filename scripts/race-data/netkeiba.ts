@@ -613,6 +613,8 @@ export type HorseProfile = {
 	name: string;
 	sex?: '牡' | '牝' | 'セ';
 	birthYear?: number;
+	/** `生年月日 2021年4月4日` の `2021-04-04`。 */
+	birthDate?: string;
 	/** プロフィール表の調教師名。4文字で切れる（`中内田充`）ので、`trainerId` があれば引き直す。 */
 	trainer?: string;
 	trainerId?: string;
@@ -620,6 +622,7 @@ export type HorseProfile = {
 	trainingCenter?: TrainingCenter;
 	sire?: string;
 	dam?: string;
+	damSire?: string;
 };
 
 /** db.netkeiba.com/horse/<id>/ の見出しとプロフィール表。 */
@@ -631,7 +634,11 @@ export function parseHorseProfile(html: string): HorseProfile {
 
 	const profHtml = /class="db_prof_table[\s\S]*?<\/table>/.exec(html)?.[0] ?? '';
 	const prof = text(profHtml);
+	const born = /生年月日\s*(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/.exec(prof);
 	const birthYear = int(/生年月日\s*(\d{4})年/.exec(prof)?.[1]);
+	const birthDate = born
+		? `${born[1]}-${born[2].padStart(2, '0')}-${born[3].padStart(2, '0')}`
+		: undefined;
 	const trainer = /調教師\s*(\S+?)\s*\(/.exec(prof)?.[1];
 	const center = /調教師\s*\S+?\s*\(\s*(美浦|栗東|地方|海外)\s*\)/.exec(prof)?.[1];
 	const trainerId = /調教師[\s\S]*?\/trainer\/(?:result\/recent\/)?(\w+)\//.exec(profHtml)?.[1];
@@ -640,6 +647,7 @@ export function parseHorseProfile(html: string): HorseProfile {
 		name,
 		sex: sexWord === '騸' ? 'セ' : (sexWord as HorseProfile['sex']),
 		birthYear,
+		birthDate,
 		trainer: trainer && trainer !== '-' ? toHalfWidth(trainer) : undefined,
 		trainerId: trainer && trainer !== '-' ? trainerId : undefined,
 		trainingCenter:
@@ -647,13 +655,20 @@ export function parseHorseProfile(html: string): HorseProfile {
 	};
 }
 
-/** 血統の ajax（`{ status, data }`）の data。1代目の父と母だけ読む。 */
-export function parsePedigree(html: string): { sire?: string; dam?: string } {
+/**
+ * 血統の ajax（`{ status, data }`）の data。1代目の父と母、母の父を読む。
+ * 母の `rowspan="2"` の td と同じ tr の次の td が母父。
+ */
+export function parsePedigree(html: string): { sire?: string; dam?: string; damSire?: string } {
 	const table = tableAfter(html, 'blood_table') ?? '';
-	const firstGen = [...table.matchAll(/<td rowspan="2"[^>]*>([\s\S]*?)<\/td>/g)].map((m) =>
-		text(m[1])
-	);
-	return { sire: firstGen[0] || undefined, dam: firstGen[1] || undefined };
+	const firstGen = [
+		...table.matchAll(/<td rowspan="2"[^>]*>([\s\S]*?)<\/td>(?:\s*<td[^>]*>([\s\S]*?)<\/td>)?/g)
+	];
+	return {
+		sire: text(firstGen[0]?.[1] ?? '') || undefined,
+		dam: text(firstGen[1]?.[1] ?? '') || undefined,
+		damSire: text(firstGen[1]?.[2] ?? '') || undefined
+	};
 }
 
 /** 騎手・調教師のプロフィールページの title から、略さない名前を読む。 */

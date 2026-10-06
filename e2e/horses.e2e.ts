@@ -25,14 +25,21 @@ test('メモを書かなかった出走もタイムラインに並ぶ', async ({
 	await expect(page.getByText('直線だけの競馬になった。')).toBeVisible();
 });
 
-test('名前の下にプロフィールの札が並ぶ', async ({ page }) => {
+test('名前の行と札が3行で並ぶ', async ({ page }) => {
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
 
-	const badges = page.locator('main dl');
-	await expect(badges).toContainText('父 E2Eチチウマ');
-	await expect(badges).toContainText('母 E2Eハハウマ');
-	await expect(badges).toContainText('美浦 E2E調教師');
+	// 1行目 生年月日・性別、2行目 父・所属、3行目 母・母父・調教師。馬齢は出さない。
+	const rows = page.locator('main dl');
+	await expect(rows).toHaveCount(3);
+	await expect(rows.nth(0)).toContainText('2020年3月15日生');
+	await expect(rows.nth(0)).toContainText('牡');
+	await expect(rows.nth(1)).toContainText('父 E2Eチチウマ');
+	await expect(rows.nth(1)).toContainText('美浦');
+	await expect(rows.nth(2)).toContainText('母 E2Eハハウマ');
+	await expect(rows.nth(2)).toContainText('母父 E2Eハハチチ');
+	await expect(rows.nth(2)).toContainText('調教師 E2E調教師');
+	await expect(page.locator('main')).not.toContainText('牡6');
 });
 
 test('タイムラインは未来から過去の順に並ぶ', async ({ page }) => {
@@ -78,18 +85,23 @@ test('タイムラインから、結果が出たレースはふりかえりへ�
 	);
 });
 
-test('admin のプロフィール編集で、所属と性別の選択が保存される', async ({ page }) => {
+test('admin のプロフィール編集で、所属・性別・生年月日・母父が保存される', async ({ page }) => {
 	await login(page, 'admin');
 	await gotoHydrated(page, `/horses/${FILLY_HORSE_ID}`);
 
 	// 値は今の値のまま保存する（ほかのテスト・キャプチャの前提を変えない）。
 	// 選択が form に載らなければ空で送られ、所属も性別も消える。
 	await page.getByRole('button', { name: 'プロフィールを編集' }).click();
+	await expect(page.getByLabel('生年月日')).toHaveValue('2022-05-01');
+	await expect(page.getByLabel('母父')).toHaveValue('E2Eヒメハハチチ');
 	await page.getByRole('button', { name: '所属', exact: true }).click();
 	await page.getByRole('option', { name: '栗東' }).click();
 	await page.getByRole('button', { name: '保存', exact: true }).click();
 
-	const badges = page.locator('main dl');
-	await expect(badges).toContainText('栗東 E2E栗東調教師');
-	await expect(badges).toContainText('牝4');
+	const rows = page.locator('main dl');
+	await expect(rows.nth(0)).toContainText('2022年5月1日生');
+	await expect(rows.nth(0)).toContainText('牝');
+	await expect(rows.nth(1)).toContainText('栗東');
+	await expect(rows.nth(2)).toContainText('母父 E2Eヒメハハチチ');
+	await expect(rows.nth(2)).toContainText('調教師 E2E栗東調教師');
 });

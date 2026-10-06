@@ -32,8 +32,16 @@ const optionalChoice = <const T extends readonly [string, ...string[]]>(
 		v.transform((s): T[number] | null => (s === '' ? null : s))
 	);
 
-/** 馬のプロフィール欄（`saveProfile`）。**馬名は含まない。** 生年は整数で 1900 年より後だけ、それ以外は null。 */
-export const horseProfileSchema = v.object({
+/** `YYYY-MM-DD` で、暦に実在する日付か（`2021-02-30` は偽）。 */
+export function isIsoDate(s: string): boolean {
+	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+	if (!m) return false;
+	const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+	const date = new Date(Date.UTC(y, mo - 1, d));
+	return date.getUTCFullYear() === y && date.getUTCMonth() === mo - 1 && date.getUTCDate() === d;
+}
+
+const horseProfileFields = v.object({
 	nameKana: optionalText,
 	sex: optionalChoice(HORSE_SEXES, '性別を選び直してください'),
 	birthYear: v.pipe(
@@ -42,9 +50,35 @@ export const horseProfileSchema = v.object({
 		v.transform((s) => Number(s)),
 		v.transform((n) => (Number.isInteger(n) && n > 1900 ? n : null))
 	),
+	birthDate: v.pipe(
+		v.string(),
+		v.trim(),
+		v.check((s) => s === '' || isIsoDate(s), '生年月日を確かめてください'),
+		v.transform((s) => s || null)
+	),
 	trainer: optionalText,
 	trainingCenter: optionalChoice(TRAINING_CENTERS, '所属を選び直してください'),
 	sire: optionalText,
 	dam: optionalText,
+	damSire: optionalText,
 	profileMemo: optionalText
 });
+
+/**
+ * 馬のプロフィール欄（`saveProfile`）。**馬名は含まない。** 生年は整数で 1900 年より後だけ、それ以外は null。
+ * 生年月日があって生年が空なら生年は生年月日の年にし、両方あって年が違えば落とす。
+ */
+export const horseProfileSchema = v.pipe(
+	horseProfileFields,
+	v.check(
+		(p) =>
+			p.birthDate === null ||
+			p.birthYear === null ||
+			p.birthYear === Number(p.birthDate.slice(0, 4)),
+		'生年と生年月日の年が合いません'
+	),
+	v.transform((p) => ({
+		...p,
+		birthYear: p.birthYear ?? (p.birthDate ? Number(p.birthDate.slice(0, 4)) : null)
+	}))
+);
