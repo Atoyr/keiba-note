@@ -7,6 +7,7 @@
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
+	import HorseProfileBadges from '$lib/components/HorseProfileBadges.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
@@ -21,15 +22,6 @@
 
 	let profileOpen = $state(false);
 	let favoritePending = $state(false);
-
-	const profile = $derived(
-		[
-			data.horse.sex,
-			data.horse.birthYear ? `${new Date().getFullYear() - data.horse.birthYear}歳` : null,
-			data.horse.sire ? `父${data.horse.sire}` : null,
-			data.horse.trainer
-		].filter(Boolean)
-	);
 
 	const input = 'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 </script>
@@ -93,9 +85,15 @@
 					: '推しから外しました。'}
 			</p></noscript
 		>{/if}
-	{#if profile.length > 0}
-		<p class="mt-1 text-sm text-gray-600">{profile.join(' / ')}</p>
-	{/if}
+	<HorseProfileBadges
+		sex={data.horse.sex}
+		birthYear={data.horse.birthYear}
+		currentYear={Number(data.today.slice(0, 4))}
+		sire={data.horse.sire}
+		dam={data.horse.dam}
+		trainer={data.horse.trainer}
+		class="mt-2"
+	/>
 
 	{#if data.horse.profileMemo}
 		<p

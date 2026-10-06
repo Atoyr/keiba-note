@@ -18,6 +18,16 @@ test('メモを書かなかった出走もタイムラインに並ぶ', async ({
 	await expect(page.getByText('直線だけの競馬になった。')).toBeVisible();
 });
 
+test('名前の下にプロフィールの札が並ぶ', async ({ page }) => {
+	await login(page);
+	await page.goto(`/horses/${HORSE_ID}`);
+
+	const badges = page.locator('main dl');
+	await expect(badges).toContainText('父 E2Eチチウマ');
+	await expect(badges).toContainText('母 E2Eハハウマ');
+	await expect(badges).toContainText('調教師 E2E調教師');
+});
+
 test('タイムラインは未来から過去の順に並ぶ', async ({ page }) => {
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
