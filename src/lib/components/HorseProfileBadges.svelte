@@ -51,7 +51,7 @@
 </script>
 
 <script lang="ts">
-	import type { TrainingCenter } from '$lib/schemas/horse';
+	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
 
 	/**
 	 * 馬のプロフィールの札。並びは 性齢 → 父 → 母 → 調教師（所属）で、値の無い項目は出さない（全部無ければ何も描かない）。
@@ -71,7 +71,7 @@
 		trainingCenter,
 		class: className = ''
 	}: {
-		sex: '牡' | '牝' | 'セ' | null;
+		sex: HorseSex | null;
 		birthYear: number | null;
 		currentYear: number;
 		sire: string | null;

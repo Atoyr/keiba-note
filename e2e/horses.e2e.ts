@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated } from './hydration';
 import { login } from './login';
-import { BRACKET_RACE_ID, HORSE_ID, OUTER_HORSE_ID, TIMELINE_RUN_RACES } from './seed';
+import {
+	BRACKET_RACE_ID,
+	FILLY_HORSE_ID,
+	HORSE_ID,
+	OUTER_HORSE_ID,
+	TIMELINE_RUN_RACES
+} from './seed';
 
 const TIMELINE = 'main ol > li';
 
@@ -69,4 +76,20 @@ test('タイムラインから、結果が出たレースはふりかえりへ�
 		'href',
 		`/races/${BRACKET_RACE_ID}`
 	);
+});
+
+test('admin のプロフィール編集で、所属と性別の選択が保存される', async ({ page }) => {
+	await login(page, 'admin');
+	await gotoHydrated(page, `/horses/${FILLY_HORSE_ID}`);
+
+	// 値は今の値のまま保存する（ほかのテスト・キャプチャの前提を変えない）。
+	// 選択が form に載らなければ空で送られ、所属も性別も消える。
+	await page.getByRole('button', { name: 'プロフィールを編集' }).click();
+	await page.getByRole('button', { name: '所属', exact: true }).click();
+	await page.getByRole('option', { name: '栗東' }).click();
+	await page.getByRole('button', { name: '保存', exact: true }).click();
+
+	const badges = page.locator('main dl');
+	await expect(badges).toContainText('栗東 E2E栗東調教師');
+	await expect(badges).toContainText('牝4');
 });

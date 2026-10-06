@@ -4,6 +4,8 @@
 	import Star from '@lucide/svelte/icons/star';
 	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
@@ -11,7 +13,7 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
-	import { TRAINING_CENTERS } from '$lib/schemas/horse';
+	import { HORSE_SEXES, TRAINING_CENTERS } from '$lib/schemas/horse';
 	import { isSettled, opensReview } from '$lib/utils/date';
 	import { isReviewNote, noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
@@ -23,6 +25,8 @@
 
 	let profileOpen = $state(false);
 	let favoritePending = $state(false);
+	let sexValue = $state(data.horse.sex ?? '');
+	let centerValue = $state(data.horse.trainingCenter ?? '');
 
 	const input = 'mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm';
 </script>
@@ -124,15 +128,18 @@
 			use:enhance
 			class="mt-3 grid grid-cols-2 gap-3 rounded-md border border-gray-200 p-4"
 		>
-			<label class="text-sm">
-				<span class="font-medium">性別</span>
-				<select name="sex" class={input}>
-					<option value="">—</option>
-					{#each ['牡', '牝', 'セ'] as s (s)}
-						<option value={s} selected={data.horse.sex === s}>{s}</option>
-					{/each}
-				</select>
-			</label>
+			<div class="text-sm">
+				<Label for="profile-sex" class="mb-1">性別</Label>
+				<Select.Root type="single" name="sex" bind:value={sexValue}>
+					<Select.Trigger id="profile-sex" class="w-full">{sexValue || '—'}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="" label="—">—</Select.Item>
+						{#each HORSE_SEXES as s (s)}
+							<Select.Item value={s} label={s}>{s}</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
 			<label class="text-sm">
 				<span class="font-medium">生年</span>
 				<input type="number" name="birthYear" value={data.horse.birthYear ?? ''} class={input} />
@@ -141,15 +148,18 @@
 				<span class="font-medium">調教師</span>
 				<input name="trainer" value={data.horse.trainer ?? ''} class={input} />
 			</label>
-			<label class="text-sm">
-				<span class="font-medium">所属</span>
-				<select name="trainingCenter" class={input}>
-					<option value="">—</option>
-					{#each TRAINING_CENTERS as c (c)}
-						<option value={c} selected={data.horse.trainingCenter === c}>{c}</option>
-					{/each}
-				</select>
-			</label>
+			<div class="text-sm">
+				<Label for="profile-center" class="mb-1">所属</Label>
+				<Select.Root type="single" name="trainingCenter" bind:value={centerValue}>
+					<Select.Trigger id="profile-center" class="w-full">{centerValue || '—'}</Select.Trigger>
+					<Select.Content>
+						<Select.Item value="" label="—">—</Select.Item>
+						{#each TRAINING_CENTERS as c (c)}
+							<Select.Item value={c} label={c}>{c}</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
 			<label class="text-sm">
 				<span class="font-medium">カナ</span>
 				<input name="nameKana" value={data.horse.nameKana ?? ''} class={input} />
