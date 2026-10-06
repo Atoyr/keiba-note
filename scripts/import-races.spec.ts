@@ -281,11 +281,11 @@ describe('レースの ref と発走時刻（オッズの取得対象）', () =>
 		expect(sql).not.toMatch(/start_time|external_ref = excluded/);
 	});
 
-	it('書いていない YAML の SQL は頭数・勝ち馬・タイム差も名指ししない（マイグレーション 0012・0013 の列）', () => {
+	it('書いていない YAML の SQL は頭数・勝ち馬・タイム差・所属も名指ししない（マイグレーション 0012・0013・0022 の列）', () => {
 		const parsed = readRaceFile(candidates, '2099-01-04.yaml');
 		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
 		expect(statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n')).not.toMatch(
-			/field_size|winner_name|runner_up_name|time_diff/
+			/field_size|winner_name|runner_up_name|time_diff|training_center/
 		);
 	});
 
@@ -353,5 +353,42 @@ describe('レースの頭数・勝ち馬・2着馬と、出走馬のタイム差
 
 		load(db, candidates);
 		expect(laps(db)).toEqual({ laps: '[12.3,11,13.5,12]' });
+	});
+});
+
+describe('出走馬の所属（trainingCenter）', () => {
+	const withCenter = (center: string) =>
+		candidates.replace(
+			'{ name: ホースA, ref: t-a }',
+			`{ name: ホースA, ref: t-a, trainingCenter: ${center} }`
+		);
+	const centerOf = (db: DatabaseSync) =>
+		db.prepare(`SELECT training_center FROM horse WHERE external_ref = 't-a'`).get();
+
+	it('馬の列に入り、書かなければ既存の値を残す。書けば上書きする', () => {
+		const db = freshDb();
+		load(db, withCenter('栗東'));
+		expect(centerOf(db)).toEqual({ training_center: '栗東' });
+
+		load(db, candidates);
+		expect(centerOf(db)).toEqual({ training_center: '栗東' });
+
+		load(db, withCenter('美浦'));
+		expect(centerOf(db)).toEqual({ training_center: '美浦' });
+	});
+
+	it('書いた YAML の SQL だけ training_center を名指しする', () => {
+		const sql = (yaml: string) => {
+			const parsed = readRaceFile(yaml, '2099-01-04.yaml');
+			if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+			return statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n');
+		};
+		expect(sql(withCenter('栗東'))).toMatch(/training_center/);
+		expect(sql(candidates)).not.toMatch(/training_center/);
+	});
+
+	it('選択肢に無い値は落とす', () => {
+		const r = readRaceFile(withCenter('北海道'), '2099-01-04.yaml');
+		expect(r.ok).toBe(false);
 	});
 });

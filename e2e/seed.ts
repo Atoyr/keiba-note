@@ -155,6 +155,9 @@ export const PRIVATE_NOTE_ID = '01JE2EPRIVATENOTE000000000';
 /** タイムラインを見る馬。出走3走のうち、メモが付いているのは1走だけ。 */
 export const HORSE_ID = '01JE2EHORSE000000000000000';
 
+/** 牝馬・栗東の馬。プロフィールの札の色を見せる（メモ・出走は無い）。 */
+export const FILLY_HORSE_ID = '01JE2EHORSEFILLY0000000000';
+
 /** ふりかえり画面を開くレース。出走1頭（着順まで入っている）。 */
 export const REVIEW_RACE_ID = '01JE2ERACEPAST0000000000000';
 

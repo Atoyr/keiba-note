@@ -11,6 +11,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 // 印の選択肢（MARKS）と札の型。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
 import { MARKS, type NoteTag } from '../../schemas/note';
+import { HORSE_SEXES, TRAINING_CENTERS } from '../../schemas/horse';
 import type { JockeyTag } from '../../schemas/jockey';
 import type { RaceFlow } from '../../schemas/race-flow';
 import type { RaceSummary } from '../../utils/race-summary';
@@ -82,9 +83,11 @@ export const horse = sqliteTable(
 		id: text('id').primaryKey(),
 		name: text('name').notNull(),
 		nameKana: text('name_kana'),
-		sex: text('sex', { enum: ['牡', '牝', 'セ'] }),
+		sex: text('sex', { enum: HORSE_SEXES }),
 		birthYear: integer('birth_year'),
 		trainer: text('trainer'),
+		/** 所属（トレセン）。調教師と同じく馬の属性で、転厩で変わる。 */
+		trainingCenter: text('training_center', { enum: TRAINING_CENTERS }),
 		ownerName: text('owner_name'),
 		sire: text('sire'),
 		dam: text('dam'),

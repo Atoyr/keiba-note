@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { favoriteHorseSchema } from '$lib/schemas/favorite';
+import { horseProfileSchema } from '$lib/schemas/horse';
 import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
 import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
@@ -112,18 +113,22 @@ export const actions: Actions = {
 		const { db } = ctxAdmin(locals, platform);
 
 		const form = await request.formData();
-		const str = (k: string) => form.get(k)?.toString().trim() || null;
-		const year = Number(form.get('birthYear')?.toString().trim());
-
-		await updateHorseProfile(db, params.id, {
-			nameKana: str('nameKana'),
-			sex: (['牡', '牝', 'セ'] as const).find((s) => s === str('sex')) ?? null,
-			birthYear: Number.isInteger(year) && year > 1900 ? year : null,
-			trainer: str('trainer'),
-			sire: str('sire'),
-			dam: str('dam'),
-			profileMemo: str('profileMemo')
+		const field = (k: string) => form.get(k)?.toString() ?? '';
+		const parsed = v.safeParse(horseProfileSchema, {
+			nameKana: field('nameKana'),
+			sex: field('sex'),
+			birthYear: field('birthYear'),
+			trainer: field('trainer'),
+			trainingCenter: field('trainingCenter'),
+			sire: field('sire'),
+			dam: field('dam'),
+			profileMemo: field('profileMemo')
 		});
+		if (!parsed.success) {
+			return fail(400, { message: parsed.issues[0]?.message ?? '入力を確認してください' });
+		}
+
+		await updateHorseProfile(db, params.id, parsed.output);
 
 		return { profileSaved: true };
 	}

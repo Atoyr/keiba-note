@@ -12,6 +12,7 @@ import {
 	FLOW_CROWD_RACE_ID,
 	FLOW_RACE_ID,
 	GRADED_RACE,
+	FILLY_HORSE_ID,
 	HORSE_ID,
 	JOCKEYS,
 	MARKS_RACE_ID,
@@ -434,6 +435,8 @@ export const SCREENS: Screen[] = [
 	},
 	// 推しの馬。名前の右に黄色く塗った★（押すと推しから外す）。
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
+	// 牝馬・栗東。札の色がピンクと橙。
+	{ name: 'horse-profile-filly', path: `/horses/${FILLY_HORSE_ID}`, auth: true },
 	// 推しでない馬。黄色の輪郭だけの☆（押すと推しにする）。
 	{ name: 'horse-not-favorite', path: `/horses/${TOGGLE_FAVORITE_HORSE_ID}`, auth: true },
 	{

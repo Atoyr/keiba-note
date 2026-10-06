@@ -99,7 +99,17 @@ export async function updateHorseProfile(
 	db: Db,
 	id: string,
 	patch: Partial<
-		Pick<Horse, 'nameKana' | 'sex' | 'birthYear' | 'trainer' | 'sire' | 'dam' | 'profileMemo'>
+		Pick<
+			Horse,
+			| 'nameKana'
+			| 'sex'
+			| 'birthYear'
+			| 'trainer'
+			| 'trainingCenter'
+			| 'sire'
+			| 'dam'
+			| 'profileMemo'
+		>
 	>
 ): Promise<void> {
 	await db

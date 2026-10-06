@@ -38,6 +38,7 @@ import {
 	SURFACES,
 	TRACK_CONDITIONS
 } from '../src/lib/schemas/race.ts';
+import { TRAINING_CENTERS } from '../src/lib/schemas/horse.ts';
 import { COURSE_CODES } from './race-data/netkeiba.ts';
 
 /**
@@ -74,6 +75,8 @@ const entrySchema = v.object({
 	 */
 	age: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(20))),
 	trainer: v.optional(v.string()),
+	/** 所属（トレセン）。調教師と同じく馬の属性。 */
+	trainingCenter: optional(TRAINING_CENTERS),
 	sire: v.optional(v.string()),
 	dam: v.optional(v.string()),
 
@@ -310,6 +313,8 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 			// 打ち間違いを直すには、先に ref を振ってから名前を変える2段階になる。
 			// タイム差（マイグレーション 0013）もレースの頭数と同じく、書いた行のときだけ列に触る。
 			const diffCol = writtenCols([['time_diff', e.timeDiff]]);
+			// 所属（マイグレーション 0022）も同じく、書いた行のときだけ列に触る。
+			const centerCol = writtenCols([['training_center', e.trainingCenter]]);
 
 			const rename = e.ref
 				? `
@@ -318,8 +323,8 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 
 			out.push(
 				// 引き当たらなければ作る。
-				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam, external_ref)
-SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${lit(e.trainer)}, ${lit(e.sire)}, ${lit(e.dam)}, ${lit(e.ref)}
+				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam, external_ref${centerCol.names})
+SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${lit(e.trainer)}, ${lit(e.sire)}, ${lit(e.dam)}, ${lit(e.ref)}${centerCol.values}
 WHERE ${ref} IS NULL;`,
 				// 既存馬は空いている属性だけ埋める。**プロフィールメモには触らない**（利用者が書いたもの）。
 				// id で1行に固定しているので、同名の別馬を巻き添えにすることがない。
@@ -329,7 +334,11 @@ WHERE ${ref} IS NULL;`,
   trainer = COALESCE(${lit(e.trainer)}, trainer),
   sire = COALESCE(${lit(e.sire)}, sire),
   dam = COALESCE(${lit(e.dam)}, dam),
-  external_ref = COALESCE(${lit(e.ref)}, external_ref),
+  external_ref = COALESCE(${lit(e.ref)}, external_ref),${
+		e.trainingCenter === undefined
+			? ''
+			: `\n  training_center = COALESCE(${lit(e.trainingCenter)}, training_center),`
+	}
   updated_at = unixepoch()
 WHERE id = ${ref};`,
 				// 出走馬は (race_id, horse_id) で upsert。**削除も再作成もしない**ので、
