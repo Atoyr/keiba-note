@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { favoriteHorseSchema } from '$lib/schemas/favorite';
+import { TRAINING_CENTERS } from '$lib/schemas/horse';
 import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
 import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
@@ -120,6 +121,7 @@ export const actions: Actions = {
 			sex: (['牡', '牝', 'セ'] as const).find((s) => s === str('sex')) ?? null,
 			birthYear: Number.isInteger(year) && year > 1900 ? year : null,
 			trainer: str('trainer'),
+			trainingCenter: TRAINING_CENTERS.find((c) => c === str('trainingCenter')) ?? null,
 			sire: str('sire'),
 			dam: str('dam'),
 			profileMemo: str('profileMemo')

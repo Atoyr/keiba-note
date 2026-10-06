@@ -20,6 +20,7 @@ export const ENTRY_KEYS = [
 	'birthYear',
 	'ref',
 	'trainer',
+	'trainingCenter',
 	'sire',
 	'dam',
 	'finish',

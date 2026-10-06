@@ -56,6 +56,7 @@ const row = (id: string, name: string, extra: Partial<ShutubaRow> = {}): Shutuba
 	weight: 58,
 	jockey: { id: `j${id}`, short: `騎${id}` },
 	trainer: { id: `t${id}`, short: `調${id}` },
+	trainingCenter: '美浦',
 	...extra
 });
 
@@ -83,6 +84,7 @@ describe('applyShutuba', () => {
 				'        age: 4',
 				'        ref: nk-2',
 				'        trainer: 調2（調）',
+				'        trainingCenter: 美浦',
 				'        weight: 58'
 			].join('\n')
 		);
@@ -339,12 +341,20 @@ describe('applyProfile', () => {
 			file,
 			race,
 			file.entries(race).items[0],
-			{ name: 'ホースA', sex: 'セ', birthYear: 2021, trainer: '転厩先', sire: '父', dam: '母' },
+			{
+				name: 'ホースA',
+				sex: 'セ',
+				birthYear: 2021,
+				trainer: '転厩先',
+				trainingCenter: '栗東',
+				sire: '父',
+				dam: '母'
+			},
 			2026
 		);
 		expect(log).toEqual(['~ ホースA']);
 		expect(file.toString()).toContain(
-			'      - name: ホースA\n        sex: セ\n        age: 5\n        ref: nk-1\n        trainer: 転厩先\n        sire: 父\n        dam: 母\n'
+			'      - name: ホースA\n        sex: セ\n        age: 5\n        ref: nk-1\n        trainer: 転厩先\n        trainingCenter: 栗東\n        sire: 父\n        dam: 母\n'
 		);
 	});
 });

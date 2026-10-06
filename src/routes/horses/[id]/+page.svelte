@@ -11,6 +11,7 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
+	import { TRAINING_CENTERS } from '$lib/schemas/horse';
 	import { isSettled, opensReview } from '$lib/utils/date';
 	import { isReviewNote, noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
@@ -92,6 +93,7 @@
 		sire={data.horse.sire}
 		dam={data.horse.dam}
 		trainer={data.horse.trainer}
+		trainingCenter={data.horse.trainingCenter}
 		class="mt-2"
 	/>
 
@@ -138,6 +140,15 @@
 			<label class="text-sm">
 				<span class="font-medium">調教師</span>
 				<input name="trainer" value={data.horse.trainer ?? ''} class={input} />
+			</label>
+			<label class="text-sm">
+				<span class="font-medium">所属</span>
+				<select name="trainingCenter" class={input}>
+					<option value="">—</option>
+					{#each TRAINING_CENTERS as c (c)}
+						<option value={c} selected={data.horse.trainingCenter === c}>{c}</option>
+					{/each}
+				</select>
 			</label>
 			<label class="text-sm">
 				<span class="font-medium">カナ</span>

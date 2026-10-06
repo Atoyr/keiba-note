@@ -1,0 +1,1 @@
+ALTER TABLE `horse` ADD `training_center` text;

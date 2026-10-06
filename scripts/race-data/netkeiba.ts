@@ -10,6 +10,7 @@
  *   呼び出し側が「0頭」「見つからない」と気づける形で返す
  */
 
+import { TRAINING_CENTERS, type TrainingCenter } from '../../src/lib/schemas/horse.ts';
 import type { COURSES } from '../../src/lib/schemas/race.ts';
 
 export type Course = (typeof COURSES)[number];
@@ -321,6 +322,8 @@ export type ShutubaRow = {
 	weight?: number;
 	jockey?: Person;
 	trainer?: Person;
+	/** 調教師のセルの頭のラベル（美浦・栗東・地方・海外）。 */
+	trainingCenter?: TrainingCenter;
 };
 
 /** ページの title と RaceData01/02 からレースの属性を読む。出馬表と結果で共通。 */
@@ -370,6 +373,13 @@ function person(cell: string | undefined, kind: 'jockey' | 'trainer'): Person | 
 	return id && short ? { id, short } : undefined;
 }
 
+/** 調教師のセルの頭のラベル（`美浦` など）。無ければ undefined。 */
+function trainingCenterOf(cell: string | undefined): TrainingCenter | undefined {
+	if (!cell) return undefined;
+	const label = /^(美浦|栗東|地方|海外)/.exec(text(cell))?.[1];
+	return TRAINING_CENTERS.find((c) => c === label);
+}
+
 /**
  * 出馬表。枠が決まる前は枠・馬番が空欄の登録馬が並ぶ（18頭を超えることもある）。
  */
@@ -401,7 +411,8 @@ export function parseShutuba(html: string): { meta: RaceMeta; rows: ShutubaRow[]
 			trainer: person(
 				tds.find((td) => /class="Trainer/.test(td)),
 				'trainer'
-			)
+			),
+			trainingCenter: trainingCenterOf(tds.find((td) => /class="Trainer/.test(td)))
 		});
 	}
 	return { meta: parseRaceMeta(html), rows };
@@ -605,6 +616,8 @@ export type HorseProfile = {
 	/** プロフィール表の調教師名。4文字で切れる（`中内田充`）ので、`trainerId` があれば引き直す。 */
 	trainer?: string;
 	trainerId?: string;
+	/** プロフィール表の `調教師 ○○ (美浦)` の括弧の中。 */
+	trainingCenter?: TrainingCenter;
 	sire?: string;
 	dam?: string;
 };
@@ -620,6 +633,7 @@ export function parseHorseProfile(html: string): HorseProfile {
 	const prof = text(profHtml);
 	const birthYear = int(/生年月日\s*(\d{4})年/.exec(prof)?.[1]);
 	const trainer = /調教師\s*(\S+?)\s*\(/.exec(prof)?.[1];
+	const center = /調教師\s*\S+?\s*\(\s*(美浦|栗東|地方|海外)\s*\)/.exec(prof)?.[1];
 	const trainerId = /調教師[\s\S]*?\/trainer\/(?:result\/recent\/)?(\w+)\//.exec(profHtml)?.[1];
 
 	return {
@@ -627,7 +641,9 @@ export function parseHorseProfile(html: string): HorseProfile {
 		sex: sexWord === '騸' ? 'セ' : (sexWord as HorseProfile['sex']),
 		birthYear,
 		trainer: trainer && trainer !== '-' ? toHalfWidth(trainer) : undefined,
-		trainerId: trainer && trainer !== '-' ? trainerId : undefined
+		trainerId: trainer && trainer !== '-' ? trainerId : undefined,
+		trainingCenter:
+			trainer && trainer !== '-' ? TRAINING_CENTERS.find((c) => c === center) : undefined
 	};
 }
 

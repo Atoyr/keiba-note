@@ -25,7 +25,7 @@ test('名前の下にプロフィールの札が並ぶ', async ({ page }) => {
 	const badges = page.locator('main dl');
 	await expect(badges).toContainText('父 E2Eチチウマ');
 	await expect(badges).toContainText('母 E2Eハハウマ');
-	await expect(badges).toContainText('調教師 E2E調教師');
+	await expect(badges).toContainText('美浦 E2E調教師');
 });
 
 test('タイムラインは未来から過去の順に並ぶ', async ({ page }) => {

@@ -8,7 +8,8 @@ const base = {
 	currentYear: 2026,
 	sire: null,
 	dam: null,
-	trainer: null
+	trainer: null,
+	trainingCenter: null
 } as const;
 
 const items = (root: HTMLElement) =>
@@ -50,6 +51,32 @@ describe('HorseProfileBadges', () => {
 			['父', 'チチ'],
 			['調教師', '調教師A']
 		]);
+	});
+
+	it('所属が分かれば、調教師のラベルが所属になる', () => {
+		const screen = render(HorseProfileBadges, {
+			...base,
+			trainer: '調教師A',
+			trainingCenter: '栗東'
+		});
+
+		expect(items(screen.container)).toEqual([['栗東', '調教師A']]);
+	});
+
+	it('調教師が無く所属だけなら、所属だけの札を出す', () => {
+		const screen = render(HorseProfileBadges, { ...base, trainingCenter: '美浦' });
+
+		expect(items(screen.container)).toEqual([['所属', '美浦']]);
+	});
+
+	it('地方・海外もラベルは所属になる', () => {
+		const screen = render(HorseProfileBadges, {
+			...base,
+			trainer: '調教師B',
+			trainingCenter: '地方'
+		});
+
+		expect(items(screen.container)).toEqual([['地方', '調教師B']]);
 	});
 
 	it('全部 null なら dl 自体を出さない', () => {

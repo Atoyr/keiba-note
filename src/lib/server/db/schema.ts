@@ -85,6 +85,8 @@ export const horse = sqliteTable(
 		sex: text('sex', { enum: ['牡', '牝', 'セ'] }),
 		birthYear: integer('birth_year'),
 		trainer: text('trainer'),
+		/** 所属（トレセン）。調教師と同じく馬の属性で、転厩で変わる。 */
+		trainingCenter: text('training_center', { enum: ['美浦', '栗東', '地方', '海外'] }),
 		ownerName: text('owner_name'),
 		sire: text('sire'),
 		dam: text('dam'),

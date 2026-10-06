@@ -31,6 +31,8 @@ function shutubaRow(o: {
 	kinryo: string;
 	jockey?: [string, string];
 	trainer: [string, string];
+	/** 調教師の頭のラベル。既定は美浦。 */
+	center?: string;
 }) {
 	return `<tr class="HorseList" id="tr_1">
 <td class="Waku${o.waku ?? ''} Txt_C"><span>${o.waku ?? ''}</span></td>
@@ -40,7 +42,7 @@ function shutubaRow(o: {
 <td class="Barei Txt_C">${o.barei}</td>
 <td class="Txt_C">${o.kinryo}</td>
 <td class="Jockey">${o.jockey ? `<a href="https://db.netkeiba.com/jockey/result/recent/${o.jockey[0]}/" title="${o.jockey[1]}">${o.jockey[1]}</a>` : ''}</td>
-<td class="Trainer"><span class="Label1">美浦</span><a href="https://db.netkeiba.com/trainer/result/recent/${o.trainer[0]}/" title="${o.trainer[1]}">${o.trainer[1]}</a></td>
+<td class="Trainer"><span class="Label1">${o.center ?? '美浦'}</span><a href="https://db.netkeiba.com/trainer/result/recent/${o.trainer[0]}/" title="${o.trainer[1]}">${o.trainer[1]}</a></td>
 <td class="Weight"></td>
 </tr>`;
 }
@@ -191,10 +193,35 @@ ${raceData('15:40発走 / 芝1200m (右 外 C)', '4回 中山 9日目 サラ系�
 				age: 4,
 				weight: 56,
 				jockey: { id: '00732', short: '幸' },
-				trainer: { id: '01218', short: '橋田' }
+				trainer: { id: '01218', short: '橋田' },
+				trainingCenter: '美浦'
 			},
 			expect.objectContaining({ name: 'クラスペディア', jockey: undefined })
 		]);
+	});
+
+	it('調教師のセルの頭のラベルを所属として読む。知らないラベルは入れない', () => {
+		const { rows } = parseShutuba(
+			page(
+				shutubaRow({
+					id: '2022103875',
+					name: 'アイサンサン',
+					barei: '牝4',
+					kinryo: '56.0',
+					trainer: ['01218', '橋田'],
+					center: '栗東'
+				}) +
+					shutubaRow({
+						id: '2022106394',
+						name: 'クラスペディア',
+						barei: '牡4',
+						kinryo: '58.0',
+						trainer: ['01200', '河嶋'],
+						center: '不明'
+					})
+			)
+		);
+		expect(rows.map((r) => r.trainingCenter)).toEqual(['栗東', undefined]);
 	});
 
 	it('枠が決まったら枠・馬番を読む。出馬表の外の表は拾わない', () => {
@@ -543,8 +570,20 @@ describe('馬の基本情報', () => {
 			sex: '牡',
 			birthYear: 2021,
 			trainer: '萱野浩二',
-			trainerId: '01024'
+			trainerId: '01024',
+			trainingCenter: '美浦'
 		});
+	});
+
+	it('プロフィールの括弧が栗東なら栗東。調教師が - なら所属も入れない', () => {
+		const head = `<div class="horse_title"><h1>テスト</h1><p class="txt_01">現役 牝4歳 </p></div>`;
+		const prof = (cell: string) =>
+			`${head}<table class="db_prof_table"><tr><th>調教師</th><td>${cell}</td></tr></table>`;
+
+		expect(
+			parseHorseProfile(prof('<a href="/trainer/01100/">中内田充正</a> (栗東)')).trainingCenter
+		).toBe('栗東');
+		expect(parseHorseProfile(prof('-')).trainingCenter).toBeUndefined();
 	});
 
 	it('血統表の1代目から父と母を読む', () => {

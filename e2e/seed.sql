@@ -9,8 +9,12 @@
 INSERT OR REPLACE INTO user (id, google_sub, email, display_name, role)
 VALUES ('01JE2EUSER0000000000000000', 'e2e-google-sub', 'e2e@example.invalid', 'E2E ユーザー', 'user');
 
-INSERT OR REPLACE INTO horse (id, name, birth_year, sex, sire, dam, trainer)
-VALUES ('01JE2EHORSE000000000000000', 'E2Eテストホース', 2020, '牡', 'E2Eチチウマ', 'E2Eハハウマ', 'E2E調教師');
+INSERT OR REPLACE INTO horse (id, name, birth_year, sex, sire, dam, trainer, training_center)
+VALUES ('01JE2EHORSE000000000000000', 'E2Eテストホース', 2020, '牡', 'E2Eチチウマ', 'E2Eハハウマ', 'E2E調教師', '美浦');
+
+-- 牝馬・栗東の馬。札の色（牝と母がピンク・所属が橙）を見せる。メモ・出走は無い。
+INSERT OR REPLACE INTO horse (id, name, birth_year, sex, sire, dam, trainer, training_center)
+VALUES ('01JE2EHORSEFILLY0000000000', 'E2Eヒメウマ', 2022, '牝', 'E2Eチチウマ', 'E2Eハハウマ', 'E2E栗東調教師', '栗東');
 
 -- 共有中（unlisted）。札を2つ、別々の系統から付ける。
 INSERT OR REPLACE INTO note (id, author_id, kind, horse_id, body, tags, visibility, occurred_at)
