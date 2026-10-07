@@ -59,6 +59,8 @@ test('タイムラインは未来から過去の順に並ぶ', async ({ page }) 
 	// レースの行には、そのレース当時の馬齢（レースの年 − 生年 2020）を添える。近況メモの行には出ない。
 	await expect(rows.filter({ hasText: '2026-06-14' }).first()).toContainText('6歳');
 	await expect(rows.first()).toContainText('79歳');
+	// レースの無い近況メモの行には出ない。
+	await expect(rows.filter({ hasText: 'これは共有していないメモ。' })).not.toContainText('歳');
 });
 
 /**

@@ -41,7 +41,7 @@
 <!-- レースの行に添える、そのレース当時の馬齢（レースの年 − 生年）。生年が無ければ出さない。 -->
 {#snippet ageAt(date: string)}
 	{@const age = horseAge(data.horse.birthYear, date)}
-	{#if age !== null}<span class="text-gray-500">{age}歳</span>{/if}
+	{#if age !== null}<span class="text-muted-foreground">{age}歳</span>{/if}
 {/snippet}
 
 {#snippet actions()}
@@ -284,32 +284,34 @@
 						{@const n = row.note}
 						{@const h = noteHeading(n)}
 						<li class="border-l-2 border-gray-200 pl-4">
-							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-								<span class="font-mono text-gray-500">{n.occurredAt}</span>
-								<KindBadge label={h.kindLabel} />
-								{#if n.raceId}
-									<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
+							<div class="flex items-start gap-2 text-sm">
+								<div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
+									<span class="font-mono text-gray-500">{n.occurredAt}</span>
+									<KindBadge label={h.kindLabel} />
+									{#if n.raceId}
+										<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
 									     ふりかえりのメモは、それが書いてあるふりかえりへ。 -->
-									<a
-										href={opensReview(
-											{ date: n.occurredAt, resultCount: n.resultCount },
-											data.today,
-											isReviewNote(n.kind)
-										)
-											? resolve('/races/[id]', { id: n.raceId })
-											: resolve('/races/[id]/preview', { id: n.raceId })}
-										class="hover:underline"
-									>
-										{h.label}
-									</a>
-									{@render ageAt(n.occurredAt)}
-								{:else}
-									<span class="text-gray-500">{h.label}</span>
-								{/if}
-								<SharedBadge visibility={n.visibility} />
+										<a
+											href={opensReview(
+												{ date: n.occurredAt, resultCount: n.resultCount },
+												data.today,
+												isReviewNote(n.kind)
+											)
+												? resolve('/races/[id]', { id: n.raceId })
+												: resolve('/races/[id]/preview', { id: n.raceId })}
+											class="hover:underline"
+										>
+											{h.label}
+										</a>
+										{@render ageAt(n.occurredAt)}
+									{:else}
+										<span class="text-gray-500">{h.label}</span>
+									{/if}
+									<SharedBadge visibility={n.visibility} />
+								</div>
 								<!-- 共有と削除は読み返すあいだには使わない操作なので畳む。
 								     削除が出しっぱなしだと押し間違いの的にもなる。 -->
-								<div class="ms-auto self-center">
+								<div class="shrink-0">
 									<NoteMenu>
 										<ShareControl
 											noteId={n.id}
