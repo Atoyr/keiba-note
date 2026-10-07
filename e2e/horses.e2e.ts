@@ -25,7 +25,7 @@ test('メモを書かなかった出走もタイムラインに並ぶ', async ({
 	await expect(page.getByText('直線だけの競馬になった。')).toBeVisible();
 });
 
-test('名前の行と札が3行で並ぶ', async ({ page }) => {
+test('名前の行と札が4行で並ぶ', async ({ page }) => {
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
 
