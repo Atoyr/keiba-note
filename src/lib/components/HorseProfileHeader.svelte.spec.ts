@@ -3,12 +3,12 @@ import { render } from 'vitest-browser-svelte';
 import { createRawSnippet } from 'svelte';
 import HorseProfileHeader from './HorseProfileHeader.svelte';
 
-const heading = createRawSnippet(() => ({
-	render: () => '<h1>テスト馬</h1>'
-}));
+const heading = createRawSnippet(() => ({ render: () => '<h1>テスト馬</h1>' }));
+const actions = createRawSnippet(() => ({ render: () => '<button>★</button>' }));
 
 const base = {
 	heading,
+	actions,
 	sex: null,
 	birthDate: null,
 	birthYear: null,
@@ -28,7 +28,7 @@ const rows = (root: HTMLElement) =>
 	);
 
 describe('HorseProfileHeader', () => {
-	it('1行目に生年月日と性別、2行目に父と所属、3行目に母・母父・調教師を出す', () => {
+	it('1行目に性別、2行目に父、3行目に母・母父、4行目に生年月日・所属・調教師を出す', () => {
 		const screen = render(HorseProfileHeader, {
 			...base,
 			sex: '牡',
@@ -42,21 +42,28 @@ describe('HorseProfileHeader', () => {
 		});
 
 		expect(rows(screen.container)).toEqual([
-			[
-				['生年月日', '2021年4月4日生'],
-				['性別', '牡']
-			],
-			[
-				['父', 'チチ'],
-				['所属', '栗東']
-			],
+			[['性別', '牡']],
+			[['父', 'チチ']],
 			[
 				['母', 'ハハ'],
-				['母父', 'ハハチチ'],
+				['母父', 'ハハチチ']
+			],
+			[
+				['生年月日', '2021年4月4日生'],
+				['所属', '栗東'],
 				['調教師', '調教師A']
 			]
 		]);
 		expect(screen.container.querySelector('h1')?.textContent).toBe('テスト馬');
+		expect(screen.container.querySelector('button')?.textContent).toBe('★');
+	});
+
+	it('性別の札は名前の左、★は右端', () => {
+		const screen = render(HorseProfileHeader, { ...base, sex: '牝' });
+		const top = screen.container.querySelector(':scope > div > div')!;
+		const kids = [...top.children].map((e) => e.tagName);
+		expect(kids).toEqual(['DL', 'H1', 'DIV']);
+		expect(top.lastElementChild?.className).toContain('ms-auto');
 	});
 
 	it('生年月日の月日は0埋めしない。生年月日が無く生年だけなら2021年生', () => {
@@ -78,14 +85,12 @@ describe('HorseProfileHeader', () => {
 		expect(rows(screen.container)).toEqual([[['父', 'チチ']], [['調教師', '調教師A']]]);
 	});
 
-	it('所属だけ・調教師だけの行でも出る（右に寄る）', () => {
+	it('所属だけ・調教師だけでも4行目に出る', () => {
 		const center = render(HorseProfileHeader, { ...base, trainingCenter: '美浦' });
 		expect(rows(center.container)).toEqual([[['所属', '美浦']]]);
-		expect(center.container.querySelector('dl > div')?.className).toContain('ms-auto');
 
 		const trainer = render(HorseProfileHeader, { ...base, trainer: '調教師B' });
 		expect(rows(trainer.container)).toEqual([[['調教師', '調教師B']]]);
-		expect(trainer.container.querySelector('dl > div')?.className).toContain('ms-auto');
 	});
 
 	it('母だけ・母父だけでも出る', () => {
@@ -96,7 +101,7 @@ describe('HorseProfileHeader', () => {
 		expect(rows(damSireOnly.container)).toEqual([[['母父', 'ハハチチ']]]);
 	});
 
-	it('全部 null なら heading だけで dl は出さない', () => {
+	it('全部 null なら heading と actions だけで dl は出さない', () => {
 		const screen = render(HorseProfileHeader, { ...base });
 
 		expect(screen.container.querySelector('dl')).toBeNull();

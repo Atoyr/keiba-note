@@ -34,60 +34,62 @@
 <svelte:head><title>{data.horse.name} — uma-memo</title></svelte:head>
 
 {#snippet heading()}
-	<div class="flex min-w-0 items-center gap-1">
-		<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
-		<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
+	<h1 class="min-w-0 text-2xl font-bold tracking-tight">{data.horse.name}</h1>
+{/snippet}
+
+{#snippet actions()}
+	<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
 		     二重に押しても行き来しない。
 		     **星だけのボタンにしている**（文字を添えない。色も色名を直に書く。design-system.md 第6章「例外 — 推しの星」）。
 		     今の状態は星の塗り（推しなら★、そうでなければ☆）で、押すと何が起きるかは読み上げと hover の名前
 		     （aria-label / title）で出す。輪郭は白い地に 3:1（WCAG 1.4.11）に届く amber-600、塗りは yellow-400。 -->
-		<form
-			method="POST"
-			action="?/favorite"
-			use:enhance={({ cancel }) => {
-				if (favoritePending) {
-					cancel();
-					return;
-				}
-				favoritePending = true;
-				return async ({ result, update }) => {
-					try {
-						await update();
-						if (result.type === 'success') {
-							toast.success(
-								result.data?.favorite
-									? '推しにしました。出走予定はダッシュボードに並びます'
-									: '推しから外しました'
-							);
-						}
-					} finally {
-						favoritePending = false;
+	<form
+		method="POST"
+		action="?/favorite"
+		use:enhance={({ cancel }) => {
+			if (favoritePending) {
+				cancel();
+				return;
+			}
+			favoritePending = true;
+			return async ({ result, update }) => {
+				try {
+					await update();
+					if (result.type === 'success') {
+						toast.success(
+							result.data?.favorite
+								? '推しにしました。出走予定はダッシュボードに並びます'
+								: '推しから外しました'
+						);
 					}
-				};
-			}}
+				} finally {
+					favoritePending = false;
+				}
+			};
+		}}
+	>
+		<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
+		<Button
+			type="submit"
+			variant="ghost"
+			size="icon-lg"
+			aria-label={data.favorite ? '推しから外す' : '推しにする'}
+			title={data.favorite ? '推しから外す' : '推しにする'}
+			aria-disabled={favoritePending}
+			class="aria-disabled:opacity-50"
 		>
-			<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
-			<Button
-				type="submit"
-				variant="ghost"
-				size="icon-lg"
-				aria-label={data.favorite ? '推しから外す' : '推しにする'}
-				title={data.favorite ? '推しから外す' : '推しにする'}
-				aria-disabled={favoritePending}
-				class="aria-disabled:opacity-50"
-			>
-				<Star
-					class="size-7 text-amber-600 {data.favorite ? 'fill-yellow-400' : ''}"
-					aria-hidden="true"
-				/>
-			</Button>
-		</form>
-	</div>
+			<Star
+				class="size-7 text-amber-600 {data.favorite ? 'fill-yellow-400' : ''}"
+				aria-hidden="true"
+			/>
+		</Button>
+	</form>
 {/snippet}
 
 <main class="mx-auto max-w-3xl px-6 py-8">
 	<HorseProfileHeader
 		{heading}
+		{actions}
 		sex={data.horse.sex}
 		birthDate={data.horse.birthDate}
 		birthYear={data.horse.birthYear}

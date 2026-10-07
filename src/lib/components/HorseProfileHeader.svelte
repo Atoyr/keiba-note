@@ -55,21 +55,23 @@
 	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
 
 	/**
-	 * 馬詳細の頭。名前の行（`heading`。ページが h1 と推しの★を渡す）と、プロフィールの札を3行で出す。
+	 * 馬詳細の頭。名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）と、プロフィールの札を4行で出す。
 	 *
 	 * ```
-	 * [heading: 馬名 ★]                    2021年4月4日生 [牡]
-	 * [父 ○○]                                       [栗東]
-	 * [母 ○○] [母父 ○○]                      [調教師 ○○]
+	 * [牡] 馬名                                   ★
+	 * [父 ○○]
+	 * [母 ○○] [母父 ○○]
+	 * 2021年4月4日生  [栗東] [調教師 ○○]
 	 * ```
 	 *
 	 * 馬齢は出さない（生年月日が正。生年だけなら `2021年生`）。値の無い項目は出さず、項目が1つも無い行は描かない。
-	 * 右の項目は `ms-auto` で右に寄せる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
+	 * 2〜4行目は左寄せで、折り返しても左から詰まる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
 	 * 生年月日・性別・所属は字だけで伝わるのでラベルは読み上げ専用（sr-only）。
 	 * 色は上の `chip`。ラベルを `bg-muted` 上の `text-muted-foreground` にすると 4.5:1 に届かない（約 4.35:1）ので、無彩色の地は `bg-background`。
 	 */
 	let {
 		heading,
+		actions,
 		sex,
 		birthDate,
 		birthYear,
@@ -81,6 +83,8 @@
 		class: className = ''
 	}: {
 		heading: Snippet;
+		/** 名前の行の右端（推しの★のフォーム）。 */
+		actions: Snippet;
 		sex: HorseSex | null;
 		/** `YYYY-MM-DD`。 */
 		birthDate: string | null;
@@ -139,51 +143,42 @@
 	);
 </script>
 
-{#snippet badge(item: Item, right = false)}
+{#snippet badge(item: Item)}
 	{@const s = chip({ tone: item.tone })}
-	<div class="{s.base()} {right ? 'ms-auto' : ''}">
+	<div class={s.base()}>
 		<dt class={item.srOnly ? 'sr-only' : s.label()}>{item.label}</dt>
 		<dd class={s.value()}>{item.value}</dd>
 	</div>
 {/snippet}
 
-<!-- 左の項目と右の項目を持つ行。どちらも無ければ描かない。右の項目だけでも右に寄る。 -->
-{#snippet row(left: Item[], right: Item | null)}
-	{#if left.length > 0 || right}
+<div class="flex flex-col gap-2 {className}">
+	<div class="flex flex-nowrap items-center gap-2">
+		{#if sexItem}
+			<dl class="shrink-0">{@render badge(sexItem)}</dl>
+		{/if}
+		{@render heading()}
+		<div class="ms-auto shrink-0">{@render actions()}</div>
+	</div>
+	{#if sireItems.length > 0}
 		<dl class="flex flex-wrap items-center gap-1.5">
-			{#each left as item (item.key)}
-				{@render badge(item)}
-			{/each}
-			{#if right}
-				{@render badge(right, true)}
-			{/if}
+			{#each sireItems as item (item.key)}{@render badge(item)}{/each}
 		</dl>
 	{/if}
-{/snippet}
-
-<div class="flex flex-col gap-2 {className}">
-	<div class="flex flex-nowrap items-center gap-x-3">
-		{@render heading()}
-		{#if born || sexItem}
-			{@const s = sexItem ? chip({ tone: sexItem.tone }) : null}
-			<dl
-				class="ms-auto flex shrink-0 flex-col items-end gap-0.5 sm:flex-row sm:items-center sm:gap-2"
-			>
-				{#if born}
-					<div class="text-xs text-muted-foreground sm:text-sm">
-						<dt class="sr-only">{born.label}</dt>
-						<dd>{born.text}</dd>
-					</div>
-				{/if}
-				{#if sexItem && s}
-					<div class={s.base()}>
-						<dt class="sr-only">{sexItem.label}</dt>
-						<dd class={s.value()}>{sexItem.value}</dd>
-					</div>
-				{/if}
-			</dl>
-		{/if}
-	</div>
-	{@render row(sireItems, centerItem)}
-	{@render row(damItems, trainerItem)}
+	{#if damItems.length > 0}
+		<dl class="flex flex-wrap items-center gap-1.5">
+			{#each damItems as item (item.key)}{@render badge(item)}{/each}
+		</dl>
+	{/if}
+	{#if born || centerItem || trainerItem}
+		<dl class="flex flex-wrap items-center gap-1.5">
+			{#if born}
+				<div class="text-sm text-muted-foreground">
+					<dt class="sr-only">{born.label}</dt>
+					<dd>{born.text}</dd>
+				</div>
+			{/if}
+			{#if centerItem}{@render badge(centerItem)}{/if}
+			{#if trainerItem}{@render badge(trainerItem)}{/if}
+		</dl>
+	{/if}
 </div>
