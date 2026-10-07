@@ -17,82 +17,142 @@ races:
         jockey: 松岡正海
         sex: 牡
         age: 2
+        birthDate: 2024-03-16
         ref: nk-2024105215
         trainer: 蛯名利弘
+        trainingCenter: 美浦
+        sire: サンライズノヴァ
+        dam: ヴィオローネ
+        damSire: ルーラーシップ
         weight: 56
       - name: アゴルディーノ
         jockey: 横山和生
         sex: 牡
         age: 2
+        birthDate: 2024-03-13
         ref: nk-2024105444
         trainer: 中舘英二
+        trainingCenter: 美浦
+        sire: エフフォーリア
+        dam: モルトフェリーチェ
+        damSire: ディープインパクト
         weight: 56
       - name: ギブリ
         jockey: 横山典弘
         sex: 牡
         age: 2
+        birthDate: 2024-03-10
         ref: nk-2024105852
         trainer: 松永幹夫
+        trainingCenter: 栗東
+        sire: ニューイヤーズデイ
+        dam: ゴルトキルシェ
+        damSire: ステイゴールド
         weight: 56
       - name: グルーヴェンス
         jockey: 横山武史
         sex: 牡
         age: 2
+        birthDate: 2024-02-13
         ref: nk-2024101344
         trainer: 高柳瑞樹
+        trainingCenter: 美浦
+        sire: カラヴァッジオ
+        dam: グルーヴライン
+        damSire: モーリス
         weight: 56
       - name: サトノハクマイ
         jockey: 戸崎圭太
         sex: 牡
         age: 2
+        birthDate: 2024-03-07
         ref: nk-2024102281
         trainer: 斎藤誠
+        trainingCenter: 美浦
+        sire: シルバーステート
+        dam: ポールポジションII
+        damSire: Pivotal
         weight: 56
       - name: ジップスパーク
         jockey: 田辺裕信
         sex: 牡
         age: 2
+        birthDate: 2024-04-07
         ref: nk-2024105893
         trainer: 中舘英二
+        trainingCenter: 美浦
+        sire: オルフェーヴル
+        dam: ジペッサ
+        damSire: City Zip
         weight: 56
       - name: デミアン
         jockey: 斎藤新
         sex: 牡
         age: 2
+        birthDate: 2024-02-06
         ref: nk-2024108228
         trainer: 斎藤誠
+        trainingCenter: 美浦
+        sire: Flightline
+        dam: Mira Alta
+        damSire: Curlin
         weight: 56
       - name: ニシノトラノスケ
         jockey: 菊沢一樹
         sex: 牡
         age: 2
+        birthDate: 2024-02-26
         ref: nk-2024102993
         trainer: 千葉直人
+        trainingCenter: 美浦
+        sire: アドマイヤマーズ
+        dam: ビクトリアスマイル
+        damSire: ノヴェリスト
         weight: 56
       - name: ハンサム
         jockey: 丹内祐次
         sex: 牡
         age: 2
+        birthDate: 2024-03-14
         ref: nk-2024104872
         trainer: 清水久詞
+        trainingCenter: 栗東
+        sire: リオンディーズ
+        dam: ユキノクイーン
+        damSire: タイキシャトル
         weight: 56
       - name: フィリオソラーレ
         jockey: ルメール
         sex: 牡
         age: 2
+        birthDate: 2024-01-10
         ref: nk-2024106538
         trainer: 木村哲也
+        trainingCenter: 美浦
+        sire: エピファネイア
+        dam: フィリアプーラ
+        damSire: ハービンジャー
         weight: 56
       - name: ベルウッドディープ
         jockey: 三浦皇成
         sex: 牡
         age: 2
+        birthDate: 2024-03-09
         ref: nk-2024101333
         trainer: 室井潔
+        trainingCenter: 美浦
+        sire: エフフォーリア
+        dam: ディープビヨンド
+        damSire: ディープインパクト
         weight: 56
       - name: ライーリーアース
         sex: 牝
         age: 2
+        birthDate: 2024-03-27
         ref: nk-2024106853
         trainer: 蛯名利弘
+        trainingCenter: 美浦
+        sire: ハイランドリール
+        dam: トーセンリスト
+        damSire: ノヴェリスト
         weight: 55
