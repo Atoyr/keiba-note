@@ -15,6 +15,7 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { HORSE_SEXES, TRAINING_CENTERS } from '$lib/schemas/horse';
 	import { isSettled, opensReview } from '$lib/utils/date';
+	import { horseAge } from '$lib/utils/horse';
 	import { isReviewNote, noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -35,6 +36,12 @@
 
 {#snippet heading()}
 	<h1 class="min-w-0 text-2xl font-bold tracking-tight">{data.horse.name}</h1>
+{/snippet}
+
+<!-- レースの行に添える、そのレース当時の馬齢（レースの年 − 生年）。生年が無ければ出さない。 -->
+{#snippet ageAt(date: string)}
+	{@const age = horseAge(data.horse.birthYear, date)}
+	{#if age !== null}<span class="text-gray-500">{age}歳</span>{/if}
 {/snippet}
 
 {#snippet actions()}
@@ -93,6 +100,7 @@
 		sex={data.horse.sex}
 		birthDate={data.horse.birthDate}
 		birthYear={data.horse.birthYear}
+		currentYear={Number(data.today.slice(0, 4))}
 		sire={data.horse.sire}
 		dam={data.horse.dam}
 		damSire={data.horse.damSire}
@@ -269,6 +277,7 @@
 								>
 									{h.label}
 								</a>
+								{@render ageAt(row.occurredAt)}
 							</div>
 						</li>
 					{:else}
@@ -293,6 +302,7 @@
 									>
 										{h.label}
 									</a>
+									{@render ageAt(n.occurredAt)}
 								{:else}
 									<span class="text-gray-500">{h.label}</span>
 								{/if}

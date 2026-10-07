@@ -12,6 +12,7 @@ const base = {
 	sex: null,
 	birthDate: null,
 	birthYear: null,
+	currentYear: 2026,
 	sire: null,
 	dam: null,
 	damSire: null,
@@ -28,7 +29,7 @@ const rows = (root: HTMLElement) =>
 	);
 
 describe('HorseProfileHeader', () => {
-	it('名前の上に生年月日、名前の行に性別、そのあと父、母・母父、所属・調教師の行を出す', () => {
+	it('名前の上に生年月日、名前の行に性齢、そのあと父、母・母父、所属・調教師の行を出す', () => {
 		const screen = render(HorseProfileHeader, {
 			...base,
 			sex: '牡',
@@ -43,7 +44,7 @@ describe('HorseProfileHeader', () => {
 
 		expect(rows(screen.container)).toEqual([
 			[['生年月日', '2021年4月4日生']],
-			[['性別', '牡']],
+			[['性齢', '牡5']],
 			[['父', 'チチ']],
 			[
 				['母', 'ハハ'],
@@ -58,7 +59,7 @@ describe('HorseProfileHeader', () => {
 		expect(screen.container.querySelector('button')?.textContent).toBe('★');
 	});
 
-	it('性別の札は名前の左、★は右端', () => {
+	it('性齢の札は名前の左、★は右端', () => {
 		const screen = render(HorseProfileHeader, { ...base, sex: '牝' });
 		const top = screen.container.querySelector(':scope > div > div')!;
 		const kids = [...top.children].map((e) => e.tagName);
@@ -71,12 +72,18 @@ describe('HorseProfileHeader', () => {
 		expect(rows(full.container)).toEqual([[['生年月日', '2022年12月5日生']]]);
 
 		const yearOnly = render(HorseProfileHeader, { ...base, birthYear: 2021 });
-		expect(rows(yearOnly.container)).toEqual([[['生年', '2021年生']]]);
+		expect(rows(yearOnly.container)).toEqual([[['生年', '2021年生']], [['性齢', '5歳']]]);
 	});
 
-	it('馬齢は出さない', () => {
-		const screen = render(HorseProfileHeader, { ...base, sex: '牝', birthYear: 2022 });
-		expect(screen.container.textContent).not.toMatch(/\d歳|牝\d/);
+	it('性齢は牡6・牡・6歳。性が無ければ無彩色', () => {
+		const both = render(HorseProfileHeader, { ...base, sex: '牡', birthYear: 2020 });
+		expect(rows(both.container)).toContainEqual([['性齢', '牡6']]);
+
+		const sexOnly = render(HorseProfileHeader, { ...base, sex: '牝' });
+		expect(rows(sexOnly.container)).toEqual([[['性齢', '牝']]]);
+
+		const ageOnly = render(HorseProfileHeader, { ...base, birthYear: 2020 });
+		expect(rows(ageOnly.container)).toContainEqual([['性齢', '6歳']]);
 	});
 
 	it('null の項目は出さない。項目が1つも無い行は描かない', () => {

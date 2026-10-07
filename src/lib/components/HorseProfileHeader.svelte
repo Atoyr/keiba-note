@@ -53,21 +53,23 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
+	import { horseAge } from '$lib/utils/horse';
 
 	/**
 	 * 馬詳細の頭。生年月日の行、名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）、プロフィールの札を出す。
 	 *
 	 * ```
 	 * 2021年4月4日生
-	 * [牡] 馬名                                   ★
+	 * [牡6] 馬名                                  ★
 	 * [父 ○○]
 	 * [母 ○○] [母父 ○○]
 	 * [栗東] [調教師 ○○]
 	 * ```
 	 *
-	 * 馬齢は出さない（生年月日が正。生年だけなら `2021年生`）。値の無い項目は出さず、項目が1つも無い行は描かない。
+	 * 性別の札は性齢（`牡6`。性だけなら `牡`、馬齢だけなら `6歳`）。馬齢は `currentYear - birthYear`（JRA は1月1日に一斉に加齢する）。
+	 * 生年月日の行は生年月日が正（生年だけなら `2021年生`）。値の無い項目は出さず、項目が1つも無い行は描かない。
 	 * 名前の行の★のほかは左寄せで、折り返しても左から詰まる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
-	 * 生年月日・性別・所属は字だけで伝わるのでラベルは読み上げ専用（sr-only）。
+	 * 生年月日・性齢・所属は字だけで伝わるのでラベルは読み上げ専用（sr-only）。
 	 * 色は上の `chip`。ラベルを `bg-muted` 上の `text-muted-foreground` にすると 4.5:1 に届かない（約 4.35:1）ので、無彩色の地は `bg-background`。
 	 */
 	let {
@@ -76,6 +78,7 @@
 		sex,
 		birthDate,
 		birthYear,
+		currentYear,
 		sire,
 		dam,
 		damSire,
@@ -90,6 +93,8 @@
 		/** `YYYY-MM-DD`。 */
 		birthDate: string | null;
 		birthYear: number | null;
+		/** 今の年（JST）。馬齢を数える。 */
+		currentYear: number;
 		sire: string | null;
 		dam: string | null;
 		damSire: string | null;
@@ -108,8 +113,24 @@
 
 	type Item = { key: string; label: string; srOnly: boolean; value: string; tone: Tone };
 
+	const sexAge = $derived.by(() => {
+		const age = horseAge(birthYear, `${currentYear}-01-01`);
+		if (sex && age !== null) return `${sex}${age}`;
+		if (sex) return sex;
+		if (age !== null) return `${age}歳`;
+		return null;
+	});
+
 	const sexItem = $derived<Item | null>(
-		sex ? { key: 'sex', label: '性別', srOnly: true, value: sex, tone: SEX_TONE[sex] } : null
+		sexAge
+			? {
+					key: 'sex',
+					label: '性齢',
+					srOnly: true,
+					value: sexAge,
+					tone: sex ? SEX_TONE[sex] : 'none'
+				}
+			: null
 	);
 
 	const centerItem = $derived<Item | null>(

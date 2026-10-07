@@ -29,17 +29,16 @@ test('名前の上に生年月日、名前の下に札の行が並ぶ', async ({
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
 
-	// 生年月日、性別（名前の左）、父、母・母父、所属・調教師の順。馬齢は出さない。
+	// 生年月日、性齢（名前の左。今の年で変わるので数字は問わない）、父、母・母父、所属・調教師の順。
 	const rows = page.locator('main dl');
 	await expect(rows).toHaveCount(5);
 	await expect(rows.nth(0)).toContainText('2020年3月15日生');
-	await expect(rows.nth(1)).toContainText('牡');
+	await expect(rows.nth(1)).toContainText(/牡\d+/);
 	await expect(rows.nth(2)).toContainText('父 E2Eチチウマ');
 	await expect(rows.nth(3)).toContainText('母 E2Eハハウマ');
 	await expect(rows.nth(3)).toContainText('母父 E2Eハハチチ');
 	await expect(rows.nth(4)).toContainText('美浦');
 	await expect(rows.nth(4)).toContainText('調教師 E2E調教師');
-	await expect(page.locator('main')).not.toContainText('牡6');
 });
 
 test('タイムラインは未来から過去の順に並ぶ', async ({ page }) => {
@@ -56,6 +55,10 @@ test('タイムラインは未来から過去の順に並ぶ', async ({ page }) 
 	const dates = (await rows.allInnerTexts()).map((t) => t.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? '');
 	expect(dates).toEqual([...dates].sort().reverse());
 	expect(dates.at(-1)).toBe('2026-06-14');
+
+	// レースの行には、そのレース当時の馬齢（レースの年 − 生年 2020）を添える。近況メモの行には出ない。
+	await expect(rows.filter({ hasText: '2026-06-14' }).first()).toContainText('6歳');
+	await expect(rows.first()).toContainText('79歳');
 });
 
 /**
