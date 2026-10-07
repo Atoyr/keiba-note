@@ -25,20 +25,20 @@ test('メモを書かなかった出走もタイムラインに並ぶ', async ({
 	await expect(page.getByText('直線だけの競馬になった。')).toBeVisible();
 });
 
-test('名前の行と札が4行で並ぶ', async ({ page }) => {
+test('名前の上に生年月日、名前の下に札の行が並ぶ', async ({ page }) => {
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
 
-	// 1行目 性別（名前の左）、2行目 父、3行目 母・母父、4行目 生年月日・所属・調教師。馬齢は出さない。
+	// 生年月日、性別（名前の左）、父、母・母父、所属・調教師の順。馬齢は出さない。
 	const rows = page.locator('main dl');
-	await expect(rows).toHaveCount(4);
-	await expect(rows.nth(0)).toContainText('牡');
-	await expect(rows.nth(1)).toContainText('父 E2Eチチウマ');
-	await expect(rows.nth(2)).toContainText('母 E2Eハハウマ');
-	await expect(rows.nth(2)).toContainText('母父 E2Eハハチチ');
-	await expect(rows.nth(3)).toContainText('2020年3月15日生');
-	await expect(rows.nth(3)).toContainText('美浦');
-	await expect(rows.nth(3)).toContainText('調教師 E2E調教師');
+	await expect(rows).toHaveCount(5);
+	await expect(rows.nth(0)).toContainText('2020年3月15日生');
+	await expect(rows.nth(1)).toContainText('牡');
+	await expect(rows.nth(2)).toContainText('父 E2Eチチウマ');
+	await expect(rows.nth(3)).toContainText('母 E2Eハハウマ');
+	await expect(rows.nth(3)).toContainText('母父 E2Eハハチチ');
+	await expect(rows.nth(4)).toContainText('美浦');
+	await expect(rows.nth(4)).toContainText('調教師 E2E調教師');
 	await expect(page.locator('main')).not.toContainText('牡6');
 });
 
@@ -99,9 +99,9 @@ test('admin のプロフィール編集で、所属・性別・生年月日・�
 	await page.getByRole('button', { name: '保存', exact: true }).click();
 
 	const rows = page.locator('main dl');
-	await expect(rows.nth(0)).toContainText('牝');
-	await expect(rows.nth(2)).toContainText('母父 E2Eヒメハハチチ');
-	await expect(rows.nth(3)).toContainText('2022年5月1日生');
-	await expect(rows.nth(3)).toContainText('栗東');
-	await expect(rows.nth(3)).toContainText('調教師 E2E栗東調教師');
+	await expect(rows.nth(0)).toContainText('2022年5月1日生');
+	await expect(rows.nth(1)).toContainText('牝');
+	await expect(rows.nth(3)).toContainText('母父 E2Eヒメハハチチ');
+	await expect(rows.nth(4)).toContainText('栗東');
+	await expect(rows.nth(4)).toContainText('調教師 E2E栗東調教師');
 });

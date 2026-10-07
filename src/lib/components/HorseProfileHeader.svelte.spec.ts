@@ -28,7 +28,7 @@ const rows = (root: HTMLElement) =>
 	);
 
 describe('HorseProfileHeader', () => {
-	it('1行目に性別、2行目に父、3行目に母・母父、4行目に生年月日・所属・調教師を出す', () => {
+	it('名前の上に生年月日、名前の行に性別、そのあと父、母・母父、所属・調教師の行を出す', () => {
 		const screen = render(HorseProfileHeader, {
 			...base,
 			sex: '牡',
@@ -42,6 +42,7 @@ describe('HorseProfileHeader', () => {
 		});
 
 		expect(rows(screen.container)).toEqual([
+			[['生年月日', '2021年4月4日生']],
 			[['性別', '牡']],
 			[['父', 'チチ']],
 			[
@@ -49,7 +50,6 @@ describe('HorseProfileHeader', () => {
 				['母父', 'ハハチチ']
 			],
 			[
-				['生年月日', '2021年4月4日生'],
 				['所属', '栗東'],
 				['調教師', '調教師A']
 			]
@@ -85,7 +85,7 @@ describe('HorseProfileHeader', () => {
 		expect(rows(screen.container)).toEqual([[['父', 'チチ']], [['調教師', '調教師A']]]);
 	});
 
-	it('所属だけ・調教師だけでも4行目に出る', () => {
+	it('所属だけ・調教師だけでも出る', () => {
 		const center = render(HorseProfileHeader, { ...base, trainingCenter: '美浦' });
 		expect(rows(center.container)).toEqual([[['所属', '美浦']]]);
 

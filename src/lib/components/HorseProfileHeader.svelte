@@ -55,17 +55,18 @@
 	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
 
 	/**
-	 * 馬詳細の頭。名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）と、プロフィールの札を4行で出す。
+	 * 馬詳細の頭。生年月日の行、名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）、プロフィールの札を出す。
 	 *
 	 * ```
+	 * 2021年4月4日生
 	 * [牡] 馬名                                   ★
 	 * [父 ○○]
 	 * [母 ○○] [母父 ○○]
-	 * 2021年4月4日生  [栗東] [調教師 ○○]
+	 * [栗東] [調教師 ○○]
 	 * ```
 	 *
 	 * 馬齢は出さない（生年月日が正。生年だけなら `2021年生`）。値の無い項目は出さず、項目が1つも無い行は描かない。
-	 * 2〜4行目は左寄せで、折り返しても左から詰まる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
+	 * 名前の行の★のほかは左寄せで、折り返しても左から詰まる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
 	 * 生年月日・性別・所属は字だけで伝わるのでラベルは読み上げ専用（sr-only）。
 	 * 色は上の `chip`。ラベルを `bg-muted` 上の `text-muted-foreground` にすると 4.5:1 に届かない（約 4.35:1）ので、無彩色の地は `bg-background`。
 	 */
@@ -152,6 +153,14 @@
 {/snippet}
 
 <div class="flex flex-col gap-2 {className}">
+	{#if born}
+		<dl class="-mb-1 text-sm text-muted-foreground">
+			<div>
+				<dt class="sr-only">{born.label}</dt>
+				<dd>{born.text}</dd>
+			</div>
+		</dl>
+	{/if}
 	<div class="flex flex-nowrap items-center gap-2">
 		{#if sexItem}
 			<dl class="shrink-0">{@render badge(sexItem)}</dl>
@@ -169,14 +178,8 @@
 			{#each damItems as item (item.key)}{@render badge(item)}{/each}
 		</dl>
 	{/if}
-	{#if born || centerItem || trainerItem}
+	{#if centerItem || trainerItem}
 		<dl class="flex flex-wrap items-center gap-1.5">
-			{#if born}
-				<div class="text-sm text-muted-foreground">
-					<dt class="sr-only">{born.label}</dt>
-					<dd>{born.text}</dd>
-				</div>
-			{/if}
 			{#if centerItem}{@render badge(centerItem)}{/if}
 			{#if trainerItem}{@render badge(trainerItem)}{/if}
 		</dl>
