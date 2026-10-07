@@ -17,120 +17,210 @@ races:
         jockey: 横山典弘
         sex: 牝
         age: 4
+        birthDate: 2022-02-21
         ref: nk-2022106232
         trainer: 西園翔太
+        trainingCenter: 栗東
+        sire: レイデオロ
+        dam: ダイワベスパー
+        damSire: ダイワメジャー
         weight: 55
       - name: ヴォンフレ
         sex: 牝
         age: 4
+        birthDate: 2022-04-27
         ref: nk-2022101227
         trainer: 村田一誠
+        trainingCenter: 美浦
+        sire: ブラックタイド
+        dam: ショウリノウタゲ
+        damSire: プリサイスエンド
         weight: 55
       - name: カネラフィーナ
         jockey: 石川裕紀人
         sex: 牝
         age: 4
+        birthDate: 2022-02-12
         ref: nk-2022104839
         trainer: 手塚貴久
+        trainingCenter: 美浦
+        sire: Frankel
+        dam: ジョイカネラ
+        damSire: Fortify
         weight: 55
       - name: カムニャック
         jockey: 川田将雅
         sex: 牝
         age: 4
+        birthDate: 2022-04-14
         ref: nk-2022105402
         trainer: 友道康夫
+        trainingCenter: 栗東
+        sire: ブラックタイド
+        dam: ダンスアミーガ
+        damSire: サクラバクシンオー
         weight: 56
       - name: クイーンズウォーク
         jockey: 西村淳也
         sex: 牝
         age: 5
+        birthDate: 2021-03-14
         ref: nk-2021105414
         trainer: 中内田充正
+        trainingCenter: 栗東
+        sire: キズナ
+        dam: ウェイヴェルアベニュー
+        damSire: Harlington
         weight: 55
       - name: クランフォード
         jockey: 菊沢一樹
         sex: 牝
         age: 5
+        birthDate: 2021-02-03
         ref: nk-2021100139
         trainer: 杉山晴紀
+        trainingCenter: 栗東
+        sire: ブリックスアンドモルタル
+        dam: エンジェルフェイス
+        damSire: キングカメハメハ
         weight: 55
       - name: ジョスラン
         jockey: ルメール
         sex: 牝
         age: 4
+        birthDate: 2022-03-25
         ref: nk-2022104767
         trainer: 鹿戸雄一
+        trainingCenter: 美浦
+        sire: エピファネイア
+        dam: ケイティーズハート
+        damSire: ハーツクライ
         weight: 55
       - name: セキトバイースト
         jockey: 浜中俊
         sex: 牝
         age: 5
+        birthDate: 2021-01-30
         ref: nk-2021103975
         trainer: 四位洋文
+        trainingCenter: 栗東
+        sire: デクラレーションオブウォー
+        dam: ベアフットレディ
+        damSire: Footstepsinthesand
         weight: 55
       - name: チェルビアット
         jockey: 吉村誠之助
         sex: 牝
         age: 4
+        birthDate: 2022-04-07
         ref: nk-2022105778
         trainer: 高野友和
+        trainingCenter: 栗東
+        sire: ロードカナロア
+        dam: キューティゴールド
+        damSire: フレンチデピュティ
         weight: 55
       - name: テリオスララ
         sex: 牝
         age: 4
+        birthDate: 2022-03-08
         ref: nk-2022104812
         trainer: 田島俊明
+        trainingCenter: 美浦
+        sire: シスキン
+        dam: シャンドランジュ
+        damSire: マンハッタンカフェ
         weight: 55
       - name: ニシノティアモ
         jockey: 津村明秀
         sex: 牝
         age: 5
+        birthDate: 2021-03-12
         ref: nk-2021100244
         trainer: 上原佑紀
+        trainingCenter: 美浦
+        sire: ドゥラメンテ
+        dam: ニシノアモーレ
+        damSire: コンデュイット
         weight: 55
       - name: ハワイアンティアレ
         jockey: M.デムーロ
         sex: 牝
         age: 5
+        birthDate: 2021-02-04
         ref: nk-2021105255
         trainer: 松永幹夫
+        trainingCenter: 栗東
+        sire: ロードカナロア
+        dam: モアニケアラ
+        damSire: マンハッタンカフェ
         weight: 55
       - name: ミアネーロ
         sex: 牝
         age: 5
+        birthDate: 2021-02-16
         ref: nk-2021105801
         trainer: 林徹
+        trainingCenter: 美浦
+        sire: ドゥラメンテ
+        dam: ミスエーニョ
+        damSire: Pulpit
         weight: 55
       - name: ミラビリスマジック
         sex: 牝
         age: 5
+        birthDate: 2021-05-09
         ref: nk-2021105105
         trainer: 千葉直人
+        trainingCenter: 美浦
+        sire: キズナ
+        dam: ソーマジック
+        damSire: シンボリクリスエス
         weight: 55
       - name: ムイ
         sex: 牝
         age: 4
+        birthDate: 2022-03-23
         ref: nk-2022102408
         trainer: 笹田和秀
+        trainingCenter: 栗東
+        sire: ミッキーアイル
+        dam: スウィートラヴァー
+        damSire: ルーラーシップ
         weight: 55
       - name: ラヴァンダ
         jockey: 横山和生
         sex: 牝
         age: 5
+        birthDate: 2021-03-10
         ref: nk-2021107098
         trainer: 中村直也
+        trainingCenter: 栗東
+        sire: シルバーステート
+        dam: ゴッドパイレーツ
+        damSire: ベーカバド
         weight: 56
       - name: ルージュソリテール
         jockey: 横山武史
         sex: 牝
         age: 4
+        birthDate: 2022-03-24
         ref: nk-2022105157
         trainer: 藤原英昭
+        trainingCenter: 栗東
+        sire: ロードカナロア
+        dam: レッドオルガ
+        damSire: ディープインパクト
         weight: 55
       - name: ワタシマツワ
         jockey: 小林美駒
         sex: 牝
         age: 4
+        birthDate: 2022-04-16
         ref: nk-2022101412
         trainer: 竹内正洋
+        trainingCenter: 美浦
+        sire: グレーターロンドン
+        dam: サンドスラッシュ
+        damSire: Holy Roman Emperor
         weight: 55

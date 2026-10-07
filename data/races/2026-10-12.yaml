@@ -17,144 +17,248 @@ races:
         jockey: 幸英明
         sex: 牝
         age: 4
+        birthDate: 2022-04-19
         ref: nk-2022103875
         trainer: 橋田宜長
+        trainingCenter: 栗東
+        sire: キズナ
+        dam: ウアジェト
+        damSire: シンボリクリスエス
         weight: 55
       - name: ウインマーベル
         jockey: 松山弘平
         sex: 牡
         age: 7
+        birthDate: 2019-05-08
         ref: nk-2019100213
         trainer: 深山雅史
+        trainingCenter: 美浦
+        sire: アイルハヴアナザー
+        dam: コスモマーベラス
+        damSire: フジキセキ
         weight: 57
       - name: エリカエクスプレス
         jockey: 武豊
         sex: 牝
         age: 4
+        birthDate: 2022-03-08
         ref: nk-2022103205
         trainer: 杉山晴紀
+        trainingCenter: 栗東
+        sire: エピファネイア
+        dam: エンタイスド
+        damSire: Galileo
         weight: 55
       - name: オフトレイル
         jockey: 菅原明良
         sex: 牡
         age: 5
+        birthDate: 2021-05-14
         ref: nk-2021110031
         trainer: 吉村圭司
+        trainingCenter: 栗東
+        sire: Farhh
+        dam: ローズトレイル
+        damSire: Kingmambo
         weight: 58
       - name: サンダーストラック
         sex: 牡
         age: 3
+        birthDate: 2023-02-10
         ref: nk-2023107053
         trainer: 木村哲也
+        trainingCenter: 美浦
+        sire: ロードカナロア
+        dam: シーブルック
+        damSire: Hinchinbrook
         weight: 55
       - name: ジョイフルニュース
         jockey: 大野拓弥
         sex: 牝
         age: 4
+        birthDate: 2022-05-02
         ref: nk-2022105369
         trainer: 大竹正博
+        trainingCenter: 美浦
+        sire: ロードカナロア
+        dam: ジョイニキータ
+        damSire: Fortify
         weight: 55
       - name: ショウナンアデイブ
         sex: 牡
         age: 7
+        birthDate: 2019-02-01
         ref: nk-2019105239
         trainer: 高野友和
+        trainingCenter: 栗東
+        sire: ディープインパクト
+        dam: シーヴ
+        damSire: Mineshaft
         weight: 57
       - name: ショウナンザナドゥ
         jockey: 池添謙一
         sex: 牝
         age: 4
+        birthDate: 2022-02-18
         ref: nk-2022105071
         trainer: 松下武士
+        trainingCenter: 栗東
+        sire: キズナ
+        dam: ミスエーニョ
+        damSire: Pulpit
         weight: 55
       - name: スズハローム
         jockey: 藤懸貴志
         sex: 牡
         age: 6
+        birthDate: 2020-03-11
         ref: nk-2020105018
         trainer: 牧田和弥
+        trainingCenter: 栗東
+        sire: サトノダイヤモンド
+        dam: アイライン
+        damSire: ローレルゲレイロ
         weight: 57
       - name: ダイヤモンドノット
         jockey: 横山武史
         sex: 牡
         age: 3
+        birthDate: 2023-03-29
         ref: nk-2023105685
         trainer: 福永祐一
+        trainingCenter: 栗東
+        sire: ブリックスアンドモルタル
+        dam: エンドレスノット
+        damSire: ディープインパクト
         weight: 55
       - name: ネオトキオ
         jockey: 安藤洋一
         sex: 牡
         age: 6
+        birthDate: 2020-04-02
         ref: nk-2020101301
         trainer: 荒山勝徳
+        sire: キズナ
+        dam: ドバウィディエティ
+        damSire: Dubawi
         weight: 57
       - name: ビッグシーザー
         jockey: M.デムーロ
         sex: 牡
         age: 6
+        birthDate: 2020-03-10
         ref: nk-2020100896
         trainer: 杉山晴紀
+        trainingCenter: 栗東
+        sire: ビッグアーサー
+        dam: アンナペレンナ
+        damSire: Tale of Ekati
         weight: 57
       - name: マイネルチケット
         jockey: 津村明秀
         sex: 牡
         age: 4
+        birthDate: 2022-03-18
         ref: nk-2022106768
         trainer: 宮徹
+        trainingCenter: 栗東
+        sire: ダノンバラード
+        dam: エントリーチケット
+        damSire: マツリダゴッホ
         weight: 57
       - name: ミトノオルフェ
         jockey: 坂井瑠星
         sex: 牡
         age: 4
+        birthDate: 2022-03-26
         ref: nk-2022104053
         trainer: 前川恭子
+        trainingCenter: 栗東
+        sire: オルフェーヴル
+        dam: インヴィンシブルタッチ
+        damSire: Invincible Spirit
         weight: 57
       - name: ミニトランザット
         jockey: 西村淳也
         sex: 牡
         age: 4
+        birthDate: 2022-04-11
         ref: nk-2022105230
         trainer: 杉山佳明
+        trainingCenter: 栗東
+        sire: エピファネイア
+        dam: イチオクノホシ
+        damSire: ゼンノロブロイ
         weight: 57
       - name: ララマセラシオン
         jockey: 横山琉人
         sex: 牡
         age: 5
+        birthDate: 2021-04-15
         ref: nk-2021100935
         trainer: 大竹正博
+        trainingCenter: 美浦
+        sire: カリフォルニアクローム
+        dam: ララプリムヴェール
+        damSire: クロフネ
         weight: 57
       - name: ランフォーヴァウ
         jockey: 石川裕紀人
         sex: 牝
         age: 4
+        birthDate: 2022-03-20
         ref: nk-2022105291
         trainer: 福永祐一
+        trainingCenter: 栗東
+        sire: ロードカナロア
+        dam: キネオダンサー
+        damSire: ディープインパクト
         weight: 55
       - name: レイベリング
         jockey: 鮫島克駿
         sex: 牡
         age: 6
+        birthDate: 2020-02-05
         ref: nk-2020110155
         trainer: 鹿戸雄一
+        trainingCenter: 美浦
+        sire: Frankel
+        dam: Noyelles
+        damSire: Docksider
         weight: 57
       - name: レザベーション
         jockey: 原優介
         sex: 牡
         age: 3
+        birthDate: 2023-04-19
         ref: nk-2023103268
         trainer: 松下武士
+        trainingCenter: 栗東
+        sire: ダノンプレミアム
+        dam: プレノタート
+        damSire: ジャングルポケット
         weight: 56
       - name: ワイドラトゥール
         jockey: 北村友一
         sex: 牝
         age: 5
+        birthDate: 2021-05-03
         ref: nk-2021104434
         trainer: 藤原英昭
+        trainingCenter: 栗東
+        sire: カリフォルニアクローム
+        dam: ワイドサファイア
+        damSire: アグネスタキオン
         weight: 55
       - name: ワタシマツワ
         jockey: 小林美駒
         sex: 牝
         age: 4
+        birthDate: 2022-04-16
         ref: nk-2022101412
         trainer: 竹内正洋
+        trainingCenter: 美浦
+        sire: グレーターロンドン
+        dam: サンドスラッシュ
+        damSire: Holy Roman Emperor
         weight: 55
