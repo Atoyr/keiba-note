@@ -569,6 +569,7 @@ describe('馬の基本情報', () => {
 			name: 'キャントウェイト',
 			sex: '牡',
 			birthYear: 2021,
+			birthDate: '2021-04-04',
 			trainer: '萱野浩二',
 			trainerId: '01024',
 			trainingCenter: '美浦'
@@ -586,13 +587,22 @@ describe('馬の基本情報', () => {
 		expect(parseHorseProfile(prof('-')).trainingCenter).toBeUndefined();
 	});
 
-	it('血統表の1代目から父と母を読む', () => {
+	it('生年月日の月日は0埋めする', () => {
+		const html = `<div class="horse_title"><h1>テスト</h1><p class="txt_01">現役 牝4歳 </p></div><table class="db_prof_table"><tr><th>生年月日</th><td>2022年12月5日</td></tr></table>`;
+		expect(parseHorseProfile(html)).toMatchObject({ birthYear: 2022, birthDate: '2022-12-05' });
+	});
+
+	it('血統表の1代目から父と母、母の父を読む', () => {
 		const html = `<table class="blood_table">
 <tr><td rowspan="2" class="b_ml"><a><span>ゴールドシップ</span></a></td><td class="b_ml"><a><span>ステイゴールド</span></a></td></tr>
 <tr><td class="b_fml"><a><span>ポイントフラッグ</span></a></td></tr>
 <tr><td rowspan="2" class="b_fml"><a><span>マイネランデブー</span></a></td><td class="b_ml"><a><span>アグネスデジタル</span></a></td></tr>
 </table>`;
-		expect(parsePedigree(html)).toEqual({ sire: 'ゴールドシップ', dam: 'マイネランデブー' });
+		expect(parsePedigree(html)).toEqual({
+			sire: 'ゴールドシップ',
+			dam: 'マイネランデブー',
+			damSire: 'アグネスデジタル'
+		});
 	});
 
 	it('騎手・調教師のページの title から名前を読む', () => {

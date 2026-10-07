@@ -38,7 +38,7 @@ import {
 	SURFACES,
 	TRACK_CONDITIONS
 } from '../src/lib/schemas/race.ts';
-import { TRAINING_CENTERS } from '../src/lib/schemas/horse.ts';
+import { TRAINING_CENTERS, isIsoDate } from '../src/lib/schemas/horse.ts';
 import { COURSE_CODES } from './race-data/netkeiba.ts';
 
 /**
@@ -69,6 +69,13 @@ const entrySchema = v.object({
 	sex: optional(['牡', '牝', 'セ'] as const),
 	birthYear: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1980), v.maxValue(2100))),
 	/**
+	 * 生年月日（`2021-04-04`）。書けば `birthYear` はその年になる（書くなら一致していること）。
+	 * 同名馬の引き当てには生年を使い続けるので、`birthYear` / `age` は残る。
+	 */
+	birthDate: v.optional(
+		v.pipe(v.string(), v.check(isIsoDate, '生年月日は実在する YYYY-MM-DD で書いてください'))
+	),
+	/**
 	 * 馬齢。出馬表の「性齢」欄（牡4 の 4）をそのまま書ける。
 	 * 生年は `開催年 - 馬齢` で導出する（2001年以降の満年齢表記）。
 	 * `birthYear` を直接書いてもよく、両方書くなら一致していること。
@@ -79,6 +86,8 @@ const entrySchema = v.object({
 	trainingCenter: optional(TRAINING_CENTERS),
 	sire: v.optional(v.string()),
 	dam: v.optional(v.string()),
+	/** 母父。 */
+	damSire: v.optional(v.string()),
 
 	// --- ここから下はレース後に追記する結果 --------------------------------
 	// 書かなければ既存の値を消さない（COALESCE で埋める）。
@@ -315,6 +324,11 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 			const diffCol = writtenCols([['time_diff', e.timeDiff]]);
 			// 所属（マイグレーション 0022）も同じく、書いた行のときだけ列に触る。
 			const centerCol = writtenCols([['training_center', e.trainingCenter]]);
+			// 生年月日・母父（マイグレーション 0023）も同じ。
+			const profileCol = writtenCols([
+				['birth_date', e.birthDate],
+				['dam_sire', e.damSire]
+			]);
 
 			const rename = e.ref
 				? `
@@ -323,8 +337,8 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 
 			out.push(
 				// 引き当たらなければ作る。
-				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam, external_ref${centerCol.names})
-SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${lit(e.trainer)}, ${lit(e.sire)}, ${lit(e.dam)}, ${lit(e.ref)}${centerCol.values}
+				`INSERT INTO horse (id, name, sex, birth_year, trainer, sire, dam, external_ref${centerCol.names}${profileCol.names})
+SELECT ${lit(newId())}, ${lit(e.name)}, ${lit(e.sex)}, ${lit(e.birthYear)}, ${lit(e.trainer)}, ${lit(e.sire)}, ${lit(e.dam)}, ${lit(e.ref)}${centerCol.values}${profileCol.values}
 WHERE ${ref} IS NULL;`,
 				// 既存馬は空いている属性だけ埋める。**プロフィールメモには触らない**（利用者が書いたもの）。
 				// id で1行に固定しているので、同名の別馬を巻き添えにすることがない。
@@ -338,7 +352,9 @@ WHERE ${ref} IS NULL;`,
 		e.trainingCenter === undefined
 			? ''
 			: `\n  training_center = COALESCE(${lit(e.trainingCenter)}, training_center),`
-	}
+	}${
+		e.birthDate === undefined ? '' : `\n  birth_date = COALESCE(${lit(e.birthDate)}, birth_date),`
+	}${e.damSire === undefined ? '' : `\n  dam_sire = COALESCE(${lit(e.damSire)}, dam_sire),`}
   updated_at = unixepoch()
 WHERE id = ${ref};`,
 				// 出走馬は (race_id, horse_id) で upsert。**削除も再作成もしない**ので、
@@ -492,10 +508,28 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 }
 
 /**
- * 馬齢から生年を導出し、`birthYear` に寄せる。
+ * 馬齢・生年月日から生年を導出し、`birthYear` に寄せる。
  * 出馬表には生年ではなく性齢（牡4）が載るので、書き写すだけで済むようにしておく。
+ * 生年月日があればその年が生年。`birthYear`・`age` と食い違えば落とす。
  */
 function normalizeEntry(e: Entry, date: string): { entry: Entry; error?: string } {
+	if (e.birthDate !== undefined) {
+		const year = Number(e.birthDate.slice(0, 4));
+		if (e.birthYear !== undefined && e.birthYear !== year) {
+			return {
+				entry: e,
+				error: `${e.name}: birthDate ${e.birthDate}（生年 ${year}）と birthYear ${e.birthYear} が食い違います`
+			};
+		}
+		const fromAge = e.age === undefined ? undefined : Number(date.slice(0, 4)) - e.age;
+		if (fromAge !== undefined && fromAge !== year) {
+			return {
+				entry: e,
+				error: `${e.name}: age ${e.age}（生年 ${fromAge}）と birthDate ${e.birthDate} が食い違います`
+			};
+		}
+		return { entry: { ...e, birthYear: year } };
+	}
 	if (e.age === undefined) return { entry: e };
 
 	const derived = Number(date.slice(0, 4)) - e.age;

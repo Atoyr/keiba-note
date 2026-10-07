@@ -104,10 +104,12 @@ export async function updateHorseProfile(
 			| 'nameKana'
 			| 'sex'
 			| 'birthYear'
+			| 'birthDate'
 			| 'trainer'
 			| 'trainingCenter'
 			| 'sire'
 			| 'dam'
+			| 'damSire'
 			| 'profileMemo'
 		>
 	>

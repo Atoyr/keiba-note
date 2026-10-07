@@ -8,7 +8,7 @@
  * | -------- | ------------------------------------------------ | ------------------------ |
  * | 出馬表   | 枠・馬番（確定後）・騎手・性齢・斤量・調教師・所属・ref | 馬名・結果・血統         |
  * | 過去走   | —（空いている項目だけ埋める。頭数・勝ち馬・タイム差もここで入る） | 既に書いてある値すべて |
- * | 基本情報 | 性・馬齢・調教師・所属・父・母・ref                  | 馬名・レースの値         |
+ * | 基本情報 | 性・馬齢・生年月日・調教師・所属・父・母・母父・ref  | 馬名・レースの値         |
  * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数・勝ち馬・2着馬 | 馬名・基本情報 |
  *
  * **馬名は書き換えない。** ref が付いた馬の名前を変えると、ほかの開催日のファイルと
@@ -211,12 +211,12 @@ export async function applyPastRuns(
 	return log;
 }
 
-/** 馬の基本情報（性・馬齢・調教師・血統）を出走馬行に入れる。馬齢はそのレースの年で数える。 */
+/** 馬の基本情報（性・馬齢・生年月日・調教師・血統）を出走馬行に入れる。馬齢はそのレースの年で数える。 */
 export function applyProfile(
 	file: RaceFile,
 	race: YAMLMap,
 	entry: YAMLMap,
-	profile: HorseProfile & { sire?: string; dam?: string },
+	profile: HorseProfile & { sire?: string; dam?: string; damSire?: string },
 	raceYear: number
 ): string[] {
 	const name = entry.get('name') as string;
@@ -229,10 +229,12 @@ export function applyProfile(
 			ref: entry.get('ref') as string,
 			sex: profile.sex,
 			age: profile.birthYear ? raceYear - profile.birthYear : undefined,
+			birthDate: profile.birthDate,
 			trainer: profile.trainer,
 			trainingCenter: profile.trainingCenter,
 			sire: profile.sire,
-			dam: profile.dam
+			dam: profile.dam,
+			damSire: profile.damSire
 		},
 		'overwrite'
 	);

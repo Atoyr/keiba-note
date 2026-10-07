@@ -9,12 +9,13 @@
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
-	import HorseProfileBadges from '$lib/components/HorseProfileBadges.svelte';
+	import HorseProfileHeader from '$lib/components/HorseProfileHeader.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { HORSE_SEXES, TRAINING_CENTERS } from '$lib/schemas/horse';
 	import { isSettled, opensReview } from '$lib/utils/date';
+	import { horseAge } from '$lib/utils/horse';
 	import { isReviewNote, noteHeading, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
@@ -33,56 +34,79 @@
 
 <svelte:head><title>{data.horse.name} — uma-memo</title></svelte:head>
 
-<main class="mx-auto max-w-3xl px-6 py-8">
-	<div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-		<h1 class="text-2xl font-bold tracking-tight">{data.horse.name}</h1>
-		<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
-		     二重に押しても行き来しない。
-		     **星だけのボタンにしている**（文字を添えない。色も色名を直に書く。design-system.md 第6章「例外 — 推しの星」）。
-		     今の状態は星の塗り（推しなら★、そうでなければ☆）で、押すと何が起きるかは読み上げと hover の名前
-		     （aria-label / title）で出す。輪郭は白い地に 3:1（WCAG 1.4.11）に届く amber-600、塗りは yellow-400。 -->
-		<form
-			method="POST"
-			action="?/favorite"
-			use:enhance={({ cancel }) => {
-				if (favoritePending) {
-					cancel();
-					return;
-				}
-				favoritePending = true;
-				return async ({ result, update }) => {
-					try {
-						await update();
-						if (result.type === 'success') {
-							toast.success(
-								result.data?.favorite
-									? '推しにしました。出走予定はダッシュボードに並びます'
-									: '推しから外しました'
-							);
-						}
-					} finally {
-						favoritePending = false;
+{#snippet heading()}
+	<h1 class="min-w-0 text-2xl font-bold tracking-tight">{data.horse.name}</h1>
+{/snippet}
+
+<!-- レースの行に添える、そのレース当時の馬齢（レースの年 − 生年）。生年が無ければ出さない。 -->
+{#snippet ageAt(date: string)}
+	{@const age = horseAge(data.horse.birthYear, date)}
+	{#if age !== null}<span class="text-muted-foreground">{age}歳</span>{/if}
+{/snippet}
+
+{#snippet actions()}
+	<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
+	     二重に押しても行き来しない。
+	     **星だけのボタンにしている**（文字を添えない。色も色名を直に書く。design-system.md 第6章「例外 — 推しの星」）。
+	     今の状態は星の塗り（推しなら★、そうでなければ☆）で、押すと何が起きるかは読み上げと hover の名前
+	     （aria-label / title）で出す。輪郭は白い地に 3:1（WCAG 1.4.11）に届く amber-600、塗りは yellow-400。 -->
+	<form
+		method="POST"
+		action="?/favorite"
+		use:enhance={({ cancel }) => {
+			if (favoritePending) {
+				cancel();
+				return;
+			}
+			favoritePending = true;
+			return async ({ result, update }) => {
+				try {
+					await update();
+					if (result.type === 'success') {
+						toast.success(
+							result.data?.favorite
+								? '推しにしました。出走予定はダッシュボードに並びます'
+								: '推しから外しました'
+						);
 					}
-				};
-			}}
+				} finally {
+					favoritePending = false;
+				}
+			};
+		}}
+	>
+		<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
+		<Button
+			type="submit"
+			variant="ghost"
+			size="icon-lg"
+			aria-label={data.favorite ? '推しから外す' : '推しにする'}
+			title={data.favorite ? '推しから外す' : '推しにする'}
+			aria-disabled={favoritePending}
+			class="aria-disabled:opacity-50"
 		>
-			<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
-			<Button
-				type="submit"
-				variant="ghost"
-				size="icon-lg"
-				aria-label={data.favorite ? '推しから外す' : '推しにする'}
-				title={data.favorite ? '推しから外す' : '推しにする'}
-				aria-disabled={favoritePending}
-				class="aria-disabled:opacity-50"
-			>
-				<Star
-					class="size-7 text-amber-600 {data.favorite ? 'fill-yellow-400' : ''}"
-					aria-hidden="true"
-				/>
-			</Button>
-		</form>
-	</div>
+			<Star
+				class="size-7 text-amber-600 {data.favorite ? 'fill-yellow-400' : ''}"
+				aria-hidden="true"
+			/>
+		</Button>
+	</form>
+{/snippet}
+
+<main class="mx-auto max-w-3xl px-6 py-8">
+	<HorseProfileHeader
+		{heading}
+		{actions}
+		sex={data.horse.sex}
+		birthDate={data.horse.birthDate}
+		birthYear={data.horse.birthYear}
+		currentYear={Number(data.today.slice(0, 4))}
+		sire={data.horse.sire}
+		dam={data.horse.dam}
+		damSire={data.horse.damSire}
+		trainer={data.horse.trainer}
+		trainingCenter={data.horse.trainingCenter}
+	/>
 	{#if form && 'favorite' in form}<noscript
 			><p class="mt-1 text-sm">
 				{form.favorite
@@ -90,16 +114,6 @@
 					: '推しから外しました。'}
 			</p></noscript
 		>{/if}
-	<HorseProfileBadges
-		sex={data.horse.sex}
-		birthYear={data.horse.birthYear}
-		currentYear={Number(data.today.slice(0, 4))}
-		sire={data.horse.sire}
-		dam={data.horse.dam}
-		trainer={data.horse.trainer}
-		trainingCenter={data.horse.trainingCenter}
-		class="mt-2"
-	/>
 
 	{#if data.horse.profileMemo}
 		<p
@@ -145,6 +159,10 @@
 				<input type="number" name="birthYear" value={data.horse.birthYear ?? ''} class={input} />
 			</label>
 			<label class="text-sm">
+				<span class="font-medium">生年月日</span>
+				<input type="date" name="birthDate" value={data.horse.birthDate ?? ''} class={input} />
+			</label>
+			<label class="text-sm">
 				<span class="font-medium">調教師</span>
 				<input name="trainer" value={data.horse.trainer ?? ''} class={input} />
 			</label>
@@ -171,6 +189,10 @@
 			<label class="text-sm">
 				<span class="font-medium">母</span>
 				<input name="dam" value={data.horse.dam ?? ''} class={input} />
+			</label>
+			<label class="text-sm">
+				<span class="font-medium">母父</span>
+				<input name="damSire" value={data.horse.damSire ?? ''} class={input} />
 			</label>
 			<label class="col-span-2 text-sm">
 				<span class="font-medium">プロフィールメモ</span>
@@ -255,37 +277,41 @@
 								>
 									{h.label}
 								</a>
+								{@render ageAt(row.occurredAt)}
 							</div>
 						</li>
 					{:else}
 						{@const n = row.note}
 						{@const h = noteHeading(n)}
 						<li class="border-l-2 border-gray-200 pl-4">
-							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-								<span class="font-mono text-gray-500">{n.occurredAt}</span>
-								<KindBadge label={h.kindLabel} />
-								{#if n.raceId}
-									<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
+							<div class="flex items-start gap-2 text-sm">
+								<div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
+									<span class="font-mono text-gray-500">{n.occurredAt}</span>
+									<KindBadge label={h.kindLabel} />
+									{#if n.raceId}
+										<!-- レース紐付きのメモは occurred_at がレース日なので、それと結果の有無で振り分けられる。
 									     ふりかえりのメモは、それが書いてあるふりかえりへ。 -->
-									<a
-										href={opensReview(
-											{ date: n.occurredAt, resultCount: n.resultCount },
-											data.today,
-											isReviewNote(n.kind)
-										)
-											? resolve('/races/[id]', { id: n.raceId })
-											: resolve('/races/[id]/preview', { id: n.raceId })}
-										class="hover:underline"
-									>
-										{h.label}
-									</a>
-								{:else}
-									<span class="text-gray-500">{h.label}</span>
-								{/if}
-								<SharedBadge visibility={n.visibility} />
+										<a
+											href={opensReview(
+												{ date: n.occurredAt, resultCount: n.resultCount },
+												data.today,
+												isReviewNote(n.kind)
+											)
+												? resolve('/races/[id]', { id: n.raceId })
+												: resolve('/races/[id]/preview', { id: n.raceId })}
+											class="hover:underline"
+										>
+											{h.label}
+										</a>
+										{@render ageAt(n.occurredAt)}
+									{:else}
+										<span class="text-gray-500">{h.label}</span>
+									{/if}
+									<SharedBadge visibility={n.visibility} />
+								</div>
 								<!-- 共有と削除は読み返すあいだには使わない操作なので畳む。
 								     削除が出しっぱなしだと押し間違いの的にもなる。 -->
-								<div class="ms-auto self-center">
+								<div class="shrink-0">
 									<NoteMenu>
 										<ShareControl
 											noteId={n.id}

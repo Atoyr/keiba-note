@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { favoriteHorseSchema } from '$lib/schemas/favorite';
 import { horseProfileSchema } from '$lib/schemas/horse';
 import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
+import { isUniqueViolation } from '$lib/server/db/errors';
 import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
 import {
@@ -118,17 +119,27 @@ export const actions: Actions = {
 			nameKana: field('nameKana'),
 			sex: field('sex'),
 			birthYear: field('birthYear'),
+			birthDate: field('birthDate'),
 			trainer: field('trainer'),
 			trainingCenter: field('trainingCenter'),
 			sire: field('sire'),
 			dam: field('dam'),
+			damSire: field('damSire'),
 			profileMemo: field('profileMemo')
 		});
 		if (!parsed.success) {
 			return fail(400, { message: parsed.issues[0]?.message ?? '入力を確認してください' });
 		}
 
-		await updateHorseProfile(db, params.id, parsed.output);
+		try {
+			await updateHorseProfile(db, params.id, parsed.output);
+		} catch (e) {
+			// horse_name_birth (name, birth_year) の UNIQUE 違反。生年月日から生年が補われても当たる。
+			if (isUniqueViolation(e)) {
+				return fail(409, { message: '同じ名前・同じ生年の馬がもう登録されています' });
+			}
+			throw e;
+		}
 
 		return { profileSaved: true };
 	}

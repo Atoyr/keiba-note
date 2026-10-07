@@ -392,3 +392,55 @@ describe('出走馬の所属（trainingCenter）', () => {
 		expect(r.ok).toBe(false);
 	});
 });
+
+describe('出走馬の生年月日（birthDate）と母父（damSire）', () => {
+	const withProfile = (extra: string) =>
+		candidates.replace('{ name: ホースA, ref: t-a }', `{ name: ホースA, ref: t-a, ${extra} }`);
+	const rowOf = (db: DatabaseSync) =>
+		db
+			.prepare(`SELECT birth_year, birth_date, dam_sire FROM horse WHERE external_ref = 't-a'`)
+			.get();
+	const sql = (yaml: string) => {
+		const parsed = readRaceFile(yaml, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		return statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n');
+	};
+
+	it('馬の列に入り、birthDate だけ書いても birthYear がその年になる。書かなければ残す', () => {
+		const db = freshDb();
+		const first = { birth_year: 2095, birth_date: '2095-04-04', dam_sire: 'ボシチチ' };
+		load(db, withProfile('birthDate: 2095-04-04, damSire: ボシチチ'));
+		expect(rowOf(db)).toEqual(first);
+
+		load(db, candidates);
+		expect(rowOf(db)).toEqual(first);
+
+		load(db, withProfile('birthDate: 2095-05-05, damSire: ベツノチチ'));
+		expect(rowOf(db)).toEqual({
+			birth_year: 2095,
+			birth_date: '2095-05-05',
+			dam_sire: 'ベツノチチ'
+		});
+	});
+
+	it('書いた YAML の SQL だけ birth_date・dam_sire を名指しする', () => {
+		expect(sql(withProfile('birthDate: 2095-04-04'))).toMatch(/birth_date/);
+		expect(sql(withProfile('damSire: ボシチチ'))).toMatch(/dam_sire/);
+		expect(sql(candidates)).not.toMatch(/birth_date|dam_sire/);
+	});
+
+	it('birthYear・age と年が食い違えば落とす。実在しない日付も落とす', () => {
+		const errors = (yaml: string) => {
+			const r = readRaceFile(yaml, '2099-01-04.yaml');
+			return r.ok ? [] : r.errors;
+		};
+		expect(errors(withProfile('birthDate: 2095-04-04, birthYear: 2094'))).toEqual([
+			'ホースA: birthDate 2095-04-04（生年 2095）と birthYear 2094 が食い違います'
+		]);
+		expect(errors(withProfile('birthDate: 2095-04-04, age: 3'))).toEqual([
+			'ホースA: age 3（生年 2096）と birthDate 2095-04-04 が食い違います'
+		]);
+		expect(errors(withProfile('birthDate: 2095-04-04, age: 4'))).toEqual([]);
+		expect(errors(withProfile('birthDate: 2095-02-30')).length).toBe(1);
+	});
+});

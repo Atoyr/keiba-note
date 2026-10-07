@@ -85,12 +85,16 @@ export const horse = sqliteTable(
 		nameKana: text('name_kana'),
 		sex: text('sex', { enum: HORSE_SEXES }),
 		birthYear: integer('birth_year'),
+		/** 生年月日（YYYY-MM-DD）。birth_year は同名馬の引き当てキーなので残し、分かればその年と一致させる。 */
+		birthDate: text('birth_date'),
 		trainer: text('trainer'),
 		/** 所属（トレセン）。調教師と同じく馬の属性で、転厩で変わる。 */
 		trainingCenter: text('training_center', { enum: TRAINING_CENTERS }),
 		ownerName: text('owner_name'),
 		sire: text('sire'),
 		dam: text('dam'),
+		/** 母父。 */
+		damSire: text('dam_sire'),
 		/** プロフィール欄の常設メモ。タイムラインとは別物。 */
 		profileMemo: text('profile_memo'),
 		/** netkeiba の馬ID等。将来の取り込み用に最初から置いておく。 */
