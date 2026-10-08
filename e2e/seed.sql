@@ -182,6 +182,10 @@ VALUES ('01JE2ERACEEMPTY00000000000', '2099-06-06', '阪神', 11, 'E2E出馬表�
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, surface, distance, direction)
 VALUES ('01JE2ERACESPRINT0000000000', '2099-10-04', '中山', 11, 'E2E短距離特別', '芝', 1200, '右');
 
+-- 東京の芝1600m（向正面を延ばした引き込み線から出る）。コース図を撮るためだけのレース。出走馬はいない。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, surface, distance, direction)
+VALUES ('01JE2ERACETOKYOMILE0000000', '2099-10-11', '東京', 11, 'E2Eマイル特別', '芝', 1600, '左');
+
 -- **出走馬がまだ1頭も登録されていない開催済みのレース。**
 --
 -- 結果の投入が済んでいない開催はこうなる。ふりかえりは開けるが入力欄は

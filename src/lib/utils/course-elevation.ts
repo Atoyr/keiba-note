@@ -2,7 +2,7 @@
  * レースの高低断面（スタートからゴールまでの上り下り）と、そのグラフの組み立て。
  * 元の数値は `course-elevation-data.ts`（JRA の高低断面図を読み取った概数）。
  */
-import { ELEVATIONS } from './course-elevation-data';
+import { ELEVATIONS } from './course-elevation-data.ts';
 
 type Point = readonly [number, number];
 

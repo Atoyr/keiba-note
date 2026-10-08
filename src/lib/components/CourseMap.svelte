@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { courseMap, type CourseMapSource } from '$lib/utils/course';
+	import { courseMap, ROUTE_STYLE, type CourseMapSource } from '$lib/utils/course';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import CourseElevation from './CourseElevation.svelte';
 
@@ -10,6 +10,8 @@
 	 * 小さなファイルでも JS に埋め込ませず、`/_app/immutable/assets/` に名前にハッシュの付いた
 	 * ファイルとして出させる。そこには adapter が1年のキャッシュを付けるので、
 	 * 一度読んだ図は次からブラウザと Cloudflare のエッジから返る。
+	 * スタートからゴールまでの道すじ（黄色い線とスタートの丸）は、距離ごとに図のファイルを作らずに済むよう、
+	 * 図の上に同じ viewBox の SVG で重ねる。
 	 *
 	 * スマホでは畳んでおき、見出しの行に寸法だけを出す。図は見返すための資料で、
 	 * 開くたびに書く欄が1画面ぶん下がるのは困るため。広い画面では開いたまま出す。
@@ -38,15 +40,44 @@
 	     寸法は1項目ずつ折り返す（「高低差 内回り / 3.1m」のように途中で切れると読めない）。 -->
 	<div class="@container mt-1">
 		<figure class="@md:flex @md:items-center @md:gap-6">
-			<!-- lazy: スマホで畳んだまま（display: none）なら読まない。 -->
-			<img
-				{src}
-				alt={m.alt}
-				width={m.width}
-				height={m.height}
-				loading="lazy"
-				class="mx-auto h-auto max-w-full @md:mx-0"
-			/>
+			<div class="relative mx-auto w-fit max-w-full @md:mx-0">
+				<!-- lazy: スマホで畳んだまま（display: none）なら読まない。 -->
+				<img
+					{src}
+					alt={m.alt}
+					width={m.width}
+					height={m.height}
+					loading="lazy"
+					class="h-auto max-w-full"
+				/>
+				{#if m.route}
+					<!-- 道すじ。図の説明は alt と寸法の文字に任せ、線は飾りとして読み上げない。 -->
+					<svg
+						viewBox={m.route.viewBox}
+						aria-hidden="true"
+						class="pointer-events-none absolute inset-0 size-full"
+					>
+						<g transform={m.route.flip ? 'scale(-1 1)' : undefined}>
+							<path
+								d={m.route.d}
+								fill="none"
+								stroke={ROUTE_STYLE.color}
+								stroke-width={ROUTE_STYLE.width}
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<circle
+								cx={m.route.start.x}
+								cy={m.route.start.y}
+								r={ROUTE_STYLE.startRadius}
+								fill={ROUTE_STYLE.color}
+								stroke={ROUTE_STYLE.startStroke}
+								stroke-width={ROUTE_STYLE.startStrokeWidth}
+							/>
+						</g>
+					</svg>
+				{/if}
+			</div>
 			<figcaption class="mt-1 @md:mt-0">
 				<ul class="flex flex-wrap gap-x-3 text-xs text-muted-foreground @md:flex-col @md:gap-1">
 					{#each m.facts as fact (fact)}
