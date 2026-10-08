@@ -25,17 +25,6 @@ races:
         dam: ダイワベスパー
         damSire: ダイワメジャー
         weight: 55
-      - name: ヴォンフレ
-        sex: 牝
-        age: 4
-        birthDate: 2022-04-27
-        ref: nk-2022101227
-        trainer: 村田一誠
-        trainingCenter: 美浦
-        sire: ブラックタイド
-        dam: ショウリノウタゲ
-        damSire: プリサイスエンド
-        weight: 55
       - name: カネラフィーナ
         jockey: 石川裕紀人
         sex: 牝
@@ -120,17 +109,6 @@ races:
         dam: キューティゴールド
         damSire: フレンチデピュティ
         weight: 55
-      - name: テリオスララ
-        sex: 牝
-        age: 4
-        birthDate: 2022-03-08
-        ref: nk-2022104812
-        trainer: 田島俊明
-        trainingCenter: 美浦
-        sire: シスキン
-        dam: シャンドランジュ
-        damSire: マンハッタンカフェ
-        weight: 55
       - name: ニシノティアモ
         jockey: 津村明秀
         sex: 牝
@@ -156,6 +134,7 @@ races:
         damSire: マンハッタンカフェ
         weight: 55
       - name: ミアネーロ
+        jockey: 大野拓弥
         sex: 牝
         age: 5
         birthDate: 2021-02-16
@@ -167,6 +146,7 @@ races:
         damSire: Pulpit
         weight: 55
       - name: ミラビリスマジック
+        jockey: 戸崎圭太
         sex: 牝
         age: 5
         birthDate: 2021-05-09
@@ -178,6 +158,7 @@ races:
         damSire: シンボリクリスエス
         weight: 55
       - name: ムイ
+        jockey: 木幡巧也
         sex: 牝
         age: 4
         birthDate: 2022-03-23
@@ -224,3 +205,8 @@ races:
         dam: サンドスラッシュ
         damSire: Holy Roman Emperor
         weight: 55
+    withdrawn:
+      - name: ヴォンフレ
+        ref: nk-2022101227
+      - name: テリオスララ
+        ref: nk-2022104812
