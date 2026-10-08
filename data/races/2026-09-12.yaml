@@ -329,3 +329,59 @@ races:
         horseWeight: 496
         horseWeightDiff: 6
         odds: 155.1
+  - course: 中山
+    raceNumber: 2
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 曇
+    fieldSize: 12
+    winner: アイファーマーリン
+    runnerUp: コスモティタノ
+    entries:
+      - horseNumber: 10
+        bracket: 7
+        name: アイファーマーリン
+        jockey: 松岡正海
+        ref: nk-2024105215
+        finish: 1
+        popularity: 3
+        time: "1:36.8"
+        timeDiff: -0.1
+        passing: "10-10-9"
+        last3f: 34.7
+        weight: 55
+        horseWeight: 438
+        horseWeightDiff: -10
+        odds: 6.2
+  - course: 中山
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 曇
+    fieldSize: 11
+    winner: サトノハクマイ
+    runnerUp: ブルードロップ
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: サトノハクマイ
+        jockey: 斎藤新
+        ref: nk-2024102281
+        finish: 1
+        popularity: 1
+        time: "1:38.6"
+        timeDiff: -0.3
+        passing: "2-2-2"
+        last3f: 34.9
+        weight: 55
+        horseWeight: 454
+        horseWeightDiff: 0
+        odds: 1.6

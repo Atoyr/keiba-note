@@ -474,3 +474,31 @@ races:
         horseWeight: 478
         horseWeightDiff: 0
         odds: 18.3
+  - course: 札幌
+    raceNumber: 11
+    name: 日高S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 14
+    winner: ワタシマツワ
+    runnerUp: モンドデラモーレ
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ワタシマツワ
+        jockey: 小林美駒
+        ref: nk-2022101412
+        finish: 1
+        popularity: 9
+        time: "1:28.1"
+        timeDiff: -0.1
+        passing: "1-1-1"
+        last3f: 35.3
+        weight: 56
+        horseWeight: 438
+        horseWeightDiff: 10
+        odds: 17.9

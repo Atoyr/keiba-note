@@ -292,6 +292,7 @@ races:
         popularity: 2
         time: "1:31.9"
         margin: "ハナ"
+        timeDiff: 0.2
         passing: "12-10"
         last3f: 32.9
         weight: 58
@@ -724,6 +725,21 @@ races:
         horseWeight: 468
         horseWeightDiff: 6
         odds: 5.5
+      - horseNumber: 15
+        bracket: 8
+        name: ムイ
+        jockey: 富田暁
+        ref: nk-2022102408
+        finish: 10
+        popularity: 13
+        time: "1:08.1"
+        timeDiff: 0.6
+        passing: "15-15"
+        last3f: 33.1
+        weight: 53
+        horseWeight: 466
+        horseWeightDiff: 8
+        odds: 33.2
   - course: 東京
     raceNumber: 5
     name: 3歳未勝利

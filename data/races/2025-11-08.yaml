@@ -59,6 +59,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ダイヤモンドノット
+    runnerUp: フクチャンショウ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -124,6 +127,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:20.9"
+        timeDiff: -0.5
         passing: "2-2"
         last3f: 33.6
         weight: 56

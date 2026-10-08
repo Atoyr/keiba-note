@@ -169,6 +169,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: ジョイフルニュース
+    runnerUp: リラボニート
     entries:
       - horseNumber: 3
         bracket: 3
@@ -178,6 +181,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:46.7"
+        timeDiff: -0.2
         passing: "3-3-3-3"
         last3f: 34.4
         weight: 53

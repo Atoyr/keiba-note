@@ -93,6 +93,7 @@ races:
         popularity: 11
         time: "1:32.3"
         margin: "1/2"
+        timeDiff: 0.2
         passing: "8-7"
         last3f: 33.3
         weight: 58
@@ -170,6 +171,7 @@ races:
         popularity: 12
         time: "1:33.9"
         margin: "3"
+        timeDiff: 1.8
         passing: "14-14"
         last3f: 34.2
         weight: 58

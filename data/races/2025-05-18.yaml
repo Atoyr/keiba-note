@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 17
+    winner: アスコリピチェーノ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -118,6 +120,7 @@ races:
         finish: 2
         popularity: 4
         time: "1:32.1"
+        timeDiff: 0
         passing: "13-12"
         last3f: 33.6
         weight: 56

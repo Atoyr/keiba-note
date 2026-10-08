@@ -186,6 +186,7 @@ races:
         popularity: 9
         time: "1:35.5"
         margin: "3.1/2"
+        timeDiff: 3.1
         passing: "7-7"
         last3f: 36.9
         weight: 54
@@ -204,6 +205,7 @@ races:
         popularity: 8
         time: "1:33.3"
         margin: "5"
+        timeDiff: 0.9
         passing: "1-1"
         last3f: 35.2
         weight: 54
@@ -684,3 +686,31 @@ races:
         horseWeight: 480
         horseWeightDiff: 6
         odds: 65.7
+  - course: 札幌
+    raceNumber: 10
+    name: 羊ヶ丘特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 9
+    winner: ワタシマツワ
+    runnerUp: レイユール
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: ワタシマツワ
+        jockey: 小林美駒
+        ref: nk-2022101412
+        finish: 1
+        popularity: 5
+        time: "1:27.9"
+        timeDiff: -0.2
+        passing: "2-2-1"
+        last3f: 34.1
+        weight: 52
+        horseWeight: 428
+        horseWeightDiff: 12
+        odds: 9.2

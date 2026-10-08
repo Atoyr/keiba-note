@@ -35,6 +35,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 17
+    winner: ソウルラッシュ
     entries:
       - horseNumber: 7
         bracket: 4
@@ -50,6 +52,21 @@ races:
         horseWeight: 484
         horseWeightDiff: 8
         odds: 23
+      - horseNumber: 14
+        bracket: 7
+        name: ウインマーベル
+        jockey: 松山弘平
+        ref: nk-2019100213
+        finish: 3
+        popularity: 10
+        time: "1:32.4"
+        timeDiff: 0.4
+        passing: "4-2"
+        last3f: 34.5
+        weight: 58
+        horseWeight: 476
+        horseWeightDiff: 0
+        odds: 41.5
       - horseNumber: 16
         bracket: 8
         name: タイムトゥヘヴン

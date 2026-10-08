@@ -416,6 +416,21 @@ races:
         horseWeight: 456
         horseWeightDiff: -6
         odds: 22.8
+      - horseNumber: 14
+        bracket: 7
+        name: ショウナンザナドゥ
+        jockey: 松若風馬
+        ref: nk-2022105071
+        finish: 15
+        popularity: 11
+        time: "1:20.9"
+        timeDiff: 1.9
+        passing: "12-10"
+        last3f: 35
+        weight: 55
+        horseWeight: 454
+        horseWeightDiff: 2
+        odds: 114
       - horseNumber: 15
         bracket: 8
         name: ルガル

@@ -695,6 +695,21 @@ races:
         horseWeight: 480
         horseWeightDiff: -6
         odds: 5.3
+      - horseNumber: 6
+        bracket: 3
+        name: ムイ
+        jockey: 川又賢治
+        ref: nk-2022102408
+        finish: 15
+        popularity: 12
+        time: "1:21.3"
+        timeDiff: 1.4
+        passing: "14-14"
+        last3f: 33
+        weight: 53
+        horseWeight: 468
+        horseWeightDiff: 2
+        odds: 32.4
       - horseNumber: 7
         bracket: 4
         name: スリールミニョン
@@ -766,6 +781,21 @@ races:
         horseWeight: 446
         horseWeightDiff: -6
         odds: 11.8
+      - horseNumber: 15
+        bracket: 8
+        name: レイベリング
+        jockey: 国分恭介
+        ref: nk-2020110155
+        finish: 6
+        popularity: 14
+        time: "1:20.6"
+        timeDiff: 0.7
+        passing: "3-3"
+        last3f: 33.6
+        weight: 57.5
+        horseWeight: 486
+        horseWeightDiff: 0
+        odds: 52.6
       - horseNumber: 17
         bracket: 8
         name: エコロブルーム

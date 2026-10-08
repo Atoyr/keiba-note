@@ -11,6 +11,9 @@ races:
     direction: 左
     trackCondition: 重
     weather: 小雨
+    fieldSize: 10
+    winner: クイーンズウォーク
+    runnerUp: ホウオウビスケッツ
     entries:
       - horseNumber: 3
         bracket: 3
@@ -48,6 +51,7 @@ races:
         finish: 1
         popularity: 4
         time: "2:01.3"
+        timeDiff: 0
         passing: "3-3-3-3"
         last3f: 36.3
         weight: 55

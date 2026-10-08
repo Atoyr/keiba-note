@@ -527,6 +527,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: マイネルチケット
+    runnerUp: スライビングロード
     entries:
       - horseNumber: 8
         bracket: 4
@@ -536,6 +539,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:20.5"
+        timeDiff: -0.2
         passing: "9-9"
         last3f: 33.1
         weight: 57

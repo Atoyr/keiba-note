@@ -48,6 +48,7 @@ races:
         popularity: 18
         time: "1:32.0"
         margin: "クビ"
+        timeDiff: 1.1
         passing: "14-15"
         last3f: 33.2
         weight: 56
@@ -86,6 +87,7 @@ races:
         popularity: 5
         time: "1:31.4"
         margin: "ハナ"
+        timeDiff: 0.5
         passing: "1-1"
         last3f: 34.1
         weight: 56
@@ -122,6 +124,7 @@ races:
         popularity: 8
         time: "1:31.6"
         margin: "クビ"
+        timeDiff: 0.7
         passing: "8-7"
         last3f: 33.6
         weight: 56
@@ -142,6 +145,7 @@ races:
         popularity: 3
         time: "1:31.4"
         margin: "1.1/2"
+        timeDiff: 0.5
         passing: "8-10"
         last3f: 33.1
         weight: 56
@@ -162,6 +166,7 @@ races:
         popularity: 2
         time: "1:31.1"
         margin: "1.1/4"
+        timeDiff: 0.2
         passing: "7-7"
         last3f: 33.1
         weight: 56
@@ -275,6 +280,7 @@ races:
         popularity: 9
         time: "1:31.6"
         margin: "アタマ"
+        timeDiff: 0.7
         passing: "8-9"
         last3f: 33.5
         weight: 56
@@ -314,6 +320,7 @@ races:
         popularity: 4
         time: "1:31.5"
         margin: "3/4"
+        timeDiff: 0.6
         passing: "2-2"
         last3f: 34.1
         weight: 56
@@ -365,6 +372,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: エストゥペンダ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -394,6 +403,21 @@ races:
         horseWeight: 448
         horseWeightDiff: 0
         odds: 2.1
+      - horseNumber: 16
+        bracket: 8
+        name: ミラビリスマジック
+        jockey: 小沢大仁
+        ref: nk-2021105105
+        finish: 5
+        popularity: 8
+        time: "1:49.3"
+        timeDiff: 0.2
+        passing: "5-5"
+        last3f: 33
+        weight: 56
+        horseWeight: 460
+        horseWeightDiff: 2
+        odds: 16.9
   - course: 京都
     raceNumber: 10
     name: 錦S
@@ -403,6 +427,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: カズミクラーシュ
     entries:
       - horseNumber: 4
         bracket: 4
@@ -432,6 +458,21 @@ races:
         horseWeight: 508
         horseWeightDiff: -4
         odds: 10
+      - horseNumber: 13
+        bracket: 8
+        name: ハワイアンティアレ
+        jockey: 角田大和
+        ref: nk-2021105255
+        finish: 10
+        popularity: 9
+        time: "1:32.9"
+        timeDiff: 0.3
+        passing: "10-11"
+        last3f: 32.4
+        weight: 53
+        horseWeight: 450
+        horseWeightDiff: 10
+        odds: 19
   - course: 東京
     raceNumber: 4
     name: 3歳未勝利

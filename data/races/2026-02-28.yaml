@@ -252,6 +252,7 @@ races:
         popularity: 8
         time: "1:07.4"
         margin: "ハナ"
+        timeDiff: 0.4
         passing: "12-12"
         last3f: 34
         weight: 57

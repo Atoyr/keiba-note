@@ -394,6 +394,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 16
+    winner: コガネノソラ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -579,6 +580,7 @@ races:
         popularity: 3
         time: "1:46.0"
         margin: "クビ"
+        timeDiff: 0.4
         passing: "6-6-5-4"
         last3f: 34.8
         weight: 55
@@ -652,6 +654,7 @@ races:
         popularity: 2
         time: "1:45.8"
         margin: "1.1/2"
+        timeDiff: 0.2
         passing: "4-3-3-3"
         last3f: 34.7
         weight: 55
