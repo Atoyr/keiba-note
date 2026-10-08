@@ -145,14 +145,6 @@ races:
         dam: ディープビヨンド
         damSire: ディープインパクト
         weight: 56
+    withdrawn:
       - name: ライーリーアース
-        sex: 牝
-        age: 2
-        birthDate: 2024-03-27
         ref: nk-2024106853
-        trainer: 蛯名利弘
-        trainingCenter: 美浦
-        sire: ハイランドリール
-        dam: トーセンリスト
-        damSire: ノヴェリスト
-        weight: 55
