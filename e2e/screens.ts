@@ -20,6 +20,8 @@ import {
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
 	SPRINT_RACE_ID,
+	TOKYO_DIRT_RACE_ID,
+	TOKYO_MILE_RACE_ID,
 	SHARED_NOTE_ID,
 	SHARED_MANY_MARKS_ID,
 	SHARED_OUTLOOK_ID,
@@ -322,6 +324,26 @@ export const SCREENS: Screen[] = [
 		// 中山の芝1200m。外回りの形（2コーナーから外へ分かれる）と、下って最後に上る高低断面。
 		name: 'race-preview-course-sprint',
 		path: `/races/${SPRINT_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			const summary = page.locator('details summary', { hasText: 'コース' });
+			if (await summary.isVisible()) await summary.click();
+		}
+	},
+	{
+		// 東京の芝1600m。向正面を延ばした引き込み線から出て、ゴールまで走る線。
+		name: 'race-preview-course-tokyo-mile',
+		path: `/races/${TOKYO_MILE_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			const summary = page.locator('details summary', { hasText: 'コース' });
+			if (await summary.isVisible()) await summary.click();
+		}
+	},
+	{
+		// 東京のダート1600m。芝の内側に沿うダートの帯と、ダートの上の道すじ。
+		name: 'race-preview-course-tokyo-dirt',
+		path: `/races/${TOKYO_DIRT_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
 			const summary = page.locator('details summary', { hasText: 'コース' });
