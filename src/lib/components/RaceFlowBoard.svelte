@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import { tv } from 'tailwind-variants';
 	import type { ResolvedSpot } from '$lib/utils/race-flow';
 
 	/**
@@ -6,10 +7,27 @@
 	 * `said` を渡すと、読み上げはマスの場所（「前から2列目・中」）ではなくこの文になる。
 	 */
 	export type BoardSpot = ResolvedSpot & { key: string; said?: string };
+
+	/**
+	 * コマの進行方向の三角。色は**コマの輪郭（border）の色**（`BRACKET_MARK_FILL`。枠が無いコマは `fill-muted-foreground`）。
+	 * 三角（幅5px・高さ8px）はコマの縁から1px内側に食い込み、4px外に出る。
+	 * 外に出る分は、隣のマスがあれば、コマの外の余白（自分の `p-px`・`gap-0.5`・隣の `p-px`）に収まる。
+	 * いちばん前（進行方向の端）の列では、盤面の `p-0.5` と合わせて 3px しかなく、盤面の地から 1px はみ出す
+	 * （切れずに外に出るので見え方は変わらない）。
+	 */
+	const headingMark = tv({
+		base: 'pointer-events-none absolute top-1/2 size-2.5 -translate-y-1/2',
+		variants: {
+			heading: {
+				left: 'right-full -mr-1.5',
+				right: 'left-full -ml-1.5'
+			}
+		}
+	});
 </script>
 
 <script lang="ts">
-	import { BRACKET_CLASS } from '$lib/components/BracketBadge.svelte';
+	import { BRACKET_CLASS, BRACKET_MARK_FILL } from '$lib/components/BracketBadge.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { FLOW_COLS, FLOW_LANES } from '$lib/schemas/race-flow';
 	import { horseToken } from '$lib/utils/race-flow';
@@ -131,8 +149,26 @@
 	<span class="size-1 rounded-full bg-muted-foreground/40" aria-hidden="true"></span>
 {/snippet}
 
+<!--
+	コマの進行方向の縁に三角を付ける。向きは見出しの「← 進行方向」が文字で言っているので、読み上げからは外す。
+	三角はコマの後ろ（DOM で後）に置き、選んだコマの ring より上に描く。
+	`size-2.5` を必ず入れる（shadcn の Button は `size-` を含まない svg を 16px に上書きする）。
+-->
 {#snippet chip(s: BoardSpot)}
-	<span class={chipClass(s)} title={s.horseName}>{glyph(s)}</span>
+	<span class="relative block size-full">
+		<span class={chipClass(s)} title={s.horseName}>{glyph(s)}</span>
+		<svg
+			viewBox="0 0 10 10"
+			aria-hidden="true"
+			data-heading={leadsRight ? 'right' : 'left'}
+			class={cn(
+				headingMark({ heading: leadsRight ? 'right' : 'left' }),
+				(s.bracket && BRACKET_MARK_FILL[s.bracket]) || 'fill-muted-foreground'
+			)}
+		>
+			<path d={leadsRight ? 'M5 1 10 5 5 9Z' : 'M5 1 0 5 5 9Z'} />
+		</svg>
+	</span>
 {/snippet}
 
 <div
@@ -154,6 +190,8 @@
 		)}
 		onkeydown={onCell ? onKey : undefined}
 	>
+		<!-- フォーカス中のマスは隣のコマの三角（absolute）より上に描き、フォーカスの輪を欠けさせない。
+			常に relative にはしない（ホバーの面が、前のマスの三角を隠してしまう）。 -->
 		{#each cells as c, i (`${c.x}:${c.y}`)}
 			{#if onCell}
 				<Button
@@ -162,7 +200,7 @@
 					data-cell
 					tabindex={i === active ? 0 : -1}
 					onfocus={() => (active = i)}
-					class="aspect-square h-auto w-full min-w-0 rounded-sm p-px hover:bg-background"
+					class="aspect-square h-auto w-full min-w-0 rounded-sm p-px hover:bg-background focus-visible:relative focus-visible:z-10"
 					aria-label={describe(c)}
 					aria-pressed={c.spot ? selected === c.spot.key : undefined}
 					onclick={() => onCell(c.x, c.y)}
