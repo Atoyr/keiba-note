@@ -80,6 +80,80 @@ describe('CourseMap', () => {
 		await expect.element(page.getByRole('img', { name: /^高低断面図/ })).not.toBeInTheDocument();
 	});
 
+	describe('スタートからゴールまでの道すじ', () => {
+		/** 広い画面の枠（section）の中で、図の `<img>` の上に重ねた SVG。 */
+		const overlay = () => document.querySelector('section .relative > svg');
+
+		it('距離から道すじが引けるレースでは、図の上に黄色い線とスタートの丸を重ねる', async () => {
+			await page.viewport(1280, 800);
+			render(CourseMap, {
+				race: { course: '東京', surface: '芝', distance: 1600, direction: '左' }
+			});
+			await expect
+				.element(page.getByRole('img', { name: '東京競馬場のコース図（芝）' }))
+				.toBeVisible();
+
+			const svg = overlay()!;
+			expect(svg).not.toBeNull();
+			const path = svg.querySelector('path')!;
+			expect(path.getAttribute('d')).toMatch(/^M/);
+			expect(path.getAttribute('stroke')).toBe('#facc15');
+			expect(svg.querySelectorAll('circle')).toHaveLength(1);
+		});
+
+		it('道すじを引けないレース（内回り外回りが決まらない芝・障害）では重ねない', async () => {
+			await page.viewport(1280, 800);
+			const kyoto = render(CourseMap, {
+				race: { course: '京都', surface: '芝', distance: 1600, direction: '右' }
+			});
+			await expect.element(page.getByRole('img', { name: /コース図/ })).toBeVisible();
+			expect(overlay()).toBeNull();
+			kyoto.unmount();
+
+			render(CourseMap, {
+				race: { course: '中山', surface: '障害', distance: 4100, direction: '右' }
+			});
+			await expect.element(page.getByRole('img', { name: /コース図/ })).toBeVisible();
+			expect(overlay()).toBeNull();
+		});
+
+		it('重ねた線は読み上げず、画像として見えるのは図の1枚だけ', async () => {
+			await page.viewport(1280, 800);
+			render(CourseMap, {
+				race: { course: '東京', surface: '芝', distance: 1600, direction: '左' }
+			});
+			await expect
+				.element(page.getByRole('img', { name: '東京競馬場のコース図（芝）' }))
+				.toBeVisible();
+			expect(overlay()!.getAttribute('aria-hidden')).toBe('true');
+			// 図の `<img>` と、その下の高低断面（別の部品）。重ねた SVG は数えない。
+			const names = page
+				.getByRole('img')
+				.elements()
+				.map((el) => el.getAttribute('aria-label') ?? el.getAttribute('alt'));
+			expect(names.filter((name) => name?.includes('コース図'))).toEqual([
+				'東京競馬場のコース図（芝）'
+			]);
+			expect(page.getByRole('img').elements()).not.toContain(overlay());
+		});
+
+		it('右回りの図に重ねる線は左右を反転し、左回りは反転しない', async () => {
+			await page.viewport(1280, 800);
+			const nakayama = render(CourseMap, {
+				race: { course: '中山', surface: '芝', distance: 1200, direction: '右' }
+			});
+			await expect.element(page.getByRole('img', { name: /コース図/ })).toBeVisible();
+			expect(overlay()!.querySelector('g')!.getAttribute('transform')).toBe('scale(-1 1)');
+			nakayama.unmount();
+
+			render(CourseMap, {
+				race: { course: '東京', surface: '芝', distance: 1600, direction: '左' }
+			});
+			await expect.element(page.getByRole('img', { name: /コース図/ })).toBeVisible();
+			expect(overlay()!.querySelector('g')!.hasAttribute('transform')).toBe(false);
+		});
+	});
+
 	it('図が無いレースでは何も出さない', () => {
 		const { container } = render(CourseMap, {
 			race: { course: '大井', surface: 'ダート', distance: 2000, direction: null }

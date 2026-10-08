@@ -33,6 +33,7 @@ races:
         popularity: 5
         time: "1:45.5"
         timeDiff: 0
+        passing: "4-3-3"
         last3f: 33.5
         weight: 57
         horseWeight: 480
@@ -53,6 +54,7 @@ races:
         time: "1:45.9"
         margin: "アタマ"
         timeDiff: 0.4
+        passing: "2-2-2"
         last3f: 34.1
         weight: 55
         horseWeight: 538
@@ -73,6 +75,7 @@ races:
         time: "1:45.7"
         margin: "1.1/4"
         timeDiff: 0.2
+        passing: "7-5-5"
         last3f: 33.5
         weight: 57
         horseWeight: 494
@@ -93,6 +96,7 @@ races:
         time: "1:45.9"
         margin: "ハナ"
         timeDiff: 0.4
+        passing: "10-6-6"
         last3f: 33.6
         weight: 57
         horseWeight: 504
@@ -113,6 +117,7 @@ races:
         time: "1:46.1"
         margin: "クビ"
         timeDiff: 0.6
+        passing: "17-17-15"
         last3f: 33
         weight: 57
         horseWeight: 498
@@ -133,6 +138,7 @@ races:
         time: "1:45.9"
         margin: "3/4"
         timeDiff: 0.4
+        passing: "11-11-9"
         last3f: 33.2
         weight: 55
         horseWeight: 514
@@ -153,6 +159,7 @@ races:
         time: "1:46.3"
         margin: "1/2"
         timeDiff: 0.8
+        passing: "14-12-9"
         last3f: 33.6
         weight: 57
         horseWeight: 486
@@ -173,6 +180,7 @@ races:
         time: "1:46.6"
         margin: "1.1/2"
         timeDiff: 1.1
+        passing: "15-15-15"
         last3f: 33.5
         weight: 57
         horseWeight: 486
@@ -193,6 +201,7 @@ races:
         time: "1:46.1"
         margin: "アタマ"
         timeDiff: 0.6
+        passing: "7-8-7"
         last3f: 33.7
         weight: 57
         horseWeight: 476
@@ -213,6 +222,7 @@ races:
         time: "1:46.1"
         margin: "クビ"
         timeDiff: 0.6
+        passing: "11-12-13"
         last3f: 33.3
         weight: 57
         horseWeight: 516
@@ -233,6 +243,7 @@ races:
         time: "1:46.6"
         margin: "ハナ"
         timeDiff: 1.1
+        passing: "3-6-7"
         last3f: 34.2
         weight: 57
         horseWeight: 490
@@ -253,6 +264,7 @@ races:
         time: "1:46.1"
         margin: "ハナ"
         timeDiff: 0.6
+        passing: "15-15-15"
         last3f: 33
         weight: 57
         horseWeight: 514
@@ -273,6 +285,7 @@ races:
         time: "1:45.5"
         margin: "ハナ"
         timeDiff: 0
+        passing: "1-1-1"
         last3f: 33.9
         weight: 57
         horseWeight: 502
@@ -293,6 +306,7 @@ races:
         time: "1:45.8"
         margin: "クビ"
         timeDiff: 0.3
+        passing: "13-12-13"
         last3f: 32.9
         weight: 57
         horseWeight: 462
@@ -313,6 +327,7 @@ races:
         time: "1:46.2"
         margin: "1/2"
         timeDiff: 0.7
+        passing: "6-9-9"
         last3f: 33.5
         weight: 58
         horseWeight: 514
@@ -333,6 +348,7 @@ races:
         time: "1:46.6"
         margin: "クビ"
         timeDiff: 1.1
+        passing: "7-9-9"
         last3f: 34
         weight: 55
         horseWeight: 478
@@ -353,6 +369,7 @@ races:
         time: "1:46.0"
         margin: "1/2"
         timeDiff: 0.5
+        passing: "4-3-3"
         last3f: 34
         weight: 57
         horseWeight: 512
@@ -392,6 +409,7 @@ races:
         time: "2:24.4"
         margin: "1/2"
         timeDiff: 0.4
+        passing: "6-6-7-7"
         last3f: 34.8
         weight: 57
         horseWeight: 508
@@ -412,6 +430,7 @@ races:
         time: "2:24.7"
         margin: "2"
         timeDiff: 0.7
+        passing: "17-17-16-7"
         last3f: 34.9
         weight: 57
         horseWeight: 484
@@ -431,6 +450,7 @@ races:
         time: "2:24.2"
         margin: "クビ"
         timeDiff: 0.2
+        passing: "3-3-4-3"
         last3f: 34.8
         weight: 58
         horseWeight: 468
@@ -451,6 +471,7 @@ races:
         time: "2:24.3"
         margin: "クビ"
         timeDiff: 0.3
+        passing: "14-14-15-17"
         last3f: 34.2
         weight: 58
         horseWeight: 488
@@ -471,6 +492,7 @@ races:
         time: "2:25.0"
         margin: "アタマ"
         timeDiff: 1
+        passing: "11-11-13-15"
         last3f: 35
         weight: 55
         horseWeight: 478
@@ -491,6 +513,7 @@ races:
         time: "2:24.2"
         margin: "クビ"
         timeDiff: 0.2
+        passing: "11-11-7-3"
         last3f: 34.7
         weight: 55
         horseWeight: 476
@@ -511,6 +534,7 @@ races:
         time: "2:25.1"
         margin: "3/4"
         timeDiff: 1.1
+        passing: "13-13-11-12"
         last3f: 35.3
         weight: 57
         horseWeight: 500
@@ -531,6 +555,7 @@ races:
         time: "2:25.6"
         margin: "2"
         timeDiff: 1.6
+        passing: "8-9-4-7"
         last3f: 36.1
         weight: 57
         horseWeight: 500
@@ -551,6 +576,7 @@ races:
         time: "2:25.0"
         margin: "1/2"
         timeDiff: 1
+        passing: "1-1-1-1"
         last3f: 35.9
         weight: 58
         horseWeight: 506
@@ -571,6 +597,7 @@ races:
         time: "2:24.1"
         margin: "3/4"
         timeDiff: 0.1
+        passing: "5-4-4-3"
         last3f: 34.7
         weight: 57
         horseWeight: 488
@@ -591,6 +618,7 @@ races:
         time: "2:25.0"
         margin: "クビ"
         timeDiff: 1
+        passing: "8-8-11-12"
         last3f: 35.1
         weight: 57
         horseWeight: 484
@@ -610,6 +638,7 @@ races:
         popularity: 11
         time: "2:24.0"
         timeDiff: -0.1
+        passing: "2-2-2-2"
         last3f: 34.9
         weight: 57
         horseWeight: 486
@@ -630,6 +659,7 @@ races:
         time: "2:24.7"
         margin: "クビ"
         timeDiff: 0.7
+        passing: "16-16-16-15"
         last3f: 34.6
         weight: 55
         horseWeight: 480
@@ -650,6 +680,7 @@ races:
         time: "2:25.3"
         margin: "クビ"
         timeDiff: 1.3
+        passing: "8-9-10-12"
         last3f: 35.5
         weight: 57
         horseWeight: 540
@@ -670,6 +701,7 @@ races:
         time: "2:25.1"
         margin: "ハナ"
         timeDiff: 1.1
+        passing: "17-17-18-17"
         last3f: 34.8
         weight: 57
         horseWeight: 472
@@ -690,6 +722,7 @@ races:
         time: "2:24.9"
         margin: "1/2"
         timeDiff: 0.9
+        passing: "14-14-13-7"
         last3f: 35.2
         weight: 57
         horseWeight: 550
@@ -710,6 +743,7 @@ races:
         time: "2:25.3"
         margin: "3/4"
         timeDiff: 1.3
+        passing: "3-4-2-3"
         last3f: 36.1
         weight: 57
         horseWeight: 502
@@ -730,6 +764,7 @@ races:
         time: "2:24.8"
         margin: "クビ"
         timeDiff: 0.8
+        passing: "6-6-7-7"
         last3f: 35.2
         weight: 57
         horseWeight: 496
