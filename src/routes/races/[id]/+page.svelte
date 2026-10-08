@@ -15,6 +15,7 @@
 	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
+	import SexAgeBadge from '$lib/components/SexAgeBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -277,13 +278,8 @@
 								     狭い幅で馬名だけが次の行へ落ち、性齢が馬名の左から離れる。 -->
 								<span class="flex min-w-0 items-baseline gap-2">
 									<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-									<!-- 出馬表の性齢（牡4）。色付きの札にはしない（18頭の行で印・枠の色と競うため）。
-									     馬名との間は詰める（どの馬の性齢かを近さで示す）。 -->
-									{#if r.sexAge}
-										<span class="-mr-1 shrink-0 text-xs text-muted-foreground tabular-nums"
-											>{r.sexAge}</span
-										>
-									{/if}
+									<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
+									<SexAgeBadge sex={r.sex} label={r.sexAge} />
 									<a
 										href={resolve('/horses/[id]', { id: r.horseId })}
 										class="min-w-0 font-medium hover:underline"
