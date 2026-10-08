@@ -135,6 +135,15 @@ export const SCREENS: Screen[] = [
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
 	// 展開の予想を置いていないレース。実際の展開（4角・ゴール前）だけが出る。
 	{ name: 'race-review-actual-flow', path: `/races/${ACTUAL_FLOW_RACE_ID}`, auth: true },
+	{
+		// 着差の入っていないレースで実際の展開を開いたところ（ゴール前は着順で1列ずつ。4角は順位の抜けを詰める）。
+		name: 'race-review-actual-flow-open',
+		path: `/races/${ACTUAL_FLOW_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await page.locator('details summary', { hasText: '実際の展開' }).click();
+		}
+	},
 	// 18頭立て。4角は同じ順位の馬を1列に、ゴール前は着差の累積でマスに置く。
 	{ name: 'race-review-actual-flow-18', path: `/races/${ACTUAL_FLOW_18_RACE_ID}`, auth: true },
 	{

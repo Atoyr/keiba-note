@@ -163,18 +163,37 @@ export type ActualPhase = {
 };
 
 /**
- * 盤面のマスに馬を順に置く。`wants[i]` が i 番目の馬の行きたいマスで、同じマスは先に来た馬から上の段に積む。
- * 段（`FLOW_LANES`）が埋まっていたら後ろのマスへ送り、最後のマスまで埋まっていたら前へ向かって空きを探す。
- * 段の数を超えて積むことは無い（y は `FLOW_LANES.length` 未満）。
+ * 盤面のマスに馬を置く。`wants[i]` が i 番目の馬の行きたいマスで、**馬は着順・順位の順（`wants` の昇順）に来る前提**。
+ * 前後の順を崩さない（着順の良い馬が、悪い馬より後ろに描かれない）。
+ *
+ * 1. 前から: 段（`FLOW_LANES`）が埋まっていたら後ろのマスへ送る。最後のマスで止めず、仮の x は盤面の外に出てよい
+ * 2. 後ろから: いちばん後ろの馬から、x = min(仮の x, 1つ後ろの馬の x, 最後のマス) とし、そのマスが埋まっていたら前へ寄せる。
+ *    最後のマスで溢れたときは、最後方の馬が最後のマスを取り、**先着した馬のほうが**前のマスへ押し出される
+ * 3. 同じマスの馬を元の順（先着が上）で上の段から積む。y は段の数未満
  */
 function stackOnBoard(wants: readonly number[]): { x: number; y: number }[] {
-	const used = new Array<number>(FLOW_COLS).fill(0);
-	return wants.map((want) => {
-		let x = Math.max(0, Math.min(FLOW_COLS - 1, want));
-		while (x < FLOW_COLS - 1 && used[x] >= FLOW_LANES.length) x++;
-		while (x > 0 && used[x] >= FLOW_LANES.length) x--;
-		const y = Math.min(used[x], FLOW_LANES.length - 1);
-		used[x]++;
+	const lanes = FLOW_LANES.length;
+	const forward = new Map<number, number>();
+	const tentative = wants.map((want) => {
+		let x = Math.max(0, want);
+		while ((forward.get(x) ?? 0) >= lanes) x++;
+		forward.set(x, (forward.get(x) ?? 0) + 1);
+		return x;
+	});
+
+	const xs = new Array<number>(wants.length);
+	const backward = new Array<number>(FLOW_COLS).fill(0);
+	for (let i = wants.length - 1; i >= 0; i--) {
+		let x = Math.min(tentative[i], i + 1 < wants.length ? xs[i + 1] : FLOW_COLS - 1, FLOW_COLS - 1);
+		while (x > 0 && backward[x] >= lanes) x--;
+		backward[x]++;
+		xs[i] = x;
+	}
+
+	const stacked = new Array<number>(FLOW_COLS).fill(0);
+	return xs.map((x) => {
+		const y = Math.min(stacked[x], lanes - 1);
+		stacked[x]++;
 		return { x, y };
 	});
 }
@@ -189,12 +208,15 @@ function stackOnBoard(wants: readonly number[]): { x: number; y: number }[] {
  *   通過順の同じ数字は「並んでいる」を表すので、順位の数字を割ってマスに入れると、
  *   1番手と2番手が同じマスに並んだり、3番手と4番手の間の空き番が混ざったりする。
  *   出てくる順位（重複を除く）を小さい順に並べ、その何番目かを列の番号にする。
- *   列の数が10マスを超えるとき（全頭の順位がばらばらの11頭以上）は、隣の列を `ceil(列の数 / 10)` 個ずつまとめる
+ *   同じ順位が段の数（4）を超えるときは、そのまとまりが `ceil(頭数 / 4)` 列を取り、次の順位はその後ろの列から始める
+ *   （溢れた馬が次の順位の列に混ざって、並んでいたように見えないように）。
+ *   列の幅の合計が10マスを超えるとき（全頭の順位がばらばらの11頭以上など）は、隣の列を `ceil(列の数 / 10)` 個ずつまとめる
  * - 前後（着差で置く。ゴール前）: **着順の全馬に着差が読めるときは、勝ち馬からの累積の着差（馬身）で置く。**
  *   順位で置くと 1-2着・3-4着… が機械的に2頭ずつ並び、ハナ差の2頭と2馬身離れた2頭が同じ見た目になる。
  *   1マスの馬身は最後の馬が最後のマスに来るよう決め（下限 0.5 馬身。少頭数の接戦で広がりすぎないように）、`cell` で返す
  * - 上下: 同じマスに入った馬を、順位 → 馬番の順に上の段から積む。**内外を表すものではない**。
- *   4段が埋まったら後ろのマスへ送り、最後のマスでも埋まったら前の空きへ送る（送られた馬が隣の列に混ざるのは許す）
+ *   4段が埋まったら後ろのマスへ送る。最後のマスで溢れたら、最後方の馬が最後のマスを取り、先着した馬が前のマスへ寄る
+ *   （前後の順は崩さない。送られた馬が隣の列に混ざるのは許す）
  * - 隊列の1行は盤面のマスではなく順位で区切る（まとめた馬を同じ列に書くと、並んでいたように読める）。
  *   同じ順位（同じ通過順・同着）だけを1つの列にし、列の中は馬番の順
  *
@@ -219,9 +241,21 @@ export function actualFlow(
 	const bySpot = (a: Placed, b: Placed) =>
 		a.at - b.at || (a.h.horseNumber ?? 99) - (b.h.horseNumber ?? 99);
 
-	/** 順位で置く。同じ順位は1列、出てくる順位の何番目かが列の番号。 */
+	/**
+	 * 順位で置く。同じ順位の馬は1つのまとまりで、**段の数を超える頭数なら2列以上の幅**を取る
+	 * （`ceil(頭数 / 段の数)`。溢れた馬がそのまとまりの2列目に入り、次の順位の列に混ざらない）。
+	 * 幅の合計が盤面に収まるときは、まとまりの先頭の列 = それより前のまとまりの幅の合計。
+	 * 収まらないとき（全頭ばらばらの11頭以上など）は、隣の列を `ceil(列の数 / 10)` 個ずつまとめる。
+	 */
 	const rankedWants = (sorted: Placed[]) => {
 		const ranks = [...new Set(sorted.map((p) => p.at))];
+		const widths = ranks.map((r) =>
+			Math.ceil(sorted.filter((p) => p.at === r).length / FLOW_LANES.length)
+		);
+		if (widths.reduce((a, b) => a + b, 0) <= FLOW_COLS) {
+			const starts = widths.map((_, i) => widths.slice(0, i).reduce((a, b) => a + b, 0));
+			return sorted.map((p) => starts[ranks.indexOf(p.at)]);
+		}
 		const per = Math.max(1, Math.ceil(ranks.length / FLOW_COLS));
 		return sorted.map((p) => Math.floor(ranks.indexOf(p.at) / per));
 	};
