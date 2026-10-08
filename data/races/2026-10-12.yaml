@@ -62,6 +62,7 @@ races:
         damSire: Kingmambo
         weight: 58
       - name: サンダーストラック
+        jockey: 吉村誠之助
         sex: 牡
         age: 3
         birthDate: 2023-02-10
@@ -84,17 +85,6 @@ races:
         dam: ジョイニキータ
         damSire: Fortify
         weight: 55
-      - name: ショウナンアデイブ
-        sex: 牡
-        age: 7
-        birthDate: 2019-02-01
-        ref: nk-2019105239
-        trainer: 高野友和
-        trainingCenter: 栗東
-        sire: ディープインパクト
-        dam: シーヴ
-        damSire: Mineshaft
-        weight: 57
       - name: ショウナンザナドゥ
         jockey: 池添謙一
         sex: 牝
@@ -138,6 +128,7 @@ races:
         birthDate: 2020-04-02
         ref: nk-2020101301
         trainer: 荒山勝徳
+        trainingCenter: 地方
         sire: キズナ
         dam: ドバウィディエティ
         damSire: Dubawi
@@ -165,18 +156,6 @@ races:
         sire: ダノンバラード
         dam: エントリーチケット
         damSire: マツリダゴッホ
-        weight: 57
-      - name: ミトノオルフェ
-        jockey: 坂井瑠星
-        sex: 牡
-        age: 4
-        birthDate: 2022-03-26
-        ref: nk-2022104053
-        trainer: 前川恭子
-        trainingCenter: 栗東
-        sire: オルフェーヴル
-        dam: インヴィンシブルタッチ
-        damSire: Invincible Spirit
         weight: 57
       - name: ミニトランザット
         jockey: 西村淳也
@@ -250,15 +229,10 @@ races:
         dam: ワイドサファイア
         damSire: アグネスタキオン
         weight: 55
+    withdrawn:
+      - name: ショウナンアデイブ
+        ref: nk-2019105239
+      - name: ミトノオルフェ
+        ref: nk-2022104053
       - name: ワタシマツワ
-        jockey: 小林美駒
-        sex: 牝
-        age: 4
-        birthDate: 2022-04-16
         ref: nk-2022101412
-        trainer: 竹内正洋
-        trainingCenter: 美浦
-        sire: グレーターロンドン
-        dam: サンドスラッシュ
-        damSire: Holy Roman Emperor
-        weight: 55
