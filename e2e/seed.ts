@@ -173,6 +173,12 @@ export const EMPTY_RACE_ID = '01JE2ERACEEMPTY00000000000';
 /** 中山の芝1200m（外回り）。コース図と高低断面を撮るためだけのレース。出走馬はいない。 */
 export const SPRINT_RACE_ID = '01JE2ERACESPRINT0000000000';
 
+/** 東京の芝1600m（向正面を延ばした引き込み線から出る）。コース図を撮るためだけのレース。出走馬はいない。 */
+export const TOKYO_MILE_RACE_ID = '01JE2ERACETOKYOMILE0000000';
+
+/** 東京のダート1600m。芝の内側に沿うダートの帯を撮るためだけのレース。出走馬はいない。 */
+export const TOKYO_DIRT_RACE_ID = '01JE2ERACETOKYODIRT0000000';
+
 /**
  * **出走馬が1頭も登録されていない開催済みのレース。**
  *
