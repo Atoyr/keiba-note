@@ -209,6 +209,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: セキトバイースト
     entries:
       - horseNumber: 1
         bracket: 1
@@ -274,6 +276,7 @@ races:
         finish: 11
         popularity: 6
         time: "1:46.9"
+        timeDiff: 0.9
         passing: "8-10-10"
         last3f: 35.4
         weight: 55.5

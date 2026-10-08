@@ -11,7 +11,24 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 15
+    winner: アルセナール
     entries:
+      - horseNumber: 7
+        bracket: 4
+        name: ミラビリスマジック
+        jockey: 戸崎圭太
+        ref: nk-2021105105
+        finish: 8
+        popularity: 3
+        time: "1:35.0"
+        timeDiff: 0.3
+        passing: "5-5"
+        last3f: 33.6
+        weight: 56
+        horseWeight: 452
+        horseWeightDiff: -4
+        odds: 5.8
       - horseNumber: 10
         bracket: 6
         name: ブランデーロック

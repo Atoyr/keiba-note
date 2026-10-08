@@ -614,3 +614,30 @@ races:
         horseWeight: 466
         horseWeightDiff: 2
         odds: 31.9
+  - course: 京都
+    raceNumber: 11
+    name: 舞鶴S
+    className: 3勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: プロミストジーン
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: ハワイアンティアレ
+        jockey: 吉村誠之助
+        ref: nk-2021105255
+        finish: 4
+        popularity: 6
+        time: "1:52.9"
+        timeDiff: 0.8
+        passing: "9-9-7-7"
+        last3f: 37.5
+        weight: 56
+        horseWeight: 442
+        horseWeightDiff: 4
+        odds: 22.9

@@ -277,6 +277,7 @@ races:
         finish: 16
         popularity: 6
         time: "1:32.8"
+        timeDiff: 1.5
         passing: "4-4"
         last3f: 34.5
         weight: 56
@@ -291,12 +292,28 @@ races:
         finish: 4
         popularity: 7
         time: "1:31.7"
+        timeDiff: 0.4
         passing: "13-13"
         last3f: 32.6
         weight: 58
         horseWeight: 460
         horseWeightDiff: -2
         odds: 34.1
+      - horseNumber: 12
+        bracket: 6
+        name: ウインマーベル
+        jockey: 松山弘平
+        ref: nk-2019100213
+        finish: 18
+        popularity: 10
+        time: "1:33.2"
+        timeDiff: 1.9
+        passing: "10-10"
+        last3f: 34.5
+        weight: 58
+        horseWeight: 484
+        horseWeightDiff: 2
+        odds: 53.5
       - horseNumber: 13
         bracket: 7
         name: ロングラン
@@ -334,6 +351,7 @@ races:
         finish: 17
         popularity: 18
         time: "1:33.0"
+        timeDiff: 1.7
         passing: "17-17"
         last3f: 33.3
         weight: 56

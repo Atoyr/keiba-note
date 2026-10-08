@@ -184,3 +184,31 @@ races:
         horseWeight: 458
         horseWeightDiff: 2
         odds: 94.5
+  - course: 中京
+    raceNumber: 7
+    name: 豊橋S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: ハワイアンティアレ
+    runnerUp: テラメリタ
+    entries:
+      - horseNumber: 6
+        bracket: 6
+        name: ハワイアンティアレ
+        jockey: 吉村誠之助
+        ref: nk-2021105255
+        finish: 1
+        popularity: 7
+        time: "1:33.1"
+        timeDiff: -0.1
+        passing: "1-1-1"
+        last3f: 33.1
+        weight: 53
+        horseWeight: 440
+        horseWeightDiff: -10
+        odds: 16.1

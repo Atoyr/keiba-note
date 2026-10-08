@@ -334,6 +334,8 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 17
+    winner: ダイヤモンドノット
+    runnerUp: エイシンディード
     entries:
       - horseNumber: 1
         bracket: 1
@@ -502,6 +504,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:19.8"
+        timeDiff: -0.2
         passing: "5-4"
         last3f: 33.6
         weight: 57

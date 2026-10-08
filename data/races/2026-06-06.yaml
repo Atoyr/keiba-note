@@ -150,3 +150,31 @@ races:
         horseWeight: 474
         horseWeightDiff: -2
         odds: 3.7
+  - course: 東京
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 9
+    winner: フィリオソラーレ
+    runnerUp: ウィンターブリーズ
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: フィリオソラーレ
+        jockey: ルメール
+        ref: nk-2024106538
+        finish: 1
+        popularity: 1
+        time: "1:34.3"
+        timeDiff: -0.1
+        passing: "3-3"
+        last3f: 33.3
+        weight: 55
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 1.3

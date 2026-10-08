@@ -12,6 +12,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 14
+    winner: ココナッツブラウン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -184,6 +185,7 @@ races:
         popularity: 2
         time: "1:46.3"
         margin: "1/2"
+        timeDiff: 0.2
         passing: "1-1-1-1"
         last3f: 35.2
         weight: 55
@@ -264,6 +266,7 @@ races:
         popularity: 9
         time: "1:46.7"
         margin: "1/2"
+        timeDiff: 0.6
         passing: "3-4-4-3"
         last3f: 35.3
         weight: 55
@@ -631,6 +634,7 @@ races:
         popularity: 4
         time: "0:54.2"
         margin: "1"
+        timeDiff: 0.7
         passing: "6"
         last3f: 32
         weight: 57
@@ -699,3 +703,31 @@ races:
         horseWeight: 510
         horseWeightDiff: 10
         odds: 28.5
+  - course: 新潟
+    raceNumber: 3
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 13
+    winner: ニシノトラノスケ
+    runnerUp: ファーストアライヴ
+    entries:
+      - horseNumber: 13
+        bracket: 8
+        name: ニシノトラノスケ
+        jockey: 菊沢一樹
+        ref: nk-2024102993
+        finish: 1
+        popularity: 8
+        time: "1:36.7"
+        timeDiff: 0
+        passing: "6-3"
+        last3f: 34.4
+        weight: 55
+        horseWeight: 416
+        horseWeightDiff: 0
+        odds: 39.9

@@ -738,3 +738,30 @@ races:
         horseWeight: 494
         horseWeightDiff: 4
         odds: 2.4
+  - course: 福島
+    raceNumber: 6
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 16
+    winner: チャランダマルツ
+    entries:
+      - horseNumber: 6
+        bracket: 3
+        name: グルーヴェンス
+        jockey: 三浦皇成
+        ref: nk-2024101344
+        finish: 2
+        popularity: 3
+        time: "1:10.8"
+        timeDiff: 0.3
+        passing: "4-4"
+        last3f: 35.1
+        weight: 55
+        horseWeight: 420
+        horseWeightDiff: 0
+        odds: 5.9

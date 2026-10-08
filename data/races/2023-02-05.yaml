@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: トーセンエスクード
     entries:
       - horseNumber: 12
         bracket: 6
@@ -20,6 +22,7 @@ races:
         finish: 17
         popularity: 15
         time: "1:10.5"
+        timeDiff: 1.6
         passing: "5-9"
         last3f: 36.6
         weight: 53

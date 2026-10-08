@@ -411,6 +411,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 18
+    winner: ソンシ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -443,6 +444,7 @@ races:
         popularity: 9
         time: "1:19.8"
         margin: "1"
+        timeDiff: 0.9
         passing: "15-13"
         last3f: 34
         weight: 57
@@ -517,6 +519,7 @@ races:
         popularity: 14
         time: "1:19.5"
         margin: "3.1/2"
+        timeDiff: 0.6
         passing: "12-10"
         last3f: 34
         weight: 57
@@ -571,6 +574,7 @@ races:
         popularity: 2
         time: "1:19.9"
         margin: "クビ"
+        timeDiff: 1
         passing: "5-5"
         last3f: 35
         weight: 57

@@ -719,6 +719,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: ララマセラシオン
+    runnerUp: ブリュットミレジメ
     entries:
       - horseNumber: 17
         bracket: 8
@@ -728,6 +731,7 @@ races:
         finish: 1
         popularity: 10
         time: "1:21.9"
+        timeDiff: 0
         passing: "10-9"
         last3f: 33.7
         weight: 55

@@ -289,6 +289,7 @@ races:
         finish: 2
         popularity: 5
         time: "1:33.3"
+        timeDiff: 0.1
         passing: "1-1"
         last3f: 35.1
         weight: 56
@@ -612,6 +613,8 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 18
+    winner: リチャードバローズ
     entries:
       - horseNumber: 9
         bracket: 5
@@ -627,6 +630,21 @@ races:
         horseWeight: 526
         horseWeightDiff: 8
         odds: 21.1
+      - horseNumber: 11
+        bracket: 6
+        name: ワタシマツワ
+        jockey: 吉田隼人
+        ref: nk-2022101412
+        finish: 14
+        popularity: 8
+        time: "1:22.8"
+        timeDiff: 0.9
+        passing: "4-4"
+        last3f: 35.8
+        weight: 53
+        horseWeight: 420
+        horseWeightDiff: 6
+        odds: 14.8
   - course: 阪神
     raceNumber: 12
     name: 六甲アイランドS
@@ -636,6 +654,8 @@ races:
     direction: 右
     trackCondition: 重
     weather: 小雨
+    fieldSize: 14
+    winner: ディアナザール
     entries:
       - horseNumber: 9
         bracket: 6
@@ -645,6 +665,7 @@ races:
         finish: 12
         popularity: 2
         time: "1:22.4"
+        timeDiff: 0.8
         passing: "14-14"
         last3f: 33.9
         weight: 55

@@ -103,6 +103,7 @@ races:
         popularity: 8
         time: "1:19.5"
         margin: "ハナ"
+        timeDiff: 0.6
         passing: "8-8"
         last3f: 33.2
         weight: 55
@@ -161,6 +162,7 @@ races:
         popularity: 12
         time: "1:19.7"
         margin: "クビ"
+        timeDiff: 0.8
         passing: "10-10"
         last3f: 33.1
         weight: 57
@@ -237,6 +239,7 @@ races:
         popularity: 5
         time: "1:19.8"
         margin: "クビ"
+        timeDiff: 0.9
         passing: "18-18"
         last3f: 32.1
         weight: 55
@@ -275,6 +278,7 @@ races:
         popularity: 7
         time: "1:19.2"
         margin: "2"
+        timeDiff: 0.3
         passing: "7-7"
         last3f: 33.1
         weight: 57
@@ -295,6 +299,7 @@ races:
         popularity: 17
         time: "1:20.1"
         margin: "1.1/2"
+        timeDiff: 1.2
         passing: "4-3"
         last3f: 34.4
         weight: 57
@@ -786,3 +791,30 @@ races:
         horseWeight: 456
         horseWeightDiff: 8
         odds: 16.9
+  - course: 新潟
+    raceNumber: 11
+    name: 三条S
+    className: 3勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 左
+    trackCondition: 重
+    weather: 晴
+    fieldSize: 15
+    winner: クインズショコラ
+    entries:
+      - horseNumber: 10
+        bracket: 6
+        name: ハワイアンティアレ
+        jockey: 富田暁
+        ref: nk-2021105255
+        finish: 8
+        popularity: 11
+        time: "1:54.8"
+        timeDiff: 1.9
+        passing: "9-8-8-10"
+        last3f: 39.6
+        weight: 56
+        horseWeight: 440
+        horseWeightDiff: 0
+        odds: 39.6

@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 16
+    winner: ラヴァンダ
     entries:
       - horseNumber: 2
         bracket: 1
@@ -118,6 +120,7 @@ races:
         finish: 10
         popularity: 3
         time: "1:46.6"
+        timeDiff: 0.9
         passing: "3-3-3"
         last3f: 33.8
         weight: 55

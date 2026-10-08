@@ -227,6 +227,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ロードフォアエース
     entries:
       - horseNumber: 1
         bracket: 1
@@ -270,6 +272,21 @@ races:
         horseWeight: 458
         horseWeightDiff: 0
         odds: 3.1
+      - horseNumber: 7
+        bracket: 4
+        name: ムイ
+        jockey: 木幡巧也
+        ref: nk-2022102408
+        finish: 10
+        popularity: 11
+        time: "1:08.0"
+        timeDiff: 0.9
+        passing: "15-14"
+        last3f: 33.1
+        weight: 54
+        horseWeight: 464
+        horseWeightDiff: -14
+        odds: 40.1
       - horseNumber: 8
         bracket: 4
         name: ロードフォアエース

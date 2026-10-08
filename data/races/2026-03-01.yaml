@@ -967,3 +967,30 @@ races:
         horseWeight: 462
         horseWeightDiff: -10
         odds: 194.5
+  - course: 阪神
+    raceNumber: 10
+    name: 伊丹S
+    className: 3勝クラス
+    surface: ダート
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 14
+    winner: ベルウェザー
+    entries:
+      - horseNumber: 5
+        bracket: 4
+        name: ハワイアンティアレ
+        jockey: 川田将雅
+        ref: nk-2021105255
+        finish: 14
+        popularity: 8
+        time: "1:55.4"
+        timeDiff: 2.7
+        passing: "2-2-2-4"
+        last3f: 39.4
+        weight: 56
+        horseWeight: 440
+        horseWeightDiff: -2
+        odds: 14.9

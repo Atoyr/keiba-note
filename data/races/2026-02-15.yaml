@@ -704,6 +704,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 18
+    winner: アヴィオン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -713,6 +715,7 @@ races:
         finish: 2
         popularity: 4
         time: "1:34.3"
+        timeDiff: 0.2
         passing: "4-3"
         last3f: 34.5
         weight: 57
@@ -728,6 +731,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ダノンセンチュリー
     entries:
       - horseNumber: 4
         bracket: 2
@@ -743,6 +748,21 @@ races:
         horseWeight: 460
         horseWeightDiff: 0
         odds: 3.7
+      - horseNumber: 11
+        bracket: 6
+        name: ミラビリスマジック
+        jockey: 松山弘平
+        ref: nk-2021105105
+        finish: 13
+        popularity: 11
+        time: "1:34.9"
+        timeDiff: 0.9
+        passing: "3-3"
+        last3f: 34
+        weight: 56
+        horseWeight: 468
+        horseWeightDiff: 16
+        odds: 55.6
       - horseNumber: 13
         bracket: 7
         name: ファインライン

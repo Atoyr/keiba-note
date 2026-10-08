@@ -494,6 +494,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ジョイフルニュース
+    runnerUp: グローリーリンク
     entries:
       - horseNumber: 3
         bracket: 2
@@ -517,6 +520,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:33.6"
+        timeDiff: -0.3
         passing: "8-6-4"
         last3f: 33.4
         weight: 54

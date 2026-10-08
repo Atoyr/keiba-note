@@ -188,6 +188,7 @@ races:
         popularity: 2
         time: "1:32.7"
         margin: "クビ"
+        timeDiff: 0.7
         passing: "7-7-8"
         last3f: 34.3
         weight: 55
@@ -228,6 +229,7 @@ races:
         popularity: 9
         time: "1:32.6"
         margin: "1"
+        timeDiff: 0.6
         passing: "2-2-2"
         last3f: 34.8
         weight: 55
@@ -524,3 +526,30 @@ races:
         horseWeight: 406
         horseWeightDiff: 6
         odds: 204
+  - course: 阪神
+    raceNumber: 11
+    name: エニフS
+    grade: L
+    surface: ダート
+    distance: 1400
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    fieldSize: 12
+    winner: ゴッドブルービー
+    entries:
+      - horseNumber: 12
+        bracket: 8
+        name: ムイ
+        jockey: 富田暁
+        ref: nk-2022102408
+        finish: 12
+        popularity: 10
+        time: "1:25.7"
+        timeDiff: 2.2
+        passing: "9-8"
+        last3f: 37.7
+        weight: 52
+        horseWeight: 464
+        horseWeightDiff: -4
+        odds: 48.3

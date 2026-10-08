@@ -271,6 +271,7 @@ races:
         popularity: 3
         time: "1:32.0"
         margin: "1/2"
+        timeDiff: 0.5
         passing: "4-5"
         last3f: 34.8
         weight: 57
@@ -307,6 +308,7 @@ races:
         popularity: 7
         time: "1:32.1"
         margin: "アタマ"
+        timeDiff: 0.6
         passing: "6-5"
         last3f: 34.8
         weight: 57
@@ -424,6 +426,7 @@ races:
         popularity: 11
         time: "1:32.0"
         margin: "クビ"
+        timeDiff: 0.5
         passing: "2-2"
         last3f: 35
         weight: 57
@@ -574,6 +577,7 @@ races:
     weather: 晴
     fieldSize: 14
     winner: ランフォーヴァウ
+    runnerUp: アクートゥス
     entries:
       - horseNumber: 4
         bracket: 3
@@ -598,6 +602,7 @@ races:
         finish: 1
         popularity: 7
         time: "1:21.1"
+        timeDiff: 0
         passing: "4-3"
         last3f: 34.9
         weight: 55
@@ -612,6 +617,7 @@ races:
         finish: 11
         popularity: 1
         time: "1:21.9"
+        timeDiff: 0.8
         passing: "4-5"
         last3f: 35.6
         weight: 55

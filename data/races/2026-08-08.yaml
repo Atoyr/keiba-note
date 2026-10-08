@@ -29,6 +29,21 @@ races:
         horseWeight: 462
         horseWeightDiff: -2
         odds: 4
+      - horseNumber: 6
+        bracket: 3
+        name: ミアネーロ
+        jockey: 大野拓弥
+        ref: nk-2021105801
+        finish: 3
+        popularity: 4
+        time: "1:45.2"
+        timeDiff: 0.2
+        passing: "3-3"
+        last3f: 32.7
+        weight: 55
+        horseWeight: 500
+        horseWeightDiff: -4
+        odds: 10.6
       - horseNumber: 7
         bracket: 4
         name: レガーロデルシエロ
@@ -398,3 +413,31 @@ races:
         horseWeight: 504
         horseWeightDiff: 14
         odds: 1.1
+  - course: 新潟
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: グルーヴェンス
+    runnerUp: セイウンイーリス
+    entries:
+      - horseNumber: 13
+        bracket: 8
+        name: グルーヴェンス
+        jockey: 三浦皇成
+        ref: nk-2024101344
+        finish: 1
+        popularity: 1
+        time: "1:21.7"
+        timeDiff: -0.3
+        passing: "3-3"
+        last3f: 35.2
+        weight: 55
+        horseWeight: 424
+        horseWeightDiff: 4
+        odds: 1.9

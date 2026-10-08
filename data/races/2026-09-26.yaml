@@ -1,0 +1,60 @@
+# 2026年9月26日（土） 過去走
+date: 2026-09-26
+
+races:
+  - course: 阪神
+    raceNumber: 4
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 雨
+    fieldSize: 15
+    winner: ギブリ
+    runnerUp: フライウィズユー
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ギブリ
+        jockey: 横山典弘
+        ref: nk-2024105852
+        finish: 1
+        popularity: 10
+        time: "1:36.5"
+        timeDiff: -0.3
+        passing: "5-5"
+        last3f: 34.2
+        weight: 55
+        horseWeight: 466
+        horseWeightDiff: 0
+        odds: 27.9
+  - course: 中山
+    raceNumber: 2
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 雨
+    fieldSize: 12
+    winner: ハンサム
+    runnerUp: ヴェントリナ
+    entries:
+      - horseNumber: 11
+        bracket: 8
+        name: ハンサム
+        jockey: 丹内祐次
+        ref: nk-2024104872
+        finish: 1
+        popularity: 4
+        time: "1:37.2"
+        timeDiff: -1.1
+        passing: "5-5-3"
+        last3f: 35.8
+        weight: 55
+        horseWeight: 458
+        horseWeightDiff: -6
+        odds: 5.3

@@ -35,6 +35,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 9
+    winner: ジョスラン
+    runnerUp: クライスレリアーナ
     entries:
       - horseNumber: 7
         bracket: 7
@@ -44,6 +47,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:45.4"
+        timeDiff: -0.3
         passing: "7-6-5"
         last3f: 33.5
         weight: 55

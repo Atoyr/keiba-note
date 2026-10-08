@@ -79,6 +79,7 @@ races:
         finish: 12
         popularity: 5
         time: "2:12.1"
+        timeDiff: 1.1
         passing: "1-1-1-1"
         last3f: 36
         weight: 54
@@ -136,6 +137,7 @@ races:
         finish: 6
         popularity: 10
         time: "2:11.6"
+        timeDiff: 0.6
         passing: "4-4-3-3"
         last3f: 35.3
         weight: 56
@@ -412,6 +414,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 8
+    winner: ノチェセラーダ
     entries:
       - horseNumber: 2
         bracket: 2
@@ -435,6 +439,7 @@ races:
         finish: 5
         popularity: 3
         time: "2:01.8"
+        timeDiff: 0.5
         passing: "3-5-3-3"
         last3f: 35.1
         weight: 56

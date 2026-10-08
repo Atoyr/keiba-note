@@ -272,6 +272,8 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 15
+    winner: ブレイクフォース
     entries:
       - horseNumber: 3
         bracket: 2
@@ -281,6 +283,7 @@ races:
         finish: 15
         popularity: 11
         time: "1:55.9"
+        timeDiff: 3.2
         passing: "13-13-13-13"
         last3f: 40.8
         weight: 56

@@ -12,6 +12,7 @@ races:
     trackCondition: 稍重
     weather: 晴
     fieldSize: 16
+    winner: エセルフリーダ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -246,6 +247,7 @@ races:
         popularity: 4
         time: "1:47.3"
         margin: "クビ"
+        timeDiff: 0.2
         passing: "2-3-3-3"
         last3f: 35.9
         weight: 56
@@ -264,6 +266,7 @@ races:
         popularity: 2
         time: "1:47.3"
         margin: "クビ"
+        timeDiff: 0.2
         passing: "10-12-10-9"
         last3f: 35.1
         weight: 56
@@ -669,6 +672,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: レザベーション
+    runnerUp: フェルギナス
     entries:
       - horseNumber: 13
         bracket: 7
@@ -678,6 +684,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:34.3"
+        timeDiff: -0.5
         passing: "4-3"
         last3f: 34.2
         weight: 57

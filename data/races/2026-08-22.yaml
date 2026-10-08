@@ -37,7 +37,23 @@ races:
     weather: 晴
     fieldSize: 18
     winner: ショウナンザナドゥ
+    runnerUp: ガロンヌ
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ララマセラシオン
+        jockey: 藤懸貴志
+        ref: nk-2021100935
+        finish: 3
+        popularity: 8
+        time: "1:20.2"
+        timeDiff: 0
+        passing: "13-11"
+        last3f: 33.7
+        weight: 58
+        horseWeight: 530
+        horseWeightDiff: -4
+        odds: 19.6
       - horseNumber: 3
         bracket: 2
         name: ヤブサメ
@@ -82,6 +98,36 @@ races:
         horseWeight: 502
         horseWeightDiff: 0
         odds: 12.4
+      - horseNumber: 14
+        bracket: 7
+        name: ランフォーヴァウ
+        jockey: 石川裕紀人
+        ref: nk-2022105291
+        finish: 16
+        popularity: 7
+        time: "1:21.0"
+        timeDiff: 0.8
+        passing: "6-5"
+        last3f: 34.9
+        weight: 56
+        horseWeight: 456
+        horseWeightDiff: -2
+        odds: 14.3
+      - horseNumber: 16
+        bracket: 8
+        name: ショウナンザナドゥ
+        jockey: 吉田豊
+        ref: nk-2022105071
+        finish: 1
+        popularity: 5
+        time: "1:20.2"
+        timeDiff: 0
+        passing: "1-1"
+        last3f: 34.9
+        weight: 56
+        horseWeight: 460
+        horseWeightDiff: 4
+        odds: 12.4
   - course: 札幌
     raceNumber: 2
     name: 2歳未勝利
@@ -106,3 +152,46 @@ races:
         horseWeight: 450
         horseWeightDiff: 2
         odds: 7.2
+  - course: 新潟
+    raceNumber: 3
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 12
+    winner: ジップスパーク
+    runnerUp: アイファーマーリン
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: ジップスパーク
+        jockey: 田辺裕信
+        ref: nk-2024105893
+        finish: 1
+        popularity: 1
+        time: "1:36.0"
+        timeDiff: -0.3
+        passing: "3-2"
+        last3f: 33.6
+        weight: 55
+        horseWeight: 420
+        horseWeightDiff: 0
+        odds: 1.7
+      - horseNumber: 13
+        bracket: 8
+        name: アイファーマーリン
+        jockey: 藤懸貴志
+        ref: nk-2024105215
+        finish: 2
+        popularity: 11
+        time: "1:36.3"
+        timeDiff: 0.3
+        passing: "10-10"
+        last3f: 32.8
+        weight: 55
+        horseWeight: 448
+        horseWeightDiff: 0
+        odds: 157.1

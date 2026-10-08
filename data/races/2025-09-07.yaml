@@ -135,6 +135,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 13
+    winner: ケリフレッドアスク
     entries:
       - horseNumber: 4
         bracket: 4
@@ -158,6 +160,7 @@ races:
         finish: 2
         popularity: 2
         time: "1:59.1"
+        timeDiff: 0
         passing: "5-5-4-5"
         last3f: 33.6
         weight: 55

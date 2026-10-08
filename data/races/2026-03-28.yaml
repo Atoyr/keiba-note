@@ -444,6 +444,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ルージュソリテール
+    runnerUp: ラーンザロープス
     entries:
       - horseNumber: 2
         bracket: 1
@@ -453,6 +456,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:32.2"
+        timeDiff: -0.1
         passing: "4-4-4"
         last3f: 34
         weight: 56
@@ -487,6 +491,21 @@ races:
         horseWeight: 504
         horseWeightDiff: -4
         odds: 5.8
+      - horseNumber: 13
+        bracket: 7
+        name: ミラビリスマジック
+        jockey: 小沢大仁
+        ref: nk-2021105105
+        finish: 9
+        popularity: 14
+        time: "1:32.9"
+        timeDiff: 0.7
+        passing: "6-9-9"
+        last3f: 34.1
+        weight: 56
+        horseWeight: 458
+        horseWeightDiff: -10
+        odds: 59.2
       - horseNumber: 16
         bracket: 8
         name: コンドゥイア

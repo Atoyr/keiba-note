@@ -194,6 +194,7 @@ races:
     weather: 晴
     fieldSize: 18
     winner: オフトレイル
+    runnerUp: ワイドラトゥール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -231,12 +232,28 @@ races:
         finish: 2
         popularity: 12
         time: "1:18.9"
+        timeDiff: 0
         passing: "11-11"
         last3f: 33.3
         weight: 55
         horseWeight: 428
         horseWeightDiff: 8
         odds: 43.7
+      - horseNumber: 5
+        bracket: 3
+        name: ウインマーベル
+        jockey: 松山弘平
+        ref: nk-2019100213
+        finish: 4
+        popularity: 3
+        time: "1:19.0"
+        timeDiff: 0.1
+        passing: "4-4"
+        last3f: 33.8
+        weight: 57
+        horseWeight: 482
+        horseWeightDiff: -2
+        odds: 5.9
       - horseNumber: 7
         bracket: 4
         name: オフトレイル
@@ -245,6 +262,7 @@ races:
         finish: 1
         popularity: 5
         time: "1:18.9"
+        timeDiff: 0
         passing: "11-11"
         last3f: 33.2
         weight: 57
