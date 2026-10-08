@@ -393,43 +393,49 @@
 						     その中だけで折り返させる。右（オッズと印）は幅を固定して行の右上に置き、
 						     どの馬でも同じ位置に来るようにする（縦に見比べられる）。 -->
 						<div class="flex items-start gap-2">
-							<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-								<!-- 枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
+							<div class="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
+								<!-- 札の列。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
 								     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
-								     札と馬名は折り返さない1組にし、馬名はその中で折り返す。別々に並べると、
-								     スマホで長い馬名（9文字）が札の右に入らず、札だけを残して次の行へ落ちる。 -->
-								<span class="flex min-w-0 items-center gap-2">
+								     スマホでは枠・馬番の札の下に性齢の札（馬詳細と同じ。牡4）を重ね、馬名の幅を残す
+								     （右にオッズの列があるので、横に並べると6文字の馬名が語の途中で割れる）。
+								     sm 以上は横に並べる。札の列と馬名の列は横に並べて折り返さない。 -->
+								<span
+									class="flex shrink-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2"
+								>
 									<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-									<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
 									<SexAgeBadge sex={r.sex} label={r.sexAge} />
+								</span>
+								<!-- 馬名・騎手・前回の札。長さで折り返すのはこの中だけ。
+								     スマホでは騎手が2行目（性齢の札の横）に来る。 -->
+								<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 									<a
 										href={resolve('/horses/[id]', { id: r.horseId })}
 										class="min-w-0 font-medium hover:underline"
 									>
 										{r.horseName}
 									</a>
-								</span>
-								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
-								     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
-								{#if r.jockey}
-									<a
-										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
-										class="inline-flex min-h-6 items-center text-sm text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-									>
-										{r.jockey}
-									</a>
-								{/if}
-								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
-								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->
-								{#if conclusion}
-									<span
-										class="flex items-center gap-1 text-[11px] text-muted-foreground"
-										title="{conclusion.occurredAt} に付けた札"
-									>
-										前回
-										<TagBadges tags={conclusion.tags} />
-									</span>
-								{/if}
+									<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
+									     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
+									{#if r.jockey}
+										<a
+											href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
+											class="inline-flex min-h-6 items-center text-sm text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+										>
+											{r.jockey}
+										</a>
+									{/if}
+									<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
+									     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->
+									{#if conclusion}
+										<span
+											class="flex items-center gap-1 text-[11px] text-muted-foreground"
+											title="{conclusion.occurredAt} に付けた札"
+										>
+											前回
+											<TagBadges tags={conclusion.tags} />
+										</span>
+									{/if}
+								</div>
 							</div>
 
 							<!-- オッズ。人気・単勝・複勝はそれぞれ幅を固定する（「10人気」「単勝 123.4」
