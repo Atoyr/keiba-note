@@ -318,6 +318,26 @@ test('各馬の行に、4角の位置から着順・上りの順位・人気が�
 });
 
 /**
+ * 各馬の行の馬名の左に、出馬表と同じ性齢（牡4・牝4・セ4）が出る。馬齢はレースの日付の年 − 生年。
+ * seed の E2E印見本特別（2026-06-07）では、ホンメイが牡・タイコウが牝・アナウマがセ（どれも2022年生）、
+ * レンシタは性が無く生年だけ（4歳）、メモノミは性も生年も無い。
+ */
+test('各馬の行の馬名の左に、性齢が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}`);
+
+	const row = (name: string) => page.locator('form li', { hasText: name });
+
+	await expect(row('E2Eホンメイ')).toContainText(/牡4\s*E2Eホンメイ/);
+	await expect(row('E2Eタイコウ')).toContainText(/牝4\s*E2Eタイコウ/);
+	await expect(row('E2Eアナウマ')).toContainText(/セ4\s*E2Eアナウマ/);
+	await expect(row('E2Eレンシタ')).toContainText(/4歳\s*E2Eレンシタ/);
+
+	// 性も生年も無い馬には何も出さない。
+	await expect(row('E2Eメモノミ')).not.toContainText(/[牡牝セ]\d|\d歳/);
+});
+
+/**
  * ★ 出走馬を気にしている馬だけ入れたレースでは、上りの順位を出さない。
  * 入っている馬の中だけで数えると、1頭しか入っていなければ6着でも「上り1位」になる。
  * seed の E2E枠色賞は16頭立てで、入っているのは2頭だけ。

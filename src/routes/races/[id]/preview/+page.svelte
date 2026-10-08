@@ -399,6 +399,12 @@
 								     スマホで長い馬名（9文字）が札の右に入らず、札だけを残して次の行へ落ちる。 -->
 								<span class="flex min-w-0 items-center gap-2">
 									<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+									<!-- 出馬表の性齢（牡4）。色付きの札にはしない（16頭の行で印・枠の色と競うため）。 -->
+									{#if r.sexAge}
+										<span class="shrink-0 text-xs text-muted-foreground tabular-nums"
+											>{r.sexAge}</span
+										>
+									{/if}
 									<a
 										href={resolve('/horses/[id]', { id: r.horseId })}
 										class="min-w-0 font-medium hover:underline"

@@ -130,6 +130,29 @@ test('出走馬を人気順に並べ替えられ、書きかけのメモはそ�
 	await expect(names).toHaveText(byNumber);
 });
 
+/**
+ * 出走馬の行の馬名の左に、出馬表と同じ性齢（牡4・牝4・セ4）が出る。馬齢はレースの日付の年 − 生年。
+ * seed の E2E印見本特別（2026-06-07）では、ホンメイが牡・タイコウが牝・アナウマがセ（どれも2022年生）、
+ * レンシタは性が無く生年だけ（4歳）、メモノミは性も生年も無い。予想賞（2099年）の馬も性も生年も無い。
+ */
+test('出走馬の行の馬名の左に、性齢が出る', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${MARKS_RACE_ID}/preview`);
+
+	const row = (name: string) => page.locator('main li[id^="entry-"]', { hasText: name });
+
+	await expect(row('E2Eホンメイ')).toContainText(/牡4\s*E2Eホンメイ/);
+	await expect(row('E2Eタイコウ')).toContainText(/牝4\s*E2Eタイコウ/);
+	await expect(row('E2Eアナウマ')).toContainText(/セ4\s*E2Eアナウマ/);
+	await expect(row('E2Eレンシタ')).toContainText(/4歳\s*E2Eレンシタ/);
+
+	// 性も生年も無い馬には何も出さない。
+	await expect(row('E2Eメモノミ')).not.toContainText(/[牡牝セ]\d|\d歳/);
+
+	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+	await expect(page.locator('main li[id^="entry-"]')).not.toContainText(/[牡牝セ]\d|\d歳/);
+});
+
 test('オッズが1度も取れていないレースでは、オッズの欄を出さない', async ({ page }) => {
 	await login(page);
 	// 出走馬はいるが、race_odds の行が無いレース

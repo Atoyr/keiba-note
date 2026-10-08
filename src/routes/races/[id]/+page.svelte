@@ -274,6 +274,11 @@
 								<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
 								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
 								<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+								<!-- 出馬表の性齢（牡4）。色付きの札にはしない（18頭の行で印・枠の色と競うため）。 -->
+								{#if r.sexAge}
+									<span class="shrink-0 text-xs text-muted-foreground tabular-nums">{r.sexAge}</span
+									>
+								{/if}
 								<a
 									href={resolve('/horses/[id]', { id: r.horseId })}
 									class="font-medium hover:underline"

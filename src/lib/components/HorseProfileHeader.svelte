@@ -53,7 +53,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
-	import { horseAge } from '$lib/utils/horse';
+	import { sexAgeLabel } from '$lib/utils/horse';
 
 	/**
 	 * 馬詳細の頭。生年月日の行、名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）、プロフィールの札を出す。
@@ -113,13 +113,7 @@
 
 	type Item = { key: string; label: string; srOnly: boolean; value: string; tone: Tone };
 
-	const sexAge = $derived.by(() => {
-		const age = horseAge(birthYear, `${currentYear}-01-01`);
-		if (sex && age !== null) return `${sex}${age}`;
-		if (sex) return sex;
-		if (age !== null) return `${age}歳`;
-		return null;
-	});
+	const sexAge = $derived(sexAgeLabel(sex, birthYear, `${currentYear}-01-01`));
 
 	const sexItem = $derived<Item | null>(
 		sexAge

@@ -5,6 +5,7 @@ import { raceReviewSchema } from '$lib/schemas/note';
 import { listRaceNotes, saveRaceReview } from '$lib/server/services/notes';
 import { getRace, listEntries } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { sexAgeLabel } from '$lib/utils/horse';
 import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
@@ -68,6 +69,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 			const p = myPreviews.get(e.entryId);
 			return {
 				...e,
+				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
+				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
 				myNote: myEntryNotes.get(e.entryId) ?? null,
 				myPreview: p ? { mark: p.mark, body: p.body, tags: p.tags } : null
 			};
