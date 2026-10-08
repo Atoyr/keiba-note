@@ -8,6 +8,7 @@
 	 * 黄・橙・桃は面が明るいので文字を黒に置く（白抜きだと読めない）。
 	 *
 	 * 展開の盤面のコマ（`RaceFlowBoard`）も同じ色にする。
+	 * コマの進行方向の三角は輪郭の色を写しているので、border を変えたら隣の `BRACKET_MARK_FILL` も変える。
 	 */
 	export const BRACKET_CLASS: Record<number, string> = {
 		1: 'bg-white text-gray-900 border-gray-400',
@@ -18,6 +19,21 @@
 		6: 'bg-green-600 text-white border-green-600',
 		7: 'bg-orange-400 text-gray-900 border-orange-500',
 		8: 'bg-pink-300 text-gray-900 border-pink-400'
+	};
+
+	/**
+	 * 展開の盤面のコマの進行方向の三角（`RaceFlowBoard`）の色。`BRACKET_CLASS` の border と同じ色。
+	 * 1枠は面が白で盤面の地に消えるので、面ではなく輪郭の色にしている。
+	 */
+	export const BRACKET_MARK_FILL: Record<number, string> = {
+		1: 'fill-gray-400',
+		2: 'fill-gray-900',
+		3: 'fill-red-600',
+		4: 'fill-blue-600',
+		5: 'fill-yellow-500',
+		6: 'fill-green-600',
+		7: 'fill-orange-500',
+		8: 'fill-pink-400'
 	};
 </script>
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import { emptyFlow, type RaceFlow } from '$lib/schemas/race-flow';
+import { BRACKET_MARK_FILL } from './BracketBadge.svelte';
 import RaceFlowEditor from './RaceFlowEditor.svelte';
 
 const horses = [
@@ -173,5 +174,74 @@ describe('RaceFlowEditor', () => {
 		const cells = board.querySelectorAll('button');
 		expect(cells[9].getAttribute('aria-label')).toBe('先頭・内（空き）');
 		expect(cells[0].getAttribute('aria-label')).toBe('前から10列目・内（空き）');
+	});
+
+	/** 進行方向は見出しの文字だけだと、置いたコマを見ても向きが分からない。コマの縁にも三角を付ける。 */
+	describe('コマの進行方向の三角', () => {
+		const placed: RaceFlow = {
+			...emptyFlow(),
+			start: { spots: [{ entryId: 'e3', x: 0, y: 0 }], memo: '' }
+		};
+		const board = (container: HTMLElement) =>
+			container.querySelector('[role="group"][aria-label^="スタートの隊列"]')!;
+
+		it('右回りは進む側（左）の縁に左向きの三角を付ける', async () => {
+			const { screen } = setup(placed, false);
+			await screen.getByText('展開の予想').click();
+
+			const marks = board(screen.container).querySelectorAll('svg[data-heading]');
+			expect(marks).toHaveLength(1);
+			expect(marks[0].getAttribute('data-heading')).toBe('left');
+			expect(board(screen.container).querySelector('svg[data-heading="right"]')).toBeNull();
+		});
+
+		it('左回りは進む側（右）の縁に右向きの三角を付ける', async () => {
+			const { screen } = setup(placed, true);
+			await screen.getByText('展開の予想').click();
+
+			const marks = board(screen.container).querySelectorAll('svg[data-heading]');
+			expect(marks).toHaveLength(1);
+			expect(marks[0].getAttribute('data-heading')).toBe('right');
+			expect(board(screen.container).querySelector('svg[data-heading="left"]')).toBeNull();
+		});
+
+		/** 三角の色はコマの輪郭の色。1枠は面が白で地に消えるので、面ではなく輪郭（gray-400）に揃える。 */
+		it('三角の色は枠の輪郭の色で、枠が無いコマは灰色', async () => {
+			const screen = render(RaceFlowEditor, {
+				horses: [
+					{ entryId: 'e1', horseNumber: 1, bracket: 1, horseName: 'ホースA' },
+					{ entryId: 'e9', horseNumber: null, bracket: null, horseName: 'ホースナシ' }
+				],
+				value: {
+					...emptyFlow(),
+					start: {
+						spots: [
+							{ entryId: 'e1', x: 0, y: 0 },
+							{ entryId: 'e9', x: 1, y: 0 }
+						],
+						memo: ''
+					}
+				},
+				leadsRight: false
+			});
+			await screen.getByText('展開の予想').click();
+
+			const marks = [...screen.container.querySelectorAll('svg[data-heading]')];
+			expect(marks).toHaveLength(2);
+			expect(BRACKET_MARK_FILL[1]).toBe('fill-gray-400');
+			expect(marks[0].classList.contains('fill-gray-400')).toBe(true);
+			expect(marks[1].classList.contains('fill-muted-foreground')).toBe(true);
+		});
+
+		it('三角は読み上げに出さず、ボタンの名前も変えない', async () => {
+			const { screen } = setup(placed, false);
+			await screen.getByText('展開の予想').click();
+
+			const mark = board(screen.container).querySelector('svg[data-heading]')!;
+			expect(mark.getAttribute('aria-hidden')).toBe('true');
+			await expect
+				.element(screen.getByRole('button', { name: '3番 ホースC（先頭・内）' }))
+				.toBeVisible();
+		});
 	});
 });

@@ -154,7 +154,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
 | `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |
 | `RaceSummary` | 1レースの見立て・各馬のメモ・札・印。本人のまとめ画面と共有ページで共通 |
-| `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` / `FlowDigest` / `FlowOrder` | 展開の予想の入力（畳んだ1行・ペース・局面のタブ）・盤面（前後 × 内外のマス目に枠の色のコマ。上が内ラチ、先頭はスタンドから見た向き。キーボードは矢印キー）・読むだけの畳んだ形・その中の3局面の並び・閉じた行（ペースと局面ごとの隊列）・隊列の1行（列の切れ目でだけ折り返す） |
+| `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` / `FlowDigest` / `FlowOrder` | 展開の予想の入力（畳んだ1行・ペース・局面のタブ）・盤面（前後 × 内外のマス目に枠の色のコマ。上が内ラチ、先頭はスタンドから見た向き。コマの先頭側の縁に、輪郭と同じ色の進行方向の三角。キーボードは矢印キー）・読むだけの畳んだ形・その中の3局面の並び・閉じた行（ペースと局面ごとの隊列）・隊列の1行（列の切れ目でだけ折り返す） |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の SVG で、`src/lib/utils/course.ts` から `pnpm run course-maps` で書き出す生成物（手で直さない）。距離からスタートからゴールまでの道すじを黄色で重ねる（図とは別の SVG。`course.ts` の `courseRoute`。線と丸の色・太さは `ROUTE_STYLE`） |
 | `CourseElevation` | `CourseMap` の図の下に出す、スタートからゴールまでの高低断面。面と線は SVG を枠いっぱいに伸ばし、目盛りの文字は HTML で置く（伸ばした SVG の文字は潰れる）。塗りはコース図と同じ馬場の色（`SURFACE_COLOR`。芝の緑・ダートの茶）で、罫線と文字はトークン |
 | `ActualFlow` | ふりかえり画面の実際の展開。既定は畳み、閉じた行に局面ごとの隊列の1行（`FlowDigest`）、開くと4コーナーとゴール前の盤面（`RaceFlowBoard`）を出す。予想があれば盤面の下に予想の隊列を並べる。結果には内外が無いので、盤面は `note` で「内外を持たない並び」として描く（見出しに「上下は内外ではない」、読み上げは順位）。前後は、4角は同じ順位を1列に、ゴール前は着差（馬身）で置き、着差で置いたときは見出しに「1マス約1.1馬身」を足す |

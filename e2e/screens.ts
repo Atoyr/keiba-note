@@ -250,6 +250,27 @@ export const SCREENS: Screen[] = [
 			await flow.getByRole('button', { name: /^2番 E2Eタイコウ（/ }).click();
 		}
 	},
+	{
+		// 進行方向の三角の隣のマスにフォーカスの輪が欠けずに出るか。コマ（前から2列目・中の⑤）のすぐ進行方向側の空きマス
+		// （先頭・中）に、クリックでフォーカスしてから矢印キーで動かして focus-visible にする。
+		name: 'race-preview-flow-focus',
+		path: `/races/${MARKS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const flow = page.locator('details', { hasText: '展開の予想' });
+			await flow.locator('summary').click();
+			await flow.getByRole('tab', { name: /4コーナー/ }).click();
+			const board = flow.getByRole('group', { name: /^4コーナーの隊列/ });
+			// 前から2列目・中の⑤をクリックで選び（フォーカスが乗る）、先頭・中の空きマスへ矢印キーで動かす。
+			// 先頭が左右どちらに描かれるかはレースの向きで決まるので、2つのマスの位置から押す矢印を決める。
+			const horse = board.getByRole('button', { name: /^5番 E2Eアナウマ（/ });
+			const front = board.getByRole('button', { name: '先頭・中（空き）' });
+			await horse.click();
+			const [from, to] = [await horse.boundingBox(), await front.boundingBox()];
+			await page.keyboard.press(to!.x < from!.x ? 'ArrowLeft' : 'ArrowRight');
+		}
+	},
 	// 18頭・枠順前。畳んだ行が折り返して収まるか（馬番が無いので頭2文字が並ぶ）。
 	{ name: 'race-preview-flow-crowd', path: `/races/${FLOW_CROWD_RACE_ID}/preview`, auth: true },
 	{
