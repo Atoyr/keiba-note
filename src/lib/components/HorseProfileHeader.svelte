@@ -6,7 +6,7 @@
 	import type { Snippet } from 'svelte';
 	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
 	import { sexAgeLabel } from '$lib/utils/horse';
-	import { SEX_TONE, chip, type Tone } from './horse-chip';
+	import { SEX_TONE, chip, type Tone } from '$lib/utils/horse-chip';
 
 	/**
 	 * 馬詳細の頭。生年月日の行、名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）、プロフィールの札を出す。
@@ -23,7 +23,7 @@
 	 * 生年月日の行は生年月日が正（生年だけなら `2021年生`）。値の無い項目は出さず、項目が1つも無い行は描かない。
 	 * 名前の行の★のほかは左寄せで、折り返しても左から詰まる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
 	 * 生年月日・性齢・所属は字だけで伝わるのでラベルは読み上げ専用（sr-only）。
-	 * 色は上の `chip`。ラベルを `bg-muted` 上の `text-muted-foreground` にすると 4.5:1 に届かない（約 4.35:1）ので、無彩色の地は `bg-background`。
+	 * 色は `utils/horse-chip.ts` の `chip`。ラベルを `bg-muted` 上の `text-muted-foreground` にすると 4.5:1 に届かない（約 4.35:1）ので、無彩色の地は `bg-background`。
 	 */
 	let {
 		heading,
