@@ -406,7 +406,7 @@
 									<SexAgeBadge sex={r.sex} label={r.sexAge} />
 								</span>
 								<!-- 馬名・騎手・前回の札。長さで折り返すのはこの中だけ。
-								     スマホでは騎手が2行目（性齢の札の横）に来る。 -->
+								     騎手は馬名の後ろに並び、入らなければ次の行（スマホでは性齢の札の横）に回る。 -->
 								<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
 									<a
 										href={resolve('/horses/[id]', { id: r.horseId })}
