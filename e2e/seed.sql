@@ -133,8 +133,10 @@ VALUES ('01JE2EFREEZEUSER0000000000', 'e2e-freeze-google-sub', 'freeze@example.i
 -- **馬タイムライン用の行とは別に立てる。** あちらの「E2E未来賞」は
 -- 「メモを書かなかった出走」として出ることに意味があるので、そこに
 -- 出走前メモを足すと役目が入れ替わってしまう。
-INSERT OR REPLACE INTO horse (id, name, birth_year)
-VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース', 2021);
+-- 性も生年も入れない。出走馬の行の性齢を出さない形（値の無い馬には空の箱も置かない）を予想画面で見せる。
+-- 生年を入れると、2099年のレースでは馬齢が 78 になってしまう。
+INSERT OR REPLACE INTO horse (id, name)
+VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース');
 
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200);
@@ -532,15 +534,17 @@ VALUES (
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
 VALUES ('01JE2ERACEMARKS00000000000', '2026-06-07', '東京', 10, 'E2E印見本特別', '3勝クラス', '芝', 1800);
 
-INSERT OR REPLACE INTO horse (id, name, birth_year)
-VALUES ('01JE2EMARKHORSE10000000000', 'E2Eホンメイ', 2022);
+-- 出走馬の行の性齢（ふりかえり・予想）を見せる。ホンメイ=牡4・タイコウ=牝4・アナウマ=セ4、
+-- 性が無く生年だけの馬は `4歳`、メモノミは性も生年も無いので何も出ない。
+INSERT OR REPLACE INTO horse (id, name, birth_year, sex)
+VALUES ('01JE2EMARKHORSE10000000000', 'E2Eホンメイ', 2022, '牡');
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
 VALUES ('01JE2EENTRYMARK10000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE10000000000', 1, 1, 'E2E騎手', 1);
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
 VALUES ('01JE2EPREVIEWMARK100000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE10000000000', '01JE2EENTRYMARK10000000000', '', '[]', '◎', '2026-06-07', unixepoch('2026-06-07'));
 
-INSERT OR REPLACE INTO horse (id, name, birth_year)
-VALUES ('01JE2EMARKHORSE20000000000', 'E2Eタイコウ', 2022);
+INSERT OR REPLACE INTO horse (id, name, birth_year, sex)
+VALUES ('01JE2EMARKHORSE20000000000', 'E2Eタイコウ', 2022, '牝');
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
 VALUES ('01JE2EENTRYMARK20000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE20000000000', 2, 2, 'E2E騎手', 5);
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
@@ -560,8 +564,8 @@ VALUES ('01JE2EENTRYMARK40000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKH
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
 VALUES ('01JE2EPREVIEWMARK400000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE40000000000', '01JE2EENTRYMARK40000000000', '', '[]', '△', '2026-06-07', unixepoch('2026-06-07'));
 
-INSERT OR REPLACE INTO horse (id, name, birth_year)
-VALUES ('01JE2EMARKHORSE50000000000', 'E2Eアナウマ', 2022);
+INSERT OR REPLACE INTO horse (id, name, birth_year, sex)
+VALUES ('01JE2EMARKHORSE50000000000', 'E2Eアナウマ', 2022, 'セ');
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position)
 VALUES ('01JE2EENTRYMARK50000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE50000000000', 5, 5, 'E2E騎手', 2);
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, created_at)
@@ -575,8 +579,8 @@ INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_
 VALUES ('01JE2EPREVIEWMARK600000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE60000000000', '01JE2EENTRYMARK60000000000', '', '[]', '×', '2026-06-07', unixepoch('2026-06-07'));
 
 -- 印を付けず本文だけ保存した馬も、まとめで欠けないことを確認する。
-INSERT INTO horse (id, name, birth_year)
-VALUES ('01JE2EMARKHORSE70000000000', 'E2Eメモノミ', 2022);
+INSERT INTO horse (id, name)
+VALUES ('01JE2EMARKHORSE70000000000', 'E2Eメモノミ');
 INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number)
 VALUES ('01JE2EENTRYMARK70000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE70000000000', 7, 7);
 INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, mark, occurred_at)

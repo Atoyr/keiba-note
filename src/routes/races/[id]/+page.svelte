@@ -15,6 +15,7 @@
 	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
+	import SexAgeBadge from '$lib/components/SexAgeBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -273,13 +274,19 @@
 								{/if}
 								<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
 								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
-								<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-								<a
-									href={resolve('/horses/[id]', { id: r.horseId })}
-									class="font-medium hover:underline"
-								>
-									{r.horseName}
-								</a>
+								<!-- 札・性齢・馬名は折り返さない1組にする。別々に並べると、
+								     狭い幅で馬名だけが次の行へ落ち、性齢が馬名の左から離れる。 -->
+								<span class="flex min-w-0 items-baseline gap-2">
+									<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+									<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
+									<SexAgeBadge sex={r.sex} label={r.sexAge} />
+									<a
+										href={resolve('/horses/[id]', { id: r.horseId })}
+										class="min-w-0 font-medium hover:underline"
+									>
+										{r.horseName}
+									</a>
+								</span>
 								<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
 								{#if r.jockey}
 									<a

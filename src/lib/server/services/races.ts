@@ -15,6 +15,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
 import { GRADED } from '$lib/schemas/race';
+import type { HorseSex } from '$lib/schemas/horse';
 import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
 import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
 import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '$lib/utils/race-filter';
@@ -244,6 +245,9 @@ export type RaceEntryView = {
 	entryId: string;
 	horseId: string;
 	horseName: string;
+	/** 馬の性と生年。出走馬の行の性齢（`sexAgeLabel`）の材料。分からなければ null。 */
+	sex: HorseSex | null;
+	birthYear: number | null;
 	bracket: number | null;
 	horseNumber: number | null;
 	jockey: string | null;
@@ -264,6 +268,8 @@ export async function listEntries(db: Db, raceId: string): Promise<RaceEntryView
 				entryId: raceEntry.id,
 				horseId: horse.id,
 				horseName: horse.name,
+				sex: horse.sex,
+				birthYear: horse.birthYear,
 				bracket: raceEntry.bracket,
 				horseNumber: raceEntry.horseNumber,
 				jockey: raceEntry.jockey,
@@ -431,6 +437,8 @@ export async function listEntriesForPreview(db: Db, raceId: string): Promise<Rac
 			entryId: raceEntry.id,
 			horseId: horse.id,
 			horseName: horse.name,
+			sex: horse.sex,
+			birthYear: horse.birthYear,
 			bracket: raceEntry.bracket,
 			horseNumber: raceEntry.horseNumber,
 			jockey: raceEntry.jockey,

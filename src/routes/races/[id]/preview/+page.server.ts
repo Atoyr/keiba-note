@@ -11,6 +11,7 @@ import {
 import { getRaceOdds } from '$lib/server/services/odds';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { sexAgeLabel } from '$lib/utils/horse';
 import { popularityByNumber } from '$lib/utils/odds';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
@@ -87,6 +88,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		oddsAsOf: odds?.asOf ?? null,
 		rows: entries.map((e) => ({
 			...e,
+			// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
+			sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
 			odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
 			popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
 			myPreview: myPreview.get(e.entryId) ?? null,
