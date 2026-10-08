@@ -21,9 +21,14 @@ const actual = {
 	leadsRight: false,
 	corner4: {
 		spots: [ranked(2, 0, 1), ranked(1, 1, 2), ranked(3, 1, 2, 1)],
-		columns: ['②', '①③']
+		columns: ['②', '①③'],
+		cell: null
 	},
-	finish: { spots: [ranked(1, 0, 1), ranked(2, 1, 2), ranked(3, 2, 3)], columns: ['①', '②', '③'] }
+	finish: {
+		spots: [ranked(1, 0, 1), ranked(2, 1, 2), ranked(3, 2, 3)],
+		columns: ['①', '②', '③'],
+		cell: null
+	}
 };
 
 const predicted: ResolvedFlow = {
@@ -68,8 +73,24 @@ describe('ActualFlow', () => {
 		// 見出しは「内ラチ」ではなく、上下が内外でないことの注記。段は予想の盤面と同じ4段。
 		expect(screen.container.textContent).not.toContain('内ラチ');
 		expect(screen.getByText('上下は内外ではない').elements()).toHaveLength(2);
+		expect(screen.container.textContent).toContain('ゴール前は着順から');
 		const grids = screen.container.querySelectorAll('.grid-cols-10');
 		expect([...grids].map((g) => g.children.length)).toEqual([40, 40]);
+	});
+
+	it('ゴール前を着差で置いたときは、その盤面の注記に1マスの馬身を出し、説明は「着差から」にする', async () => {
+		const screen = render(ActualFlow, {
+			actual: { ...actual, finish: { ...actual.finish, cell: 1.2222 } }
+		});
+
+		screen.container.querySelector('summary')!.click();
+		await expect
+			.element(screen.getByText('上下は内外ではない・1マス約1.2馬身'))
+			.toBeInTheDocument();
+		// 4角は通過順なので注記は変わらない。
+		expect(screen.getByText('上下は内外ではない', { exact: true }).elements()).toHaveLength(1);
+		expect(screen.container.textContent).toContain('ゴール前は着差から');
+		expect(screen.container.textContent).not.toContain('ゴール前は着順から');
 	});
 
 	it('予想を置いていたら、置いた局面だけ予想の隊列を下に並べ、「実際」「予想」の札を付ける', () => {

@@ -4,7 +4,8 @@ import {
 	corner4Position,
 	corner4Positions,
 	hasCorners,
-	last3fRanks
+	last3fRanks,
+	marginLengths
 } from './run-stats';
 
 describe('hasCorners', () => {
@@ -102,17 +103,54 @@ describe('last3fRanks', () => {
 	});
 });
 
-/** 1頭の結果。馬番 n、着順 finish（中止は null）、通過順 passing。 */
-const horse = (n: number, finish: number | null, passing: string | null) => ({
+/** 1頭の結果。馬番 n、着順 finish（中止は null）、通過順 passing、着差 margin（既定は無し）。 */
+const horse = (
+	n: number,
+	finish: number | null,
+	passing: string | null,
+	margin: string | null = null
+) => ({
 	entryId: `e${n}`,
 	horseNumber: n,
 	bracket: n,
 	horseName: `馬${n}`,
 	finishPosition: finish,
-	passing
+	passing,
+	margin
 });
 
 const turf = { course: '中山', surface: '芝', distance: 2000, direction: '右' };
+
+describe('marginLengths', () => {
+	it.each([
+		['ハナ', 0.1],
+		['アタマ', 0.2],
+		['クビ', 0.3],
+		['同着', 0],
+		['大', 10],
+		['大差', 10],
+		['2', 2],
+		['10', 10],
+		['1/2', 0.5],
+		['3/4', 0.75],
+		['1.1/4', 1.25],
+		['2.1/2', 2.5],
+		['1.3/4', 1.75],
+		[' 3.1/2 ', 3.5]
+	])('%s は %s 馬身', (margin, lengths) => {
+		expect(marginLengths(margin)).toBe(lengths);
+	});
+
+	it('空・null・読めない表記は null', () => {
+		expect(marginLengths(null)).toBeNull();
+		expect(marginLengths('')).toBeNull();
+		expect(marginLengths('  ')).toBeNull();
+		expect(marginLengths('-')).toBeNull();
+		expect(marginLengths('不明')).toBeNull();
+		expect(marginLengths('1/0')).toBeNull();
+		expect(marginLengths('1.5')).toBeNull();
+	});
+});
 
 describe('corner4Positions', () => {
 	it('通過順が途中で切れた中止の馬（コーナーの数より短い）は4角の位置を持たない', () => {
@@ -157,7 +195,7 @@ describe('actualFlow', () => {
 		expect(flow?.finish?.columns).toEqual(['①', '②', '③', '④']);
 	});
 
-	it('盤面は順位のマスに置き、同じ順位の馬は上の段から積む。順位の抜けはマスを空ける', () => {
+	it('4角の盤面は、同じ順位を1つの列に、違う順位は違う列に置く。順位の抜けはマスを空けない', () => {
 		const flow = actualFlow(
 			[
 				horse(1, 1, '3-3-3-2'),
@@ -167,15 +205,131 @@ describe('actualFlow', () => {
 			],
 			{ ...turf, fieldSize: 4 }
 		);
-		expect(cells(flow?.corner4?.spots)).toEqual(['2@0,0', '1@1,0', '3@1,1', '4@3,0']);
+		expect(cells(flow?.corner4?.spots)).toEqual(['2@0,0', '1@1,0', '3@1,1', '4@2,0']);
+		expect(flow?.corner4?.cell).toBeNull();
 	});
 
-	it('11頭以上は1マスに順位2つぶんをまとめ、隊列の1行は順位で区切ったまま', () => {
+	it('4角の順位が11列以上に分かれるときは、隣の列を2つずつまとめる。全頭ばらばらの18頭は1マス2頭', () => {
 		const rows = Array.from({ length: 18 }, (_, i) => horse(i + 1, i + 1, `${i + 1}-${i + 1}`));
 		const flow = actualFlow(rows, { ...turf, fieldSize: 18 });
-		expect(cells(flow?.finish?.spots).slice(0, 4)).toEqual(['1@0,0', '2@0,1', '3@1,0', '4@1,1']);
+		expect(cells(flow?.corner4?.spots).slice(0, 4)).toEqual(['1@0,0', '2@0,1', '3@1,0', '4@1,1']);
+		expect(cells(flow?.corner4?.spots).at(-1)).toBe('18@8,1');
+		expect(flow?.corner4?.columns.slice(0, 3)).toEqual(['①', '②', '③']);
+		// 着差が無い（読めない）ゴール前も同じ置き方で、cell は null。
 		expect(cells(flow?.finish?.spots).at(-1)).toBe('18@8,1');
-		expect(flow?.finish?.columns.slice(0, 3)).toEqual(['①', '②', '③']);
+		expect(flow?.finish?.cell).toBeNull();
+	});
+
+	it('4角は通過順に距離が無いので、着差がそろっていても順位で置く', () => {
+		const flow = actualFlow(
+			[horse(1, 1, '1-1', null), horse(2, 2, '2-2', 'ハナ'), horse(3, 3, '3-3', '5')],
+			{ ...turf, fieldSize: 3 }
+		);
+		expect(cells(flow?.corner4?.spots)).toEqual(['1@0,0', '2@1,0', '3@2,0']);
+		expect(flow?.corner4?.cell).toBeNull();
+	});
+
+	it('同じ順位の馬が5頭以上いたら、4段を超えた馬は後ろのマスへ送る（y は4段に収まる）', () => {
+		const rows = Array.from({ length: 6 }, (_, i) => horse(i + 1, i + 1, '5-5-5-5'));
+		const flow = actualFlow(rows, { ...turf, fieldSize: 6 });
+		expect(cells(flow?.corner4?.spots)).toEqual([
+			'1@0,0',
+			'2@0,1',
+			'3@0,2',
+			'4@0,3',
+			'5@1,0',
+			'6@1,1'
+		]);
+		expect(flow?.corner4?.columns).toEqual(['①②③④⑤⑥']);
+	});
+
+	it('着順の全馬に着差が読めるときは、勝ち馬からの累積の着差でゴール前のマスに置く', () => {
+		const flow = actualFlow(
+			[
+				horse(1, 1, '1-1', null),
+				horse(2, 2, '2-2', 'ハナ'),
+				horse(3, 3, '3-3', '2'),
+				horse(4, 4, '4-4', 'クビ'),
+				horse(5, 5, '5-5', '1')
+			],
+			{ ...turf, fieldSize: 5 }
+		);
+		// 累積 0・0.1・2.1・2.4・3.4 馬身。1マス 0.5 馬身（下限）で、x = 0・0・4・4・6。
+		expect(cells(flow?.finish?.spots)).toEqual(['1@0,0', '2@0,1', '3@4,0', '4@4,1', '5@6,0']);
+		expect(flow?.finish?.cell).toBe(0.5);
+		// 隊列の1行は着差でなく順位で区切る。
+		expect(flow?.finish?.columns).toEqual(['①', '②', '③', '④', '⑤']);
+	});
+
+	it('着差で置くとき、最後の馬が最後のマスに来る（1マスの馬身は広がる）', () => {
+		const rows = Array.from({ length: 12 }, (_, i) =>
+			horse(i + 1, i + 1, `${i + 1}-${i + 1}`, i === 0 ? null : '1')
+		);
+		const flow = actualFlow(rows, { ...turf, fieldSize: 12 });
+		const spots = flow?.finish?.spots ?? [];
+		expect(spots[0]).toMatchObject({ horseNumber: 1, x: 0 });
+		expect(spots.at(-1)).toMatchObject({ horseNumber: 12, x: 9 });
+		expect(flow?.finish?.cell).toBeCloseTo(11 / 9, 5);
+		// 先頭から後ろへ、x は戻らない。
+		expect(spots.map((s) => s.x)).toEqual([...spots.map((s) => s.x)].sort((a, b) => a - b));
+	});
+
+	it('着差で置くとき、同じマスが4段を超えたら後ろのマスへ、最後のマスでも溢れたら前の空きへ送る', () => {
+		// 全馬ハナ差（累積 0.1 ずつ）。cell は下限 0.5 で、6頭とも x=0 に入る。
+		const close = Array.from({ length: 6 }, (_, i) =>
+			horse(i + 1, i + 1, `${i + 1}-${i + 1}`, i === 0 ? null : 'ハナ')
+		);
+		const flow = actualFlow(close, { ...turf, fieldSize: 6 });
+		expect(cells(flow?.finish?.spots)).toEqual([
+			'1@0,0',
+			'2@0,1',
+			'3@0,2',
+			'4@0,3',
+			'5@1,0',
+			'6@1,1'
+		]);
+		// 最後のマスにも詰まる形: 2頭目が 9 馬身離れ、後ろの 9 頭がハナ差で続く（x=8 に8頭、最後の1頭だけ x=9 に行きたがる）。
+		const pile = Array.from({ length: 10 }, (_, i) =>
+			horse(i + 1, i + 1, `${i + 1}-${i + 1}`, i === 0 ? null : i === 1 ? '9' : 'ハナ')
+		);
+		const spots = actualFlow(pile, { ...turf, fieldSize: 10 })?.finish?.spots ?? [];
+		// 累積 0・9.0〜9.8 馬身。cell = 9.8/9 で、2〜9頭目は x=8（4頭を超えた分は x=9 へ）、10頭目は x=9 を望む。
+		expect(spots.every((s) => s.y >= 0 && s.y < 4)).toBe(true);
+		// どのマスにも4頭を超えて積まない。
+		const perCell = new Map<string, number>();
+		for (const s of spots) perCell.set(`${s.x}`, (perCell.get(`${s.x}`) ?? 0) + 1);
+		expect(Math.max(...perCell.values())).toBeLessThanOrEqual(4);
+		expect(new Set(spots.map((s) => `${s.x},${s.y}`)).size).toBe(spots.length);
+		// 最後のマス（x=9）が埋まったあとの馬は、前のマスへ送られる。
+		expect(spots.at(-1)?.x).toBeLessThan(9);
+	});
+
+	it('着差が1頭でも読めなければ、ゴール前も順位で置く（cell は null）', () => {
+		const flow = actualFlow(
+			[horse(1, 1, '1-1', null), horse(2, 2, '2-2', 'ハナ'), horse(3, 3, '3-3', null)],
+			{ ...turf, fieldSize: 3 }
+		);
+		expect(cells(flow?.finish?.spots)).toEqual(['1@0,0', '2@1,0', '3@2,0']);
+		expect(flow?.finish?.cell).toBeNull();
+	});
+
+	it('先頭（勝ち馬）の着差は見ない', () => {
+		const flow = actualFlow([horse(1, 1, '1-1', '不明'), horse(2, 2, '2-2', '3')], {
+			...turf,
+			fieldSize: 2
+		});
+		expect(flow?.finish?.cell).not.toBeNull();
+	});
+
+	it('ハナ差・クビ差の馬は同じマスに寄り、離れた馬は離れたマスに置く', () => {
+		const margins = [null, 'クビ', 'ハナ', '2', '1/2', 'クビ', '3', 'アタマ', '1', '大'];
+		const rows = margins.map((m, i) => horse(i + 1, i + 1, `${i + 1}-${i + 1}`, m));
+		const flow = actualFlow(rows, { ...turf, fieldSize: margins.length });
+		const spots = flow?.finish?.spots ?? [];
+		expect(spots[0].x).toBe(spots[1].x);
+		expect(spots[1].x).toBe(spots[2].x);
+		expect(spots[3].x).toBeGreaterThan(spots[2].x);
+		expect(spots.at(-1)?.x).toBe(9);
 	});
 
 	it('先頭の向きは予想の盤面と同じ（右回りは左、左回りは右）', () => {

@@ -114,24 +114,88 @@ export function corner4Positions(
 	);
 }
 
+/**
+ * 着差の表記（`クビ`・`1.1/4`・`2`）を馬身にする。読めない表記・空は null。
+ *
+ * `ハナ` 0.1・`アタマ` 0.2・`クビ` 0.3（実際の差をおおよそ馬身にした値。順序が保てれば足りる）、
+ * `同着` 0、`大`・`大差` は 10 馬身とみなす（実際はそれ以上。盤面ではいちばん後ろに離れて見えれば足りる）。
+ * 数字は `2`・`1/2`・`1.1/4`。**`1.1/4` の `.` は小数点ではなく整数と分数の区切り**（1 と 1/4 で 1.25 馬身）。
+ */
+export function marginLengths(margin: string | null): number | null {
+	const text = margin?.trim();
+	if (!text) return null;
+	const words: Record<string, number> = {
+		ハナ: 0.1,
+		アタマ: 0.2,
+		クビ: 0.3,
+		同着: 0,
+		大: 10,
+		大差: 10
+	};
+	if (text in words) return words[text];
+	const m = /^(?:(\d+)\.)?(\d+)(?:\/(\d+))?$/.exec(text);
+	if (!m) return null;
+	const [, whole, a, b] = m;
+	if (b === undefined) {
+		// `1.5` のように分数を伴わない小数は、着差の表記ではないので読まない。
+		return whole === undefined ? Number(a) : null;
+	}
+	if (Number(b) === 0) return null;
+	return Number(whole ?? 0) + Number(a) / Number(b);
+}
+
 type ActualFlowSource = FlowHorse & {
 	entryId: string;
 	finishPosition: number | null;
 	passing: string | null;
+	/** 着差の表記（`クビ`）。ゴール前を着差で置くときに読む。 */
+	margin: string | null;
 };
 
-/** 実際の展開の1局面。盤面に置くコマ（`at` は順位。4角の位置か着順）と、隊列の1行。 */
-export type ActualPhase = { spots: (ResolvedSpot & { at: number })[]; columns: string[] };
+/**
+ * 実際の展開の1局面。盤面に置くコマ（`at` は順位。4角の位置か着順）と、隊列の1行。
+ * `cell` は着差で置いたときの盤面の1マスの馬身。順位で置いたとき（4角・着差の読めないゴール前）は null。
+ */
+export type ActualPhase = {
+	spots: (ResolvedSpot & { at: number })[];
+	columns: string[];
+	cell: number | null;
+};
+
+/**
+ * 盤面のマスに馬を順に置く。`wants[i]` が i 番目の馬の行きたいマスで、同じマスは先に来た馬から上の段に積む。
+ * 段（`FLOW_LANES`）が埋まっていたら後ろのマスへ送り、最後のマスまで埋まっていたら前へ向かって空きを探す。
+ * 段の数を超えて積むことは無い（y は `FLOW_LANES.length` 未満）。
+ */
+function stackOnBoard(wants: readonly number[]): { x: number; y: number }[] {
+	const used = new Array<number>(FLOW_COLS).fill(0);
+	return wants.map((want) => {
+		let x = Math.max(0, Math.min(FLOW_COLS - 1, want));
+		while (x < FLOW_COLS - 1 && used[x] >= FLOW_LANES.length) x++;
+		while (x > 0 && used[x] >= FLOW_LANES.length) x--;
+		const y = Math.min(used[x], FLOW_LANES.length - 1);
+		used[x]++;
+		return { x, y };
+	});
+}
 
 /**
  * 実際の展開。4コーナーとゴール前の隊列を、予想と同じ盤面（`RaceFlowBoard`）と1行（`③-⑤⑦-⑪`）で返す。
  *
- * 予想で展開を置いていなくても、どう流れたかは結果から読める（4角は通過順、ゴール前は着順）。
+ * 予想で展開を置いていなくても、どう流れたかは結果から読める（4角は通過順、ゴール前は着差か着順）。
  *
  * **盤面の置き方。** 結果には前後の順しか無い（内外が無い）。
- * - 前後: 順位の順に先頭のマスから置く。10マスに収まらない頭数（11頭以上）は、1マスに順位2つぶん（18頭なら2頭）をまとめる
- * - 上下: 同じマスに入った馬（同じ順位、またはまとめた2頭）を、順位 → 馬番の順に上の段から積む。**内外を表すものではない**
- * - 隊列の1行は盤面のマスではなく順位で区切る（まとめた2頭を同じ列に書くと、並んでいたように読める）。
+ * - 前後（順位で置く。4角と、着差の読めないゴール前）: **同じ順位の馬を1つのマス（列）に、違う順位は違う列に**置く。
+ *   通過順の同じ数字は「並んでいる」を表すので、順位の数字を割ってマスに入れると、
+ *   1番手と2番手が同じマスに並んだり、3番手と4番手の間の空き番が混ざったりする。
+ *   出てくる順位（重複を除く）を小さい順に並べ、その何番目かを列の番号にする。
+ *   列の数が10マスを超えるとき（全頭の順位がばらばらの11頭以上）は、隣の列を `ceil(列の数 / 10)` 個ずつまとめる
+ * - 前後（着差で置く。ゴール前）: **着順の全馬に着差が読めるときは、勝ち馬からの累積の着差（馬身）で置く。**
+ *   順位で置くと 1-2着・3-4着… が機械的に2頭ずつ並び、ハナ差の2頭と2馬身離れた2頭が同じ見た目になる。
+ *   1マスの馬身は最後の馬が最後のマスに来るよう決め（下限 0.5 馬身。少頭数の接戦で広がりすぎないように）、`cell` で返す
+ * - 上下: 同じマスに入った馬を、順位 → 馬番の順に上の段から積む。**内外を表すものではない**。
+ *   4段が埋まったら後ろのマスへ送り、最後のマスでも埋まったら前の空きへ送る（送られた馬が隣の列に混ざるのは許す）
+ * - 隊列の1行は盤面のマスではなく順位で区切る（まとめた馬を同じ列に書くと、並んでいたように読める）。
  *   同じ順位（同じ通過順・同着）だけを1つの列にし、列の中は馬番の順
  *
  * **走った全頭がそろっているときだけ出す**（着順か通過順のある馬の数が `fieldSize` と同じとき）。
@@ -146,26 +210,45 @@ export function actualFlow(
 	const ran = rows.filter((r) => r.finishPosition !== null || !!r.passing);
 	if (race.fieldSize === null || ran.length === 0 || ran.length !== race.fieldSize) return null;
 
-	const phase = (placed: { h: ActualFlowSource; at: number }[]): ActualPhase => {
-		const sorted = [...placed].sort(
-			(a, b) => a.at - b.at || (a.h.horseNumber ?? 99) - (b.h.horseNumber ?? 99)
-		);
-		const horse = ({ h }: { h: ActualFlowSource }) => ({
-			horseNumber: h.horseNumber,
-			bracket: h.bracket,
-			horseName: h.horseName
+	type Placed = { h: ActualFlowSource; at: number };
+	const horse = ({ h }: Placed) => ({
+		horseNumber: h.horseNumber,
+		bracket: h.bracket,
+		horseName: h.horseName
+	});
+	const bySpot = (a: Placed, b: Placed) =>
+		a.at - b.at || (a.h.horseNumber ?? 99) - (b.h.horseNumber ?? 99);
+
+	/** 順位で置く。同じ順位は1列、出てくる順位の何番目かが列の番号。 */
+	const rankedWants = (sorted: Placed[]) => {
+		const ranks = [...new Set(sorted.map((p) => p.at))];
+		const per = Math.max(1, Math.ceil(ranks.length / FLOW_COLS));
+		return sorted.map((p) => Math.floor(ranks.indexOf(p.at) / per));
+	};
+
+	/** 着差で置く。2頭目以降の着差が1頭でも読めなければ null（順位で置く）。 */
+	const marginWants = (sorted: Placed[]) => {
+		let total = 0;
+		const totals = sorted.map((p, i) => {
+			if (i === 0) return 0;
+			const len = marginLengths(p.h.margin);
+			if (len === null) return null;
+			return (total += len);
 		});
-		// 1マスにまとめる順位の数。18頭なら2（10マス × 2 で 20 位まで入る）。
-		const per = Math.max(1, Math.ceil(Math.max(...sorted.map((p) => p.at)) / FLOW_COLS));
-		const used = new Map<number, number>();
-		const spots = sorted.map((p) => {
-			// まとめたマスが段の数を超えて埋まっていたら（同じ順位が5頭など）、後ろのマスへ送る。
-			let x = Math.min(FLOW_COLS - 1, Math.floor((p.at - 1) / per));
-			while ((used.get(x) ?? 0) >= FLOW_LANES.length && x < FLOW_COLS - 1) x++;
-			const y = used.get(x) ?? 0;
-			used.set(x, y + 1);
-			return { ...horse(p), x, y, at: p.at };
-		});
+		if (totals.some((t) => t === null)) return null;
+		const cell = Math.max(0.5, total / (FLOW_COLS - 1));
+		return {
+			cell,
+			wants: totals.map((t) => Math.min(FLOW_COLS - 1, Math.floor((t as number) / cell + 1e-9)))
+		};
+	};
+
+	const phase = (placed: Placed[], byMargin: boolean): ActualPhase => {
+		const sorted = [...placed].sort(bySpot);
+		const margin = byMargin ? marginWants(sorted) : null;
+		const wants = margin?.wants ?? rankedWants(sorted);
+		const cells = stackOnBoard(wants);
+		const spots = sorted.map((p, i) => ({ ...horse(p), ...cells[i], at: p.at }));
 		// 1行は順位で区切る（x に順位、y に同じ順位の中の並びを入れて列を組む）。
 		const columns = flowColumns(
 			sorted.map((p, i) => ({
@@ -174,17 +257,25 @@ export function actualFlow(
 				y: sorted.slice(0, i).filter((q) => q.at === p.at).length
 			}))
 		);
-		return { spots, columns };
+		return { spots, columns, cell: margin?.cell ?? null };
 	};
 
 	const at4 = corner4Positions(ran, race);
 	const finished = ran.filter((r) => r.finishPosition !== null);
 	const corner4 =
 		finished.length > 0 && finished.every((r) => at4.has(r.entryId))
-			? phase(ran.flatMap((h) => (at4.has(h.entryId) ? [{ h, at: at4.get(h.entryId)! }] : [])))
+			? phase(
+					ran.flatMap((h) => (at4.has(h.entryId) ? [{ h, at: at4.get(h.entryId)! }] : [])),
+					false
+				)
 			: null;
 	const finish =
-		finished.length > 0 ? phase(finished.map((h) => ({ h, at: h.finishPosition! }))) : null;
+		finished.length > 0
+			? phase(
+					finished.map((h) => ({ h, at: h.finishPosition! })),
+					true
+				)
+			: null;
 
 	return corner4 || finish ? { leadsRight: flowLeadsRight(race), corner4, finish } : null;
 }

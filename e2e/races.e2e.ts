@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import {
+	ACTUAL_FLOW_18_RACE_ID,
 	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
@@ -376,6 +377,36 @@ test('展開を予想していないレースでも、4角とゴール前の実�
 	// 通過順が途中で切れた中止の馬には「4角N番手」を出さない（最後の数字は4角ではない）。
 	await expect(page.locator('form li', { hasText: 'E2Eチュウシ' })).not.toContainText('4角');
 	await expect(page.locator('form li', { hasText: 'E2Eマクリ' })).toContainText('4角2番手→3着');
+});
+
+/**
+ * ★ ゴール前の盤面は、着順の全馬に着差が読めるとき着差で置き、見出しに1マスの馬身を出す。
+ * seed の E2E十八頭賞は着差がそろっている（4角は通過順なので出ない）。
+ * E2E実際展開賞は着差が無いので、着順で置く今の形（注記に馬身は出ない）。
+ */
+test('ゴール前の盤面は、着差がそろっているときだけ1マスの馬身を出す', async ({ page }) => {
+	await login(page);
+	await page.goto(`/races/${ACTUAL_FLOW_18_RACE_ID}`);
+
+	const region = page.getByRole('region', { name: '実際の展開' });
+	await region.locator('summary').click();
+	const finish = page.getByRole('group', { name: '実際のゴール前の隊列' });
+	await expect(finish).toContainText('1マス約');
+	await expect(finish).toContainText('馬身');
+	await expect(page.getByRole('group', { name: '実際の4コーナーの隊列' })).not.toContainText(
+		'1マス約'
+	);
+	await expect(region).toContainText('ゴール前は着差から');
+
+	await page.goto(`/races/${ACTUAL_FLOW_RACE_ID}`);
+	await page.getByRole('region', { name: '実際の展開' }).locator('summary').click();
+	await expect(page.getByRole('group', { name: '実際のゴール前の隊列' })).toBeVisible();
+	await expect(page.getByRole('group', { name: '実際のゴール前の隊列' })).not.toContainText(
+		'1マス約'
+	);
+	await expect(page.getByRole('region', { name: '実際の展開' })).toContainText(
+		'ゴール前は着順から'
+	);
 });
 
 /** 予想で展開を置いていたら、同じ局面の下に予想の隊列を並べて見比べられる。 */
