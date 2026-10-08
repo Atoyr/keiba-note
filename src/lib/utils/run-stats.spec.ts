@@ -209,15 +209,72 @@ describe('actualFlow', () => {
 		expect(flow?.corner4?.cell).toBeNull();
 	});
 
-	it('4角の順位が11列以上に分かれるときは、隣の列を2つずつまとめる。全頭ばらばらの18頭は1マス2頭', () => {
+	it('順位の幅の合計が10列を超えるときは、隣り合う順位を後ろから2つずつ1列にまとめる。全頭ばらばらの18頭は1・2番手が単独の列', () => {
 		const rows = Array.from({ length: 18 }, (_, i) => horse(i + 1, i + 1, `${i + 1}-${i + 1}`));
 		const flow = actualFlow(rows, { ...turf, fieldSize: 18 });
-		expect(cells(flow?.corner4?.spots).slice(0, 4)).toEqual(['1@0,0', '2@0,1', '3@1,0', '4@1,1']);
-		expect(cells(flow?.corner4?.spots).at(-1)).toBe('18@8,1');
+		expect(cells(flow?.corner4?.spots).slice(0, 4)).toEqual(['1@0,0', '2@1,0', '3@2,0', '4@2,1']);
+		expect(cells(flow?.corner4?.spots).at(-1)).toBe('18@9,1');
 		expect(flow?.corner4?.columns.slice(0, 3)).toEqual(['①', '②', '③']);
 		// 着差が無い（読めない）ゴール前も同じ置き方で、cell は null。
-		expect(cells(flow?.finish?.spots).at(-1)).toBe('18@8,1');
+		expect(cells(flow?.finish?.spots).at(-1)).toBe('18@9,1');
 		expect(flow?.finish?.cell).toBeNull();
+	});
+
+	/** 盤面の列ごとの、(順位 → 馬番)。違う順位が同じ列に入っているかを見るため。 */
+	const byColumn = (spots: { horseNumber: number | null; x: number; at: number }[] = []) => {
+		const cols = new Map<number, Map<number, number[]>>();
+		for (const s of spots) {
+			const col = cols.get(s.x) ?? new Map<number, number[]>();
+			col.set(s.at, [...(col.get(s.at) ?? []), s.horseNumber!]);
+			cols.set(s.x, col);
+		}
+		return cols;
+	};
+
+	it('京都金杯の4角（順位が12通りで幅が10を超える）: 1・2番手は別の列、どの列も4頭以下、違う順位が同じ列に入るのは合わせて4頭以下の隣どうしだけ', () => {
+		// data/races/2026-01-04.yaml 京都金杯の通過順の最後の数字（馬番 1〜18 の順）。
+		const corner4 = [8, 12, 5, 2, 15, 8, 10, 17, 15, 4, 3, 10, 12, 1, 5, 12, 7, 18];
+		const rows = corner4.map((c, i) => horse(i + 1, i + 1, `${c}-${c}`));
+		const flow = actualFlow(rows, { ...turf, fieldSize: 18 });
+		const spots = flow?.corner4?.spots ?? [];
+
+		const x = (n: number) => spots.find((s) => s.horseNumber === n)!.x;
+		// 1番手⑭と2番手④は別の列。
+		expect(x(14)).not.toBe(x(4));
+		const cols = byColumn(spots);
+		const ranks = [...new Set(corner4)].sort((a, b) => a - b);
+		for (const col of cols.values()) {
+			const heads = [...col.values()].reduce((sum, hs) => sum + hs.length, 0);
+			expect(heads).toBeLessThanOrEqual(4);
+			// 違う順位が同じ列に入るときは、順位が隣どうし（間に別の順位が無い）。
+			const at = [...col.keys()].sort((a, b) => a - b);
+			for (let i = 1; i < at.length; i++) {
+				expect(ranks.indexOf(at[i]) - ranks.indexOf(at[i - 1])).toBe(1);
+			}
+		}
+		// y は4段に収まり、同じ座標に2頭いない。
+		expect(spots.every((s) => s.y >= 0 && s.y < 4)).toBe(true);
+		expect(new Set(spots.map((s) => `${s.x},${s.y}`)).size).toBe(spots.length);
+		// 順位の順に x は戻らない。
+		const xs = spots.map((s) => s.x);
+		expect(xs).toEqual([...xs].sort((a, b) => a - b));
+		// 12番手の3頭（②⑬⑯）と15番手の2頭（⑤⑨）は同じ列にならない（合わせて5頭になる）。
+		expect(x(2)).not.toBe(x(5));
+	});
+
+	it('5頭以上の順位は2列を取り、幅の合計が10を超えて単独の順位をまとめても、次の順位と同じ列にならない', () => {
+		// 1・2番手は1頭ずつ、3番手に5頭（③〜⑦）、4〜12番手は1頭ずつ（⑧〜⑯）。幅は 1+1+2+9 = 13。
+		const rank = (n: number) => (n <= 2 ? n : n <= 7 ? 3 : n - 4);
+		const rows = Array.from({ length: 16 }, (_, i) =>
+			horse(i + 1, i + 1, `${i + 1}-${rank(i + 1)}`)
+		);
+		const spots = actualFlow(rows, { ...turf, fieldSize: 16 })?.corner4?.spots ?? [];
+		const five = new Set(spots.filter((s) => s.at === 3).map((s) => s.x));
+		expect([...five]).toEqual([2, 3]);
+		expect(spots.filter((s) => s.at !== 3 && five.has(s.x))).toEqual([]);
+		// 単独の順位は後ろから2つずつ1列にまとまる（4〜12番手の後ろ6つ）。1・2番手は単独の列に残る。
+		expect(spots.filter((s) => s.at <= 2).map((s) => s.x)).toEqual([0, 1]);
+		expect(spots.at(-1)?.x).toBe(9);
 	});
 
 	it('4角は通過順に距離が無いので、着差がそろっていても順位で置く', () => {
@@ -332,25 +389,37 @@ describe('actualFlow', () => {
 		expect(perCell.get(7)).toEqual([2]);
 	});
 
-	it('4角で最後方の順位に5頭並んでも、前後が逆にならない（先着した馬が前のマスへ寄る）', () => {
-		// 1〜9番手は1頭ずつ（x=0〜8）、最後方の順位に5頭（⑩〜⑭）が並ぶ。
+	it('4角で最後方の順位に5頭並ぶと2列を取り、その前の単独の順位が後ろからまとまる', () => {
+		// 1〜9番手は1頭ずつ、最後方の順位に5頭（⑩〜⑭）が並ぶ。幅は 9+2 = 11 > 10 なので 8・9番手が1列になる。
 		const rows = Array.from({ length: 14 }, (_, i) =>
 			horse(i + 1, i + 1, `${i + 1}-${i < 9 ? i + 1 : 14}`)
 		);
 		const flow = actualFlow(rows, { ...turf, fieldSize: 14 });
-		expect(cells(flow?.corner4?.spots).slice(7)).toEqual([
+		expect(cells(flow?.corner4?.spots).slice(6)).toEqual([
+			'7@6,0',
 			'8@7,0',
-			'9@8,0',
-			'10@8,1',
-			'11@9,0',
-			'12@9,1',
-			'13@9,2',
-			'14@9,3'
+			'9@7,1',
+			'10@8,0',
+			'11@8,1',
+			'12@8,2',
+			'13@8,3',
+			'14@9,0'
 		]);
-		const xs = (flow?.corner4?.spots ?? []).map((s) => s.x);
-		expect(xs).toEqual([...xs].sort((a, b) => a - b));
 		// 隊列の1行は順位で区切るので、5頭は1つの列のまま。
 		expect(flow?.corner4?.columns.at(-1)).toBe('⑩⑪⑫⑬⑭');
+	});
+
+	it('まとめても幅が10を超えるときは、前後の順を崩さず詰める（最後のマスには最も着順の悪い馬が入る）', () => {
+		// 3頭ずつの順位が11個。隣どうしは合わせて6頭でまとめられず、幅は11。
+		const rows = Array.from({ length: 33 }, (_, i) =>
+			horse(i + 1, i + 1, `${i + 1}-${Math.floor(i / 3) + 1}`)
+		);
+		const spots = actualFlow(rows, { ...turf, fieldSize: 33 })?.corner4?.spots ?? [];
+		const xs = spots.map((s) => s.x);
+		expect(xs).toEqual([...xs].sort((a, b) => a - b));
+		expect(spots.every((s) => s.y >= 0 && s.y < 4)).toBe(true);
+		expect(new Set(spots.map((s) => `${s.x},${s.y}`)).size).toBe(spots.length);
+		expect(spots.filter((s) => s.x === 9).map((s) => s.horseNumber)).toEqual([30, 31, 32, 33]);
 	});
 
 	it('着差が1頭でも読めなければ、ゴール前も順位で置く（cell は null）', () => {

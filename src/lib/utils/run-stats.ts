@@ -210,7 +210,8 @@ function stackOnBoard(wants: readonly number[]): { x: number; y: number }[] {
  *   出てくる順位（重複を除く）を小さい順に並べ、その何番目かを列の番号にする。
  *   同じ順位が段の数（4）を超えるときは、そのまとまりが `ceil(頭数 / 4)` 列を取り、次の順位はその後ろの列から始める
  *   （溢れた馬が次の順位の列に混ざって、並んでいたように見えないように）。
- *   列の幅の合計が10マスを超えるとき（全頭の順位がばらばらの11頭以上など）は、隣の列を `ceil(列の数 / 10)` 個ずつまとめる
+ *   列の幅の合計が10マスを超えるとき（全頭の順位がばらばらの11頭以上など）は、隣り合う順位のうち合わせて4頭以下の組を
+ *   1列にまとめる（合わせた頭数が少ない組から、同じなら後ろの組から。通過順は順位しか持たず距離が無いので頭数で決める）
  * - 前後（着差で置く。ゴール前）: **着順の全馬に着差が読めるときは、勝ち馬からの累積の着差（馬身）で置く。**
  *   順位で置くと 1-2着・3-4着… が機械的に2頭ずつ並び、ハナ差の2頭と2馬身離れた2頭が同じ見た目になる。
  *   1マスの馬身は最後の馬が最後のマスに来るよう決め（下限 0.5 馬身。少頭数の接戦で広がりすぎないように）、`cell` で返す
@@ -244,20 +245,46 @@ export function actualFlow(
 	/**
 	 * 順位で置く。同じ順位の馬は1つのまとまりで、**段の数を超える頭数なら2列以上の幅**を取る
 	 * （`ceil(頭数 / 段の数)`。溢れた馬がそのまとまりの2列目に入り、次の順位の列に混ざらない）。
-	 * 幅の合計が盤面に収まるときは、まとまりの先頭の列 = それより前のまとまりの幅の合計。
-	 * 収まらないとき（全頭ばらばらの11頭以上など）は、隣の列を `ceil(列の数 / 10)` 個ずつまとめる。
+	 * まとまりの先頭の列 = それより前のまとまりの幅の合計。
+	 *
+	 * 幅の合計が盤面（`FLOW_COLS`）を超えるときは、**隣り合う順位のうち、合わせて段の数以下の頭数になる組を1列にまとめる**。
+	 * 合わせた頭数が少ない組を先に、同じなら後ろの組を先に（先頭付近を分けたまま残す。
+	 * 通過順は順位しか持たず距離が分からないので、頭数だけで決める）。1列にまとめた馬は段に積んで収まる。
+	 * まとめられる組が無くなっても超えるときは、そのまま並べる（はみ出し分は `stackOnBoard` が前後の順を崩さず詰める）。
 	 */
 	const rankedWants = (sorted: Placed[]) => {
 		const ranks = [...new Set(sorted.map((p) => p.at))];
-		const widths = ranks.map((r) =>
-			Math.ceil(sorted.filter((p) => p.at === r).length / FLOW_LANES.length)
-		);
-		if (widths.reduce((a, b) => a + b, 0) <= FLOW_COLS) {
-			const starts = widths.map((_, i) => widths.slice(0, i).reduce((a, b) => a + b, 0));
-			return sorted.map((p) => starts[ranks.indexOf(p.at)]);
+		// 列のかたまり: 含む順位と、含む馬の頭数。幅は頭数から決まる（まとめたものは段に収まるので1）。
+		let blocks = ranks.map((r) => ({
+			ranks: [r],
+			count: sorted.filter((p) => p.at === r).length
+		}));
+		const width = (b: { count: number }) => Math.ceil(b.count / FLOW_LANES.length);
+		const total = () => blocks.reduce((sum, b) => sum + width(b), 0);
+		while (total() > FLOW_COLS) {
+			let best = -1;
+			for (let i = 0; i + 1 < blocks.length; i++) {
+				const merged = blocks[i].count + blocks[i + 1].count;
+				if (merged > FLOW_LANES.length) continue;
+				if (best < 0 || merged <= blocks[best].count + blocks[best + 1].count) best = i;
+			}
+			if (best < 0) break;
+			blocks = [
+				...blocks.slice(0, best),
+				{
+					ranks: [...blocks[best].ranks, ...blocks[best + 1].ranks],
+					count: blocks[best].count + blocks[best + 1].count
+				},
+				...blocks.slice(best + 2)
+			];
 		}
-		const per = Math.max(1, Math.ceil(ranks.length / FLOW_COLS));
-		return sorted.map((p) => Math.floor(ranks.indexOf(p.at) / per));
+		const start = new Map<number, number>();
+		let col = 0;
+		for (const b of blocks) {
+			for (const r of b.ranks) start.set(r, col);
+			col += width(b);
+		}
+		return sorted.map((p) => start.get(p.at)!);
 	};
 
 	/** 着差で置く。2頭目以降の着差が1頭でも読めなければ null（順位で置く）。 */
