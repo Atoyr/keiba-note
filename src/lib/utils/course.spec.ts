@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COURSES } from '$lib/schemas/race';
-import { COURSE_SPECS, courseMap, courseMapSvg, type CourseMapSource } from './course';
+import { COURSE_SPECS, courseMap, courseMapSvg, courseRoute, type CourseMapSource } from './course';
 
 const race = (course: string, surface: string | null, distance: number | null = null) => ({
 	course,
@@ -128,24 +128,40 @@ describe('道すじ（route）', () => {
 		return { from: { x: fx, y: fy }, to: { x: tx, y: ty } };
 	}
 
-	it('線の長さはレースの距離と合う', () => {
-		for (const [course, surface, distance] of [
-			['東京', '芝', 1600], // 引き込み線から
-			['東京', '芝', 1400],
-			['東京', '芝', 2400],
-			['東京', '芝', 3400], // 2周目に入る
-			['中山', '芝', 1200], // 外回りのふくらみ
-			['中山', '芝', 2000], // 内回り
-			['京都', '芝', 2200],
-			['阪神', '芝', 2000],
-			['新潟', '芝', 1000], // 直線
-			['東京', 'ダート', 1600],
-			['札幌', '芝', 1200]
+	it('周回コースの線の長さは、描いた周に、距離 ÷ 公表の一周距離の割合を当てはめた長さ', () => {
+		// [場, 馬場, 距離, 図の種類, 公表の一周距離]
+		for (const [course, surface, distance, variant, published] of [
+			['東京', '芝', 1400, 'turf', 2083.1],
+			['東京', '芝', 2400, 'turf', 2083.1],
+			['東京', '芝', 3400, 'turf', 2083.1], // 2周目に入る
+			['中山', '芝', 1200, 'turf-outer', 1839.7], // 外回りのふくらみ
+			['中山', '芝', 2000, 'turf-inner', 1667.1],
+			['京都', '芝', 2200, 'turf-outer', 1894.3],
+			['阪神', '芝', 2000, 'turf-inner', 1689], // 描いた周は公表より長い
+			['東京', 'ダート', 1600, 'dirt', 1899], // 描いた周は公表より短い
+			['札幌', '芝', 1200, 'turf', 1640.9]
 		] as const) {
+			const name = `${course}${surface}${distance}`;
+			// 描いた周の長さ = 公表の一周距離を走ったときの線の長さ。
+			const drawnLap = courseRoute(COURSE_SPECS[course], variant, published)!.length;
 			const r = route(course, surface, distance);
-			expect(r, `${course}${surface}${distance}`).not.toBeNull();
-			expect(Math.abs(r!.length - distance), `${course}${surface}${distance}`).toBeLessThan(0.5);
+			expect(r, name).not.toBeNull();
+			expect(Math.abs(r!.length - (distance * drawnLap) / published), name).toBeLessThan(0.5);
 		}
+	});
+
+	it('引き込み線から出る東京芝1600m と直線コースは、線の長さがレースの距離と同じ', () => {
+		expect(Math.abs(route('東京', '芝', 1600)!.length - 1600)).toBeLessThan(0.5);
+		expect(Math.abs(route('新潟', '芝', 1000)!.length - 1000)).toBeLessThan(0.5);
+	});
+
+	it('スタートは、描いた周の上で一周距離に対する割合の位置に置く（阪神芝2000m は 1689 + 311）', () => {
+		const lap = courseRoute(COURSE_SPECS['阪神'], 'turf-inner', 1689)!.length;
+		// 描いた内回りは外回りと同じ半径なので、公表の 1689m より長い。
+		expect(lap).toBeGreaterThan(1689 + 100);
+		const start = route('阪神', '芝', 2000)!.start;
+		// ゴール手前の直線（356.5m）の上で、ゴールから 311/1689 の割合だけ戻った点。
+		expect(Math.abs(start.x + (311 * lap) / 1689)).toBeLessThan(0.5);
 	});
 
 	it('出せないときは null（障害・距離なし・内外が決まらない芝・直線を超える距離）', () => {

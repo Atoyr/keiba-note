@@ -185,7 +185,11 @@ export type CourseRoute = {
 	d: string;
 	/** スタートの位置。 */
 	start: Point;
-	/** 線の長さ（m）。レースの距離と同じになる。 */
+	/**
+	 * 図の上の線の長さ（m）。周回コースは、描いた周が公表の一周距離と違うことがあるので、
+	 * レースの距離そのものではなく「公表の一周に対する割合」を描いた周に当てはめた長さになる
+	 * （直線コースと、東京芝の引き込み線から出る距離は、レースの距離と同じ）。
+	 */
 	length: number;
 };
 
@@ -752,7 +756,11 @@ function walk(
 }
 
 /**
- * レースの距離で走る、スタートからゴールまでの道すじ。線の長さはレースの距離と同じ。
+ * レースの距離で走る、スタートからゴールまでの道すじ。
+ * 周回コースの部分は、描いた周と公表の一周距離（`CourseLoop.lap`）の長さが違っても、
+ * スタートが一周に対して合う割合の位置に来るよう、距離に（描いた周 ÷ 公表の周）を掛けた長さをゴールから逆にたどる。
+ * 描いた周が公表と違うのは、ダート（芝の内側に収めるため半径を縮める）と、
+ * 外回りと同じ半径で描く内回りの芝。
  * 出せないとき（距離が分からない・内回り外回りが決まらない芝・直線コースを超える距離）は null。
  * 障害は専用のコースを走るので、呼ぶ側（`courseMap`）が除く。
  */
@@ -777,9 +785,12 @@ export function courseRoute(
 	const oval = variant === 'dirt' ? l.dirt : l.turf[variant === 'turf-inner' ? 1 : 0];
 	const segs = lapSegments(oval);
 	const lap = segs.reduce((sum, s) => sum + s.len, 0);
+	const published =
+		variant === 'dirt' ? spec.dirt.lap : spec.turf[variant === 'turf-inner' ? 1 : 0].lap;
 
 	// 引き込み線から出る距離は、線の上の (distance - exit) の点から2コーナーの出口まで直線で来て、
-	// 出口からゴールまでは周回コース。
+	// 出口からゴールまでは周回コース。引き込み線の上は m のまま置く。exit も、描いた周が公表の一周と
+	// 合っている東京の芝で決めた値なので、描いた周の上の長さのまま使う（割合に直さない）。
 	const chute = variant === 'turf' || variant === 'turf-outer' ? l.chute : null;
 	if (chute && spec.turf[0].backstretchChute!.distances.includes(distance)) {
 		const into = distance - chute.exit;
@@ -796,8 +807,9 @@ export function courseRoute(
 		};
 	}
 
-	const end = Math.ceil(distance / lap) * lap;
-	const w = walk(segs, end - distance, end);
+	const drawn = (distance * lap) / published;
+	const end = Math.ceil(drawn / lap) * lap;
+	const w = walk(segs, end - drawn, end);
 	return { ...base, d: w.cmds.join(''), start: w.start, length: w.length };
 }
 
