@@ -890,3 +890,17 @@ INSERT INTO note (id, author_id, kind, race_id, body, occurred_at, created_at)
 VALUES ('01JE2EGRADEDOTHER0000000000', '01JE2EOTHERUSER00000000000', 'race_preview', '01JE2ERACEGRADEDLAST000000', '他人の重賞の見立て。見えてはいけない。', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07'));
 INSERT INTO graded_race_note (user_id, race_key, body)
 VALUES ('01JE2EOTHERUSER00000000000', 'オールカマー', '他人の傾向のメモ。見えてはいけない。');
+
+-- 重賞の傾向を、予想画面とふりかえり画面に出す（graded-races.e2e.ts・screens: race-preview-graded-trend / race-review-graded-trend）。
+-- 傾向を書いた重賞は「オールカマー」とは別にする（オールカマーの傾向は、一般ユーザーが E2E で書いて消す）。
+-- 去年の毎日王冠。別名の表に無い名前なので、名前がそのまま鍵になる。出走馬は重賞の2頭を使い回す（馬の一覧の件数を変えない）。
+-- 一般ユーザーは傾向だけを書き、レースのメモは書かない。別のユーザーの傾向は出てはいけない。
+INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, track_condition, winner_name)
+VALUES ('01JE2ERACEGRADEDTREND00000', date('now', '+9 hours', 'start of year', '+9 months', '+9 days', '-1 year'), '東京', 11, '毎日王冠', 'G2', '芝', 1800, '良', 'E2E重賞イチバン');
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_position) VALUES
+	('01JE2EENTRYTREND100000000', '01JE2ERACEGRADEDTREND00000', '01JE2EHORSEGRADED10000000', 1, 1, 1),
+	('01JE2EENTRYTREND200000000', '01JE2ERACEGRADEDTREND00000', '01JE2EHORSEGRADED20000000', 2, 2, 2);
+INSERT INTO graded_race_note (user_id, race_key, body) VALUES
+	('01JE2EUSER0000000000000000', '毎日王冠', 'E2E重賞の傾向。天皇賞の前哨戦で、前走で好走した馬が人気でも崩れにくい。
+外枠の差し馬は届かない年が多い。'),
+	('01JE2EOTHERUSER00000000000', '毎日王冠', '他人の毎日王冠の傾向。見えてはいけない。');
