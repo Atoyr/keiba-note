@@ -265,7 +265,7 @@ export const SCREENS: Screen[] = [
 			const board = flow.getByRole('group', { name: /^4コーナーの隊列/ });
 			// 前から2列目・中の⑤をクリックで選び（フォーカスが乗る）、先頭・中の空きマスへ矢印キーで動かす。
 			// 先頭が左右どちらに描かれるかはレースの向きで決まるので、2つのマスの位置から押す矢印を決める。
-			const horse = board.getByRole('button', { name: /^5番 E2Eアナウマ（/ });
+			const horse = board.getByRole('button', { name: /^5番 アナウマスペシャル（/ });
 			const front = board.getByRole('button', { name: '先頭・中（空き）' });
 			await horse.click();
 			const [from, to] = [await horse.boundingBox(), await front.boundingBox()];

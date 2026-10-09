@@ -65,7 +65,7 @@ test('出走馬の単勝・複勝オッズを、取れた時点とともに出�
 
 /**
  * 人気は単勝オッズの低い順。同じオッズは同じ人気で、取消（単勝なし）には付けない。
- * seed の印見本のレースは ①2.8 ②5.1 ③5.1 ④12.4 ⑤31.6 ⑥8.9 ⑦取消。
+ * seed の印見本のレースは ①2.8 ②5.1 ③5.1 ④12.4 ⑤123.4 ⑥8.9 ⑦取消。
  */
 test('単勝オッズから人気を付けて、オッズの行の頭に出す', async ({ page }) => {
 	await login(page);
@@ -82,6 +82,26 @@ test('単勝オッズから人気を付けて、オッズの行の頭に出す',
 });
 
 /**
+ * 馬名は折り返さず1行に収める（全角9文字がスマホで切れない）。seed の印見本のレースの⑤は
+ * 全角カタカナ9文字で、単勝 123.4・複勝 18.2 - 30.5 と、オッズの列をいちばん広く使う行。
+ */
+test('スマホの幅でも、全角9文字の馬名が切れずに出る', async ({ page }) => {
+	await login(page);
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto(`/races/${MARKS_RACE_ID}/preview`);
+
+	const name = page
+		.locator('main li[id^="entry-"]', { hasText: 'アナウマスペシャル' })
+		.locator('a[href^="/horses/"]');
+	await expect(name).toHaveText('アナウマスペシャル');
+	const { scrollWidth, clientWidth } = await name.evaluate((el) => ({
+		scrollWidth: el.scrollWidth,
+		clientWidth: el.clientWidth
+	}));
+	expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
+});
+
+/**
  * ★ 人気順に並べ替えられる。並べ替えは離脱ではないので、書きかけがあっても確認を出さず、
  * 書いたものも消えない（URL を変えずに画面の中で並べ替える）。
  */
@@ -94,7 +114,7 @@ test('出走馬を人気順に並べ替えられ、書きかけのメモはそ�
 		'E2Eタイコウ',
 		'E2Eタンアナ',
 		'E2Eレンシタ',
-		'E2Eアナウマ',
+		'アナウマスペシャル',
 		'E2Eケシウマ',
 		'E2Eメモノミ'
 	];
@@ -121,7 +141,7 @@ test('出走馬を人気順に並べ替えられ、書きかけのメモはそ�
 		'E2Eタンアナ',
 		'E2Eケシウマ',
 		'E2Eレンシタ',
-		'E2Eアナウマ',
+		'アナウマスペシャル',
 		'E2Eメモノミ'
 	]);
 	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
@@ -145,7 +165,7 @@ test('出走馬の行の馬名の左に、性齢が出る', async ({ page }) => 
 
 	await expect(row('E2Eホンメイ')).toContainText(/牡4\s*E2Eホンメイ/);
 	await expect(row('E2Eタイコウ')).toContainText(/牝4\s*E2Eタイコウ/);
-	await expect(row('E2Eアナウマ')).toContainText(/セ4\s*E2Eアナウマ/);
+	await expect(row('アナウマスペシャル')).toContainText(/セ4\s*アナウマスペシャル/);
 	await expect(row('E2Eレンシタ')).toContainText(/4歳\s*E2Eレンシタ/);
 
 	// 性も生年も無い馬には何も出さない。
