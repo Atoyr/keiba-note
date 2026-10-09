@@ -17,7 +17,7 @@ describe('GradedRaceTrend', () => {
 		const screen = render(GradedRaceTrend, { raceKey: '毎日王冠', body });
 
 		const p = screen.container.querySelector('p')!;
-		expect(p.textContent?.trim()).toBe(body);
+		expect(p.textContent).toBe(body);
 		expect(getComputedStyle(p).whiteSpace).toBe('pre-wrap');
 	});
 
