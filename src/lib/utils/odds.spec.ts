@@ -85,7 +85,8 @@ describe('書き方', () => {
 	});
 
 	it('複勝は下限-上限、片方でも無ければ -', () => {
-		expect(formatPlaceOdds(1.4, 1.8)).toBe('1.4-1.8');
+		expect(formatPlaceOdds(1.4, 1.8)).toBe('1.4 - 1.8');
+		expect(formatPlaceOdds(18.2, 30.5)).toBe('18.2 - 30.5');
 		expect(formatPlaceOdds(null, null)).toBe('-');
 		expect(formatPlaceOdds(1.4, null)).toBe('-');
 	});

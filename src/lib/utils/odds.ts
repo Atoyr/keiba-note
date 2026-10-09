@@ -79,10 +79,10 @@ export function formatWinOdds(value: number | null): string {
 	return value === null ? '-' : value.toFixed(1);
 }
 
-/** 複勝の幅。`1.4-1.8`。値が無ければ `-`。 */
+/** 複勝の幅。`1.4 - 1.8`。値が無ければ `-`。 */
 export function formatPlaceOdds(min: number | null, max: number | null): string {
 	if (min === null || max === null) return '-';
-	return `${min.toFixed(1)}-${max.toFixed(1)}`;
+	return `${min.toFixed(1)} - ${max.toFixed(1)}`;
 }
 
 const TIME_FORMATTER = new Intl.DateTimeFormat('ja-JP', {

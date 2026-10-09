@@ -59,7 +59,8 @@ test('出走馬の単勝・複勝オッズを、取れた時点とともに出�
 
 	await expect(page.getByText('単勝・複勝のオッズは 5/5 14:30時点')).toBeVisible();
 	const row = page.locator('main li[id^="entry-"]');
-	await expect(row).toContainText(/単勝\s*3\.4\s*複勝\s*1\.4-1\.8/);
+	await expect(row).toContainText(/単勝\s*3\.4/);
+	await expect(row).toContainText(/複勝\s*1\.4 - 1\.8/);
 });
 
 /**
@@ -75,7 +76,8 @@ test('単勝オッズから人気を付けて、オッズの行の頭に出す',
 	await expect(row('E2Eタイコウ')).toContainText(/2人気\s*単勝\s*5\.1/);
 	await expect(row('E2Eタンアナ')).toContainText(/2人気\s*単勝\s*5\.1/);
 	await expect(row('E2Eケシウマ')).toContainText(/4人気\s*単勝\s*8\.9/);
-	await expect(row('E2Eメモノミ')).toContainText(/単勝\s*-\s*複勝\s*-/);
+	await expect(row('E2Eメモノミ')).toContainText(/単勝\s*-/);
+	await expect(row('E2Eメモノミ')).toContainText(/複勝\s*-/);
 	await expect(row('E2Eメモノミ')).not.toContainText('人気');
 });
 
