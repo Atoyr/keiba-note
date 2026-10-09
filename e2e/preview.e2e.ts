@@ -183,6 +183,28 @@ test('出走馬の枠番が枠の札で出る', async ({ page }) => {
 	await expect(bracket.locator('xpath=following-sibling::*[1]')).toHaveAttribute('title', '3番');
 });
 
+test('レースの見立ての placeholder は本文より薄い色で、入力済みに見えない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${EMPTY_RACE_ID}/preview`);
+	const body = page.locator('textarea[name="raceNoteBody"]');
+	await expect(body).toHaveValue('');
+	// shadcn の placeholder:text-muted-foreground に負けず、薄いトークンの色が当たっていること
+	const colors = await body.evaluate((el) => {
+		const probe = document.createElement('span');
+		probe.style.color = 'var(--placeholder)';
+		document.body.append(probe);
+		const token = getComputedStyle(probe).color;
+		probe.remove();
+		return {
+			placeholder: getComputedStyle(el, '::placeholder').color,
+			token,
+			text: getComputedStyle(el).color
+		};
+	});
+	expect(colors.placeholder).toBe(colors.token);
+	expect(colors.placeholder).not.toBe(colors.text);
+});
+
 /**
  * ★ **出走馬が1頭も決まっていない未来のレースにメモを書けること。**
  *

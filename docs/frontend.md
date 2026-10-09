@@ -123,7 +123,8 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 WebMCP は試験的な機能として残す。Claude・ChatGPT から読む安定した経路はサーバーの MCP（`/mcp`）で、
 画面は同意（`/oauth/authorize`）と連携の一覧（`/settings/connections`）だけ（→ [architecture.md 3-10](./architecture.md)）。
 
-使い方はログインした人向けの `/help/webmcp` に置き、予想画面からリンクする。
+使い方はログインした人向けの `/help/webmcp` に置き、MCP の使い方（`/help/mcp`）の末尾からリンクする。
+予想画面には置かない（試験的な機能なので、予想を書く画面で目立たせない）。
 対応判定は tool と同じ `getModelContext()` を使うが、案内ページでは tools を登録しない。
 API の有無だけで AI 接続や登録成功まで確認できたように表示しない。
 Chrome の試験設定・Inspector の案内は公式資料を参照し、確認日を画面に載せる。

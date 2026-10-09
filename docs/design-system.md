@@ -62,6 +62,11 @@ flowchart TB
 | 主な操作（保存・追加）・リンクの色 | `bg-primary text-primary-foreground`（紺。`Button` の既定もこれ） | `bg-gray-900 text-white` |
 | フォーカスの輪 | `ring-ring` | — |
 | 角丸 | `rounded-sm` 〜 `rounded-xl`（`--radius` から算出） | — |
+| placeholder | `--placeholder`（`layout.css` の `::placeholder` が全部の input / textarea に当てる。クラスは付けない） | `placeholder:text-muted-foreground` |
+
+`--placeholder` は shadcn に無いアプリ固有のトークン。例文が入力済みに見えないよう、`text-muted-foreground` より薄くしてある。
+コントラストは本文の目安より低いが、placeholder は入力の代わりではなく、ラベルや aria-label が別にある。
+`@layer` の外に置いてあるので、shadcn の `placeholder:text-muted-foreground` より優先される。
 
 ### 2-2. これから足すもの — アプリ固有のトークン
 

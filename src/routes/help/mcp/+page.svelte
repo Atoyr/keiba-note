@@ -301,7 +301,14 @@
 		</dl>
 	</section>
 
-	<div class="mt-8 border-t pt-6">
+	<p class="mt-8 text-sm leading-relaxed text-muted-foreground">
+		ブラウザの中で AI に予想の下書きを書かせる試験的な機能もあります（<a
+			href={resolve('/help/webmcp')}
+			class="inline-flex min-h-6 items-center {link}">WebMCPの使い方</a
+		>）。
+	</p>
+
+	<div class="mt-6 border-t pt-6">
 		<Button href={resolve('/settings/connections')} variant="outline">AIとの連携を開く</Button>
 	</div>
 </main>
