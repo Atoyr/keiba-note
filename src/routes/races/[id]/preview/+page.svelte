@@ -389,78 +389,88 @@
 							? 'border-red-300 bg-red-50/40'
 							: ''}"
 					>
-						<!-- 見出しの行は左右に分ける。左（札・馬名・騎手・前回の札）は長さで折り返すので、
-						     その中だけで折り返させる。右（オッズと印）は幅を固定して行の右上に置き、
-						     どの馬でも同じ位置に来るようにする（縦に見比べられる）。 -->
-						<div class="flex items-start gap-2">
-							<div class="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
-								<!-- 札の列。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。ふりかえり画面と
-								     同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
-								     スマホでは枠・馬番の札の下に性齢の札（馬詳細と同じ。牡4）を重ね、馬名の幅を残す
-								     （右にオッズの列があるので、横に並べると6文字の馬名が語の途中で割れる）。
-								     sm 以上は横に並べる。札の列と馬名の列は横に並べて折り返さない。 -->
+						<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
+						     札（枠・馬番 / 性齢）| 名前（馬名 / 騎手 / 前回の札）| オッズ（人気・単勝 / 複勝）| 印。
+						     - 列の幅は札・オッズ・印を固定して、残りを名前の列に渡す。取消で値が無い馬や桁の違う馬でも、
+						       上下の行と位置がずれない（レイアウトシフトも起きない）。
+						     - 馬名と騎手は折り返さず（truncate）、1行に収める。スマホ（390px）でも全角9文字が
+						       切れずに入る幅を名前の列に残す。入らない幅では … で切る。
+						     - 各列の1段目・2段目は高さ 24px（h-6 / leading-6 / min-h-6）、段の間はどの列も gap-1 にして、
+						       段を列どうしでそろえる。前回の札があるときだけ、名前の列が3段目の分だけ伸びる。
+						     - 見える「単勝」「複勝」の文字は外した。スマホの1段目に文字を置く幅が無いため。
+						       値の形（単勝は1つの数・複勝は幅）と一覧の上の「単勝・複勝のオッズは…時点」で見分けられる。
+						       読み上げには sr-only で残す。
+						     - DOM の順は読む順（札 → 馬名 → 騎手 → 前回の札 → 人気 → 単勝 → 複勝 → 印）。 -->
+						<div class="flex items-start gap-x-1.5">
+							<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
+							     ふりかえり画面と同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
+							     その下に性齢の札（馬詳細と同じ。牡4）を置く。
+							     枠順が出る前（札が無い）は幅を取らない。空の列が馬名を右へ押し出さないように。 -->
+							{#if r.bracket || r.horseNumber || r.sexAge}
 								<span
-									class="flex shrink-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2"
+									class="flex shrink-0 flex-col items-start gap-1 {r.bracket || r.horseNumber
+										? 'w-11'
+										: ''}"
 								>
 									<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-									<SexAgeBadge sex={r.sex} label={r.sexAge} />
+									<span class="flex h-6 items-center">
+										<SexAgeBadge sex={r.sex} label={r.sexAge} />
+									</span>
 								</span>
-								<!-- 馬名・騎手・前回の札。長さで折り返すのはこの中だけ。
-								     騎手は馬名の後ろに並び、入らなければ次の行（スマホでは性齢の札の横）に回る。 -->
-								<div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+							{/if}
+
+							<div class="flex min-w-0 flex-1 flex-col gap-1">
+								<a
+									href={resolve('/horses/[id]', { id: r.horseId })}
+									class="max-w-full self-start truncate leading-6 font-medium hover:underline"
+								>
+									{r.horseName}
+								</a>
+								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
+								     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
+								{#if r.jockey}
 									<a
-										href={resolve('/horses/[id]', { id: r.horseId })}
-										class="min-w-0 font-medium hover:underline"
+										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
+										class="min-h-6 max-w-full self-start truncate text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
 									>
-										{r.horseName}
+										{r.jockey}
 									</a>
-									<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
-									     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
-									{#if r.jockey}
-										<a
-											href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
-											class="inline-flex min-h-6 items-center text-sm text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-										>
-											{r.jockey}
-										</a>
-									{/if}
-									<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
-									     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。 -->
-									{#if conclusion}
-										<span
-											class="flex items-center gap-1 text-[11px] text-muted-foreground"
-											title="{conclusion.occurredAt} に付けた札"
-										>
-											前回
-											<TagBadges tags={conclusion.tags} />
-										</span>
-									{/if}
-								</div>
+								{/if}
+								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
+								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
+								{#if conclusion}
+									<span
+										class="flex items-center gap-1 text-[11px] text-muted-foreground"
+										title="{conclusion.occurredAt} に付けた札"
+									>
+										前回
+										<TagBadges tags={conclusion.tags} />
+									</span>
+								{/if}
 							</div>
 
-							<!-- オッズ。人気・単勝・複勝はそれぞれ幅を固定する（「10人気」「単勝 123.4」
-							     「複勝 10.5-20.3」まで入る）。取消で人気や値が無い馬でも、上下の馬と位置がずれない。
-							     スマホでは1行に並べる幅が無いので、人気・単勝の下に複勝を置く2段にする。 -->
+							<!-- オッズ。列の幅を固定する（w-21 = 84px）。1段目は人気（w-10）と単勝（w-9。nnn.n が入る）、
+							     2段目は複勝（nn.n - nn.n が入る）で、どれも右に寄せる。
+							     取消の馬（人気も値も無い）も空のセルで幅を保つ。 -->
 							{#if data.oddsAsOf}
-								<p
-									class="grid shrink-0 grid-cols-[auto_auto] gap-x-1 text-xs leading-6 text-muted-foreground sm:flex"
+								<div
+									class="flex w-21 shrink-0 flex-col items-end gap-1 text-xs leading-6 font-medium text-foreground"
 								>
-									<span class="w-10 font-medium text-foreground">
-										{#if r.popularity}{r.popularity}人気{/if}
-									</span>
-									<span class="w-[4.25rem]">
-										単勝
-										<span class="font-mono font-medium text-foreground">
-											{formatWinOdds(r.odds?.winOdds ?? null)}
+									<span class="flex justify-end gap-x-1.5">
+										<span class="w-10 text-right">
+											{#if r.popularity}{r.popularity}人気{/if}
+										</span>
+										<span class="w-9 text-right font-mono">
+											<span class="sr-only">単勝</span>{formatWinOdds(r.odds?.winOdds ?? null)}
 										</span>
 									</span>
-									<span class="col-span-2 leading-4 sm:w-28 sm:leading-6">
-										複勝
-										<span class="font-mono font-medium text-foreground">
-											{formatPlaceOdds(r.odds?.placeOddsMin ?? null, r.odds?.placeOddsMax ?? null)}
-										</span>
+									<span class="text-right font-mono whitespace-nowrap">
+										<span class="sr-only">複勝</span>{formatPlaceOdds(
+											r.odds?.placeOddsMin ?? null,
+											r.odds?.placeOddsMax ?? null
+										)}
 									</span>
-								</p>
+								</div>
 							{/if}
 
 							<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->

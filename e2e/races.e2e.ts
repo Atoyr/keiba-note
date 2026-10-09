@@ -302,9 +302,9 @@ test('各馬の行に、4角の位置から着順・上りの順位・人気が�
 
 	const row = (name: string) => page.locator('form li', { hasText: name });
 
-	await expect(row('E2Eアナウマ')).toContainText('4角5番手→2着');
-	await expect(row('E2Eアナウマ')).toContainText('6人気');
-	await expect(row('E2Eアナウマ').getByTitle('上り1位')).toHaveText('上り1位 33.7');
+	await expect(row('アナウマスペシャル')).toContainText('4角5番手→2着');
+	await expect(row('アナウマスペシャル')).toContainText('6人気');
+	await expect(row('アナウマスペシャル').getByTitle('上り1位')).toHaveText('上り1位 33.7');
 	await expect(row('E2Eホンメイ').getByTitle('上り2位')).toBeVisible();
 	await expect(row('E2Eケシウマ').getByTitle('上り3位')).toBeVisible();
 
@@ -331,7 +331,7 @@ test('各馬の行の馬名の左に、性齢が出る', async ({ page }) => {
 
 	await expect(row('E2Eホンメイ')).toContainText(/牡4\s*E2Eホンメイ/);
 	await expect(row('E2Eタイコウ')).toContainText(/牝4\s*E2Eタイコウ/);
-	await expect(row('E2Eアナウマ')).toContainText(/セ4\s*E2Eアナウマ/);
+	await expect(row('アナウマスペシャル')).toContainText(/セ4\s*アナウマスペシャル/);
 	await expect(row('E2Eレンシタ')).toContainText(/4歳\s*E2Eレンシタ/);
 
 	// 性も生年も無い馬には何も出さない。
