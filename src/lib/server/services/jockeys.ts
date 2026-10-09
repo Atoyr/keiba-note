@@ -231,7 +231,8 @@ export async function getJockeySummary(
  * 予想・ふりかえりの出走馬の行で、騎手名に hover したときに浮かべるためのもの。
  * **viewer 自身のまとめだけ**（WHERE に `user_id = :viewer`。他人のまとめは返さない）。
  * **このレースの出走馬の騎手に限る**ので、18頭いても騎手ごとに引かず1クエリで済む。
- * 同じ騎手が複数頭に乗っていても Map では1つになる。まとめの無い騎手は入らない。
+ * 同じ騎手が複数頭に乗っていても、まとめは (user_id, jockey) で1本なので同じ値の行が並ぶだけで、Map で1つになる
+ * （DISTINCT は要らない）。まとめの無い騎手は入らない。
  */
 export async function listRaceJockeySummaries(
 	db: Db,
@@ -239,7 +240,7 @@ export async function listRaceJockeySummaries(
 	viewerId: string
 ): Promise<Map<string, JockeySummary>> {
 	const rows = await db
-		.selectDistinct({ jockey: jockeyNote.jockey, body: jockeyNote.body, tags: jockeyNote.tags })
+		.select({ jockey: jockeyNote.jockey, body: jockeyNote.body, tags: jockeyNote.tags })
 		.from(jockeyNote)
 		.innerJoin(raceEntry, eq(raceEntry.jockey, jockeyNote.jockey))
 		.where(and(eq(raceEntry.raceId, raceId), eq(jockeyNote.userId, viewerId)));
