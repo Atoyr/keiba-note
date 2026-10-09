@@ -13,103 +13,9 @@ races:
     ref: nk-202605040411
     startTime: "15:45"
     entries:
-      - name: ウイントワイライト
-        jockey: 横山典弘
-        sex: 牝
-        age: 4
-        birthDate: 2022-02-21
-        ref: nk-2022106232
-        trainer: 西園翔太
-        trainingCenter: 栗東
-        sire: レイデオロ
-        dam: ダイワベスパー
-        damSire: ダイワメジャー
-        weight: 55
-      - name: カネラフィーナ
-        jockey: 石川裕紀人
-        sex: 牝
-        age: 4
-        birthDate: 2022-02-12
-        ref: nk-2022104839
-        trainer: 手塚貴久
-        trainingCenter: 美浦
-        sire: Frankel
-        dam: ジョイカネラ
-        damSire: Fortify
-        weight: 55
-      - name: カムニャック
-        jockey: 川田将雅
-        sex: 牝
-        age: 4
-        birthDate: 2022-04-14
-        ref: nk-2022105402
-        trainer: 友道康夫
-        trainingCenter: 栗東
-        sire: ブラックタイド
-        dam: ダンスアミーガ
-        damSire: サクラバクシンオー
-        weight: 56
-      - name: クイーンズウォーク
-        jockey: 西村淳也
-        sex: 牝
-        age: 5
-        birthDate: 2021-03-14
-        ref: nk-2021105414
-        trainer: 中内田充正
-        trainingCenter: 栗東
-        sire: キズナ
-        dam: ウェイヴェルアベニュー
-        damSire: Harlington
-        weight: 55
-      - name: クランフォード
-        jockey: 菊沢一樹
-        sex: 牝
-        age: 5
-        birthDate: 2021-02-03
-        ref: nk-2021100139
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
-        sire: ブリックスアンドモルタル
-        dam: エンジェルフェイス
-        damSire: キングカメハメハ
-        weight: 55
-      - name: ジョスラン
-        jockey: ルメール
-        sex: 牝
-        age: 4
-        birthDate: 2022-03-25
-        ref: nk-2022104767
-        trainer: 鹿戸雄一
-        trainingCenter: 美浦
-        sire: エピファネイア
-        dam: ケイティーズハート
-        damSire: ハーツクライ
-        weight: 55
-      - name: セキトバイースト
-        jockey: 浜中俊
-        sex: 牝
-        age: 5
-        birthDate: 2021-01-30
-        ref: nk-2021103975
-        trainer: 四位洋文
-        trainingCenter: 栗東
-        sire: デクラレーションオブウォー
-        dam: ベアフットレディ
-        damSire: Footstepsinthesand
-        weight: 55
-      - name: チェルビアット
-        jockey: 吉村誠之助
-        sex: 牝
-        age: 4
-        birthDate: 2022-04-07
-        ref: nk-2022105778
-        trainer: 高野友和
-        trainingCenter: 栗東
-        sire: ロードカナロア
-        dam: キューティゴールド
-        damSire: フレンチデピュティ
-        weight: 55
-      - name: ニシノティアモ
+      - horseNumber: 1
+        bracket: 1
+        name: ニシノティアモ
         jockey: 津村明秀
         sex: 牝
         age: 5
@@ -121,43 +27,65 @@ races:
         dam: ニシノアモーレ
         damSire: コンデュイット
         weight: 55
-      - name: ハワイアンティアレ
-        jockey: M.デムーロ
+      - horseNumber: 2
+        bracket: 1
+        name: チェルビアット
+        jockey: 吉村誠之助
         sex: 牝
-        age: 5
-        birthDate: 2021-02-04
-        ref: nk-2021105255
-        trainer: 松永幹夫
+        age: 4
+        birthDate: 2022-04-07
+        ref: nk-2022105778
+        trainer: 高野友和
         trainingCenter: 栗東
         sire: ロードカナロア
-        dam: モアニケアラ
-        damSire: マンハッタンカフェ
+        dam: キューティゴールド
+        damSire: フレンチデピュティ
         weight: 55
-      - name: ミアネーロ
-        jockey: 大野拓弥
+      - horseNumber: 3
+        bracket: 2
+        name: クイーンズウォーク
+        jockey: 西村淳也
         sex: 牝
         age: 5
-        birthDate: 2021-02-16
-        ref: nk-2021105801
-        trainer: 林徹
-        trainingCenter: 美浦
-        sire: ドゥラメンテ
-        dam: ミスエーニョ
-        damSire: Pulpit
-        weight: 55
-      - name: ミラビリスマジック
-        jockey: 戸崎圭太
-        sex: 牝
-        age: 5
-        birthDate: 2021-05-09
-        ref: nk-2021105105
-        trainer: 千葉直人
-        trainingCenter: 美浦
+        birthDate: 2021-03-14
+        ref: nk-2021105414
+        trainer: 中内田充正
+        trainingCenter: 栗東
         sire: キズナ
-        dam: ソーマジック
-        damSire: シンボリクリスエス
+        dam: ウェイヴェルアベニュー
+        damSire: Harlington
         weight: 55
-      - name: ムイ
+      - horseNumber: 4
+        bracket: 2
+        name: クランフォード
+        jockey: 菊沢一樹
+        sex: 牝
+        age: 5
+        birthDate: 2021-02-03
+        ref: nk-2021100139
+        trainer: 杉山晴紀
+        trainingCenter: 栗東
+        sire: ブリックスアンドモルタル
+        dam: エンジェルフェイス
+        damSire: キングカメハメハ
+        weight: 55
+      - horseNumber: 5
+        bracket: 3
+        name: カネラフィーナ
+        jockey: 石川裕紀人
+        sex: 牝
+        age: 4
+        birthDate: 2022-02-12
+        ref: nk-2022104839
+        trainer: 手塚貴久
+        trainingCenter: 美浦
+        sire: Frankel
+        dam: ジョイカネラ
+        damSire: Fortify
+        weight: 55
+      - horseNumber: 6
+        bracket: 3
+        name: ムイ
         jockey: 木幡巧也
         sex: 牝
         age: 4
@@ -169,19 +97,23 @@ races:
         dam: スウィートラヴァー
         damSire: ルーラーシップ
         weight: 55
-      - name: ラヴァンダ
-        jockey: 横山和生
+      - horseNumber: 7
+        bracket: 4
+        name: ミラビリスマジック
+        jockey: 戸崎圭太
         sex: 牝
         age: 5
-        birthDate: 2021-03-10
-        ref: nk-2021107098
-        trainer: 中村直也
-        trainingCenter: 栗東
-        sire: シルバーステート
-        dam: ゴッドパイレーツ
-        damSire: ベーカバド
-        weight: 56
-      - name: ルージュソリテール
+        birthDate: 2021-05-09
+        ref: nk-2021105105
+        trainer: 千葉直人
+        trainingCenter: 美浦
+        sire: キズナ
+        dam: ソーマジック
+        damSire: シンボリクリスエス
+        weight: 55
+      - horseNumber: 8
+        bracket: 4
+        name: ルージュソリテール
         jockey: 横山武史
         sex: 牝
         age: 4
@@ -193,7 +125,65 @@ races:
         dam: レッドオルガ
         damSire: ディープインパクト
         weight: 55
-      - name: ワタシマツワ
+      - horseNumber: 9
+        bracket: 5
+        name: ウイントワイライト
+        jockey: 横山典弘
+        sex: 牝
+        age: 4
+        birthDate: 2022-02-21
+        ref: nk-2022106232
+        trainer: 西園翔太
+        trainingCenter: 栗東
+        sire: レイデオロ
+        dam: ダイワベスパー
+        damSire: ダイワメジャー
+        weight: 55
+      - horseNumber: 10
+        bracket: 5
+        name: セキトバイースト
+        jockey: 浜中俊
+        sex: 牝
+        age: 5
+        birthDate: 2021-01-30
+        ref: nk-2021103975
+        trainer: 四位洋文
+        trainingCenter: 栗東
+        sire: デクラレーションオブウォー
+        dam: ベアフットレディ
+        damSire: Footstepsinthesand
+        weight: 55
+      - horseNumber: 11
+        bracket: 6
+        name: ラヴァンダ
+        jockey: 横山和生
+        sex: 牝
+        age: 5
+        birthDate: 2021-03-10
+        ref: nk-2021107098
+        trainer: 中村直也
+        trainingCenter: 栗東
+        sire: シルバーステート
+        dam: ゴッドパイレーツ
+        damSire: ベーカバド
+        weight: 56
+      - horseNumber: 12
+        bracket: 6
+        name: ミアネーロ
+        jockey: 大野拓弥
+        sex: 牝
+        age: 5
+        birthDate: 2021-02-16
+        ref: nk-2021105801
+        trainer: 林徹
+        trainingCenter: 美浦
+        sire: ドゥラメンテ
+        dam: ミスエーニョ
+        damSire: Pulpit
+        weight: 55
+      - horseNumber: 13
+        bracket: 7
+        name: ワタシマツワ
         jockey: 小林美駒
         sex: 牝
         age: 4
@@ -205,6 +195,48 @@ races:
         dam: サンドスラッシュ
         damSire: Holy Roman Emperor
         weight: 55
+      - horseNumber: 14
+        bracket: 7
+        name: ハワイアンティアレ
+        jockey: M.デムーロ
+        sex: 牝
+        age: 5
+        birthDate: 2021-02-04
+        ref: nk-2021105255
+        trainer: 松永幹夫
+        trainingCenter: 栗東
+        sire: ロードカナロア
+        dam: モアニケアラ
+        damSire: マンハッタンカフェ
+        weight: 55
+      - horseNumber: 15
+        bracket: 8
+        name: ジョスラン
+        jockey: ルメール
+        sex: 牝
+        age: 4
+        birthDate: 2022-03-25
+        ref: nk-2022104767
+        trainer: 鹿戸雄一
+        trainingCenter: 美浦
+        sire: エピファネイア
+        dam: ケイティーズハート
+        damSire: ハーツクライ
+        weight: 55
+      - horseNumber: 16
+        bracket: 8
+        name: カムニャック
+        jockey: 川田将雅
+        sex: 牝
+        age: 4
+        birthDate: 2022-04-14
+        ref: nk-2022105402
+        trainer: 友道康夫
+        trainingCenter: 栗東
+        sire: ブラックタイド
+        dam: ダンスアミーガ
+        damSire: サクラバクシンオー
+        weight: 56
     withdrawn:
       - name: ヴォンフレ
         ref: nk-2022101227
