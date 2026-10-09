@@ -9,6 +9,7 @@ import {
 	savePreviewNotes
 } from '$lib/server/services/notes';
 import { getGradedRaceTrend } from '$lib/server/services/graded-races';
+import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { getRaceOdds } from '$lib/server/services/odds';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
@@ -31,7 +32,7 @@ import type { Actions, PageServerLoad } from './$types';
  * 日付と格だけ先に登録され、出馬表はその後に入る（README「出走馬データ」）。
  * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
- * 読みは7クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ / オッズ）。
+ * 読みは8クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ / オッズ / 騎手のまとめ）。
  * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。見立ての上に読むだけで出す。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
  * （D1 は1リクエスト50クエリが上限。architecture.md 7-1）。
@@ -51,24 +52,27 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	// 重賞の傾向を引く鍵。別名で走った年のレースでも、重賞の画面と同じ名前になる。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
 
-	const [thisRaceNotes, history, pastRuns, sameCondition, odds, trend] = await Promise.all([
-		listRaceNotes(db, params.id, user.id),
-		listHistoryForHorses(db, horseIds, params.id, user.id),
-		// 馬柱。このレースより前の出走歴だけを見る。
-		listPastRuns(db, horseIds, race.date),
-		// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
-		surface && distance
-			? listSameConditionRaceNotes(
-					db,
-					{ course: race.course, surface, distance, before: race.date },
-					user.id
-				)
-			: Promise.resolve([]),
-		// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
-		getRaceOdds(db, params.id),
-		// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
-		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null)
-	]);
+	const [thisRaceNotes, history, pastRuns, sameCondition, odds, trend, jockeySummaries] =
+		await Promise.all([
+			listRaceNotes(db, params.id, user.id),
+			listHistoryForHorses(db, horseIds, params.id, user.id),
+			// 馬柱。このレースより前の出走歴だけを見る。
+			listPastRuns(db, horseIds, race.date),
+			// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
+			surface && distance
+				? listSameConditionRaceNotes(
+						db,
+						{ course: race.course, surface, distance, before: race.date },
+						user.id
+					)
+				: Promise.resolve([]),
+			// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
+			getRaceOdds(db, params.id),
+			// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+			gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
+			// 騎手名に hover したときに浮かべる、自分のまとめ（このレースの出走馬の騎手だけ）。
+			listRaceJockeySummaries(db, params.id, user.id)
+		]);
 
 	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
 	const oddsByNumber = new Map(odds?.horses.map((h) => [h.horseNumber, h]) ?? []);
@@ -101,6 +105,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 			sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
 			odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
 			popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
+			jockeySummary: e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null,
 			myPreview: myPreview.get(e.entryId) ?? null,
 			history: history.get(e.horseId) ?? [],
 			pastRuns: pastRuns.get(e.horseId) ?? []

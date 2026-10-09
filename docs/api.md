@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-10-10 — `/races/[id]`・`/races/[id]/preview` の GET が、出走馬の行に本人の騎手のまとめ（`jockeySummary`）も返すようにした。`services/jockeys.ts` に `listRaceJockeySummaries` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-10-09 — `/races/[id]`・`/races/[id]/preview` の GET が、重賞なら本人の重賞の傾向（`gradedTrend`）も返すようにした（→ 第3章）
 - 更新日: 2026-10-07 — `/horses/[id]` の `?/saveProfile` に `birthDate`・`damSire` を足した（→ 第3章）
 - 更新日: 2026-10-03 — オッズの更新を Actions に頼む Cron と、`services/odds.ts` の `listOddsTargetIds` を足した（→ 第3章 / 第5章）
@@ -114,9 +115,9 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 | `/help/webmcp` | GET | — | WebMCPの使い方。ブラウザの対応確認・準備・予想画面での下書き反映と保存。toolsは登録しない | — |
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
 | `/races` | GET | `year`・`grade`（複数）・`q`・`offset` | レース一覧を `offset` 件目から100件と、条件に当たる総数。画面は下端で `offset` を付けてこの `load` を `preloadData` で呼び、続きを足す | 未知の値は捨てる。`offset` が数字でなければ 0 |
-| `/races/[id]` | GET | — | ふりかえり画面。重賞なら自分の重賞の傾向も返す（`gradedTrend: { key, body }`。重賞でない・傾向が無いときは `null`）。**開催前なら `302 /races/[id]/preview`** | 404 |
+| `/races/[id]` | GET | — | ふりかえり画面。重賞なら自分の重賞の傾向も返す（`gradedTrend: { key, body }`。重賞でない・傾向が無いときは `null`）。出走馬の行に自分の騎手のまとめ（`jockeySummary: { body, tags }`。無ければ `null`）。**開催前なら `302 /races/[id]/preview`** | 404 |
 | `/races/[id]` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
-| `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点）。重賞なら自分の重賞の傾向（`gradedTrend`。形は `/races/[id]` と同じ） | 404 |
+| `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点）。重賞なら自分の重賞の傾向（`gradedTrend`。形は `/races/[id]` と同じ）。出走馬の行に自分の騎手のまとめ（`jockeySummary`。形は `/races/[id]` と同じ） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`racePace`・`flowSpots.<局面>`（JSON）・`flowMemo.<局面>`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>`（局面は `start`・`corner4`・`finish`） | 見立て（展開の予想を含む）と予想印を一括保存。盤面の馬はこのレースの出走馬に絞る | 検証 `fail(400)` / 404 |
 | `/horses` | GET | `q`・`offset` | 馬一覧を `offset` 件目から100頭（続きの読み方は `/races` と同じ） | `offset` が数字でなければ 0 |
 | `/horses/[id]` | GET | — | プロフィールとタイムライン・自分の推しか | 404 |
@@ -257,7 +258,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `auth/oauth.ts` | `getClient`・`validateAccessToken`・`listGrants`（`userId` を必須で受け、`user_id = :viewer`）・`verifyPkce`（D1 を読まない） | `registerClient`・`createAuthorizationCode`・`exchangeAuthorizationCode`・`refreshTokens`・`revokeGrant`（`userId` を WHERE に入れる。他人の連携は `false`） |
 | `services/profile.ts` | `getPublicName` | `setPublicName` |
 | `services/favorites.ts` | `isFavoriteHorse`・`listFavoriteHorses`・`listFavoriteRuns` | `setFavoriteHorse` |
-| `services/jockeys.ts` | `listJockeys`・`listJockeyTagsInUse`・`listJockeyRides`・`listJockeyRideNotes`・`jockeyExists`・`getJockeySummary`・`mergeJockeyTimeline`（D1 を読まない組み立て） | `saveJockeySummary` |
+| `services/jockeys.ts` | `listJockeys`・`listJockeyTagsInUse`・`listJockeyRides`・`listJockeyRideNotes`・`jockeyExists`・`getJockeySummary`・`listRaceJockeySummaries`（レースの出走馬の騎手のまとめを1クエリで）・`mergeJockeyTimeline`（D1 を読まない組み立て） | `saveJockeySummary` |
 | `services/graded-races.ts` | `listGradedRacesOfYear`・`listSeriesRaces`（マスタ。`viewerId` は取らない）・`listNotedGradedYears`・`listGradedRaceTrendKeys`・`listSeriesNotes`・`getGradedRaceTrend`（`viewerId` を必須で受ける）・`buildGradedRaceList`・`buildGradedRaceTimeline`・`currentGrade`（D1 を読まない組み立て） | `saveGradedRaceTrend` |
 | `services/race-shares.ts` | `getRaceSummary`・`getOwnRaceShare`・`getSharedRaceSummary`・`listRaceShares` | `publishRaceSummary`・`revokeRaceShare` |
 

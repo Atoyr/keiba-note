@@ -8,6 +8,7 @@ import {
 	listJockeyRides,
 	listJockeys,
 	listJockeyTagsInUse,
+	listRaceJockeySummaries,
 	mergeJockeyTimeline,
 	saveJockeySummary
 } from './jockeys';
@@ -120,6 +121,44 @@ describe('騎手のタイムライン', () => {
 	it('騎乗の無い名前は無い騎手', async () => {
 		expect(await jockeyExists(state.db, 'ヤマダ')).toBe(true);
 		expect(await jockeyExists(state.db, 'タナカ')).toBe(false);
+	});
+});
+
+describe('レースの出走馬の騎手のまとめ', () => {
+	it('そのレースの出走馬の騎手の、自分のまとめだけが返る', async () => {
+		// r2 の騎手はスズキ（e2）とヤマダ（e3）。ヤマダは r1・r3 にも乗るが、Map では1つ。
+		await saveJockeySummary(state.db, 'ヤマダ', { body: '先行して粘る', tags: ['中山巧者'] }, 'a');
+		await saveJockeySummary(state.db, 'スズキ', { body: '', tags: ['穴で怖い'] }, 'a');
+
+		const summaries = await listRaceJockeySummaries(state.db, 'r2', 'a');
+		expect([...summaries]).toEqual(
+			expect.arrayContaining([
+				['ヤマダ', { body: '先行して粘る', tags: ['中山巧者'] }],
+				['スズキ', { body: '', tags: ['穴で怖い'] }]
+			])
+		);
+		expect(summaries.size).toBe(2);
+	});
+
+	it('別のレースにだけ乗る騎手のまとめは返らない', async () => {
+		// r1 の騎手はヤマダ（e1）と、騎手名が無い e6。スズキは r2 にしか乗らない。
+		await saveJockeySummary(state.db, 'スズキ', { body: 'r2 だけ', tags: [] }, 'a');
+		await saveJockeySummary(state.db, 'ヤマダ', { body: 'r1 にも乗る', tags: [] }, 'a');
+
+		const summaries = await listRaceJockeySummaries(state.db, 'r1', 'a');
+		expect([...summaries.keys()]).toEqual(['ヤマダ']);
+	});
+
+	it('他人のまとめは返らない', async () => {
+		await saveJockeySummary(state.db, 'ヤマダ', { body: 'b のまとめ', tags: ['東京巧者'] }, 'b');
+
+		expect((await listRaceJockeySummaries(state.db, 'r2', 'a')).size).toBe(0);
+		expect([...(await listRaceJockeySummaries(state.db, 'r2', 'b')).keys()]).toEqual(['ヤマダ']);
+	});
+
+	it('まとめが無いレースは空の Map', async () => {
+		expect((await listRaceJockeySummaries(state.db, 'r1', 'a')).size).toBe(0);
+		expect((await listRaceJockeySummaries(state.db, 'いないレース', 'a')).size).toBe(0);
 	});
 });
 

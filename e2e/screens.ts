@@ -59,6 +59,18 @@ export type Screen = {
 /** 下端で続きを読む一覧の「続きを読み込む」。 */
 const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み込む' });
 
+/**
+ * 出走馬の行の騎手名に hover して、まとめのツールチップが見えるまで待つ。
+ * スクロールするとツールチップは閉じるので、撮る前の「末尾までスクロール」を先に済ませておき、
+ * 画面の側は `stayAtTop` にする（hover の後でスクロールさせない）。
+ */
+const hoverJockeySummary = async (page: Page) => {
+	await waitForHydration(page);
+	await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+	await page.getByRole('link', { name: JOCKEYS.main }).first().hover();
+	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
+};
+
 export const SCREENS: Screen[] = [
 	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
 	// MCP（Claude・ChatGPT のプラグイン）の登録の案内。
@@ -133,6 +145,14 @@ export const SCREENS: Screen[] = [
 	// 100件を超えるので、下端に「続きを読み込む」が出る。
 	{ name: 'races-all', path: '/races?year=', auth: true, stayAtTop: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
+	{
+		// 騎手名に hover して、自分のまとめ（本文と札）が浮かんだところ。
+		name: 'race-review-jockey-summary',
+		path: `/races/${REVIEW_RACE_ID}`,
+		auth: true,
+		prepare: hoverJockeySummary,
+		stayAtTop: true
+	},
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
@@ -314,6 +334,14 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
+	{
+		// 騎手名に hover して、自分のまとめ（本文と札）が浮かんだところ。
+		name: 'race-preview-jockey-summary',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: hoverJockeySummary,
+		stayAtTop: true
+	},
 	{
 		// スマホではコースを畳んである。開いた状態（広い画面は開いたままなので、そのまま撮る）。
 		name: 'race-preview-course-open',
