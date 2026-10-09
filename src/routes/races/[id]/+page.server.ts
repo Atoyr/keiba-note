@@ -3,8 +3,10 @@ import { resolve as resolveRoute } from '$app/paths';
 import * as v from 'valibot';
 import { raceReviewSchema } from '$lib/schemas/note';
 import { listRaceNotes, saveRaceReview } from '$lib/server/services/notes';
+import { getGradedRaceTrend } from '$lib/server/services/graded-races';
 import { getRace, listEntries } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
 import { ctx } from '$lib/server/util';
@@ -19,7 +21,7 @@ import type { Actions, PageServerLoad } from './$types';
  * ダッシュボードもレース一覧も開催前のレースを普通に並べるので、
  * **入口ごとに塞ぐのではなく、この画面自身が行き先を持つ**。
  *
- * 読みは3クエリ（race / entries+horse / notes+user）。
+ * 読みは3クエリ（race / entries+horse / notes+user）。重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
@@ -38,6 +40,11 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	if (isUpcoming(race.date, todayJst())) {
 		redirect(302, resolveRoute('/races/[id]/preview', { id: params.id }));
 	}
+
+	// 重賞ごとの傾向。書く欄の上に読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+	// 開催前のリダイレクトの後に引く（予想画面へ送るだけのときは要らない）。
+	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
+	const trend = gradedKey ? await getGradedRaceTrend(db, gradedKey, user.id) : null;
 
 	// `listRaceNotes` が返すのは **viewer 自身のメモだけ**（product.md 第2章 2-2）。
 	// 以前あった「他人のメモを読み取り専用で出す」分岐は、返ってこない行を
@@ -64,6 +71,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	return {
 		race,
 		myRacePreview,
+		gradedTrend: gradedKey && trend ? { key: gradedKey, body: trend.body } : null,
 		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
 		rows: entries.map((e) => {
 			const p = myPreviews.get(e.entryId);

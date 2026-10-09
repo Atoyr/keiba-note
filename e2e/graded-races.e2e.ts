@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
-import { GRADED_RACE } from './seed';
+import { GRADED_RACE, REVIEW_RACE_ID, TREND_RACE } from './seed';
 
 const gradedPath = (name: string) => `/graded-races/${encodeURIComponent(name)}`;
 // 傾向の文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
@@ -122,4 +122,50 @@ test('重賞に当たらない名前は 404 で、傾向も書けない', async 
 		form: { body: '書けてはいけない' }
 	});
 	expect(post.status()).toBe(404);
+});
+
+test('重賞の傾向が、予想画面は見立ての上・ふりかえり画面はレースのメモの上に読むだけで出る', async ({
+	page
+}) => {
+	await login(page);
+
+	// 予想画面。
+	await page.goto(`/races/${TREND_RACE.raceId}/preview`);
+	const onPreview = page.getByRole('region', { name: '重賞の傾向' });
+	await expect(onPreview).toContainText(TREND_RACE.trend);
+	await expect(onPreview).toContainText(`${TREND_RACE.key}・毎年共通`);
+	await expect(onPreview.getByRole('link', { name: '重賞の画面で直す' })).toHaveAttribute(
+		'href',
+		gradedPath(TREND_RACE.key)
+	);
+	// 他人の傾向は出ない。
+	await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
+	const previewTrendBox = await onPreview.boundingBox();
+	const outlookBox = await page
+		.getByRole('heading', { name: 'レースの見立て', level: 2 })
+		.boundingBox();
+	expect(previewTrendBox!.y).toBeLessThan(outlookBox!.y);
+
+	// ふりかえり画面。
+	await page.goto(`/races/${TREND_RACE.raceId}`);
+	const onReview = page.getByRole('region', { name: '重賞の傾向' });
+	await expect(onReview).toContainText(TREND_RACE.trend);
+	await expect(onReview).toContainText(`${TREND_RACE.key}・毎年共通`);
+	await expect(onReview.getByRole('link', { name: '重賞の画面で直す' })).toHaveAttribute(
+		'href',
+		gradedPath(TREND_RACE.key)
+	);
+	await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
+	const reviewTrendBox = await onReview.boundingBox();
+	const memoBox = await page.getByRole('heading', { name: 'レースのメモ', level: 2 }).boundingBox();
+	expect(reviewTrendBox!.y).toBeLessThan(memoBox!.y);
+});
+
+test('傾向を書いていない重賞のふりかえり画面には、重賞の傾向の欄が出ない', async ({ page }) => {
+	await login(page);
+	// REVIEW_RACE_ID は G3 だが、誰も傾向を書かない。
+	await page.goto(`/races/${REVIEW_RACE_ID}`);
+
+	await expect(page.getByRole('heading', { name: 'レースのメモ', level: 2 })).toBeVisible();
+	await expect(page.getByRole('region', { name: '重賞の傾向' })).toHaveCount(0);
 });

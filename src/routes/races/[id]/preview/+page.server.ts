@@ -8,9 +8,11 @@ import {
 	listSameConditionRaceNotes,
 	savePreviewNotes
 } from '$lib/server/services/notes';
+import { getGradedRaceTrend } from '$lib/server/services/graded-races';
 import { getRaceOdds } from '$lib/server/services/odds';
 import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { popularityByNumber } from '$lib/utils/odds';
 import { ctx } from '$lib/server/util';
@@ -30,6 +32,7 @@ import type { Actions, PageServerLoad } from './$types';
  * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
  * 読みは7クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ / オッズ）。
+ * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。見立ての上に読むだけで出す。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
  * （D1 は1リクエスト50クエリが上限。architecture.md 7-1）。
  */
@@ -45,7 +48,10 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	const { surface, distance } = race;
 
-	const [thisRaceNotes, history, pastRuns, sameCondition, odds] = await Promise.all([
+	// 重賞の傾向を引く鍵。別名で走った年のレースでも、重賞の画面と同じ名前になる。
+	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
+
+	const [thisRaceNotes, history, pastRuns, sameCondition, odds, trend] = await Promise.all([
 		listRaceNotes(db, params.id, user.id),
 		listHistoryForHorses(db, horseIds, params.id, user.id),
 		// 馬柱。このレースより前の出走歴だけを見る。
@@ -59,7 +65,9 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				)
 			: Promise.resolve([]),
 		// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
-		getRaceOdds(db, params.id)
+		getRaceOdds(db, params.id),
+		// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null)
 	]);
 
 	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
@@ -82,6 +90,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		// 取り下げで出走馬から外れた馬は盤面から落とす。
 		myFlow: restrictFlowTo(myRaceNote?.flow ?? null, new Set(entries.map((e) => e.entryId))),
 		sameCondition,
+		gradedTrend: gradedKey && trend ? { key: gradedKey, body: trend.body } : null,
 		// 開催前はふりかえりへの導線を出さない（開いても戻されるだけなので）。
 		upcoming: isUpcoming(race.date, todayJst()),
 		// 取れた時点。1度も取れていなければ null で、オッズの欄ごと出さない。

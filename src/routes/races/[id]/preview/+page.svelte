@@ -8,6 +8,7 @@
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
 	import RaceFlowEditor from '$lib/components/RaceFlowEditor.svelte';
@@ -269,6 +270,12 @@
 		class="mt-6 outline-none"
 	>
 		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
+
+		<!-- 重賞ごとの傾向。見立てを書く手元に、読むだけで置く（このレースのメモではなく毎年共通のメモ）。
+		     並びはふりかえりと同じ（重賞の傾向 → 見立て → レースのメモ）。 -->
+		{#if data.gradedTrend}
+			<GradedRaceTrend raceKey={data.gradedTrend.key} body={data.gradedTrend.body} class="mb-6" />
+		{/if}
 
 		<!-- レース全体の見立て。**ふりかえりの「レースのメモ」とは別の行**なので、
 		     開催後にふりかえりを書いてもここに書いたものは残る。
