@@ -64,9 +64,12 @@ flowchart TB
 | 角丸 | `rounded-sm` 〜 `rounded-xl`（`--radius` から算出） | — |
 | placeholder | `--placeholder`（`layout.css` の `::placeholder` が全部の input / textarea に当てる。クラスは付けない） | `placeholder:text-muted-foreground` |
 
-`--placeholder` は shadcn に無いアプリ固有のトークン。例文が入力済みに見えないよう、`text-muted-foreground` より薄くしてある。
-コントラストは本文の目安より低いが、placeholder は入力の代わりではなく、ラベルや aria-label が別にある。
+`--placeholder` は shadcn に無いアプリ固有のトークンだが、2-2 と違って**もう足してあり使える**。
+クラスでは使わず `::placeholder` だけが読むので、`@theme inline` には足していない。
 `@layer` の外に置いてあるので、shadcn の `placeholder:text-muted-foreground` より優先される。
+例文が入力済みに見えないよう、`text-muted-foreground`（`oklch(0.556 0 0)`、白地で約4.7:1）より薄い
+`oklch(0.65 0 0)`（白地で約3.2:1）にしてある。文字の目安の 4.5:1 には届かないので、
+placeholder には例文やヒントだけを書き、入力の意味は必ずラベルか aria-label で伝える。3:1 より薄くはしない。
 
 ### 2-2. これから足すもの — アプリ固有のトークン
 
