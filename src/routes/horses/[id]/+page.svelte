@@ -229,6 +229,7 @@
 					name="body"
 					rows="3"
 					required
+					aria-label="近況メモ"
 					placeholder="北海道滞在。追い切りの動き良いとのこと。"
 					class={input}></textarea>
 				<div class="mt-2">

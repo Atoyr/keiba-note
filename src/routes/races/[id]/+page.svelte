@@ -258,8 +258,12 @@
 
 			<h2 class="text-sm font-semibold text-gray-500">レースのメモ</h2>
 			<p class="text-xs text-gray-500">ペース、馬場、展開など「レースの性質」</p>
-			<textarea name="raceNoteBody" rows="3" placeholder="前半緩くて上がり勝負。内有利。" class={ta}
-				>{data.myRaceNote?.body ?? ''}</textarea
+			<textarea
+				name="raceNoteBody"
+				rows="3"
+				aria-label="レースのメモ"
+				placeholder="前半緩くて上がり勝負。内有利。"
+				class={ta}>{data.myRaceNote?.body ?? ''}</textarea
 			>
 		</section>
 
@@ -342,6 +346,7 @@
 							<textarea
 								name="body.{r.entryId}"
 								rows="2"
+								aria-label="{r.horseName}のメモ"
 								placeholder="直線で外に出してから一完歩が速い。"
 								class={ta}>{r.myNote?.body ?? ''}</textarea
 							>
