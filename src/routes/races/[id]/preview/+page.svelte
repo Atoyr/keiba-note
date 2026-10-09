@@ -16,6 +16,7 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
+	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
@@ -24,7 +25,6 @@
 	import { toast } from 'svelte-sonner';
 	import { byMark } from '$lib/utils/answer';
 	import { courseMap } from '$lib/utils/course';
-	import { jockeyParam } from '$lib/utils/jockey';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import {
 		conditionLabel,
@@ -429,12 +429,11 @@
 								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
 								     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
 								{#if r.jockey}
-									<a
-										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
+									<JockeyLink
+										name={r.jockey}
+										summary={r.jockeySummary}
 										class="min-h-6 max-w-full self-start truncate text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-									>
-										{r.jockey}
-									</a>
+									/>
 								{/if}
 								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->

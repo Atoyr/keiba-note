@@ -6,6 +6,7 @@ import {
 	OTHER_USER_PREVIEW_BODY,
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
+	THIS_WEEK_RACES,
 	TIMELINE_RUN_RACES
 } from './seed';
 
@@ -113,6 +114,67 @@ test('予想画面の騎手名から騎手の画面へ行ける', async ({ page 
 
 	await page.getByRole('link', { name: JOCKEYS.main }).first().click();
 	await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();
+});
+
+// 出走馬の行の騎手名に hover・フォーカスすると、自分のまとめを浮かべる。
+for (const [label, path] of [
+	['予想画面', `/races/${PREVIEW_RACE_ID}/preview`],
+	['ふりかえり画面', `/races/${REVIEW_RACE_ID}`]
+] as const) {
+	test(`${label}の騎手名に hover すると、自分のまとめが浮かぶ（他人のまとめは出ない）`, async ({
+		page
+	}) => {
+		await login(page);
+		await gotoHydrated(page, path);
+
+		const link = page.getByRole('link', { name: JOCKEYS.main }).first();
+		await link.hover();
+
+		const tooltip = page.getByRole('tooltip');
+		await expect(tooltip).toContainText(JOCKEYS.mainSummary);
+		await expect(tooltip).toContainText('中山巧者');
+		await expect(page.getByText(JOCKEYS.otherUserSummary)).toHaveCount(0);
+		// リンクのまま（ボタンにはならない）で、開いている間は説明として結ばれる。
+		await expect(link).toHaveAttribute('aria-describedby', /.+/);
+		await expect(link).not.toHaveAttribute('aria-haspopup', /.*/);
+
+		// クリックでの遷移は変わらない。
+		await link.click();
+		await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();
+	});
+}
+
+test('予想画面の騎手名にキーボードでフォーカスしても、まとめが浮かんで Esc で閉じる', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	// 実際に Tab で辿り着く（focus() だけでは focus-visible にならず、ツールチップは開かない）。
+	const link = page.getByRole('link', { name: JOCKEYS.main }).first();
+	for (let i = 0; i < 100; i++) {
+		if (await link.evaluate((el) => el === document.activeElement)) break;
+		await page.keyboard.press('Tab');
+	}
+	await expect(link).toBeFocused();
+
+	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
+	await page.keyboard.press('Escape');
+	await expect(page.getByRole('tooltip')).toHaveCount(0);
+});
+
+test('まとめの無い騎手の名前に hover しても何も浮かばない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${THIS_WEEK_RACES.upcoming.id}/preview`);
+
+	// 同じレースの E2E騎手（まとめあり）には出る。ワカテ騎手には出ない。
+	await page.getByRole('link', { name: JOCKEYS.rookie }).hover();
+	// 浮かぶ遅延（300ms）より長く待つ。
+	await page.waitForTimeout(800);
+	await expect(page.getByRole('tooltip')).toHaveCount(0);
+
+	await page.getByRole('link', { name: JOCKEYS.main }).first().hover();
+	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
 });
 
 test('騎乗の無い騎手は 404 で、まとめも書けない', async ({ page }) => {

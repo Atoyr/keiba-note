@@ -8,6 +8,7 @@
   この決まりを lint でどう止めるか・移行の順番は [harness.md 第3層](./harness.md)、
   見た目の確かめ方は [testing.md 第5章](./testing.md)
 - 作成日: 2026-09-23 — harness.md 第3層の設計から、書くときに要る部分を移した
+- 更新日: 2026-10-10 — `Tooltip`（shadcn）を足し、騎手名にまとめを浮かべる `JockeyLink` を足した（→ 第3章 / 第4章）
 - 更新日: 2026-10-09 — 重賞の傾向を予想画面・ふりかえり画面に読むだけで出す枠（`GradedRaceTrend`）を足した（→ 第4章）
 - 更新日: 2026-10-09 — レースの出走馬の行の性齢を、馬詳細と同じ色付きの札（`SexAgeBadge`）にした。色の表は `utils/horse-chip.ts` に移した（→ 第4章 / 第6章「例外」）
 - 更新日: 2026-10-09 — コース図（`CourseMap`）に、距離からスタートからゴールまでの道すじを黄色で重ねるようにした
@@ -130,7 +131,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
   設定は `components.json`（style `nova`・アイコン `lucide`）
 - **`src/lib/components/ui/` は手で直さない。** 見た目を変えたいときは、トークンを変えるか、
   呼ぶ側で `class` を足すか、③ のドメイン部品で包む
-- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / select / separator / sonner / textarea
+- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / select / separator / sonner / textarea / tooltip
 - **素の `<button>` `<select>` `<textarea>` を新しく書かない。** 押せる大きさやフォーカスの見え方が
   部品ごとに揃わなくなる。shadcn に無い操作が要るときは、まず `shadcn-svelte add` で足せるものが無いかを見る
 - アイコンは `@lucide/svelte/icons/<名前>` を1つずつ import する
@@ -144,6 +145,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | ひとかたまりの情報 | `Card` |
 | 毎回は使わない操作を畳む | `DropdownMenu`（`⋯`）。出しっぱなしにするのは毎回踏む導線だけ |
 | 入力 | `Input` / `Textarea` / `Select` + `Label` |
+| リンクに、読むだけの補足を浮かべる（hover・フォーカス） | `Tooltip`。開いている間だけ trigger に `aria-describedby` が付くので、リンクのまま読ませられる。操作（ボタン・リンク）を中に入れない。操作を入れたいときは別の部品を探す（HoverCard は trigger が `role="button"` になる）。ui の既定は暗い面なので、白い面にしたいときは呼ぶ側で `class` と `arrowClasses` を渡す（`JockeyLink`） |
 | 操作が済んだことを一時的に知らせる（保存しました） | トースト（`toast.success`。`Toaster` はルートレイアウトに1つだけ、下の中央、`theme="light"` 固定、`richColors` なし＝成功の緑の文字が 4.5:1 に届かない）。失敗は画面に残す |
 
 ## 4. ③ ドメイン部品
@@ -162,6 +164,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `HorseProfileHeader` | 馬詳細の頭。名前の上に生年月日（札にしない字）の行、名前の行（性別の札・`heading` スニペットの h1・右端に `actions` スニペットの推しの★）、その下に父・母と母父・所属と調教師の行を出す。★のほかはすべて左寄せ。性別の札は性齢（`牡6`・性だけなら `牡`・馬齢だけなら `6歳`）。牡・父・母父は青、牝と母はピンクなど、性別と所属で色を分ける（色は第6章「例外」）。ラベルは文字で出す |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目で、性別で色を分ける（色は第6章「例外」）。`label` は `sexAgeLabel` の結果で、null なら何も描かない。読み上げには「性齢」を添える |
 | `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
+| `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分のまとめ（本文・札）があれば hover・フォーカスで `Tooltip` に浮かべる（本文は6行で切る）。まとめが無いときは Tooltip で包まないただのリンク。リンクの `class` は呼ぶ画面が渡す |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
 | `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |

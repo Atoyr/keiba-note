@@ -226,6 +226,27 @@ export async function getJockeySummary(
 }
 
 /**
+ * そのレースの出走馬の騎手について、viewer が書いたまとめ。騎手名 → まとめ。1クエリ。
+ *
+ * 予想・ふりかえりの出走馬の行で、騎手名に hover したときに浮かべるためのもの。
+ * **viewer 自身のまとめだけ**（WHERE に `user_id = :viewer`。他人のまとめは返さない）。
+ * **このレースの出走馬の騎手に限る**ので、18頭いても騎手ごとに引かず1クエリで済む。
+ * 同じ騎手が複数頭に乗っていても Map では1つになる。まとめの無い騎手は入らない。
+ */
+export async function listRaceJockeySummaries(
+	db: Db,
+	raceId: string,
+	viewerId: string
+): Promise<Map<string, JockeySummary>> {
+	const rows = await db
+		.selectDistinct({ jockey: jockeyNote.jockey, body: jockeyNote.body, tags: jockeyNote.tags })
+		.from(jockeyNote)
+		.innerJoin(raceEntry, eq(raceEntry.jockey, jockeyNote.jockey))
+		.where(and(eq(raceEntry.raceId, raceId), eq(jockeyNote.userId, viewerId)));
+	return new Map(rows.map((r) => [r.jockey, { body: r.body, tags: r.tags }]));
+}
+
+/**
  * まとめを書く（1人・1騎手につき1本。編集＝上書き）。**本文も札も空なら消す。**
  * 札だけ付けておく（「中山巧者」だけ）のは普通の使い方なので、本文が空でも札があれば残す。
  * 騎手がいるかはルートが先に確かめる。

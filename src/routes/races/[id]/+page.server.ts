@@ -4,6 +4,7 @@ import * as v from 'valibot';
 import { raceReviewSchema } from '$lib/schemas/note';
 import { listRaceNotes, saveRaceReview } from '$lib/server/services/notes';
 import { getGradedRaceTrend } from '$lib/server/services/graded-races';
+import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { getRace, listEntries } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
@@ -21,16 +22,17 @@ import type { Actions, PageServerLoad } from './$types';
  * ダッシュボードもレース一覧も開催前のレースを普通に並べるので、
  * **入口ごとに塞ぐのではなく、この画面自身が行き先を持つ**。
  *
- * 読みは3クエリ（race / entries+horse / notes+user）。重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。
+ * 読みは4クエリ（race / entries+horse / notes+user / 騎手のまとめ）。重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 
-	const [race, entries, notes] = await Promise.all([
+	const [race, entries, notes, jockeySummaries] = await Promise.all([
 		getRace(db, params.id),
 		listEntries(db, params.id),
-		listRaceNotes(db, params.id, user.id)
+		listRaceNotes(db, params.id, user.id),
+		listRaceJockeySummaries(db, params.id, user.id)
 	]);
 
 	if (!race) error(404, 'レースが見つかりません');
@@ -79,6 +81,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				...e,
 				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
 				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
+				// 騎手名に hover したときに浮かべる、自分のまとめ。無ければ null。
+				jockeySummary: e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null,
 				myNote: myEntryNotes.get(e.entryId) ?? null,
 				myPreview: p ? { mark: p.mark, body: p.body, tags: p.tags } : null
 			};

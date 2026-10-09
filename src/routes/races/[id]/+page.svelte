@@ -9,6 +9,7 @@
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
+	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import RaceLaps from '$lib/components/RaceLaps.svelte';
 	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
@@ -22,7 +23,6 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
-	import { jockeyParam } from '$lib/utils/jockey';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
@@ -298,11 +298,11 @@
 								</span>
 								<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
 								{#if r.jockey}
-									<a
-										href={resolve('/jockeys/[name]', { name: jockeyParam(r.jockey) })}
+									<JockeyLink
+										name={r.jockey}
+										summary={r.jockeySummary}
 										class="inline-flex min-h-6 items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
-										>{r.jockey}</a
-									>
+									/>
 								{/if}
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span
 									>{/if}
