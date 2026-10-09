@@ -28,7 +28,8 @@ import {
 	SHARED_RACE_ID,
 	MCP_CLIENT,
 	MCP_METADATA_CLIENT,
-	TOGGLE_FAVORITE_HORSE_ID
+	TOGGLE_FAVORITE_HORSE_ID,
+	TREND_RACE
 } from './seed';
 
 /**
@@ -539,6 +540,9 @@ export const SCREENS: Screen[] = [
 			await page.getByText('＋ 傾向を書く').click();
 		}
 	},
+	// 傾向を書いた重賞のレース。予想画面は見立ての上、ふりかえり画面はレースのメモの上に、重賞の傾向が出る。
+	{ name: 'race-preview-graded-trend', path: `/races/${TREND_RACE.raceId}/preview`, auth: true },
+	{ name: 'race-review-graded-trend', path: `/races/${TREND_RACE.raceId}`, auth: true },
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
 	{

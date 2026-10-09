@@ -415,3 +415,14 @@ export const GRADED_RACE = {
 	/** 1頭ごとのメモの本文。年ごとのメモには出さない。 */
 	horseNoteBody: 'E2E重賞の1頭ごとのメモ。出してはいけない。'
 } as const;
+
+/**
+ * 一般ユーザーが傾向を書いた重賞（去年の毎日王冠。seed.sql）。予想画面・ふりかえり画面に傾向が出る。
+ * 別のユーザーも同じ重賞に傾向を書いている（出てはいけない）。
+ */
+export const TREND_RACE = {
+	key: '毎日王冠',
+	raceId: '01JE2ERACEGRADEDTREND00000',
+	trend: 'E2E重賞の傾向。天皇賞の前哨戦で、前走で好走した馬が人気でも崩れにくい。',
+	otherUserTrend: '他人の毎日王冠の傾向。見えてはいけない。'
+} as const;

@@ -8,6 +8,7 @@
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
+	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import RaceLaps from '$lib/components/RaceLaps.svelte';
 	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
@@ -217,6 +218,10 @@
 		class="mt-8 outline-none"
 	>
 		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
+		<!-- 重賞ごとの傾向。**読むだけ。** 「レースのメモ」の上に置く。毎年共通のメモで、このレースのメモではない。 -->
+		{#if data.gradedTrend}
+			<GradedRaceTrend raceKey={data.gradedTrend.key} body={data.gradedTrend.body} class="mb-4" />
+		{/if}
 		<section>
 			<!-- 開催前に書いた見立てを上に置く。**読むだけ。** 結果を見たあとで
 			     書き換えられると、事前と事後を別の行にした意味が無くなる。
