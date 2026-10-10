@@ -115,7 +115,9 @@ function parseTarget(args: Args): { date: string; course: Course; raceNumber: nu
 
 async function resolveRaceId(
 	args: Args,
-	t: { date: string; course: Course; raceNumber: number }
+	t: { date: string; course: Course; raceNumber: number },
+	/** race_id をどこから取ったか。突き合わせで止めるときの文言を分ける。 */
+	from: 'arg' | 'yaml-ref' = 'arg'
 ): Promise<string> {
 	if (args.raceId) {
 		// race_id には年・場・R が入っている。打ち間違えると別レースの馬が入り、
@@ -128,8 +130,12 @@ async function resolveRaceId(
 			Number(id.slice(10, 12)) === t.raceNumber;
 		if (!matches) {
 			fail(
-				`--race-id ${id} は ${t.date.slice(0, 4)}年 ${t.course}${t.raceNumber}R のものではありません` +
-					`（race_id は 年4桁・場2桁・回2桁・日2桁・R2桁）。`
+				`${from === 'arg' ? '--race-id' : 'YAML のレースの ref の race_id'} ${id} は ` +
+					`${t.date.slice(0, 4)}年 ${t.course}${t.raceNumber}R のものではありません` +
+					`（race_id は 年4桁・場2桁・回2桁・日2桁・R2桁）。` +
+					(from === 'yaml-ref'
+						? 'YAML の ref を直すか、--race-id で正しい race_id を渡してください。'
+						: '')
 			);
 		}
 		return id;
@@ -354,7 +360,9 @@ async function main() {
 			// entries が書いた YAML の ref があれば、一覧（当週ぶんしか出ない）を引かずにそれを使う。
 			// --race-id の明示が先。年・場・R の突き合わせは resolveRaceId が同じようにする
 			const refId = args.raceId ? null : raceIdFromRef(race.get('ref'));
-			const raceId = await resolveRaceId(refId ? { ...args, raceId: refId } : args, t);
+			const raceId = refId
+				? await resolveRaceId({ ...args, raceId: refId }, t, 'yaml-ref')
+				: await resolveRaceId(args, t);
 			const parsed = parseResult(await fetchPage(urls.result(raceId)));
 			assertSameDate(parsed.meta, t, raceId);
 			if (parsed.rows.length === 0) {

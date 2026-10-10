@@ -39,7 +39,7 @@ on:
         type: string
         required: true
       race_id:
-        description: 'netkeiba の race_id（12桁）。分かっていれば。無ければ当週のレース一覧から引く'
+        description: 'netkeiba の race_id（12桁）。分かっていれば。無ければ当週のレース一覧から引く（result は空でよい。YAML のレースの ref を使う）'
         type: string
         required: false
         default: ''
