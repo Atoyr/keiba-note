@@ -20,7 +20,6 @@
 	import SexAgeBadge from '$lib/components/SexAgeBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
 	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
@@ -44,6 +43,25 @@
 
 	const meeting = $derived(raceMeeting(data.race));
 	const spec = $derived(raceSpec(data.race));
+
+	// 見出しの `⋯` メニューの項目。並びは予想画面の見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
+	const links = $derived([
+		{ href: resolve('/races/[id]/summary', { id: data.race.id }), label: '予想をまとめて見る' },
+		...(isGraded(data.race.grade) && data.race.name
+			? [
+					{
+						href: resolve('/graded-races/[name]', {
+							name: gradedRaceParam(gradedRaceKey(data.race.name))
+						}),
+						label: '重賞のタイムライン'
+					}
+				]
+			: []),
+		{ href: resolve('/races/[id]/preview', { id: data.race.id }), label: '予想（過去メモを見る）' },
+		...(admin
+			? [{ href: resolve('/races/[id]/entries', { id: data.race.id }), label: '出走馬を編集' }]
+			: [])
+	]);
 
 	// 予想で付けた印と着順の突き合わせ。印の順（◎ → ×）に並べ直す。
 	const answers = $derived(
@@ -85,36 +103,7 @@
 <svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-6 py-8">
-	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} {spec} />
-	<!-- 灰色の文字だけだと押せると気づかれないので、予想画面の見出しと同じ小さいボタンにする。 -->
-	<div class="mt-2 flex flex-wrap gap-2">
-		<Button href={resolve('/races/[id]/summary', { id: data.race.id })} variant="outline" size="sm"
-			>予想をまとめて見る</Button
-		>
-		{#if isGraded(data.race.grade) && data.race.name}
-			<Button
-				href={resolve('/graded-races/[name]', {
-					name: gradedRaceParam(gradedRaceKey(data.race.name))
-				})}
-				variant="outline"
-				size="sm"
-			>
-				重賞のタイムライン
-			</Button>
-		{/if}
-		<Button href={resolve('/races/[id]/preview', { id: data.race.id })} variant="outline" size="sm">
-			予想（過去メモを見る）
-		</Button>
-		{#if admin}
-			<Button
-				href={resolve('/races/[id]/entries', { id: data.race.id })}
-				variant="outline"
-				size="sm"
-			>
-				出走馬を編集
-			</Button>
-		{/if}
-	</div>
+	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} {spec} {links} />
 
 	<!-- 保存に失敗したときの文は、JS があれば保存ボタンの横に出す（SaveBar）。ここは JS が無いときだけ。 -->
 	{#if form && 'message' in form && form.message}

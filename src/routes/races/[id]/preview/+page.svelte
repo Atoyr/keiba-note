@@ -62,6 +62,28 @@
 	// 頭数は予想で見比べるときに使うので、出走馬がいるときだけ末尾に足す。
 	const spec = $derived(raceSpec(data.race, data.rows.length > 0 ? [`${data.rows.length}頭`] : []));
 
+	// 見出しの `⋯` メニューの項目。並びはふりかえりの見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
+	// 開催前は、ふりかえりが書けない（開いても戻される）ので導線も出さない。
+	const links = $derived([
+		{ href: resolve('/races/[id]/summary', { id: data.race.id }), label: '予想をまとめて見る' },
+		...(isGraded(data.race.grade) && data.race.name
+			? [
+					{
+						href: resolve('/graded-races/[name]', {
+							name: gradedRaceParam(gradedRaceKey(data.race.name))
+						}),
+						label: '重賞のタイムライン'
+					}
+				]
+			: []),
+		...(!data.upcoming
+			? [{ href: resolve('/races/[id]', { id: data.race.id }), label: 'ふりかえりを書く' }]
+			: []),
+		...(admin
+			? [{ href: resolve('/races/[id]/entries', { id: data.race.id }), label: '出走馬を編集' }]
+			: [])
+	]);
+
 	/** 展開している馬。1頭ずつ開く。 */
 	let open = $state<string | null>(null);
 
@@ -131,39 +153,8 @@
 		name={data.race.name}
 		grade={data.race.grade}
 		{spec}
+		{links}
 	/>
-	<!-- 並びはふりかえりの見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
-	     開催前は、ふりかえりが書けない（開いても戻される）ので導線も出さない。 -->
-	<div class="mt-2 flex flex-wrap gap-2">
-		<Button href={resolve('/races/[id]/summary', { id: data.race.id })} variant="outline" size="sm"
-			>予想をまとめて見る</Button
-		>
-		{#if isGraded(data.race.grade) && data.race.name}
-			<Button
-				href={resolve('/graded-races/[name]', {
-					name: gradedRaceParam(gradedRaceKey(data.race.name))
-				})}
-				variant="outline"
-				size="sm"
-			>
-				重賞のタイムライン
-			</Button>
-		{/if}
-		{#if !data.upcoming}
-			<Button href={resolve('/races/[id]', { id: data.race.id })} variant="outline" size="sm">
-				ふりかえりを書く
-			</Button>
-		{/if}
-		{#if admin}
-			<Button
-				href={resolve('/races/[id]/entries', { id: data.race.id })}
-				variant="outline"
-				size="sm"
-			>
-				出走馬を編集
-			</Button>
-		{/if}
-	</div>
 
 	<!-- 見出しのすぐ下に、付けた印とコースを並べる。広い画面では左に印・右にコース、
 	     スマホでは縦に積み、コースは畳んでおく（CourseMap）。片方しか無ければ全幅にする。

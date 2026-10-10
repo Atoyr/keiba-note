@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
+import { raceMenuItem } from './race-menu';
 import {
 	MARKS_RACE_ID,
 	PREVIEW_RACE_ID,
@@ -67,7 +68,7 @@ test('AI下書きは部分更新・未保存になり、人間のまとめて保
 		expect(dialog.type()).toBe('confirm');
 		await dialog.dismiss();
 	});
-	await page.getByRole('link', { name: '予想をまとめて見る' }).click();
+	await (await raceMenuItem(page, '予想をまとめて見る')).click();
 	await warning;
 	await expect(page).toHaveURL(new RegExp(`${WEBMCP_RACE_ID}/preview$`));
 	// 再読み込み後も下書きを復元でき、保存前の本文・札・展開が失われない。
@@ -176,7 +177,7 @@ test('SPAの別レース移動で登録を交換し、予想画面を離れる�
 				.execute({ entries: [] })
 		)
 	).toMatchObject({ status: 'rejected', reason: 'inactive_page' });
-	await page.getByRole('link', { name: '予想をまとめて見る' }).click();
+	await (await raceMenuItem(page, '予想をまとめて見る')).click();
 	await expect.poll(() => page.evaluate(() => window.__predictionTools.size)).toBe(0);
 });
 

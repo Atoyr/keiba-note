@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { failNextAction } from './action-failure';
 import { login } from './login';
+import { raceMenuItem } from './race-menu';
 import { MARKS_RACE_ID, SHARED_NOTE_ID, SHARED_RACE_ID, SUMMARY_RACE_ID } from './seed';
 
 const summaryPath = `/races/${SUMMARY_RACE_ID}/summary`;
@@ -70,7 +71,7 @@ test('予想をまとめ、公開名で共有・更新・解除できる。本�
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${SUMMARY_RACE_ID}/preview`);
-	await page.getByRole('link', { name: '予想をまとめて見る' }).click();
+	await (await raceMenuItem(page, '予想をまとめて見る')).click();
 	await expect(page.getByText('まとめ用の見立て。前半はゆっくり。')).toBeVisible();
 	await expect(page.getByText('まとめ用のメモ。内枠を評価。')).toBeVisible();
 	await expect(page.getByTitle('予想印 ◎')).toBeVisible();

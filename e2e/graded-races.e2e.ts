@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import { gotoHydrated } from './hydration';
+import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
+import { raceMenuItem } from './race-menu';
 import { GRADED_RACE, REVIEW_RACE_ID, TREND_RACE } from './seed';
 
 const gradedPath = (name: string) => `/graded-races/${encodeURIComponent(name)}`;
@@ -92,13 +93,25 @@ test('傾向を書いて保存でき、空にして保存すると消える', as
 
 test('予想画面とふりかえり画面から重賞のタイムラインへ行ける', async ({ page }) => {
 	await login(page);
+	// ふりかえり画面: レース名（見出し）を押してメニューを開く。
 	await page.goto(`/races/${GRADED_RACE.lastYearRaceId}`);
-
-	await page.getByRole('link', { name: '重賞のタイムライン' }).click();
+	await waitForHydration(page);
+	const title = page.getByRole('heading', { level: 1 }).getByRole('button');
+	await title.click();
+	await expect(page.getByRole('menu')).toBeVisible();
+	// もう一度押すと閉じる（開いている間は body が pointer-events: none なので、座標で押す）。
+	const box = (await title.boundingBox())!;
+	await page.mouse.click(box.x + 4, box.y + box.height / 2);
+	await expect(page.getByRole('menu')).toHaveCount(0);
+	await expect(title).toHaveAttribute('aria-expanded', 'false');
+	await title.click();
+	await expect(page.getByRole('menu')).toBeVisible();
+	await page.getByRole('menuitem', { name: '重賞のタイムライン' }).click();
 	await expect(page).toHaveURL(gradedPath(GRADED_RACE.key));
 
+	// 予想画面: 右端の ⋯ から。
 	await page.goto(`/races/${GRADED_RACE.thisYearRaceId}/preview`);
-	await expect(page.getByRole('link', { name: '重賞のタイムライン' })).toHaveAttribute(
+	await expect(await raceMenuItem(page, '重賞のタイムライン')).toHaveAttribute(
 		'href',
 		gradedPath(GRADED_RACE.key)
 	);
