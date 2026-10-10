@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-svelte';
 import JockeyLink from './JockeyLink.svelte';
@@ -80,5 +80,60 @@ describe('JockeyLink', () => {
 		await expect.element(tooltip()).toHaveTextContent('芝巧者');
 		// 本文の段落は作らない。
 		expect(document.querySelector('[role="tooltip"] p')).toBeNull();
+	});
+
+	describe('hover できない端末（(hover: none)）', () => {
+		// MediaQuery は matchMedia を読み、change の購読に addEventListener を呼ぶ。
+		const noHover = () => {
+			const original = window.matchMedia.bind(window);
+			vi.spyOn(window, 'matchMedia').mockImplementation((query: string) =>
+				query === '(hover: none)'
+					? ({
+							matches: true,
+							media: query,
+							addEventListener: () => {},
+							removeEventListener: () => {}
+						} as unknown as MediaQueryList)
+					: original(query)
+			);
+		};
+		afterEach(() => vi.restoreAllMocks());
+
+		it('まとめがあれば名前は button で、押すと本文と札と騎手の画面へのリンクが開き、Esc で閉じる', async () => {
+			noHover();
+			const screen = render(JockeyLink, {
+				name: 'ヤマダ/タロウ',
+				summary: { body: '中山の内回りは前に行く。', tags: ['穴で怖い', '中山巧者'] }
+			});
+
+			const trigger = screen.getByRole('button', { name: 'ヤマダ/タロウ' });
+			await expect.element(trigger).toBeInTheDocument();
+			await expect.element(screen.getByRole('link')).not.toBeInTheDocument();
+			expect(page.getByRole('dialog').elements()).toHaveLength(0);
+
+			await trigger.click();
+
+			const dialog = page.getByRole('dialog');
+			await expect.element(dialog).toBeVisible();
+			await expect.element(dialog).toHaveTextContent('中山の内回りは前に行く。');
+			await expect.element(dialog).toHaveTextContent('中山巧者');
+			await expect.element(dialog).toHaveTextContent('穴で怖い');
+			await expect
+				.element(dialog.getByRole('link', { name: '騎手の画面へ' }))
+				.toHaveAttribute('href', `/jockeys/${encodeURIComponent('ヤマダ/タロウ')}`);
+
+			await userEvent.keyboard('{Escape}');
+			await expect.element(page.getByRole('dialog')).not.toBeInTheDocument();
+		});
+
+		it('まとめが無ければ今までどおりのリンク', async () => {
+			noHover();
+			const screen = render(JockeyLink, { name: 'ヤマダ', summary: null });
+
+			await expect
+				.element(screen.getByRole('link', { name: 'ヤマダ' }))
+				.toHaveAttribute('href', `/jockeys/${encodeURIComponent('ヤマダ')}`);
+			expect(screen.getByRole('button').elements()).toHaveLength(0);
+		});
 	});
 });
