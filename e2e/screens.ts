@@ -54,6 +54,11 @@ export type Screen = {
 	 * スクロールすると撮っている間に行が増え、撮るたびに違う画像になる。
 	 */
 	stayAtTop?: boolean;
+	/**
+	 * タッチの端末として開く（`hasTouch`。Chromium では `(hover: none)` になる）。
+	 * hover できない端末だけのふるまい（タップで開く Popover など）を撮るとき。
+	 */
+	touch?: boolean;
 };
 
 /** 下端で続きを読む一覧の「続きを読み込む」。 */
@@ -69,6 +74,21 @@ const hoverJockeySummary = async (page: Page) => {
 	await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
 	await page.getByRole('link', { name: JOCKEYS.main }).first().hover();
 	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
+};
+
+/**
+ * hover できない端末（スマホ・タブレット）で、騎手名をタップしてまとめの Popover を開く。
+ * 騎手名はまとめがあれば button になる（hover の Tooltip はタッチでは開かない）。画面の側は `touch` にする。
+ * 全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、先に表示域をページの高さまで伸ばしてから開く
+ * （伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
+ */
+const tapJockeySummary = async (page: Page) => {
+	await waitForHydration(page);
+	const { width } = page.viewportSize()!;
+	const height = await page.evaluate(() => document.documentElement.scrollHeight);
+	await page.setViewportSize({ width, height });
+	await page.getByRole('button', { name: JOCKEYS.main }).first().tap();
+	await expect(page.getByRole('dialog')).toContainText(JOCKEYS.mainSummary);
 };
 
 export const SCREENS: Screen[] = [
@@ -341,6 +361,15 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: hoverJockeySummary,
 		stayAtTop: true
+	},
+	{
+		// hover できない端末で、騎手名をタップしてまとめが開いたところ。
+		name: 'race-preview-jockey-summary-tap',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: tapJockeySummary,
+		stayAtTop: true,
+		touch: true
 	},
 	{
 		// スマホではコースを畳んである。開いた状態（広い画面は開いたままなので、そのまま撮る）。

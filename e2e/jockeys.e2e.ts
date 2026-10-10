@@ -177,6 +177,38 @@ test('まとめの無い騎手の名前に hover しても何も浮かばない'
 	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
 });
 
+// hover できない端末（スマホ・タブレット）。Chromium は hasTouch で `(hover: none)` になる。
+// まとめのある騎手名は button になり、タップで Popover を開く。騎手の画面へは中のリンクで行く。
+test.describe('hover できない端末', () => {
+	test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+
+	test('予想画面の騎手名をタップすると、自分のまとめが開き、中のリンクから騎手の画面へ行ける', async ({
+		page
+	}) => {
+		await login(page);
+		await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+		await page.getByRole('button', { name: JOCKEYS.main }).first().tap();
+
+		const dialog = page.getByRole('dialog');
+		await expect(dialog).toContainText(JOCKEYS.mainSummary);
+		await expect(dialog).toContainText('中山巧者');
+		await expect(page.getByText(JOCKEYS.otherUserSummary)).toHaveCount(0);
+
+		await dialog.getByRole('link', { name: '騎手の画面へ' }).tap();
+		await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();
+	});
+
+	test('まとめの無い騎手はリンクのままで、タップで騎手の画面へ行く', async ({ page }) => {
+		await login(page);
+		await gotoHydrated(page, `/races/${THIS_WEEK_RACES.upcoming.id}/preview`);
+
+		await expect(page.getByRole('button', { name: JOCKEYS.rookie })).toHaveCount(0);
+		await page.getByRole('link', { name: JOCKEYS.rookie }).tap();
+		await expect(page.getByRole('heading', { name: JOCKEYS.rookie, level: 1 })).toBeVisible();
+	});
+});
+
 test('騎乗の無い騎手は 404 で、まとめも書けない', async ({ page }) => {
 	await login(page);
 	const path = jockeyPath('いない騎手');

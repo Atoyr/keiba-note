@@ -67,57 +67,66 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 		test.use({ viewport });
 
 		for (const screen of SCREENS) {
-			test(`画面 ${screen.name} (${viewportName})`, async ({ page, browser }) => {
-				const errors: string[] = [];
-				page.on('pageerror', (e) => errors.push(e.message));
-				page.on('console', (m) => {
-					if (m.type() === 'error') errors.push(m.text());
-				});
+			// 名前の無い describe はテストの名前を変えない。タッチの端末として開く画面だけ、ここで context を替える。
+			test.describe(() => {
+				if (screen.touch) test.use({ hasTouch: true });
 
-				if (screen.auth) await login(page, screen.as);
-				const res = await page.goto(screen.path);
+				test(`画面 ${screen.name} (${viewportName})`, async ({ page, browser }) => {
+					const errors: string[] = [];
+					page.on('pageerror', (e) => errors.push(e.message));
+					page.on('console', (m) => {
+						if (m.type() === 'error') errors.push(m.text());
+					});
 
-				expect(res?.status(), `${screen.path} の応答`).toBeLessThan(400);
-				await expect(page).not.toHaveURL(/\/login\?/);
+					if (screen.auth) await login(page, screen.as);
+					const res = await page.goto(screen.path);
 
-				await screen.prepare?.(page);
-				// ハイドレーションとフォント待ち。撮った画像が読み込み途中にならないように。
-				await page.waitForLoadState('networkidle');
-				await page.evaluate(() => document.fonts.ready);
+					expect(res?.status(), `${screen.path} の応答`).toBeLessThan(400);
+					await expect(page).not.toHaveURL(/\/login\?/);
 
-				if (viewportName === 'mobile') {
-					const overflow = await page.evaluate(
-						() => document.documentElement.scrollWidth - window.innerWidth
-					);
-					expect(overflow, 'mobile で横にはみ出している（px）').toBeLessThanOrEqual(0);
-				}
+					await screen.prepare?.(page);
+					// ハイドレーションとフォント待ち。撮った画像が読み込み途中にならないように。
+					await page.waitForLoadState('networkidle');
+					await page.evaluate(() => document.fonts.ready);
 
-				// 末尾までスクロールしてから撮る。ふりかえり・予想画面の保存ボタンは
-				// `sticky bottom-0` で、先頭にいるまま全体を撮ると**いまの表示位置**
-				// （1画面ぶん下）に描かれ、その下の出走馬の行を覆い隠す。末尾にいれば
-				// 本来の置き場（フォームの最後）に収まる。
-				if (!screen.stayAtTop) {
-					await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-				}
-
-				const file = `${screen.name}.${viewportName}.png`;
-				mkdirSync(OUT, { recursive: true });
-				const shot = await page.screenshot({
-					path: join(OUT, file),
-					fullPage: true,
-					animations: 'disabled',
-					caret: 'hide'
-				});
-
-				expect(errors, '実行時エラー').toEqual([]);
-
-				if (BEFORE && existsSync(join(BEFORE, file))) {
-					const changed = await countChangedPixels(browser, readFileSync(join(BEFORE, file)), shot);
-					if (changed === 0) {
-						rmSync(join(BEFORE, file));
-						rmSync(join(OUT, file));
+					if (viewportName === 'mobile') {
+						const overflow = await page.evaluate(
+							() => document.documentElement.scrollWidth - window.innerWidth
+						);
+						expect(overflow, 'mobile で横にはみ出している（px）').toBeLessThanOrEqual(0);
 					}
-				}
+
+					// 末尾までスクロールしてから撮る。ふりかえり・予想画面の保存ボタンは
+					// `sticky bottom-0` で、先頭にいるまま全体を撮ると**いまの表示位置**
+					// （1画面ぶん下）に描かれ、その下の出走馬の行を覆い隠す。末尾にいれば
+					// 本来の置き場（フォームの最後）に収まる。
+					if (!screen.stayAtTop) {
+						await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+					}
+
+					const file = `${screen.name}.${viewportName}.png`;
+					mkdirSync(OUT, { recursive: true });
+					const shot = await page.screenshot({
+						path: join(OUT, file),
+						fullPage: true,
+						animations: 'disabled',
+						caret: 'hide'
+					});
+
+					expect(errors, '実行時エラー').toEqual([]);
+
+					if (BEFORE && existsSync(join(BEFORE, file))) {
+						const changed = await countChangedPixels(
+							browser,
+							readFileSync(join(BEFORE, file)),
+							shot
+						);
+						if (changed === 0) {
+							rmSync(join(BEFORE, file));
+							rmSync(join(OUT, file));
+						}
+					}
+				});
 			});
 		}
 	});
