@@ -168,6 +168,36 @@ describe('RaceHeading', () => {
 			await expect.poll(() => document.activeElement).toBe(title);
 		});
 
+		it('タイトルに Enter で開くと、矢印キーで項目へ移れる', async () => {
+			render(RaceHeading, { ...base, links: LINKS });
+			const title = titleButton()!;
+
+			title.focus();
+			await userEvent.keyboard('{Enter}');
+			await expect.poll(() => items().length).toBe(LINKS.length);
+
+			await userEvent.keyboard('{ArrowDown}');
+			await expect.poll(() => document.activeElement?.getAttribute('role')).toBe('menuitem');
+		});
+
+		it('レース名は選べて、選んだ終わりの click ではメニューを開かない', async () => {
+			render(RaceHeading, { ...base, links: LINKS });
+			const title = titleButton()!;
+			expect(getComputedStyle(title).userSelect).not.toBe('none');
+
+			const nameSpan = title.querySelectorAll('span')[1];
+			window.getSelection()!.selectAllChildren(nameSpan);
+			title.click();
+			// 開くなら同じ tick のうちに aria-expanded が変わる。少し待っても閉じたまま。
+			await new Promise((r) => setTimeout(r, 50));
+			expect(menu()).toBeNull();
+			expect(title.getAttribute('aria-expanded')).toBe('false');
+
+			window.getSelection()!.removeAllRanges();
+			title.click();
+			await expect.poll(() => items().length).toBe(LINKS.length);
+		});
+
 		it('⋯ から開いて Esc で閉じると、フォーカスが ⋯ に戻る', async () => {
 			render(RaceHeading, { ...base, links: LINKS });
 			const button = menuButton()!;

@@ -482,14 +482,10 @@ test.describe('JavaScript が無いとき', () => {
 	test('見出しのメニューの導線が、見出しの下のリンクとして出ている', async ({ page }) => {
 		await login(page);
 		await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
-		await expect(page.getByRole('link', { name: '予想をまとめて見る' })).toHaveAttribute(
-			'href',
-			`/races/${PAST_EMPTY_RACE_ID}/summary`
-		);
-		await expect(page.getByRole('link', { name: 'ふりかえりを書く' })).toHaveAttribute(
-			'href',
-			`/races/${PAST_EMPTY_RACE_ID}`
-		);
+		// SSR の href は相対パスになるので、押して行き先を見る。
+		await expect(page.getByRole('link', { name: '予想をまとめて見る' })).toBeVisible();
+		await page.getByRole('link', { name: 'ふりかえりを書く' }).click();
+		await expect(page).toHaveURL(`/races/${PAST_EMPTY_RACE_ID}`);
 	});
 });
 

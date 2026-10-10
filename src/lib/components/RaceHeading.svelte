@@ -46,6 +46,9 @@
 	let openedFromTitle = false;
 
 	function toggleFromTitle() {
+		// レース名をドラッグで選んだ終わりの click では開かない（コピーしたいだけなので）。
+		const sel = window.getSelection();
+		if (sel && !sel.isCollapsed && titleEl?.contains(sel.anchorNode)) return;
 		if (!open) openedFromTitle = true;
 		open = !open;
 	}
@@ -81,7 +84,8 @@
 		<div class="flex items-start gap-2">
 			<DropdownMenu.Root bind:open onOpenChange={(o) => o && (openedFromTitle = false)}>
 				<div class="min-w-0 flex-1">
-					<!-- 見た目は links が無いときの h1 のまま（Button の高さ・余白・字を打ち消す）。 -->
+					<!-- 見た目は links が無いときの h1 のまま（Button の高さ・余白・字を打ち消す）。
+					     select-text: Button の select-none を戻し、レース名を選んでコピーできるようにする。 -->
 					<h1>
 						<Button
 							bind:ref={titleEl}
@@ -89,7 +93,7 @@
 							aria-haspopup="menu"
 							aria-expanded={open}
 							onclick={toggleFromTitle}
-							class="h-auto w-full min-w-0 items-baseline justify-start gap-2 border-0 p-0 text-left text-lg font-bold tracking-tight hover:bg-transparent hover:underline aria-expanded:bg-transparent sm:text-xl dark:hover:bg-transparent"
+							class="h-auto w-full min-w-0 items-baseline justify-start gap-2 border-0 p-0 text-left text-lg font-bold tracking-tight select-text hover:bg-transparent hover:underline aria-expanded:bg-transparent sm:text-xl dark:hover:bg-transparent"
 						>
 							{@render titleText()}
 						</Button>
