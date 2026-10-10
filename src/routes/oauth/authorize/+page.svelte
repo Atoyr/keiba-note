@@ -64,8 +64,12 @@
 					{/each}
 				</ul>
 				<p class="mt-3 text-sm text-muted-foreground">
-					{#if data.scopes.includes('notes:write')}
+					{#if data.scopes.includes('notes:write') && data.scopes.includes('reviews:write')}
+						書き込めるのは予想（見立て・印・札・出走前メモ）とふりかえり（レースのメモ・各馬のメモと札）だけです。近況メモの書き込みと、メモの共有、予想とふりかえり以外のメモの削除はできません。
+					{:else if data.scopes.includes('notes:write')}
 						書き込めるのは予想（見立て・印・札・出走前メモ）だけです。ふりかえり・近況メモの書き込みと、メモの共有、予想以外のメモの削除はできません。
+					{:else if data.scopes.includes('reviews:write')}
+						書き込めるのはふりかえり（レースのメモ・各馬のメモと札）だけです。予想・近況メモの書き込みと、メモの共有、ふりかえり以外のメモの削除はできません。
 					{:else}
 						読むことだけができます。メモの書き込み・共有・削除はできません。
 					{/if}

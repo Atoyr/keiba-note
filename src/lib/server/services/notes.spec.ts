@@ -85,6 +85,26 @@ describe('saveRaceReview', () => {
 		expect(ops).toEqual([{ kind: 'delete' }, { kind: 'delete' }]);
 		expect(result).toEqual({ saved: 0, cleared: 2 });
 	});
+
+	it('raceNote を渡さなければ、レースのメモに触らず出走馬のメモだけを書く', async () => {
+		const { db, ops } = fakeDb();
+
+		const result = await saveRaceReview(
+			db,
+			{ raceId: 'r1', entries: [entry({ body: '直線で詰まった' }), { ...entry(), entryId: 'e2' }] },
+			'u1',
+			'2026-09-27'
+		);
+
+		expect(ops).toEqual([
+			{
+				kind: 'insert',
+				values: expect.objectContaining({ kind: 'entry', body: '直線で詰まった' })
+			},
+			{ kind: 'delete' }
+		]);
+		expect(result).toEqual({ saved: 1, cleared: 1 });
+	});
 });
 
 describe('savePreviewNotes', () => {

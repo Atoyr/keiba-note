@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request, locals, platform, url }) =
 	const scopes = locals.oauthScopes;
 	if (!scopes) error(401, 'アクセストークンが必要です');
 
-	// 予想を書く tool は見立てと出走馬ぶんの本文を運ぶので、OAuth の口（8 KiB）より大きく取る。
+	// 予想やふりかえりを書く tool はレースのメモと出走馬ぶんの本文を運ぶので、OAuth の口（8 KiB）より大きく取る。
 	// それでも読みながら数えて止める（limited-body.ts）。
 	const text = await readLimitedText(request, MCP_BODY_LIMIT);
 	if (text === null) {
@@ -39,7 +39,7 @@ export const POST: RequestHandler = async ({ request, locals, platform, url }) =
 				error: {
 					code: -32600,
 					message:
-						'本文が大きすぎます（64 KiB まで）。予想を書くなら、出走馬を分けて何回かに送ってください'
+						'本文が大きすぎます（64 KiB まで）。予想やふりかえりを書くなら、出走馬を分けて何回かに送ってください'
 				}
 			},
 			{ status: 413, headers: { 'Cache-Control': 'no-store' } }

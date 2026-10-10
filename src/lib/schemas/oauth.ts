@@ -6,11 +6,13 @@ import * as v from 'valibot';
  * - `races:read` — 全員に共通のマスタ（レース・出走馬・オッズ・馬）。連携するなら必ず許す
  * - `notes:read` — 本人のメモ・見立て・印・札。同意画面で外せる
  * - `notes:write` — 本人の予想（見立て・印・札・出走前メモ）を書く。同意画面で外せる。
- *   ふりかえり・近況メモ・展開・共有には触れない（architecture.md 3-10）
+ *   ふりかえりは `reviews:write`。近況メモ・展開・共有には触れない（architecture.md 3-10）
+ * - `reviews:write` — 本人のふりかえり（レースのメモ・各馬のメモと札）を書く。同意画面で外せる。
+ *   開催日を過ぎたレースにだけ書ける。予想・近況メモ・共有には触れない
  *
  * 足すときは、サーバーの tool（`lib/server/mcp/tools.ts`）の `scope` と、同意画面の文言も足す。
  */
-export const OAUTH_SCOPES = ['races:read', 'notes:read', 'notes:write'] as const;
+export const OAUTH_SCOPES = ['races:read', 'notes:read', 'notes:write', 'reviews:write'] as const;
 export type OAuthScope = (typeof OAUTH_SCOPES)[number];
 
 /** 同意画面で外せないスコープ。これが無いと tool が1つも呼べない。 */
@@ -19,7 +21,8 @@ export const REQUIRED_SCOPES: readonly OAuthScope[] = ['races:read'];
 export const SCOPE_LABELS: Record<OAuthScope, string> = {
 	'races:read': 'レース・出走馬・オッズ・馬の情報を読む',
 	'notes:read': 'あなたのメモ・見立て・印・札を読む',
-	'notes:write': 'あなたの予想（見立て・印・札・出走前メモ）を書く'
+	'notes:write': 'あなたの予想（見立て・印・札・出走前メモ）を書く',
+	'reviews:write': 'あなたのふりかえり（レースのメモ・各馬のメモと札）を書く'
 };
 
 const isScope = (s: string): s is OAuthScope => (OAUTH_SCOPES as readonly string[]).includes(s);

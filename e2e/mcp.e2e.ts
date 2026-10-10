@@ -7,6 +7,7 @@ import { login } from './login';
 import {
 	BOTH_NOTED_HORSE_ID,
 	BRACKET_RACE_ID,
+	MCP_REVIEW_RACE,
 	MCP_TOKENS,
 	MCP_WRITE_RACE,
 	OTHER_GRANT,
@@ -22,7 +23,7 @@ import {
  *
  * 見ていること:
  * - スコープ: races:read だけの連携ではメモの tool が出ず、呼ぶと 403（insufficient_scope）
- * - 書き込み: save_my_race_preview は渡した馬の渡した項目だけを書き、書いた人のメモにしか触れない
+ * - 書き込み: save_my_race_preview・save_my_race_review は渡した馬の渡した項目だけを書き、書いた人のメモにしか触れない
  * - 他人のデータ: 同じ tool でもトークンの持ち主のメモだけ。入力で相手を選べない
  * - 経路を混ぜない: /mcp は Cookie では入れず、Bearer で画面には入れない
  * - 連携の解除・リフレッシュトークンの使い回しで、トークンが止まる
@@ -78,6 +79,7 @@ async function toolNames(request: APIRequestContext, token: string) {
 
 const NOTE_TOOLS = ['get_my_race_notes', 'get_my_horse_notes', 'list_my_recent_notes'];
 const WRITE_LABEL = 'あなたの予想（見立て・印・札・出走前メモ）を書く';
+const REVIEW_LABEL = 'あなたのふりかえり（レースのメモ・各馬のメモと札）を書く';
 
 test.describe('案内（メタデータ）', () => {
 	test('未ログインで読め、/mcp と認可の口を指している', async ({ request }) => {
@@ -85,7 +87,12 @@ test.describe('案内（メタデータ）', () => {
 		expect(prm.status()).toBe(200);
 		const resource = await prm.json();
 		expect(resource.resource).toMatch(/\/mcp$/);
-		expect(resource.scopes_supported).toEqual(['races:read', 'notes:read', 'notes:write']);
+		expect(resource.scopes_supported).toEqual([
+			'races:read',
+			'notes:read',
+			'notes:write',
+			'reviews:write'
+		]);
 
 		const as = await (await request.get('/.well-known/oauth-authorization-server')).json();
 		expect(as).toMatchObject({
@@ -299,6 +306,87 @@ test.describe('予想を書く（save_my_race_preview）', () => {
 	});
 });
 
+test.describe('ふりかえりを書く（save_my_race_review）', () => {
+	// 書くのは別のユーザーのトークンだけ。自分（E2E ユーザー）の画面とキャプチャに混ざらない。
+	type RaceNote = {
+		kind: string;
+		entryId: string | null;
+		body: string;
+		mark: string | null;
+		tags: string[];
+	};
+	const raceNotes = async (request: APIRequestContext, token: string, raceId: string) =>
+		JSON.parse(
+			(await toolText(await callTool(request, token, 'get_my_race_notes', { raceId }))).content[0]
+				.text
+		).notes as RaceNote[];
+
+	test('渡した項目だけを書き、省いた本文は残る。自分のトークンからは見えない', async ({
+		request
+	}) => {
+		const { id, entryIds, body } = MCP_REVIEW_RACE;
+		const saved = await toolText(
+			await callTool(request, MCP_TOKENS.other, 'save_my_race_review', {
+				raceId: id,
+				raceNote: { body: 'AIと話したレースのふりかえり' },
+				entries: [
+					{ entryId: entryIds.a, tags: ['好上がり'] },
+					{ entryId: entryIds.b, body: 'AIと話した馬のふりかえり', tags: ['馬場一致'] }
+				]
+			})
+		);
+		expect(saved.isError).toBeUndefined();
+		expect(JSON.parse(saved.content[0].text)).toEqual({
+			raceId: id,
+			raceNote: 'saved',
+			entries: [
+				{ entryId: entryIds.a, result: 'saved' },
+				{ entryId: entryIds.b, result: 'saved' }
+			]
+		});
+
+		expect(await raceNotes(request, MCP_TOKENS.other, id)).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ kind: 'race', body: 'AIと話したレースのふりかえり' }),
+				expect.objectContaining({ kind: 'entry', entryId: entryIds.a, body, tags: ['好上がり'] }),
+				expect.objectContaining({
+					kind: 'entry',
+					entryId: entryIds.b,
+					body: 'AIと話した馬のふりかえり',
+					tags: ['馬場一致']
+				})
+			])
+		);
+		expect(await raceNotes(request, MCP_TOKENS.all, id)).toEqual([]);
+	});
+
+	test('開催前のレースには書けず、何も書かれない', async ({ request }) => {
+		const res = await toolText(
+			await callTool(request, MCP_TOKENS.other, 'save_my_race_review', {
+				raceId: MCP_WRITE_RACE.id,
+				raceNote: { body: '先走ったふりかえり' }
+			})
+		);
+		expect(res.isError).toBe(true);
+		expect(res.content[0].text).toBe('まだ開催されていないレースにふりかえりは書けません');
+		const notes = await raceNotes(request, MCP_TOKENS.other, MCP_WRITE_RACE.id);
+		expect(notes.map((n) => n.kind)).not.toContain('race');
+		expect(JSON.stringify(notes)).not.toContain('先走った');
+	});
+
+	test('races:read だけの連携では一覧に出ず、呼ぶと 403（insufficient_scope）', async ({
+		request
+	}) => {
+		expect(await toolNames(request, MCP_TOKENS.racesOnly)).not.toContain('save_my_race_review');
+		const res = await callTool(request, MCP_TOKENS.racesOnly, 'save_my_race_review', {
+			raceId: MCP_REVIEW_RACE.id,
+			raceNote: { body: '書けてはいけない' }
+		});
+		expect(res.status()).toBe(403);
+		expect(res.headers()['www-authenticate']).toContain('scope="reviews:write"');
+	});
+});
+
 test.describe('他人のデータが見えない', () => {
 	test('自分のトークンでは自分のメモだけで、他人のメモは出ない', async ({ request }) => {
 		const race = (
@@ -489,9 +577,15 @@ async function exchange(
 
 /**
  * 登録 → 同意 → コード → トークン。`keepNotes` を外すとメモ（読む・書く）のチェックを外して許可する。
- * `keepWrite` を外すと、予想を書くのチェックだけを外す。
+ * `keepWrite` を外すと、予想を書くのチェックだけを外す。`keepReview` を外すと、ふりかえりを書くのチェックだけを外す。
  */
-async function connect(page: Page, request: APIRequestContext, keepNotes = true, keepWrite = true) {
+async function connect(
+	page: Page,
+	request: APIRequestContext,
+	keepNotes = true,
+	keepWrite = true,
+	keepReview = true
+) {
 	const clientId = await register(request, `E2E フロー ${randomBytes(4).toString('hex')}`);
 	const { verifier, challenge } = pkce();
 	await login(page);
@@ -500,6 +594,7 @@ async function connect(page: Page, request: APIRequestContext, keepNotes = true,
 	await expect(page.getByRole('heading', { name: 'アプリとの連携を許可しますか' })).toBeVisible();
 	if (!keepNotes) await page.getByLabel('あなたのメモ・見立て・印・札を読む').uncheck();
 	if (!keepNotes || !keepWrite) await page.getByLabel(WRITE_LABEL).uncheck();
+	if (!keepNotes || !keepReview) await page.getByLabel(REVIEW_LABEL).uncheck();
 	await page.getByRole('button', { name: '許可する' }).click();
 	const url = await callback;
 	expect(url.searchParams.get('state')).toBe('e2e-state');
@@ -562,6 +657,7 @@ test.describe('OAuth の全行程', () => {
 		await gotoHydrated(consent, authorizeUrl(clientId, challenge));
 		await consent.getByLabel('あなたのメモ・見立て・印・札を読む').uncheck();
 		await consent.getByLabel(WRITE_LABEL).uncheck();
+		await consent.getByLabel(REVIEW_LABEL).uncheck();
 		await consent.getByRole('button', { name: '許可する' }).click();
 		const code = (await callback).searchParams.get('code')!;
 		expect((await mcp(request, tokens.access_token, rpc('tools/list'))).status()).toBe(401);
@@ -626,7 +722,7 @@ test.describe('OAuth の全行程', () => {
 
 	test('登録 → 同意 → トークン → tool。コードは2度使えない', async ({ page, request }) => {
 		const { clientId, code, verifier, tokens } = await connect(page, request);
-		expect(tokens.scope).toBe('races:read notes:read notes:write');
+		expect(tokens.scope).toBe('races:read notes:read notes:write reviews:write');
 		expect(await toolNames(request, tokens.access_token)).toContain('get_my_race_notes');
 
 		const again = await exchange(request, {
@@ -649,14 +745,34 @@ test.describe('OAuth の全行程', () => {
 
 	test('同意で予想を書くのチェックだけを外すと、読めるが書けない', async ({ page, request }) => {
 		const { tokens } = await connect(page, request, true, false);
-		expect(tokens.scope).toBe('races:read notes:read');
-		expect(await toolNames(request, tokens.access_token)).not.toContain('save_my_race_preview');
+		// ふりかえりを書くほうは残したままなので、reviews:write は付く。
+		expect(tokens.scope).toBe('races:read notes:read reviews:write');
+		const names = await toolNames(request, tokens.access_token);
+		expect(names).not.toContain('save_my_race_preview');
+		expect(names).toContain('save_my_race_review');
 		const res = await callTool(request, tokens.access_token, 'save_my_race_preview', {
 			raceId: MCP_WRITE_RACE.id,
 			raceNote: { body: '書けてはいけない' }
 		});
 		expect(res.status()).toBe(403);
 		expect(res.headers()['www-authenticate']).toContain('scope="notes:write"');
+	});
+
+	test('同意でふりかえりを書くのチェックだけを外すと、予想は書けるがふりかえりは書けない', async ({
+		page,
+		request
+	}) => {
+		const { tokens } = await connect(page, request, true, true, false);
+		expect(tokens.scope).toBe('races:read notes:read notes:write');
+		const names = await toolNames(request, tokens.access_token);
+		expect(names).toContain('save_my_race_preview');
+		expect(names).not.toContain('save_my_race_review');
+		const res = await callTool(request, tokens.access_token, 'save_my_race_review', {
+			raceId: MCP_REVIEW_RACE.id,
+			raceNote: { body: '書けてはいけない' }
+		});
+		expect(res.status()).toBe(403);
+		expect(res.headers()['www-authenticate']).toContain('scope="reviews:write"');
 	});
 
 	test('PKCE の verifier が違えばトークンを出さない', async ({ page, request }) => {

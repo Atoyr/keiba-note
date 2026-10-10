@@ -646,6 +646,18 @@ VALUES ('01JE2EENTRYMCPWRITEA000000', '01JE2ERACEMCPWRITE00000000', '01JE2EHORSE
 INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at)
 VALUES ('01JE2EMCPWRITEPREVIEW00000', '01JE2EOTHERUSER00000000000', 'preview', '01JE2ERACEMCPWRITE00000000', '01JE2EHORSEMCPWRITEA000000', '01JE2EENTRYMCPWRITEA000000', 'MCPで消えてはいけない本文。', '["不利"]', '○', '2099-05-19');
 
+-- MCP の save_my_race_review 専用。開催済み（2025-10-05）で、別のユーザーのトークンで書くので、自分の画面とキャプチャには出ない。
+-- 年は seed に既にある 2025 を選ぶ（2001 は一覧のページ送りの件数を数える。新しい年は年の選択肢を増やす）。
+-- 出走2頭。1頭目には別のユーザーのふりかえりメモ（本文と札）があり、札だけ書き換えても本文が残るのを見る。
+INSERT INTO race (id, date, course, race_number, name, surface, distance, direction)
+VALUES ('01JE2ERACEMCPREVIEW0000000', '2025-10-05', '京都', 11, 'E2E AIふりかえり賞', '芝', 2000, '右');
+INSERT INTO horse (id, name) VALUES ('01JE2EHORSEMCPREVIEWA00000', 'E2Eエーアール'), ('01JE2EHORSEMCPREVIEWB00000', 'E2Eビーアール');
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number)
+VALUES ('01JE2EENTRYMCPREVIEWA00000', '01JE2ERACEMCPREVIEW0000000', '01JE2EHORSEMCPREVIEWA00000', 1, 1),
+       ('01JE2EENTRYMCPREVIEWB00000', '01JE2ERACEMCPREVIEW0000000', '01JE2EHORSEMCPREVIEWB00000', 2, 2);
+INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at)
+VALUES ('01JE2EMCPREVIEWNOTE0000000', '01JE2EOTHERUSER00000000000', 'entry', '01JE2ERACEMCPREVIEW0000000', '01JE2EHORSEMCPREVIEWA00000', '01JE2EENTRYMCPREVIEWA00000', 'MCPのふりかえりで消えてはいけない本文。', '["不利"]', NULL, '2025-10-05');
+
 -- 18頭・枠順前（馬番も枠も無い）で3局面すべてに展開を置いたレース。畳んだ行の折り返しと高さ、頭2文字のコマを撮る。
 INSERT INTO race (id, date, course, race_number, name, surface, distance)
 VALUES ('01JE2ERACEFLOW180000000000', '2099-05-07', '阪神', 11, 'E2E多頭数賞', '芝', 2400);
@@ -809,7 +821,7 @@ SELECT printf('01JE2EPAGEHORSE%011d', i), printf('E2E一覧ウマ%03d', i) FROM 
 
 -- MCP の連携（OAuth）。/mcp を叩く E2E と、連携の一覧の画面に使う。
 -- トークンの id は e2e/seed.ts の MCP_TOKENS の SHA-256（セッションと同じ）。期限は 2099 年。
--- - 自分（E2E ユーザー）が全部（races:read・notes:read・notes:write）を許した連携
+-- - 自分（E2E ユーザー）が全部（races:read・notes:read・notes:write・reviews:write）を許した連携
 -- - 自分が races:read だけを許した連携（別のクライアント）
 -- - 別のユーザーが全部を許した連携（別のクライアント名）。**同じ tool でも別の人のメモだけが返る**こと、
 --   自分の「AIとの連携」に出ず、自分からは解除できないことを見る
@@ -819,14 +831,14 @@ INSERT OR REPLACE INTO oauth_client (id, name, redirect_uris) VALUES
 	('uma_client_e2eother', 'E2E 別ユーザーのクライアント', '["https://chatgpt.com/connector_platform_oauth_redirect"]');
 
 INSERT OR REPLACE INTO oauth_grant (id, user_id, client_id, scopes, last_used_at, created_at) VALUES
-	('01JE2EGRANTALL000000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eall', '["races:read","notes:read","notes:write"]', 1790000000, 1789000000),
+	('01JE2EGRANTALL000000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eall', '["races:read","notes:read","notes:write","reviews:write"]', 1790000000, 1789000000),
 	('01JE2EGRANTRACES0000000000', '01JE2EUSER0000000000000000', 'uma_client_e2eraces', '["races:read"]', NULL, 1789500000),
-	('01JE2EGRANTOTHER0000000000', '01JE2EOTHERUSER00000000000', 'uma_client_e2eother', '["races:read","notes:read","notes:write"]', NULL, 1789000000);
+	('01JE2EGRANTOTHER0000000000', '01JE2EOTHERUSER00000000000', 'uma_client_e2eother', '["races:read","notes:read","notes:write","reviews:write"]', NULL, 1789000000);
 
 INSERT OR REPLACE INTO oauth_token (id, grant_id, kind, scopes, expires_at) VALUES
-	('0e400dfb476f6feb9018d955467c93b966a16d5199d3ccbcae2184afa73e4996', '01JE2EGRANTALL000000000000', 'access', '["races:read","notes:read","notes:write"]', 4102444800),
+	('0e400dfb476f6feb9018d955467c93b966a16d5199d3ccbcae2184afa73e4996', '01JE2EGRANTALL000000000000', 'access', '["races:read","notes:read","notes:write","reviews:write"]', 4102444800),
 	('1d5a0c60c1912f9524f910f36a82cf5304a14d5a4346eac5bf86fece89eb603d', '01JE2EGRANTRACES0000000000', 'access', '["races:read"]', 4102444800),
-	('ac81b8eb749d9c897fd935dca90c37e0be6458e0c855fb790650a0178db435c5', '01JE2EGRANTOTHER0000000000', 'access', '["races:read","notes:read","notes:write"]', 4102444800);
+	('ac81b8eb749d9c897fd935dca90c37e0be6458e0c855fb790650a0178db435c5', '01JE2EGRANTOTHER0000000000', 'access', '["races:read","notes:read","notes:write","reviews:write"]', 4102444800);
 
 -- Client ID Metadata Document（CIMD）のクライアント。同意画面で「提供元」が出るのを撮る。
 -- 文書は取りに行かせない（fetched_at を 2099 年にして、保存した内容を使わせる）。

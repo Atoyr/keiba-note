@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-10-10 — MCP にふりかえりを書く tool（`save_my_race_review`）とスコープ `reviews:write` を足した（→ 第1章 / 第3章）
 - 更新日: 2026-10-10 — `/races/[id]`・`/races/[id]/preview` の GET が、出走馬の行に本人の騎手のまとめ（`jockeySummary`）も返すようにした。`services/jockeys.ts` に `listRaceJockeySummaries` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-10-09 — `/races/[id]`・`/races/[id]/preview` の GET が、重賞なら本人の重賞の傾向（`gradedTrend`）も返すようにした（→ 第3章）
 - 更新日: 2026-10-07 — `/horses/[id]` の `?/saveProfile` に `birthDate`・`damSire` を足した（→ 第3章）
@@ -35,7 +36,7 @@ SvelteKit の `load` + form actions で完結させる。
 予想画面の WebMCP tools はブラウザ内の読み取りと未保存フォーム更新だけで、HTTP の口は増やさない。
 保存は既存 action のまま。tool の仕様は [frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)。
 
-例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む。許せば予想を書く）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
+例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む。許せば予想とふりかえりを書く）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
 画面の代わりではなく AI のクライアント向けで、読むのが中心。書けるのは本人が `notes:write` を許したときの予想だけで、
 form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [architecture.md 3-10](./architecture.md)）。
 ほかに、同意画面（`/oauth/authorize`）の GET の `load` だけは D1 に書く。Client ID Metadata Document を取ってきた内容を
@@ -169,7 +170,7 @@ form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中�
 | `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / Bearer はあるが DB に届かない `503` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / 本文が64 KiBを超える `413` / tool の入力の誤り・見つからないは `200` の `isError: true` |
 | `/mcp` | GET・DELETE | — | — | `405`（サーバーから流す SSE とセッションは持たない） |
 
-tools（書くのは `save_my_race_preview` だけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:
+tools（書くのは `save_my_race_preview`・`save_my_race_review` だけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:
 
 | tool | スコープ | 入力 | 返すもの |
 | --- | --- | --- | --- |
@@ -180,6 +181,7 @@ tools（書くのは `save_my_race_preview` だけ。`viewerId` はトークン�
 | `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
 | `list_my_recent_notes` | `notes:read` | `limit`（1〜50） | 自分の最近のメモ |
 | `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`。見立ての `cleared` は本文を空にしたことで、展開があれば行は残る）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目・展開はそのまま。出走馬でない `entryId`・空の入力は何も書かずに `isError` |
+| `save_my_race_review` | `reviews:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`tags` のうち書き換えるもの。印は運ばない） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目はそのまま。予想には触れない。開催前のレース・出走馬でない `entryId`・空の入力は何も書かずに `isError` |
 
 ### HTTP でない口 — Cron Trigger
 

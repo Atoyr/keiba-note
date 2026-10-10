@@ -10,10 +10,13 @@ import { TOOLS } from './tools';
 let db: Db;
 let sqlite: DatabaseSync;
 
-const ALL: OAuthScope[] = ['races:read', 'notes:read', 'notes:write'];
+const ALL: OAuthScope[] = ['races:read', 'notes:read', 'notes:write', 'reviews:write'];
 const READ_ONLY: OAuthScope[] = ['races:read', 'notes:read'];
+/** notes:write はあるが reviews:write は無い（ふりかえりの書き込みが加わる前につないだ連携）。 */
+const PREVIEW_ONLY: OAuthScope[] = ['races:read', 'notes:read', 'notes:write'];
 const RACES_ONLY: OAuthScope[] = ['races:read'];
 const WRITE_ONLY: OAuthScope[] = ['races:read', 'notes:write'];
+const REVIEW_ONLY: OAuthScope[] = ['races:read', 'reviews:write'];
 
 /** 自分（A）のメモと他人（B）のメモを、同じレース・同じ馬に1本ずつ置く。 */
 beforeEach(() => {
@@ -22,9 +25,11 @@ beforeEach(() => {
 		INSERT INTO user (id, google_sub, email, display_name) VALUES
 			('A', 'ga', 'a@example.invalid', 'Aの本名'), ('B', 'gb', 'b@example.invalid', 'Bの本名');
 		INSERT INTO race (id, date, course, race_number, name, grade, surface, distance) VALUES
-			('R', '2099-10-04', '東京', 11, 'テスト賞', 'G1', '芝', 2000);
+			('R', '2099-10-04', '東京', 11, 'テスト賞', 'G1', '芝', 2000),
+			('P', '2020-10-04', '京都', 11, '済んだ賞', 'G2', '芝', 2200);
 		INSERT INTO horse (id, name, created_by, profile_memo) VALUES ('H', 'テストホース', 'B', '管理用のメモ');
-		INSERT INTO race_entry (id, race_id, horse_id, horse_number, jockey) VALUES ('E', 'R', 'H', 1, 'テスト騎手');
+		INSERT INTO race_entry (id, race_id, horse_id, horse_number, jockey) VALUES
+			('E', 'R', 'H', 1, 'テスト騎手'), ('PE', 'P', 'H', 1, 'テスト騎手');
 		INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, mark, occurred_at, visibility) VALUES
 			('NA1', 'A', 'race_preview', 'R', NULL, NULL, '自分の見立て', NULL, '2099-10-04', 'private'),
 			('NA2', 'A', 'preview', 'R', 'H', 'E', '自分の出走前メモ', '◎', '2099-10-04', 'private'),
@@ -68,6 +73,14 @@ describe('スコープ', () => {
 			'get_race',
 			'get_horse',
 			'save_my_race_preview'
+		]);
+		// reviews:write が無い連携（notes:write だけ）には、ふりかえりを書く tool は出ない。
+		expect(await list(PREVIEW_ONLY)).not.toContain('save_my_race_review');
+		expect(await list(REVIEW_ONLY)).toEqual([
+			'search_races',
+			'get_race',
+			'get_horse',
+			'save_my_race_review'
 		]);
 		expect(await list(ALL)).toEqual(TOOLS.map((t) => t.name));
 		expect(await list([])).toEqual([]);
@@ -323,12 +336,13 @@ describe('プロトコル', () => {
 		}
 	});
 
-	it('読むだけと名乗るのは notes:write の要らない tool だけ', async () => {
+	it('読むだけと名乗るのは、書きのスコープが要らない tool だけ', async () => {
 		const tools = body(
 			await handleMcpMessage({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, ctx())
 		).result!.tools! as unknown as { name: string; annotations: { readOnlyHint: boolean } }[];
 		for (const t of tools) {
-			const write = TOOLS.find((x) => x.name === t.name)!.scope === 'notes:write';
+			const scope = TOOLS.find((x) => x.name === t.name)!.scope;
+			const write = scope === 'notes:write' || scope === 'reviews:write';
 			expect(t.annotations.readOnlyHint).toBe(!write);
 		}
 	});
@@ -459,5 +473,195 @@ describe('save_my_race_preview', () => {
 			await call('save_my_race_preview', { raceId: 'nope', raceNote: { body: 'x' } })
 		);
 		expect(reply.result?.isError).toBe(true);
+	});
+});
+
+describe('save_my_race_review', () => {
+	type Row = { author_id: string; kind: string; body: string; mark: string | null; tags: string };
+	/** 開催済みのレース 'P' の、その人のメモ。 */
+	const notes = (author: string) =>
+		sqlite
+			.prepare(
+				`SELECT author_id, kind, body, mark, tags FROM note WHERE author_id = ? AND race_id = 'P' ORDER BY kind`
+			)
+			.all(author) as Row[];
+	const review = (args: Record<string, unknown>, scopes = ALL, viewerId = 'A', raceId = 'P') =>
+		call('save_my_race_review', { raceId, ...args }, scopes, viewerId);
+
+	/** A のふりかえり（レースのメモと PE のメモ）と予想、B の PE のふりかえりを置く。 */
+	beforeEach(() => {
+		sqlite.exec(`
+			INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, visibility) VALUES
+				('PA1', 'A', 'race', 'P', NULL, NULL, '自分のレースのメモ', '[]', NULL, '2020-10-04', 'private'),
+				('PA2', 'A', 'entry', 'P', 'H', 'PE', '自分のふりかえり', '["不利"]', NULL, '2020-10-04', 'private'),
+				('PA3', 'A', 'race_preview', 'P', NULL, NULL, '自分の見立て', '[]', NULL, '2020-10-04', 'private'),
+				('PA4', 'A', 'preview', 'P', 'H', 'PE', '自分の出走前メモ', '[]', '◎', '2020-10-04', 'private'),
+				('PB2', 'B', 'entry', 'P', 'H', 'PE', '他人のふりかえり', '[]', NULL, '2020-10-04', 'unlisted');
+		`);
+	});
+
+	it('reviews:write が無いトークン（notes:write だけ）では、動かさずに 403（insufficient_scope）', async () => {
+		const before = notes('A');
+		const reply = await review({ raceNote: { body: '書けない' } }, PREVIEW_ONLY);
+		expect(reply).toMatchObject({ kind: 'insufficientScope', scope: 'reviews:write' });
+		expect(notes('A')).toEqual(before);
+		// 数えない（スコープ不足は上限の対象外）。
+		expect(sqlite.prepare('SELECT count(*) AS n FROM mcp_usage').get()).toEqual({ n: 0 });
+	});
+
+	it('渡した項目だけを書き換え、省いた項目とレースのメモはそのまま残す', async () => {
+		const out = data(await review({ entries: [{ entryId: 'PE', tags: ['好上がり'] }] }));
+		expect(out).toEqual({
+			raceId: 'P',
+			raceNote: 'unchanged',
+			entries: [{ entryId: 'PE', result: 'saved' }]
+		});
+		const rows = notes('A');
+		expect(rows.find((n) => n.kind === 'entry')).toMatchObject({ body: '自分のふりかえり' });
+		expect(JSON.parse(rows.find((n) => n.kind === 'entry')!.tags)).toEqual(['好上がり']);
+		expect(rows.find((n) => n.kind === 'race')).toMatchObject({ body: '自分のレースのメモ' });
+	});
+
+	it('レースのメモと本文を書ける。札は決まった順にそろえる', async () => {
+		const out = data(
+			await review({
+				raceNote: { body: '  新しいレースのメモ  ' },
+				entries: [{ entryId: 'PE', body: '新しい本文', tags: ['好上がり', '次走買い'] }]
+			})
+		);
+		expect(out.raceNote).toBe('saved');
+		const rows = notes('A');
+		expect(rows.find((n) => n.kind === 'race')!.body).toBe('新しいレースのメモ');
+		const entry = rows.find((n) => n.kind === 'entry')!;
+		expect(entry.body).toBe('新しい本文');
+		expect(JSON.parse(entry.tags)).toEqual(['次走買い', '好上がり']);
+	});
+
+	it('書いていない馬には、新しくふりかえりメモを作る', async () => {
+		sqlite.exec(`DELETE FROM note WHERE id = 'PA2'`);
+		await review({ entries: [{ entryId: 'PE', body: '初めて書く' }] });
+		expect(notes('A').find((n) => n.kind === 'entry')).toMatchObject({
+			body: '初めて書く',
+			tags: '[]'
+		});
+	});
+
+	it('本文と札を両方空にした馬のふりかえりメモは消える', async () => {
+		const out = data(await review({ entries: [{ entryId: 'PE', body: '', tags: [] }] }));
+		expect(out.entries).toEqual([{ entryId: 'PE', result: 'cleared' }]);
+		expect(notes('A').map((n) => n.kind)).not.toContain('entry');
+		// B の行は残る（DELETE の WHERE に author_id）。
+		expect(notes('B')).toEqual([
+			expect.objectContaining({ kind: 'entry', body: '他人のふりかえり' })
+		]);
+	});
+
+	it('レースのメモの本文を空にするとレースのメモが消える', async () => {
+		const out = data(await review({ raceNote: { body: '' } }));
+		expect(out.raceNote).toBe('cleared');
+		expect(notes('A').map((n) => n.kind)).not.toContain('race');
+	});
+
+	it('予想（見立て・出走前メモの本文と印）には触れない', async () => {
+		await review({
+			raceNote: { body: '' },
+			entries: [{ entryId: 'PE', body: '', tags: [] }]
+		});
+		expect(notes('A')).toEqual([
+			expect.objectContaining({ kind: 'preview', body: '自分の出走前メモ', mark: '◎' }),
+			expect.objectContaining({ kind: 'race_preview', body: '自分の見立て' })
+		]);
+	});
+
+	it('他人のメモには触れず、トークンの持ち主のメモだけを書く', async () => {
+		const others = notes('B');
+		await review({ raceNote: { body: 'Aが書いた' }, entries: [{ entryId: 'PE', body: 'A' }] });
+		expect(notes('B')).toEqual(others);
+
+		await review({ entries: [{ entryId: 'PE', body: 'Bが書いた' }] }, ALL, 'B');
+		expect(notes('B')).toEqual([expect.objectContaining({ kind: 'entry', body: 'Bが書いた' })]);
+		expect(notes('A').find((n) => n.kind === 'entry')!.body).toBe('A');
+	});
+
+	it('開催前のレース（2099年）には書けない。何も書かない', async () => {
+		const before = sqlite.prepare(`SELECT id, body FROM note ORDER BY id`).all();
+		const reply = body(
+			await review(
+				{ raceNote: { body: '先走り' }, entries: [{ entryId: 'E', body: 'x' }] },
+				ALL,
+				'A',
+				'R'
+			)
+		);
+		expect(reply.result?.isError).toBe(true);
+		expect(reply.result?.content[0].text).toBe(
+			'まだ開催されていないレースにふりかえりは書けません'
+		);
+		expect(sqlite.prepare(`SELECT id, body FROM note ORDER BY id`).all()).toEqual(before);
+	});
+
+	it('当日のレースには書ける（結果が無くても）', async () => {
+		const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+		sqlite.exec(`
+			INSERT INTO race (id, date, course, race_number, name) VALUES ('T', '${today}', '中山', 1, '今日の一戦');
+			INSERT INTO race_entry (id, race_id, horse_id, horse_number) VALUES ('TE', 'T', 'H', 1);
+		`);
+		const out = data(await review({ raceNote: { body: '今日のふりかえり' } }, ALL, 'A', 'T'));
+		expect(out.raceNote).toBe('saved');
+	});
+
+	it('notes:read が無くても書けるが、本文は返さない', async () => {
+		const reply = await review({ entries: [{ entryId: 'PE', tags: ['不利'] }] }, REVIEW_ONLY);
+		expect(JSON.stringify(reply)).not.toContain('自分の');
+		expect(notes('A').find((n) => n.kind === 'entry')).toMatchObject({ body: '自分のふりかえり' });
+	});
+
+	it('別のレースの出走馬には書けない', async () => {
+		const reply = body(await review({ entries: [{ entryId: 'E', body: 'x' }] }));
+		expect(reply.result?.isError).toBe(true);
+		expect(reply.result?.content[0].text).toContain('出走馬ではありません');
+		expect(
+			sqlite
+				.prepare(`SELECT count(*) AS n FROM note WHERE race_entry_id = 'E' AND kind = 'entry'`)
+				.get()
+		).toEqual({ n: 0 });
+	});
+
+	it.each([
+		['何も渡さない', {}],
+		['知らない札', { entries: [{ entryId: 'PE', tags: ['勝負'] }] }],
+		[
+			'同じ馬を2回',
+			{
+				entries: [
+					{ entryId: 'PE', body: 'a' },
+					{ entryId: 'PE', body: 'b' }
+				]
+			}
+		],
+		['印を渡す', { entries: [{ entryId: 'PE', mark: '◎' }] }],
+		['horseId を渡す', { entries: [{ entryId: 'PE', horseId: 'H', body: 'x' }] }],
+		['展開を渡す', { raceNote: { body: 'x', flow: {} } }],
+		['書く人を渡す', { authorId: 'B', raceNote: { body: 'x' } }]
+	])('%s と tool の誤りで、何も書かない', async (_, args) => {
+		const before = [notes('A'), notes('B')];
+		expect(body(await review(args)).result?.isError).toBe(true);
+		expect([notes('A'), notes('B')]).toEqual(before);
+	});
+
+	it('無いレースは tool の誤り', async () => {
+		const reply = body(await review({ raceNote: { body: 'x' } }, ALL, 'A', 'nope'));
+		expect(reply.result?.isError).toBe(true);
+		expect(reply.result?.content[0].text).toContain('レースが見つかりません');
+	});
+
+	it('書き込みの枠で数える', async () => {
+		await review({ raceNote: { body: 'x' } });
+		expect(sqlite.prepare("SELECT reads, writes FROM mcp_usage WHERE user_id = 'A'").get()).toEqual(
+			{
+				reads: 0,
+				writes: 1
+			}
+		);
 	});
 });

@@ -10,13 +10,16 @@ import {
 	isOwnResource,
 	knownScopes,
 	redirectUriMatches,
-	requestedScopes
+	requestedScopes,
+	type OAuthScope
 } from './oauth';
+
+const ALL: OAuthScope[] = ['races:read', 'notes:read', 'notes:write', 'reviews:write'];
 
 describe('requestedScopes', () => {
 	it('scope が無ければ全部を求めたとみなす', () => {
-		expect(requestedScopes(undefined)).toEqual(['races:read', 'notes:read', 'notes:write']);
-		expect(requestedScopes('')).toEqual(['races:read', 'notes:read', 'notes:write']);
+		expect(requestedScopes(undefined)).toEqual(ALL);
+		expect(requestedScopes('')).toEqual(ALL);
 	});
 
 	it('races:read だけを求められたら、メモは含めない', () => {
@@ -31,10 +34,14 @@ describe('requestedScopes', () => {
 		expect(requestedScopes('notes:write')).toEqual(['races:read', 'notes:write']);
 	});
 
+	it('reviews:write だけでも、外せない races:read を足す。予想を書く権限は足さない', () => {
+		expect(requestedScopes('reviews:write')).toEqual(['races:read', 'reviews:write']);
+	});
+
 	it('知らないスコープは捨てる。消すような無いスコープで広がらない', () => {
 		expect(requestedScopes('openid races:read notes:delete admin')).toEqual(['races:read']);
 		// 知っているものが1つも無いときは全部。
-		expect(requestedScopes('openid profile')).toEqual(['races:read', 'notes:read', 'notes:write']);
+		expect(requestedScopes('openid profile')).toEqual(ALL);
 	});
 
 	it('DB に残った知らないスコープは効かない', () => {
@@ -53,9 +60,14 @@ describe('grantedScopes（同意で許すスコープ）', () => {
 	});
 
 	it('書き込みのチェックを外せば、読むだけの連携になる', () => {
-		expect(grantedScopes(['races:read', 'notes:read', 'notes:write'], ['notes:read'])).toEqual([
+		expect(grantedScopes(ALL, ['notes:read'])).toEqual(['races:read', 'notes:read']);
+	});
+
+	it('予想の書き込みとふりかえりの書き込みは別々に外せる', () => {
+		expect(grantedScopes(ALL, ['notes:read', 'reviews:write'])).toEqual([
 			'races:read',
-			'notes:read'
+			'notes:read',
+			'reviews:write'
 		]);
 	});
 

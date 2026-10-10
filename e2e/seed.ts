@@ -354,7 +354,7 @@ export const PAGED_LIST = {
 
 /**
  * `/mcp` に載せるアクセストークン（seed.sql の oauth_token の id はこれの SHA-256）。
- * - `all` — 自分が races:read・notes:read・notes:write を許した連携
+ * - `all` — 自分が races:read・notes:read・notes:write・reviews:write を許した連携
  * - `racesOnly` — 自分が races:read だけを許した連携
  * - `other` — 別のユーザー（`01JE2EOTHERUSER…`）が全部を許した連携
  */
@@ -372,6 +372,17 @@ export const MCP_WRITE_RACE = {
 	id: '01JE2ERACEMCPWRITE00000000',
 	entryIds: { a: '01JE2EENTRYMCPWRITEA000000', b: '01JE2EENTRYMCPWRITEB000000' },
 	body: 'MCPで消えてはいけない本文。'
+} as const;
+
+/**
+ * MCP の save_my_race_review で書く、開催済みのレース（E2E AIふりかえり賞・出走2頭）。`MCP_TOKENS.other` で書き、
+ * 自分の画面とキャプチャには混ぜない。`a` には別のユーザーのふりかえりメモ（`body`・札 不利）がある。
+ * 日付は 2025 年（seed に既にある年。2001 は一覧のページ送りの件数を数えるので使わない）。
+ */
+export const MCP_REVIEW_RACE = {
+	id: '01JE2ERACEMCPREVIEW0000000',
+	entryIds: { a: '01JE2EENTRYMCPREVIEWA00000', b: '01JE2EENTRYMCPREVIEWB00000' },
+	body: 'MCPのふりかえりで消えてはいけない本文。'
 } as const;
 
 /** seed の MCP クライアント。同意画面のキャプチャに使う（戻り先は登録どおり）。 */
