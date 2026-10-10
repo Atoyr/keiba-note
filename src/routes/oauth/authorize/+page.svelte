@@ -49,7 +49,7 @@
 								value={scope}
 								checked
 								disabled={required}
-								class="mt-1 size-4 accent-primary"
+								class="mt-1 size-4 shrink-0 accent-primary"
 								aria-describedby={required ? `scope-${scope}-required` : undefined}
 							/>
 							<label for="scope-{scope}" class="text-sm">

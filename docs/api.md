@@ -37,8 +37,8 @@ SvelteKit の `load` + form actions で完結させる。
 保存は既存 action のまま。tool の仕様は [frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)。
 
 例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む。許せば予想とふりかえりを書く）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
-画面の代わりではなく AI のクライアント向けで、読むのが中心。書けるのは本人が `notes:write` を許したときの予想だけで、
-form action と同じサービス関数（`savePreviewNotes`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [architecture.md 3-10](./architecture.md)）。
+画面の代わりではなく AI のクライアント向けで、読むのが中心。書けるのは本人が `notes:write` を許したときの予想と、`reviews:write` を許したときのふりかえりだけで、
+form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [architecture.md 3-10](./architecture.md)）。
 ほかに、同意画面（`/oauth/authorize`）の GET の `load` だけは D1 に書く。Client ID Metadata Document を取ってきた内容を
 `oauth_client` に24時間保存するキャッシュで、本人の権限は何も変えない（許可は form action の `POST`）。
 

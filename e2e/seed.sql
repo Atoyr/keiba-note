@@ -635,7 +635,7 @@ INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number)
 VALUES ('01JE2EWEBMCPENTRY100000000', '01JE2ERACEWEBMCP0000000000', '01JE2EFLOWHORSE10000000000', 1, 1),
        ('01JE2EWEBMCPENTRY200000000', '01JE2ERACEWEBMCP0000000000', '01JE2EFLOWHORSE20000000000', 2, 2);
 
--- MCP の save_my_race_preview 専用。別のユーザーのトークンで書くので、自分の画面とキャプチャには出ない。
+-- MCP の save_my_race_preview 専用。別のユーザーのトークンで書くので、書いたメモは自分の画面とキャプチャには出ない（レースはマスタなので一覧には並ぶ）。
 -- 出走2頭。1頭目には別のユーザーの出走前メモ（本文と札）があり、印だけ書き換えても本文が残るのを見る。
 INSERT INTO race (id, date, course, race_number, name, surface, distance, direction)
 VALUES ('01JE2ERACEMCPWRITE00000000', '2099-05-19', '東京', 11, 'E2E AI予想賞', '芝', 1600, '左');

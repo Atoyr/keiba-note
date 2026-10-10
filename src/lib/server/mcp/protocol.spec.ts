@@ -488,7 +488,7 @@ describe('save_my_race_review', () => {
 	const review = (args: Record<string, unknown>, scopes = ALL, viewerId = 'A', raceId = 'P') =>
 		call('save_my_race_review', { raceId, ...args }, scopes, viewerId);
 
-	/** A のふりかえり（レースのメモと PE のメモ）と予想、B の PE のふりかえりを置く。 */
+	/** A のふりかえり（レースのメモと PE のメモ）と予想、B のふりかえり（レースのメモと PE のメモ）を置く。 */
 	beforeEach(() => {
 		sqlite.exec(`
 			INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, mark, occurred_at, visibility) VALUES
@@ -496,6 +496,7 @@ describe('save_my_race_review', () => {
 				('PA2', 'A', 'entry', 'P', 'H', 'PE', '自分のふりかえり', '["不利"]', NULL, '2020-10-04', 'private'),
 				('PA3', 'A', 'race_preview', 'P', NULL, NULL, '自分の見立て', '[]', NULL, '2020-10-04', 'private'),
 				('PA4', 'A', 'preview', 'P', 'H', 'PE', '自分の出走前メモ', '[]', '◎', '2020-10-04', 'private'),
+				('PB1', 'B', 'race', 'P', NULL, NULL, '他人のレースのメモ', '[]', NULL, '2020-10-04', 'unlisted'),
 				('PB2', 'B', 'entry', 'P', 'H', 'PE', '他人のふりかえり', '[]', NULL, '2020-10-04', 'unlisted');
 		`);
 	});
@@ -552,7 +553,8 @@ describe('save_my_race_review', () => {
 		expect(notes('A').map((n) => n.kind)).not.toContain('entry');
 		// B の行は残る（DELETE の WHERE に author_id）。
 		expect(notes('B')).toEqual([
-			expect.objectContaining({ kind: 'entry', body: '他人のふりかえり' })
+			expect.objectContaining({ kind: 'entry', body: '他人のふりかえり' }),
+			expect.objectContaining({ kind: 'race', body: '他人のレースのメモ' })
 		]);
 	});
 
@@ -560,6 +562,12 @@ describe('save_my_race_review', () => {
 		const out = data(await review({ raceNote: { body: '' } }));
 		expect(out.raceNote).toBe('cleared');
 		expect(notes('A').map((n) => n.kind)).not.toContain('race');
+		// B のレースのメモは残る（DELETE の WHERE に author_id）。
+		expect(notes('B')).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ kind: 'race', body: '他人のレースのメモ' })
+			])
+		);
 	});
 
 	it('予想（見立て・出走前メモの本文と印）には触れない', async () => {
@@ -579,7 +587,10 @@ describe('save_my_race_review', () => {
 		expect(notes('B')).toEqual(others);
 
 		await review({ entries: [{ entryId: 'PE', body: 'Bが書いた' }] }, ALL, 'B');
-		expect(notes('B')).toEqual([expect.objectContaining({ kind: 'entry', body: 'Bが書いた' })]);
+		expect(notes('B')).toEqual([
+			expect.objectContaining({ kind: 'entry', body: 'Bが書いた' }),
+			expect.objectContaining({ kind: 'race', body: '他人のレースのメモ' })
+		]);
 		expect(notes('A').find((n) => n.kind === 'entry')!.body).toBe('A');
 	});
 

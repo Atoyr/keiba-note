@@ -776,7 +776,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /settings/profile             プロフィール（公開用の名前を設定）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
 /settings/connections         AIとの連携（MCP の接続先 URL・今週の利用量（%）・許可したアプリ）＝**連携を解除する場所**
-/oauth/authorize              AI のアプリへの同意画面（メモを読ませるか・予想を書かせるかを選ぶ。architecture.md 3-10）
+/oauth/authorize              AI のアプリへの同意画面（メモを読ませるか・予想を書かせるか・ふりかえりを書かせるかを選ぶ。architecture.md 3-10）
 
 ── admin のみ ────────────────────────────────────────────
 /races/new                    レース登録
