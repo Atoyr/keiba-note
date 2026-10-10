@@ -40,10 +40,10 @@
 	let open = $state(false);
 	let titleEl = $state<HTMLElement | null>(null);
 	/**
-	 * タイトルを押して開いたか。閉じたあとにフォーカスを戻す先を決める。
+	 * タイトルを押して開いたか。メニューを出す位置と、閉じたあとにフォーカスを戻す先を決める。
 	 * 閉じる処理は onCloseAutoFocus を2回呼ぶので、ここでは戻さない。`⋯` で開いたとき（onOpenChange）に下ろす。
 	 */
-	let openedFromTitle = false;
+	let openedFromTitle = $state(false);
 
 	function toggleFromTitle() {
 		// レース名をドラッグで選んだ終わりの click では開かない（コピーしたいだけなので）。
@@ -85,6 +85,7 @@
 			<DropdownMenu.Root bind:open onOpenChange={(o) => o && (openedFromTitle = false)}>
 				<div class="min-w-0 flex-1">
 					<!-- 見た目は links が無いときの h1 のまま（Button の高さ・余白・字を打ち消す）。
+					     幅はレース名の文字までにする（右の空白を押して開かないように）。
 					     select-text: Button の select-none を戻し、レース名を選んでコピーできるようにする。 -->
 					<h1>
 						<Button
@@ -93,7 +94,7 @@
 							aria-haspopup="menu"
 							aria-expanded={open}
 							onclick={toggleFromTitle}
-							class="h-auto w-full min-w-0 items-baseline justify-start gap-2 border-0 p-0 text-left text-lg font-bold tracking-tight select-text hover:bg-transparent hover:underline aria-expanded:bg-transparent sm:text-xl dark:hover:bg-transparent"
+							class="h-auto max-w-full min-w-0 items-baseline justify-start gap-2 border-0 p-0 text-left text-lg font-bold tracking-tight select-text hover:bg-transparent hover:underline aria-expanded:bg-transparent sm:text-xl dark:hover:bg-transparent"
 						>
 							{@render titleText()}
 						</Button>
@@ -115,7 +116,14 @@
 					{/snippet}
 				</DropdownMenu.Trigger>
 
-				<DropdownMenu.Content align="end" class="w-48" onCloseAutoFocus={focusBack}>
+				<!-- タイトルから開いたときはタイトルの下に左をそろえて出す。広い画面では ⋯ が遠く、
+				     押した所から離れた右端に開くと気づきにくい。 -->
+				<DropdownMenu.Content
+					align={openedFromTitle ? 'start' : 'end'}
+					customAnchor={openedFromTitle ? titleEl : null}
+					class="w-48"
+					onCloseAutoFocus={focusBack}
+				>
 					{#each links as link (link.href)}
 						<DropdownMenu.Item>
 							{#snippet child({ props })}

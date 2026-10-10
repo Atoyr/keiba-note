@@ -198,6 +198,33 @@ describe('RaceHeading', () => {
 			await expect.poll(() => items().length).toBe(LINKS.length);
 		});
 
+		it('タイトルの押せる範囲はレース名までで、右の空白は押せない', () => {
+			render(RaceHeading, { ...base, links: LINKS });
+			const title = titleButton()!.getBoundingClientRect();
+			const name = titleButton()!.querySelectorAll('span')[1].getBoundingClientRect();
+			expect(title.right).toBeCloseTo(name.right, 0);
+			expect(title.right).toBeLessThan(menuButton()!.getBoundingClientRect().left - 100);
+		});
+
+		it('タイトルから開くとタイトルの下、⋯ から開くと ⋯ の下に右をそろえて出る', async () => {
+			render(RaceHeading, { ...base, links: LINKS });
+			const content = () => document.querySelector<HTMLElement>('[role="menu"]')!;
+
+			await userEvent.click(titleButton()!);
+			await expect.poll(() => items().length).toBe(LINKS.length);
+			await expect
+				.poll(() => content().getBoundingClientRect().left)
+				.toBeCloseTo(titleButton()!.getBoundingClientRect().left, 0);
+			await userEvent.keyboard('{Escape}');
+			await expect.poll(() => menu()).toBeNull();
+
+			await userEvent.click(menuButton()!);
+			await expect.poll(() => items().length).toBe(LINKS.length);
+			await expect
+				.poll(() => content().getBoundingClientRect().right)
+				.toBeCloseTo(menuButton()!.getBoundingClientRect().right, 0);
+		});
+
 		it('⋯ から開いて Esc で閉じると、フォーカスが ⋯ に戻る', async () => {
 			render(RaceHeading, { ...base, links: LINKS });
 			const button = menuButton()!;
