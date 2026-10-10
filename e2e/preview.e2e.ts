@@ -477,6 +477,20 @@ test.describe('JavaScript が無いとき', () => {
 		await page.goto(`/races/${MARKS_RACE_ID}/preview`);
 		await expect(page.getByRole('button', { name: '出走前メモを保存' })).toBeVisible();
 	});
+
+	// 見出しの `⋯` は JS で開く。JS が無いときは、同じ導線を見出しの下のリンクで出す。
+	test('見出しのメニューの導線が、見出しの下のリンクとして出ている', async ({ page }) => {
+		await login(page);
+		await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
+		await expect(page.getByRole('link', { name: '予想をまとめて見る' })).toHaveAttribute(
+			'href',
+			`/races/${PAST_EMPTY_RACE_ID}/summary`
+		);
+		await expect(page.getByRole('link', { name: 'ふりかえりを書く' })).toHaveAttribute(
+			'href',
+			`/races/${PAST_EMPTY_RACE_ID}`
+		);
+	});
 });
 
 /**
