@@ -389,10 +389,21 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 開催済みのレース。見出しの下に「ふりかえりを書く」が出る（ふりかえりの見出しと並びをそろえてある）。
+		// 開催済みのレース。見出しの右端の ⋯ のメニューに「ふりかえりを書く」が入る（ふりかえりの見出しと並びをそろえてある）。
 		name: 'race-preview-past',
 		path: `/races/${PAST_EMPTY_RACE_ID}/preview`,
 		auth: true
+	},
+	{
+		// 見出し右端の ⋯ を押して、メニューを開いたところ。
+		name: 'race-preview-past-menu',
+		path: `/races/${PAST_EMPTY_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('button', { name: 'レースのメニュー' }).click();
+			await expect(page.getByRole('menu')).toBeVisible();
+		}
 	},
 	{
 		name: 'race-preview-editing',
@@ -571,6 +582,17 @@ export const SCREENS: Screen[] = [
 	// 傾向を書いた重賞のレース。予想画面は見立ての上、ふりかえり画面はレースのメモの上に、重賞の傾向が出る。
 	{ name: 'race-preview-graded-trend', path: `/races/${TREND_RACE.raceId}/preview`, auth: true },
 	{ name: 'race-review-graded-trend', path: `/races/${TREND_RACE.raceId}`, auth: true },
+	{
+		// レース名（見出し）を押して、メニューを開いたところ。⋯ と同じメニューが開く。
+		name: 'race-review-graded-trend-menu',
+		path: `/races/${TREND_RACE.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('heading', { level: 1 }).getByRole('button').click();
+			await expect(page.getByRole('menu')).toBeVisible();
+		}
+	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
 	{

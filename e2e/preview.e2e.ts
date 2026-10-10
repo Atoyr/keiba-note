@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
+import { openRaceMenu, raceMenuItem } from './race-menu';
 import {
 	BRACKET_RACE_ID,
 	EMPTY_RACE_ID,
@@ -277,19 +278,25 @@ test('出走馬がいない未来のレースでも、レースの見立てを�
 });
 
 /** 開催前はふりかえりが書けないので、その導線も出さない。 */
-test('開催前の予想画面に「ふりかえりを書く」は出ない', async ({ page }) => {
+test('開催前の予想画面のメニューに「ふりかえりを書く」は出ない', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${EMPTY_RACE_ID}/preview`);
+	await openRaceMenu(page);
 
-	await expect(page.getByRole('link', { name: 'ふりかえりを書く' })).toHaveCount(0);
+	// 他の項目は出ている（メニューが開いていないせいで 0 件になっていないことの確認）。
+	await expect(page.getByRole('menuitem', { name: '予想をまとめて見る' })).toBeVisible();
+	await expect(page.getByRole('menuitem', { name: 'ふりかえりを書く' })).toHaveCount(0);
 });
 
 /** 開催済みなら、予想画面からふりかえりへ行ける。 */
-test('開催済みの予想画面には「ふりかえりを書く」が出る', async ({ page }) => {
+test('開催済みの予想画面のメニューには「ふりかえりを書く」が出る', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
 
-	await expect(page.getByRole('link', { name: 'ふりかえりを書く' })).toBeVisible();
+	await expect(await raceMenuItem(page, 'ふりかえりを書く')).toHaveAttribute(
+		'href',
+		`/races/${PAST_EMPTY_RACE_ID}`
+	);
 });
 
 /**
@@ -470,6 +477,16 @@ test.describe('JavaScript が無いとき', () => {
 		await page.goto(`/races/${MARKS_RACE_ID}/preview`);
 		await expect(page.getByRole('button', { name: '出走前メモを保存' })).toBeVisible();
 	});
+
+	// 見出しの `⋯` は JS で開く。JS が無いときは、同じ導線を見出しの下のリンクで出す。
+	test('見出しのメニューの導線が、見出しの下のリンクとして出ている', async ({ page }) => {
+		await login(page);
+		await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
+		// SSR の href は相対パスになるので、押して行き先を見る。
+		await expect(page.getByRole('link', { name: '予想をまとめて見る' })).toBeVisible();
+		await page.getByRole('link', { name: 'ふりかえりを書く' }).click();
+		await expect(page).toHaveURL(`/races/${PAST_EMPTY_RACE_ID}`);
+	});
 });
 
 /**
@@ -528,7 +545,7 @@ test('書きかけのまま「戻る」を押しても、離れる前に確認�
 	await login(page);
 	await gotoHydrated(page, `/races/${MARKS_RACE_ID}`);
 	// 読み込み直さずに予想画面へ（アプリ内の遷移）。
-	await page.getByRole('link', { name: '予想（過去メモを見る）' }).click();
+	await (await raceMenuItem(page, '予想（過去メモを見る）')).click();
 	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
 
 	const body = page.locator('textarea[name="raceNoteBody"]');

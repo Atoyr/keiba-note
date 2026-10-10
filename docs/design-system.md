@@ -167,7 +167,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
 | `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分のまとめ（本文・札）があれば hover・フォーカスで `Tooltip` に浮かべる（本文は6行で切る）。まとめが無いときは Tooltip で包まないただのリンク。リンクの `class` は呼ぶ画面が渡す |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
-| `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱 |
+| `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱。見出しは `links` を渡すと右端に `⋯` のメニュー（`DropdownMenu`）を出し、レース名を押しても同じメニューが開く（JS が無いときは `<noscript>` でボタンの行）。予想画面・ふりかえり画面が使う |
 | `RaceSummary` | 1レースの見立て・各馬のメモ・札・印。本人のまとめ画面と共有ページで共通 |
 | `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` / `FlowDigest` / `FlowOrder` | 展開の予想の入力（畳んだ1行・ペース・局面のタブ）・盤面（前後 × 内外のマス目に枠の色のコマ。上が内ラチ、先頭はスタンドから見た向き。コマの先頭側の縁に、輪郭と同じ色の進行方向の三角。キーボードは矢印キー）・読むだけの畳んだ形・その中の3局面の並び・閉じた行（ペースと局面ごとの隊列）・隊列の1行（列の切れ目でだけ折り返す） |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の SVG で、`src/lib/utils/course.ts` から `pnpm run course-maps` で書き出す生成物（手で直さない）。距離からスタートからゴールまでの道すじを黄色で重ねる（図とは別の SVG。`course.ts` の `courseRoute`。線と丸の色・太さは `ROUTE_STYLE`） |
