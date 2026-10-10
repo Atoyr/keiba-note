@@ -286,7 +286,7 @@ pnpm run data:fetch result  2026-09-27 中山 11  # 着順から馬体重まで�
 
 ### アプリから取らせる
 
-同じ `entries` を GitHub Actions（`.github/workflows/race-data-fetch.yml`）でも回せる。**書くのは YAML と PR までで、
+`entries`（出馬表）と、手で起動する `result`（結果）を GitHub Actions（`.github/workflows/race-data-fetch.yml`）でも回せる。**書くのは YAML と PR までで、
 本番に入るのは人がマージしたとき**なのは手で流すときと同じ。PR ができると Discord の「デプロイ」に知らせる。
 
 - **重賞の定期取得。** アプリの Cron が、馬番がまだ無い重賞を JRA の発表に合わせて Actions に頼む。
@@ -297,14 +297,16 @@ pnpm run data:fetch result  2026-09-27 中山 11  # 着順から馬体重まで�
 - **管理画面（`/settings/admin`）の「出走馬を取得」。** これから2週間のレースに1つずつボタンがある。
   その時点の出馬表（候補・出走馬・枠順）を書く。race_id（`ref`）の無い来週以降のレース（申し送り用の枠）は、
   登録前だと netkeiba の一覧に出ないので押せない。当週になると押せる（Cron は登録後の一覧から引くので、2週先の G1 も取れる）
-- PR のブランチ（`data-fetch/<日付>-<場><R>R`）は Actions が main から作り直して上書きする。PR に手で直しを足すなら、
+- PR のブランチ（`data-fetch/<日付>-<場><R>R`。結果は `-result` 付き）は Actions が main から作り直して上書きする。PR に手で直しを足すなら、
   そのあとで同じレースを取り直させないこと
 - 開いている PR と同じ中身なら、取り直しても何もしない（PR も通知も出ない。管理画面から押しても同じ）。
   PR をマージせずに閉じても、次に取る回（Cron なら次の段。金曜の枠順のあとは無いので、管理画面から）に作り直す。Cron を止めるには、枠・馬番を入れた YAML を手で main に入れる
 - **結果は Actions のタブから手で。** Actions > 出走馬・結果の取得 > Run workflow で `command: result` を選び、
-  開催日・競馬場・レース番号（分かれば race_id）を入れる。`data:fetch result` を流して YAML と PR を作る。
-  YAML にそのレースが無いと落ちる（先に出走馬が入っている必要がある）。PR のブランチは `data-fetch/<日付>-<場><R>R-result`
-  （出馬表の PR とは別）。Cron・管理画面からは頼まない
+  開催日・競馬場・レース番号を入れる。race_id は空でよい（YAML のレースの `ref` を使う。`ref` が無いときだけ当週の一覧から引く）。
+  `data:fetch result` を流して YAML と PR を作る。YAML にそのレースが無いと落ちる（先に出走馬が入っている必要がある）。
+  PR のブランチは `data-fetch/<日付>-<場><R>R-result`（出馬表の PR とは別）。Cron・管理画面からは頼まない。
+  **Actions は main の YAML を読む。出走馬・枠順の PR を main にマージしてから起動する。**
+  候補のままだと、main にいる馬だけに書き、開いている枠順の PR と同じレースを書き換え合う
 - 過去走・馬の基本情報はアプリからは取らせない。今までどおり手で流す
 
 レース一覧（`races` と、race_id の引き当て）は netkeiba の都合で**当週ぶんしか出ない**

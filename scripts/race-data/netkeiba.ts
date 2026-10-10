@@ -122,6 +122,9 @@ export function toHalfWidth(s: string): string {
 /** netkeiba の ID を YAML の `ref` に。既存データに合わせて `nk-` を付ける。 */
 export const toRef = (horseId: string) => `nk-${horseId}`;
 export const fromRef = (ref: string) => (ref.startsWith('nk-') ? ref.slice(3) : null);
+/** レースの `ref`（`nk-<race_id 12桁>`）から race_id を取り出す。形が違えば null。 */
+export const raceIdFromRef = (ref: unknown): string | null =>
+	typeof ref === 'string' ? (/^nk-(\d{12})$/.exec(ref)?.[1] ?? null) : null;
 
 function num(s: string | undefined): number | undefined {
 	if (s === undefined) return undefined;

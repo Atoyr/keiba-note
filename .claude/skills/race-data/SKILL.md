@@ -123,8 +123,9 @@ pnpm run data:fetch result 2026-09-27 中山 11
 - YAML にいる馬だけを更新する。気にしている馬だけ載せた条件戦に、他の馬は足さない（足さなかった馬は出力に並ぶ）
 - 取消・除外・中止は着順が入らず、出力に `取消` などと出る
 - 着順が数字で入った頭数が出走頭数と合っているかを見る
-- 手で流すほかに、GitHub Actions の「出走馬・結果の取得」を `command: result` で起動しても同じことができる
-  （data/README.md「アプリから取らせる」）。Actions のブランチ（`data-fetch/<日付>-<場><R>R-result`）は取り直すたびに上書きされるので、PR に手で足したコミットは消える
+- Actions の「出走馬・結果の取得」（`command: result`）は人が押す経路。エージェントは `gh workflow run` などで起動せず、手で流す
+- 流す前に `gh pr list --search "head:data-fetch/"` で開いている結果の PR が無いかを確かめ、あれば同じ中身の PR を2つ出さない
+  （詳細は data/README.md「アプリから取らせる」）
 
 ## 仕上げ
 

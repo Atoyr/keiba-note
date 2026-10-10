@@ -12,7 +12,8 @@
  *
  * オプション:
  *   --dir <dir>        書き込み先（既定 data/races）。試すときは作業用のディレクトリを渡す
- *   --race-id <id>     netkeiba の race_id を直接指定する（一覧から引けないとき）
+ *   --race-id <id>     netkeiba の race_id を直接指定する（一覧から引けないとき）。
+ *                      result は、指定が無くても YAML のレースに ref（nk-<race_id>）があればそれを使う
  *   --count <n>        past: 何走さかのぼるか（既定 5）
  *   --horse <名前|ref> past / horses: 対象の馬を絞る（複数回書ける）
  *   --interval <ms>    取得の間隔（既定 1000。500 まで縮められる）
@@ -42,6 +43,7 @@ import {
 	parseRaceList,
 	parseResult,
 	parseShutuba,
+	raceIdFromRef,
 	setRequestInterval,
 	toHalfWidth,
 	urls,
@@ -349,7 +351,10 @@ async function main() {
 		case 'result': {
 			const t = parseTarget(args);
 			const { file, race } = await loadRace(args, t);
-			const raceId = await resolveRaceId(args, t);
+			// entries が書いた YAML の ref があれば、一覧（当週ぶんしか出ない）を引かずにそれを使う。
+			// --race-id の明示が先。年・場・R の突き合わせは resolveRaceId が同じようにする
+			const refId = args.raceId ? null : raceIdFromRef(race.get('ref'));
+			const raceId = await resolveRaceId(refId ? { ...args, raceId: refId } : args, t);
 			const parsed = parseResult(await fetchPage(urls.result(raceId)));
 			assertSameDate(parsed.meta, t, raceId);
 			if (parsed.rows.length === 0) {

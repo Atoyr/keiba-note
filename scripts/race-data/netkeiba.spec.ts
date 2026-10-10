@@ -12,6 +12,7 @@ import {
 	parseSexAge,
 	parseShutuba,
 	parseTrackCondition,
+	raceIdFromRef,
 	setRequestInterval,
 	splitRaceName,
 	toHalfWidth
@@ -128,6 +129,21 @@ describe('splitRaceName', () => {
 
 	it('ステークスは S に縮める', () => {
 		expect(splitRaceName('ローズステークス(GII)').name).toBe('ローズS');
+	});
+});
+
+describe('raceIdFromRef', () => {
+	it('nk-<12桁> から race_id を取り出す', () => {
+		expect(raceIdFromRef('nk-202606030811')).toBe('202606030811');
+	});
+
+	it('形が違う・無いときは null', () => {
+		expect(raceIdFromRef(undefined)).toBeNull();
+		expect(raceIdFromRef('')).toBeNull();
+		expect(raceIdFromRef('nk-2026060308')).toBeNull();
+		expect(raceIdFromRef('nk-202606030811x')).toBeNull();
+		expect(raceIdFromRef('202606030811')).toBeNull();
+		expect(raceIdFromRef(202606030811)).toBeNull();
 	});
 });
 

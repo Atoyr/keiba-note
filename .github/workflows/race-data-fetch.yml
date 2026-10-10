@@ -8,7 +8,7 @@ name: 出走馬・結果の取得
 #           結果（command: result）は Cron・管理画面からは頼まない。この manual だけ
 #
 # netkeiba の出馬表を `data:fetch entries`、結果を `data:fetch result` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
-# PR のブランチは command ごとに分ける（出馬表の PR がまだ開いていても、結果の取得が上書きしない）。
+# PR のブランチは command ごとに分けるが、どちらも main の YAML の同じレースを書く。結果は出走馬・枠順の PR をマージしてから取る。
 # **D1 には触らない。** 本番に入るのは、人がその PR をマージしたとき（data-import.yml）。
 # 出走馬データの正は YAML のまま（docs/architecture.md 第0章）。
 #
@@ -66,7 +66,7 @@ permissions:
 # 同じレースの取得だけを1本ずつにする。全体を1つの群にすると、待っている回は最新の1つしか残らず、
 # 同じ回に頼まれた別のレースが取り消される。
 concurrency:
-  group: race-data-fetch-${{ inputs.command }}-${{ inputs.date }}-${{ inputs.course }}-${{ inputs.race_number }}
+  group: race-data-fetch-${{ inputs.command || 'entries' }}-${{ inputs.date }}-${{ inputs.course }}-${{ inputs.race_number }}
   cancel-in-progress: false
 
 defaults:
@@ -211,10 +211,10 @@ jobs:
             echo "## レビューで見てほしいところ"
             echo
             if [ "$COMMAND" = "result" ]; then
-              echo "- 着順が数字で入った頭数が出走頭数（\`fieldSize\`）と合っているか。取消・除外・中止はログに \`取消\` などと出て着順は入らない"
+              echo "- \`! …: 結果の表にいません\` は YAML（main）にいて結果に無い馬。候補のまま結果を取った可能性があるので、出走馬・枠順の PR を先にマージしたか確かめる"
+              echo "- 着順が数字で入った頭数が出走頭数（\`fieldSize\`）と合っているか（YAML に全頭いるときだけ。気にしている馬だけ載せた条件戦では合わない）。取消・除外・中止はログに \`取消\` などと出て着順は入らない"
               echo "- 結果は上書きなので、以前に手で入れた値と netkeiba が食い違うとその行が差分に出る（正しい方は db.netkeiba.com のレースページで確かめる）"
               echo "- YAML にいない馬は足さない（ログに並ぶ）"
-              echo "- \`! 馬名\` の行は馬名の食い違い（馬名は書き換えていない。data/README.md「馬名を直す」）"
             else
               echo "- 下のログの \`- …（出馬表に無いので withdrawn へ）\` は取り下げた馬。投入すると出走馬行が消え、付いていたメモは近況メモへ移る"
               echo "- \`! 馬名\` の行は馬名の食い違い（馬名は書き換えていない。data/README.md「馬名を直す」）"
