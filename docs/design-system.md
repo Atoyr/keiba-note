@@ -132,7 +132,7 @@ G3 は以前 `green-600` だったが、3.22:1 で届かなかったので1段�
   設定は `components.json`（style `nova`・アイコン `lucide`）
 - **`src/lib/components/ui/` は手で直さない。** 見た目を変えたいときは、トークンを変えるか、
   呼ぶ側で `class` を足すか、③ のドメイン部品で包む
-- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / popover / select / separator / sonner / textarea / tooltip
+- 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / popover / progress / select / separator / sonner / textarea / tooltip
 - **素の `<button>` `<select>` `<textarea>` を新しく書かない。** 押せる大きさやフォーカスの見え方が
   部品ごとに揃わなくなる。shadcn に無い操作が要るときは、まず `shadcn-svelte add` で足せるものが無いかを見る
 - アイコンは `@lucide/svelte/icons/<名前>` を1つずつ import する

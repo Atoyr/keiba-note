@@ -52,11 +52,11 @@
 	const tapToOpen = $derived(mounted && hoverNone.current);
 </script>
 
-{#snippet summaryContent(s: { tags: JockeyTag[] })}
+{#snippet summaryContent()}
 	{#if body}
 		<p class="line-clamp-6 leading-relaxed whitespace-pre-wrap">{body}</p>
 	{/if}
-	<JockeyTagBadges tags={s.tags} />
+	<JockeyTagBadges tags={summary?.tags ?? []} />
 {/snippet}
 
 {#if summary && hasSummary}
@@ -69,7 +69,7 @@
 				collisionPadding={8}
 				class="w-auto max-w-xs items-start gap-1.5"
 			>
-				{@render summaryContent(summary)}
+				{@render summaryContent()}
 				<a
 					{href}
 					class="inline-flex min-h-6 items-center gap-0.5 font-medium underline underline-offset-2"
@@ -95,7 +95,7 @@
 					arrowClasses="hidden"
 					class="flex max-w-xs flex-col items-start gap-1.5 bg-popover p-2.5 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10"
 				>
-					{@render summaryContent(summary)}
+					{@render summaryContent()}
 				</Tooltip.Content>
 			</Tooltip.Root>
 		</Tooltip.Provider>

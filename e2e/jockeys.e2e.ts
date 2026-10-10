@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import {
@@ -177,6 +177,22 @@ test('まとめの無い騎手の名前に hover しても何も浮かばない'
 	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
 });
 
+/**
+ * 指で押して 100ms 後に離すタップ。外をタップして閉じるのを確かめるときに使う。
+ * Playwright の `tap()` は押してから離すまでが 0ms で、bits-ui はタッチの押下から 10ms 後に
+ * click を待ち始めるので、外のタップを取りこぼす（人の指はそこまで速く離れない）。
+ */
+async function fingerTap(page: Page, target: Locator) {
+	await target.scrollIntoViewIfNeeded();
+	const box = (await target.boundingBox())!;
+	const cdp = await page.context().newCDPSession(page);
+	const touchPoints = [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }];
+	await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints });
+	await page.waitForTimeout(100);
+	await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+	await cdp.detach();
+}
+
 // hover できない端末（スマホ・タブレット）。Chromium は hasTouch で `(hover: none)` になる。
 // まとめのある騎手名は button になり、タップで Popover を開く。騎手の画面へは中のリンクで行く。
 test.describe('hover できない端末', () => {
@@ -185,15 +201,28 @@ test.describe('hover できない端末', () => {
 	test('予想画面の騎手名をタップすると、自分のまとめが開き、中のリンクから騎手の画面へ行ける', async ({
 		page
 	}) => {
+		// hydration のあとで <a> を button に替える。サーバーの HTML と食い違えば Svelte が警告を出す。
+		const warnings: string[] = [];
+		page.on('console', (m) => {
+			if (m.type() === 'warning' && /hydration/i.test(m.text())) warnings.push(m.text());
+		});
 		await login(page);
 		await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
-		await page.getByRole('button', { name: JOCKEYS.main }).first().tap();
+		const trigger = page.getByRole('button', { name: JOCKEYS.main }).first();
+		await trigger.tap();
 
 		const dialog = page.getByRole('dialog');
 		await expect(dialog).toContainText(JOCKEYS.mainSummary);
 		await expect(dialog).toContainText('中山巧者');
 		await expect(page.getByText(JOCKEYS.otherUserSummary)).toHaveCount(0);
+
+		// 外をタップすると閉じる。
+		await fingerTap(page, page.getByText('付けた印', { exact: true }));
+		await expect(dialog).toHaveCount(0);
+		expect(warnings).toEqual([]);
+
+		await trigger.tap();
 
 		await dialog.getByRole('link', { name: '騎手の画面へ' }).tap();
 		await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();

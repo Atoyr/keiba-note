@@ -173,6 +173,15 @@ export const SCREENS: Screen[] = [
 		prepare: hoverJockeySummary,
 		stayAtTop: true
 	},
+	{
+		// hover できない端末で、ふりかえり画面の騎手名をタップしてまとめが開いたところ。
+		name: 'race-review-jockey-summary-tap',
+		path: `/races/${REVIEW_RACE_ID}`,
+		auth: true,
+		prepare: tapJockeySummary,
+		stayAtTop: true,
+		touch: true
+	},
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
