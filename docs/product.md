@@ -38,6 +38,8 @@ Cloudflare Workers 上で動かす。
   → 第6章「長い一覧」）
 - 更新日: 2026-10-04 — AI との連携（MCP）に、ユーザーごと・週ごと（水曜 12:00 区切り）の読み取り・書き込みの回数の上限を置いた。
   本人は「AIとの連携」で %、管理者は管理画面で各ユーザーの % を見て 0 に戻せる（→ 第5章 `mcp_usage` / 第6章）
+- 更新日: 2026-10-10 — AI との連携（MCP）で、予想に加えてふりかえり（レースのメモ・各馬のメモと札）も書かせられるようにした。
+  別のスコープ（`reviews:write`）で、同意画面で予想の書き込みとは別に外せる（→ 第5章 oauth_grant）
 - 更新日: 2026-10-05 — 重賞の一覧と画面（`/graded-races`・`/graded-races/[name]`）を足した。重賞はレース名を別名の表で寄せた鍵で束ね、
   年ごとに予想とふりかえりのメモを並べ、重賞ごとの傾向のメモ（`graded_race_note`）を1つ持つ。格は今年のもの
   （→ 第5章 graded_race_note / 第6章 `/graded-races/[name]`）
@@ -411,7 +413,7 @@ erDiagram
 
 ### oauth_client / oauth_grant / oauth_code / oauth_token（AI との連携）
 
-MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませる（予想は書かせる）ための表（→ [architecture.md 3-10](./architecture.md)）。
+MCP のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませる（予想とふりかえりは書かせる）ための表（→ [architecture.md 3-10](./architecture.md)）。
 
 | 表 | 1行 | 消えるとき |
 | --- | --- | --- |
@@ -774,7 +776,7 @@ WHERE id = ?1 AND visibility = 'unlisted';
 /settings/profile             プロフィール（公開用の名前を設定）
 /settings/shares              共有中のメモ一覧＝**共有を取り消す場所**
 /settings/connections         AIとの連携（MCP の接続先 URL・今週の利用量（%）・許可したアプリ）＝**連携を解除する場所**
-/oauth/authorize              AI のアプリへの同意画面（メモを読ませるか・予想を書かせるかを選ぶ。architecture.md 3-10）
+/oauth/authorize              AI のアプリへの同意画面（メモを読ませるか・予想を書かせるか・ふりかえりを書かせるかを選ぶ。architecture.md 3-10）
 
 ── admin のみ ────────────────────────────────────────────
 /races/new                    レース登録

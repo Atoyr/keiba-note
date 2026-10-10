@@ -144,8 +144,8 @@ function raceNoteStatements(
 
 export type RaceReviewInput = {
 	raceId: string;
-	/** レース自体のメモ。空文字なら「書かない／消す」。 */
-	raceNote: { body: string };
+	/** レース自体のメモ。空文字なら「書かない／消す」。省くとレースのメモには触れない（MCP が出走馬だけ書くとき）。 */
+	raceNote?: { body: string };
 	entries: {
 		entryId: string;
 		horseId: string;
@@ -174,18 +174,20 @@ export async function saveRaceReview(
 	let saved = 0;
 	let cleared = 0;
 
-	const raceBody = input.raceNote.body.trim();
-	statements.push(
-		...raceNoteStatements(db, {
-			authorId,
-			raceId: input.raceId,
-			kind: 'race',
-			body: raceBody,
-			occurredAt
-		})
-	);
-	if (raceBody) saved++;
-	else cleared++;
+	if (input.raceNote) {
+		const raceBody = input.raceNote.body.trim();
+		statements.push(
+			...raceNoteStatements(db, {
+				authorId,
+				raceId: input.raceId,
+				kind: 'race',
+				body: raceBody,
+				occurredAt
+			})
+		);
+		if (raceBody) saved++;
+		else cleared++;
+	}
 
 	for (const e of input.entries) {
 		const body = e.body.trim();

@@ -24,8 +24,9 @@
 	<p class="mt-3 leading-relaxed">
 		Claude や ChatGPT に uma-memo をつなぐと、AI
 		がレース・出走馬・オッズ・馬の情報と、あなたのメモを読んで予想の相談に乗れるようになります（MCP）。許可すれば、AI
-		と決めた予想（見立て・印・札・出走前メモ）を AI に書き込ませることもできます。AI
-		が書き換えられるのはその予想だけで（空にすれば消えます）、ふりかえり・近況メモの書き込みと、メモの共有はできません。
+		と決めた予想（見立て・印・札・出走前メモ）や、レースを見たあとに AI
+		と話したふりかえり（レースのメモ・各馬のメモと札）を AI に書き込ませることもできます。AI
+		が書き換えられるのはその予想とふりかえりだけで（空にすれば消えます）、近況メモの書き込みと、メモの共有はできません。
 	</p>
 
 	<Card.Root class="mt-6 gap-3 py-4">
@@ -183,26 +184,30 @@
 				は頼まれたときだけ書くよう AI に伝えていますが、AI
 				が誤って書くこともあります。展開の予想・ふりかえり・近況メモには触れません。
 			</li>
+			<li>
+				「{SCOPE_LABELS['reviews:write']}」もチェックを外せます。残すと、AI
+				は開催日以降（当日を含む）のレースのメモと各馬のメモ・札を書き換えられます。予想・近況メモには触れません。
+			</li>
 			<li>「許可しない」を押せば、何も許可せずに終わります。</li>
 		</ul>
 		<p class="mt-3 text-sm leading-relaxed">
 			メモを読ませると、メモの内容は AI
 			のサービスに送られます。各サービスのデータの扱いを確かめてから許可してください。予想を書かせるときは、AI
-			が書き換えたあとで予想画面を見て確かめてください。
+			が書き換えたあと、予想は予想画面で、ふりかえりはふりかえり画面で見て確かめてください。
 		</p>
 	</section>
 
 	<section class="mt-8" aria-labelledby="tools">
 		<h2 id="tools" class="text-lg font-bold">AI が使える tool</h2>
 		<p class="mt-3 text-sm leading-relaxed">
-			AI は次の tool で uma-memo を読みます。頼むときに名前を書くと、AI が迷いません。
+			AI は次の tool で uma-memo を読み書きします。頼むときに名前を書くと、AI が迷いません。
 		</p>
 		<dl class="mt-3 space-y-3 rounded-md border p-4 text-sm">
 			{#each data.tools as t (t.name)}
 				<div>
 					<dt class="font-mono font-medium break-all">{t.name}</dt>
 					<dd class="mt-1 leading-relaxed text-muted-foreground">
-						{t.title}{#if t.scope === 'notes:read'}（メモを読むのを許可したときだけ）{:else if t.scope === 'notes:write'}（予想を書くのを許可したときだけ）{/if}
+						{t.title}{#if t.scope === 'notes:read'}（メモを読むのを許可したときだけ）{:else if t.scope === 'notes:write'}（予想を書くのを許可したときだけ）{:else if t.scope === 'reviews:write'}（ふりかえりを書くのを許可したときだけ）{/if}
 					</dd>
 				</div>
 			{/each}
@@ -223,8 +228,13 @@
 		</blockquote>
 		<p class="mt-3 text-sm leading-relaxed">
 			uma-memo が書き換えるのは、AI が渡した馬の渡した項目だけです。ただ、何を渡すかは AI
-			次第で、誤って書くこともあります。書いたあとは予想画面で確かめ、直したければそこで直してください。
+			次第で、誤って書くこともあります。書いたあとは予想画面・ふりかえり画面で確かめ、直したければそこで直してください。
 		</p>
+		<p class="mt-3 text-sm leading-relaxed">レースを見終わったら、こう頼みます。</p>
+		<blockquote class="mt-3 rounded-md border bg-muted/50 p-4 text-sm leading-relaxed">
+			uma-memo の get_race で天皇賞（秋）の結果を読み、私と話したことを save_my_race_review
+			でふりかえりに書いてください。書く前に内容を見せてください。
+		</blockquote>
 	</section>
 
 	<section class="mt-8" aria-labelledby="trouble">
@@ -254,6 +264,13 @@
 				<dd class="mt-1">
 					予想の書き込みを許可していません。書き込みが加わる前につないだ連携も同じです。「AIとの連携」でその連携を解除し、アプリ側で
 					uma-memo を接続し直して、予想を書くのにチェックを入れたまま許可してください。
+				</dd>
+			</div>
+			<div>
+				<dt class="font-semibold">AI がふりかえりを書けないと言う</dt>
+				<dd class="mt-1">
+					原因は2つ考えられます。1つは、まだ開催されていないレースです。ふりかえりは開催日（当日を含む）から書けます。もう1つは、ふりかえりの書き込みを許可していないことです。ふりかえりの書き込みは後から加わったので、それより前につないだ連携も同じです。「AIとの連携」でその連携を解除し、アプリ側で
+					uma-memo を接続し直して、ふりかえりを書くのにチェックを入れたまま許可してください。
 				</dd>
 			</div>
 			<div>

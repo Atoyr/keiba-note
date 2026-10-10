@@ -35,9 +35,9 @@
 	<!-- 文の途中で改行すると、和文の間に空白が入る。文ごとに span に分けて折り返させる。 -->
 	<p class="mt-1 text-sm text-muted-foreground">
 		<span>Claude や ChatGPT から、レースのデータとあなたのメモを読めるようにします（MCP）。</span
-		><span>許可すれば、あなたの予想（見立て・印・札・出走前メモ）も書けます。</span><span
-			>ふりかえり・近況メモの書き込みと、共有、予想以外のメモの削除はできません。</span
-		>
+		><span
+			>許可すれば、あなたの予想（見立て・印・札・出走前メモ）とふりかえり（レースのメモ・各馬のメモと札）も書けます。</span
+		><span>近況メモの書き込みと、共有、予想とふりかえり以外のメモの削除はできません。</span>
 	</p>
 
 	<section class="mt-6 rounded-lg border p-4" aria-labelledby="mcp-url-heading">
