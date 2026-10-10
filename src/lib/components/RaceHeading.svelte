@@ -111,11 +111,7 @@
 					{/snippet}
 				</DropdownMenu.Trigger>
 
-				<DropdownMenu.Content
-					align="end"
-					class="w-48"
-					onCloseAutoFocus={focusBack}
-				>
+				<DropdownMenu.Content align="end" class="w-48" onCloseAutoFocus={focusBack}>
 					{#each links as link (link.href)}
 						<DropdownMenu.Item>
 							{#snippet child({ props })}
