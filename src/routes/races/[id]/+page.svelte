@@ -288,12 +288,16 @@
 								</span>
 								<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
 								{#if r.jockey}
-									<JockeyLink
-										name={r.jockey}
-										summary={r.jockeySummary}
-										class="inline-flex min-h-6 items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
-									/>
-									<JockeyTagBadges tags={r.jockeyCourseTags} />
+									<span
+										class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1"
+									>
+										<JockeyLink
+											name={r.jockey}
+											summary={r.jockeySummary}
+											class="inline-flex min-h-6 max-w-full items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
+										/>
+										<JockeyTagBadges tags={r.jockeyCourseTags} />
+									</span>
 								{/if}
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span
 									>{/if}

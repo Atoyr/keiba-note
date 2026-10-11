@@ -49,7 +49,14 @@
 
 {#snippet summaryContent()}
 	{#if body}
-		<p class="max-h-80 overflow-y-auto leading-relaxed whitespace-pre-wrap">{body}</p>
+		<!-- スクロールできる領域は、キーボードでもフォーカスしてスクロールできるようにする（Safari は既定でフォーカスできない）。 -->
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+		<p
+			tabindex="0"
+			class="max-h-80 overflow-y-auto leading-relaxed whitespace-pre-wrap focus-visible:outline-2 focus-visible:outline-ring"
+		>
+			{body}
+		</p>
 	{/if}
 	<JockeyTagBadges tags={summary?.tags ?? []} />
 {/snippet}

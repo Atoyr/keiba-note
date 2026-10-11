@@ -170,6 +170,20 @@ test('ふりかえり画面（中山）では騎手名の隣に中山巧者の�
 	await expect(page.getByText('中山巧者')).toHaveCount(0);
 });
 
+test('予想画面（京都の芝）では、騎手名の隣に芝巧者の札だけが出る（中山巧者・他の札は出ない）', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	const trigger = page.getByRole('button', { name: JOCKEYS.main }).first();
+	const group = trigger.locator('xpath=..');
+	await expect(group).toContainText('芝巧者');
+	await expect(group).not.toContainText('中山巧者');
+	await expect(group).not.toContainText('穴で怖い');
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
 test('予想画面の騎手名にキーボードで辿り着き、Enter で開いて Esc で閉じる', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);

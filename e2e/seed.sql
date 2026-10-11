@@ -734,7 +734,7 @@ VALUES (
 	'01JE2EUSER0000000000000000',
 	'E2E騎手',
 	'中山の内回りは前に行く。人気薄でも粘り込む。',
-	'["中山巧者","先行が多い","穴で怖い"]'
+	'["中山巧者","芝巧者","先行が多い","穴で怖い"]'
 );
 
 INSERT OR REPLACE INTO jockey_note (user_id, jockey, body, tags)

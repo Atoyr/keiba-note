@@ -63,6 +63,8 @@ describe('JockeyLink', () => {
 		const p = document.querySelector('[role="dialog"] p');
 		expect(p?.textContent).toBe(long);
 		expect(p?.className).not.toContain('line-clamp');
+		// スクロールする本文は、キーボードでもフォーカスしてスクロールできる。
+		expect(p?.getAttribute('tabindex')).toBe('0');
 	});
 
 	it('hover しても何も出ない', async () => {
