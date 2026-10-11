@@ -34,6 +34,7 @@
 - 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`）とスコープ `notes:write` を足した。`/mcp` の本文の上限を 64 KiB にした（→ 3-10）
 - 更新日: 2026-10-04 — MCP の tool の呼び出しに、ユーザーごと・週ごと（水曜 12:00 JST 区切り）の回数の上限を置いた。読みと書きで別の枠。管理者が1人ずつ 0 に戻せる（→ 3-10）
 - 更新日: 2026-10-05 — 重賞（graded）を機能の並びに足した（→ 第2章）
+- 更新日: 2026-10-12 — MCP に展開の予想を書く tool（`save_my_race_flow`）を足した。スコープは `notes:write` のまま（→ 3-10）
 - 更新日: 2026-10-10 — MCP にふりかえりを書く tool（`save_my_race_review`）とスコープ `reviews:write` を足した。開催前のレースには書けない（→ 3-10）
 - 更新日: 2026-10-05 — 出走馬の取得の Cron を、毎時の枠順待ちから、発表に合わせた3段（日曜の候補・木曜の出走馬・金曜の枠順）にした（→ 第1章 / 3-9）
 - 更新日: 2026-10-10 — 取得のワークフローに `command` を足し、Actions のタブから手で結果（`data:fetch result`）も取れるようにした。Worker は変えない（→ 3-9）
@@ -703,7 +704,7 @@ sequenceDiagram
 
 Claude・ChatGPT（スマホのアプリを含む）から読める（許せば予想とふりかえりを書ける）ように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバーを置く。
 ブラウザの中で動く WebMCP（[frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)）は試験的なまま残す。
-**書けるのは本人の予想（見立て・印・札・出走前メモ）と、開催日以降（当日を含む）のレースのふりかえり（レースのメモ・各馬のメモと札）だけ。** 近況メモ・展開を書く tool と、共有する・消す tool とスコープは無い。
+**書けるのは本人の予想（見立て・印・札・出走前メモ・展開の予想）と、開催日以降（当日を含む）のレースのふりかえり（レースのメモ・各馬のメモと札）だけ。** 近況メモを書く tool と、共有する・消す tool とスコープは無い。
 
 ```mermaid
 sequenceDiagram
@@ -752,17 +753,23 @@ sequenceDiagram
 - **トークンの口だけ SvelteKit に通さない。** トークンの要求は Origin の無いフォームの POST で、SvelteKit の CSRF の検査が
   hooks より前に 403 にする（パスごとに外す設定は無い）。この口は Cookie を見ないので、検査が守るものが無い。
   `vite dev` では `src/worker.js` を通らないので、この口は 404 になる（E2E は `wrangler dev` で通る）
-- **スコープ:** `races:read`（マスタ。外せない）と `notes:read`（本人のメモ。同意画面で外せる）と `notes:write`（本人の予想を書く。同意画面で外せる）と `reviews:write`（本人のふりかえりを書く。同意画面で外せる）。
+- **スコープ:** `races:read`（マスタ。外せない）と `notes:read`（本人のメモ。同意画面で外せる）と `notes:write`（本人の予想と展開の予想を書く。同意画面で外せる）と `reviews:write`（本人のふりかえりを書く。同意画面で外せる）。
   予想とふりかえりを別のスコープにしたのは、`notes:write` で許した連携に黙ってふりかえりの書き込みを足さないため（product.md 第5章 note でも別の行）。
   足りない tool は tools/list に出さず、呼ばれたら動かさずに 403。`races:read` だけのときは、レースの一覧に添える「自分のメモの件数」も出さない。
   `notes:write`・`reviews:write` が加わる前の連携は持っていないので、書かせるには本人が連携し直す（スコープは更新で広がらない）
 - **書く tool（`save_my_race_preview`）は、渡した見立て・渡した馬の渡した項目だけを書き換える。** 省いた項目は今の値で埋め、
   省いた馬と見立てには触らない（AI が一部だけ渡して、ほかの馬のメモが消えないように）。本文・印・札がすべて空になった馬は消える（画面の保存と同じ）。
   - 出走馬は DB を正とする。`entryId` がそのレースの出走馬でなければ何も書かず、`horse_id` は入力から受けない（予想画面の action と同じ）
-  - 展開（`flow`）は渡さないので触らない（`savePreviewNotes` に `raceNote.flow` を渡さない）
+  - 展開（`flow`）は渡さないので触らない（`savePreviewNotes` に `raceNote.flow` を渡さない。展開は別の tool `save_my_race_flow`）
   - 返すのは書いた結果（見立ては `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`）だけで、本文は返さない。
     見立ての `cleared` は本文を空にしたことで、保存済みの展開があれば行は残る（`raceNoteStatements`）。`notes:read` の無い連携に、省いた項目の今の値を見せない
   - tools/list の `annotations` で `readOnlyHint: false`・`destructiveHint: true` を名乗る。クライアントが実行の前に本人に確かめる目安になる
+- **展開の予想を書く tool（`save_my_race_flow`）は、見立て（`race_preview`）の `flow` 列だけを書く。** スコープは `notes:write`（展開は見立ての行の列なので、予想を書く許可に入れる。新しいスコープは作らない。許していた連携は展開も書けるようになる）。
+  - 渡した項目（`pace`・`start`/`corner4`/`finish` の `spots`・`memo`）だけを今の展開に重ねる。`spots` は局面の隊列を丸ごと置き換え（追加ではない）。省いた局面・項目は今の値のまま
+  - 重ねる前の今の展開は `restrictFlowTo` で出走馬に絞る（取り下げた馬を残さない）。`spots` は `sortSpots` で並べ、メモは trim する
+  - 同じ馬が局面内に2回・同じマスに2頭は、画面のスキーマのように黙って落とさず誤りで返す。出走馬でない `entryId` も誤り。誤りならどこにも書かない
+  - 見立ての本文は今のまま渡し直す（`savePreviewNotes` の `raceNote.body`）。印・出走前メモ（`entries`）には触れない。ペースも隊列もメモも空になれば `flow` は NULL。本文も空なら見立ての行が消える（`raceNoteStatements`）
+  - 返すのは `flow: saved | cleared` だけ。開催日の制限は付けない（`save_my_race_preview` と同じ）
 - **ふりかえりを書く tool（`save_my_race_review`）は、上と同じ流儀で、渡したレースのメモ・渡した馬の渡した項目だけを書き換える。**
   違いは次のとおり。
   - 書くのはふりかえり画面で書けるものだけ（レースのメモ `race` は本文だけ、出走馬ごとの `entry` は本文と札）。印は運ばない。

@@ -9,6 +9,7 @@
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
 - 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
+- 更新日: 2026-10-12 — MCP に展開の予想（ペースと3局面の隊列）を書く tool（`save_my_race_flow`。スコープは `notes:write` のまま）を足した（→ 第3章）
 - 更新日: 2026-10-10 — MCP にふりかえりを書く tool（`save_my_race_review`）とスコープ `reviews:write` を足した（→ 第1章 / 第3章）
 - 更新日: 2026-10-10 — `/races/[id]`・`/races/[id]/preview` の GET が、出走馬の行に本人の騎手のまとめ（`jockeySummary`）も返すようにした。`services/jockeys.ts` に `listRaceJockeySummaries` を足した（→ 第3章 / 第5章）
 - 更新日: 2026-10-09 — `/races/[id]`・`/races/[id]/preview` の GET が、重賞なら本人の重賞の傾向（`gradedTrend`）も返すようにした（→ 第3章）
@@ -170,7 +171,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / Bearer はあるが DB に届かない `503` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / 本文が64 KiBを超える `413` / tool の入力の誤り・見つからないは `200` の `isError: true` |
 | `/mcp` | GET・DELETE | — | — | `405`（サーバーから流す SSE とセッションは持たない） |
 
-tools（書くのは `save_my_race_preview`・`save_my_race_review` だけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:
+tools（書くのは `save_my_race_preview`・`save_my_race_flow`・`save_my_race_review` だけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:
 
 | tool | スコープ | 入力 | 返すもの |
 | --- | --- | --- | --- |
@@ -181,6 +182,7 @@ tools（書くのは `save_my_race_preview`・`save_my_race_review` だけ。`vi
 | `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
 | `list_my_recent_notes` | `notes:read` | `limit`（1〜50） | 自分の最近のメモ |
 | `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`。見立ての `cleared` は本文を空にしたことで、展開があれば行は残る）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目・展開はそのまま。出走馬でない `entryId`・空の入力は何も書かずに `isError` |
+| `save_my_race_flow` | `notes:write` | `raceId`・`pace`（スロー・ミドル・ハイ。null で外す）・`start`・`corner4`・`finish`（それぞれ `spots`（`entryId`・`x` 0〜9・`y` 0〜3。〜40）と `memo`（200文字まで）のうち書き換えるもの） | 書いた結果（`flow` は `saved`・`cleared`）。中身は返さない。渡した局面の渡した項目だけを書き換え、`spots` は局面の隊列を丸ごと置き換え（`[]` で空）。省いた局面・項目と、見立ての本文・印・出走前メモはそのまま。すべて空になると展開は消える。同じ馬・同じマスの重なり、出走馬でない `entryId`、空の入力は何も書かずに `isError` |
 | `save_my_race_review` | `reviews:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`tags` のうち書き換えるもの。印は運ばない） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目はそのまま。予想には触れない。開催前のレース・出走馬でない `entryId`・空の入力は何も書かずに `isError` |
 
 ### HTTP でない口 — Cron Trigger
