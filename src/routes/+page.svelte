@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import InfoTip from '$lib/components/InfoTip.svelte';
 	import LandingPage from '$lib/components/LandingPage.svelte';
 	import NoteMenu from '$lib/components/NoteMenu.svelte';
 	import RacePlace from '$lib/components/RacePlace.svelte';
@@ -101,9 +102,9 @@
 
 		<!-- 開いて最初に知りたいのは「今週どの馬を狙うか」。自分が付けた結論の札から組む。 -->
 		<section>
-			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+			<div class="flex flex-wrap items-center gap-x-1 gap-y-1">
 				<h2 class="text-sm font-semibold text-gray-500">今週出走する注目馬</h2>
-				<span class="text-xs text-gray-500">次走買い・次走消しを付けた馬</span>
+				<InfoTip label="今週出走する注目馬" text="次走買い・次走消しを付けた馬" />
 			</div>
 
 			{#if data.watchlist.length === 0}
@@ -152,9 +153,9 @@
 		<!-- 推しの馬の、まだ走り終えていない出走。今週に限らず、登録済みの先のレースまで出す。
 		     推しにする・外すのは馬の画面。推しがいないうちは、どこで推しにするかを案内する。 -->
 		<section class="mt-8">
-			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+			<div class="flex flex-wrap items-center gap-x-1 gap-y-1">
 				<h2 class="text-sm font-semibold text-muted-foreground">推しの出走予定</h2>
-				<span class="text-xs text-muted-foreground">推しにした馬の、登録済みのレース</span>
+				<InfoTip label="推しの出走予定" text="推しにした馬の、登録済みのレース" />
 			</div>
 
 			{#if data.favorites.runs.length === 0 && data.favorites.idle.length === 0}
@@ -208,9 +209,9 @@
 		<!-- 予想したのに答え合わせをしていないレース。無いときは枠ごと出さない（宿題が無いのが普通）。 -->
 		{#if data.awaiting.length > 0}
 			<section class="mt-8">
-				<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+				<div class="flex flex-wrap items-center gap-x-1 gap-y-1">
 					<h2 class="text-sm font-semibold text-gray-500">ふりかえり待ち</h2>
-					<span class="text-xs text-gray-500">予想したレースの答え合わせ</span>
+					<InfoTip label="ふりかえり待ち" text="予想したレースの答え合わせ" />
 				</div>
 				<ul class="mt-2 grid gap-2">
 					{#each data.awaiting as r (r.id)}
