@@ -5,6 +5,8 @@ import JockeyLink from './JockeyLink.svelte';
 
 // ツールチップの中身は body の直下へ出る（Portal）ので、render の screen ではなく page で探す。
 const tooltip = () => page.getByRole('tooltip');
+// まとめの有無を示すアイコン（lucide の notebook-pen）。
+const noteIcon = (el: Element) => el.querySelector('svg.lucide-notebook-pen');
 
 describe('JockeyLink', () => {
 	it('まとめが無ければただのリンクで、hover しても何も出ない', async () => {
@@ -21,6 +23,7 @@ describe('JockeyLink', () => {
 
 		await expect.element(tooltip()).not.toBeInTheDocument();
 		expect(link.element().hasAttribute('aria-describedby')).toBe(false);
+		expect(link.element().querySelector('svg')).toBeNull();
 	});
 
 	it('まとめがあれば hover で本文と札が出て、リンクはリンクのまま', async () => {
@@ -30,6 +33,9 @@ describe('JockeyLink', () => {
 		});
 		const link = screen.getByRole('link', { name: 'ヤマダ' });
 		await expect.element(link).toHaveAttribute('href', `/jockeys/${encodeURIComponent('ヤマダ')}`);
+		// 騎手名の右にアイコン。読み上げからは外し、リンクの名前は騎手名のまま。
+		expect(noteIcon(link.element())?.getAttribute('aria-hidden')).toBe('true');
+		await expect.element(screen.getByRole('link', { name: 'ヤマダ', exact: true })).toBeVisible();
 
 		await link.hover();
 
@@ -82,6 +88,14 @@ describe('JockeyLink', () => {
 		expect(document.querySelector('[role="tooltip"] p')).toBeNull();
 	});
 
+	it('本文も札も空のまとめは、無いのと同じでアイコンを出さない', async () => {
+		const screen = render(JockeyLink, { name: 'ヤマダ', summary: { body: ' ', tags: [] } });
+
+		const link = screen.getByRole('link', { name: 'ヤマダ' });
+		await expect.element(link).toBeVisible();
+		expect(link.element().querySelector('svg')).toBeNull();
+	});
+
 	describe('hover できない端末（(hover: none)）', () => {
 		// MediaQuery は matchMedia を読み、change の購読に addEventListener を呼ぶ。
 		const noHover = () => {
@@ -109,6 +123,8 @@ describe('JockeyLink', () => {
 			const trigger = screen.getByRole('button', { name: 'ヤマダ/タロウ' });
 			await expect.element(trigger).toBeInTheDocument();
 			await expect.element(screen.getByRole('link')).not.toBeInTheDocument();
+			// タップで開く側にも、まとめがあることを示すアイコン。
+			expect(noteIcon(trigger.element())?.getAttribute('aria-hidden')).toBe('true');
 			expect(page.getByRole('dialog').elements()).toHaveLength(0);
 
 			await trigger.click();

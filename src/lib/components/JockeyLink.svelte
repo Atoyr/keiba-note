@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import NotebookPenIcon from '@lucide/svelte/icons/notebook-pen';
 	import { onMount } from 'svelte';
 	import { MediaQuery } from 'svelte/reactivity';
 	import * as Popover from '$lib/components/ui/popover/index.js';
@@ -23,6 +24,9 @@
 	 * そこでまとめがあるときだけ、騎手名を button（Popover の trigger）にして、タップで同じ中身を Popover で開く。
 	 * 騎手の画面へは Popover の中のリンクで行く（「1回目のタップで開き2回目で遷移」は、2回目で遷移することが見えないので採らない）。
 	 * タップで開くものはリンクではないので button にし、読み上げも「ボタン・ポップアップあり」になる。
+	 *
+	 * まとめがあるときは、騎手名の右に notebook-pen のアイコンを出す（出走馬の一覧で、まとめの有無をひと目で分かるようにする）。
+	 * アイコンは `aria-hidden` にしてリンクの名前を変えない。中身はフォーカスの Tooltip（`aria-describedby`）で読める。
 	 *
 	 * **まとめが無い（null）ときは今までどおりのただのリンク**で、Tooltip や Popover で包まない
 	 * （空のツールチップや「まだありません」は出さない。スマホでも毎回1回多くタップさせない）。
@@ -59,10 +63,20 @@
 	<JockeyTagBadges tags={summary?.tags ?? []} />
 {/snippet}
 
+<!-- Tailwind の preflight で svg は block になる。予想画面のように騎手名が block（truncate）でも改行しないよう inline-block にする。 -->
+{#snippet noteIcon()}
+	<NotebookPenIcon
+		class="ml-0.5 inline-block size-3.5 shrink-0 align-[-0.125em]"
+		aria-hidden="true"
+	/>
+{/snippet}
+
 {#if summary && hasSummary}
 	{#if tapToOpen}
 		<Popover.Root>
-			<Popover.Trigger class="{className} cursor-pointer text-left">{name}</Popover.Trigger>
+			<Popover.Trigger class="{className} cursor-pointer text-left"
+				>{name}{@render noteIcon()}</Popover.Trigger
+			>
 			<Popover.Content
 				role="dialog"
 				aria-label="{name}のまとめ"
@@ -85,7 +99,7 @@
 					{#snippet child({ props })}
 						<!-- trigger の既定は type="button"。`<a>` には付けない（リンクのまま読ませる）。 -->
 						{@const linkProps = { ...props, type: undefined }}
-						<a {...linkProps} {href} class={className}>{name}</a>
+						<a {...linkProps} {href} class={className}>{name}{@render noteIcon()}</a>
 					{/snippet}
 				</Tooltip.Trigger>
 				<Tooltip.Content
