@@ -17,6 +17,7 @@
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
+	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
@@ -418,13 +419,18 @@
 									{r.horseName}
 								</a>
 								<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
-								     スマホには hover が無いので、下線（点線）を常に出してリンクと分かるようにする。 -->
+								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
 								{#if r.jockey}
-									<JockeyLink
-										name={r.jockey}
-										summary={r.jockeySummary}
-										class="inline-flex min-h-6 max-w-full items-center self-start text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-									/>
+									<span
+										class="flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 self-start"
+									>
+										<JockeyLink
+											name={r.jockey}
+											summary={r.jockeySummary}
+											class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+										/>
+										<JockeyTagBadges tags={r.jockeyCourseTags} />
+									</span>
 								{/if}
 								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->

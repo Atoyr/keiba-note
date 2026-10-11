@@ -9,6 +9,7 @@ import { getRace, listEntries } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
+import { raceJockeyTags } from '$lib/utils/jockey';
 import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
@@ -77,12 +78,15 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
 		rows: entries.map((e) => {
 			const p = myPreviews.get(e.entryId);
+			const jockeySummary = e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null;
 			return {
 				...e,
 				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
 				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
-				// 騎手名に hover したときに浮かべる、自分のまとめ。無ければ null。
-				jockeySummary: e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null,
+				// 騎手名を押したときに開く、自分のまとめ。無ければ null。
+				jockeySummary,
+				// 騎手名の隣に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
+				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
 				myNote: myEntryNotes.get(e.entryId) ?? null,
 				myPreview: p ? { mark: p.mark, body: p.body, tags: p.tags } : null
 			};

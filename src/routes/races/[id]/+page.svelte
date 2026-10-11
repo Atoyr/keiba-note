@@ -10,6 +10,7 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
+	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import RaceLaps from '$lib/components/RaceLaps.svelte';
 	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
@@ -292,6 +293,7 @@
 										summary={r.jockeySummary}
 										class="inline-flex min-h-6 items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
 									/>
+									<JockeyTagBadges tags={r.jockeyCourseTags} />
 								{/if}
 								{#if r.finishTime}<span class="font-mono text-xs text-gray-500">{r.finishTime}</span
 									>{/if}

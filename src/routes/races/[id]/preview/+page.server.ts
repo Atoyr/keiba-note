@@ -15,6 +15,7 @@ import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/servic
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
+import { raceJockeyTags } from '$lib/utils/jockey';
 import { popularityByNumber } from '$lib/utils/odds';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
@@ -99,17 +100,23 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		upcoming: isUpcoming(race.date, todayJst()),
 		// 取れた時点。1度も取れていなければ null で、オッズの欄ごと出さない。
 		oddsAsOf: odds?.asOf ?? null,
-		rows: entries.map((e) => ({
-			...e,
-			// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
-			sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
-			odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
-			popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
-			jockeySummary: e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null,
-			myPreview: myPreview.get(e.entryId) ?? null,
-			history: history.get(e.horseId) ?? [],
-			pastRuns: pastRuns.get(e.horseId) ?? []
-		}))
+		rows: entries.map((e) => {
+			const jockeySummary = e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null;
+			return {
+				...e,
+				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
+				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
+				odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
+				popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
+				// 騎手名を押したときに開く、自分のまとめ。無ければ null。
+				jockeySummary,
+				// 騎手名の隣に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
+				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
+				myPreview: myPreview.get(e.entryId) ?? null,
+				history: history.get(e.horseId) ?? [],
+				pastRuns: pastRuns.get(e.horseId) ?? []
+			};
+		})
 	};
 };
 
