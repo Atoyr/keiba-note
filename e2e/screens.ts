@@ -65,20 +65,22 @@ export type Screen = {
 const loadMore = (page: Page) => page.getByRole('link', { name: '続きを読み込む' });
 
 /**
- * 出走馬の行の騎手名に hover して、まとめのツールチップが見えるまで待つ。
- * スクロールするとツールチップは閉じるので、撮る前の「末尾までスクロール」を先に済ませておき、
- * 画面の側は `stayAtTop` にする（hover の後でスクロールさせない）。
+ * 出走馬の行の騎手名をクリックして、まとめの Popover が見えるまで待つ。
+ * 全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、先に表示域をページの高さまで伸ばしてから開く
+ * （伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
  */
-const hoverJockeySummary = async (page: Page) => {
+const clickJockeySummary = async (page: Page) => {
 	await waitForHydration(page);
-	await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-	await page.getByRole('link', { name: JOCKEYS.main }).first().hover();
-	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
+	const { width } = page.viewportSize()!;
+	const height = await page.evaluate(() => document.documentElement.scrollHeight);
+	await page.setViewportSize({ width, height });
+	await page.getByRole('button', { name: JOCKEYS.main }).first().click();
+	await expect(page.getByRole('dialog')).toContainText(JOCKEYS.mainSummary);
 };
 
 /**
  * hover できない端末（スマホ・タブレット）で、騎手名をタップしてまとめの Popover を開く。
- * 騎手名はまとめがあれば button になる（hover の Tooltip はタッチでは開かない）。画面の側は `touch` にする。
+ * 騎手名はまとめがあれば button になる。画面の側は `touch` にする。
  * 全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、先に表示域をページの高さまで伸ばしてから開く
  * （伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
  */
@@ -166,11 +168,11 @@ export const SCREENS: Screen[] = [
 	{ name: 'races-all', path: '/races?year=', auth: true, stayAtTop: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
 	{
-		// 騎手名に hover して、自分のまとめ（本文と札）が浮かんだところ。
+		// 騎手名をクリックして、自分のまとめ（本文と札）が開いたところ。
 		name: 'race-review-jockey-summary',
 		path: `/races/${REVIEW_RACE_ID}`,
 		auth: true,
-		prepare: hoverJockeySummary,
+		prepare: clickJockeySummary,
 		stayAtTop: true
 	},
 	{
@@ -364,11 +366,11 @@ export const SCREENS: Screen[] = [
 	},
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
 	{
-		// 騎手名に hover して、自分のまとめ（本文と札）が浮かんだところ。
+		// 騎手名をクリックして、自分のまとめ（本文と札）が開いたところ。
 		name: 'race-preview-jockey-summary',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
-		prepare: hoverJockeySummary,
+		prepare: clickJockeySummary,
 		stayAtTop: true
 	},
 	{

@@ -1,3 +1,5 @@
+import { JOCKEY_TAGS, type JockeyTag } from '$lib/schemas/jockey';
+
 /** 騎手の画面のリンクの組み立て。 */
 
 /**
@@ -18,4 +20,19 @@ export function jockeyListQuery(filter: { q: string; tag: string | null }): stri
 	if (filter.tag) params.set('tag', filter.tag);
 	const s = params.toString();
 	return s ? `?${s}` : '';
+}
+
+/**
+ * このレースに合う札だけ。レースの場の「○○巧者」と、芝・ダートの「芝巧者」「ダート巧者」。
+ * 距離・道悪・乗り方・狙いどころの札は出さない（レースの条件だけでは合うかどうか決められない）。
+ * 並びは `JOCKEY_TAGS` の順。
+ */
+export function raceJockeyTags(
+	tags: readonly JockeyTag[],
+	race: { course: string; surface: string | null }
+): JockeyTag[] {
+	const fit: string[] = [`${race.course}巧者`];
+	if (race.surface === '芝') fit.push('芝巧者');
+	if (race.surface === 'ダート') fit.push('ダート巧者');
+	return JOCKEY_TAGS.filter((t) => tags.includes(t) && fit.includes(t));
 }

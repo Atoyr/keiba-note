@@ -108,73 +108,108 @@ test('まとめを書いて札を付け、空にすると消える', async ({ pa
 	await expect(page.getByText('まだまとめはありません。')).toBeVisible();
 });
 
-test('予想画面の騎手名から騎手の画面へ行ける', async ({ page }) => {
+test('予想画面の騎手名から、まとめを開いて騎手の画面へ行ける', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
-	await page.getByRole('link', { name: JOCKEYS.main }).first().click();
+	await page.getByRole('button', { name: JOCKEYS.main }).first().click();
+	await page.getByRole('dialog').getByRole('link', { name: '騎手の画面へ' }).click();
 	await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();
 });
 
-// 出走馬の行の騎手名に hover・フォーカスすると、自分のまとめを浮かべる。
+// 出走馬の行の騎手名を押す（クリック）と、自分のまとめを開く。hover では開かない。
 for (const [label, path] of [
 	['予想画面', `/races/${PREVIEW_RACE_ID}/preview`],
 	['ふりかえり画面', `/races/${REVIEW_RACE_ID}`]
 ] as const) {
-	test(`${label}の騎手名に hover すると、自分のまとめが浮かぶ（他人のまとめは出ない）`, async ({
+	test(`${label}の騎手名をクリックすると、自分のまとめが開く（他人のまとめは出ない）`, async ({
 		page
 	}) => {
 		await login(page);
 		await gotoHydrated(page, path);
 
-		const link = page.getByRole('link', { name: JOCKEYS.main }).first();
-		await link.hover();
+		const trigger = page.getByRole('button', { name: JOCKEYS.main }).first();
+		await trigger.hover();
+		await page.waitForTimeout(500);
+		await expect(page.getByRole('dialog')).toHaveCount(0);
+		await expect(page.getByRole('tooltip')).toHaveCount(0);
 
-		const tooltip = page.getByRole('tooltip');
-		await expect(tooltip).toContainText(JOCKEYS.mainSummary);
-		await expect(tooltip).toContainText('中山巧者');
+		await trigger.click();
+
+		const dialog = page.getByRole('dialog');
+		await expect(dialog).toContainText(JOCKEYS.mainSummary);
+		await expect(dialog).toContainText('中山巧者');
 		await expect(page.getByText(JOCKEYS.otherUserSummary)).toHaveCount(0);
-		// リンクのまま（ボタンにはならない）で、開いている間は説明として結ばれる。
-		await expect(link).toHaveAttribute('aria-describedby', /.+/);
-		await expect(link).not.toHaveAttribute('aria-haspopup', /.*/);
+		await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
 
-		// クリックでの遷移は変わらない。
-		await link.click();
-		await expect(page.getByRole('heading', { name: JOCKEYS.main, level: 1 })).toBeVisible();
+		// 外をクリックすると閉じる。
+		await page.getByRole('heading', { level: 1 }).first().click();
+		await expect(dialog).toHaveCount(0);
+
+		// Esc でも閉じる。
+		await trigger.click();
+		await expect(dialog).toBeVisible();
+		await page.keyboard.press('Escape');
+		await expect(dialog).toHaveCount(0);
 	});
 }
 
-test('予想画面の騎手名にキーボードでフォーカスしても、まとめが浮かんで Esc で閉じる', async ({
+test('ふりかえり画面（中山）では騎手名の隣に中山巧者の札が出て、予想画面（京都）では出ない', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${REVIEW_RACE_ID}`);
+
+	// 札は騎手名の隣（Popover の外）に出る。開く前から見えている。
+	const row = page.locator('li', { has: page.getByRole('button', { name: JOCKEYS.main }) }).first();
+	await expect(row).toContainText('中山巧者');
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	await expect(page.getByRole('button', { name: JOCKEYS.main }).first()).toBeVisible();
+	await expect(page.getByText('中山巧者')).toHaveCount(0);
+});
+
+test('予想画面（京都の芝）では、騎手名の隣に芝巧者の札だけが出る（中山巧者・他の札は出ない）', async ({
 	page
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
-	// 実際に Tab で辿り着く（focus() だけでは focus-visible にならず、ツールチップは開かない）。
-	const link = page.getByRole('link', { name: JOCKEYS.main }).first();
-	for (let i = 0; i < 100; i++) {
-		if (await link.evaluate((el) => el === document.activeElement)) break;
-		await page.keyboard.press('Tab');
-	}
-	await expect(link).toBeFocused();
-
-	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
-	await page.keyboard.press('Escape');
-	await expect(page.getByRole('tooltip')).toHaveCount(0);
+	const trigger = page.getByRole('button', { name: JOCKEYS.main }).first();
+	const group = trigger.locator('xpath=..');
+	await expect(group).toContainText('芝巧者');
+	await expect(group).not.toContainText('中山巧者');
+	await expect(group).not.toContainText('穴で怖い');
+	await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test('まとめの無い騎手の名前に hover しても何も浮かばない', async ({ page }) => {
+test('予想画面の騎手名にキーボードで辿り着き、Enter で開いて Esc で閉じる', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	const trigger = page.getByRole('button', { name: JOCKEYS.main }).first();
+	for (let i = 0; i < 100; i++) {
+		if (await trigger.evaluate((el) => el === document.activeElement)) break;
+		await page.keyboard.press('Tab');
+	}
+	await expect(trigger).toBeFocused();
+
+	await page.keyboard.press('Enter');
+	await expect(page.getByRole('dialog')).toContainText(JOCKEYS.mainSummary);
+	await page.keyboard.press('Escape');
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+test('まとめの無い騎手はリンクのままで、押すと騎手の画面へ行く', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${THIS_WEEK_RACES.upcoming.id}/preview`);
 
-	// 同じレースの E2E騎手（まとめあり）には出る。ワカテ騎手には出ない。
-	await page.getByRole('link', { name: JOCKEYS.rookie }).hover();
-	// 浮かぶ遅延（300ms）より長く待つ。
-	await page.waitForTimeout(800);
-	await expect(page.getByRole('tooltip')).toHaveCount(0);
-
-	await page.getByRole('link', { name: JOCKEYS.main }).first().hover();
-	await expect(page.getByRole('tooltip')).toContainText(JOCKEYS.mainSummary);
+	await expect(page.getByRole('button', { name: JOCKEYS.rookie })).toHaveCount(0);
+	// 同じレースの E2E騎手（まとめあり）は button。
+	await expect(page.getByRole('button', { name: JOCKEYS.main }).first()).toBeVisible();
+	await page.getByRole('link', { name: JOCKEYS.rookie }).click();
+	await expect(page.getByRole('heading', { name: JOCKEYS.rookie, level: 1 })).toBeVisible();
 });
 
 /**
@@ -193,8 +228,7 @@ async function fingerTap(page: Page, target: Locator) {
 	await cdp.detach();
 }
 
-// hover できない端末（スマホ・タブレット）。Chromium は hasTouch で `(hover: none)` になる。
-// まとめのある騎手名は button になり、タップで Popover を開く。騎手の画面へは中のリンクで行く。
+// hover できない端末（スマホ・タブレット）。クリックと同じく、タップで Popover を開く。騎手の画面へは中のリンクで行く。
 test.describe('hover できない端末', () => {
 	test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
 
