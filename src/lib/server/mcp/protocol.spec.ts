@@ -676,6 +676,18 @@ describe('save_my_race_flow', () => {
 		expect(flows('A')).toEqual(before);
 	});
 
+	it('出走馬がまだいないレースには書けない。何も書かない', async () => {
+		sqlite.exec(
+			`INSERT INTO race (id, date, course, race_number, name) VALUES ('R0', '2099-12-27', '中山', 11, '出走馬なし')`
+		);
+		const reply = body(await save({ pace: 'ハイ', start: { memo: '逃げ争い' } }, ALL, 'A', 'R0'));
+		expect(reply.result?.isError).toBe(true);
+		expect(reply.result?.content[0].text).toContain('出走馬がまだいない');
+		expect(sqlite.prepare(`SELECT COUNT(*) AS n FROM note WHERE race_id = 'R0'`).get()).toEqual({
+			n: 0
+		});
+	});
+
 	it('本文・印・出走前メモ・ふりかえりには触れない', async () => {
 		const snapshot = () =>
 			sqlite
