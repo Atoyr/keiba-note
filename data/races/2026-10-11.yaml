@@ -10,6 +10,12 @@ races:
     surface: 芝
     distance: 1800
     direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 16
+    winner: カムニャック
+    runnerUp: ジョスラン
+    laps: [12.4, 10.8, 11.1, 11.9, 11.7, 11.6, 11.8, 11.5, 11.6]
     ref: nk-202605040411
     startTime: "15:45"
     entries:
@@ -26,7 +32,16 @@ races:
         sire: ドゥラメンテ
         dam: ニシノアモーレ
         damSire: コンデュイット
+        finish: 7
+        popularity: 7
+        time: "1:45.3"
+        margin: "1.1/4"
+        timeDiff: 0.9
+        last3f: 34.3
         weight: 55
+        horseWeight: 446
+        horseWeightDiff: -6
+        odds: 14.4
       - horseNumber: 2
         bracket: 1
         name: チェルビアット
@@ -40,7 +55,16 @@ races:
         sire: ロードカナロア
         dam: キューティゴールド
         damSire: フレンチデピュティ
+        finish: 12
+        popularity: 10
+        time: "1:45.5"
+        margin: "アタマ"
+        timeDiff: 1.1
+        last3f: 34.8
         weight: 55
+        horseWeight: 490
+        horseWeightDiff: -8
+        odds: 29.7
       - horseNumber: 3
         bracket: 2
         name: クイーンズウォーク
@@ -54,7 +78,16 @@ races:
         sire: キズナ
         dam: ウェイヴェルアベニュー
         damSire: Harlington
+        finish: 8
+        popularity: 3
+        time: "1:45.3"
+        margin: "クビ"
+        timeDiff: 0.9
+        last3f: 34.5
         weight: 55
+        horseWeight: 544
+        horseWeightDiff: 0
+        odds: 6.4
       - horseNumber: 4
         bracket: 2
         name: クランフォード
@@ -68,7 +101,16 @@ races:
         sire: ブリックスアンドモルタル
         dam: エンジェルフェイス
         damSire: キングカメハメハ
+        finish: 16
+        popularity: 14
+        time: "1:46.4"
+        margin: "1.1/4"
+        timeDiff: 2
+        last3f: 36
         weight: 55
+        horseWeight: 470
+        horseWeightDiff: -2
+        odds: 74.6
       - horseNumber: 5
         bracket: 3
         name: カネラフィーナ
@@ -82,7 +124,16 @@ races:
         sire: Frankel
         dam: ジョイカネラ
         damSire: Fortify
+        finish: 4
+        popularity: 9
+        time: "1:45.0"
+        margin: "3/4"
+        timeDiff: 0.6
+        last3f: 33.6
         weight: 55
+        horseWeight: 490
+        horseWeightDiff: -6
+        odds: 21.9
       - horseNumber: 6
         bracket: 3
         name: ムイ
@@ -96,7 +147,16 @@ races:
         sire: ミッキーアイル
         dam: スウィートラヴァー
         damSire: ルーラーシップ
+        finish: 10
+        popularity: 16
+        time: "1:45.4"
+        margin: "クビ"
+        timeDiff: 1
+        last3f: 33.8
         weight: 55
+        horseWeight: 462
+        horseWeightDiff: -2
+        odds: 332.6
       - horseNumber: 7
         bracket: 4
         name: ミラビリスマジック
@@ -110,7 +170,16 @@ races:
         sire: キズナ
         dam: ソーマジック
         damSire: シンボリクリスエス
+        finish: 6
+        popularity: 13
+        time: "1:45.1"
+        margin: "ハナ"
+        timeDiff: 0.7
+        last3f: 34.1
         weight: 55
+        horseWeight: 458
+        horseWeightDiff: 0
+        odds: 69.5
       - horseNumber: 8
         bracket: 4
         name: ルージュソリテール
@@ -124,7 +193,16 @@ races:
         sire: ロードカナロア
         dam: レッドオルガ
         damSire: ディープインパクト
+        finish: 13
+        popularity: 5
+        time: "1:45.5"
+        margin: "クビ"
+        timeDiff: 1.1
+        last3f: 34.9
         weight: 55
+        horseWeight: 448
+        horseWeightDiff: 10
+        odds: 12.1
       - horseNumber: 9
         bracket: 5
         name: ウイントワイライト
@@ -138,7 +216,16 @@ races:
         sire: レイデオロ
         dam: ダイワベスパー
         damSire: ダイワメジャー
+        finish: 14
+        popularity: 8
+        time: "1:45.9"
+        margin: "2"
+        timeDiff: 1.5
+        last3f: 33.7
         weight: 55
+        horseWeight: 464
+        horseWeightDiff: 0
+        odds: 15.8
       - horseNumber: 10
         bracket: 5
         name: セキトバイースト
@@ -152,7 +239,16 @@ races:
         sire: デクラレーションオブウォー
         dam: ベアフットレディ
         damSire: Footstepsinthesand
+        finish: 15
+        popularity: 6
+        time: "1:46.2"
+        margin: "2"
+        timeDiff: 1.8
+        last3f: 36.7
         weight: 55
+        horseWeight: 474
+        horseWeightDiff: 6
+        odds: 13
       - horseNumber: 11
         bracket: 6
         name: ラヴァンダ
@@ -166,7 +262,16 @@ races:
         sire: シルバーステート
         dam: ゴッドパイレーツ
         damSire: ベーカバド
+        finish: 3
+        popularity: 2
+        time: "1:44.9"
+        margin: "2"
+        timeDiff: 0.5
+        last3f: 33.6
         weight: 56
+        horseWeight: 490
+        horseWeightDiff: -4
+        odds: 5.2
       - horseNumber: 12
         bracket: 6
         name: ミアネーロ
@@ -180,7 +285,16 @@ races:
         sire: ドゥラメンテ
         dam: ミスエーニョ
         damSire: Pulpit
+        finish: 5
+        popularity: 11
+        time: "1:45.1"
+        margin: "3/4"
+        timeDiff: 0.7
+        last3f: 33.5
         weight: 55
+        horseWeight: 504
+        horseWeightDiff: 4
+        odds: 48.1
       - horseNumber: 13
         bracket: 7
         name: ワタシマツワ
@@ -194,7 +308,16 @@ races:
         sire: グレーターロンドン
         dam: サンドスラッシュ
         damSire: Holy Roman Emperor
+        finish: 11
+        popularity: 12
+        time: "1:45.5"
+        margin: "クビ"
+        timeDiff: 1.1
+        last3f: 34.9
         weight: 55
+        horseWeight: 430
+        horseWeightDiff: -8
+        odds: 61.2
       - horseNumber: 14
         bracket: 7
         name: ハワイアンティアレ
@@ -208,7 +331,16 @@ races:
         sire: ロードカナロア
         dam: モアニケアラ
         damSire: マンハッタンカフェ
+        finish: 9
+        popularity: 15
+        time: "1:45.4"
+        margin: "クビ"
+        timeDiff: 1
+        last3f: 33.5
         weight: 55
+        horseWeight: 440
+        horseWeightDiff: 0
+        odds: 141.8
       - horseNumber: 15
         bracket: 8
         name: ジョスラン
@@ -222,7 +354,16 @@ races:
         sire: エピファネイア
         dam: ケイティーズハート
         damSire: ハーツクライ
+        finish: 2
+        popularity: 4
+        time: "1:44.5"
+        margin: "1/2"
+        timeDiff: 0.1
+        last3f: 33.7
         weight: 55
+        horseWeight: 480
+        horseWeightDiff: 2
+        odds: 6.5
       - horseNumber: 16
         bracket: 8
         name: カムニャック
@@ -236,7 +377,15 @@ races:
         sire: ブラックタイド
         dam: ダンスアミーガ
         damSire: サクラバクシンオー
+        finish: 1
+        popularity: 1
+        time: "1:44.4"
+        timeDiff: -0.1
+        last3f: 33.4
         weight: 56
+        horseWeight: 496
+        horseWeightDiff: 4
+        odds: 3.2
     withdrawn:
       - name: ヴォンフレ
         ref: nk-2022101227

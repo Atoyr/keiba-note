@@ -10,6 +10,12 @@ races:
     surface: 芝
     distance: 1600
     direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: アゴルディーノ
+    runnerUp: サトノハクマイ
+    laps: [12.6, 11.1, 11.8, 12.3, 12.3, 11.8, 11.2, 11.3]
     ref: nk-202605040311
     startTime: "15:45"
     entries:
@@ -26,7 +32,16 @@ races:
         sire: ニューイヤーズデイ
         dam: ゴルトキルシェ
         damSire: ステイゴールド
+        finish: 8
+        popularity: 9
+        time: "1:35.0"
+        margin: "3/4"
+        timeDiff: 0.6
+        last3f: 34.3
         weight: 56
+        horseWeight: 464
+        horseWeightDiff: -2
+        odds: 32.3
       - horseNumber: 2
         bracket: 2
         name: デミアン
@@ -40,7 +55,16 @@ races:
         sire: Flightline
         dam: Mira Alta
         damSire: Curlin
+        finish: 9
+        popularity: 4
+        time: "1:35.2"
+        margin: "1.1/4"
+        timeDiff: 0.8
+        last3f: 34.2
         weight: 56
+        horseWeight: 486
+        horseWeightDiff: 6
+        odds: 7.4
       - horseNumber: 3
         bracket: 3
         name: サトノハクマイ
@@ -54,7 +78,16 @@ races:
         sire: シルバーステート
         dam: ポールポジションII
         damSire: Pivotal
+        finish: 2
+        popularity: 6
+        time: "1:34.4"
+        margin: "クビ"
+        timeDiff: 0
+        last3f: 34
         weight: 56
+        horseWeight: 454
+        horseWeightDiff: 0
+        odds: 15
       - horseNumber: 4
         bracket: 4
         name: アゴルディーノ
@@ -68,7 +101,15 @@ races:
         sire: エフフォーリア
         dam: モルトフェリーチェ
         damSire: ディープインパクト
+        finish: 1
+        popularity: 3
+        time: "1:34.4"
+        timeDiff: 0
+        last3f: 33.4
         weight: 56
+        horseWeight: 440
+        horseWeightDiff: 2
+        odds: 6.6
       - horseNumber: 5
         bracket: 5
         name: フィリオソラーレ
@@ -82,7 +123,16 @@ races:
         sire: エピファネイア
         dam: フィリアプーラ
         damSire: ハービンジャー
+        finish: 3
+        popularity: 1
+        time: "1:34.6"
+        margin: "1"
+        timeDiff: 0.2
+        last3f: 33.9
         weight: 56
+        horseWeight: 496
+        horseWeightDiff: 12
+        odds: 2.4
       - horseNumber: 6
         bracket: 6
         name: ベルウッドディープ
@@ -96,7 +146,16 @@ races:
         sire: エフフォーリア
         dam: ディープビヨンド
         damSire: ディープインパクト
+        finish: 5
+        popularity: 2
+        time: "1:34.8"
+        margin: "1/2"
+        timeDiff: 0.4
+        last3f: 34.3
         weight: 56
+        horseWeight: 444
+        horseWeightDiff: 0
+        odds: 4.2
       - horseNumber: 7
         bracket: 6
         name: ニシノトラノスケ
@@ -110,7 +169,16 @@ races:
         sire: アドマイヤマーズ
         dam: ビクトリアスマイル
         damSire: ノヴェリスト
+        finish: 10
+        popularity: 11
+        time: "1:35.2"
+        margin: "ハナ"
+        timeDiff: 0.8
+        last3f: 34.2
         weight: 56
+        horseWeight: 422
+        horseWeightDiff: 6
+        odds: 116
       - horseNumber: 8
         bracket: 7
         name: グルーヴェンス
@@ -124,7 +192,16 @@ races:
         sire: カラヴァッジオ
         dam: グルーヴライン
         damSire: モーリス
+        finish: 4
+        popularity: 10
+        time: "1:34.7"
+        margin: "1/2"
+        timeDiff: 0.3
+        last3f: 34.6
         weight: 56
+        horseWeight: 426
+        horseWeightDiff: 2
+        odds: 54.1
       - horseNumber: 9
         bracket: 7
         name: ジップスパーク
@@ -138,7 +215,16 @@ races:
         sire: オルフェーヴル
         dam: ジペッサ
         damSire: City Zip
+        finish: 6
+        popularity: 5
+        time: "1:34.8"
+        margin: "クビ"
+        timeDiff: 0.4
+        last3f: 34.6
         weight: 56
+        horseWeight: 416
+        horseWeightDiff: -4
+        odds: 11.7
       - horseNumber: 10
         bracket: 8
         name: アイファーマーリン
@@ -152,7 +238,16 @@ races:
         sire: サンライズノヴァ
         dam: ヴィオローネ
         damSire: ルーラーシップ
+        finish: 7
+        popularity: 8
+        time: "1:34.9"
+        margin: "3/4"
+        timeDiff: 0.5
+        last3f: 34.4
         weight: 56
+        horseWeight: 438
+        horseWeightDiff: 0
+        odds: 23.2
       - horseNumber: 11
         bracket: 8
         name: ハンサム
@@ -166,7 +261,16 @@ races:
         sire: リオンディーズ
         dam: ユキノクイーン
         damSire: タイキシャトル
+        finish: 11
+        popularity: 7
+        time: "1:35.2"
+        margin: "クビ"
+        timeDiff: 0.8
+        last3f: 34.9
         weight: 56
+        horseWeight: 462
+        horseWeightDiff: 4
+        odds: 15.5
     withdrawn:
       - name: ライーリーアース
         ref: nk-2024106853
