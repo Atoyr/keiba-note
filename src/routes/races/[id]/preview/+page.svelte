@@ -423,7 +423,7 @@
 									<JockeyLink
 										name={r.jockey}
 										summary={r.jockeySummary}
-										class="min-h-6 max-w-full self-start truncate text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+										class="inline-flex min-h-6 max-w-full items-center self-start text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
 									/>
 								{/if}
 								<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、

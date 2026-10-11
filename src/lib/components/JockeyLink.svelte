@@ -38,7 +38,7 @@
 	}: {
 		name: string;
 		summary: { body: string; tags: JockeyTag[] } | null;
-		/** `<a>`（hover できない端末のまとめありでは `<button>`）に付ける。出す画面ごとに並び方が違う。 */
+		/** `<a>`（hover できない端末のまとめありでは `<button>`）に付ける。出す画面ごとに並び方が違う。名前とアイコンを横に並べるので inline-flex にする。 */
 		class?: string;
 	} = $props();
 
@@ -63,19 +63,20 @@
 	<JockeyTagBadges tags={summary?.tags ?? []} />
 {/snippet}
 
-<!-- Tailwind の preflight で svg は block になる。予想画面のように騎手名が block（truncate）でも改行しないよう inline-block にする。 -->
-{#snippet noteIcon()}
-	<NotebookPenIcon
-		class="ml-0.5 inline-block size-3.5 shrink-0 align-[-0.125em]"
-		aria-hidden="true"
-	/>
+<!-- 名前だけを truncate する。アイコンを同じ要素で切ると、狭い幅で省略記号の向こうに隠れてまとめの有無が分からなくなる。
+     呼ぶ側の class は inline-flex（items-center）にする。 -->
+{#snippet label(withIcon: boolean)}
+	<span class="min-w-0 truncate">{name}</span>
+	{#if withIcon}
+		<NotebookPenIcon class="ml-0.5 size-3.5 shrink-0" aria-hidden="true" />
+	{/if}
 {/snippet}
 
 {#if summary && hasSummary}
 	{#if tapToOpen}
 		<Popover.Root>
 			<Popover.Trigger class="{className} cursor-pointer text-left"
-				>{name}{@render noteIcon()}</Popover.Trigger
+				>{@render label(true)}</Popover.Trigger
 			>
 			<Popover.Content
 				role="dialog"
@@ -99,7 +100,7 @@
 					{#snippet child({ props })}
 						<!-- trigger の既定は type="button"。`<a>` には付けない（リンクのまま読ませる）。 -->
 						{@const linkProps = { ...props, type: undefined }}
-						<a {...linkProps} {href} class={className}>{name}{@render noteIcon()}</a>
+						<a {...linkProps} {href} class={className}>{@render label(true)}</a>
 					{/snippet}
 				</Tooltip.Trigger>
 				<Tooltip.Content
@@ -115,5 +116,5 @@
 		</Tooltip.Provider>
 	{/if}
 {:else}
-	<a {href} class={className}>{name}</a>
+	<a {href} class={className}>{@render label(false)}</a>
 {/if}
