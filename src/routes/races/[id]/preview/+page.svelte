@@ -16,6 +16,7 @@
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
+	import InfoTip from '$lib/components/InfoTip.svelte';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -266,13 +267,14 @@
 		     開催後にふりかえりを書いてもここに書いたものは残る。
 		     見出しを別の名前にしてあるのは、同じ名前だと同じ欄に見えるため。 -->
 		<section>
-			<h2 class="text-sm font-semibold text-muted-foreground">レースの見立て</h2>
-			<p class="text-xs text-muted-foreground">
-				馬場の想定、狙いどころ。ふりかえりとは別に残ります
-			</p>
+			<div class="flex items-center gap-x-1">
+				<h2 class="text-sm font-semibold text-muted-foreground">レースの見立て</h2>
+				<InfoTip label="レースの見立て" text="馬場の想定、狙いどころ。ふりかえりとは別に残ります" />
+			</div>
 			<Textarea
 				name="raceNoteBody"
 				rows={3}
+				aria-label="レースの見立て"
 				placeholder="開幕週で内有利になりそう。前に行ける馬から。"
 				class={ta}
 				value={data.myRaceNote?.body ?? ''}

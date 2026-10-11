@@ -124,7 +124,7 @@ test('開催前のレースを開くとふりかえりではなく予想画面�
 
 	await expect(page).toHaveURL(`/races/${EMPTY_RACE_ID}/preview`);
 	// ふりかえりの入力欄（レースのメモ）が1つも無いこと。
-	await expect(page.getByText('ペース、馬場、展開など「レースの性質」')).toHaveCount(0);
+	await expect(page.getByRole('textbox', { name: 'レースのメモ' })).toHaveCount(0);
 	await expect(page.getByRole('button', { name: 'まとめて保存' })).toHaveCount(0);
 });
 
@@ -134,7 +134,7 @@ test('開催済みのレースはふりかえりが開く', async ({ page }) => 
 	await page.goto(`/races/${REVIEW_RACE_ID}`);
 
 	await expect(page).toHaveURL(`/races/${REVIEW_RACE_ID}`);
-	await expect(page.getByText('ペース、馬場、展開など「レースの性質」')).toBeVisible();
+	await expect(page.getByRole('textbox', { name: 'レースのメモ' })).toBeVisible();
 });
 
 /** 格の札は一覧の行ではレース名の**前**（product.md 第6章）。ダッシュボードと同じ並び。 */
@@ -174,7 +174,7 @@ test('今週の重賞から、結果が出たレースはふりかえりへ、�
 
 	await page.getByRole('link', { name: new RegExp(settled.name) }).click();
 	await expect(page).toHaveURL(`/races/${settled.id}`);
-	await expect(page.getByText('ペース、馬場、展開など「レースの性質」')).toBeVisible();
+	await expect(page.getByRole('textbox', { name: 'レースのメモ' })).toBeVisible();
 });
 
 /**

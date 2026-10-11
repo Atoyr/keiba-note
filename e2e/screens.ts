@@ -93,7 +93,40 @@ const tapJockeySummary = async (page: Page) => {
 	await expect(page.getByRole('dialog')).toContainText(JOCKEYS.mainSummary);
 };
 
+/**
+ * 見出しの info アイコンの説明を開く。全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、
+ * 先に表示域をページの高さまで伸ばしてから開く（伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
+ * `touch` の画面ではタップ、それ以外はマウスの hover で開く。
+ */
+const openInfoTip = (name: string, how: 'hover' | 'tap') => async (page: Page) => {
+	await waitForHydration(page);
+	const { width } = page.viewportSize()!;
+	const height = await page.evaluate(() => document.documentElement.scrollHeight);
+	await page.setViewportSize({ width, height });
+	const button = page.getByRole('button', { name });
+	if (how === 'tap') await button.tap();
+	else await button.hover();
+	await expect(page.getByRole('dialog')).toBeVisible();
+};
+
 export const SCREENS: Screen[] = [
+	{
+		// マウスで「推しの出走予定」の info アイコンに乗せて、説明が浮かんだところ。
+		name: 'dashboard-info-tip',
+		path: '/',
+		auth: true,
+		prepare: openInfoTip('推しの出走予定の説明', 'hover'),
+		stayAtTop: true
+	},
+	{
+		// hover できない端末で、「レースの見立て」の info アイコンをタップして説明が開いたところ。
+		name: 'race-preview-info-tip-tap',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: openInfoTip('レースの見立ての説明', 'tap'),
+		stayAtTop: true,
+		touch: true
+	},
 	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
 	// MCP（Claude・ChatGPT のプラグイン）の登録の案内。
 	{ name: 'mcp-guide', path: '/help/mcp', auth: true },

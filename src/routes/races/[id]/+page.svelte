@@ -9,6 +9,7 @@
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
+	import InfoTip from '$lib/components/InfoTip.svelte';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -246,8 +247,10 @@
 				</div>
 			{/if}
 
-			<h2 class="text-sm font-semibold text-gray-500">レースのメモ</h2>
-			<p class="text-xs text-gray-500">ペース、馬場、展開など「レースの性質」</p>
+			<div class="flex items-center gap-x-1">
+				<h2 class="text-sm font-semibold text-gray-500">レースのメモ</h2>
+				<InfoTip label="レースのメモ" text="ペース、馬場、展開など「レースの性質」" />
+			</div>
 			<textarea
 				name="raceNoteBody"
 				rows="3"
