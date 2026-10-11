@@ -263,9 +263,6 @@
 		{#if data.rows.length > 0}
 			<section class="mt-8">
 				<h2 class="text-sm font-semibold text-gray-500">出走馬</h2>
-				<p class="text-xs text-gray-500">
-					本文も札も空のままにするとメモは保存されません（既存メモは消えます）
-				</p>
 
 				<ul class="mt-2 space-y-5">
 					{#each rows as r (r.entryId)}
