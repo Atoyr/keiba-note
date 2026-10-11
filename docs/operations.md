@@ -360,7 +360,7 @@ Settings > Secrets and variables > Actions。
 
 Settings > Actions > General > Workflow permissions で
 **「Allow GitHub Actions to create and approve pull requests」を入れる**（既定の「Read repository contents」のままでよい。
-`race-data-fetch.yml` は自分の `permissions` で書き込みを要求する）。入れないと、出馬表は取れても PR の作成で落ちる。
+`race-data-fetch.yml` は自分の `permissions` で書き込みを要求する）。入れないと、出馬表や結果は取れても PR の作成で落ちる。
 
 Actions の `GITHUB_TOKEN` で作った PR には `ci.yml`・`pr-body.yml` が走らない（GitHub の仕様）。
 `race-data-fetch.yml` が自分で `data:check` を通してから PR を作るので、検証は済んでいる。

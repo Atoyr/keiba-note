@@ -36,6 +36,7 @@
 - 更新日: 2026-10-05 — 重賞（graded）を機能の並びに足した（→ 第2章）
 - 更新日: 2026-10-10 — MCP にふりかえりを書く tool（`save_my_race_review`）とスコープ `reviews:write` を足した。開催前のレースには書けない（→ 3-10）
 - 更新日: 2026-10-05 — 出走馬の取得の Cron を、毎時の枠順待ちから、発表に合わせた3段（日曜の候補・木曜の出走馬・金曜の枠順）にした（→ 第1章 / 3-9）
+- 更新日: 2026-10-10 — 取得のワークフローに `command` を足し、Actions のタブから手で結果（`data:fetch result`）も取れるようにした。Worker は変えない（→ 3-9）
 - **読む場面:** サーバー側（ルートの `.server.ts`・サービス層・DB）、スキーマ、依存の向きを触るとき。
   第0章だけは、コードを変えるなら毎回
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
@@ -670,7 +671,7 @@ sequenceDiagram
 | 手順 | `lib/server/race-data/request.ts` | Cron の対象を1つずつ頼む・止める条件・ログの重さ |
 | 対象 | `lib/server/services/entries-fetch.ts` | D1 から対象のレースを選ぶ（読むだけ） |
 | 入口 | `lib/server/race-data/scheduled.ts`・`/settings/admin` の `?/fetchEntries` | 監視の口と D1 クライアントを作って渡す |
-| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR |
+| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR。Worker が頼む `data:fetch entries`（Cron・管理画面）に加え、Actions のタブから手で起動する `data:fetch result`（`command: result`。Worker は頼まない）もここ |
 
 - Cron は JRA の発表に合わせて3段で頼む。段は Cron の式で決まる（`race-data/scheduled.ts` の `ENTRIES_CRONS`）。
   対象はどの段も重賞（G1〜G3）で、レース番号があり、馬番がまだ1頭も無いもの（枠順の PR がマージされると外れる）

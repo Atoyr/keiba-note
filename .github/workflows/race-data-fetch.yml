@@ -1,11 +1,14 @@
-name: 出走馬の取得
+name: 出走馬・結果の取得
 
 # Worker から workflow_dispatch で起動される（src/lib/server/race-data/）。
 #   cron  … 重賞の出馬表が決まる時刻に、段（stage）ごとに。日曜の候補・木曜の出走馬は出馬表をそのまま書く。
 #           金曜の枠順（stage: frames）は require_confirmed: true で、確定するまでは何も書かない
 #   admin … 管理画面の「出走馬を取得」（候補でも枠順でも、その時点の出馬表を書く）
+#   manual … Actions のタブから手で。command で何を取るかを選ぶ（entries = 出馬表 / result = 結果）。
+#           結果（command: result）は Cron・管理画面からは頼まない。この manual だけ
 #
-# netkeiba の出馬表を `data:fetch entries` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
+# netkeiba の出馬表を `data:fetch entries`、結果を `data:fetch result` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
+# PR のブランチは command ごとに分けるが、どちらも main の YAML の同じレースを書く。結果は出走馬・枠順の PR をマージしてから取る。
 # **D1 には触らない。** 本番に入るのは、人がその PR をマージしたとき（data-import.yml）。
 # 出走馬データの正は YAML のまま（docs/architecture.md 第0章）。
 #
@@ -15,6 +18,14 @@ name: 出走馬の取得
 on:
   workflow_dispatch:
     inputs:
+      command:
+        description: '何を取るか（entries = 候補・出走馬・枠順 / result = 結果）。Worker（Cron・管理画面）は送らないので entries'
+        type: choice
+        options:
+          - entries
+          - result
+        required: false
+        default: entries
       date:
         description: '開催日（YYYY-MM-DD）'
         type: string
@@ -28,7 +39,7 @@ on:
         type: string
         required: true
       race_id:
-        description: 'netkeiba の race_id（12桁）。分かっていれば。無ければ当週のレース一覧から引く'
+        description: 'netkeiba の race_id（12桁）。分かっていれば。無ければ当週のレース一覧から引く（result は空でよい。YAML のレースの ref を使う）'
         type: string
         required: false
         default: ''
@@ -55,7 +66,7 @@ permissions:
 # 同じレースの取得だけを1本ずつにする。全体を1つの群にすると、待っている回は最新の1つしか残らず、
 # 同じ回に頼まれた別のレースが取り消される。
 concurrency:
-  group: race-data-fetch-${{ inputs.date }}-${{ inputs.course }}-${{ inputs.race_number }}
+  group: race-data-fetch-${{ inputs.command || 'entries' }}-${{ inputs.date }}-${{ inputs.course }}-${{ inputs.race_number }}
   cancel-in-progress: false
 
 defaults:
@@ -72,6 +83,7 @@ jobs:
       unconfirmed: ${{ steps.fetch.outputs.unconfirmed }}
     # 入力は環境変数で渡す。run の中に ${{ }} で埋め込むと、値がシェルとして解釈されうる。
     env:
+      COMMAND: ${{ inputs.command }}
       DATE: ${{ inputs.date }}
       COURSE: ${{ inputs.course }}
       RACE_NUMBER: ${{ inputs.race_number }}
@@ -83,10 +95,18 @@ jobs:
     steps:
       - name: 入力を確かめる
         run: |
+          # choice でも API からは任意の文字列が来うる。Worker は command を送らないので、空は entries の扱い
+          COMMAND="${COMMAND:-entries}"
+          [[ "$COMMAND" =~ ^(entries|result)$ ]] || { echo "::error::command が entries / result のどちらでもありません"; exit 1; }
           [[ "$DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::date が YYYY-MM-DD ではありません"; exit 1; }
           [[ "$RACE_NUMBER" =~ ^([1-9]|1[0-2])$ ]] || { echo "::error::race_number が 1〜12 ではありません"; exit 1; }
           [[ -z "$RACE_ID" || "$RACE_ID" =~ ^[0-9]{12}$ ]] || { echo "::error::race_id が12桁の数字ではありません"; exit 1; }
           [[ -z "$STAGE" || "$STAGE" =~ ^(candidates|entries|frames)$ ]] || { echo "::error::stage が candidates / entries / frames のどれでもありません"; exit 1; }
+          if [ "$COMMAND" = "result" ]; then
+            # 結果に、枠順の確定待ちや Cron の段は無い
+            [ "$REQUIRE_CONFIRMED" != "true" ] || { echo "::error::command が result のとき require_confirmed は使えません"; exit 1; }
+            [ -z "$STAGE" ] || { echo "::error::command が result のとき stage は使えません"; exit 1; }
+          fi
           # course が JRA の10場かは data:fetch が見る
 
       - uses: actions/checkout@v4
@@ -107,12 +127,13 @@ jobs:
           key: race-data-people-${{ github.run_id }}
           restore-keys: race-data-people-
 
-      - name: 出馬表を取る
+      - name: netkeiba から取る
         id: fetch
         run: |
-          args=(entries "$DATE" "$COURSE" "$RACE_NUMBER")
+          COMMAND="${COMMAND:-entries}"
+          args=("$COMMAND" "$DATE" "$COURSE" "$RACE_NUMBER")
           if [ -n "$RACE_ID" ]; then args+=(--race-id "$RACE_ID"); fi
-          if [ "$REQUIRE_CONFIRMED" = "true" ]; then args+=(--require-confirmed); fi
+          if [ "$COMMAND" = "entries" ] && [ "$REQUIRE_CONFIRMED" = "true" ]; then args+=(--require-confirmed); fi
           pnpm run --silent data:fetch "${args[@]}" | tee "$RUNNER_TEMP/fetch.log"
           # 金曜の回は1日1回しか取らない。枠順が未確定で終わったら、黙らずに知らせる（notify-unconfirmed）
           if [ "$STAGE" = "frames" ] && grep -q "枠順未確定のため書きません" "$RUNNER_TEMP/fetch.log"; then
@@ -138,7 +159,15 @@ jobs:
         id: pr
         if: steps.diff.outputs.changed == 'true'
         run: |
-          branch="data-fetch/${DATE}-${COURSE}${RACE_NUMBER}R"
+          COMMAND="${COMMAND:-entries}"
+          # 出馬表と結果は別のブランチ・別の PR にする
+          if [ "$COMMAND" = "result" ]; then
+            branch="data-fetch/${DATE}-${COURSE}${RACE_NUMBER}R-result"
+            subject="${DATE} ${COURSE}${RACE_NUMBER}R の結果"
+          else
+            branch="data-fetch/${DATE}-${COURSE}${RACE_NUMBER}R"
+            subject="${DATE} ${COURSE}${RACE_NUMBER}R の出走馬"
+          fi
           file="data/races/${DATE}.yaml"
 
           # 同じレースは段ごとに何度も取る（候補・出走馬・枠順）。開いている PR が同じ中身なら何もしない
@@ -152,7 +181,9 @@ jobs:
             exit 0
           fi
 
-          if [ "$TRIGGER" = "cron" ]; then
+          if [ "$COMMAND" = "result" ]; then
+            why="${TRIGGER} から結果の取得を頼まれたため。"
+          elif [ "$TRIGGER" = "cron" ]; then
             case "$STAGE" in
               candidates) why="日曜の候補の決定に合わせて Cron が出馬表（登録馬）を取ったため。" ;;
               entries) why="木曜の出走馬の発表に合わせて Cron が出馬表を取ったため（枠順が出ていれば枠・馬番まで入る）。" ;;
@@ -163,19 +194,32 @@ jobs:
             why="${TRIGGER} から取得を頼まれたため。"
           fi
 
+          if [ "$COMMAND" = "result" ]; then
+            what="netkeiba の結果を \`data:fetch result\` で書いた"
+          else
+            what="netkeiba の出馬表を \`data:fetch entries\` で書いた"
+          fi
+
           {
             echo "## 何を変えたか"
             echo
-            echo "- \`${file}\` の ${COURSE}${RACE_NUMBER}R に、netkeiba の出馬表を \`data:fetch entries\` で書いた（起動元: ${TRIGGER}）"
+            echo "- \`${file}\` の ${COURSE}${RACE_NUMBER}R に、${what}（起動元: ${TRIGGER}）"
             echo "- このブランチは Actions が作り直す。同じレースをもう一度取ると、main から作り直して上書きする（手で足したコミットは消える）"
             echo
             echo "**⚠️ マージすると \`data-import.yml\` が本番 D1 に投入する。**"
             echo
             echo "## レビューで見てほしいところ"
             echo
-            echo "- 下のログの \`- …（出馬表に無いので withdrawn へ）\` は取り下げた馬。投入すると出走馬行が消え、付いていたメモは近況メモへ移る"
-            echo "- \`! 馬名\` の行は馬名の食い違い（馬名は書き換えていない。data/README.md「馬名を直す」）"
-            echo "- 頭数と馬番が出馬表と合っているか"
+            if [ "$COMMAND" = "result" ]; then
+              echo "- \`! …: 結果の表にいません\` は YAML（main）にいて結果に無い馬。候補のまま結果を取った可能性があるので、出走馬・枠順の PR を先にマージしたか確かめる"
+              echo "- 着順が数字で入った頭数が出走頭数（\`fieldSize\`）と合っているか（YAML に全頭いるときだけ。気にしている馬だけ載せた条件戦では合わない）。取消・除外・中止はログに \`取消\` などと出て着順は入らない"
+              echo "- 結果は上書きなので、以前に手で入れた値と netkeiba が食い違うとその行が差分に出る（正しい方は db.netkeiba.com のレースページで確かめる）"
+              echo "- YAML にいない馬は足さない（ログに並ぶ）"
+            else
+              echo "- 下のログの \`- …（出馬表に無いので withdrawn へ）\` は取り下げた馬。投入すると出走馬行が消え、付いていたメモは近況メモへ移る"
+              echo "- \`! 馬名\` の行は馬名の食い違い（馬名は書き換えていない。data/README.md「馬名を直す」）"
+              echo "- 頭数と馬番が出馬表と合っているか"
+            fi
             echo
             echo "## なぜ"
             echo
@@ -210,7 +254,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch --quiet -c "$branch"
           git add -- "$file"
-          git commit --quiet -m "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を netkeiba から取る" -m "起動元: ${TRIGGER}${STAGE:+（段: ${STAGE}）}"
+          git commit --quiet -m "data: ${subject}を netkeiba から取る" -m "起動元: ${TRIGGER}${STAGE:+（段: ${STAGE}）}"
           # Actions だけが書くブランチなので、作り直して上書きする。
           git push --quiet --force origin "$branch"
 
@@ -218,7 +262,7 @@ jobs:
             gh pr edit "$url" --body-file "$RUNNER_TEMP/pr-body.txt"
           else
             url=$(gh pr create --base main --head "$branch" \
-              --title "data: ${DATE} ${COURSE}${RACE_NUMBER}R の出走馬を取る" \
+              --title "data: ${subject}を取る" \
               --body-file "$RUNNER_TEMP/pr-body.txt")
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
@@ -233,7 +277,7 @@ jobs:
     with:
       channel: deploy
       level: success
-      title: 出走馬の PR ができた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
+      title: ${{ inputs.command == 'result' && '結果' || '出走馬' }}の PR ができた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
       description: ${{ needs.fetch.outputs.pr_url }} をマージすると本番に入ります。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -262,7 +306,7 @@ jobs:
     with:
       channel: deploy
       level: error
-      title: 出走馬の取得が落ちた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
+      title: ${{ inputs.command == 'result' && '結果' || '出走馬' }}の取得が落ちた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
       description: netkeiba からの取得か、data:check か、PR の作成で止まっています。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

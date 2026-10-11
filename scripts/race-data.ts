@@ -12,7 +12,8 @@
  *
  * オプション:
  *   --dir <dir>        書き込み先（既定 data/races）。試すときは作業用のディレクトリを渡す
- *   --race-id <id>     netkeiba の race_id を直接指定する（一覧から引けないとき）
+ *   --race-id <id>     netkeiba の race_id を直接指定する（一覧から引けないとき）。
+ *                      result は、指定が無くても YAML のレースに ref（nk-<race_id>）があればそれを使う
  *   --count <n>        past: 何走さかのぼるか（既定 5）
  *   --horse <名前|ref> past / horses: 対象の馬を絞る（複数回書ける）
  *   --interval <ms>    取得の間隔（既定 1000。500 まで縮められる）
@@ -42,6 +43,7 @@ import {
 	parseRaceList,
 	parseResult,
 	parseShutuba,
+	raceIdFromRef,
 	setRequestInterval,
 	toHalfWidth,
 	urls,
@@ -113,7 +115,9 @@ function parseTarget(args: Args): { date: string; course: Course; raceNumber: nu
 
 async function resolveRaceId(
 	args: Args,
-	t: { date: string; course: Course; raceNumber: number }
+	t: { date: string; course: Course; raceNumber: number },
+	/** race_id をどこから取ったか。突き合わせで止めるときの文言を分ける。 */
+	from: 'arg' | 'yaml-ref' = 'arg'
 ): Promise<string> {
 	if (args.raceId) {
 		// race_id には年・場・R が入っている。打ち間違えると別レースの馬が入り、
@@ -126,8 +130,12 @@ async function resolveRaceId(
 			Number(id.slice(10, 12)) === t.raceNumber;
 		if (!matches) {
 			fail(
-				`--race-id ${id} は ${t.date.slice(0, 4)}年 ${t.course}${t.raceNumber}R のものではありません` +
-					`（race_id は 年4桁・場2桁・回2桁・日2桁・R2桁）。`
+				`${from === 'arg' ? '--race-id' : 'YAML のレースの ref の race_id'} ${id} は ` +
+					`${t.date.slice(0, 4)}年 ${t.course}${t.raceNumber}R のものではありません` +
+					`（race_id は 年4桁・場2桁・回2桁・日2桁・R2桁）。` +
+					(from === 'yaml-ref'
+						? 'YAML の ref を直すか、--race-id で正しい race_id を渡してください。'
+						: '')
 			);
 		}
 		return id;
@@ -349,7 +357,12 @@ async function main() {
 		case 'result': {
 			const t = parseTarget(args);
 			const { file, race } = await loadRace(args, t);
-			const raceId = await resolveRaceId(args, t);
+			// entries が書いた YAML の ref があれば、一覧（当週ぶんしか出ない）を引かずにそれを使う。
+			// --race-id の明示が先。年・場・R の突き合わせは resolveRaceId が同じようにする
+			const refId = args.raceId ? null : raceIdFromRef(race.get('ref'));
+			const raceId = refId
+				? await resolveRaceId({ ...args, raceId: refId }, t, 'yaml-ref')
+				: await resolveRaceId(args, t);
 			const parsed = parseResult(await fetchPage(urls.result(raceId)));
 			assertSameDate(parsed.meta, t, raceId);
 			if (parsed.rows.length === 0) {
