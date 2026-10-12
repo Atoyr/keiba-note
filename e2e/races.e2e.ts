@@ -219,7 +219,7 @@ test('出走馬の枠番が枠の札で出る', async ({ page }) => {
 
 	// 枠の札は馬番を置き換えるものではない。両方出ていること。
 	// 答え合わせの欄にも同じ馬名が出るので、書く欄（form の中）の行に絞る。
-	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
+	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' });
 	await expect(row).toContainText('16');
 });
 
@@ -298,9 +298,11 @@ test('ふりかえり画面の上に、予想の印と着順が印の順に並�
  */
 test('各馬の行に、4角の位置から着順・上りの順位・人気が出る', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${MARKS_RACE_ID}`);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}`);
+	for (const summary of await page.locator('li[id^="entry-"] > details > summary').all())
+		await summary.click();
 
-	const row = (name: string) => page.locator('form li', { hasText: name });
+	const row = (name: string) => page.locator('form li[id^="entry-"]', { hasText: name });
 
 	await expect(row('アナウマスペシャル')).toContainText('4角5番手→2着');
 	await expect(row('アナウマスペシャル')).toContainText('6人気');
@@ -327,7 +329,7 @@ test('各馬の行の馬名の左に、性齢が出る', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${MARKS_RACE_ID}`);
 
-	const row = (name: string) => page.locator('form li', { hasText: name });
+	const row = (name: string) => page.locator('form li[id^="entry-"]', { hasText: name });
 
 	await expect(row('E2Eホンメイ')).toContainText(/牡4\s*E2Eホンメイ/);
 	await expect(row('E2Eタイコウ')).toContainText(/牝4\s*E2Eタイコウ/);
@@ -347,7 +349,9 @@ test('全頭の上りがそろっていないレースでは、上りのタイ�
 	await login(page);
 	await page.goto(`/races/${BRACKET_RACE_ID}`);
 
-	await expect(page.locator('form li', { hasText: 'E2Eウチワク' })).toContainText('上り33.8');
+	await expect(page.locator('form li[id^="entry-"]', { hasText: 'E2Eウチワク' })).toContainText(
+		'上り33.8'
+	);
 	await expect(page.locator('form').getByTitle(/上り\d位/)).toHaveCount(0);
 });
 
@@ -395,8 +399,12 @@ test('展開を予想していないレースでも、4角とゴール前の実�
 	await expect(page.getByText('開催前の見立て')).toHaveCount(0);
 
 	// 通過順が途中で切れた中止の馬には「4角N番手」を出さない（最後の数字は4角ではない）。
-	await expect(page.locator('form li', { hasText: 'E2Eチュウシ' })).not.toContainText('4角');
-	await expect(page.locator('form li', { hasText: 'E2Eマクリ' })).toContainText('4角2番手→3着');
+	await expect(page.locator('form li[id^="entry-"]', { hasText: 'E2Eチュウシ' })).not.toContainText(
+		'4角'
+	);
+	await expect(page.locator('form li[id^="entry-"]', { hasText: 'E2Eマクリ' })).toContainText(
+		'4角2番手→3着'
+	);
 });
 
 /**
@@ -504,10 +512,10 @@ test('各馬の行に、走る前に書いたメモが読み取り専用で出�
 	await login(page);
 	await page.goto(`/races/${BRACKET_RACE_ID}`);
 
-	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
+	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' });
 	await expect(row).toContainText(OUTER_PREVIEW_BODY);
 	await expect(row).toContainText('次走買い');
-	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
+	await expect(row.getByTitle('予想印 ◎').first()).toBeVisible();
 
 	// 入力欄には入っていない（ふりかえりの欄は空のまま）。
 	for (const value of await page
@@ -538,7 +546,8 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 	await login(page);
 	await gotoHydrated(page, `/races/${BRACKET_RACE_ID}`);
 
-	const row = page.locator('form li', { hasText: 'E2Eソトワク' });
+	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' });
+	await row.locator('summary').first().click();
 	await row.locator('textarea').fill('結局外を回して届かず。');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
@@ -546,10 +555,11 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 	await page.reload();
 	await expect(row.locator('textarea')).toHaveValue('結局外を回して届かず。');
 	await expect(row).toContainText(OUTER_PREVIEW_BODY);
-	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
+	await expect(row.getByTitle('予想印 ◎').first()).toBeVisible();
 
 	// 後片付け。空で保存するとふりかえりのメモは消える。
 	await waitForHydration(page);
+	await row.locator('summary').first().click();
 	await row.locator('textarea').fill('');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();

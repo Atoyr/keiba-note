@@ -1,5 +1,10 @@
 <script lang="ts">
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import { resolve } from '$app/paths';
+	import KindBadge from '$lib/components/KindBadge.svelte';
+	import MarkBadge from '$lib/components/MarkBadge.svelte';
+	import TagBadges from '$lib/components/TagBadges.svelte';
+	import type { NoteTag, Mark } from '$lib/schemas/note';
 
 	/**
 	 * 1走ぶん。サーバーの `listPastRuns` の戻り値と同じ形だが、**型は import せずここで持つ**
@@ -7,6 +12,8 @@
 	 * 渡す側（予想画面の PageData）との食い違いは svelte-check が見る。
 	 */
 	type PastRun = {
+		entryId?: string;
+		notes?: { id: string; kind: string; body: string; tags: NoteTag[]; mark: Mark | null }[];
 		raceId: string;
 		date: string;
 		course: string;
@@ -65,7 +72,9 @@
 	const post = (r: PastRun) =>
 		[
 			r.fieldSize ? `${r.fieldSize}頭` : null,
-			r.horseNumber ? `${r.bracket ? `${r.bracket}枠` : ''}${r.horseNumber}番` : null
+			r.bracket || r.horseNumber
+				? `${r.bracket ? `${r.bracket}枠` : ''}${r.horseNumber ? `${r.horseNumber}番` : ''}`
+				: null
 		]
 			.filter(Boolean)
 			.join(' ');
@@ -105,52 +114,79 @@
 		{#each runs as r (r.raceId)}
 			{@const at = post(r)}
 			{@const vs = rival(r)}
-			<li class="flex flex-wrap items-baseline gap-x-2 py-1">
-				<span class="font-mono text-muted-foreground">{ymd(r.date)}</span>
-				<!-- 格の札は一覧の行ではレース名の前（pages.md）。
+			<li class="py-2">
+				<div class="flex flex-wrap items-baseline gap-x-2">
+					<span class="font-mono text-muted-foreground">{ymd(r.date)}</span>
+					<!-- 格の札は一覧の行ではレース名の前（pages.md）。
 				     重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
 				     格が無いときだけクラスを札と同じ位置に出す（両方出すと重複して見える）。 -->
-				<GradeBadge grade={r.grade} />
-				{#if !r.grade && r.className}
-					<span class="rounded bg-muted px-1 text-[10px] text-muted-foreground">
-						{r.className}
-					</span>
-				{/if}
-				<span class="truncate">{r.raceName ?? `${r.course}${r.raceNumber ?? ''}R`}</span>
-				<span class="font-mono text-muted-foreground">{cond(r)}</span>
-				<!-- 着順・人気・上がりは1つのまとまりにする。バラで並べると、
-				     狭い画面で折り返したときに3つが別々の行に散る。 -->
-				<span class="ms-auto flex shrink-0 items-baseline gap-x-2">
-					<span class={tone(r.finishPosition)}>
-						{r.finishPosition ? `${r.finishPosition}着` : '—'}
-					</span>
-					{#if r.popularity}<span class="text-muted-foreground">{r.popularity}人気</span>{/if}
-					{#if r.last3f}
-						<span class="font-mono text-muted-foreground">上{r.last3f.toFixed(1)}</span>
+					<GradeBadge grade={r.grade} />
+					{#if !r.grade && r.className}
+						<span class="rounded bg-muted px-1 text-[10px] text-muted-foreground">
+							{r.className}
+						</span>
 					{/if}
-				</span>
-				{#if at || r.jockey || vs || r.finishTime || r.passing}
-					<!-- basis-full で必ず次の行に送る。見出しの語は画面には出さない
-					     （`1:58.4` と `5-5-4-2` は形で見分けが付き、騎手・勝ち馬は並びで分かる）が、読み上げでは要る。 -->
-					<span class="flex basis-full flex-wrap gap-x-2 text-muted-foreground">
-						{#if at}<span>{at}</span>{/if}
-						{#if r.jockey}
-							<span><span class="sr-only">騎手</span>{r.jockey}</span>
-						{/if}
-						{#if vs}
-							<span><span class="sr-only">{vs.label}</span>{vs.text}</span>
-						{/if}
-						{#if r.finishTime || r.passing}
-							<span class="ms-auto flex gap-x-2 font-mono">
-								{#if r.finishTime}
-									<span><span class="sr-only">タイム</span>{r.finishTime}</span>
-								{/if}
-								{#if r.passing}
-									<span><span class="sr-only">通過順</span>{r.passing}</span>
-								{/if}
-							</span>
+					<span class="min-w-0 truncate">{r.raceName ?? `${r.course}${r.raceNumber ?? ''}R`}</span>
+					<span class="text-muted-foreground">{r.course}{r.raceNumber ?? ''}R</span>
+					<span class="font-mono text-muted-foreground">{cond(r)}</span>
+					<!-- 着順・人気・上がりは1つのまとまりにする。バラで並べると、
+				     狭い画面で折り返したときに3つが別々の行に散る。 -->
+					<span class="ms-auto flex shrink-0 items-baseline gap-x-2">
+						<span class={tone(r.finishPosition)}>
+							{r.finishPosition ? `${r.finishPosition}着` : '—'}
+						</span>
+						{#if r.popularity}<span class="text-muted-foreground">{r.popularity}人気</span>{/if}
+						{#if r.last3f}
+							<span class="font-mono text-muted-foreground">上{r.last3f.toFixed(1)}</span>
 						{/if}
 					</span>
+					{#if at || r.jockey || vs || r.finishTime || r.passing}
+						<!-- basis-full で必ず次の行に送る。見出しの語は画面には出さない
+					     （`1:58.4` と `5-5-4-2` は形で見分けが付き、騎手・勝ち馬は並びで分かる）が、読み上げでは要る。 -->
+						<span class="flex basis-full flex-wrap gap-x-2 text-muted-foreground">
+							{#if at}<span>{at}</span>{/if}
+							{#if r.jockey}
+								<span><span class="sr-only">騎手</span>{r.jockey}</span>
+							{/if}
+							{#if vs}
+								<span><span class="sr-only">{vs.label}</span>{vs.text}</span>
+							{/if}
+							{#if r.finishTime || r.passing}
+								<span class="ms-auto flex gap-x-2 font-mono">
+									{#if r.finishTime}
+										<span><span class="sr-only">タイム</span>{r.finishTime}</span>
+									{/if}
+									{#if r.passing}
+										<span><span class="sr-only">通過順</span>{r.passing}</span>
+									{/if}
+								</span>
+							{/if}
+						</span>
+					{/if}
+				</div>
+				{#if r.notes && r.notes.length > 0}
+					<div class="mt-2 grid gap-2 border-l-2 pl-3">
+						{#each ['preview', 'entry'] as kind (kind)}
+							{#each r.notes.filter((note) => note.kind === kind) as note (note.id)}
+								<div>
+									<p class="flex items-center gap-1">
+										<KindBadge label={kind === 'preview' ? '出走前' : 'ふりかえり'} /><MarkBadge
+											mark={note.mark}
+										/>
+									</p>
+									{#if note.body}<p class="mt-1 text-sm break-words whitespace-pre-wrap">
+											{note.body}
+										</p>{/if}
+									<TagBadges tags={note.tags} class="mt-1" />
+								</div>
+							{/each}
+						{/each}
+						<a
+							href={resolve('/races/[id]', { id: r.raceId })}
+							class="inline-flex min-h-6 items-center underline"
+							>この走りの画面でメモを確認・編集する</a
+						>
+					</div>
 				{/if}
 			</li>
 		{/each}

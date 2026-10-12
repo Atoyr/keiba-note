@@ -11,12 +11,12 @@
 -- ダッシュボードの「今週のレース」「ふりかえり待ち」が埋まった状態で撮るため。
 -- 起点は**今日以降で最初の日曜**（`weekday 0`。今日が日曜なら今日）。週は月〜日なので必ず今週に入り、
 -- どのレースも土日に落ちる（平日の重賞が写ると、競馬を見る人には不自然に見える）。
--- 開催場は9月下旬に撮る前提で、その時期に開いている場にしてある（9月の中山、7月の福島）。
+-- 開催場は10月中旬に撮る前提で、その時期に開いている場にしてある（10月の東京、8月の新潟）。
 --
---   うまメモ記念     起点の日曜        中山 芝2000 G2  予想中（印・出走前メモ・展開・オッズ）
---   さざなみカップ   8日前（土曜）     中山 芝1600 G3  見立てと印だけ（ふりかえり待ち）
---   みなもステークス 14日前（日曜）    中山 芝2000 G3  予想もふりかえりも書いた（答え合わせ）
---   初夏特別         70日前（日曜）    福島 芝2000 3勝クラス
+--   うまメモ記念     起点の日曜        東京 芝2000 G2  予想中（印・出走前メモ・展開・オッズ）
+--   さざなみカップ   8日前（土曜）     東京 芝1600 G3  見立てと印だけ（ふりかえり待ち）
+--   みなもステークス 14日前（日曜）    東京 芝2000 G3  予想もふりかえりも書いた（答え合わせ）
+--   初夏特別         70日前（日曜）    新潟 芝2000 3勝クラス
 
 -- 公開用の名前は予想まとめの「〇〇 の予想」に出る（無いと「匿名」）。
 INSERT INTO user (id, google_sub, email, display_name, public_name, role)
@@ -41,8 +41,8 @@ INSERT INTO horse (id, name, sex, birth_year, sire, dam) VALUES
 -- 起点の日曜: うまメモ記念（予想画面・予想まとめ・展開の予想）
 -- ---------------------------------------------------------------------------
 
-INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction)
-VALUES ('01JLPRACETODAY000000000000', date('now', '+9 hours', 'weekday 0'), '中山', 11, 'うまメモ記念', 'G2', '芝', 2000, '右');
+INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size)
+VALUES ('01JLPRACETODAY000000000000', date('now', '+9 hours', 'weekday 0'), '東京', 11, 'うまメモ記念', 'G2', '芝', 2000, '左', 8);
 
 INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number) VALUES
 	('01JLPENTRYTODAY00000000001', '01JLPRACETODAY000000000000', '01JLPHORSE0000000000000001', 1, 1),
@@ -99,7 +99,7 @@ INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, t
 -- ---------------------------------------------------------------------------
 
 INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction, track_condition, field_size, winner_name, runner_up_name)
-VALUES ('01JLPRACELASTWEEK000000000', date('now', '+9 hours', 'weekday 0', '-8 days'), '中山', 11, 'さざなみカップ', 'G3', '芝', 1600, '右', '良', 16, 'ホシノシズク', 'シロガネビート');
+VALUES ('01JLPRACELASTWEEK000000000', date('now', '+9 hours', 'weekday 0', '-8 days'), '東京', 11, 'さざなみカップ', 'G3', '芝', 1600, '左', '良', 16, 'ホシノシズク', 'シロガネビート');
 
 INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_position, popularity, finish_time, passing, last_3f, time_diff) VALUES
 	('01JLPENTRYLASTWEEK00000005', '01JLPRACELASTWEEK000000000', '01JLPHORSE0000000000000005', 2, 3, 1, 4, '1:33.5', '2-2-2', 34.3, -0.2),
@@ -119,7 +119,7 @@ VALUES ('01JLPNOTELASTWEEKPREVIEW08', '01JLPUSER00000000000000000', 'preview', '
 -- ---------------------------------------------------------------------------
 
 INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction, track_condition, field_size, winner_name, runner_up_name)
-VALUES ('01JLPRACEREVIEW00000000000', date('now', '+9 hours', 'weekday 0', '-14 days'), '中山', 11, 'みなもステークス', 'G3', '芝', 2000, '右', '良', 12, 'ナギサノウタ', 'ミヤビノカゼ');
+VALUES ('01JLPRACEREVIEW00000000000', date('now', '+9 hours', 'weekday 0', '-14 days'), '東京', 11, 'みなもステークス', 'G3', '芝', 2000, '左', '良', 12, 'ナギサノウタ', 'ミヤビノカゼ');
 
 INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_position, popularity, finish_time, passing, last_3f, time_diff) VALUES
 	('01JLPENTRYREVIEW0000000003', '01JLPRACEREVIEW00000000000', '01JLPHORSE0000000000000003', 1, 1, 3, 5, '1:59.2', '1-1-1-1', 34.6, 0.3),
@@ -169,7 +169,7 @@ INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, t
 -- ---------------------------------------------------------------------------
 
 INSERT INTO race (id, date, course, race_number, name, class_name, surface, distance, direction, track_condition, field_size, winner_name, runner_up_name)
-VALUES ('01JLPRACEEARLY00000000000', date('now', '+9 hours', 'weekday 0', '-70 days'), '福島', 10, '初夏特別', '3勝クラス', '芝', 2000, '右', '稍重', 14, 'ミヤビノカゼ', 'トキノハヤテ');
+VALUES ('01JLPRACEEARLY00000000000', date('now', '+9 hours', 'weekday 0', '-70 days'), '新潟', 10, '初夏特別', '3勝クラス', '芝', 2000, '左', '稍重', 14, 'ミヤビノカゼ', 'トキノハヤテ');
 
 INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_position, popularity, finish_time, passing, last_3f, time_diff) VALUES
 	('01JLPENTRYEARLY0000000001', '01JLPRACEEARLY00000000000', '01JLPHORSE0000000000000001', 4, 4, 1, 3, '2:00.8', '7-7-5-3', 34.8, -0.3),

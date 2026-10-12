@@ -916,3 +916,29 @@ INSERT INTO graded_race_note (user_id, race_key, body) VALUES
 	('01JE2EUSER0000000000000000', '毎日王冠', 'E2E重賞の傾向。天皇賞の前哨戦で、前走で好走した馬が人気でも崩れにくい。
 外枠の差し馬は届かない年が多い。'),
 	('01JE2EOTHERUSER00000000000', '毎日王冠', '他人の毎日王冠の傾向。見えてはいけない。');
+
+
+-- 行展開の保存は専用ユーザーで、ダッシュボードの最近のメモと取り合わない。
+INSERT INTO user (id, google_sub, email, display_name, role) VALUES ('01JE2EUSERROW0000000000000', 'e2e-row-google-sub', 'rows@example.invalid', 'E2E 行展開ユーザー', 'user');
+INSERT INTO session (id, user_id, expires_at) VALUES ('badfa9dee369bdbdf49215171af4abdd6aec9c7a7d8803547ccd49bb06c00ace', '01JE2EUSERROW0000000000000', 4102444800);
+-- Issue #168: 行展開の保存テスト専用。実際は18頭、登録は2頭だけ（上り順位を推測しない）。
+INSERT INTO horse (id, name, birth_year, sex) VALUES
+ ('01JE2EHORSEROWA00000000000', 'E2E行展開アカウマ', 2015, '牡'),
+ ('01JE2EHORSEROWB00000000000', 'E2E行展開アオウマ', 2015, '牝');
+INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size) VALUES
+ ('01JE2ERACEROW0000000000000', '2020-05-10', '東京', 11, 'E2E行展開賞', 'G3', '芝', 2000, '左', 18),
+ ('01JE2ERACEROWPAST000000000', '2020-04-10', '東京', 11, 'E2E行展開前走', NULL, '芝', 2000, '左', 18);
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, passing, last_3f, popularity) VALUES
+ ('01JE2EENTRYROWA00000000000', '01JE2ERACEROW0000000000000', '01JE2EHORSEROWA00000000000', 1, 1, NULL, 4, '8-7-5-4', 34.2, 2),
+ ('01JE2EENTRYROWB00000000000', '01JE2ERACEROW0000000000000', '01JE2EHORSEROWB00000000000', 2, 2, NULL, NULL, NULL, NULL, NULL),
+ ('01JE2EENTRYROWPAST00000000', '01JE2ERACEROWPAST000000000', '01JE2EHORSEROWA00000000000', 3, 5, NULL, 4, '8-7-5-4', 34.2, 2);
+INSERT INTO race_odds (race_id, horse_number, win_odds, place_odds_min, place_odds_max, as_of, fetched_at) VALUES
+ ('01JE2ERACEROW0000000000000', 1, 5.1, 1.4, 1.8, 1589092200, 1589092200),
+ ('01JE2ERACEROW0000000000000', 2, 2.8, 1.1, 1.3, 1589092200, 1589092200);
+INSERT INTO note (id, author_id, kind, horse_id, race_id, race_entry_id, body, tags, mark, occurred_at) VALUES
+ ('01JE2ENOTEROWPASTPRE000000', '01JE2EUSERROW0000000000000', 'preview', '01JE2EHORSEROWA00000000000', '01JE2ERACEROWPAST000000000', '01JE2EENTRYROWPAST00000000', '前走の出走前メモ', '["次走買い"]', '◎', '2020-04-10'),
+ ('01JE2ENOTEROWPASTPOST00000', '01JE2EUSERROW0000000000000', 'entry', '01JE2EHORSEROWA00000000000', '01JE2ERACEROWPAST000000000', '01JE2EENTRYROWPAST00000000', '前走のふりかえりメモ', '["不利"]', NULL, '2020-04-10'),
+ ('01JE2ENOTEROWHORSE00000000', '01JE2EUSERROW0000000000000', 'horse', '01JE2EHORSEROWA00000000000', NULL, NULL, '近況はこの走りに付けない', '[]', NULL, '2020-04-11');
+
+INSERT INTO note (id, author_id, kind, horse_id, race_id, race_entry_id, body, tags, visibility, occurred_at) VALUES
+ ('01JE2ENOTEROWOTHER00000000', '01JE2EOTHERUSER00000000000', 'entry', '01JE2EHORSEROWA00000000000', '01JE2ERACEROWPAST000000000', '01JE2EENTRYROWPAST00000000', '他人の各走メモ', '[]', 'unlisted', '2020-04-10');

@@ -11,9 +11,7 @@
 	 * 幅が足りないときに … で詰まるのはレース名だけで、開催は最後まで出す。
 	 * どのレースを開いているかは開催のほうで分かるため。
 	 *
-	 * 重賞の札は1行目に置かない。スマホ幅だとレース名の長さ次第で札だけが
-	 * 2行目に回り、見出しの高さがレースごとに変わってしまうので、
-	 * はじめから2行目（スペック行）の先頭に固定する。
+	 * 格の札はレース名のすぐ左。開催と札は縮めず、名前だけを省略する。
 	 *
 	 * 他の画面への導線（`links`）は、見出しの下にボタンを並べず、右端の `⋯` に畳む。
 	 * 毎回は踏まない導線で、スマホ幅だと見出しの下を何行も取っていたため。
@@ -23,6 +21,7 @@
 		meeting,
 		name,
 		grade,
+		gradeBeforeName = true,
 		spec,
 		links
 	}: {
@@ -31,6 +30,8 @@
 		/** レース名。幅が足りなければここが … になる。 */
 		name: string | null;
 		grade: string | null;
+		/** 予想まとめ・共有は従来どおり条件の行に置く。 */
+		gradeBeforeName?: boolean;
 		/** 2行目に出す日付と条件（距離・馬場など）。 */
 		spec: string;
 		/** `⋯` のメニューに並べる導線。省略か空ならメニューを出さない。href は呼び出し側が resolve() で組む。 */
@@ -63,15 +64,16 @@
 
 {#snippet titleText()}
 	<span class="shrink-0">{meeting}</span>
+	{#if gradeBeforeName && grade}<span class="shrink-0"><GradeBadge {grade} /></span>{/if}
 	{#if name}
 		<span class="truncate" title={name}>{name}</span>
 	{/if}
 {/snippet}
 
 {#snippet subline()}
-	{#if grade || spec}
+	{#if spec || (!gradeBeforeName && grade)}
 		<p class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-			<GradeBadge {grade} />
+			{#if !gradeBeforeName}<GradeBadge {grade} />{/if}
 			{#if spec}
 				<span class="truncate">{spec}</span>
 			{/if}

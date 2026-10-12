@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoHydrated } from './hydration';
 import { login } from './login';
 import { PREVIEW_RACE_ID } from './seed';
 
@@ -30,7 +31,8 @@ test('コース図は /_app/immutable/ の別ファイルとして、immutable �
 	request
 }) => {
 	await login(page);
-	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 	const img = page.getByRole('img', { name: '京都競馬場のコース図（芝・外回り）' });
 	// JS に埋め込まれた data: URI ではなく、名前にハッシュの付いたファイルであること。
 	const src = await img.getAttribute('src');

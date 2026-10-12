@@ -137,41 +137,24 @@ test('重賞に当たらない名前は 404 で、傾向も書けない', async 
 	expect(post.status()).toBe(404);
 });
 
-test('重賞の傾向が、予想画面は見立ての上・ふりかえり画面はレースのメモの上に読むだけで出る', async ({
-	page
-}) => {
+test('本人の毎年共通の重賞の傾向はレース情報に集約し、入力側に重ねない', async ({ page }) => {
 	await login(page);
-
-	// 予想画面。
-	await page.goto(`/races/${TREND_RACE.raceId}/preview`);
-	const onPreview = page.getByRole('region', { name: '重賞の傾向' });
-	await expect(onPreview).toContainText(TREND_RACE.trend);
-	await expect(onPreview).toContainText(`${TREND_RACE.key}・毎年共通`);
-	await expect(onPreview.getByRole('link', { name: '重賞の画面で直す' })).toHaveAttribute(
-		'href',
-		gradedPath(TREND_RACE.key)
-	);
-	// 他人の傾向は出ない。
-	await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
-	const previewTrendBox = await onPreview.boundingBox();
-	const outlookBox = await page
-		.getByRole('heading', { name: 'レースの見立て', level: 2 })
-		.boundingBox();
-	expect(previewTrendBox!.y).toBeLessThan(outlookBox!.y);
-
-	// ふりかえり画面。
-	await page.goto(`/races/${TREND_RACE.raceId}`);
-	const onReview = page.getByRole('region', { name: '重賞の傾向' });
-	await expect(onReview).toContainText(TREND_RACE.trend);
-	await expect(onReview).toContainText(`${TREND_RACE.key}・毎年共通`);
-	await expect(onReview.getByRole('link', { name: '重賞の画面で直す' })).toHaveAttribute(
-		'href',
-		gradedPath(TREND_RACE.key)
-	);
-	await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
-	const reviewTrendBox = await onReview.boundingBox();
-	const memoBox = await page.getByRole('heading', { name: 'レースのメモ', level: 2 }).boundingBox();
-	expect(reviewTrendBox!.y).toBeLessThan(memoBox!.y);
+	for (const path of [`/races/${TREND_RACE.raceId}/preview`, `/races/${TREND_RACE.raceId}`]) {
+		await gotoHydrated(page, path);
+		await expect(page.getByText(TREND_RACE.trend)).toBeHidden();
+		await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+		const trend = page.getByRole('region', { name: '重賞の傾向' });
+		await expect(trend).toContainText(TREND_RACE.trend);
+		await expect(trend).toContainText(`${TREND_RACE.key}・毎年共通`);
+		await expect(trend.getByRole('link', { name: '重賞の画面で直す' })).toHaveAttribute(
+			'href',
+			gradedPath(TREND_RACE.key)
+		);
+		await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
+		await expect(
+			page.getByRole('link', { name: '重賞のタイムラインで過去年の結果・見立てを見る' })
+		).toHaveAttribute('href', gradedPath(TREND_RACE.key));
+	}
 });
 
 test('傾向を書いていない重賞のふりかえり画面には、重賞の傾向の欄が出ない', async ({ page }) => {

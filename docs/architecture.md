@@ -230,7 +230,7 @@ export async function getHorseTimeline(event: RequestEvent) { ... }
 | db（`lib/server/db/`） | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ | ✗ |
 | pure（`lib/schemas/`・`lib/utils/`・`lib/utils.ts`） | ✗ | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ |
 
-route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin`）。
+route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）。
 
 上の表に入らないモジュールは、次のどれかと同じ扱いにする。
 
@@ -920,8 +920,12 @@ Workers の Custom Domains は無料で、Google OAuth も無料。
 クエリ数はそのまま時間（D1 は単一スレッドで、1本ずつプライマリまで往復する）と rows read に効く。
 Workers Paid の1リクエストあたりの上限（1,000）は遠いが、約束は変えない。
 
-いちばん多いのは予想画面で、重賞のときにセッション検証を含めてちょうど10本
-（`src/routes/races/[id]/preview/+page.server.ts` の load のコメント）。ここに足すときは、まず既存の読みにまとめられないかを見る。
+予想・ふりかえり画面は、重賞のときにセッション検証と有効期限の更新を含め、GETでは最大9回・8回、
+JS無効のPOSTから同じリクエストのloadまででは最大10回・9回の往復になる（各 `+page.server.ts` のコメント）。
+両画面のレースと出走馬、今回・各走・過去のメモはそれぞれ `batch()` でまとめる。
+メモactionで読んだ共通マスタは `locals` で同じリクエストのloadに渡す。保存で変わる本人メモは取り直し、
+次のリクエストには取得結果を持ち越さない。
+ここに足すときは、まず既存の読みにまとめられないかを見る。
 
 ふりかえり画面は18頭分のメモを扱う。ここで N+1 を書くと一気に増える。
 

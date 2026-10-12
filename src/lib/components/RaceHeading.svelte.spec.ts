@@ -6,14 +6,14 @@ import '../../routes/layout.css';
 
 /**
  * 見出しはスマホ幅（320px）で崩れないことが要件。
- * レース名が長くても1行目の高さが変わらず、重賞の札が1行目に
- * 混ざらないことを、実ブラウザ上の寸法で見る。
+ * レース名が長くても1行目の高さが変わらず、重賞の札と開催を
+ * 保つことを、実ブラウザ上の寸法で見る。
  */
 const PHONE = 320;
 
 /**
  * レース名が確実にあふれる長さ。**どのフォントで描いてもあふれるよう、実在の名前より長くしてある。**
- * 1行目に開催（場・R）だけが並ぶので、レース名には 320px のうち 235px ほどが残る。
+ * 1行目に開催（場・R）と格の札が並ぶので、レース名にはその残りの幅を使う。
  * 19文字では、CI（Ubuntu）の字幅だとちょうど収まってしまい、… にならなかった。
  */
 const LONG_NAME = 'アイルランドトロフィー府中牝馬ステークス東京タイムズ杯';
@@ -33,7 +33,8 @@ function h1() {
 }
 
 function spans() {
-	const [meeting, name] = Array.from(h1().querySelectorAll('span'));
+	const meeting = h1().querySelector('span')!;
+	const name = h1().querySelector('span[title]')!;
 	return { meeting, name };
 }
 
@@ -42,7 +43,18 @@ function badge() {
 }
 
 describe('RaceHeading', () => {
-	it('長いレース名だけを … で詰め、開催は最後まで出し、重賞の札は2行目に回す', () => {
+	it('予想まとめ・共有は格の札を従来の条件の行に置ける', () => {
+		render(RaceHeading, {
+			meeting: '東京11R',
+			name: '見本賞',
+			grade: 'G2',
+			spec: '芝1800m / 左',
+			gradeBeforeName: false
+		});
+		expect(h1().querySelector('[data-slot="badge"]')).toBeNull();
+		expect(badge()?.closest('p')?.textContent).toContain('芝1800m / 左');
+	});
+	it('長いレース名だけを … で詰め、開催は最後まで出し、重賞の札はタイトル左隣に置く', () => {
 		narrow();
 		render(RaceHeading, {
 			meeting: '東京11R',
@@ -69,12 +81,11 @@ describe('RaceHeading', () => {
 		expect(meeting.scrollWidth).toBe(meeting.clientWidth);
 		expect(meeting.textContent).toBe('東京11R');
 
-		// 札の上端が見出しの下端より下にある＝別の行にいる。
+		// 札は見出しの中でレース名のすぐ左にいる。
 		const g = badge();
 		expect(g?.textContent?.trim()).toBe('G2');
-		expect(g!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
-			h1().getBoundingClientRect().bottom
-		);
+		expect(g!.getBoundingClientRect().top).toBeLessThan(h1().getBoundingClientRect().bottom);
+		expect(g!.getBoundingClientRect().right).toBeLessThanOrEqual(name.getBoundingClientRect().left);
 	});
 
 	it('短いレース名は詰めない', () => {
@@ -185,7 +196,7 @@ describe('RaceHeading', () => {
 			const title = titleButton()!;
 			expect(getComputedStyle(title).userSelect).not.toBe('none');
 
-			const nameSpan = title.querySelectorAll('span')[1];
+			const nameSpan = title.querySelector('span[title]')!;
 			window.getSelection()!.selectAllChildren(nameSpan);
 			title.click();
 			// 開くなら同じ tick のうちに aria-expanded が変わる。少し待っても閉じたまま。
@@ -201,7 +212,7 @@ describe('RaceHeading', () => {
 		it('タイトルの押せる範囲はレース名までで、右の空白は押せない', () => {
 			render(RaceHeading, { ...base, links: LINKS });
 			const title = titleButton()!.getBoundingClientRect();
-			const name = titleButton()!.querySelectorAll('span')[1].getBoundingClientRect();
+			const name = titleButton()!.querySelector('span[title]')!.getBoundingClientRect();
 			expect(title.right).toBeCloseTo(name.right, 0);
 			expect(title.right).toBeLessThan(menuButton()!.getBoundingClientRect().left - 100);
 		});

@@ -262,10 +262,23 @@ export type RaceEntryView = {
 
 /** そのレースの出走馬。着順 → 馬番の順に並べる（ふりかえり用）。 */
 export async function listEntries(db: Db, raceId: string): Promise<RaceEntryView[]> {
+	return reviewEntriesQuery(db, raceId);
+}
+
+/** ふりかえりのレースと出走馬を1往復で読む。 */
+export async function getRaceForReview(db: Db, raceId: string) {
+	const [races, entries] = await db.batch([
+		db.select().from(race).where(eq(race.id, raceId)).limit(1),
+		reviewEntriesQuery(db, raceId)
+	]);
+	return { race: races[0] ?? null, entries };
+}
+
+function reviewEntriesQuery(db: Db, raceId: string) {
 	return (
 		db
 			.select({
-				entryId: raceEntry.id,
+				entryId: sql<string>`${raceEntry.id}`.as('review_entry_id'),
 				horseId: horse.id,
 				horseName: horse.name,
 				sex: horse.sex,
@@ -432,9 +445,22 @@ export async function listGradedRacesInWeek(
  * 着順では並べない。出走前なので着順はまだ無い。
  */
 export async function listEntriesForPreview(db: Db, raceId: string): Promise<RaceEntryView[]> {
+	return previewEntriesQuery(db, raceId);
+}
+
+/** レースと出馬表を1往復で読む。セッション更新時にも予想ページを10クエリ以内に収める。 */
+export async function getRaceForPreview(db: Db, raceId: string) {
+	const [races, entries] = await db.batch([
+		db.select().from(race).where(eq(race.id, raceId)).limit(1),
+		previewEntriesQuery(db, raceId)
+	]);
+	return { race: races[0] ?? null, entries };
+}
+
+function previewEntriesQuery(db: Db, raceId: string) {
 	return db
 		.select({
-			entryId: raceEntry.id,
+			entryId: sql<string>`${raceEntry.id}`.as('preview_entry_id'),
 			horseId: horse.id,
 			horseName: horse.name,
 			sex: horse.sex,
@@ -461,6 +487,7 @@ export async function listEntriesForPreview(db: Db, raceId: string): Promise<Rac
 
 /** 馬柱1走ぶん。過去のレースの race_entry がそのまま材料になる。 */
 export type PastRun = {
+	entryId: string;
 	horseId: string;
 	raceId: string;
 	date: string;
@@ -498,9 +525,8 @@ export type PastRun = {
  *
  * **1クエリ。** 16頭 × 5走を1頭ずつ引くと N+1 になり、D1 の
  * 「1リクエストあたり50クエリ」（architecture.md 7-1）に近づく。
- * `horse_id IN (...)` で一度に取り、頭ごとの件数制限は JS 側で切る。
- * SQL で頭ごとに5走に絞るには窓関数が要るが、取ってから捨てるほうが単純で、
- * この規模なら転送量も問題にならない。
+ * `horse_id IN (...)` と窓関数で馬ごとに絞る。全体の LIMIT では、出走の多い馬が
+ * 上限を使い切り、別の馬の古い5走が取得できない。
  *
  * 並びは日付の降順。**着順が入っていない行も返す**（出走予定だけ登録して
  * 結果が未入力のレースもある）。表示側で「—」を出すか落とすかを決める。
@@ -513,10 +539,15 @@ export async function listPastRuns(
 ): Promise<Map<string, PastRun[]>> {
 	if (horseIds.length === 0) return new Map();
 
-	const rows = await db
+	const ranked = db
 		.select({
+			entryId: sql<string>`${raceEntry.id}`.as('past_entry_id'),
+			runOrder:
+				sql<number>`row_number() over (partition by ${raceEntry.horseId} order by ${race.date} desc, ${race.raceNumber} desc, ${raceEntry.id} desc)`.as(
+					'run_order'
+				),
 			horseId: raceEntry.horseId,
-			raceId: race.id,
+			raceId: sql<string>`${race.id}`.as('past_race_id'),
 			date: race.date,
 			course: race.course,
 			raceNumber: race.raceNumber,
@@ -543,8 +574,12 @@ export async function listPastRuns(
 		.from(raceEntry)
 		.innerJoin(race, eq(raceEntry.raceId, race.id))
 		.where(and(inArray(raceEntry.horseId, horseIds), lt(race.date, beforeDate)))
-		.orderBy(desc(race.date), desc(race.raceNumber))
-		.limit(horseIds.length * perHorse * 3);
+		.as('ranked_runs');
+	const rows = await db
+		.select()
+		.from(ranked)
+		.where(sql`${ranked.runOrder} <= ${perHorse}`)
+		.orderBy(sql`${ranked.runOrder}`);
 
 	const byHorse = new Map<string, PastRun[]>();
 	for (const r of rows) {

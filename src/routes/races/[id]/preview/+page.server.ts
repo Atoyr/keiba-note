@@ -3,21 +3,20 @@ import * as v from 'valibot';
 import { previewNotesSchema } from '$lib/schemas/note';
 import { FLOW_PHASES, restrictFlowTo } from '$lib/schemas/race-flow';
 import {
-	listHistoryForHorses,
-	listRaceNotes,
+	listRaceMemoContext,
 	listSameConditionRaceNotes,
 	savePreviewNotes
 } from '$lib/server/services/notes';
 import { getGradedRaceTrend } from '$lib/server/services/graded-races';
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { getRaceOdds } from '$lib/server/services/odds';
-import { getRace, listEntriesForPreview, listPastRuns } from '$lib/server/services/races';
+import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { popularityByNumber } from '$lib/utils/odds';
-import { ctx } from '$lib/server/util';
+import { ctx, raceFormData } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -33,18 +32,18 @@ import type { Actions, PageServerLoad } from './$types';
  * 日付と格だけ先に登録され、出馬表はその後に入る（README「出走馬データ」）。
  * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
- * 読みは8クエリ（race / entries+horse / このレースのメモ / 過去メモ / 馬柱 / 同じ条件のレースのメモ / オッズ / 騎手のまとめ）。
- * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。見立ての上に読むだけで出す。
+ * 読みは最大6往復（race+entriesのbatch / 今回・各走・過去メモのbatch / 馬柱 / 同条件メモ / オッズ / 騎手のまとめ）。
+ * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。レース情報に読むだけで出す。
+ * GETはセッションのSELECTと更新のUPDATEを含め最大9往復。
+ * JS無効のPOST後のloadでは、actionで読んだ共通マスタをlocalsから再利用する。保存1回を含め最大10往復。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
- * （D1 は1リクエスト50クエリが上限。architecture.md 7-1）。
+ * （設計上の上限は1リクエスト10往復。architecture.md 7-1）。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 
-	const race = await getRace(db, params.id);
+	const { race, entries } = await raceFormData(db, locals, params.id, 'preview');
 	if (!race) error(404, 'レースが見つかりません');
-
-	const entries = await listEntriesForPreview(db, params.id);
 
 	const horseIds = entries.map((e) => e.horseId);
 
@@ -53,27 +52,35 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	// 重賞の傾向を引く鍵。別名で走った年のレースでも、重賞の画面と同じ名前になる。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
 
-	const [thisRaceNotes, history, pastRuns, sameCondition, odds, trend, jockeySummaries] =
-		await Promise.all([
-			listRaceNotes(db, params.id, user.id),
-			listHistoryForHorses(db, horseIds, params.id, user.id),
-			// 馬柱。このレースより前の出走歴だけを見る。
-			listPastRuns(db, horseIds, race.date),
-			// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
-			surface && distance
-				? listSameConditionRaceNotes(
-						db,
-						{ course: race.course, surface, distance, before: race.date },
-						user.id
-					)
-				: Promise.resolve([]),
-			// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
-			getRaceOdds(db, params.id),
-			// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
-			gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
-			// 騎手名に hover したときに浮かべる、自分のまとめ（このレースの出走馬の騎手だけ）。
-			listRaceJockeySummaries(db, params.id, user.id)
-		]);
+	const [pastRuns, sameCondition, odds, trend, jockeySummaries] = await Promise.all([
+		// 馬柱。このレースより前の出走歴だけを見る。
+		listPastRuns(db, horseIds, race.date),
+		// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
+		surface && distance
+			? listSameConditionRaceNotes(
+					db,
+					{ course: race.course, surface, distance, before: race.date },
+					user.id
+				)
+			: Promise.resolve([]),
+		// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
+		getRaceOdds(db, params.id),
+		// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
+		// 行展開や騎手名を押したときに読む、自分のまとめ（このレースの出走馬の騎手だけ）。
+		listRaceJockeySummaries(db, params.id, user.id)
+	]);
+	const {
+		raceNotes: thisRaceNotes,
+		pastRunNotes: runNotes,
+		history
+	} = await listRaceMemoContext(
+		db,
+		params.id,
+		[...pastRuns.values()].flat().map((run) => run.entryId),
+		horseIds,
+		user.id
+	);
 
 	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
 	const oddsByNumber = new Map(odds?.horses.map((h) => [h.horseNumber, h]) ?? []);
@@ -114,7 +121,10 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
 				myPreview: myPreview.get(e.entryId) ?? null,
 				history: history.get(e.horseId) ?? [],
-				pastRuns: pastRuns.get(e.horseId) ?? []
+				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({
+					...run,
+					notes: runNotes.get(run.entryId) ?? []
+				}))
 			};
 		})
 	};
@@ -124,15 +134,13 @@ export const actions: Actions = {
 	default: async ({ locals, platform, params, request }) => {
 		const { db, user } = ctx(locals, platform);
 
-		const race = await getRace(db, params.id);
+		const { race, entries } = await raceFormData(db, locals, params.id, 'preview');
 		if (!race) error(404, 'レースが見つかりません');
 
 		const form = await request.formData();
 
 		// 出走馬の構成は DB を正とする。フォームの entryId を鵜呑みにすると
 		// 他のレースの出走馬にメモを書き込めてしまう。
-		const entries = await listEntriesForPreview(db, params.id);
-
 		const parsed = v.safeParse(previewNotesSchema, {
 			raceNote: {
 				body: form.get('raceNoteBody')?.toString() ?? '',

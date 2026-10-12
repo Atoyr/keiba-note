@@ -69,7 +69,8 @@ test('hydration 前に付けた札は残る', async ({ page }) => {
 	const release = await openWithoutJs(page, `/races/${BRACKET_RACE_ID}`);
 
 	// races.e2e.ts がソトワクに書くので、ウチワクの行で見る。
-	const row = page.locator('form li', { hasText: 'E2Eウチワク' });
+	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eウチワク' });
+	await row.locator('summary').first().click();
 	const tag = row.getByRole('checkbox', { name: '馬場向かず' });
 	const rendered = await tag.isChecked();
 	// 札は見た目だけのラベルで、チェックボックス本体は隠してある。押すのはラベル。
@@ -87,6 +88,7 @@ test('hydration 前に付け替えた印は残る', async ({ page }) => {
 	const release = await openWithoutJs(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
 	// seed では ◎。△ → ▲ → △ と迷ってから決める。触った順ではなく、最後に選んだものが残る。
+	await page.locator('li[id^="entry-"] > details > summary').click();
 	const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
 	await expect(marks.getByRole('radio', { name: '◎' })).toBeChecked();
 	for (const m of ['△', '▲', '△']) await marks.getByText(m, { exact: true }).click();

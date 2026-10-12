@@ -1,5 +1,25 @@
 import { error } from '@sveltejs/kit';
 import { createDb, type Db } from '$lib/server/db';
+import { getRaceForPreview, getRaceForReview } from '$lib/server/services/races';
+
+/**
+ * メモのactionと、その直後のloadで共通マスタを再利用する。
+ * localsは1リクエスト限り。保存で変わる本人メモはここに置かず、loadで取り直す。
+ */
+export async function raceFormData(
+	db: Db,
+	locals: App.Locals,
+	raceId: string,
+	mode: 'preview' | 'review'
+) {
+	const cached = locals.raceFormRead;
+	if (cached?.raceId === raceId && cached.mode === mode) return cached.data;
+	const data = await (mode === 'preview'
+		? getRaceForPreview(db, raceId)
+		: getRaceForReview(db, raceId));
+	locals.raceFormRead = { raceId, mode, data };
+	return data;
+}
 
 /**
  * ルートから DB とログインユーザーを取り出す定型。

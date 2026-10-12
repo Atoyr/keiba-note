@@ -397,6 +397,62 @@ export const SCREENS: Screen[] = [
 			await page.locator('details summary', { hasText: '展開の予想' }).click();
 		}
 	},
+
+	{
+		name: 'race-preview-details',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByText('書き直す', { exact: true }).click();
+			await page.getByLabel('E2Eプレビューホースの詳細情報', { exact: true }).click();
+		}
+	},
+	{
+		name: 'race-preview-information',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+		}
+	},
+	{
+		// 狭いスマホで長文を入力した行。seed は変更せず、入力欄だけを埋める。
+		name: 'race-preview-narrow-long-note',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			if (page.viewportSize()!.width < 600) {
+				await page.setViewportSize({ width: 320, height: 844 });
+			}
+			await page.getByText('書き直す', { exact: true }).click();
+			const input = page.locator('textarea[name^="body."]').first();
+			await input.fill(
+				'道中の位置取りと直線の進路を確認。次走は展開と馬場を見て判断する。\n'.repeat(40)
+			);
+			await input.evaluate((element) => (element.scrollTop = 0));
+		}
+	},
+	{
+		name: 'race-review-editing',
+		path: `/races/${BRACKET_RACE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByLabel('E2Eソトワクのメモ・入力', { exact: true }).click();
+		}
+	},
+	{
+		name: 'race-review-information',
+		path: `/races/${TREND_RACE.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+		}
+	},
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
 	{
 		// 騎手名をクリックして、自分のまとめ（本文と札）が開いたところ。
@@ -421,6 +477,8 @@ export const SCREENS: Screen[] = [
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 			const summary = page.locator('details summary', { hasText: 'コース' });
 			if (await summary.isVisible()) await summary.click();
 		}
@@ -437,6 +495,8 @@ export const SCREENS: Screen[] = [
 		path: `/races/${SPRINT_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 			const summary = page.locator('details summary', { hasText: 'コース' });
 			if (await summary.isVisible()) await summary.click();
 		}
@@ -447,6 +507,8 @@ export const SCREENS: Screen[] = [
 		path: `/races/${TOKYO_MILE_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 			const summary = page.locator('details summary', { hasText: 'コース' });
 			if (await summary.isVisible()) await summary.click();
 		}
@@ -457,6 +519,8 @@ export const SCREENS: Screen[] = [
 		path: `/races/${TOKYO_DIRT_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 			const summary = page.locator('details summary', { hasText: 'コース' });
 			if (await summary.isVisible()) await summary.click();
 		}
@@ -571,6 +635,7 @@ export const SCREENS: Screen[] = [
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
+			await page.getByText('書き直す', { exact: true }).click();
 			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
 			await marks.getByText('☆', { exact: true }).click();
 		}

@@ -81,7 +81,8 @@
 {/if}
 
 <noscript>
-	<div class={bar}>
+	<!-- JS 無効時は資料も縦に続く。貼り付けると途中の行の開閉を覆うので、末尾に置く。 -->
+	<div class="mt-6 border-t bg-background py-3">
 		<Button type="submit" class="w-full">{label}</Button>
 	</div>
 </noscript>

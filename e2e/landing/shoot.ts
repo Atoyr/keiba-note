@@ -49,19 +49,22 @@ type Shot = {
 const SHOTS: Shot[] = [
 	// ダッシュボード: 今週の注目馬・ふりかえり待ち・今週のレース。
 	{ name: 'dashboard', path: '/' },
-	// 予想画面の先頭: 付けた印・コース・レースの見立て。
+	// 予想画面の先頭: タブ・付けた印・レースの見立て。
 	{
 		name: 'preview',
 		path: `/races/${TODAY_RACE_ID}/preview`,
 		prepare: async (page) => {
-			// スマホではコースを畳んである。紹介では開いて見せる。
-			await page.locator('details summary', { hasText: 'コース' }).click();
+			await waitForHydration(page);
 		}
 	},
-	// 予想画面の出走馬: 印・オッズ・馬柱・前回の札・過去のメモ。◎の1頭を撮る。
+	// 予想画面の行展開: 印・オッズ・前回の札・近況・今回の入力。◎の1頭を撮る。
 	{
 		name: 'preview-entry',
 		path: `/races/${TODAY_RACE_ID}/preview`,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.locator('#entry-01JLPENTRYTODAY00000000001 > details > summary').click();
+		},
 		target: (page) => page.locator('#entry-01JLPENTRYTODAY00000000001')
 	},
 	// 展開の予想: 4コーナーの盤面を開いたところ。

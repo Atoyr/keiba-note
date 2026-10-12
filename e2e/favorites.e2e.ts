@@ -10,7 +10,7 @@ const favorites = (page: Page) =>
 
 test('ダッシュボードに自分の推しの出走予定だけが出る', async ({ page }) => {
 	await login(page);
-	await page.goto('/');
+	await gotoHydrated(page, '/');
 
 	const section = favorites(page);
 	const row = section.locator('li', { hasText: FAVORITE_HORSES.running });
