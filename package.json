@@ -18,7 +18,7 @@
 		"test:watch": "vitest",
 		"test": "pnpm run test:unit && pnpm run test:e2e",
 		"test:e2e": "playwright install chromium && playwright test",
-		"verify": "pnpm run check && pnpm run lint && pnpm test",
+		"verify": "pnpm run check && pnpm run lint && pnpm run test:unit && node --experimental-strip-types scripts/e2e-if-needed.ts",
 		"screens": "playwright install chromium && node --experimental-strip-types scripts/screens.ts",
 		"landing:shots": "playwright install chromium && playwright test -c playwright.landing.config.ts",
 		"screens:pr": "node --experimental-strip-types scripts/pr-screens.ts",
