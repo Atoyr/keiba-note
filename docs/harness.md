@@ -413,13 +413,13 @@ E2E のビルドだけで、リクエストごとのクエリ数を応答ヘッ�
 
 ### 5-5. CI の構成
 
-手元の `pnpm run verify` と CI は同じものを回す（CI はそれに `data:check` を足す）。**CI にしか無い検査を作らない**（手元で再現できないと直せない）。
+手元の `pnpm run verify` と CI は同じものを回す（CI はそれに `data:check` を足し、一部の PR では E2E を飛ばす。→ [testing.md 第1章](./testing.md#1-何をどこで確かめるか)）。**CI にしか無い検査を作らない**（手元で再現できないと直せない）。
 PR 本文の検査も、手元で `pnpm run pr:check` として回せる。
 
 | ワークフロー | ジョブ | 回すもの |
 | --- | --- | --- |
 | `ci.yml` | 検証 | `data:check` → `check` → `lint`（Prettier・ESLint・`docs:check`）→ 単体テスト |
-| `ci.yml` | E2E | `test:e2e`（画面カタログを含む）。キャプチャを artifact `screens` に上げる。`data/` と文書（`docs/`・`*.md`）だけの PR では飛ばす |
+| `ci.yml` | E2E | `test:e2e`（画面カタログを含む）。キャプチャを artifact `screens` に上げる。一部の PR では飛ばす（[testing.md 第1章](./testing.md#1-何をどこで確かめるか)） |
 | `pr-body.yml` | 欄が埋まっているか | `scripts/check-pr-body.ts`。テンプレートの欄が空でないかと、選ばれたレビュアーの結果があるか（[review.md 第6章](./review.md)） |
 
 ほかのワークフロー（デプロイ・出走馬データの投入・オッズ・出走馬の取得・ステージング・監視）は [operations.md](./operations.md) と [monitoring.md](./monitoring.md)。
