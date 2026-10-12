@@ -30,10 +30,11 @@ PR に貼るキャプチャの撮り方。
 `data:check` の行と、PR 本文以降の行を除いた上の行は `pnpm run verify`（check → lint → 単体 → E2E）に入っている。
 CI（`.github/workflows/ci.yml`）も同じものを回し、画面カタログのキャプチャを artifact `screens` として上げる。
 ただし `data/` と文書（`docs/`・`*.md`）だけの PR では、CI は E2E のジョブを飛ばす（`ci.yml` の「E2E の要否」）。
-**アプリと E2E から `data/` と `.md` を読まない。** 読まないから飛ばしてよい。読ませるなら、`ci.yml` の条件も直す
-（直さないと、その変更の E2E が黙って飛ぶ）。
+**アプリと E2E から `data/`・`docs/` の下と `.md` を読まない。** 読まないから飛ばしてよい。読ませるなら、`ci.yml` の条件と
+`scripts/e2e-if-needed.ts` の `isDocsOnly` の両方を直す（直さないと、その変更の E2E が黙って飛ぶ）。
 手元の `verify` も、文書（`docs/`・`*.md`）だけの変更では E2E を飛ばす（`scripts/e2e-if-needed.ts`。
 `origin/main` との分岐点から作業ツリーまでの変更を見る。未追跡のファイルも含む）。**`data/` は手元では飛ばさない**（CI は飛ばす）。
+こうして `verify` が自分で E2E を飛ばしたときは、1-2 の「省略」に当たらない。`verify` が green なら完了にしてよい。
 `verify` と `screens` はビルドを含むので数分かかる。
 
 ### 1-1. 初回の検証準備

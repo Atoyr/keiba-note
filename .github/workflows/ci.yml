@@ -54,10 +54,10 @@ jobs:
       - name: 単体テスト
         run: pnpm run test:unit
 
-  # data/ と文書だけの PR では E2E を飛ばす（docs/testing.md 第1章）。アプリも E2E も data/ と .md を読まない
+  # data/ と文書だけの PR では E2E を飛ばす（docs/testing.md 第1章）。アプリも E2E も data/・docs/ と .md を読まない
   # （E2E の中身は e2e/seed.sql だけ）。data/ は検証ジョブの data:check、文書は lint の docs:check が見る。
   # 対象は data/・docs/・*.md だけ。.claude/ の設定（.json など）は E2E に関わりうるので飛ばさない。
-  # アプリか E2E に data/ や .md を読ませるときは、下の条件も直す。
+  # アプリか E2E に data/・docs/ や .md を読ませるときは、下の条件と scripts/e2e-if-needed.ts の両方を直す。
   # PR のマージコミットの HEAD^1（取り込み先の先端）と HEAD の差で見る。--no-renames は、src/ から docs/ への
   # 移動を「docs/ だけの変更」に見せないため（移動元も出す）。
   # PR 以外（main への push・workflow_call）と、差分が取れなかったときは回す側に倒す。

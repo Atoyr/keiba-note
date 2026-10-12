@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
  *
  * 文書 = `docs/` の下と `*.md`。`data/` は含めない（CI は `data/` も飛ばすが、手元では飛ばさない）。
  * 判断に迷うとき（空・git が失敗）は、飛ばさず回す側に倒す。
+ * 条件を変えるときは、CI の `.github/workflows/ci.yml`（「E2E の要否」）も合わせて直す。
  */
 
 /** 1つ以上あり、全部が文書のときだけ true。 */
