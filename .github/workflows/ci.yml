@@ -128,10 +128,15 @@ jobs:
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: failure()
+        # 落ちたテストの、その時点の画面（error-context.md）。レポーターは dot なので
+        # playwright-report/ は作られない。画面カタログのキャプチャは上の screens に入っている。
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: test-results
+          path: |
+            test-results/
+            !test-results/screens/
           retention-days: 7
+          if-no-files-found: ignore
 
   # main で落ちたときだけ Discord へ知らせる（docs/monitoring.md）。
   # PR の失敗は書いた人が画面で見ているので送らない（通知が埋もれる）。
