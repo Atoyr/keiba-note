@@ -684,7 +684,7 @@ sequenceDiagram
 
 ### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読み書きする
 
-Claude・ChatGPT から読める（許せば予想とふりかえりを書ける）ように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバー（`/.well-known/*`・`/oauth/*`）を置く。
+Claude・ChatGPT から読める（許せば予想・展開の予想・ふりかえりを書ける）ように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバー（`/.well-known/*`・`/oauth/*`）を置く。
 tool はサービス層を呼ぶだけで、`viewerId` はトークンの持ち主。トークンの口だけ `src/worker.js` が SvelteKit より先に受ける。
 経路・書くときの決まり・スコープ・回数の上限・リフレッシュ・クライアントの識別と、ブラウザ内の WebMCP は [mcp.md](./mcp.md)。
 

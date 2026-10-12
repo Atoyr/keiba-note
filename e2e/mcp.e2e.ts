@@ -23,7 +23,7 @@ import {
  *
  * 見ていること:
  * - スコープ: races:read だけの連携ではメモの tool が出ず、呼ぶと 403（insufficient_scope）
- * - 書き込み: save_my_race_preview・save_my_race_review は渡した馬の渡した項目だけを書き、書いた人のメモにしか触れない
+ * - 書き込み: save_my_race_preview・save_my_race_flow・save_my_race_review は渡した馬の渡した項目だけを書き、書いた人のメモにしか触れない
  * - 他人のデータ: 同じ tool でもトークンの持ち主のメモだけ。入力で相手を選べない
  * - 経路を混ぜない: /mcp は Cookie では入れず、Bearer で画面には入れない
  * - 連携の解除・リフレッシュトークンの使い回しで、トークンが止まる
@@ -78,7 +78,7 @@ async function toolNames(request: APIRequestContext, token: string) {
 }
 
 const NOTE_TOOLS = ['get_my_race_notes', 'get_my_horse_notes', 'list_my_recent_notes'];
-const WRITE_LABEL = 'あなたの予想（見立て・印・札・出走前メモ）を書く';
+const WRITE_LABEL = 'あなたの予想（見立て・印・札・出走前メモ・展開の予想）を書く';
 const REVIEW_LABEL = 'あなたのふりかえり（レースのメモ・各馬のメモと札）を書く';
 
 test.describe('案内（メタデータ）', () => {
@@ -300,6 +300,85 @@ test.describe('予想を書く（save_my_race_preview）', () => {
 		const res = await callTool(request, MCP_TOKENS.racesOnly, 'save_my_race_preview', {
 			raceId: MCP_WRITE_RACE.id,
 			raceNote: { body: '書けてはいけない' }
+		});
+		expect(res.status()).toBe(403);
+		expect(res.headers()['www-authenticate']).toContain('scope="notes:write"');
+	});
+});
+
+test.describe('展開の予想を書く（save_my_race_flow）', () => {
+	// 書くのは別のユーザーのトークンだけ。自分（E2E ユーザー）の画面とキャプチャに混ざらない。
+	test('ペースと隊列を書き、見立ての本文は残る。get_my_race_notes の flow で読める', async ({
+		request
+	}) => {
+		const { id, entryIds } = MCP_WRITE_RACE;
+		const saved = await toolText(
+			await callTool(request, MCP_TOKENS.other, 'save_my_race_flow', {
+				raceId: id,
+				pace: 'ハイ',
+				corner4: {
+					spots: [
+						{ entryId: entryIds.b, x: 2, y: 1 },
+						{ entryId: entryIds.a, x: 0, y: 0 }
+					],
+					memo: '先行勢が競る'
+				}
+			})
+		);
+		expect(saved.isError).toBeUndefined();
+		expect(JSON.parse(saved.content[0].text)).toEqual({ raceId: id, flow: 'saved' });
+
+		const notes = JSON.parse(
+			(
+				await toolText(
+					await callTool(request, MCP_TOKENS.other, 'get_my_race_notes', { raceId: id })
+				)
+			).content[0].text
+		).notes as { kind: string; body: string; flow?: Record<string, unknown> | null }[];
+		const preview = notes.find((n) => n.kind === 'race_preview');
+		expect(preview?.body).toBe('AIと決めた見立て');
+		expect(preview?.flow).toMatchObject({
+			pace: 'ハイ',
+			corner4: {
+				spots: [
+					{ entryId: entryIds.a, x: 0, y: 0 },
+					{ entryId: entryIds.b, x: 2, y: 1 }
+				],
+				memo: '先行勢が競る'
+			}
+		});
+
+		// 自分のトークンからは見えない。
+		const mine = (
+			await toolText(await callTool(request, MCP_TOKENS.all, 'get_my_race_notes', { raceId: id }))
+		).content[0].text;
+		expect(JSON.parse(mine).notes).toEqual([]);
+	});
+
+	test('同じマスに2頭は書けない', async ({ request }) => {
+		const { id, entryIds } = MCP_WRITE_RACE;
+		const res = await toolText(
+			await callTool(request, MCP_TOKENS.other, 'save_my_race_flow', {
+				raceId: id,
+				start: {
+					spots: [
+						{ entryId: entryIds.a, x: 0, y: 0 },
+						{ entryId: entryIds.b, x: 0, y: 0 }
+					]
+				}
+			})
+		);
+		expect(res.isError).toBe(true);
+		expect(res.content[0].text).toContain('に2頭あります');
+	});
+
+	test('races:read だけの連携では一覧に出ず、呼ぶと 403（insufficient_scope）', async ({
+		request
+	}) => {
+		expect(await toolNames(request, MCP_TOKENS.racesOnly)).not.toContain('save_my_race_flow');
+		const res = await callTool(request, MCP_TOKENS.racesOnly, 'save_my_race_flow', {
+			raceId: MCP_WRITE_RACE.id,
+			pace: 'ハイ'
 		});
 		expect(res.status()).toBe(403);
 		expect(res.headers()['www-authenticate']).toContain('scope="notes:write"');

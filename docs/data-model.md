@@ -150,7 +150,7 @@ GitHub Actions が取得元から書く唯一の表で、メモからも馬柱�
 
 ### oauth_client / oauth_grant / oauth_code / oauth_token / mcp_usage
 
-AI のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませる（許せば予想とふりかえりを書かせる）ための表。寿命・上限・掃除は [mcp.md](./mcp.md)。
+AI のクライアント（Claude・ChatGPT）に、本人が許した範囲だけを読ませる（許せば予想・展開の予想・ふりかえりを書かせる）ための表。寿命・上限・掃除は [mcp.md](./mcp.md)。
 
 | 表 | 1行 | 誰のものか |
 | --- | --- | --- |

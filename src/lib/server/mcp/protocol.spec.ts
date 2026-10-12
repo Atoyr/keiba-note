@@ -72,7 +72,8 @@ describe('スコープ', () => {
 			'search_races',
 			'get_race',
 			'get_horse',
-			'save_my_race_preview'
+			'save_my_race_preview',
+			'save_my_race_flow'
 		]);
 		// reviews:write が無い連携（notes:write だけ）には、ふりかえりを書く tool は出ない。
 		expect(await list(PREVIEW_ONLY)).not.toContain('save_my_race_review');
@@ -473,6 +474,246 @@ describe('save_my_race_preview', () => {
 			await call('save_my_race_preview', { raceId: 'nope', raceNote: { body: 'x' } })
 		);
 		expect(reply.result?.isError).toBe(true);
+	});
+});
+
+describe('save_my_race_flow', () => {
+	type FlowRow = { author_id: string; kind: string; body: string; flow: string | null };
+	const flows = (author: string) =>
+		sqlite
+			.prepare(
+				`SELECT author_id, kind, body, flow FROM note WHERE author_id = ? AND race_id = 'R' ORDER BY kind, id`
+			)
+			.all(author) as FlowRow[];
+	const myFlow = (author = 'A') => {
+		const raw = (
+			sqlite
+				.prepare(
+					`SELECT flow FROM note WHERE author_id = ? AND kind = 'race_preview' AND race_id = 'R'`
+				)
+				.get(author) as { flow: string | null } | undefined
+		)?.flow;
+		return raw ? JSON.parse(raw) : null;
+	};
+	const bodyOf = (author = 'A') =>
+		(
+			sqlite
+				.prepare(
+					`SELECT body FROM note WHERE author_id = ? AND kind = 'race_preview' AND race_id = 'R'`
+				)
+				.get(author) as { body: string } | undefined
+		)?.body;
+	const save = (args: Record<string, unknown>, scopes = ALL, viewerId = 'A', raceId = 'R') =>
+		call('save_my_race_flow', { raceId, ...args }, scopes, viewerId);
+
+	beforeEach(() => {
+		sqlite.exec(`
+			INSERT INTO horse (id, name, created_by) VALUES ('H2', '二頭目', 'B');
+			INSERT INTO race_entry (id, race_id, horse_id, horse_number) VALUES ('E2', 'R', 'H2', 2);
+		`);
+	});
+
+	it('notes:write が無いトークンでは、動かさずに 403（insufficient_scope）', async () => {
+		const before = flows('A');
+		const reply = await save({ pace: 'ハイ' }, READ_ONLY);
+		expect(reply).toMatchObject({ kind: 'insufficientScope', scope: 'notes:write' });
+		expect(flows('A')).toEqual(before);
+	});
+
+	it('pace と局面の spots だけ渡すと、そこだけ書く。見立ての本文・ほかの局面・memo はそのまま。並びは前→後・内→外', async () => {
+		sqlite.exec(
+			`UPDATE note SET flow = '{"pace":null,"start":{"spots":[],"memo":"出だし"},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}' WHERE id = 'NA1'`
+		);
+		const out = data(
+			await save({
+				pace: 'ハイ',
+				corner4: {
+					spots: [
+						{ entryId: 'E2', x: 3, y: 1 },
+						{ entryId: 'E', x: 1, y: 2 }
+					]
+				}
+			})
+		);
+		expect(out).toEqual({ raceId: 'R', flow: 'saved' });
+		const flow = myFlow();
+		expect(flow.pace).toBe('ハイ');
+		expect(flow.corner4.spots).toEqual([
+			{ entryId: 'E', x: 1, y: 2 },
+			{ entryId: 'E2', x: 3, y: 1 }
+		]);
+		expect(flow.start).toEqual({ spots: [], memo: '出だし' });
+		expect(bodyOf()).toBe('自分の見立て');
+	});
+
+	it('省いた局面と項目は今の値のまま（2回呼ぶ）', async () => {
+		await save({
+			pace: 'スロー',
+			start: { spots: [{ entryId: 'E', x: 0, y: 0 }], memo: '  先手  ' },
+			finish: { memo: 'ゴール前' }
+		});
+		await save({ finish: { spots: [{ entryId: 'E2', x: 2, y: 3 }] } });
+		const flow = myFlow();
+		expect(flow.pace).toBe('スロー');
+		expect(flow.start).toEqual({ spots: [{ entryId: 'E', x: 0, y: 0 }], memo: '先手' });
+		expect(flow.finish).toEqual({ spots: [{ entryId: 'E2', x: 2, y: 3 }], memo: 'ゴール前' });
+	});
+
+	it('spots: [] で隊列を空に、pace: null で外す。すべて空なら flow は NULL で、本文があれば行は残る', async () => {
+		await save({ pace: 'ミドル', start: { spots: [{ entryId: 'E', x: 0, y: 0 }] } });
+		const out = data(await save({ pace: null, start: { spots: [] } }));
+		expect(out.flow).toBe('cleared');
+		expect(myFlow()).toBeNull();
+		expect(bodyOf()).toBe('自分の見立て');
+	});
+
+	it('本文も展開も空になったら、見立ての行が消える', async () => {
+		sqlite.exec(`UPDATE note SET body = '' WHERE id = 'NA1'`);
+		await save({ pace: 'ミドル' });
+		expect(myFlow()?.pace).toBe('ミドル');
+		const out = data(await save({ pace: null }));
+		expect(out.flow).toBe('cleared');
+		expect(bodyOf()).toBeUndefined();
+	});
+
+	it('見立ての行が無くても、展開だけで作れる', async () => {
+		sqlite.exec(`DELETE FROM note WHERE id = 'NA1'`);
+		await save({ pace: 'スロー' });
+		expect(myFlow()?.pace).toBe('スロー');
+		expect(bodyOf()).toBe('');
+	});
+
+	it('取り下げた馬は、書き直すときに残らない', async () => {
+		sqlite.exec(
+			`UPDATE note SET flow = '{"pace":null,"start":{"spots":[{"entryId":"GONE","x":0,"y":0},{"entryId":"E","x":1,"y":0}],"memo":""},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}' WHERE id = 'NA1'`
+		);
+		await save({ pace: 'ハイ' });
+		expect(myFlow().start.spots).toEqual([{ entryId: 'E', x: 1, y: 0 }]);
+	});
+
+	it.each([
+		[
+			'局面内で同じ馬が2回',
+			{
+				start: {
+					spots: [
+						{ entryId: 'E', x: 0, y: 0 },
+						{ entryId: 'E', x: 1, y: 0 }
+					]
+				}
+			}
+		],
+		[
+			'同じマスに2頭',
+			{
+				start: {
+					spots: [
+						{ entryId: 'E', x: 0, y: 0 },
+						{ entryId: 'E2', x: 0, y: 0 }
+					]
+				}
+			}
+		],
+		['x が範囲外', { start: { spots: [{ entryId: 'E', x: 10, y: 0 }] } }],
+		['y が範囲外', { start: { spots: [{ entryId: 'E', x: 0, y: 4 }] } }],
+		['x が小数', { start: { spots: [{ entryId: 'E', x: 0.5, y: 0 }] } }],
+		['別のレースの出走馬', { corner4: { spots: [{ entryId: 'PE', x: 0, y: 0 }] } }],
+		['知らないペース', { pace: '超ハイ' }],
+		['長すぎるメモ', { finish: { memo: 'あ'.repeat(201) } }],
+		['書く人を渡す', { authorId: 'B' }],
+		['局面に余計な項目', { start: { spots: [], extra: 1 } }]
+	])('%s は tool の誤りで、何も書かない', async (_, args) => {
+		const before = [flows('A'), flows('B')];
+		// pace も付けて、検査の前に書いてしまわないことを見る。
+		const reply = body(await save({ pace: 'ハイ', ...args }));
+		expect(reply.result?.isError ?? reply.error).toBeTruthy();
+		expect([flows('A'), flows('B')]).toEqual(before);
+	});
+
+	it('誤りのメッセージで局面が分かる', async () => {
+		const dup = body(
+			await save({
+				finish: {
+					spots: [
+						{ entryId: 'E', x: 0, y: 0 },
+						{ entryId: 'E', x: 1, y: 0 }
+					]
+				}
+			})
+		);
+		expect(dup.result?.content[0].text).toContain('ゴール前: entryId E が2回あります');
+		const cell = body(
+			await save({
+				start: {
+					spots: [
+						{ entryId: 'E', x: 2, y: 1 },
+						{ entryId: 'E2', x: 2, y: 1 }
+					]
+				}
+			})
+		);
+		expect(cell.result?.content[0].text).toContain('スタート: x=2, y=1 に2頭あります');
+		const stranger = body(await save({ corner4: { spots: [{ entryId: 'PE', x: 0, y: 0 }] } }));
+		expect(stranger.result?.content[0].text).toContain('4コーナー: entryId PE');
+	});
+
+	it('他人（B）の見立て・展開には触れず、持ち主のものだけを書く', async () => {
+		const others = flows('B');
+		await save({ pace: 'ハイ' });
+		expect(flows('B')).toEqual(others);
+		await save({ pace: 'スロー' }, ALL, 'B');
+		expect(myFlow('B').pace).toBe('スロー');
+		expect(myFlow('A').pace).toBe('ハイ');
+		expect(bodyOf('B')).toBe('他人の見立て');
+	});
+
+	it('空の入力と無いレースは tool の誤り', async () => {
+		const before = flows('A');
+		const empty = body(await save({}));
+		expect(empty.result?.isError).toBe(true);
+		expect(empty.result?.content[0].text).toContain('どれかを渡してください');
+		expect(body(await save({ pace: 'ハイ' }, ALL, 'A', 'nope')).result?.isError).toBe(true);
+		expect(flows('A')).toEqual(before);
+	});
+
+	it('出走馬がまだいないレースには書けない。何も書かない', async () => {
+		sqlite.exec(
+			`INSERT INTO race (id, date, course, race_number, name) VALUES ('R0', '2099-12-27', '中山', 11, '出走馬なし')`
+		);
+		const reply = body(await save({ pace: 'ハイ', start: { memo: '逃げ争い' } }, ALL, 'A', 'R0'));
+		expect(reply.result?.isError).toBe(true);
+		expect(reply.result?.content[0].text).toContain('出走馬がまだいない');
+		expect(sqlite.prepare(`SELECT COUNT(*) AS n FROM note WHERE race_id = 'R0'`).get()).toEqual({
+			n: 0
+		});
+	});
+
+	it('本文・印・出走前メモ・ふりかえりには触れない', async () => {
+		const snapshot = () =>
+			sqlite
+				.prepare(`SELECT id, kind, body, mark, tags FROM note WHERE author_id = 'A' ORDER BY id`)
+				.all();
+		const before = snapshot();
+		await save({ pace: 'ハイ', start: { spots: [{ entryId: 'E', x: 0, y: 0 }], memo: 'x' } });
+		expect(snapshot()).toEqual(before);
+	});
+
+	it('notes:read が無くても書け、返り値に中身が無い', async () => {
+		const reply = await save({ pace: 'ハイ', start: { memo: '秘密のメモ' } }, WRITE_ONLY);
+		expect(data(reply)).toEqual({ raceId: 'R', flow: 'saved' });
+		expect(JSON.stringify(reply)).not.toContain('自分の');
+		expect(JSON.stringify(reply)).not.toContain('秘密のメモ');
+		expect(myFlow().pace).toBe('ハイ');
+	});
+
+	it('書き込みの枠で数える', async () => {
+		await save({ pace: 'ハイ' });
+		expect(sqlite.prepare("SELECT reads, writes FROM mcp_usage WHERE user_id = 'A'").get()).toEqual(
+			{
+				reads: 0,
+				writes: 1
+			}
+		);
 	});
 });
 

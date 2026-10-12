@@ -8,7 +8,7 @@
 export const OAUTH_BODY_LIMIT = 8 * 1024;
 
 /**
- * `/mcp` の本文の上限。予想やふりかえりを書く tool（`save_my_race_preview`・`save_my_race_review`）が
+ * `/mcp` の本文の上限。予想やふりかえりを書く tool（`save_my_race_preview`・`save_my_race_flow`・`save_my_race_review`）が
  * レースのメモと出走馬ぶんの本文を運ぶので、
  * OAuth の口より大きい。日本語は1字3バイト、クライアントが `\uXXXX` で送れば6バイトになる。
  */
