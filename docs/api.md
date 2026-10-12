@@ -7,26 +7,8 @@
   ステータスコードやリダイレクト先に迷ったとき
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
-  画面ごとの仕様（何を出すか）は [product.md 第6章](./product.md)、確かめ方は [testing.md](./testing.md)
-- 作成日: 2026-09-23 — product.md 第3章「API の形」を移し、ルートの一覧を実物から起こした
-- 更新日: 2026-10-12 — MCP に展開の予想（ペースと3局面の隊列）を書く tool（`save_my_race_flow`。スコープは `notes:write` のまま）を足した（→ 第3章）
-- 更新日: 2026-10-10 — MCP にふりかえりを書く tool（`save_my_race_review`）とスコープ `reviews:write` を足した（→ 第1章 / 第3章）
-- 更新日: 2026-10-10 — `/races/[id]`・`/races/[id]/preview` の GET が、出走馬の行に本人の騎手のまとめ（`jockeySummary`）も返すようにした。`services/jockeys.ts` に `listRaceJockeySummaries` を足した（→ 第3章 / 第5章）
-- 更新日: 2026-10-09 — `/races/[id]`・`/races/[id]/preview` の GET が、重賞なら本人の重賞の傾向（`gradedTrend`）も返すようにした（→ 第3章）
-- 更新日: 2026-10-07 — `/horses/[id]` の `?/saveProfile` に `birthDate`・`damSire` を足した（→ 第3章）
-- 更新日: 2026-10-03 — オッズの更新を Actions に頼む Cron と、`services/odds.ts` の `listOddsTargetIds` を足した（→ 第3章 / 第5章）
-- 更新日: 2026-10-03 — Client ID Metadata Document を受け、同意画面の `load` が文書のキャッシュを書く例外を足した（→ 第1章 / 第3章）
-- 更新日: 2026-10-05 — 重賞の一覧と画面（`/graded-races`・`/graded-races/[name]` の `?/saveTrend`）と `services/graded-races.ts` を足した（→ 第3章 / 第5章）
-- 更新日: 2026-10-04 — MCP に予想を書く tool（`save_my_race_preview`・スコープ `notes:write`）を足した。`/mcp` の本文の上限を 64 KiB にした（→ 第1章 / 第3章）
-- 更新日: 2026-10-04 — MCP の週ごとの回数の上限を足した。`/settings/connections` が今週の利用量を返し、`/settings/admin` に `?/resetMcpUsage` を足した（→ 第3章）
-- 更新日: 2026-10-03 — MCP の口（`/mcp`）と OAuth 2.1 の口（`/.well-known/*`・`/oauth/*`）、
-  `/settings/connections`、`auth/oauth.ts` を足した（→ 第1章 / 第2章 / 第3章 / 第5章）
-- 更新日: 2026-09-28 — 予想まとめの共有ページに OGP を付け、SNS のプレビュー用の画像 `/shared/races/[id]/og.png` を足した（→ 第3章）
-- 更新日: 2026-09-27 — `/races` と `/horses` に `offset` を足し、一覧を100件ずつ返すようにした。`countRaces` を足した（→ 第3章 / 第5章）
-- 更新日: 2026-09-27 — 騎手の一覧と画面（`/jockeys`・`/jockeys/[name]` の `?/saveSummary`）と `services/jockeys.ts` を足した（→ 第3章 / 第5章）
-- 更新日: 2026-09-27 — 推しの馬（`/horses/[id]` の `?/favorite` と `services/favorites.ts`）を足した（→ 第3章 / 第5章）
-- 更新日: 2026-09-25 — 管理画面の `?/fetchEntries` と、出走馬の取得を頼む Cron と `services/entries-fetch.ts` を足した（→ 第1章 / 第3章 / 第5章）
-- 更新日: 2026-09-24 — オッズを予想画面の `load` で渡すことにし、Cron Trigger の口と `services/odds.ts` を足した（→ 第1章 / 第3章 / 第5章）
+  画面ごとの仕様（何を出すか）は [pages.md](./pages.md)、確かめ方は [testing.md](./testing.md)
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
 
 ---
 
@@ -35,11 +17,11 @@
 SvelteKit の `load` + form actions で完結させる。
 
 予想画面の WebMCP tools はブラウザ内の読み取りと未保存フォーム更新だけで、HTTP の口は増やさない。
-保存は既存 action のまま。tool の仕様は [frontend.md 第8章](./frontend.md#8-webmcp-で予想の下書きを受ける)。
+保存は既存 action のまま。tool の仕様は [mcp.md 第7章](./mcp.md)。
 
 例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む。許せば予想とふりかえりを書く）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
 画面の代わりではなく AI のクライアント向けで、読むのが中心。書けるのは本人が `notes:write` を許したときの予想と、`reviews:write` を許したときのふりかえりだけで、
-form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [architecture.md 3-10](./architecture.md)）。
+form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [mcp.md](./mcp.md)）。
 ほかに、同意画面（`/oauth/authorize`）の GET の `load` だけは D1 に書く。Client ID Metadata Document を取ってきた内容を
 `oauth_client` に24時間保存するキャッシュで、本人の権限は何も変えない（許可は form action の `POST`）。
 
@@ -51,16 +33,16 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 
 オッズもこの形に従う。`GET /api/races/:id/odds` のような口は作らず、予想画面の `load` が
 `getRaceOdds` で D1 から読んで渡す。ブラウザは取得元（netkeiba）を呼ばない。
-将来モバイルクライアントなどが要るようになったら `/api/v1/*` を足す。そのときのために
+`/api/v1/*` はまだ無い。将来モバイルクライアントなどが要るようになったら足す。そのときのために
 業務ロジックは `src/lib/server/services/` に置き、ルートからは薄く呼ぶだけにしておく（→ 第5章）。
 
 ## 2. 認証と、誰が呼べるか
 
-認証は `src/hooks.server.ts` だけが判断する（→ [product.md 第4章](./product.md)）。
+認証は `src/hooks.server.ts` だけが判断する（→ [architecture.md 第0章](./architecture.md)）。
 
 | 誰が | 仕組み | 通らなかったとき |
 | --- | --- | --- |
-| 誰でも | `PUBLIC_PATHS`（`/`・`/login`・`/auth/`・`/notes/`・`/shared/races/`・`/privacy`・`/terms`・`/api/health`・`/.well-known/oauth-protected-resource`・`/.well-known/oauth-authorization-server`・`/oauth/register`）のパスと、その下。**`/` だけは完全一致** | — |
+| 誰でも | `src/hooks.server.ts` の `PUBLIC_PATHS` にあるパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | MCP クライアント（`/mcp` だけ） | hooks が `Authorization: Bearer` のアクセストークンを検証し、`locals.user`（許した本人）と `locals.oauthScopes` を載せる。**Cookie は見ない** | `401` と `WWW-Authenticate: Bearer resource_metadata=…`（ログインへ飛ばさない）。Bearer はあるが DB に届かないときは `503 temporarily_unavailable`（401 にするとクライアントがトークンを捨てる） |
 | ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
@@ -71,7 +53,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
   `{ landing: true }` だけを返す。**ここで何か引くと、そのまま誰にでも見える**
 - **Bearer が効くのは `/mcp` だけ。** ほかのパスは `Authorization` を読まない。`/mcp` は Cookie を読まない
 - `/oauth/token` は SvelteKit に来る前に `src/worker.js` が受ける（SvelteKit の CSRF の検査が Origin の無いフォームの
-  POST を落とすため。→ [architecture.md 3-10](./architecture.md)）。だから `PUBLIC_PATHS` に無い
+  POST を落とすため。→ [mcp.md](./mcp.md)）。だから `PUBLIC_PATHS` に無い
 - `/notes/` は共有ページのための公開パス。**ログインが要る画面を `/notes/` の下に作らない**
   （共有の取り消しが `/settings/shares` にあるのはこのため）
 - 本番ビルドでは SvelteKit が POST の `Origin` を検証する（CSRF）。`vite dev` では効かないので、
@@ -81,38 +63,31 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 
 `?/名前` は名前付き action、`default` は `?/` 無しで POST する action。
 
-### 公開
+### 3-1. 公開
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
 | `/login` | GET | `redirect`・`error` | ログイン済みなら `302` で `redirect` へ | — |
 | `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | `302 /login?error=unavailable` |
 | `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable` |
-| `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みはダッシュボード（下の表） | — |
+| `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みなら自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
 | `/terms` | GET | — | 利用規約（同上） | — |
 | `/api/health` | GET | — | 死活監視。D1 に `select 1` が通れば `200 {"status":"ok"}`。状態以外は返さない。`Cache-Control: no-store`（→ [monitoring.md 第6章](./monitoring.md)） | `503 {"status":"error"}` |
 | `/.well-known/oauth-protected-resource`（と `/mcp` 付き） | GET | — | 保護されたリソースのメタデータ（RFC 9728）。`resource`・`authorization_servers`・`scopes_supported` | — |
 | `/.well-known/oauth-authorization-server` | GET | — | 認可サーバーのメタデータ（RFC 8414）。PKCE は S256 だけ・公開クライアントだけ。`client_id_metadata_document_supported: true`（動的登録と Client ID Metadata Document の両方を受ける） | — |
-| `/oauth/register` | POST（JSON） | `client_name`・`redirect_uris`（1〜5。https かループバックの http）・`token_endpoint_auth_method`（`none` だけ） | `201` と `client_id`。何の権限も持たない | `400 invalid_redirect_uri` / `invalid_client_metadata`・`413` 本文超過・`429 temporarily_unavailable` 登録上限（`Retry-After: 60`。上限と期限は architecture.md 3-10） |
+| `/oauth/register` | POST（JSON） | `client_name`・`redirect_uris`（1〜5。https かループバックの http）・`token_endpoint_auth_method`（`none` だけ） | `201` と `client_id`。何の権限も持たない | `400 invalid_redirect_uri` / `invalid_client_metadata`・`413` 本文超過・`429 temporarily_unavailable` 登録上限（`Retry-After: 60`。上限と期限は mcp.md） |
 | `/oauth/token` | POST（フォーム） | `grant_type=authorization_code`（`code`・`redirect_uri`・`client_id`・`code_verifier`）か `refresh_token`（`refresh_token`・`client_id`・`scope` で狭められる）。`resource` は自分の `/mcp` だけ | アクセス（1時間）とリフレッシュ（30日・1回きり。応答が届かずに30分の内に同じものを送り直したとき、出したアクセストークンが使われていなければ、届かなかった1組を止めて出し直す）。`no-store` | `400 invalid_grant`（コードの再利用・PKCE・戻り先・期限・別のクライアント）/ `invalid_scope` / `invalid_target` / `unsupported_grant_type`。使い回されたリフレッシュトークン（出したトークンが使われたあと・猶予を過ぎたあと）は連携ごと消す。同時更新の競合は連携を保持して `503 temporarily_unavailable`（`Retry-After: 1`）。送り直しは最初の更新で確定したスコープを引き継ぎ、`scope` を省略しても縮小前に戻らず、異なる `scope` は `invalid_scope`  |
 | `/notes/[id]` | GET | — | unlisted のメモ1件。`X-Robots-Tag: noindex, nofollow`・`Referrer-Policy: no-referrer`・`Cache-Control: private, no-store` | **404**（private でも存在しなくても同じ） |
+| `/shared/races/[id]` | GET | — | 予想まとめの共有用コピー1件・公開名・ログインしているか（`signedIn`。未ログインの人にだけ末尾の案内を出すため）。`og:title`・`og:description`・`og:image`・`twitter:card` を持つ（組み立ては `utils/share-card.ts`）。`noindex`・`no-referrer`・`no-store`。ルートレイアウトは `user: null` を返し、本人の閲覧でもアカウント情報を送らない | 無い・取り消し済み・著者凍結済みは **404** |
+| `/shared/races/[id]/og.png` | GET（`+server.ts`） | — | SNS のプレビュー用に、同じコピーと公開名から印の表を描いた 1200×630 の PNG。`?v=<更新時刻>-<公開名のハッシュ>` で絶対 URL を組む | 404 は共有ページと同じ。`vite dev` では描けず 503（→ [architecture.md 3-7](./architecture.md)） |
 
-### ログインした人
+### 3-2. ログインした人
 
-予想まとめの公開ルートは `GET /shared/races/[id]`。共有用コピー1件と公開名、ログインしているかの真偽（`signedIn`。
-未ログインの人にだけ末尾の案内を出すため → [product.md](./product.md#予想まとめ)）だけを返す。
-見つからない・取り消し済み・著者凍結済みは404。`/notes/[id]` と同じ `noindex` / `no-referrer` / `no-store` を付ける。
-両方の共有ページで、ルートレイアウトは `user: null` を返し、本人の閲覧時にもアカウント情報を送らない。
-
-`/shared/races/[id]` は SNS に貼ったときのプレビュー（OGP）を持つ。`og:title`・`og:description`（公開名と印の並び）・
-`og:image`（絶対 URL。`?v=<更新時刻>-<公開名のハッシュ>`）・`twitter:card=summary_large_image`。組み立ては `utils/share-card.ts`。
-画像は `GET /shared/races/[id]/og.png`（`+server.ts`）。同じコピーと公開名から印の表を描いた 1200×630 の PNG を返す。
-404 の条件と `noindex` / `no-store` は共有ページと同じ。`vite dev` では描けず 503（→ [architecture.md 3-7](./architecture.md)）。
+ログインが要るルート。予想まとめの共有ページ（`/shared/races/[id]`）は公開なので 3-1 にある。
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
-| `/` | GET | — | 自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
 | `/help/mcp` | GET | — | MCP（Claude・ChatGPT のプラグイン）の登録の案内と接続先 URL。DB に触らない | — |
 | `/help/webmcp` | GET | — | WebMCPの使い方。ブラウザの対応確認・準備・予想画面での下書き反映と保存。toolsは登録しない | — |
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
@@ -146,7 +121,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・Client ID Metadata Document なら提供元のホスト・戻り先のホスト・スコープ・日付）、今週の利用量（読み取り・書き込みの %・次に 0 に戻る時刻） | — |
 | `/settings/connections` | POST `?/revoke` | `grantId` | 本人の連携を解除（コードとトークンも消える） | 検証 `fail(400)` / 他人の連携・無い連携 `fail(404)` |
 
-### admin だけ（`ctxAdmin`）
+### 3-3. admin だけ（`ctxAdmin`）
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
@@ -157,14 +132,14 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/settings/admin` | POST `?/resetMcpUsage` | `userId` | そのユーザーの今週の MCP の利用量（読み取り・書き込み）を 0 に戻す（`mcp_usage` の行を消す）。行が無くても成功 | 検証 `fail(400)` / 403 |
 | `/settings/admin` | POST `?/fetchEntries` | `raceId` | そのレースの出走馬の取得を GitHub Actions に頼み、`{ requested }` を返す（D1 には書かない。→ [architecture.md 3-9](./architecture.md)） | 無いレース `fail(404)` / 引けないレース（レース番号なし・race_id が無く当週でもない。`entriesFetchBlocker`）`fail(400)` / トークン未設定 `fail(503)` / GitHub が受け付けない `fail(502)` / 403 |
 
-### 開発サーバーだけ
+### 3-4. 開発サーバーだけ
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
 | `/dev/mock-user` | POST | `as`（`admin`\|`user`）・`redirect` | モックのユーザーに切り替えて `303` | 本番ビルドでは 404 |
 | `/dev/notify-test` | POST | — | Discord へ ERROR を1件送る（疎通確認。→ [monitoring.md 第6章](./monitoring.md)） | 本番ビルドでは 404 |
 
-### MCP クライアント（Bearer）
+### 3-5. MCP クライアント（Bearer）
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
@@ -185,18 +160,18 @@ tools（書くのは `save_my_race_preview`・`save_my_race_flow`・`save_my_rac
 | `save_my_race_flow` | `notes:write` | `raceId`・`pace`（スロー・ミドル・ハイ。null で外す）・`start`・`corner4`・`finish`（それぞれ `spots`（`entryId`・`x` 0〜9・`y` 0〜3。〜40）と `memo`（200文字まで）のうち書き換えるもの） | 書いた結果（`flow` は `saved`・`cleared`）。中身は返さない。渡した局面の渡した項目だけを書き換え、`spots` は局面の隊列を丸ごと置き換え（`[]` で空）。省いた局面・項目と、見立ての本文・印・出走前メモはそのまま。すべて空になると展開は消える。同じ馬・同じマスの重なり、出走馬でない `entryId`、出走馬が0頭のレース、空の入力は何も書かずに `isError` |
 | `save_my_race_review` | `reviews:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`tags` のうち書き換えるもの。印は運ばない） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目はそのまま。予想には触れない。開催前のレース・出走馬でない `entryId`・空の入力は何も書かずに `isError` |
 
-### HTTP でない口 — Cron Trigger
+### 3-6. HTTP でない口 — Cron Trigger
+
+起動する時刻は `wrangler.toml` の `crons` が正（取得の段ごとの意味は [architecture.md 3-8 / 3-9](./architecture.md)）。
 
 | 起動 | 入口 | すること |
 | --- | --- | --- |
-| `30 7 * * sun`・`30 6,8 * * thu`・`30 2 * * fri`（UTC。JST 日曜 16:30・木曜 15:30 と 17:30・金曜 11:30） | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 候補・出走馬・枠順の発表に合わせ、馬番がまだ無い重賞の出走馬の取得を GitHub Actions に頼む。段ごとの対象と、枠順が確定していなければ書かない回は [architecture.md 3-9](./architecture.md) |
-| `5,35 22-23,0-15 * * *`・`5 16 * * *`（UTC。JST 7:05〜25:05 の30分おき） | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | オッズを取りに行く時間帯に入った重賞があれば、GitHub Actions（`odds-update.yml`）を起動する（→ [architecture.md 3-8](./architecture.md)） |
+| 候補・出走馬・枠順の発表に合わせた曜日の時刻 | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 馬番がまだ無い重賞の出走馬の取得を GitHub Actions に頼む |
+| オッズを取りに行く時間帯の30分おき | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | 取りに行く時間帯に入った重賞があれば、GitHub Actions（`odds-update.yml`）を起動する |
 
 ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。
-ログインの概念は無い（誰の操作でもない）。
-
-オッズを取得元から取って `race_odds` に書くのは GitHub Actions（`odds-update.yml`）で、Worker の Cron は起動の合図を出すだけ。
-Actions が `wrangler d1 execute` で書く（→ [architecture.md 3-8](./architecture.md)）。
+ログインの概念は無い（誰の操作でもない）。Worker の Cron は起動の合図を出すだけで、
+オッズを `race_odds` に書くのは Actions（→ [architecture.md 3-8](./architecture.md)）。
 
 ## 4. action を書くときの約束
 
@@ -211,9 +186,9 @@ Actions が `wrangler d1 execute` で書く（→ [architecture.md 3-8](./archit
   ルートが見る。「誰のメモか」はサービス層の SQL が見る（→ [architecture.md 3-6](./architecture.md)）
 - D1 の制約違反は `src/lib/server/db/errors.ts` の `isUniqueViolation` / `isCheckViolation` で見分け、
   UNIQUE は `fail(409)` に振り替える
-- 1リクエストの D1 クエリは10以内。読みは JOIN か `Promise.all`、書きは `batch()` にまとめる
-- DB は `createDb(platform.env, locals.monitor.onQuery)` で作る（`ctx()` を通せば済んでいる）。
-  ログは `console.*` ではなく `locals.monitor.log()` で出す（→ [monitoring.md 第2章](./monitoring.md)）
+- DB は `ctx()` から取る。D1 クライアントの作り方は [architecture.md 3-1](./architecture.md)、
+  1リクエストのクエリ数（10以内。読みは JOIN か `Promise.all`、書きは `batch()`）は [architecture.md 7-1](./architecture.md)
+- ログは `console.*` ではなく `locals.monitor.log()` で出す（→ [monitoring.md 第2章](./monitoring.md)）
 
 ## 5. サービス層の関数の約束
 
@@ -234,14 +209,14 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 
 ### 誰のデータか
 
+規則とその理由は [architecture.md 第0章 / 3-6](./architecture.md)。ここは領域ごとの引数と WHERE の表。
+
 | 読むもの | 引数 | WHERE |
 | --- | --- | --- |
 | メモ | **`viewerId` を必須で受ける**（省略可能にしない・既定値を与えない） | `author_id = :viewer` |
 | 共有ページのメモ（`getSharedNote` だけ） | `noteId` | `id = :id AND visibility = 'unlisted'` |
 | 馬・レース・出走馬（マスタ）・オッズ | 絞らない | 全員に共通 |
-| 推しの馬 | **`viewerId` を必須で受ける** | `user_id = :viewer`（誰が何を推しているかを他人に見せない） |
-| 騎手のまとめ（`jockey_note`） | **`viewerId` を必須で受ける** | `user_id = :viewer` |
-| 重賞の傾向のメモ（`graded_race_note`） | **`viewerId` を必須で受ける** | `user_id = :viewer` |
+| 本人だけのもの（推しの馬・騎手のまとめ `jockey_note`・重賞の傾向のメモ `graded_race_note`） | **`viewerId` を必須で受ける** | `user_id = :viewer`（誰が何を推しているか・書いているかを他人に見せない） |
 | マスタの一覧にメモの件数を添えるもの（`listHorses`・`listRacesBetween` など） | `viewerId` を必須で受ける | 件数は viewer のメモだけで数える（他人が何か書いていることを漏らさない） |
 
 - メモを書く・消す関数は `authorId` を受け、WHERE に入れる。他人のメモに当たったときは
@@ -251,19 +226,22 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 
 ### 今ある関数
 
-| ファイル | 読み | 書き |
-| --- | --- | --- |
-| `services/horses.ts` | `listHorses`・`getHorse`・`getHorseEntries` | `findOrCreateHorse`・`updateHorseProfile` |
-| `services/races.ts` | `listRaces`・`countRaces`・`listRacesBetween`・`listRaceYears`・`getRace`・`listEntries`・`listEntriesForPreview`・`resolveWeek`・`listGradedRacesInWeek`・`listPastRuns`・`listRunsForHorse` | `createRace`・`updateRace`・`saveEntries` |
-| `services/odds.ts` | `getRaceOdds`・`listOddsTargetIds` | —（GitHub Actions が `scripts/odds/store.ts` の SQL で書く。→ [architecture.md 3-8](./architecture.md)） |
-| `services/entries-fetch.ts` | `listEntriesFetchTargets`・`listUpcomingRaces`・`entriesFetchBlocker`（D1 を読まない判定） | —（出馬表は YAML の PR で入る） |
-| `services/notes.ts` | `listRaceNotes`・`getHorseTimeline`・`listRecentNotes`・`listWatchSources`・`listSameConditionRaceNotes`・`listHistoryForHorses`・`getSharedNote`・`listSharedNotes` | `saveRaceReview`・`savePreviewNotes`・`addHorseNote`・`deleteNote`・`setNoteVisibility` |
-| `auth/session.ts` | `validateSession`・`findUserByGoogleSub` | `createSession`・`invalidateSession`・`invalidateAllSessions`・`deleteExpiredSessions`・`createUser` |
-| `auth/oauth.ts` | `getClient`・`validateAccessToken`・`listGrants`（`userId` を必須で受け、`user_id = :viewer`）・`verifyPkce`（D1 を読まない） | `registerClient`・`createAuthorizationCode`・`exchangeAuthorizationCode`・`refreshTokens`・`revokeGrant`（`userId` を WHERE に入れる。他人の連携は `false`） |
-| `services/profile.ts` | `getPublicName` | `setPublicName` |
-| `services/favorites.ts` | `isFavoriteHorse`・`listFavoriteHorses`・`listFavoriteRuns` | `setFavoriteHorse` |
-| `services/jockeys.ts` | `listJockeys`・`listJockeyTagsInUse`・`listJockeyRides`・`listJockeyRideNotes`・`jockeyExists`・`getJockeySummary`・`listRaceJockeySummaries`（レースの出走馬の騎手のまとめを1クエリで）・`mergeJockeyTimeline`（D1 を読まない組み立て） | `saveJockeySummary` |
-| `services/graded-races.ts` | `listGradedRacesOfYear`・`listSeriesRaces`（マスタ。`viewerId` は取らない）・`listNotedGradedYears`・`listGradedRaceTrendKeys`・`listSeriesNotes`・`getGradedRaceTrend`（`viewerId` を必須で受ける）・`buildGradedRaceList`・`buildGradedRaceTimeline`・`currentGrade`（D1 を読まない組み立て） | `saveGradedRaceTrend` |
-| `services/race-shares.ts` | `getRaceSummary`・`getOwnRaceShare`・`getSharedRaceSummary`・`listRaceShares` | `publishRaceSummary`・`revokeRaceShare` |
+ファイルごとの役割だけを書く。関数の一覧は各ファイルの `export` が正（ここに書き写すと足し忘れる）。
 
-関数を足したら、この表にも足す。
+| ファイル | 役割 |
+| --- | --- |
+| `services/horses.ts` | 馬の一覧・詳細・出走歴、馬の作成・プロフィール更新 |
+| `services/races.ts` | レースの一覧・件数・年・週の重賞、出走馬（予想用を含む）、過去走。レースと出走馬の作成・更新 |
+| `services/odds.ts` | オッズの読み、取得対象のレースの選び。書くのは GitHub Actions（`scripts/odds/store.ts` の SQL。→ [architecture.md 3-8](./architecture.md)） |
+| `services/entries-fetch.ts` | 出走馬の取得を頼む対象と、頼めないレースの判定（`entriesFetchBlocker`。D1 を読まない）。出馬表は YAML の PR で入る |
+| `services/notes.ts` | レース・馬のメモ、最近のメモ、同条件のレース、共有ページのメモの読み。ふりかえり・予想・近況メモの保存、削除、公開範囲 |
+| `services/race-shares.ts` | 予想まとめの共有コピーの読み・作成・取り消し |
+| `services/profile.ts` | 公開名の読み書き |
+| `services/favorites.ts` | 推しの馬の読み書きと、推しの出走予定 |
+| `services/jockeys.ts` | 騎手の一覧・騎乗・まとめ、レースの出走馬の騎手のまとめ。まとめの保存 |
+| `services/graded-races.ts` | 重賞の一覧・年ごとのタイムライン、傾向のメモの読み書き（マスタの読みは `viewerId` を取らない） |
+| `services/mcp-usage.ts` | MCP の週ごとの利用量の数え・上限・リセット |
+| `auth/session.ts` | セッションの発行・検証・破棄、ユーザーの作成と検索 |
+| `auth/oauth.ts` | OAuth のクライアント・コード・トークン・連携。`listGrants`・`revokeGrant` は `userId` を WHERE に入れる（他人の連携は `false`） |
+
+関数を足したら、役割が表と合っているかを見る。

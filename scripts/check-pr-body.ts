@@ -1,5 +1,5 @@
 /**
- * PR 本文の欄が埋まっているかを確かめる（docs/harness.md 5-5）。
+ * PR 本文の欄が埋まっているかを確かめる（docs/review.md 第6章。検査の一覧は docs/testing.md 第1章）。
  *
  *   PR_BODY="$(gh pr view 41 --json body --jq .body)" pnpm run pr:check
  *   PR_BODY="…" REVIEW_BASE=origin/main pnpm run pr:check   # レビュアーの検査も（CI と同じ）

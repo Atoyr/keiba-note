@@ -14,7 +14,7 @@ GOOGLE_CLIENT_SECRET=""
 # ログインのたびに突き合わせ、一致すれば admin、それ以外は user になる。
 # 招待コードは無く、Google アカウントがあれば誰でも登録できる。
 # admin にできるのはマスタ（馬・レース・出走馬）の修正とユーザーの凍結だけで、
-# 他人のメモは読めない（docs/product.md 第4章）。
+# 他人のメモは読めない（docs/product.md 第3章）。
 ADMIN_EMAIL=""
 
 # 障害を知らせる Discord の Webhook（docs/monitoring.md）。通常は空のままにする。

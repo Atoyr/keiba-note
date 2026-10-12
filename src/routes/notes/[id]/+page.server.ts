@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ params, platform, locals, setHeader
 	// robots.txt で /notes/ を Disallow して**いない**のは意図的で、
 	// クロールを止めるとクローラが noindex を読めず、外部からリンクされた URL が
 	// 「内容なしの URL だけ」の形でインデックスされうるため。
-	// 狙いはクロールの拒否ではなくインデックスの拒否（product.md 第6章）。
+	// 狙いはクロールの拒否ではなくインデックスの拒否（pages.md）。
 	setHeaders({
 		'x-robots-tag': 'noindex, nofollow',
 		// 共有ページから外部リンクを踏んでも、この URL が Referer で渡らないように。

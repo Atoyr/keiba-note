@@ -89,7 +89,7 @@ function racePlace(n: RaceLabelSource): string | null {
 	return n.course ? `${n.course}${n.raceNumber ?? ''}R` : null;
 }
 
-/** 「中山11R オールカマー (G2)」。格が無ければクラスを代わりに出す（product.md 第6章）。 */
+/** 「中山11R オールカマー (G2)」。格が無ければクラスを代わりに出す（pages.md）。 */
 export function raceLabel(n: RaceLabelSource): string {
 	const tier = n.grade ?? n.className;
 	return [racePlace(n), n.raceName, tier ? `(${tier})` : null].filter(Boolean).join(' ');

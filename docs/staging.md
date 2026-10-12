@@ -2,15 +2,21 @@
 
 固定名 `staging` の Workers Preview を、リリース前の確認環境として使う。
 
+作成日: 2026-09-23 / 最終更新日: 2026-10-12
+
+- **読む場面:** ステージングを更新する・確認する・Google ログインや通知を設定するとき
+- **ここに無いもの:** 本番の構築とリダイレクト URI を足す手順は [operations.md](./operations.md)。
+  通知の設定は [monitoring.md](./monitoring.md)。ステージングの目印の見た目は [design-system.md 2-4](./design-system.md)
+
 - URL: <https://staging-k-note.lessironglance.workers.dev>
-- D1: `k-note-staging`（APAC、ID `cb00f7c8-a0ed-4531-a39d-cde76b0d90bd`）
+- D1: `k-note-staging`（APAC。`database_id` は `wrangler.toml` の `[[previews.d1_databases]]` が正）
 - 本番: Worker `k-note` と D1 `k-note`。`wrangler.toml` のトップレベル設定を使う
 - 見分け方: タブのアイコンが暗い地に灰色の蹄鉄になり、ページの一番上に「ステージング環境」の帯が出る。
   `[previews.vars]` の `APP_ENV = "staging"` を見ている（→ [design-system.md 2-4](./design-system.md)）
 
 `wrangler.toml` の `[[previews.d1_databases]]` がステージング D1 を `DB` にバインドする。
 `wrangler.preview-migrations.toml` は同じ D1 にマイグレーションを適用するための設定。
-この2ファイルの `database_id` は常に一致させる。
+この2ファイルの `database_id` は常に一致させる（値は書き写さず、`wrangler.toml` を見る）。
 別の Preview を作った場合も、設定を変えない限り同じステージング D1 を共有する。
 
 ## 自動反映
@@ -19,12 +25,12 @@
 そのコミットをチェックアウトして以下の順に実行する。
 
 1. ステージング D1 にマイグレーション
-2. レース YAML をステージング D1 に投入
+2. 出走馬データ（YAML）をステージング D1 に投入
 3. 固定名 `staging` の Preview にアプリをデプロイ
 
 CI 中にさらに新しいコミットが `main` に入った場合、古いコミットの反映をスキップする。
-`data-import.yml` による本番レースデータ投入と、リリース時の本番アプリデプロイは
-これまでどおり独立して動く。
+本番への出走馬データの投入（`data-import.yml`）と本番のアプリのデプロイ（`deploy.yml`）は、
+ステージングとは独立して動く。
 
 Actions の「ステージング」から Run workflow で手動でも流せる。
 Cloudflare 側の都合で失敗したときのやり直しや、トークンの権限を直したあとの確認に使う。
@@ -50,9 +56,8 @@ pnpm run deploy:staging
 ステージングのデータを変更しても本番 D1 には反映されない。
 
 **全ファイルを流し直す（`--all`）経路を自動反映に入れないこと。** D1 の書き込みの枠は
-**アカウント単位で本番と共有**している。全ファイルの投入は1回で約1万7千行を書く。
-Free（1日10万行）だった 2026-09-24 には、マージが続いた日に上限を使い切り、本番のメモの保存が落ちた
-（→ [architecture.md 第6章](./architecture.md)）。Paid に上げた今は落ちずに課金に回るので、
+**アカウント単位で本番と共有**している。全ファイルの投入は1回で約1万7千行を書き、マージが続くと Free の上限（1日10万行）を使い切って
+本番のメモの保存が落ちる（経緯は [architecture.md 第6章](./architecture.md)）。Paid では落ちずに課金に回るので、
 暴走は使用量の通知で見る（→ [monitoring.md 9-2](./monitoring.md)）。
 ステージングのデータを作り直したいときだけ、手で流す。
 
@@ -63,7 +68,8 @@ pnpm exec wrangler d1 execute PREVIEW_DB --remote --config wrangler.preview-migr
 
 ## Google ログイン
 
-Google Cloud Console の OAuth クライアントに次の承認済みリダイレクト URI を登録する。
+Google Cloud Console の OAuth クライアントに次の承認済みリダイレクト URI を足す
+（画面と本番側の URI は [operations.md 5](./operations.md)）。
 
 ```text
 https://staging-k-note.lessironglance.workers.dev/auth/google/callback

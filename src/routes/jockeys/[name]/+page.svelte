@@ -80,7 +80,7 @@
 						return async ({ result, update }) => {
 							try {
 								// 表示の正はサーバーの data。フォームを初期値に戻すと、描き直されない欄が空に見える
-								// （product.md 第6章「update({ reset: false }) が要る」）。
+								// （frontend.md 第3章「update({ reset: false })」）。
 								await update({ reset: false });
 								if (result.type === 'success') {
 									editing = false;

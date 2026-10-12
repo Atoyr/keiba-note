@@ -3,20 +3,12 @@
 本番で何かが壊れたときに、人が気づけるようにする仕組み。Worker のログ、Discord への通知、
 GitHub Actions の結果の通知、外からの死活監視。
 
+作成日: 2026-09-23 / 最終更新日: 2026-10-12
+
 - **読む場面:** ログを足す・エラーの扱いを変えるとき。通知が来た・来ないを調べるとき。
-  Webhook を差し替えるとき
-- **ここに無いもの:** Cloudflare とシークレットの構築手順は [operations.md](./operations.md)、
-  層と依存の向きは [architecture.md](./architecture.md)
-- 作成日: 2026-09-23
-- 更新日: 2026-09-24 — Workers Paid に上げたので、Worker の上限と課金の見張りを足した（→ 第9章）。
-  デプロイの Webhook を Variable に入れて障害のチャンネルに落ちていたのを、Actions が見つけて知らせるようにした（→ 第7章・第8章）
-- 更新日: 2026-09-24 — Cron（オッズの取得）の event を足した（→ 第3章）
-- 更新日: 2026-09-25 — 出走馬の取得の依頼（Cron・管理画面）の event と、`race-data-fetch.yml` の通知を足した（→ 第3章 / 第7章）
-- 更新日: 2026-09-26 — オッズの取得を Worker の Cron から GitHub Actions（`odds-update.yml`）に移した。
-  `odds.*` のログは Workers Logs ではなく Actions の run に出る（→ 第1章 / 第3章 / 第7章）
-- 更新日: 2026-10-03 — オッズの更新の起動を Worker の Cron に移し、`odds.dispatch` の event を足した（→ 第1章 / 第3章）
-- 更新日: 2026-10-05 — 出走馬の取得の Cron を3段（候補・出走馬・枠順）にし、`entries.dispatch` に `stage` を載せ、`network` も通知するようにした（→ 第3章）
-- 更新日: 2026-10-10 — `race-data-fetch.yml` が結果の取得（手動起動の `command: result`）も扱うので、通知の表の行を直した（→ 第7章）
+  Webhook を差し替えるとき。上限と課金の見張りを触るとき
+- **ここに無いもの:** Cloudflare とシークレットの構築手順、ワークフローの一覧は [operations.md](./operations.md)。
+  ステージングの更新は [staging.md](./staging.md)。層と依存の向き、オッズ・出走馬の取得の方針は [architecture.md](./architecture.md)
 
 ---
 
@@ -32,7 +24,7 @@ GitHub Actions（discord-notify.yml）
  ├─ odds-update.yml（Worker の Cron が起動するオッズの更新）人の手が要る失敗のときだけ → Discord「障害」
  ├─ main の CI の失敗 ──────────────┐
  ├─ 本番デプロイの成功・失敗 ───────┼→ Discord「デプロイ」
- └─ 本番へのレースデータ投入の失敗 ─┘
+ └─ 本番への出走馬データの投入の失敗 ─┘
 
 Cloudflare（ダッシュボードで設定 → 第9章）
  ├─ Budget alert（従量課金の見込みが決めた額を超えた）─┐
@@ -81,7 +73,7 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `warn` | 残す | **`notify: true` を付けたものだけ。** 対応が要るもの（放っておくと壊れる）に限る |
 | `error` | 残す | 送る |
 
-### 今ある event
+### 3-1. 今ある event（Worker）
 
 | event | level | 通知 | どこで | いつ |
 | --- | --- | --- | --- | --- |
@@ -90,6 +82,9 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `d1.query.constraint` | warn | しない | 同上 | UNIQUE / CHECK 違反。ルートが 409 に振り替える想定で、利用者の操作で普通に起きる |
 | `d1.query.slow` | warn | しない | 同上 | 1クエリ（`batch` は1往復）が `SLOW_QUERY_MS`（500ms）以上かかった |
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
+| `oauth.token.failed` | error | する | `src/worker.js` の `oauthToken` | `/oauth/token`（MCP の OAuth）の処理中に想定外の例外が起きた。同じ鍵は5分に1件まで |
+| `oauth.refresh.reused` | warn | しない | `lib/server/auth/token-endpoint.ts`（`src/worker.js` が `monitor.log` につなぐ） | リフレッシュトークンが使い回されたので連携を解除した |
+| `oauth.refresh.retried` | info | しない | 同上 | リフレッシュトークンの送り直しを受けた |
 | `monitoring.discord.failed` | error | — | `discord.ts` | 通知そのものが送れなかった（ログにだけ出る） |
 | `monitoring.test` | error | する | `/dev/notify-test` | 開発サーバーからの疎通確認（→ 第6章） |
 | `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`stage`・`raceId`・`race`・`success`・`errorType` を載せる |
@@ -99,7 +94,10 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `odds.dispatch` | info / warn / error | 下の表 | `lib/server/odds/request.ts` | Cron がオッズの更新を GitHub Actions に頼んだ（成否どちらも）。対象のレースがあった回だけ出す。`raceIds`・`success`・`errorType` を載せる |
 | `odds.dispatch.failed` | error | する | `lib/server/odds/scheduled.ts` | 対象のレースを選ぶところで落ちた |
 
-### オッズの更新（GitHub Actions）のログ
+**`SLOW_QUERY_MS` は仮置き。** Workers Logs で `d1.query.slow` の件数と `durationMs` を見て決め直す。
+対応が要る遅さが分かったら、そのときに `notify: true` を付ける。
+
+### 3-2. オッズの更新（GitHub Actions）のログ
 
 オッズは Worker ではなく GitHub Actions（`odds-update.yml` → `scripts/odds-update.ts`）が取る（→ [architecture.md 3-8](./architecture.md)）。
 Actions を起動するのは Worker の Cron で、その記録は上の `odds.dispatch`（Workers Logs）に残る。
@@ -114,6 +112,8 @@ Actions を起動するのは Worker の Cron で、その記録は上の `odds.
 **通知するのは人が手を入れる必要があるものだけ**（level が error か、`notify: true`）。そういう行が1件でもあれば
 run を失敗で終え、`discord-notify.yml` が「障害」のチャンネルに1件送る（1回の run で1件）。一時的に届かなかった・400 の1回では
 知らせない（30分後の回で取れる）。直すまで毎回落ちる種類（`parse` など）は、30分ごとに届く。
+
+### 3-3. `errorType` と通知の重さ
 
 `odds.fetch` の重さは `errorType`（`OddsError` の種類）で決める。
 
@@ -139,15 +139,12 @@ run を失敗で終え、`discord-notify.yml` が「障害」のチャンネル�
 | `auth` | error | する | トークンが通らない（期限切れ・権限不足）。その回の残りは頼まない |
 | `http` / `unknown` | error | する | ワークフローが main に無い（404）・inputs が合わない（422）など |
 
-`odds.dispatch` の重さも同じ表のとおり（`requestId` は `cron-odds-<起動時刻>`）。ただし1回の Cron で頼むのは1回だけなので「残りは頼まない」は無く、
+`odds.dispatch` の重さも `entries.dispatch` の表と同じ（`requestId` は `cron-odds-<起動時刻>`）。ただし1回の Cron で頼むのは1回だけなので「残りは頼まない」は無く、
 `network` は30分後の回でまた頼む。
 
 リクエストと同じく、Cron の1回で送る通知は1件まで（先に起きたほう）。
 
-**`SLOW_QUERY_MS` は仮置き。** Workers Logs で `d1.query.slow` の件数と `durationMs` を見て決め直す。
-対応が要る遅さが分かったら、そのときに `notify: true` を付ける。
-
-### D1 の見張り方
+### 3-4. D1 の見張り方
 
 `createDb(env, observe)` が D1 の binding を包み（`src/lib/server/db/instrument.ts`）、
 クエリごとに SQL の文・時間・失敗を observer（`locals.monitor.onQuery`）に渡す。
@@ -178,7 +175,7 @@ run を失敗で終え、`discord-notify.yml` が「障害」のチャンネル�
 Workers は拠点ごと・負荷ごとに isolate が分かれるので、障害時でも「isolate の数 × 5分に1件」までは届く。
 数人が使う規模では isolate は少なく、これで足りる見込み。
 
-足りなくなったら、`AlertThrottle.take(key)` の形を保ったまま中身を差し替える。
+足りなくなったら、`AlertThrottle.take(key)` の形を保ったまま中身を差し替える（下の置き場はどれも**まだ作っていない**）。
 
 | やりたいこと | 置き場 |
 | --- | --- |
@@ -224,10 +221,10 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 | --- | --- | --- | --- |
 | `ci.yml` | **main への push で**落ちたとき（PR の失敗は書いた人が見ているので送らない） | 赤 | デプロイ |
 | `deploy.yml` | 本番デプロイが成功したとき・落ちたとき（取り消しは送らない） | 緑 / 赤 | デプロイ |
-| `data-import.yml` | 本番へのレースデータ投入が落ちたとき（成功は開催のたびに流れるので送らない） | 赤 | デプロイ |
+| `data-import.yml` | 本番への出走馬データの投入が落ちたとき（成功は開催のたびに流れるので送らない） | 赤 | デプロイ |
 | `race-data-fetch.yml` | 出走馬・結果の PR を作った・更新したとき（マージしないと本番に入らないので）・落ちたとき。同じ中身で何もしなかった回は送らない | 緑 / 赤 | デプロイ |
 | `health.yml` | `/api/health` が落ちたとき・戻ったとき | 赤 / 緑 | 障害 |
-| `odds-update.yml` | オッズの更新で人の手が要る失敗があったとき（第3章「オッズの更新のログ」）。成功・発売前・一時的な失敗は送らない | 赤 | 障害 |
+| `odds-update.yml` | オッズの更新で人の手が要る失敗があったとき（第3章 3-2）。成功・発売前・一時的な失敗は送らない | 赤 | 障害 |
 
 どれも `discord-notify.yml` を `workflow_call` で呼び、`channel`（`alerts` / `deploy`）で送り先を選ぶ。
 ステージングへの反映（`staging.yml`）は送っていない。
@@ -239,8 +236,7 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 ここに送っています」と理由を書き、Actions の実行にも警告を残す。
 
 **`DISCORD_DEPLOY_WEBHOOK_URL` を Secret ではなく Variable に入れると、未設定と同じになる**（ワークフローは
-`secrets.*` しか読まない）。2026-09-24 に実際にこれで「障害」にデプロイの通知が流れていた。
-Variable に入っていることは Actions が見つけ、footer の理由に書く。
+`secrets.*` しか読まない）。Variable に入っていることは Actions が見つけ、footer の理由に書く。
 
 ## 8. 設定する値
 
@@ -250,7 +246,7 @@ Variable に入っていることは Actions が見つけ、footer の理由に�
 | Cloudflare（Preview `staging`） | `DISCORD_WEBHOOK_URL` | シークレット | 任意。入れれば staging の ERROR も届く（`Environment: staging`）。別のチャンネルにしてもよい |
 | GitHub（Settings > Secrets and variables > Actions） | `DISCORD_WEBHOOK_URL` | Secret | 「障害」のチャンネルの Webhook。Cloudflare と同じもの |
 | 同上 | `DISCORD_DEPLOY_WEBHOOK_URL` | Secret | 「デプロイ」のチャンネルの Webhook。無ければ「障害」に送る。**Variables のタブに入れない** |
-| 同上 | `HEALTH_CHECK_URL` | Variable | `https://uma-memo.com/api/health`。`/api/health` の入ったリリースを出してから入れる |
+| 同上 | `HEALTH_CHECK_URL` | Variable | `https://uma-memo.com/api/health`。無ければ死活監視が止まる |
 | `wrangler.toml` | `APP_ENV` | vars | `production`（`[previews.vars]` は `staging`）。シークレットではない |
 
 **「障害」の Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す。** URL が漏れたら、Discord の
@@ -259,7 +255,7 @@ Variable に入れた URL は、リポジトリに書き込める人なら誰で
 
 ## 9. 上限と課金の見張り
 
-2026-09-24 に Workers Paid（$5/月）に上げた。Free では上限を超えると**エラーになるだけ**だったが、
+Workers Paid（$5/月）に上げている。Free では上限を超えると**エラーになるだけ**だったが、
 Paid では超えた分が**課金されて動き続ける**。暴走しても気づかず請求だけが来る、を防ぐのがこの章。
 
 ### 9-1. Worker の上限 — `wrangler.toml` の `[limits]`
@@ -301,11 +297,11 @@ Workers Logs の呼び出しログの `cpuTime` を見て、実測の上に置�
 - 閾値は、**含まれる枠よりずっと下、普段の量よりずっと上**に置く。枠に届く前、つまり
   お金がかかる前に「いつもと桁が違う」ことを知らせたい。普段の量は [architecture.md 6-1](./architecture.md) の試算で、
   実測はダッシュボードの Worker / D1 のメトリクスで見て、ずれていたら直す
-- D1 の使用量は**アカウント単位でステージングと合算**される。ステージングへのデータ投入の暴走（2026-09-24 の事故）も、ここで見える
+- D1 の使用量は**アカウント単位でステージングと合算**される。ステージングへのデータ投入の暴走（→ [staging.md](./staging.md)）も、ここで見える
 
 **知らせはメールだけで受ける（Discord には流さない）。** Budget alert はメールでしか送れない。
-メールを Worker で受けて Discord に写す案（Email Routing と `email` ハンドラ）も作ったが、経路が長く、
-設定する場所も増えるので見送った。使用量の通知も同じメールに揃える。
+メールを Worker で受けて Discord に写す案（Email Routing と `email` ハンドラ。一度作ったが外した）は、
+経路が長く、設定する場所も増えるので見送った。使用量の通知も同じメールに揃える。
 
 #### 手順
 
@@ -324,10 +320,6 @@ Workers Logs の呼び出しログの `cpuTime` を見て、実測の上に置�
   今の規模では、9-2 の通知で気づけば足りるとして入れていない
 - **上限に当たったことを Discord に送ること。** Worker の外から見るしかない。Tail Worker（呼び出しの outcome を受けて送る）か、
   GraphQL Analytics API を Actions から定期に読む（API トークンが要る）。9-1 のとおり今は Workers Logs を人が見る
-- **Cloudflare の通知を Discord に流すこと。** Email Routing で専用アドレスを Worker に向け、`email` ハンドラから送る形は
-  作ったが、経路が長く設定する場所も増えるので見送った（9-2）。欲しくなったら PR #67 の途中のコミットに実装がある
-
-## 10. これから
-
-必要になったときに検討する（今は入れない）。Tail Workers・OpenTelemetry・Sentry・Grafana・Axiom などのログ基盤、
-SLO / SLI、レイテンシの監視、重大な障害でのメンション。
+- **Cloudflare の通知を Discord に流すこと。** 経路が長く設定する場所も増えるので見送った（9-2）
+- **ログ基盤・SLO / SLI・レイテンシの監視・重大な障害でのメンション。** Tail Workers・OpenTelemetry・Sentry・Grafana・Axiom
+  などは、必要になったときに検討する。今は入れない

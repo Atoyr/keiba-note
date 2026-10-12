@@ -2,6 +2,10 @@
 
 **出走馬の登録は画面からではなく、このディレクトリのファイルを PR で更新して行う。**
 
+- **読む場面:** `data/races/*.yaml` を書く・直す・投入するとき。取得は `/race-data` スキル（`.claude/skills/race-data/`）から使う
+- **ここに無いもの:** 取得・投入のワークフローの一覧と設定は [docs/operations.md](../docs/operations.md)。
+  取得の方針（出走馬・オッズ）は [docs/architecture.md 3-8・3-9](../docs/architecture.md)。データモデルの列の正は `src/lib/server/db/schema.ts`
+
 > ## ⚠️ `data/races/` に置いたものは本番に入る
 >
 > `main` にマージされると `.github/workflows/data-import.yml` が
@@ -193,7 +197,7 @@ races:
 ```
 
 - GitHub Actions（`odds-update.yml`。アプリの Cron が30分おきに起動する）が単勝・複勝を取りに行き、`race_odds` に書く。期間はG1 は前々日の 18:30、G2・G3 は前日の 18:30 から、どちらも発走まで
-  （→ [docs/product.md 第1章「例外 — オッズ」](../docs/product.md)）。YAML にオッズを書く必要は無い
+  （→ [docs/product.md 1-4「例外 — オッズ」](../docs/product.md)）。YAML にオッズを書く必要は無い
 - `data:check` は、race_id の年・場・R がそのレースと合っているかを見る。打ち間違えると別のレースのオッズが付く
 - 書かなければ D1 の既存の値を残す（結果の欄と同じ）。`ref` と `startTime` は2つ組で書き換わる
 - **この2項目を書いた YAML は、アプリのリリース（マイグレーション 0011）より前に本番へ流せない。**
@@ -390,7 +394,7 @@ pnpm exec wrangler d1 execute k-note --local --file .wrangler/import-races.sql
 
 ### 馬名を直す
 
-**馬名の訂正はここから行う。画面には編集手段を置いていない**（→ [product.md 第9章 #13](../docs/product.md)）。
+**馬名の訂正はここから行う。画面には編集手段を置いていない**（→ [product.md 第4章 #13](../docs/product.md)）。
 
 ただし**直せるのは `ref` を書いた馬だけ**。名前で引き当てている最中に名前を書き換えるのは
 循環していて成立せず、引き当てが外れて別馬が1頭増えるだけになる。
@@ -430,7 +434,7 @@ pnpm exec wrangler d1 execute k-note --local --file .wrangler/import-races.sql
 そのレースの枠順については YAML が正、という割り切り。
 
 出走馬を再作成しないのは、`race_entry` を消すと紐づくメモが
-`ON DELETE CASCADE` で道連れになるため（docs/product.md 第10章）。
+`ON DELETE CASCADE` で道連れになるため（docs/product.md 第5章）。
 同じ理由で、消すのは `withdrawn` に書いた馬だけにし、消す前にメモを近況メモへ逃がす。
 
 馬の属性は `COALESCE(<YAML の値>, <既存の値>)` で更新する。**結果欄と同じ挙動**で、

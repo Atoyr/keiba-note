@@ -6,7 +6,7 @@ import * as v from 'valibot';
  * - `races:read` — 全員に共通のマスタ（レース・出走馬・オッズ・馬）。連携するなら必ず許す
  * - `notes:read` — 本人のメモ・見立て・印・札。同意画面で外せる
  * - `notes:write` — 本人の予想（見立て・印・札・出走前メモ・展開の予想）を書く。同意画面で外せる。
- *   ふりかえりは `reviews:write`。近況メモ・共有には触れない（architecture.md 3-10）
+ *   ふりかえりは `reviews:write`。近況メモ・共有には触れない（mcp.md）
  * - `reviews:write` — 本人のふりかえり（レースのメモ・各馬のメモと札）を書く。同意画面で外せる。
  *   開催日以降（当日を含む）のレースにだけ書ける。予想・近況メモ・共有には触れない
  *
@@ -150,7 +150,7 @@ export function isClientIdMetadataUrl(clientId: string, allowLoopback = false): 
 
 /**
  * Client ID Metadata Document の中身。ほかの項目（logo_uri など）は読み捨てる。
- * 公開クライアント（`none`）として使えるものだけを受ける。条件と理由は architecture.md 3-10。
+ * 公開クライアント（`none`）として使えるものだけを受ける。条件と理由は mcp.md。
  */
 export const clientMetadataDocumentSchema = v.pipe(
 	v.object({
