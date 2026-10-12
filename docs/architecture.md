@@ -7,7 +7,7 @@
 - **読む場面:** コードを変えるなら毎回 第0章。ほかは触る場所に合わせて章だけ読む
   - サーバー側（ルートの `.server.ts`・サービス層・DB）、依存の向き → 第2章・第3章（3-1〜3-6）
   - 共有ページ・共有の画像（OGP） → 3-7
-  - オッズの取得 → 3-8、出走馬の取得（Cron・管理画面） → 3-9、MCP と OAuth → 3-10（詳細は [mcp.md](./mcp.md)）
+  - オッズの取得 → 3-8、出走馬・結果の取得（Cron・管理画面） → 3-9、MCP と OAuth → 3-10（詳細は [mcp.md](./mcp.md)）
   - デプロイと環境（local / staging / production） → 第4章、採用技術 → 第5章、コスト・上限 → 第6章・第7章
 - **ここに無いもの:** ルートの一覧と action の約束は [api.md](./api.md)、画面側の書き方は
   [frontend.md](./frontend.md)、MCP・OAuth・WebMCP は [mcp.md](./mcp.md)、テーブルと列は [data-model.md](./data-model.md)、
@@ -58,7 +58,7 @@
 
 - **Worker は外部のデータ元（netkeiba）へ行かない。** オッズは GitHub Actions が取って D1 に書き、画面は読むだけ。
   取得元に固有の処理（URL・応答の形）は `scripts/odds/<取得元>/` の外に出さない（→ 3-8）
-- **出走馬の取得を Worker から頼むときは、GitHub Actions を起動するだけ。** Worker は出馬表を取りに行かず、
+- **出走馬・結果の取得を Worker から頼むときは、GitHub Actions を起動するだけ。** Worker は出馬表も結果も取りに行かず、
   D1 にも書かない。Actions が YAML を書いて PR を作り、マージで入る（下の「DB とデータ」の経路のまま。→ 3-9）
 - **利用者が渡した URL へ Worker が取りに行くのは、Client ID Metadata Document だけ。** 入口はログインが要る同意画面に限り、
   URL の形を絞り、リダイレクトを追わず、時間と大きさに上限を置く（`auth/client-metadata.ts`）。
@@ -98,8 +98,8 @@ flowchart TB
     G["Google<br/>OAuth 2.0 / OIDC"]
     M["Client ID Metadata Document<br/>AI のクライアントが置いた文書"]
     N["netkeiba<br/>オッズ・出馬表"]
-    GH["GitHub Actions<br/>出馬表を取って YAML の PR を作る<br/>オッズを取って D1 に書く<br/>マージされた YAML を D1 に投入する"]
-    CR["Cron Trigger<br/>出走馬は日・木・金の決まった時刻<br/>オッズは30分おき"]
+    GH["GitHub Actions<br/>出馬表・結果を取って YAML の PR を作る<br/>オッズを取って D1 に書く<br/>マージされた YAML を D1 に投入する"]
+    CR["Cron Trigger<br/>出走馬は日・木・金の決まった時刻<br/>結果は毎日の夕方<br/>オッズは30分おき"]
 
     U -->|"静的ファイル"| A
     U -->|"ページ・フォーム"| W
@@ -110,13 +110,13 @@ flowchart TB
     W -->|"同意画面を開いたときだけ"| M
     W -->|"HTML"| U
     CR -->|"scheduled"| W
-    W -->|"出走馬の取得の依頼（Cron・管理画面）<br/>オッズの更新の依頼（Cron）"| GH
+    W -->|"出走馬・結果の取得の依頼（Cron・管理画面）<br/>オッズの更新の依頼（Cron）"| GH
     GH -->|"取得"| N
     GH -->|"オッズ・出走馬データの書き込み<br/>（wrangler d1 execute）"| D
 ```
 
 外部依存は **Google OAuth と、取得元（netkeiba）と、GitHub の API と、AI のクライアントが置いた Client ID Metadata Document の4つ**。
-netkeiba へは GitHub Actions だけが行き、Worker は行かない（→ 3-8・3-9）。GitHub へは出走馬の取得とオッズの更新を Actions に頼むときだけ行く。
+netkeiba へは GitHub Actions だけが行き、Worker は行かない（→ 3-8・3-9）。GitHub へは出走馬・結果の取得とオッズの更新を Actions に頼むときだけ行く。
 Client ID Metadata Document へは、ログインした本人が同意画面を開いたときと「許可する」を押したときだけ、
 クライアントが `client_id` に書いた HTTPS の URL へ取りに行く（→ [mcp.md 第6章](./mcp.md)）。それ以外は Cloudflare の中で完結する。
 バックエンドサーバー、コンテナ、VPC、ロードバランサ、Redis — どれも要らない。
@@ -621,7 +621,7 @@ Cloudflare の Cron は時刻どおりに動き、`workflow_dispatch` は間引�
 `--remote` のときは D1 の REST API（`/query`）に1回で渡り、API の文書は「複数の文は batch として実行する」としている
 （D1 の batch は1トランザクション）ので半端に混ざらない。最後の砦として `race_odds` の CHECK もある。
 
-### 3-9. 出走馬の取得 — Worker は Actions を起動するだけ
+### 3-9. 出走馬・結果の取得 — Worker は Actions を起動するだけ
 
 出馬表（候補・枠順）は、Worker が netkeiba から取って D1 に書くのでは**なく**、GitHub Actions が
 `data:fetch entries` で `data/races/*.yaml` を書き、PR を作る。本番に入るのは人がマージしたとき（`data-import.yml`）。
@@ -631,7 +631,7 @@ Cloudflare の Cron は時刻どおりに動き、`workflow_dispatch` は間引�
 ```mermaid
 sequenceDiagram
     autonumber
-    participant C as Cron（日・木・金）/ 管理画面
+    participant C as Cron（日・木・金・毎夕）/ 管理画面
     participant W as race-data/（Worker）
     participant D as D1
     participant G as GitHub API
@@ -639,12 +639,12 @@ sequenceDiagram
     participant N as netkeiba
 
     C->>W: scheduled / POST ?/fetchEntries
-    W->>D: 段ごとの日数に入る重賞で馬番が未入力のもの（Cron）/ そのレース（管理画面）
-    W->>G: workflow_dispatch（日付・場・R・race_id・段）
+    W->>D: 段ごとの日数に入る重賞で馬番が未入力のもの（出走馬の Cron）/ 当日の出走馬があるレース（結果の Cron）/ そのレース（管理画面）
+    W->>G: workflow_dispatch（日付・場・R・race_id・段か command: result）
     Note over W: ここで終わり。netkeiba へは行かず、D1 にも書かない
     G->>A: 起動
-    A->>N: 出馬表（data:fetch entries）
-    Note over A: 金曜の枠順の回は、枠順が確定していなければ何も書かない
+    A->>N: 出馬表（data:fetch entries）/ 結果（data:fetch result）
+    Note over A: 金曜の枠順の回は枠順が、結果は表が確定していなければ何も書かない
     A->>A: data:check → PR を作る（同じ中身の PR があれば何もしない）
 ```
 
@@ -652,9 +652,9 @@ sequenceDiagram
 | --- | --- | --- |
 | 依頼 | `lib/server/race-data/dispatch.ts` | GitHub の API に1回送る。失敗の種類（`DispatchError`） |
 | 手順 | `lib/server/race-data/request.ts` | Cron の対象を1つずつ頼む・止める条件・ログの重さ |
-| 対象 | `lib/server/services/entries-fetch.ts` | D1 から対象のレースを選ぶ（読むだけ） |
+| 対象 | `lib/server/services/entries-fetch.ts`・`results-fetch.ts` | D1 から対象のレースを選ぶ（読むだけ） |
 | 入口 | `lib/server/race-data/scheduled.ts`・`/settings/admin` の `?/fetchEntries` | 監視の口と D1 クライアントを作って渡す |
-| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR。Worker が頼む `data:fetch entries`（Cron・管理画面）に加え、Actions のタブから手で起動する `data:fetch result`（`command: result`。Worker は頼まない）もここ |
+| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR。Worker が頼む `data:fetch entries`（Cron・管理画面）と `data:fetch result`（結果の Cron。`command: result`）。どちらも Actions のタブから手でも起動できる |
 
 - Cron は JRA の発表に合わせて3段で頼む。段は Cron の式で決まる（`race-data/scheduled.ts` の `ENTRIES_CRONS`。時刻の正は `wrangler.toml` の `crons`）。
   対象はどの段も重賞（G1〜G3）で、レース番号があり、馬番がまだ1頭も無いもの（枠順の PR がマージされると外れる）
@@ -681,6 +681,23 @@ sequenceDiagram
   できるのは main のワークフローの起動までで、出走馬の取得でできた PR は人がマージするまで本番に入らない。
   ただし同じトークンで起動する `odds-update.yml`（3-8）は、本番の D1 の `race_odds` に直接書く。
   書くのは main のコードが取得元から取って検査を通した値だけで、起動する人がその中身を決めることはできない
+
+**結果も同じ経路で取る。** Cron `10 9 * * *`（UTC）= 毎日 JST 18:10（`race-data/scheduled.ts` の `RESULTS_CRON`）に、
+当日（JST）の JRA のレースで出走馬が1頭でも登録されているものを選び（`listResultsFetchTargets`）、1つずつ `command: result` で頼む。
+格は問わず（気にしている馬だけ載せた条件戦も取る）、着順の有無でも絞らない（入れ済みなら main と差分が出ず PR はできない）。
+
+- 夕方（18:10）にしたのは、JRA の最終レースがふだん17時前後に確定するから。分は、同じ時間帯に動くオッズの Cron（:05・:35）と重ならないようにずらしてある。夏の番組で最終レースが遅い日に間に合わなければ、確定していないので Actions は書かずに落ちて知らせる。日付は実行の時刻でなく、起動するはずだった時刻（`scheduledTime`）で決める
+- 結果の表が確定していなければ（1着がいない・着順も取消などの表記も読めない行がある）、Actions は何も書かずに落ちて Discord に知らせる（`resultNotSettled`）
+- PR のブランチ（`data-fetch/<日付>-<場><R>R-result`）・PR 本文・同じ中身なら何もしないことは、手で起動した結果と同じ。マージで本番に入る
+- **1日1回きりで、翌日に取り直す回は無い。** GitHub に頼めなかったレースは、レースごとには通知せず、
+  頼めなかったレースを全部並べた1件（`results.dispatch.missed`）で知らせる（1回の起動で通知は1件までなので）。
+  Actions 側で落ちたものは、その run が知らせる。どちらも人が Actions のタブから `command: result`・開催日・場・R で起動し直す。
+  エージェントは起動しない（[data/README.md「アプリから取らせる」](../data/README.md)）
+- 結果は main の YAML に書くので、出走馬・枠順の PR が main に入っている前提で取る。同じレースの出走馬・枠順の PR
+  （`data-fetch/<日付>-<場><R>R`）が開いていれば、Actions は書かずに落ちて知らせる（候補のままの YAML に書き、その PR と同じレースを書き換え合うため）。
+  マージしてから手で取り直す
+- 対象は D1 で選ぶので、画面（`/races/new`）で作って YAML に無いレースに出走馬を入れると、それも頼む。Actions は YAML にレースが無いので落ちて知らせる。
+  これは取り直しても同じように落ちる。結果も入れたいなら、先にそのレースを YAML に書いて PR でマージする
 
 ### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読み書きする
 

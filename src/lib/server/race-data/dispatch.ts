@@ -1,5 +1,5 @@
 /**
- * 出走馬の取得を GitHub Actions（`.github/workflows/race-data-fetch.yml`）に頼む。
+ * 出走馬と結果の取得を GitHub Actions（`.github/workflows/race-data-fetch.yml`）に頼む。
  * ワークフローを起動する部分（`dispatchWorkflow`）は、オッズの更新の起動（`lib/server/odds/`）も使う。
  *
  * **Worker は netkeiba へ行かず、D1 にも書かない。** 出馬表を取って `data/races/*.yaml` に書き、
@@ -26,6 +26,8 @@ export type EntriesFetchRequest = {
 	trigger: 'cron' | 'admin';
 	/** Cron の段（候補・出走馬・枠順）。Cron だけが付ける。PR 本文の「なぜ」に使う。 */
 	stage?: EntriesStage;
+	/** 何を取るか。省略時は出馬表（ワークフローの既定の `entries`）。結果の Cron だけが `result` を付ける。 */
+	command?: 'result';
 };
 
 /**
@@ -74,7 +76,8 @@ export function workflowInputs(req: EntriesFetchRequest): Record<string, string>
 		...(raceId ? { race_id: raceId } : {}),
 		require_confirmed: String(req.requireConfirmed),
 		trigger: req.trigger,
-		...(req.stage ? { stage: req.stage } : {})
+		...(req.stage ? { stage: req.stage } : {}),
+		...(req.command ? { command: req.command } : {})
 	};
 }
 

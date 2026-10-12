@@ -140,16 +140,16 @@ pnpm exec wrangler secret put GITHUB_DISPATCH_TOKEN
 Worker と Actions の両方が Discord に送るので**両方に入れる**。差し替えるときも両方
 （値の一覧と差し替え手順は [monitoring.md 第8章](./monitoring.md)）。
 
-`GITHUB_DISPATCH_TOKEN` は、出走馬の取得（`race-data-fetch.yml`）とオッズの更新（`odds-update.yml`）を
+`GITHUB_DISPATCH_TOKEN` は、出走馬・結果の取得（`race-data-fetch.yml`）とオッズの更新（`odds-update.yml`）を
 GitHub Actions に頼むトークン（→ [architecture.md 3-8・3-9](./architecture.md)）。入れなければ、
-枠順などの定期取得と管理画面の「出走馬を取得」と、オッズの更新が止まる。
+枠順などの定期取得と開催日の結果の取得と管理画面の「出走馬を取得」と、オッズの更新が止まる。
 GitHub > Settings > Developer settings > Fine-grained tokens で次のように作る。
 
 | 項目                                | 設定                                                                                   |
 | ----------------------------------- | -------------------------------------------------------------------------------------- |
 | Resource owner / Repository access | `Atoyr` / Only select repositories → `keiba-note`                                      |
 | Repository permissions              | `Actions: Read and write` だけ（Metadata: Read は自動で付く）                          |
-| Expiration                          | 1年以内。切れると Cron が `entries.dispatch`・`odds.dispatch`（`auth`）で知らせる      |
+| Expiration                          | 1年以内。切れると Cron が `entries.dispatch`・`odds.dispatch`（`auth`）・`results.dispatch.missed` で知らせる |
 
 リポジトリ名は `wrangler.toml` の `[vars]` の `GITHUB_REPOSITORY`（シークレットではない）。
 Actions 側にも設定が1つ要る（→ 9。[動かすのに必要な設定](#動かすのに必要な設定) の 5）。
@@ -197,7 +197,7 @@ pnpm exec wrangler tail                # 本番のログを流す（Workers Logs
 | `staging.yml`                        | `main` の CI 成功 / 手動                                                                | ステージング D1 にマイグレーションと出走馬データを入れ、固定名 `staging` の Preview にデプロイ（→ [staging.md](./staging.md)） | ステージングだけ                                    |
 | `deploy.yml`                         | リリースの publish / 手動                                                               | `ci.yml` の再実行 → マイグレーション → `wrangler deploy`。成功も失敗も Discord「デプロイ」へ                   | **アプリが本番に出る**（出るのはここだけ）          |
 | `data-import.yml`                    | `main` の `data/races/**` の変更                                                        | `data:check` → `data:import:remote`。失敗だけ Discord「デプロイ」へ                                            | **出走馬データが本番に入る**（リリースを待たない）  |
-| `race-data-fetch.yml`                | Worker の Cron・管理画面の「出走馬を取得」・手動（結果は手動だけ）                      | netkeiba から出走馬・結果を取り、`data/races/*.yaml` を書いて PR を作る。D1 には触らない                       | PR をマージしたとき（`data-import.yml` 経由）       |
+| `race-data-fetch.yml`                | Worker の Cron（出走馬・結果）・管理画面の「出走馬を取得」・手動                        | netkeiba から出走馬・結果を取り、`data/races/*.yaml` を書いて PR を作る。D1 には触らない                       | PR をマージしたとき（`data-import.yml` 経由）       |
 | `odds-update.yml`                    | Worker の Cron が `workflow_dispatch` で起動（`main` からしか動かない）                 | オッズを取り、`race_odds` に `wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)） | **本番の D1 に直接書く**。Cron はリリースで初めて効く |
 | `health.yml`                         | 毎時 7分・37分                                                                          | 本番の `/api/health` を叩き、状態が変わったときだけ Discord「障害」へ（→ [monitoring.md 第6章](./monitoring.md)） | 通知のみ                                            |
 | `discord-notify.yml`                 | 他のワークフローから `workflow_call`                                                    | Actions から Discord へ送る部品（→ [monitoring.md 第7章](./monitoring.md)）                                    | 通知のみ                                            |

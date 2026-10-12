@@ -10,10 +10,17 @@
  *
  * 枠順の PR がマージされて馬番が入ると、対象から外れる。
  *
+ * 結果（`requestResultsFetch`）も同じ経路で頼む。開催日の夕方に1回、当日のレースを選んで `command: result` で起動する。
+ *
  * ログの出し方（通知するかどうか）は呼び出し側に渡す `log` が決める。ここは monitoring を知らない。
  */
 import type { Db } from '$lib/server/db';
-import { listEntriesFetchTargets, type EntriesStage } from '$lib/server/services/entries-fetch';
+import {
+	listEntriesFetchTargets,
+	type EntriesFetchTarget,
+	type EntriesStage
+} from '$lib/server/services/entries-fetch';
+import { listResultsFetchTargets } from '$lib/server/services/results-fetch';
 import { DispatchError, type DispatchErrorKind, type EntriesFetchRequest } from './dispatch';
 
 export type EntriesLogEntry = {
@@ -57,57 +64,120 @@ export async function requestEntriesFetch(
 ): Promise<RequestEntriesSummary> {
 	const now = deps.now ?? (() => new Date());
 	const { stage } = deps;
-	const at = now();
-	const targets = await listEntriesFetchTargets(deps.db, at, stage);
+	const targets = await listEntriesFetchTargets(deps.db, now(), stage);
+	const { summary } = await dispatchEach(deps, targets, {
+		event: 'entries.dispatch',
+		fields: { stage },
+		request: (t) => ({ ...base(t), requireConfirmed: stage === 'frames', trigger: 'cron', stage }),
+		label: '出走馬'
+	});
+	return summary;
+}
+
+export type RequestResultsDeps = Omit<RequestEntriesDeps, 'stage'>;
+
+/**
+ * 当日の結果の取得を、GitHub Actions に頼む。Cron（`scheduled.ts`）が開催日の夕方に1回だけ呼ぶ。
+ *
+ * 1日1回きりで、翌日に取り直す回は無い。**頼めなかったレースは、レースごとには通知せず、
+ * 最後にまとめて1件で知らせる**（monitor は1回の起動で1件しか送らないので、レースごとに送ると
+ * 2レース目からが届かない）。知らせを見た人が Actions を `command: result` で手で起動する。
+ */
+export async function requestResultsFetch(
+	deps: RequestResultsDeps
+): Promise<RequestEntriesSummary> {
+	const now = deps.now ?? (() => new Date());
+	const targets = await listResultsFetchTargets(deps.db, now());
+	const { summary, missed } = await dispatchEach(deps, targets, {
+		event: 'results.dispatch',
+		fields: {},
+		request: (t) => ({ ...base(t), requireConfirmed: false, trigger: 'cron', command: 'result' }),
+		label: '結果',
+		notifyEach: false
+	});
+	if (missed.length > 0) {
+		deps.log({
+			level: 'error',
+			event: 'results.dispatch.missed',
+			message:
+				`結果の取得を頼めなかったレースがある（${missed.join('・')}）。` +
+				'Actions の「出走馬・結果の取得」を command: result・開催日・場・R で手で起動する',
+			races: missed,
+			...summary
+		});
+	}
+	return summary;
+}
+
+function base(t: EntriesFetchTarget) {
+	return {
+		date: t.date,
+		course: t.course,
+		raceNumber: t.raceNumber,
+		externalRef: t.externalRef
+	};
+}
+
+/**
+ * 1レースずつ Actions を起動する。`STOP_KINDS` の失敗ではそこでやめる。
+ * `missed` は頼めなかったレース（失敗したものと、やめたあとに残ったもの）。
+ */
+async function dispatchEach(
+	deps: Pick<RequestEntriesDeps, 'dispatch' | 'log'>,
+	targets: EntriesFetchTarget[],
+	opts: {
+		event: string;
+		fields: Record<string, unknown>;
+		request: (t: EntriesFetchTarget) => EntriesFetchRequest;
+		/** ログの文の「出走馬」を置き換える語。 */
+		label: string;
+		/** false ならレースごとの失敗を通知しない（呼び出し側がまとめて知らせる）。 */
+		notifyEach?: boolean;
+	}
+): Promise<{ summary: RequestEntriesSummary; missed: string[] }> {
 	const summary: RequestEntriesSummary = {
 		targets: targets.length,
 		requested: 0,
 		failed: 0,
 		stopped: false
 	};
+	const missed: string[] = [];
+	const name = (t: EntriesFetchTarget) => `${t.date} ${t.course}${t.raceNumber}R`;
 
-	for (const t of targets) {
-		const base = {
-			event: 'entries.dispatch',
-			stage,
-			raceId: t.raceId,
-			race: `${t.date} ${t.course}${t.raceNumber}R`
-		};
+	for (const [i, t] of targets.entries()) {
+		const logBase = { event: opts.event, ...opts.fields, raceId: t.raceId, race: name(t) };
 		try {
-			await deps.dispatch({
-				date: t.date,
-				course: t.course,
-				raceNumber: t.raceNumber,
-				externalRef: t.externalRef,
-				requireConfirmed: stage === 'frames',
-				trigger: 'cron',
-				stage
-			});
+			await deps.dispatch(opts.request(t));
 			summary.requested++;
 			deps.log({
-				...base,
+				...logBase,
 				level: 'info',
-				message: '出走馬の取得を Actions に頼んだ',
+				message: `${opts.label}の取得を Actions に頼んだ`,
 				success: true
 			});
 		} catch (e) {
 			const kind: DispatchErrorKind | 'unknown' = e instanceof DispatchError ? e.kind : 'unknown';
 			summary.failed++;
+			missed.push(name(t));
+			const { message, ...weight } = LOG_BY_KIND[kind];
 			deps.log({
-				...base,
-				...LOG_BY_KIND[kind],
-				dedupeKey: `entries.dispatch:${kind}`,
+				...logBase,
+				...weight,
+				message: message.replace('出走馬', opts.label),
+				...(opts.notifyEach === false ? { notify: false } : {}),
+				dedupeKey: `${opts.event}:${kind}`,
 				success: false,
 				errorType: kind,
 				error: e
 			});
 			if (STOP_KINDS.has(kind)) {
 				summary.stopped = true;
+				missed.push(...targets.slice(i + 1).map(name));
 				break;
 			}
 		}
 	}
-	return summary;
+	return { summary, missed };
 }
 
 /**

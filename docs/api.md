@@ -167,6 +167,7 @@ tools（書くのは `save_my_race_preview`・`save_my_race_flow`・`save_my_rac
 | 起動 | 入口 | すること |
 | --- | --- | --- |
 | 候補・出走馬・枠順の発表に合わせた曜日の時刻 | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` | 馬番がまだ無い重賞の出走馬の取得を GitHub Actions に頼む |
+| 毎日の夕方 | `src/worker.js` の `scheduled` → `lib/server/race-data/scheduled.ts` の `runResultsCron` | 当日の出走馬がある JRA のレースの結果の取得を GitHub Actions に頼む |
 | オッズを取りに行く時間帯の30分おき | `src/worker.js` の `scheduled` → `lib/server/odds/scheduled.ts` | 取りに行く時間帯に入った重賞があれば、GitHub Actions（`odds-update.yml`）を起動する |
 
 ルートと同じく、監視の口と D1 クライアントは入口（`scheduled.ts`）が1回ごとに作る。
@@ -234,6 +235,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/races.ts` | レースの一覧・件数・年・週の重賞、出走馬（予想用を含む）、過去走。レースと出走馬の作成・更新 |
 | `services/odds.ts` | オッズの読み、取得対象のレースの選び。書くのは GitHub Actions（`scripts/odds/store.ts` の SQL。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | 出走馬の取得を頼む対象と、頼めないレースの判定（`entriesFetchBlocker`。D1 を読まない）。出馬表は YAML の PR で入る |
+| `services/results-fetch.ts` | 結果の取得を頼む対象（`listResultsFetchTargets`。当日・JRA の10場・R 1〜12・出走馬あり）。結果は YAML の PR で入る |
 | `services/notes.ts` | レース・馬のメモ、最近のメモ、同条件のレース、共有ページのメモの読み。ふりかえり・予想・近況メモの保存、削除、公開範囲 |
 | `services/race-shares.ts` | 予想まとめの共有コピーの読み・作成・取り消し |
 | `services/profile.ts` | 公開名の読み書き |

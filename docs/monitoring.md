@@ -90,6 +90,10 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `entries.dispatch` | info / warn / error | 下の表 | `lib/server/race-data/request.ts` | Cron が1レースぶんの出走馬の取得を GitHub Actions に頼んだ（成否どちらも）。`stage`・`raceId`・`race`・`success`・`errorType` を載せる |
 | `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
 | `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
+| `results.dispatch` | info / warn / error | しない | `lib/server/race-data/request.ts` | 結果の Cron が1レースぶんの結果の取得を頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる。失敗はレースごとには通知せず、下の `results.dispatch.missed` にまとめる |
+| `results.dispatch.missed` | error | する | 同上 | 結果の取得を頼めなかったレースがあった。`races` に頼めなかったレース（落ちたものと、止めたあとに残したもの）を全部並べる。人が Actions を `command: result` で起動し直す |
+| `results.cron` | info | しない | `lib/server/race-data/scheduled.ts` | 結果の Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
+| `results.cron.failed` | error | する | 同上 | 結果の対象を選ぶところで落ちた。その日のレースは全部、人が Actions から起動し直す |
 | `entries.dispatch.failed` | warn / error | error だけ | `/settings/admin` の `?/fetchEntries` | 管理画面から頼めなかった。届かなかったときは warn。トークン未設定は画面に出すだけでログにしない |
 | `odds.dispatch` | info / warn / error | 下の表 | `lib/server/odds/request.ts` | Cron がオッズの更新を GitHub Actions に頼んだ（成否どちらも）。対象のレースがあった回だけ出す。`raceIds`・`success`・`errorType` を載せる |
 | `odds.dispatch.failed` | error | する | `lib/server/odds/scheduled.ts` | 対象のレースを選ぶところで落ちた |
@@ -129,6 +133,8 @@ run を失敗で終え、`discord-notify.yml` が「障害」のチャンネル�
 | `unknown` | error | する | 上のどれでもない（D1 への保存の失敗など） |
 
 `entries.dispatch` の重さも `errorType`（`DispatchError` の種類）で決める。`requestId` は `cron-entries-<段>-<起動時刻>`。
+`results.dispatch` は同じ表の重さでログに出すが、通知はしない（1回の起動で通知は1件までなので、2レース目からの失敗が届かない）。
+代わりに最後に `results.dispatch.missed` を1件送る。`requestId` は `cron-results-<起動時刻>`。
 
 | errorType | level | 通知 | 意味 |
 | --- | --- | --- | --- |

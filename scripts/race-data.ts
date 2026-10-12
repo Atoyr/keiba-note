@@ -49,6 +49,7 @@ import {
 	urls,
 	type Course
 } from './race-data/netkeiba.ts';
+import { resultNotSettled } from './race-data/result-ready.ts';
 import { RaceFile } from './race-data/yaml-file.ts';
 
 const DEFAULT_DIR = 'data/races';
@@ -365,9 +366,8 @@ async function main() {
 				: await resolveRaceId(args, t);
 			const parsed = parseResult(await fetchPage(urls.result(raceId)));
 			assertSameDate(parsed.meta, t, raceId);
-			if (parsed.rows.length === 0) {
-				fail(`結果がまだ出ていません（race_id ${raceId}）。`);
-			}
+			const notSettled = resultNotSettled(parsed.rows);
+			if (notSettled) fail(`${notSettled}（race_id ${raceId}）。`);
 			const people = await peopleResolver();
 			const log = await applyResult(file, race, parsed, people.resolve);
 			await people.flush();
