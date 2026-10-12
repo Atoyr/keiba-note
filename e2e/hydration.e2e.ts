@@ -98,4 +98,23 @@ test('hydration 前に付け替えた印は残る', async ({ page }) => {
 	await expect(marks.getByRole('radio', { name: '△' })).toBeChecked();
 	await expect(marks.getByRole('radio', { name: '◎' })).not.toBeChecked();
 	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
+	// 閉じた行の見出しの印も、書き戻した印に追従する。
+	const row = page.locator('li[id^="entry-"]');
+	await expect(row.getByTitle('予想印 △')).toBeVisible();
+	await expect(row.getByTitle('予想印 ◎')).toHaveCount(0);
+});
+
+test('タブは hydration の前から描かれ、hydration でも出走馬の一覧が下へずれない', async ({
+	page
+}) => {
+	await login(page);
+	const release = await openWithoutJs(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	await expect(page.getByRole('tablist', { name: 'レースの表示' })).toBeVisible();
+	const row = page.locator('li[id^="entry-"]').first();
+	const before = (await row.boundingBox())!.y;
+
+	release();
+	await waitForHydration(page);
+	await expect(page.getByRole('tab', { name: 'レース情報', exact: true })).toBeVisible();
+	expect((await row.boundingBox())!.y).toBeCloseTo(before, 0);
 });

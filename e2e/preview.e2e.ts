@@ -20,7 +20,7 @@ test('閉じた行は印・メモの有無を表示し、本文は展開して�
 	await expect(row.getByText('予想メモあり')).toBeVisible();
 	await expect(row.locator('textarea')).toBeHidden();
 	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
-	await row.getByLabel('E2Eプレビューホースのメモ・入力', { exact: true }).click();
+	await row.locator('summary').first().click();
 	await expect(row.locator('textarea')).toHaveValue('今回は内枠が向きそう。');
 	await expect(row.getByText('過去走の記録がありません。')).toHaveCount(0);
 });

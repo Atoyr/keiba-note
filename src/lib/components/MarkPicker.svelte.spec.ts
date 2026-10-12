@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import MarkPicker from './MarkPicker.svelte';
 
@@ -23,5 +23,22 @@ describe('MarkPicker', () => {
 			expect(span.className).toContain('peer-not-checked:hover:bg-accent');
 			expect(span.className).not.toMatch(/(^|\s)hover:bg-accent/);
 		}
+	});
+
+	// 閉じた行の見出しが追従できるよう、選ばれた印を返す。泡立たない change（下書きの書き戻し）も拾う。
+	it('選んだ印を onpick で返し、「なし」は null、泡立たない change も拾う', async () => {
+		const onpick = vi.fn();
+		const screen = render(MarkPicker, { name: 'mark.x', value: null, onpick });
+
+		await screen.getByRole('radio', { name: '◎' }).click({ force: true });
+		expect(onpick).toHaveBeenLastCalledWith('◎');
+		await screen.getByRole('radio', { name: 'なし' }).click({ force: true });
+		expect(onpick).toHaveBeenLastCalledWith(null);
+
+		const circle = screen.container.querySelector<HTMLInputElement>('input[value="○"]')!;
+		circle.checked = true;
+		circle.dispatchEvent(new Event('change'));
+		expect(onpick).toHaveBeenLastCalledWith('○');
+		expect(onpick).toHaveBeenCalledTimes(3);
 	});
 });

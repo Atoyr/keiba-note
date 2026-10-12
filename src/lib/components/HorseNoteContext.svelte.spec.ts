@@ -32,3 +32,18 @@ it('騎手名のURL区切り文字を全文・編集リンクにそのまま混�
 		`/jockeys/${encodeURIComponent('見本/騎手?#')}`
 	);
 });
+
+it('近況が無くても、ほかのメモがあれば件数と馬の画面への入口を出す', async () => {
+	const screen = render(HorseNoteContext, {
+		horseId: 'h1',
+		notes: [],
+		jockey: null,
+		summary: null,
+		moreCount: 3
+	});
+	await expect
+		.element(screen.getByRole('link', { name: 'ほかに 3 件のメモ。馬の画面で全文・編集を見る' }))
+		.toHaveAttribute('href', '/horses/h1');
+	await screen.rerender({ horseId: 'h1', notes: [], jockey: null, summary: null, moreCount: 0 });
+	expect(document.querySelectorAll('section')).toHaveLength(0);
+});

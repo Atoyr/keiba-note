@@ -4,11 +4,8 @@ import { createTestDb } from '$lib/server/db/test-d1';
 import { createDb, type Db } from '$lib/server/db';
 import { hashSessionToken, validateSession } from '$lib/server/auth/session';
 import type { QueryReport } from '$lib/server/db/instrument';
-import {
-	load as previewLoad,
-	actions as previewActions
-} from '../../routes/races/[id]/preview/+page.server';
-import { load as reviewLoad, actions as reviewActions } from '../../routes/races/[id]/+page.server';
+import { load as previewLoad, actions as previewActions } from './races/[id]/preview/+page.server';
+import { load as reviewLoad, actions as reviewActions } from './races/[id]/+page.server';
 
 let sqlite: DatabaseSync;
 let platform: App.Platform;

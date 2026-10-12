@@ -27,3 +27,20 @@ it('タブをキーで往復しても非表示の入力をDOMとFormDataに保�
 	await userEvent.keyboard('{Home}');
 	await expect.element(screen.getByRole('textbox', { name: '予想メモ' })).toHaveValue('下書き');
 });
+
+it('タブの並びを常に描き、パネルをタブの名前で結ぶ（出てくる瞬間に一覧がずれない）', async () => {
+	const form = document.createElement('form');
+	document.body.appendChild(form);
+	const screen = render(RacePanels, {
+		target: form,
+		props: {
+			label: '予想',
+			children: createRawSnippet(() => ({ render: () => '<p>入力</p>' })),
+			information: createRawSnippet(() => ({ render: () => '<p>コース資料</p>' }))
+		}
+	});
+	await expect.element(screen.getByRole('tablist', { name: 'レースの表示' })).toBeVisible();
+	expect(form.querySelectorAll('[role="tab"]')).toHaveLength(2);
+	expect(form.querySelector('#race-panel-0')?.getAttribute('aria-labelledby')).toBe('race-tab-0');
+	expect(form.querySelector('#race-panel-1')?.getAttribute('aria-labelledby')).toBe('race-tab-1');
+});

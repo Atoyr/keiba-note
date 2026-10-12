@@ -575,7 +575,7 @@ export async function listHistoryForHorses(
 	viewerId: string
 ): Promise<Map<string, TimelineItem[]>> {
 	if (horseIds.length === 0) return new Map();
-	return groupHorseHistory(await horseHistoryQuery(db, horseIds, excludeRaceId, viewerId));
+	return groupHistory(await horseHistoryQuery(db, horseIds, excludeRaceId, viewerId)).byHorse;
 }
 
 function horseHistoryQuery(db: Db, horseIds: string[], excludeRaceId: string, viewerId: string) {
@@ -591,6 +591,8 @@ function horseHistoryQuery(db: Db, horseIds: string[], excludeRaceId: string, vi
 			authorId: note.authorId,
 			authorName: user.displayName,
 			horseId: note.horseId,
+			// 各走のメモを出走IDで結ぶ。batch は列名で結果を組むので、別名を付けて衝突を避ける。
+			raceEntryId: sql<string | null>`${note.raceEntryId}`.as('history_entry_id'),
 			raceId: sql<string | null>`${race.id}`.as('history_race_id'),
 			raceName: race.name,
 			course: race.course,
@@ -614,104 +616,78 @@ function horseHistoryQuery(db: Db, horseIds: string[], excludeRaceId: string, vi
 		.limit(500);
 }
 
-function groupHorseHistory(rows: (TimelineItem & { horseId: string | null })[]) {
-	const byHorse = new Map<string, TimelineItem[]>();
-	for (const r of rows) {
-		if (!r.horseId) continue;
-		const list = byHorse.get(r.horseId) ?? [];
-		list.push(r);
-		byHorse.set(r.horseId, list);
-	}
-	return byHorse;
-}
-
-/** 今回のメモと直近5走の本人メモを一緒に読む。セッションを含め10クエリ以内に収めるため、1クエリにまとめる。 */
-export async function listRaceNoteContext(
-	db: Db,
-	raceId: string,
-	pastEntryIds: string[],
-	viewerId: string
+/**
+ * 馬ごとの履歴と、出走ごとの各走メモ（出走前・ふりかえり）に振り分ける。
+ * 各走メモは履歴と同じ行から作るので、別に引かない。出走IDは画面のデータに残さない。
+ */
+function groupHistory(
+	rows: (TimelineItem & { horseId: string | null; raceEntryId: string | null })[]
 ) {
-	return groupRaceNoteContext(
-		await raceNoteContextQuery(db, raceId, pastEntryIds, viewerId),
-		raceId
-	);
+	const byHorse = new Map<string, TimelineItem[]>();
+	const byEntry = new Map<string, TimelineItem[]>();
+	for (const { raceEntryId, ...item } of rows) {
+		if (item.horseId) {
+			const list = byHorse.get(item.horseId) ?? [];
+			list.push(item);
+			byHorse.set(item.horseId, list);
+		}
+		if (raceEntryId && (item.kind === 'preview' || item.kind === 'entry')) {
+			const list = byEntry.get(raceEntryId) ?? [];
+			list.push(item);
+			byEntry.set(raceEntryId, list);
+		}
+	}
+	return { byHorse, byEntry };
 }
 
-/** 今回・各走・馬の近況を1 batchで読む。POST後の同じリクエスト内のloadも10往復以内にする。 */
+/**
+ * 予想・ふりかえりの画面が読むメモ。今回のレースの本人メモと、出走馬ごとの履歴・各走メモを
+ * **1 batch** で読む（今回の分と履歴は互いに要らないので、過去走の取得と並べて呼べる）。
+ *
+ * - `raceNotes`: 今回のレースの本人のメモ（レース・各馬）
+ * - `history`: 馬ごとの、今回以外のメモ。新しい順
+ * - `pastRunNotes`: `history` のうち出走前・ふりかえりのメモを出走ID（`race_entry.id`）で束ねたもの。
+ *   画面は各走の `entryId` で引く。同日の別レース・同名の別馬は出走IDが違うので混ざらない
+ *
+ * **`history` は新しい順の500件まで。** 直近5走のメモは新しい側にあるので落ちない。
+ * 500件を超える古いメモは、馬の画面で読む。
+ */
 export async function listRaceMemoContext(
 	db: Db,
 	raceId: string,
-	pastEntryIds: string[],
 	horseIds: string[],
 	viewerId: string
 ) {
-	if (horseIds.length === 0) {
-		return {
-			...(await listRaceNoteContext(db, raceId, pastEntryIds, viewerId)),
-			history: new Map<string, TimelineItem[]>()
-		};
-	}
-	const [notes, history] = await db.batch([
-		raceNoteContextQuery(db, raceId, pastEntryIds, viewerId),
-		horseHistoryQuery(db, horseIds, raceId, viewerId)
-	]);
-	return { ...groupRaceNoteContext(notes, raceId), history: groupHorseHistory(history) };
+	const [raceNotes, history] =
+		horseIds.length === 0
+			? [await raceNotesQuery(db, raceId, viewerId), []]
+			: await db.batch([
+					raceNotesQuery(db, raceId, viewerId),
+					horseHistoryQuery(db, horseIds, raceId, viewerId)
+				]);
+	const { byHorse, byEntry } = groupHistory(history);
+	return { raceNotes, history: byHorse, pastRunNotes: byEntry };
 }
 
-function raceNoteContextQuery(db: Db, raceId: string, pastEntryIds: string[], viewerId: string) {
-	const fields = {
-		id: note.id,
-		kind: note.kind,
-		body: note.body,
-		tags: note.tags,
-		mark: note.mark,
-		flow: note.flow,
-		visibility: note.visibility,
-		occurredAt: note.occurredAt,
-		raceId: note.raceId,
-		raceEntryId: note.raceEntryId,
-		horseId: note.horseId,
-		authorId: note.authorId,
-		authorName: user.displayName
-	};
-	const current = db
-		.select(fields)
+function raceNotesQuery(db: Db, raceId: string, viewerId: string) {
+	return db
+		.select({
+			id: note.id,
+			kind: note.kind,
+			body: note.body,
+			tags: note.tags,
+			mark: note.mark,
+			flow: note.flow,
+			visibility: note.visibility,
+			occurredAt: note.occurredAt,
+			raceEntryId: note.raceEntryId,
+			horseId: note.horseId,
+			authorId: note.authorId,
+			authorName: user.displayName
+		})
 		.from(note)
 		.innerJoin(user, eq(note.authorId, user.id))
 		.where(and(ownedBy(viewerId), eq(note.raceId, raceId)));
-	// 各分岐で author/race と author/entry の索引を使い、本人の全メモを走査しない。
-	return pastEntryIds.length === 0
-		? current
-		: current.unionAll(
-				db
-					.select(fields)
-					.from(note)
-					.innerJoin(user, eq(note.authorId, user.id))
-					.where(
-						and(
-							ownedBy(viewerId),
-							// 枠順前は40候補×5走。D1の100パラメータ上限を超えないようJSON1個で渡す。
-							sql`${note.raceEntryId} in (select value from json_each(${JSON.stringify(pastEntryIds)}))`,
-							inArray(note.kind, ['preview', 'entry']),
-							ne(note.raceId, raceId)
-						)
-					)
-			);
-}
-
-function groupRaceNoteContext(rows: (NoteView & { raceId: string | null })[], raceId: string) {
-	const raceNotes: NoteView[] = [];
-	const pastRunNotes = new Map<string, NoteView[]>();
-	for (const row of rows) {
-		if (row.raceId === raceId) raceNotes.push(row);
-		else if (row.raceEntryId) {
-			const list = pastRunNotes.get(row.raceEntryId) ?? [];
-			list.push(row);
-			pastRunNotes.set(row.raceEntryId, list);
-		}
-	}
-	return { raceNotes, pastRunNotes };
 }
 
 export type PreviewNoteInput = {

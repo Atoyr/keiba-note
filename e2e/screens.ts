@@ -441,7 +441,7 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page.getByLabel('E2Eソトワクのメモ・入力', { exact: true }).click();
+			await page.locator('summary', { hasText: 'E2Eソトワク' }).first().click();
 		}
 	},
 	{
@@ -638,6 +638,20 @@ export const SCREENS: Screen[] = [
 			await page.getByText('書き直す', { exact: true }).click();
 			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
 			await marks.getByText('☆', { exact: true }).click();
+		}
+	},
+	{
+		// 印を ☆ に付け替えて行を閉じたところ。保存はしない。見出しの印と「付けた印」が、保存済みの ◎ ではなく選んだ ☆ に追従する。
+		name: 'race-preview-mark-unsaved-closed',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const summary = page.locator('li[id^="entry-"] > details > summary');
+			await summary.click();
+			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
+			await marks.getByText('☆', { exact: true }).click();
+			await summary.click();
 		}
 	},
 	{

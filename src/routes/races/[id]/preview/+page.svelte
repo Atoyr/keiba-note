@@ -23,7 +23,13 @@
 	import { toast } from 'svelte-sonner';
 	import { byMark } from '$lib/utils/answer';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { latestConclusion, previewSaveLabel, savedMessage } from '$lib/utils/note';
+	import {
+		horseNoteDigest,
+		latestConclusion,
+		previewSaveLabel,
+		savedMessage
+	} from '$lib/utils/note';
+	import type { Mark } from '$lib/schemas/note';
 	import {
 		formatOddsAsOf,
 		formatPlaceOdds,
@@ -83,14 +89,32 @@
 
 	const ta = 'mt-1 text-sm';
 
-	// 保存済みの印を印の順（◎ → ×）に。ふりかえりの答え合わせと同じ並び。
+	/**
+	 * このレースで、画面で選んだ印（保存前を含む）。閉じた行の見出しの印と「付けた印」を、
+	 * 保存済みの値ではなくいま選んでいる値から出すために持つ。
+	 * `MarkPicker` の `onpick` が書く。下書きの復元・AI の反映・hydration 前の入力の書き戻しも、
+	 * ラジオに `change` を投げるので同じ経路で入る（`破棄` は欄を変えないので何もしなくてよい）。
+	 * 保存が通ったら空に戻し、保存済みの値（`data`）に任せる。
+	 * SvelteKit は別レースでもページを再利用するので、レースの id を添えて、違うレースのものは無いものとして扱う。
+	 */
+	let picked = $state<{ raceId: string; marks: Record<string, Mark | null> }>({
+		raceId: '',
+		marks: {}
+	});
+	const pickedMarks = $derived(picked.raceId === data.race.id ? picked.marks : {});
+	const markOf = (r: { entryId: string; myPreview: { mark: Mark | null } | null }): Mark | null =>
+		r.entryId in pickedMarks ? pickedMarks[r.entryId] : (r.myPreview?.mark ?? null);
+	const pick = (entryId: string, mark: Mark | null) =>
+		(picked = { raceId: data.race.id, marks: { ...pickedMarks, [entryId]: mark } });
+
+	// いま選んでいる印を印の順（◎ → ×）に。ふりかえりの答え合わせと同じ並び。
 	const marked = $derived(
 		byMark(
 			data.rows.map((r) => ({
 				entryId: r.entryId,
 				horseName: r.horseName,
 				horseNumber: r.horseNumber,
-				mark: r.myPreview?.mark ?? null
+				mark: markOf(r)
 			}))
 		)
 	);
@@ -190,6 +214,9 @@
 					// 保存すると本当に消える。表示はサーバーの data が正で、
 					// フォームの初期値ではない。
 					await update({ reset: false });
+					// 保存が通ったら、選んだ印は保存済みの値になった。以降は data に任せる。
+					// 送信中に書き足した印は、下の clear が欄へ書き戻すときの change で入り直す。
+					if (result.type === 'success') picked = { raceId: '', marks: {} };
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
@@ -329,9 +356,11 @@
 						{#each rows as r (r.entryId)}
 							{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
 							{@const conclusion = latestConclusion(r.history)}
+							{@const mark = markOf(r)}
+							{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
 							<li
 								id="entry-{r.entryId}"
-								class="scroll-mt-4 rounded-xl border p-3 {r.myPreview?.mark === '◎'
+								class="scroll-mt-4 rounded-xl border p-3 {mark === '◎'
 									? 'border-red-300 bg-red-50/40'
 									: ''}"
 							>
@@ -425,7 +454,7 @@
 
 									<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
 									<span class="flex size-6 shrink-0">
-										<MarkBadge mark={r.myPreview?.mark ?? null} />
+										<MarkBadge {mark} />
 									</span>
 								</div>
 
@@ -440,7 +469,8 @@
 								>
 									<HorseNoteContext
 										horseId={r.horseId}
-										notes={r.history.filter((note) => note.kind === 'horse')}
+										notes={digest.recent}
+										moreCount={digest.moreCount}
 										jockey={r.jockey}
 										summary={r.jockeySummary}
 										{conclusion}
@@ -448,7 +478,11 @@
 
 									<section aria-label="今回の予想">
 										<h3 class="mb-2 text-sm font-semibold">今回の予想</h3>
-										<MarkPicker name="mark.{r.entryId}" value={r.myPreview?.mark ?? null} />
+										<MarkPicker
+											name="mark.{r.entryId}"
+											value={r.myPreview?.mark ?? null}
+											onpick={(m) => pick(r.entryId, m)}
+										/>
 										<Textarea
 											name="body.{r.entryId}"
 											aria-label="{r.horseName}の出走前メモ"

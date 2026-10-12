@@ -582,9 +582,10 @@ export async function listPastRuns(
 		.orderBy(sql`${ranked.runOrder}`);
 
 	const byHorse = new Map<string, PastRun[]>();
-	for (const r of rows) {
+	// runOrder は絞り込みと並べ替えのための列。画面のデータには入れない。
+	for (const { runOrder, ...r } of rows) {
+		if (runOrder > perHorse) continue;
 		const list = byHorse.get(r.horseId) ?? [];
-		if (list.length >= perHorse) continue;
 		list.push(r);
 		byHorse.set(r.horseId, list);
 	}

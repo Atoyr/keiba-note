@@ -3,7 +3,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { createTestDb } from '$lib/server/db/test-d1';
 import type { Db } from '$lib/server/db';
 import { getRaceForPreview, listPastRuns } from './races';
-import { listRaceNoteContext } from './notes';
+import { listRaceMemoContext } from './notes';
 
 let db: Db;
 let sqlite: DatabaseSync;
@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 describe('直近5走と本人の各走メモ', () => {
-	it('40候補の5走を渡してもD1の100パラメータ上限を超えず本人のメモを読む', async () => {
+	it('40候補の馬を渡してもD1の100パラメータ上限を超えず、本人の各走メモを1バッチで読む', async () => {
 		sqlite.exec(
 			`INSERT INTO note (id, author_id, kind, horse_id, race_id, race_entry_id, body, occurred_at) VALUES ('large-note', 'me', 'preview', 'h1', 'r1', 'e1', '本人の事前メモ', '2026-05-01')`
 		);
@@ -43,11 +43,13 @@ describe('直近5走と本人の各走メモ', () => {
 			};
 			return stmt;
 		});
-		const ids = ['e1', ...Array.from({ length: 199 }, (_, i) => `past-${i}`)];
-		const result = await listRaceNoteContext(db, 'current', ids, 'me');
+		const batch = vi.spyOn(binding, 'batch');
+		const ids = ['h1', ...Array.from({ length: 39 }, (_, i) => `candidate-${i}`)];
+		const result = await listRaceMemoContext(db, 'current', ids, 'me');
 		expect(result.pastRunNotes.get('e1')?.[0].body).toBe('本人の事前メモ');
-		expect(boundCounts).toHaveLength(1);
-		expect(boundCounts[0]).toBeLessThanOrEqual(100);
+		expect(batch).toHaveBeenCalledTimes(1);
+		expect(boundCounts).toHaveLength(2);
+		expect(Math.max(...boundCounts)).toBeLessThanOrEqual(100);
 	});
 	it('レースと出馬表を1バッチで返し、出馬表未登録と不存在も区別する', async () => {
 		const binding = (db as Db & { $client: D1Database }).$client;
@@ -77,6 +79,8 @@ describe('直近5走と本人の各走メモ', () => {
 		});
 		expect(runs.get('h1')?.[1]).toMatchObject({ fieldSize: 18, passing: '8-7-5-4', last3f: 34.2 });
 		expect(runs.get('h2')?.map((run) => run.entryId)).toEqual(['e3']);
+		// 並べ替えの内部の列は画面のデータに入れない。
+		expect(runs.get('h1')?.[0]).not.toHaveProperty('runOrder');
 		expect((await listPastRuns(db, [], '2026-06-01')).size).toBe(0);
 	});
 	it('出走が多い別の馬がいても、それぞれの最大5走を返す', async () => {
@@ -110,12 +114,11 @@ describe('直近5走と本人の各走メモ', () => {
 		insert.run('unlisted', 'other', 'preview', 'h1', 'r1', 'e1', '他人共有中', '◎', 'unlisted');
 		insert.run('horse', 'me', 'horse', 'h1', null, null, '近況', null, 'private');
 		insert.run('current-note', 'me', 'preview', 'h1', 'current', 'ec', '今回', '▲', 'private');
-		const { raceNotes, pastRunNotes: notes } = await listRaceNoteContext(
-			db,
-			'current',
-			['e1', 'e2', 'e3'],
-			'me'
-		);
+		const {
+			raceNotes,
+			pastRunNotes: notes,
+			history
+		} = await listRaceMemoContext(db, 'current', ['h1', 'h2'], 'me');
 		expect(raceNotes.map((note) => note.body)).toEqual(['今回']);
 		expect(
 			notes
@@ -126,6 +129,13 @@ describe('直近5走と本人の各走メモ', () => {
 		expect(notes.get('e2')?.map((note) => note.body)).toEqual(['同日別走']);
 		expect(notes.get('e3')?.map((note) => note.body)).toEqual(['別馬']);
 		expect(JSON.stringify([...notes.values()])).not.toMatch(/他人|近況|今回/);
-		expect((await listRaceNoteContext(db, 'missing', [], 'me')).pastRunNotes.size).toBe(0);
+		// 近況は馬の履歴には残るが、各走メモには入らない。今回のレースの分は履歴にも入らない。
+		expect(history.get('h1')?.map((note) => note.body)).toContain('近況');
+		expect(JSON.stringify([...history.values()])).not.toMatch(/他人|今回/);
+		// 画面のデータに出走IDは残さない。
+		expect(JSON.stringify([...notes.values(), ...history.values()])).not.toContain('raceEntryId');
+		const missing = await listRaceMemoContext(db, 'missing', [], 'me');
+		expect(missing.pastRunNotes.size).toBe(0);
+		expect(missing.history.size).toBe(0);
 	});
 });

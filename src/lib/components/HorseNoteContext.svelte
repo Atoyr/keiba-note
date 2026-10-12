@@ -10,17 +10,20 @@
 		notes,
 		jockey,
 		summary,
-		conclusion = null
+		conclusion = null,
+		moreCount = 0
 	}: {
 		horseId: string;
 		notes: { id: string; body: string; tags: NoteTag[]; occurredAt: string }[];
 		jockey: string | null;
 		summary: { body: string; tags: JockeyTag[] } | null;
 		conclusion?: { tags: NoteTag[]; occurredAt: string } | null;
+		/** ここにも各走にも出ていないメモの件数。あるときは件数と馬の画面への入口を出す。 */
+		moreCount?: number;
 	} = $props();
 </script>
 
-{#if notes.length > 0 || conclusion}
+{#if notes.length > 0 || conclusion || moreCount > 0}
 	<section aria-label="馬のメモ">
 		<h3 class="text-sm font-semibold">馬のメモ</h3>
 		{#if conclusion}<p class="mt-2 flex flex-wrap items-center gap-1 text-xs">
@@ -39,7 +42,10 @@
 		</ol>
 		<a
 			href={resolve('/horses/[id]', { id: horseId })}
-			class="mt-2 inline-flex min-h-6 items-center text-xs underline">馬の画面で全文・編集を見る</a
+			class="mt-2 inline-flex min-h-6 items-center text-xs underline"
+			>{moreCount > 0
+				? `ほかに ${moreCount} 件のメモ。馬の画面で全文・編集を見る`
+				: '馬の画面で全文・編集を見る'}</a
 		>
 	</section>
 {/if}

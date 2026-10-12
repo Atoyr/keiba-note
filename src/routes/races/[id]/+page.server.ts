@@ -27,7 +27,7 @@ import type { Actions, PageServerLoad } from './$types';
  * ダッシュボードもレース一覧も開催前のレースを普通に並べるので、
  * **入口ごとに塞ぐのではなく、この画面自身が行き先を持つ**。
  *
- * 読みは最大5往復（race+entriesのbatch / 今回・各走・過去メモのbatch / 騎手 / 馬柱 / 同条件メモ）。重賞のときだけ、自分の傾向で+1。
+ * 読みは最大5往復（race+entriesのbatch / 騎手 / 馬柱 / 同条件メモ / 今回・過去メモのbatch）。重賞のときだけ、自分の傾向で+1。
  * GETは更新セッション2回を含め最大8往復。JS無効のPOST→loadは共通マスタをlocalsから再利用し、保存1回を含め最大9往復。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	// 開催前のリダイレクトの後に引く（予想画面へ送るだけのときは要らない）。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
 	const horseIds = entries.map((entry) => entry.horseId);
-	const [trend, pastRuns, sameCondition] = await Promise.all([
+	const [trend, pastRuns, sameCondition, memos] = await Promise.all([
 		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
 		listPastRuns(db, horseIds, race.date),
 		race.surface && race.distance
@@ -65,19 +65,11 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 					},
 					user.id
 				)
-			: Promise.resolve([])
+			: Promise.resolve([]),
+		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
+		listRaceMemoContext(db, params.id, horseIds, user.id)
 	]);
-	const {
-		raceNotes: notes,
-		pastRunNotes: runNotes,
-		history
-	} = await listRaceMemoContext(
-		db,
-		params.id,
-		[...pastRuns.values()].flat().map((run) => run.entryId),
-		horseIds,
-		user.id
-	);
+	const { raceNotes: notes, pastRunNotes: runNotes, history } = memos;
 
 	// `listRaceMemoContext` が返すのは **viewer 自身のメモだけ**（product.md 第2章 2-2）。
 	// 以前あった「他人のメモを読み取り専用で出す」分岐は、返ってこない行を

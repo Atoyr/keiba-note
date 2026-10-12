@@ -22,7 +22,7 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
-	import { raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
+	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
@@ -103,6 +103,20 @@
 	);
 
 	const ta = 'mt-1 text-sm';
+
+	/**
+	 * 閉じた行の状態の文言。本人のふりかえりがあればそれ、なければ予想（印・本文・札）があるか。
+	 * 開催前の見立ての有無や過去のメモの有無は混ぜない（この行の中身を言い表す）。
+	 */
+	const rowStatus = (r: {
+		myNote: { body: string; tags: unknown[] } | null;
+		myPreview: { mark: string | null; body: string; tags: unknown[] } | null;
+	}) =>
+		r.myNote && (r.myNote.body || r.myNote.tags.length > 0)
+			? 'ふりかえりメモあり'
+			: r.myPreview && (r.myPreview.mark || r.myPreview.body || r.myPreview.tags.length > 0)
+				? '予想メモあり'
+				: 'メモを入力する';
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
@@ -276,6 +290,7 @@
 
 						<ul class="mt-2 grid grid-cols-1 gap-2">
 							{#each rows as r (r.entryId)}
+								{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
 								<li id="entry-{r.entryId}" class="scroll-mt-4 rounded-xl border p-3">
 									<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
 										{#if r.finishPosition}
@@ -317,33 +332,31 @@
 										<MarkBadge mark={r.myPreview?.mark ?? null} />
 									</div>
 
-									<RaceEntryEditor
-										horseName={r.horseName}
-										status={r.myNote || r.myPreview ? '保存済みメモあり' : 'メモを入力する'}
-									>
+									<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
+						     後ろから届いたのか」「上りが速かったのか」が読めない。
+						     スマホで1行に収まるよう、1行目とは分けて小さく出す。 -->
+									{#if r.corner4 !== null || r.last3f !== null || r.popularity}
+										<p
+											class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+										>
+											{#if r.corner4 !== null}
+												<span
+													>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
+												>
+											{/if}
+											<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
+											{#if r.popularity}<span>{r.popularity}人気</span>{/if}
+										</p>
+									{/if}
+
+									<RaceEntryEditor horseName={r.horseName} status={rowStatus(r)}>
 										<HorseNoteContext
 											horseId={r.horseId}
-											notes={r.history.filter((note) => note.kind === 'horse')}
+											notes={digest.recent}
+											moreCount={digest.moreCount}
 											jockey={r.jockey}
 											summary={r.jockeySummary}
 										/>
-										<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
-							     後ろから届いたのか」「上りが速かったのか」が読めない。
-							     スマホで1行に収まるよう、1行目とは分けて小さく出す。 -->
-										{#if r.corner4 !== null || r.last3f !== null || r.popularity}
-											<p
-												class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
-											>
-												{#if r.corner4 !== null}
-													<span
-														>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
-													>
-												{/if}
-												<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
-												{#if r.popularity}<span>{r.popularity}人気</span>{/if}
-											</p>
-										{/if}
-
 										<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
 							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->
 										{#if r.myPreview && (r.myPreview.mark || r.myPreview.body || r.myPreview.tags.length > 0)}

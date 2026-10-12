@@ -32,7 +32,8 @@ import type { Actions, PageServerLoad } from './$types';
  * 日付と格だけ先に登録され、出馬表はその後に入る（README「出走馬データ」）。
  * その段階で「このレースを狙う」と書き留める先がこれまで無かった。
  *
- * 読みは最大6往復（race+entriesのbatch / 今回・各走・過去メモのbatch / 馬柱 / 同条件メモ / オッズ / 騎手のまとめ）。
+ * 読みは最大6往復（race+entriesのbatch / 馬柱 / 同条件メモ / オッズ / 騎手のまとめ / 今回・過去メモのbatch）。
+ * 2段目の5つは互いに待たず並べて読む。
  * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。レース情報に読むだけで出す。
  * GETはセッションのSELECTと更新のUPDATEを含め最大9往復。
  * JS無効のPOST後のloadでは、actionで読んだ共通マスタをlocalsから再利用する。保存1回を含め最大10往復。
@@ -52,7 +53,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	// 重賞の傾向を引く鍵。別名で走った年のレースでも、重賞の画面と同じ名前になる。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
 
-	const [pastRuns, sameCondition, odds, trend, jockeySummaries] = await Promise.all([
+	const [pastRuns, sameCondition, odds, trend, jockeySummaries, memos] = await Promise.all([
 		// 馬柱。このレースより前の出走歴だけを見る。
 		listPastRuns(db, horseIds, race.date),
 		// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
@@ -68,19 +69,11 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
 		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
 		// 行展開や騎手名を押したときに読む、自分のまとめ（このレースの出走馬の騎手だけ）。
-		listRaceJockeySummaries(db, params.id, user.id)
+		listRaceJockeySummaries(db, params.id, user.id),
+		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
+		listRaceMemoContext(db, params.id, horseIds, user.id)
 	]);
-	const {
-		raceNotes: thisRaceNotes,
-		pastRunNotes: runNotes,
-		history
-	} = await listRaceMemoContext(
-		db,
-		params.id,
-		[...pastRuns.values()].flat().map((run) => run.entryId),
-		horseIds,
-		user.id
-	);
+	const { raceNotes: thisRaceNotes, pastRunNotes: runNotes, history } = memos;
 
 	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
 	const oddsByNumber = new Map(odds?.horses.map((h) => [h.horseNumber, h]) ?? []);
