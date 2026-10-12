@@ -128,7 +128,7 @@ jobs:
           if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: failure()
-        # 落ちたテストの、その時点の画面（error-context.md）。レポーターは dot なので
+        # 落ちたテストの、その時点の画面の記録（Playwright の error-context）。レポーターは dot なので
         # playwright-report/ は作られない。画面カタログのキャプチャは上の screens に入っている。
         with:
           name: test-results
