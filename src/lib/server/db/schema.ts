@@ -17,7 +17,7 @@ import type { RaceFlow } from '../../schemas/race-flow';
 import type { RaceSummary } from '../../utils/race-summary';
 
 /**
- * Drizzle スキーマ。docs/product.md 第5章に対応する。
+ * Drizzle スキーマ。docs/data-model.md に対応する。
  *
  * - ID は ULID（時系列ソート可能）
  * - 日時は unixepoch 整数。`occurred_at` は `YYYY-MM-DD` 文字列（JST 固定）
@@ -46,12 +46,12 @@ export const user = sqliteTable('user', {
 	/**
 	 * `admin` / `user`。admin はメンテ用の区分で、マスタ（馬・レース・出走馬）の
 	 * 修正とユーザーの凍結だけを行う。**admin でも他人のメモは読めない**
-	 * （サービス層が例外なく author_id で絞ることの帰結。product.md 第4章）。
+	 * （サービス層が例外なく author_id で絞ることの帰結。product.md 第3章）。
 	 */
 	role: text('role', { enum: ['admin', 'user'] })
 		.notNull()
 		.default('user'),
-	/** 退会は論理削除。NULL 以外はログイン不可（product.md 第9章 #8）。 */
+	/** 退会は論理削除。NULL 以外はログイン不可（product.md 第4章 #8）。 */
 	deletedAt: integer('deleted_at'),
 	createdAt: createdAt(),
 	updatedAt: updatedAt()

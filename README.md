@@ -2,7 +2,7 @@
 
 競馬の観戦メモを残し、レース単位／馬単位でふりかえるための Web アプリ。
 Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。URL は https://uma-memo.com
-（移行の途中。当てる手順は [docs/operations.md「独自ドメインへ移す」](./docs/operations.md#独自ドメインへ移す)）。
+（workers.dev から移している途中。手順は [docs/operations.md「独自ドメインへ移す」](./docs/operations.md#独自ドメインへ移す)）。
 
 旧名は k-note。リポジトリ（keiba-note）・Worker・D1・Google Cloud のプロジェクトは旧名のまま
 （→ [docs/operations.md「名前について」](./docs/operations.md#名前について)）。
@@ -89,16 +89,8 @@ E2E は別の `.wrangler/e2e` を毎回空にして使うので、ここに入�
 
 ### Google OAuth の設定
 
-Google Cloud Console > APIs & Services > Credentials で
-OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）を作り、
-**承認済みのリダイレクト URI に3つ登録する。**
-
-```
-http://localhost:5173/auth/google/callback
-https://uma-memo.com/auth/google/callback
-https://k-note.<subdomain>.workers.dev/auth/google/callback
-```
-
+Google Cloud Console でのクライアントの作り方と、承認済みのリダイレクト URI
+（`http://localhost:5173/auth/google/callback` を含む）は [operations.md 5](./docs/operations.md) にある。
 開発用の値を `.dev.vars`（ローカル）に入れる。本番のシークレット設定は
 [operations.md](./docs/operations.md) に従って人が行う。エージェントは `wrangler secret` を実行しない。
 
@@ -127,7 +119,7 @@ https://k-note.<subdomain>.workers.dev/auth/google/callback
 ログインした email が `ADMIN_EMAIL` と一致したときだけ `role='admin'` になる。
 admin ができるのは馬・レース・出走馬（全員共通のマスタ）の修正と、
 ユーザーの凍結だけ。**admin でも他人のメモは読めない**
-（→ [product.md 第4章](./docs/product.md)）。
+（→ [product.md 第3章](./docs/product.md)）。
 
 ## よく使うコマンド
 
@@ -184,8 +176,8 @@ PR までの手順と、コードを変えるときの約束の目次は [AGENTS
 ## デプロイと運用
 
 `main` の CI 成功後に [ステージング環境](./docs/staging.md) へ反映する。
-アプリはリリースの publish で、レースデータは `main` へのマージで本番に出る（別系統）。
-Cloudflare の構築手順・API トークンの権限・ワークフローの中身は
+アプリはリリースの publish で、出走馬データは `main` へのマージで本番に出る（別系統）。
+Cloudflare の構築手順・API トークンの権限・ワークフローの一覧・バックアップは
 [docs/operations.md](./docs/operations.md)。
 
 ## ディレクトリ構成

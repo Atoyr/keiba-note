@@ -172,7 +172,7 @@
 		</p>
 	{/if}
 
-	<!-- 1画面・1送信でレース1本分のふりかえりが完結する（product.md 第6章）。 -->
+	<!-- 1画面・1送信でレース1本分のふりかえりが完結する（pages.md）。 -->
 	<form
 		method="POST"
 		bind:this={formEl}

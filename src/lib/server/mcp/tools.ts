@@ -369,7 +369,7 @@ export const TOOLS = [
 			if (stranger) return { ok: false, message: stranger };
 
 			// 省いた項目は今の値で埋める。読んでから batch までの間に本人が画面で保存すると、
-			// 省いた項目は読んだときの値に戻る（本人のメモの中だけの競合。architecture.md 3-10）。
+			// 省いた項目は読んだときの値に戻る（本人のメモの中だけの競合。mcp.md）。
 			const current = new Map(
 				myNotes.filter((n) => n.kind === 'preview').map((n) => [n.raceEntryId, n])
 			);
@@ -461,7 +461,7 @@ export const TOOLS = [
 			const stranger = strangerEntryError(input.entries, entries);
 			if (stranger) return { ok: false, message: stranger };
 
-			// 省いた項目は今の値（自分のふりかえりメモ）で埋める。競合は予想の tool と同じ（architecture.md 3-10）。
+			// 省いた項目は今の値（自分のふりかえりメモ）で埋める。競合は予想の tool と同じ（mcp.md）。
 			const current = new Map(
 				myNotes.filter((n) => n.kind === 'entry').map((n) => [n.raceEntryId, n])
 			);

@@ -23,7 +23,7 @@ import { safeRedirect } from '$lib/utils/redirect';
  * `/` は未ログインだと紹介ページを出し、DB には触らない（`src/routes/+page.server.ts`）。
  *
  * `/notes/` はメモの共有ページ。そこで出せるのは
- * `visibility = 'unlisted'` の1行だけ（product.md 第6章）。
+ * `visibility = 'unlisted'` の1行だけ（pages.md）。
  *
  * `/privacy` と `/terms` は Google OAuth の同意画面に URL を登録するページ。
  * ログインする前に読めなければ意味がない（docs/operations.md）。
@@ -88,7 +88,7 @@ function createRequestMonitor(event: RequestEvent): Monitor {
  * どの認証方式を使っているかを知っているのはこのファイルだけ。
  *
  * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
- * **ここに足したもの（レート制限など）はその口には効かない**（docs/architecture.md 3-10）。
+ * **ここに足したもの（レート制限など）はその口には効かない**（docs/mcp.md）。
  */
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;

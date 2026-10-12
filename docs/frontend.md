@@ -7,7 +7,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - **ここに無いもの:** 色・部品の選び方は [design-system.md](./design-system.md)、
   ルートごとの入出力と action の約束は [api.md](./api.md)、どの層からどこを import してよいかは
   [architecture.md 第2章](./architecture.md)、テストの書き方は [testing.md](./testing.md)
-- 作成日: 2026-09-23 — AGENTS.md の「コードの書き方」と、各所に散っていた SvelteKit の決まりを集めた
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
 
 ---
 
@@ -28,8 +28,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 - DB とログインユーザーは `ctx(locals, platform)` で取り出す。admin だけの操作は `ctxAdmin`
   （`src/lib/server/util.ts`）。DB が無ければ 503、未ログインは 401、admin でなければ 403 になる
-- D1 クライアントはリクエストごとに作る。`ctx` が `createDb(platform.env, locals.monitor.onQuery)` で作って返すので、
-  自分でモジュールスコープに置かない（→ [architecture.md 3-1](./architecture.md)）
+- D1 クライアントは `ctx` が作って返す。自分でモジュールスコープに置かない（→ [architecture.md 3-1](./architecture.md)）
 - ルートは薄くする。画面に要る形への整形がサービス層で済むなら、そちらに寄せる
 - 「誰のメモか」の絞り込みはサービス層の SQL に任せ、ルートでは絞らない。ルートで見るのは
   「その操作をしてよいか」（admin か、開催前か）だけ（→ [architecture.md 3-6](./architecture.md)）
@@ -50,7 +49,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - 画面が要る型は `PageProps` の `data` から取る。**`$lib/server/**` から型を import しない**
   （SvelteKit は値の import しか止めない。層の規則は [architecture.md 第2章](./architecture.md)）
 - アプリ内のリンクは `$app/paths` の `resolve('/races/[id]', { id })` で組み、`href="/..."` を直に書かない。
-  GET のフォームの `action` も同じ。別のルートへ POST するフォーム（`/auth/logout`・`/settings/shares`）は
+  GET のフォームの `action` も同じ。別のルートへ POST するフォーム（`/auth/logout`・`/settings/shares`・`/dev/mock-user`）は
   今は文字列で書いている
 - クエリ付きのリンク（`/races?year=` など）は、パスを `resolve()` で組んでからクエリを足す。
   `svelte/no-navigation-without-resolve` は足した形を読めないので、その `<a>` だけを
@@ -68,6 +67,9 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   （送信中に書き足した分を保存済みに数えない）。保存の知らせの件数は `clear()` の戻り値（変えたメモの数）を使い、
   文は `utils/note.ts` の `savedMessage`。ボタンが消えるときフォーカスはフォームへ移るので、
   フォームに `tabindex="-1"` を付ける
+- `use:enhance` で値を残すフォームは **`update({ reset: false })`** を呼ぶ。既定の `update()` はフォームを
+  `reset()` するが、Svelte は欄を `.value` で更新するので `defaultValue` は空のまま。リセットで全欄が空になり、
+  保存した直後に中身が消えたように見える。「空欄＝そのメモを消す」フォームでは、そこで保存し直すと本当に消える
 - 長い一覧は100件ずつ読む。サービス層は `offset` を受けて `Page<T>`（`items` と `next`）を返し、
   画面は `PagedList`（`utils/paged-list.svelte.ts`）で1ページ目に続きを足して、下端に `LoadMore` を置く。
   続きは `?offset=` を付けた同じ URL の `load` を `preloadData` で読む（専用の API は作らない）。
@@ -79,11 +81,9 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 ## 4. フォームと入力
 
-- 外から来た値（`FormData`・クエリ文字列）は、`src/lib/schemas/` の Valibot スキーマで型付きの値にしてから使う。
-  `v.safeParse` の失敗は `fail(400, { message })` で返し、画面は `form?.message` を出す
-- **行の構成はフォームではなく DB を正とする。** 出走馬ごとの入力は `body.<entryId>` のように
-  名前に id を入れて送るが、どの `entryId` を読むかは DB から引いた出走馬の一覧で決める。
-  フォームの id を鵜呑みにすると、他のレースの行に書き込めてしまう
+- 外から来た値の検証・`fail(400, { message })`・行の構成を DB で決めること（フォームの id を鵜呑みにしない）は
+  [api.md 第4章](./api.md)。画面は `form?.message` を出す
+- 出走馬ごとの入力は `body.<entryId>` のように名前に id を入れて送る
 - 添字付きの行（出走馬の入力）は `horseName.0` のように名前を付け、`rowCount` で件数を送る
 - **hydration の前に書かれた入力は、hydration のあとに書き戻す。** Svelte は hydration で
   非制御の入力欄（`<textarea>{値}</textarea>`・`checked={値}`）を SSR の値に戻すので、JS が届く前に
@@ -91,7 +91,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   入力を覚え、ルートレイアウトの onMount が書き戻して `input` / `change` を投げる
   （`src/lib/utils/early-input.ts`）。書き戻した値は `DraftKeeper` の「未保存」に数えられる。
   `bind:value` の欄も同じ扱いになるので、フォームごとに何もしなくてよい。
-  `kit.csp` を入れるときは、このスクリプトに nonce が要る
+  今は `kit.csp` を設定していない（設定する場所は `vite.config.ts` の `sveltekit({…})`）。入れるときは、このスクリプトに nonce が要る
 - フィールド名と action の一覧は [api.md 第3章](./api.md)
 
 ## 5. コンポーネント
@@ -99,7 +99,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - 置き場は `src/lib/components/`。名前は PascalCase（`GradeBadge.svelte`）
 - 表示と操作のテストを隣に置く（`GradeBadge.svelte.spec.ts`。書き方は [testing.md](./testing.md)）
 - 色・部品の選び方・見た目の分岐の書き方は [design-system.md](./design-system.md)
-- 機能ごとのディレクトリ（`components/races/` など）に分ける計画がある（[harness.md 第2層](./harness.md)）
+- 機能ごとのディレクトリ（`components/races/` など）には、まだ分けていない（`components/` は平置き。計画は [harness.md 第2層](./harness.md)）
 
 ## 6. コードの書き方
 
@@ -113,15 +113,14 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 ## 7. 手元で触る
 
-- `.dev.vars` に `MOCK_AUTH="1"` を置いて `pnpm run dev`。Google に行かずにログインでき、
-  ヘッダの警告帯からユーザーを切り替えられる（`/dev/mock-user`。`dev` のときだけ存在する）
+- 開発用のモック認証（`.dev.vars` の `MOCK_AUTH`）は [README.md](../README.md)。ヘッダの警告帯からユーザーを切り替えられる（`/dev/mock-user`。`dev` のときだけ存在する）
 - 開発サーバーは手元の D1（`.wrangler/state`）を見る。PR に貼るキャプチャはこちらでは撮らない
   （→ [testing.md 第5章](./testing.md)）
 
 ## 8. WebMCP で予想の下書きを受ける
 
 WebMCP は試験的な機能として残す。Claude・ChatGPT から読む安定した経路はサーバーの MCP（`/mcp`）で、
-画面は同意（`/oauth/authorize`）と連携の一覧（`/settings/connections`）だけ（→ [architecture.md 3-10](./architecture.md)）。
+画面は同意（`/oauth/authorize`）と連携の一覧（`/settings/connections`）だけ（→ [mcp.md](./mcp.md)）。
 
 使い方はログインした人向けの `/help/webmcp` に置き、MCP の使い方（`/help/mcp`）の末尾からリンクする。
 予想画面には置かない（試験的な機能なので、予想を書く画面で目立たせない）。

@@ -1,26 +1,27 @@
 # uma-memo 運用手順 — Cloudflare の構築とデプロイ
 
-README から運用の手順だけを切り出したもの。日々の開発では読まなくてよい。
-アプリの全体像は [architecture.md 第4章](./architecture.md)（デプロイ構成）と第8章（運用）。
+人が行う運用の手順書。Cloudflare への構築、シークレットと Actions の設定、デプロイ、ワークフローの一覧、
+バックアップ、問い合わせへの対応を書く。
 
-- 作成日: 2026-09-23 — README の「Cloudflare に構築する」「デプロイ（GitHub Actions）」を移設
-- 更新日: 2026-09-23 — アプリ名を uma-memo に変え、独自ドメイン `uma-memo.com` を当てる手順を足した（→ 名前について / 独自ドメインへ移す）
-- 更新日: 2026-09-25 — 出走馬の取得を Actions に頼むトークン（`GITHUB_DISPATCH_TOKEN`）と、Actions に PR を作らせる設定を足した（→ 6 / 動かすのに必要な設定 5）
-- 更新日: 2026-10-03 — オッズの更新も `GITHUB_DISPATCH_TOKEN` で Worker の Cron から起動するようにした（→ 6 / デプロイ）
+作成日: 2026-09-23 / 最終更新日: 2026-10-12
 
----
+- **読む場面:** Cloudflare を作り直す・シークレットや API トークンを入れる・GitHub Actions を設定する・
+  リリースを出す・独自ドメインを触る・バックアップを取る・アカウントの削除を頼まれたとき。日々の開発では読まなくてよい
+- **ここに無いもの:** デプロイ構成の図と、アプリとデータを別系統で出す理由は [architecture.md 第4章](./architecture.md)。
+  ログ・通知・死活監視と、通知の Webhook の値は [monitoring.md](./monitoring.md)。
+  ステージングの更新は [staging.md](./staging.md)。出走馬データ（YAML）の書式は [data/README.md](../data/README.md)
 
 ## 名前について
 
 アプリ名は **uma-memo**（旧名 k-note）。変えたのは画面に出る名前と URL（`https://uma-memo.com`）だけで、
 次のものは**旧名のまま**にしてある。
 
-| もの | 名前 | 変えない理由 |
-| --- | --- | --- |
-| GitHub のリポジトリ | `keiba-note` | clone 済みの remote や Actions の設定を巻き込むため |
-| Worker（`wrangler.toml` の `name`） | `k-note` | 変えると別の Worker ができ、シークレットも入れ直しになる |
-| D1（`database_name`） | `k-note` | 名前は変えられない。作り直すとデータの移し替えになる |
-| Google Cloud のプロジェクト・OAuth クライアント | 旧名のまま | リダイレクト URI を足すだけで足りる |
+| もの                                           | 名前       | 変えない理由                                            |
+| ---------------------------------------------- | ---------- | ------------------------------------------------------- |
+| GitHub のリポジトリ                            | `keiba-note` | clone 済みの remote や Actions の設定を巻き込むため     |
+| Worker（`wrangler.toml` の `name`）            | `k-note`   | 変えると別の Worker ができ、シークレットも入れ直しになる |
+| D1（`database_name`）                          | `k-note`   | 名前は変えられない。作り直すとデータの移し替えになる    |
+| Google Cloud のプロジェクト・OAuth クライアント | 旧名のまま | リダイレクト URI を足すだけで足りる                     |
 
 コマンドや設定に出てくる `k-note` は、この表のどれかを指している。**揃えようとして書き換えないこと。**
 
@@ -28,7 +29,7 @@ README から運用の手順だけを切り出したもの。日々の開発で�
 
 **構築済み。** D1 `k-note`（APAC）と Worker `k-note` は作成され、
 `wrangler.toml` の `database_id` にも実値が入っている。
-以下は**作り直すときの手順**として残してある。
+以下は**作り直すときの手順**として残してある。上から順に 1〜9 を行う。
 
 `wrangler` は devDependency なので、すべて `pnpm exec` を付けて叩く。
 
@@ -73,6 +74,11 @@ Google の設定にリダイレクト URI が要るが、その URL は
 デプロイして初めて確定する。先に上げてしまう。
 **シークレットがまだ無いのでログインはできない**が、それでよい。
 
+`wrangler.toml` の `routes` が `uma-memo.com` の custom domain を張るので、ゾーン `uma-memo.com` が
+同じ Cloudflare アカウントに無い、または apex に既存の A / AAAA / CNAME レコードがあると、このデプロイは落ちる。
+先に 7 の前提（ゾーンの追加、既存レコードの削除）を済ませておく。API トークンの権限は
+[動かすのに必要な設定](#動かすのに必要な設定) の 1。
+
 ```bash
 pnpm run deploy
 ```
@@ -83,7 +89,8 @@ pnpm run deploy
 
 Google Cloud Console > APIs & Services > Credentials で
 OAuth 2.0 クライアント ID（種別: ウェブ アプリケーション）を作り、
-**承認済みのリダイレクト URI に3つ登録する。**
+**承認済みのリダイレクト URI に3つ登録する。** ここがリダイレクト URI の正で、
+[README.md](../README.md) と `.dev.vars.example` はこの節を指す。
 
 ```
 http://localhost:5173/auth/google/callback
@@ -91,20 +98,22 @@ https://uma-memo.com/auth/google/callback
 https://k-note.<subdomain>.workers.dev/auth/google/callback
 ```
 
+ステージングで Google ログインを確かめるなら、その URI も足す（→ [staging.md](./staging.md#google-ログイン)）。
+
 同じ画面の **OAuth 同意画面**（Google Auth Platform > ブランディング / 対象）を埋めて、
 公開ステータスを「本番環境」にする。「テスト」のままだと、テストユーザーに登録した
 Google アカウント（100 件まで）しかログインできない。
 
-| 項目 | 値 |
-| --- | --- |
-| アプリ名 | `uma-memo` |
-| ユーザーサポートメール・デベロッパーの連絡先 | 運営者のアドレス（画面には出ない。Google からの連絡用） |
-| アプリのホームページ | `https://uma-memo.com/`（未ログインだと紹介ページ。ポリシーへのリンクがある） |
-| アプリのプライバシー ポリシー | `https://uma-memo.com/privacy` |
-| アプリの利用規約 | `https://uma-memo.com/terms` |
-| 承認済みドメイン | `uma-memo.com` |
-| ユーザーの種類 | 外部 |
-| スコープ | `openid`・`.../auth/userinfo.email`・`.../auth/userinfo.profile` |
+| 項目                                         | 値                                                                                 |
+| -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| アプリ名                                     | `uma-memo`                                                                         |
+| ユーザーサポートメール・デベロッパーの連絡先 | 運営者のアドレス（画面には出ない。Google からの連絡用）                            |
+| アプリのホームページ                         | `https://uma-memo.com/`（未ログインだと紹介ページ。ポリシーへのリンクがある）      |
+| アプリのプライバシー ポリシー                | `https://uma-memo.com/privacy`                                                     |
+| アプリの利用規約                             | `https://uma-memo.com/terms`                                                       |
+| 承認済みドメイン                             | `uma-memo.com`                                                                     |
+| ユーザーの種類                               | 外部                                                                               |
+| スコープ                                     | `openid`・`.../auth/userinfo.email`・`.../auth/userinfo.profile`                   |
 
 要求するスコープは機密でないものだけなので、本番環境にするのにスコープの審査は要らない。
 ロゴを載せるとブランドの確認が要るので、載せない。
@@ -112,7 +121,240 @@ Google アカウント（100 件まで）しかログインできない。
 ポリシーと規約の本文は `src/routes/privacy/`・`src/routes/terms/` にある。取る情報や
 使う外部サービスを変えたら、本文と最終改定日も直す。
 
-### アカウントの削除を頼まれたら
+### 6. シークレットを入れる
+
+どれも、実行すると値の入力を求められる。**デプロイし直す必要はない。**
+アプリのシークレットは Cloudflare 側に1回だけ入れればよく、**GitHub 側には要らない**（毎回のデプロイで入れ直す必要もない）。
+
+```bash
+pnpm exec wrangler secret put GOOGLE_CLIENT_ID
+pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
+pnpm exec wrangler secret put ADMIN_EMAIL
+pnpm exec wrangler secret put DISCORD_WEBHOOK_URL
+pnpm exec wrangler secret put GITHUB_DISPATCH_TOKEN
+```
+
+`ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
+
+`DISCORD_WEBHOOK_URL` は障害を知らせる Discord の Webhook。入れなければ通知だけが止まり、アプリは動く。
+Worker と Actions の両方が Discord に送るので**両方に入れる**。差し替えるときも両方
+（値の一覧と差し替え手順は [monitoring.md 第8章](./monitoring.md)）。
+
+`GITHUB_DISPATCH_TOKEN` は、出走馬の取得（`race-data-fetch.yml`）とオッズの更新（`odds-update.yml`）を
+GitHub Actions に頼むトークン（→ [architecture.md 3-8・3-9](./architecture.md)）。入れなければ、
+枠順などの定期取得と管理画面の「出走馬を取得」と、オッズの更新が止まる。
+GitHub > Settings > Developer settings > Fine-grained tokens で次のように作る。
+
+| 項目                                | 設定                                                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------- |
+| Resource owner / Repository access | `Atoyr` / Only select repositories → `keiba-note`                                      |
+| Repository permissions              | `Actions: Read and write` だけ（Metadata: Read は自動で付く）                          |
+| Expiration                          | 1年以内。切れると Cron が `entries.dispatch`・`odds.dispatch`（`auth`）で知らせる      |
+
+リポジトリ名は `wrangler.toml` の `[vars]` の `GITHUB_REPOSITORY`（シークレットではない）。
+Actions 側にも設定が1つ要る（→ 9。[動かすのに必要な設定](#動かすのに必要な設定) の 5）。
+
+### 7. 独自ドメインを当てる
+
+`wrangler.toml` の `routes` に `uma-memo.com` を `custom_domain = true` で書いてある。
+ゾーン `uma-memo.com` が同じ Cloudflare アカウントにあれば、デプロイ時に
+DNS レコードと証明書を Cloudflare が作る。ゾーンの追加や Google の URI の追加など、
+workers.dev で動いていたものへ後から当てる順序は [独自ドメインへ移す](#独自ドメインへ移す)。
+
+### 8. 出走馬データを投入する
+
+```bash
+pnpm run data:import:remote
+```
+
+### 9. GitHub Actions を設定する
+
+Actions のシークレット・変数と、Actions に PR を作らせる設定を
+[動かすのに必要な設定](#動かすのに必要な設定) の 1〜5 に従って入れる。
+
+ここまでで動く。以降は GitHub でリリースを publish すれば Actions がマイグレーション → デプロイまで回す。
+出走馬データは `main` へのマージで入る（[デプロイ](#デプロイgithub-actions)）。
+
+### 確認に使うコマンド
+
+```bash
+pnpm exec wrangler whoami              # ログインできているか
+pnpm exec wrangler d1 list             # D1 ができたか
+pnpm exec wrangler d1 info k-note      # 場所（apac か）とサイズ
+pnpm exec wrangler secret list         # 入れたシークレットの名前（値は出ない）
+pnpm exec wrangler deploy --dry-run    # 上げずにビルドだけ試す
+pnpm exec wrangler tail                # 本番のログを流す（Workers Logs は monitoring.md 第2章）
+```
+
+## デプロイ（GitHub Actions）
+
+ワークフローは9本。**アプリと出走馬データは別系統で出る**（理由は [architecture.md 第4章](./architecture.md)）。
+
+| ワークフロー                         | きっかけ                                                                                | すること                                                                                                       | 本番に効くか                                        |
+| ------------------------------------ | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `ci.yml`                             | PR・`main` への push・`workflow_call`（`deploy.yml` から）                              | 検証（`data:check` / `check` / `lint` / `test:unit`）と E2E。`main` で落ちたときだけ Discord「デプロイ」へ      | 効かない                                            |
+| `pr-body.yml`                        | PR の作成・本文の編集                                                                   | PR 本文の欄が埋まっているかの検査と、起動すべきレビュアーの出力                                                | 効かない                                            |
+| `staging.yml`                        | `main` の CI 成功 / 手動                                                                | ステージング D1 にマイグレーションと出走馬データを入れ、固定名 `staging` の Preview にデプロイ（→ [staging.md](./staging.md)） | ステージングだけ                                    |
+| `deploy.yml`                         | リリースの publish / 手動                                                               | `ci.yml` の再実行 → マイグレーション → `wrangler deploy`。成功も失敗も Discord「デプロイ」へ                   | **アプリが本番に出る**（出るのはここだけ）          |
+| `data-import.yml`                    | `main` の `data/races/**` の変更                                                        | `data:check` → `data:import:remote`。失敗だけ Discord「デプロイ」へ                                            | **出走馬データが本番に入る**（リリースを待たない）  |
+| `race-data-fetch.yml`                | Worker の Cron・管理画面の「出走馬を取得」・手動（結果は手動だけ）                      | netkeiba から出走馬・結果を取り、`data/races/*.yaml` を書いて PR を作る。D1 には触らない                       | PR をマージしたとき（`data-import.yml` 経由）       |
+| `odds-update.yml`                    | Worker の Cron が `workflow_dispatch` で起動（`main` からしか動かない）                 | オッズを取り、`race_odds` に `wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)） | **本番の D1 に直接書く**。Cron はリリースで初めて効く |
+| `health.yml`                         | 毎時 7分・37分                                                                          | 本番の `/api/health` を叩き、状態が変わったときだけ Discord「障害」へ（→ [monitoring.md 第6章](./monitoring.md)） | 通知のみ                                            |
+| `discord-notify.yml`                 | 他のワークフローから `workflow_call`                                                    | Actions から Discord へ送る部品（→ [monitoring.md 第7章](./monitoring.md)）                                    | 通知のみ                                            |
+
+`odds-update.yml` を起動する Cron は Worker の設定（`wrangler.toml`）なので、**リリースの publish で初めて本番に効く**
+（`main` へのマージでは効かない）。時間帯と取得の方針は [architecture.md 3-8](./architecture.md)。
+起動には `GITHUB_DISPATCH_TOKEN`（6）、D1 への書き込みには下の `CLOUDFLARE_API_TOKEN` の `D1 : Edit` を使う。
+
+**アプリは `main` にマージしても本番には出ない。** 出るのはリリース publish のときだけ。
+`main` は「次に出す候補」であって本番ではない。ステージングには `main` の CI が成功したコミットを反映する。
+**出走馬データはリリースを待たない。** マージすればそのまま入る。
+
+順序の約束は1つだけ。**YAML に新しい項目を足す変更は、先にアプリのリリースが要る**
+（スクリプトとスキーマの変更を伴うため）。逆は自由で、データ更新はアプリに影響しない。
+`deploy.yml` はデータ投入をしない（タグ時点の古い YAML で枠順が巻き戻るため）。
+
+出したくなったら GitHub の Releases でタグを切って publish する。
+
+```bash
+gh release create v0.1.0 --generate-notes
+```
+
+リリースのタグは `main` の CI を通ったコミットのはずだが、任意のコミットからタグを切ることもできるので、
+`deploy.yml` は出す前に `ci.yml` をもう一度呼んで回している（`workflow_call`）。
+Cloudflare 側の都合で失敗したときは、Actions から `デプロイ` を `workflow_dispatch` で手動リトライできる（実行するタグを選ぶ）。
+
+**順番が大事。** マイグレーション → デプロイの順にしてある。
+逆にすると新しいコードが古いスキーマに当たって壊れる。
+この順でも「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
+列を消すような破壊的なマイグレーションはそれを承知で流すこと。
+
+### 動かすのに必要な設定
+
+**1. Cloudflare の API トークンを作る**
+
+Cloudflare ダッシュボード > Manage Account > Account API Tokens > Create Token。
+My Profile 配下のユーザートークンではなく、**アカウント所有トークン**を作る
+（作った人がアカウントを抜けても失効しない）。
+
+| 対象    | 設定                                              | 何のために                                                                       |
+| ------- | ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Workers | Editor / スコープは Specified Workers → k-note    | `wrangler deploy` の書き込み                                                     |
+| Account | `D1 : Edit`                                       | `d1 migrations apply` / `d1 execute`（出走馬データの投入・オッズの更新）         |
+| Account | `Workers Scripts : Read`                          | workers.dev のサブドメイン名の読み取り                                           |
+| Zone    | `Workers Routes : Write`（ゾーン `uma-memo.com`） | 独自ドメイン（`routes`）の張り付け。`wrangler deploy` は毎回その状態に揃えに行くので、張った後も外さない |
+
+- Account Resources はこのアカウントだけに絞る
+- Client IP Address Filtering は**設定しない**。GitHub の runner は IP が動的なので、絞ると壊れる
+
+`Workers: Editor` が `wrangler deploy`（Worker 本体・`[assets]`・シークレット）の
+書き込みを担う。バインディングを持つ Worker をデプロイするだけなら、
+バインディング先の権限は要らない。`D1 : Edit` を別に付けるのは、
+`d1 migrations apply` と `d1 execute` で**D1 を直接叩いている**から。
+
+**`Workers Scripts : Read` は Workers: Editor では代用できない。**
+`wrangler deploy` は Worker を上げ終えたあと、結果に出す URL を組み立てるために
+`GET /accounts/{id}/workers/subdomain` を読む。これは**アカウント単位**の読み取りで、
+Specified Workers に絞ったスコープの外にある。付けずに CI から流すと、
+アップロードは成功したのに `Authentication error [code: 10000]` で非ゼロ終了する。
+しかもそこで throw して、直後の Worker 単位の `POST .../workers/scripts/k-note/subdomain` に到達しないため、
+`wrangler.toml` の `workers_dev` と `preview_urls` を変えても反映されなくなる
+（既存の設定が残るので、サイトは動き続けて気づきにくい）。
+
+`workers_dev = false` にすれば読みに行かなくなるが、その POST が `enabled: false` を
+送って workers.dev ごと落ちる。workers.dev を止めるときは、これがそのまま止め方になる
+（→ [独自ドメインへ移す](#独自ドメインへ移す)）。
+
+**新しい Worker を作るには Workers product スコープの Admin が要る。**
+Specified Workers は既にある Worker にしか付けられないので、
+まだ一度もデプロイしていないなら、先に手元から `pnpm run deploy` して Worker を作っておくこと。
+
+旧来の `Edit Cloudflare Workers` テンプレート（`Workers Scripts : Edit`）でも動く。
+ただし Workers の権限が role ベースに変わり legacy 扱いになった（廃止日は未定）ので、新しく作るなら上の構成にする。
+
+**2. リポジトリに登録する**
+
+Settings > Secrets and variables > Actions。
+
+| 種別     | 名前                         | 値                                                                              |
+| -------- | ---------------------------- | ------------------------------------------------------------------------------- |
+| Secret   | `CLOUDFLARE_API_TOKEN`       | 1 で作ったトークン                                                              |
+| Secret   | `CLOUDFLARE_ACCOUNT_ID`      | Cloudflare ダッシュボードの Account ID                                          |
+| Secret   | `DISCORD_WEBHOOK_URL` ほか   | 通知の Webhook と `HEALTH_CHECK_URL`。中身と差し替えは [monitoring.md 第8章](./monitoring.md) |
+
+**3. `wrangler.toml` の `database_id` が実値であること**（設定済み）
+
+プレースホルダのままだと CI からもデプロイできない。
+`pnpm exec wrangler d1 create k-note --location apac` の出力を書く（2 の手順）。
+これは機密ではないのでコミットしてよい。
+
+**4. アプリのシークレットは Cloudflare 側に1回だけ**
+
+6 のとおり。`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` / `GITHUB_DISPATCH_TOKEN` は
+`wrangler secret put` で Cloudflare に入れ、GitHub 側には要らない。例外は `DISCORD_WEBHOOK_URL` で、両方に入れる。
+
+**5. Actions に PR を作らせる**
+
+Settings > Actions > General > Workflow permissions で
+**「Allow GitHub Actions to create and approve pull requests」を入れる**（既定の「Read repository contents」のままでよい。
+`race-data-fetch.yml` は自分の `permissions` で書き込みを要求する）。入れないと、出馬表や結果は取れても PR の作成で落ちる。
+
+Actions の `GITHUB_TOKEN` で作った PR には `ci.yml`・`pr-body.yml` が走らない（GitHub の仕様）。
+`race-data-fetch.yml` が自分で `data:check` を通してから PR を作るので、検証は済んでいる。
+`main` のルールセットに必須のチェックは無いので、そのままマージできる。
+
+### このリポジトリは public なので
+
+- `pull_request_target` は**使わない**。fork からの PR にシークレットが渡ってしまう
+- `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
+- deploy はリリース publish 限定なので、PR からも `main` への push からも走らない
+
+## 独自ドメインへ移す
+
+`k-note.<subdomain>.workers.dev` で動いていたものに `uma-memo.com` を当てる手順（構築の 7 の詳細）。
+**人が行う。** 順番を守れば、どの時点でも workers.dev 側はそのまま動いている。
+
+1. **ゾーンを Cloudflare に置く。** `uma-memo.com` を Worker と同じアカウントに追加し、
+   ネームサーバーを Cloudflare に向ける（Cloudflare Registrar で取ったなら済んでいる）。
+   apex に既存の A / AAAA / CNAME レコードがあると custom domain は作れないので消しておく
+2. **Google のリダイレクト URI を足す。** Google Cloud Console > APIs & Services > Credentials の
+   OAuth クライアントに `https://uma-memo.com/auth/google/callback` を足す。
+   既存の workers.dev の URI は消さない。コード側はオリジンから URI を組み立てるので変更は要らない
+3. **API トークンに権限を足す。** ゾーン `uma-memo.com` に Zone > `Workers Routes : Write`
+   （→ [動かすのに必要な設定](#動かすのに必要な設定) の 1）。CI から初めて routes を張るときに要る
+4. **リリースを publish する。** `deploy.yml` の `wrangler deploy` が custom domain を張る。
+   手元から張るなら `pnpm run deploy`
+5. **確かめる。** `https://uma-memo.com` を開いてログインまで通す。
+   Cookie はホストごとなので、workers.dev 側のセッションは引き継がれない（もう一度ログインする）
+
+workers.dev は当面残す。止めるのは独自ドメインで回ると確かめてからで、
+`wrangler.toml` の `workers_dev` / `preview_urls` を `false` にし、
+Google のリダイレクト URI から workers.dev のものを消す（別の PR で）。
+
+**止めると、workers.dev で発行した共有リンクが全部切れる。** 共有リンクは開いている画面の
+オリジンから組み立てる（`ShareControl.svelte`）ので、移行前に配ったリンクも、
+workers.dev を残している間にそちらで発行したリンクも `https://k-note.<subdomain>.workers.dev/notes/<id>` になっている。
+止める前に、workers.dev への要求を同じパスのまま `https://uma-memo.com` へ 301 で送る仕組みを入れ、
+しばらく回してから止める。リダイレクトを入れずに止めるなら、リンクが切れてよいと決めたことを PR に書く。
+
+## バックアップ
+
+D1 の Time Travel で、過去30日間（Workers Paid）の任意の時点に復元できる。
+**別途バックアップの仕組みは作らない。** 節目で `pnpm exec wrangler d1 export` を手動実行して手元に置けば十分。
+プランと保持日数の関係は [architecture.md 6-1](./architecture.md)。
+
+## 利用者の画面が JS 無しで固まったら
+
+デプロイの切り替わりの間に、新しい JS/CSS のチャンクが 404 で返ることがある。`/_app/immutable/*` は
+`Cache-Control: public, immutable, max-age=31536000` が付く経路なので、ブラウザがその 404 を1年抱えて、
+画面が JS 無しで固まる。Worker の入口（`src/worker.js`）は、失敗に付いた `immutable` を `no-store` に
+差し替えて**抱えるのを防ぐ**（仕組みは [architecture.md 3-5](./architecture.md)）。
+
+ただし、すでに 404 を抱えたブラウザには届かない（キャッシュから返るので Worker に来ない）。
+その人には**サイトデータの削除**を頼む（Chrome ならアドレスバーの鍵 → サイトの設定 → データを削除）。
+削除すると Cookie も消えるので、もう一度ログインしてもらう。
+
+## アカウントの削除を頼まれたら
 
 プライバシーポリシー第8章で、依頼があれば**アカウントの情報と書いたメモをすべて消す**と約束している。
 アプリの「凍結」（`/settings/admin`）は論理削除で行もメモも残るので、これとは別に**人が本番の D1 を直に消す。**
@@ -134,240 +376,3 @@ Google アカウント（100 件まで）しかログインできない。
    ```
 
 4. Issue に削除したことを返して閉じる。同じ Google アカウントでもう一度ログインすると、新しい空のアカウントができる
-
-### 6. シークレットを入れる
-
-どれも、実行すると値の入力を求められる。**デプロイし直す必要はない。**
-
-```bash
-pnpm exec wrangler secret put GOOGLE_CLIENT_ID
-pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
-pnpm exec wrangler secret put ADMIN_EMAIL
-pnpm exec wrangler secret put DISCORD_WEBHOOK_URL
-pnpm exec wrangler secret put GITHUB_DISPATCH_TOKEN
-```
-
-`DISCORD_WEBHOOK_URL` は障害を知らせる Discord の Webhook（→ [monitoring.md](./monitoring.md)）。
-入れなければ通知だけが止まり、アプリは動く。
-
-`ADMIN_EMAIL` と一致する Google アカウントでログインした人だけが `admin` になる。
-
-`GITHUB_DISPATCH_TOKEN` は、出走馬の取得（`race-data-fetch.yml`）とオッズの更新（`odds-update.yml`）を GitHub Actions に頼むトークン
-（→ [architecture.md 3-8・3-9](./architecture.md)）。入れなければ、枠順の定期取得と管理画面の「出走馬を取得」と、オッズの更新が止まる。
-GitHub > Settings > Developer settings > Fine-grained tokens で次のように作る。
-
-| 項目 | 設定 |
-| --- | --- |
-| Resource owner / Repository access | `Atoyr` / Only select repositories → `keiba-note` |
-| Repository permissions | `Actions: Read and write` だけ（Metadata: Read は自動で付く） |
-| Expiration | 1年以内。切れると Cron が `entries.dispatch`・`odds.dispatch`（`auth`）で知らせる |
-
-リポジトリ名は `wrangler.toml` の `[vars]` の `GITHUB_REPOSITORY`（シークレットではない）。
-Actions 側にも設定が1つ要る（→ 下の「動かすのに必要な設定」の 5）。
-
-### 7. 独自ドメインを当てる
-
-`wrangler.toml` の `routes` に `uma-memo.com` を `custom_domain = true` で書いてある。
-ゾーン `uma-memo.com` が同じ Cloudflare アカウントにあれば、デプロイ時に
-DNS レコードと証明書を Cloudflare が作る（→ 下の「独自ドメインへ移す」）。
-
-### 8. レースデータを投入する
-
-```bash
-pnpm run data:import:remote
-```
-
-ここまでで動く。以降は GitHub でリリースを publish すれば Actions が
-マイグレーション → デプロイまで回す。レースデータは `main` へのマージで入る（下記）。
-
-### 独自ドメインへ移す
-
-`k-note.<subdomain>.workers.dev` で動いていたものに `uma-memo.com` を当てる手順。
-**人が行う。** 順番を守れば、どの時点でも workers.dev 側はそのまま動いている。
-
-1. **ゾーンを Cloudflare に置く。** `uma-memo.com` を Worker と同じアカウントに追加し、
-   ネームサーバーを Cloudflare に向ける（Cloudflare Registrar で取ったなら済んでいる）。
-   apex に既存の A / AAAA / CNAME レコードがあると custom domain は作れないので消しておく
-2. **Google のリダイレクト URI を足す。** Google Cloud Console > APIs & Services > Credentials の
-   OAuth クライアントに `https://uma-memo.com/auth/google/callback` を足す。
-   既存の workers.dev の URI は消さない。コード側はオリジンから URI を組み立てるので変更は要らない
-3. **API トークンに権限を足す。** ゾーン `uma-memo.com` に Zone > `Workers Routes : Write`
-   （→ 下の「動かすのに必要な設定」）。CI から初めて routes を張るときに要る
-4. **リリースを publish する。** `deploy.yml` の `wrangler deploy` が custom domain を張る。
-   手元から張るなら `pnpm run deploy`
-5. **確かめる。** `https://uma-memo.com` を開いてログインまで通す。
-   Cookie はホストごとなので、workers.dev 側のセッションは引き継がれない（もう一度ログインする）
-
-workers.dev は当面残す。止めるのは独自ドメインで回ると確かめてからで、
-`wrangler.toml` の `workers_dev` / `preview_urls` を `false` にし、
-Google のリダイレクト URI から workers.dev のものを消す（別の PR で）。
-
-**止めると、workers.dev で発行した共有リンクが全部切れる。** 共有リンクは開いている画面の
-オリジンから組み立てる（`ShareControl.svelte`）ので、移行前に配ったリンクも、
-workers.dev を残している間にそちらで発行したリンクも `https://k-note.<subdomain>.workers.dev/notes/<id>` になっている。
-止める前に、workers.dev への要求を同じパスのまま `https://uma-memo.com` へ 301 で送る仕組みを入れ、
-しばらく回してから止める。リダイレクトを入れずに止めるなら、リンクが切れてよいと決めたことを PR に書く。
-
-### 確認に使うコマンド
-
-```bash
-pnpm exec wrangler whoami              # ログインできているか
-pnpm exec wrangler d1 list             # D1 ができたか
-pnpm exec wrangler d1 info k-note      # 場所（apac か）とサイズ
-pnpm exec wrangler secret list         # 入れたシークレットの名前（値は出ない）
-pnpm exec wrangler deploy --dry-run    # 上げずにビルドだけ試す
-pnpm exec wrangler tail                # 本番のログを流す
-```
-
-## デプロイ（GitHub Actions）
-
-ワークフローは4本。**アプリとレースデータは別系統で出る。**
-ほかに、本番の D1 に書くものとしてオッズの更新（`odds-update.yml`）がある（下）。
-
-```
-PR / main への push        → ci.yml          検証（data:check / check / lint / test:unit）＋ E2E
-main の CI 成功            → staging.yml     ステージング D1 更新 → Preview にデプロイ
-リリース publish           → deploy.yml      検証 ＋ E2E ＋ マイグレーション → デプロイ
-main の data/races/** 変更 → data-import.yml 検証 → レースデータ投入
-```
-
-オッズの更新 `odds-update.yml` は、Worker の Cron が JST 7:05〜25:05 の30分おきに（取りに行く重賞があるときだけ）起動する。
-netkeiba からオッズを取り、`race_odds` に `wrangler d1 execute --remote` で書く（→ [architecture.md 3-8](./architecture.md)）。
-使うのは下の `CLOUDFLARE_API_TOKEN` の `D1 : Edit`。起動には `GITHUB_DISPATCH_TOKEN`（上の 6）を使う。
-起動する Cron は Worker の設定（`wrangler.toml`）なので、**リリースの publish で初めて本番に効く**（main へのマージでは効かない）。
-
-ほかに監視のためのものが2本ある。`health.yml`（30分ごとに本番の `/api/health` を叩く）と、
-Discord へ送る部品の `discord-notify.yml`（→ [monitoring.md 第7章](./monitoring.md)）。
-
-**アプリは `main` にマージしても本番には出ない。** 出るのはリリース publish のときだけ。
-ステージングには `main` の CI が成功したコミットを反映する（[ステージング環境](./staging.md)）。
-**レースデータはリリースを待たない。** マージすればそのまま入る。
-
-分けてあるのは周期が違うから。出馬表は開催前に入っている必要があり、
-1レースにつき 予定 → 枠確定 → 結果 の3回更新される。
-これをリリースの単位に縛ると毎週リリースを切ることになり、版番号が意味を失う。
-
-順序の約束は1つだけ。**YAML に新しい項目を足す変更は、先にアプリのリリースが要る**
-（スクリプトとスキーマの変更を伴うため）。逆は自由で、データ更新はアプリに影響しない。
-`deploy.yml` はデータ投入をしない（タグ時点の古い YAML で枠順が巻き戻るため）。
-
-`main` は「次に出す候補」であって本番ではない。
-出したくなったら GitHub の Releases でタグを切って publish する。
-
-```bash
-gh release create v0.1.0 --generate-notes
-```
-
-リリースのタグは main の CI を通った commit のはずだが、
-任意の commit からタグを切ることもできるので、`deploy.yml` は
-出す前に `ci.yml` をもう一度呼んで回している（`workflow_call`）。
-
-Cloudflare 側の都合で失敗したときは、Actions から `デプロイ` を
-`workflow_dispatch` で手動リトライできる（実行するタグを選ぶ）。
-
-**順番が大事。** マイグレーション → デプロイの順にしてある。
-逆にすると新しいコードが古いスキーマに当たって壊れる。
-この順でも「古いコードが新しいスキーマに当たる」窓が数十秒開くので、
-列を消すような破壊的なマイグレーションはそれを承知で流すこと。
-
-### 動かすのに必要な設定
-
-**1. Cloudflare の API トークンを作る**
-
-Cloudflare ダッシュボード > Manage Account > Account API Tokens > Create Token。
-My Profile 配下のユーザートークンではなく、**アカウント所有トークン**を作る
-（作った人がアカウントを抜けても失効しない）。
-
-| 対象    | 設定                                           | 何のために                             |
-| ------- | ---------------------------------------------- | -------------------------------------- |
-| Workers | Editor / スコープは Specified Workers → k-note | `wrangler deploy` の書き込み           |
-| Account | `D1 : Edit`                                    | `d1 migrations apply` / `d1 execute`（レースデータ投入・オッズの更新） |
-| Account | `Workers Scripts : Read`                       | workers.dev のサブドメイン名の読み取り |
-| Zone    | `Workers Routes : Write`（ゾーン `uma-memo.com`） | 独自ドメイン（`routes`）の張り付け |
-
-- Account Resources はこのアカウントだけに絞る
-- Client IP Address Filtering は**設定しない**。GitHub の runner は IP が動的なので、絞ると壊れる
-
-`Workers: Editor` が `wrangler deploy`（Worker 本体・`[assets]`・シークレット）の
-書き込みを担う。バインディングを持つ Worker をデプロイするだけなら、
-バインディング先の権限は要らない。`D1 : Edit` を別に付けるのは、
-`d1 migrations apply` と `d1 execute` で**D1 を直接叩いている**から。
-
-**`Workers Scripts : Read` は Workers: Editor では代用できない。**
-`wrangler deploy` は Worker を上げ終えたあと、結果に出す URL を組み立てるために
-`GET /accounts/{id}/workers/subdomain` を読む。これは**アカウント単位**の読み取りで、
-Specified Workers に絞ったスコープの外にある。付けずに CI から流すと、
-**アップロードは成功したのにコマンドが `Authentication error [code: 10000]` で
-非ゼロ終了する**（v0.1.0 のリリースで踏んだ）。
-
-厄介なのは、そこで throw して**直後の
-`POST /accounts/{id}/workers/scripts/k-note/subdomain` に到達しないこと**。
-workers.dev を実際に有効化しているのはこちらの Worker 単位の API なので、
-`wrangler.toml` の `workers_dev` と `preview_urls` を変えても反映されなくなる。
-既存の設定が残るぶんサイトは動き続けるので、気づきにくい。
-
-`workers_dev = false` にすれば読みに行かなくなるが、その POST が `enabled: false` を
-送って workers.dev ごと落ちる。`uma-memo.com` に移し終えて workers.dev を止めるときには、これがそのまま止め方になる。
-
-**新しい Worker を作るには Workers product スコープの Admin が要る。**
-Specified Workers は既にある Worker にしか付けられないので、
-まだ一度もデプロイしていないなら、先に手元から `pnpm run deploy` して Worker を作っておくこと。
-
-**表の最後の行（Zone）は** `uma-memo.com` を当てるときに足した。`wrangler.toml` に `routes` を書いている限り、
-`wrangler deploy` は毎回その状態に揃えに行くので、張った後のデプロイでも外さないこと。
-
-旧来の `Edit Cloudflare Workers` テンプレート（`Workers Scripts : Edit`）でも動く。
-2026-09-15 に Workers の権限が role ベースに変わり legacy 扱いになった（廃止日は未定）ので、
-新しく作るなら上の構成にする。
-
-なお、上の subdomain の件が新しい構成でだけ顕在化するのは、legacy の
-`Workers Scripts : Edit` が**アカウント単位で、Worker を絞れない**ため。
-Specified Workers で絞れるようになった代わりに、アカウント単位の読み取りが
-別途要るようになった、という関係にある。
-
-**2. リポジトリに登録する**
-
-Settings > Secrets and variables > Actions。
-
-| 種別     | 名前                    | 値                                                          |
-| -------- | ----------------------- | ----------------------------------------------------------- |
-| Secret   | `CLOUDFLARE_API_TOKEN`  | 1 で作ったトークン                                          |
-| Secret   | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare ダッシュボードの Account ID                      |
-| Secret   | `DISCORD_WEBHOOK_URL`   | Discord の「障害」チャンネルの Webhook。無ければ Actions からの通知だけが止まる |
-| Secret   | `DISCORD_DEPLOY_WEBHOOK_URL` | Discord の「デプロイ」チャンネルの Webhook。無ければ「障害」に送る |
-| Variable | `HEALTH_CHECK_URL`      | `https://uma-memo.com/api/health`。無ければ死活監視が止まる |
-
-以前あった `DEPLOY_ENABLED` というリポジトリ変数の栓は廃止した。
-デプロイの入口がリリース publish に変わって、
-「うっかり出る」経路が無くなったので栓が要らなくなった。
-
-**3. `wrangler.toml` の `database_id` が実値であること**（設定済み）
-
-プレースホルダのままだと CI からもデプロイできない。
-`pnpm exec wrangler d1 create k-note --location apac` の出力を書く。
-これは機密ではないのでコミットしてよい。
-
-**4. アプリのシークレットは Cloudflare 側に1回だけ**
-
-`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` は
-`pnpm exec wrangler secret put` で Cloudflare に入れる。**GitHub 側には要らない。**
-毎回のデプロイで入れ直す必要もない。
-
-例外は `DISCORD_WEBHOOK_URL` で、Worker と Actions の両方が Discord に送るので**両方に入れる**。
-差し替えるときも両方（→ [monitoring.md 第8章](./monitoring.md)）。
-
-**5. Actions に PR を作らせる**
-
-Settings > Actions > General > Workflow permissions で
-**「Allow GitHub Actions to create and approve pull requests」を入れる**（既定の「Read repository contents」のままでよい。
-`race-data-fetch.yml` は自分の `permissions` で書き込みを要求する）。入れないと、出馬表や結果は取れても PR の作成で落ちる。
-
-Actions の `GITHUB_TOKEN` で作った PR には `ci.yml`・`pr-body.yml` が走らない（GitHub の仕様）。
-`race-data-fetch.yml` が自分で `data:check` を通してから PR を作るので、検証は済んでいる。
-main のルールセットに必須のチェックは無いので、そのままマージできる。
-
-### このリポジトリは public なので
-
-- `pull_request_target` は**使わない**。fork からの PR にシークレットが渡ってしまう
-- `pull_request` なら secrets は渡らないので、fork の PR では検証ジョブだけが走る
-- deploy はリリース publish 限定なので、PR からも main への push からも走らない

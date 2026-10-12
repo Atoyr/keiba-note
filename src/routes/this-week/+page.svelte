@@ -99,7 +99,7 @@
 									raceNumber={r.raceNumber}
 									class="font-mono text-sm text-muted-foreground"
 								/>
-								<!-- 格の札は一覧の行ではレース名の前（product.md 第6章）。 -->
+								<!-- 格の札は一覧の行ではレース名の前（pages.md）。 -->
 								<GradeBadge grade={r.grade} />
 								<span class="font-medium">{r.name ?? '（レース名未設定）'}</span>
 							</div>

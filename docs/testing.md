@@ -5,10 +5,9 @@ PR に貼るキャプチャの撮り方。
 
 - **読む場面:** コードを変えるときは毎回（テストを書く・`verify` を通す・キャプチャを撮る）
 - **ここに無いもの:** 仕組みをなぜこう組んだか・これから足す検査は [harness.md 第5層](./harness.md)、
-  ルートごとの入出力は [api.md](./api.md)
-- 作成日: 2026-09-23 — AGENTS.md の「テスト」と、harness.md の検証の仕組みの説明を移した
-- 更新日: 2026-09-27 — 紹介ページのキャプチャの撮り方（第8章）を足した
-- 更新日: 2026-09-27 — 下端で続きを読む一覧は末尾までスクロールせずに撮る（`stayAtTop`。第4章）
+  ルートごとの入出力は [api.md](./api.md)、
+  評価（Evaluator）は [evaluation.md](./evaluation.md)、レビューは [review.md](./review.md)
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
 
 ---
 
@@ -17,6 +16,7 @@ PR に貼るキャプチャの撮り方。
 | 確かめること | 仕組み | 置き場 | 落ちるコマンド |
 | --- | --- | --- | --- |
 | 型・Svelte の検査 | `svelte-check` | — | `pnpm run check` |
+| 出走馬データ（`data/races/*.yaml`）の書式と整合 | `scripts/import-races.ts --check` | `data/` | `pnpm run data:check`（`data/` を触るとき。CI の `ci.yml` が回す） |
 | 整形・lint・文書の参照 | Prettier / ESLint / `scripts/check-docs.ts` | — | `pnpm run lint` |
 | サーバー・サービス層・純ロジック・権限の絞り込み・日付の境界 | Vitest（node） | `src/**/*.spec.ts` | `pnpm run test:unit` |
 | Svelte コンポーネントの表示と操作 | Vitest（実 chromium） | `src/**/*.svelte.spec.ts` | 同上 |
@@ -27,7 +27,7 @@ PR に貼るキャプチャの撮り方。
 | 頼まれたものか・使いやすいか | **Evaluator**（書いたのとは別のエージェント） | [evaluation.md](./evaluation.md) | PR 本文の「評価」に ✗ が残る |
 | 見た目が意図どおりか | **人**がキャプチャを見る | `docs/screenshots/<機能名>/` | PR で差し戻す |
 
-上の6行は `pnpm run verify`（check → lint → 単体 → E2E）に入っている。
+`data:check` の行と、PR 本文以降の行を除いた上の行は `pnpm run verify`（check → lint → 単体 → E2E）に入っている。
 CI（`.github/workflows/ci.yml`）も同じものを回し、画面カタログのキャプチャを artifact `screens` として上げる。
 `verify` と `screens` はビルドを含むので数分かかる。
 
@@ -35,9 +35,10 @@ CI（`.github/workflows/ci.yml`）も同じものを回し、画面カタログ�
 
 [README.md のセットアップ](../README.md#セットアップ) に従い、Node・pnpm・依存関係・Chromium を用意する。
 単体テストも Chromium を使うので、E2E の自動導入を待たず、`verify` や `test:unit` より先に導入する。
-Evaluator が必要な条件は [evaluation.md 第0章](./evaluation.md#0-評価が必要な変更) を参照する。
 
 ### 1-2. 検証を完了できないとき
+
+PR に書く「確認したこと」の形はここで決める。
 
 実装変更は原則として `pnpm run verify` を通す。検証を省いた理由を書くことは、成功や完了の代わりにはならない。
 ユーザーが検証範囲を指定した場合はその指定を優先し、実行していない検証も明記する。
@@ -71,7 +72,7 @@ Evaluator が必要な条件は [evaluation.md 第0章](./evaluation.md#0-評価
   他人の id で開けないことを見る。未ログインの確認は `e2e/auth.e2e.ts` の `PROTECTED` に1行足す
   （認証は hooks で一律に効くので、画面ごとに別のテストを書かない）
 - **MCP の tool やスコープを足したら、スコープ不足と他人のデータの確認を単体と E2E の両方に足す**
-  （`/mcp` は 302 でなく 401 なので `PROTECTED` では確かめられない。何を足すかは [architecture.md 3-10](./architecture.md)）
+  （`/mcp` は 302 でなく 401 なので `PROTECTED` では確かめられない。何を足すかは [mcp.md](./mcp.md)）
 - **form POST を足したら E2E で確かめる。** CSRF の検証は本番ビルドでしか効かない（`vite dev` では通ってしまう）
 - **E2E で入力欄に書く・送信する前は hydration を待つ。** `gotoHydrated` か `waitForHydration`
   （`e2e/hydration.ts`）を使う。`page.goto` が待つのは load までで、hydration はそのあとに走る。
@@ -89,9 +90,8 @@ Evaluator が必要な条件は [evaluation.md 第0章](./evaluation.md#0-評価
 E2E のプレビューサーバー（`playwright.config.ts` の webServer）は `wrangler dev --persist-to .wrangler/e2e`
 で上がり、開発用の `.wrangler/state` とは別の D1 を見る。**開発用 D1 の中身は E2E に関係しない。**
 
-以前は同じ D1 を共有していたため、手元で `data:import:local` した本物の出馬表や
-`pnpm run dev` で書いたメモが E2E とキャプチャに混ざっていた。これでは人によって結果が変わり、
-before / after の比較も成り立たない。
+同じ D1 を共有すると、手元で `data:import:local` した本物の出馬表や `pnpm run dev` で書いたメモが
+E2E とキャプチャに混ざり、人によって結果が変わって before / after の比較が成り立たないため、分けてある。
 
 webServer の command の先頭で `e2e/seed.ts` が毎回、次の順で状態を作り直してから、ビルドと `wrangler dev` に進む。
 
@@ -188,8 +188,6 @@ after のときは、同名の before と画素単位で比べ、**見た目が�
 
 キャプチャはコミットしないので、作業ブランチと main には溜まらない。手元の `docs/screenshots/<機能名>/` は
 PR を出したあと消してよい（次に同じ機能名で撮るときは `screens` が撮る範囲を消してから撮る）。
-2026-09-24 までは作業ブランチにコミットしていた。そのころの PR の画像は、当時のコミット SHA の URL なので
-main から消したあとも見える。
 
 ### 5-4. 写してはいけないもの
 
@@ -213,12 +211,9 @@ main から消したあとも見える。
 
 ## 7. 限界
 
-- **WebMCP は実験フラグを CI の前提にしない。** `e2e/webmcp.ts` が `document.modelContext.registerTool`
-  と登録用 AbortSignal の境界をモックする。実際の予想画面で、取得・部分反映・未保存・既存 action による保存・
-  SPA 遷移での解除を `webmcp.e2e.ts` が確かめる。ブラウザと AI Browser Agent 間の実接続はこの検証に含まない。
-  `DraftKeeper.svelte.spec.ts` は実 Chromium で公開 apply と入力部品・展開図の同期、下書き、離脱警告を確かめる。
-
-- **admin の画面は `/settings/admin` だけがカタログにある。** seed に admin のユーザーとセッション
+- **WebMCP は実験フラグを CI の前提にしない。** ブラウザの境界は `e2e/webmcp.ts` がモックする。
+  ブラウザと AI Browser Agent の実接続はこの検証に含まない（何を確かめるかは `webmcp.e2e.ts` と `DraftKeeper.svelte.spec.ts`）
+- **admin の画面は `/settings/admin` と、`as: 'admin'` を付けた行だけがカタログにある。** seed に admin のユーザーとセッション
   （`ADMIN_SESSION_TOKEN`）があり、`Screen` の `as: 'admin'` で開く。`/races/new`・`/races/[id]/entries` も
   同じように1行足せば撮れる
 - **GitHub Actions を起動するところ（出走馬の取得）は E2E では確かめない。** E2E はトークンを渡さない
@@ -241,7 +236,7 @@ main から消したあとも見える。
   混ぜると E2E の画面の前提が変わるので、分けてある
 - 馬・レース・人名は架空にする（第5章 5-4 と同じく、本番のデータを写さない）。騎手は入れない
 - 日付は seed を流した日から決まる（ダッシュボードの「今週」「ふりかえり待ち」を埋めるため。JST の 0 時の 15 分前からは、0 時を過ぎるまで seed が待つ。→ 3-2）。起点は撮った日以降で最初の日曜で、
-  どのレースも土日に落ちる。**開催場は2026年9月下旬に撮る前提で選んである**（9月の中山・7月の福島）。
+  どのレースも土日に落ちる。**開催場は撮る時期に開いている場を選んである**（前提の時期は `e2e/landing/seed.sql` の先頭コメントが正）。
   季節の違う時期に撮り直すときは、`seed.sql` の開催場をその時期に開いている場に直す
 - スマホの幅（390px）を2倍の密度で撮る。画像の大きさ（CSS px）は `sizes.json` に書き出され、
   紹介ページの `<img>` の width / height になる

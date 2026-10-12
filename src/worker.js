@@ -25,7 +25,7 @@ import { ODDS_CRONS, runOddsCron } from './lib/server/odds/scheduled.ts';
 import { entriesStageOf, runEntriesCron } from './lib/server/race-data/scheduled.ts';
 
 /**
- * OAuth のトークンの口（MCP の連携。docs/architecture.md 3-10）。SvelteKit の CSRF の検査が、
+ * OAuth のトークンの口（MCP の連携。docs/mcp.md）。SvelteKit の CSRF の検査が、
  * Origin の無いフォームの POST（Claude・ChatGPT のサーバーからの要求）を hooks より前に 403 にするので、
  * ここで先に受ける。Cookie を見ない口なので CSRF の検査が守るものは無い。
  *

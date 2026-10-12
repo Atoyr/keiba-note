@@ -338,7 +338,7 @@
 			</div>
 		{:else}
 			<!-- 取れた時点を必ず添える。30分おきにしか取らず、失敗した回は前の値が残るので、
-			     「現在の」オッズのようには見せない（product.md 第6章）。 -->
+			     「現在の」オッズのようには見せない（pages.md）。 -->
 			{#if data.oddsAsOf}
 				<!-- min-h-8 は切り替えの高さ。切り替えは JS が動いてから出るので、先に高さを取っておかないと
 				     出た瞬間に一覧が下へずれる。 -->
@@ -525,7 +525,7 @@
 							     馬を見比べるという予想画面の用が足りない。
 							     開いていないときに出すのは本文と**付けた札だけ**で、
 							     選んでいない札（`TagPicker` の全選択肢）は伏せておく。
-							     `<details>` のままなのは JS 無効でも開けるため（product.md 第6章）。 -->
+							     `<details>` のままなのは JS 無効でも開けるため（pages.md）。 -->
 							<details class="group mt-2">
 								<summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
 									{#if hasPreview}

@@ -14,7 +14,7 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 
 - `pnpm run verify` が green（型・lint・単体テスト・E2E）
 - 見た目が変わった画面の before / after が PR 本文の「画面」に貼られている
-- [evaluation.md 第0章](./docs/evaluation.md#0-評価が必要な変更) に従い、「評価」に Evaluator の結果と残る `✗` の理由、または対象外の理由がある
+- [evaluation.md 第0章](./docs/evaluation.md#0-評価が必要な変更) に従い、「評価」に Evaluator の結果と残る `✗` の理由、対象外の理由、または未評価（testing.md 1-2）がある
 - [review.md 第0章](./docs/review.md#0-いつ頼むか) に従い、「コードレビュー」に `review:plan` が選んだレビュアーの結果と、採らない `必須` の理由がある（重の `必須` が直っていなければ Draft。[review.md 第3章](./docs/review.md#3-手順)）
 - 判断を入れた箇所が PR 本文の「レビューで見てほしいところ」に書かれている
 
@@ -27,18 +27,6 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 
 ## 知識の目次
 
-```
-AGENTS.md
-│
-├── architecture → docs/architecture.md
-├── frontend     → docs/frontend.md
-├── design       → docs/design-system.md
-├── testing      → docs/testing.md
-├── api          → docs/api.md
-├── evaluation   → docs/evaluation.md
-└── review       → docs/review.md
-```
-
 | 分野         | 文書                                             | 何が書いてあるか                                                                  | 開く場面                                       |
 | ------------ | ------------------------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------- |
 | architecture | [docs/architecture.md](./docs/architecture.md)   | **第0章 守ること**（ランタイム・DB とデータ）、層と機能の依存の向き、D1 の使い方  | 毎回 第0章。サーバー側・DB・依存を触るとき全体 |
@@ -46,23 +34,25 @@ AGENTS.md
 | design       | [docs/design-system.md](./docs/design-system.md) | トークン、shadcn の部品、ドメイン部品、大きさと文言                               | 見た目を触るとき                               |
 | testing      | [docs/testing.md](./docs/testing.md)             | テストの置き場と約束、E2E の環境、画面カタログ、キャプチャ                        | 毎回（テストを書く・確かめる・撮る）           |
 | api          | [docs/api.md](./docs/api.md)                     | ルートと action の一覧、認証、action の約束、サービス層の関数の約束               | ルート・action・サービス関数を足す・変えるとき |
+| mcp          | [docs/mcp.md](./docs/mcp.md)                     | MCP・OAuth の経路と決まり、スコープと tools、回数の上限、WebMCP                   | `/mcp`・`/oauth/*`・WebMCP を触るとき          |
 | evaluation   | [docs/evaluation.md](./docs/evaluation.md)       | Generator と Evaluator の分け方、評価の観点、返す形                               | PR の前に評価を頼むとき・評価するとき          |
 | review       | [docs/review.md](./docs/review.md)               | 分野ごとのレビュアー（YAML・SQL・フロント・AI プロンプト）、重さの決め方、観点    | PR の前にレビューを頼むとき・レビューするとき  |
 
 ほかに、必要なときだけ読むもの:
 
-| 文書                                                                              | 何が書いてあるか                                                 |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [README.md セットアップ](./README.md#セットアップ)                                | 初回の検証準備（Node・pnpm・依存関係・Chromium）                 |
-| [docs/product.md](./docs/product.md)                                              | 何を・なぜ作るか（要件・データモデル・画面の仕様・やらないこと） |
-| [docs/harness.md](./docs/harness.md)                                              | この仕組み全体の設計（6層・コンテキスト・これから入れる規則）    |
-| [docs/operations.md](./docs/operations.md) / [docs/staging.md](./docs/staging.md) | Cloudflare の構築・本番デプロイ / ステージングの更新             |
-| [docs/monitoring.md](./docs/monitoring.md)                                        | ログ・Discord への通知・死活監視（ログやエラー処理を触るとき）   |
-| [data/README.md](./data/README.md)                                                | 出走馬データ（YAML）の書式と投入                                 |
+| 文書                                                                              | 何が書いてあるか                                               |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| [README.md セットアップ](./README.md#セットアップ)                                | 初回の検証準備（Node・pnpm・依存関係・Chromium）               |
+| [docs/product.md](./docs/product.md)                                              | 何を・なぜ作るか（要件・やらないこと・認証と権限・決めたこと） |
+| [docs/data-model.md](./docs/data-model.md) / [docs/pages.md](./docs/pages.md)     | 表ごとの意味と制約の理由 / 画面ごとの仕様（何を出すか・なぜ）  |
+| [docs/harness.md](./docs/harness.md)                                              | この仕組み全体の設計（6層・コンテキスト・これから入れる規則）  |
+| [docs/operations.md](./docs/operations.md) / [docs/staging.md](./docs/staging.md) | Cloudflare の構築・本番デプロイ / ステージングの更新           |
+| [docs/monitoring.md](./docs/monitoring.md)                                        | ログ・Discord への通知・死活監視（ログやエラー処理を触るとき） |
+| [data/README.md](./data/README.md)                                                | 出走馬データ（YAML）の書式と投入                               |
 
 ## 作業の手順
 
-1. **読む・準備する。** 関係するコード・テスト・分野の文書と product.md の該当章。Dev Container または [README.md の同等環境](./README.md#セットアップ)で作業し、初回は `pnpm install --frozen-lockfile` → `pnpm run setup` を実行する
+1. **読む・準備する。** 関係するコード・テスト・分野の文書と product.md・pages.md の該当章。Dev Container または [README.md の同等環境](./README.md#セットアップ)で作業し、初回は `pnpm install --frozen-lockfile` → `pnpm run setup` を実行する
 2. **before を撮る。** 画面に関わる変更なら、手を入れる前に `pnpm run screens <機能名> before`
    （→ [testing.md 第5章](./docs/testing.md)）
 3. **実装する。** テストも同時に書く。画面や見せたい状態が増えたら `e2e/screens.ts` に1行足す

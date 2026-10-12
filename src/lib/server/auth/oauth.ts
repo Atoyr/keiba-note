@@ -35,7 +35,7 @@ import { hashSessionToken, type SessionUser } from './session';
  * - PKCE（S256）を必ず確かめる。公開クライアントなので、コードを横取りされてもこれで止まる
  * - トークンが連れてくるのは grant の持ち主だけ。**誰のデータを読むかはトークンで決まり、入力では選べない**
  * - リフレッシュトークンは1回きり。使い回しが来たら盗まれたとみなして連携（grant）ごと消す。
- *   ただし回線断で応答が届かなかった送り直しは受ける（`judgeRetry`。docs/architecture.md 3-10）
+ *   ただし回線断で応答が届かなかった送り直しは受ける（`judgeRetry`。docs/mcp.md）
  */
 
 export const ACCESS_TOKEN_TTL_SEC = 60 * 60;

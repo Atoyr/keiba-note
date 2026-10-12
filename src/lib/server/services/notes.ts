@@ -336,7 +336,7 @@ function rank(row: TimelineRow): number {
  * メモの occurred_at はレース紐付きならレース日なので、メモ行と出走行は同じ軸で混ざる。
  *
  * `today` を引数で受けるのは、「出走予定」の判定を呼び出し側の時計に寄せるため
- * （JST の今日は `todayJst()`。product.md 第9章 #7）。**当日は「予定」にしない**：
+ * （JST の今日は `todayJst()`。product.md 第4章 #7）。**当日は「予定」にしない**：
  * 朝に開いたときは予定でも、走り終えた夕方には予定ではない。日付だけでは決められないので、
  * その日のうちは過去と同じ見せ方にして、着順が入った時点で着順が出るようにする。
  */
@@ -395,7 +395,7 @@ export async function addHorseNote(
 	});
 }
 
-/** 他人のメモは消せない。編集は作成者本人だけ（product.md 第9章 #3）。 */
+/** 他人のメモは消せない。編集は作成者本人だけ（product.md 第4章 #3）。 */
 export async function deleteNote(db: Db, noteId: string, authorId: string): Promise<boolean> {
 	const result = await db
 		.delete(note)
@@ -799,7 +799,7 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
  * 該当が無ければ false（存在しないのか他人のものなのかは呼び出し側に教えない）。
  *
  * private に戻せば `/notes/[id]` は即 404 になる。ただし **URL は変わらない**ので、
- * 再共有すると以前渡した相手がまた見られる（product.md 第9章 #11）。
+ * 再共有すると以前渡した相手がまた見られる（product.md 第4章 #11）。
  */
 export async function setNoteVisibility(
 	db: Db,
