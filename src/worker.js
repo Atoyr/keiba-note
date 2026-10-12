@@ -1,5 +1,5 @@
 // Worker の入口（wrangler.toml の main）。adapter-cloudflare が作る Worker を包み、
-// 返す前にレスポンスを直す。Cron Trigger（出走馬の取得とオッズの更新を Actions に頼む）もここで受ける。
+// 返す前にレスポンスを直す。Cron Trigger（出走馬・結果の取得とオッズの更新を Actions に頼む）もここで受ける。
 // オッズを取得元から取るのは Worker ではなく GitHub Actions（scripts/odds-update.ts）。Worker は起動の合図を出すだけ
 // （docs/architecture.md 3-8）。
 //
@@ -22,7 +22,12 @@ import { createDb } from './lib/server/db/index.ts';
 import { describeError } from './lib/server/monitoring/log.ts';
 import { createMonitor } from './lib/server/monitoring/monitor.ts';
 import { ODDS_CRONS, runOddsCron } from './lib/server/odds/scheduled.ts';
-import { entriesStageOf, runEntriesCron } from './lib/server/race-data/scheduled.ts';
+import {
+	entriesStageOf,
+	RESULTS_CRON,
+	runEntriesCron,
+	runResultsCron
+} from './lib/server/race-data/scheduled.ts';
 
 /**
  * OAuth のトークンの口（MCP の連携。docs/mcp.md）。SvelteKit の CSRF の検査が、
@@ -79,6 +84,8 @@ export default {
 		const stage = entriesStageOf(controller.cron);
 		if (stage) {
 			ctx.waitUntil(runEntriesCron(env, ctx, controller.scheduledTime, stage));
+		} else if (controller.cron === RESULTS_CRON) {
+			ctx.waitUntil(runResultsCron(env, ctx, controller.scheduledTime));
 		} else if (ODDS_CRONS.includes(controller.cron)) {
 			ctx.waitUntil(runOddsCron(env, ctx, controller.scheduledTime));
 		}

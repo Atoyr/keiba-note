@@ -1,6 +1,6 @@
 /**
- * Cron Trigger の入口（`src/worker.js` の `scheduled` から、`ENTRIES_CRONS` のどれかのときに呼ぶ）。
- * 重賞の出走馬の取得（候補・出走馬・枠順の3段）を、GitHub Actions に頼む。
+ * Cron Trigger の入口（`src/worker.js` の `scheduled` から、`ENTRIES_CRONS` のどれかか `RESULTS_CRON` のときに呼ぶ）。
+ * 重賞の出走馬の取得（候補・出走馬・枠順の3段）と、当日の結果の取得を、GitHub Actions に頼む。
  *
  * SvelteKit の外で動くので、`hooks.server.ts` がリクエストごとにしていること
  * （監視の口と D1 クライアントを作る）をここで同じようにする。
@@ -10,7 +10,13 @@ import { describeError } from '$lib/server/monitoring/log';
 import { createMonitor } from '$lib/server/monitoring/monitor';
 import type { EntriesStage } from '$lib/server/services/entries-fetch';
 import { dispatchEntriesFetch } from './dispatch';
-import { requestEntriesFetch, type EntriesLogEntry } from './request';
+import {
+	requestEntriesFetch,
+	requestResultsFetch,
+	type EntriesLogEntry,
+	type RequestEntriesSummary,
+	type RequestResultsDeps
+} from './request';
 
 /**
  * 出走馬の取得を頼む Cron。UTC で書く。曜日は数字だと 1=日曜で取り違えやすいので 3文字の名前にする。
@@ -27,6 +33,15 @@ export const ENTRIES_CRONS: Readonly<Record<EntriesStage, string>> = {
 	entries: '30 6,8 * * thu',
 	frames: '30 2 * * fri'
 };
+
+/**
+ * 結果の取得を頼む Cron。毎日 JST 18:10（UTC 09:10）。JRA の最終レースはふだん17時前後に確定する。
+ * 分はオッズの Cron（:05・:35。`odds/scheduled.ts`）と同じ時間帯に重ならないようにずらす。
+ * 当日に対象のレースが無い日（ほとんどの平日）は Actions を起動しない。
+ *
+ * **wrangler.toml の `[triggers] crons` と同じ文字列にすること。**
+ */
+export const RESULTS_CRON = '10 9 * * *';
 
 /** Cron の式から段を引く。出走馬の Cron でなければ null。 */
 export function entriesStageOf(cron: string): EntriesStage | null {
@@ -79,6 +94,51 @@ export async function runEntriesCron(
 			event: 'entries.cron.failed',
 			stage,
 			message: '出走馬の取得を頼み始められなかった',
+			error: describeError(e)
+		});
+	}
+}
+
+export async function runResultsCron(
+	env: App.Platform['env'],
+	ctx: ExecutionContext,
+	scheduledTime: number
+): Promise<void> {
+	const monitor = createMonitor({
+		requestId: `cron-results-${new Date(scheduledTime).toISOString()}`,
+		environment: env.APP_ENV ?? 'production',
+		webhookUrl: env.DISCORD_WEBHOOK_URL || undefined,
+		waitUntil: (task) => ctx.waitUntil(task)
+	});
+	const log = ({ error, ...entry }: EntriesLogEntry) =>
+		monitor.log(error === undefined ? entry : { ...entry, error: describeError(error) });
+
+	try {
+		const deps: RequestResultsDeps = {
+			db: createDb(env, monitor.onQuery),
+			dispatch: (req) =>
+				dispatchEntriesFetch(
+					{ token: env.GITHUB_DISPATCH_TOKEN, repository: env.GITHUB_REPOSITORY },
+					req
+				),
+			log,
+			// 実行が遅れて日付をまたいでも、起動するはずだった日の結果を取る
+			now: () => new Date(scheduledTime)
+		};
+		const summary: RequestEntriesSummary = await requestResultsFetch(deps);
+		if (summary.targets > 0) {
+			monitor.log({
+				level: 'info',
+				event: 'results.cron',
+				message: '結果の取得を頼み終えた',
+				...summary
+			});
+		}
+	} catch (e) {
+		monitor.log({
+			level: 'error',
+			event: 'results.cron.failed',
+			message: '結果の取得を頼み始められなかった。Actions を command: result で手で起動する',
 			error: describeError(e)
 		});
 	}

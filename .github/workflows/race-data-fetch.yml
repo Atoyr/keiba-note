@@ -3,9 +3,10 @@ name: 出走馬・結果の取得
 # Worker から workflow_dispatch で起動される（src/lib/server/race-data/）。
 #   cron  … 重賞の出馬表が決まる時刻に、段（stage）ごとに。日曜の候補・木曜の出走馬は出馬表をそのまま書く。
 #           金曜の枠順（stage: frames）は require_confirmed: true で、確定するまでは何も書かない
+#           開催日の夕方には、当日の出走馬がある JRA のレースの結果を command: result で（結果の Cron。時刻は wrangler.toml）
 #   admin … 管理画面の「出走馬を取得」（候補でも枠順でも、その時点の出馬表を書く）
 #   manual … Actions のタブから手で。command で何を取るかを選ぶ（entries = 出馬表 / result = 結果）。
-#           結果（command: result）は Cron・管理画面からは頼まない。この manual だけ
+#           結果の Cron が取れなかったとき（未発表・通信の失敗）の取り直しもここから
 #
 # netkeiba の出馬表を `data:fetch entries`、結果を `data:fetch result` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
 # PR のブランチは command ごとに分けるが、どちらも main の YAML の同じレースを書く。結果は出走馬・枠順の PR をマージしてから取る。
@@ -19,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: '何を取るか（entries = 候補・出走馬・枠順 / result = 結果）。Worker（Cron・管理画面）は送らないので entries'
+        description: '何を取るか（entries = 候補・出走馬・枠順 / result = 結果）。出走馬の Cron と管理画面は送らないので entries。結果の Cron は result'
         type: choice
         options:
           - entries
@@ -95,7 +96,7 @@ jobs:
     steps:
       - name: 入力を確かめる
         run: |
-          # choice でも API からは任意の文字列が来うる。Worker は command を送らないので、空は entries の扱い
+          # choice でも API からは任意の文字列が来うる。出走馬の Cron と管理画面は command を送らないので、空は entries の扱い
           COMMAND="${COMMAND:-entries}"
           [[ "$COMMAND" =~ ^(entries|result)$ ]] || { echo "::error::command が entries / result のどちらでもありません"; exit 1; }
           [[ "$DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "::error::date が YYYY-MM-DD ではありません"; exit 1; }
@@ -108,6 +109,17 @@ jobs:
             [ -z "$STAGE" ] || { echo "::error::command が result のとき stage は使えません"; exit 1; }
           fi
           # course が JRA の10場かは data:fetch が見る
+
+      # 結果は main の YAML に書く。同じレースの出走馬・枠順の PR が開いたままだと、候補のままの YAML に書き、
+      # その PR と同じレースを書き換え合う。手で起動していたころは人が守っていた順番を、Cron でも守る
+      - name: 出走馬・枠順の PR が開いていないか見る
+        if: inputs.command == 'result'
+        run: |
+          url=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "data-fetch/${DATE}-${COURSE}${RACE_NUMBER}R" --state open             --json url,isCrossRepository --jq '[.[] | select(.isCrossRepository | not)][0].url // ""')
+          if [ -n "$url" ]; then
+            echo "::error::出走馬・枠順の PR（$url）が開いています。マージしてから結果を取り直してください"
+            exit 1
+          fi
 
       - uses: actions/checkout@v4
         with:
@@ -181,7 +193,9 @@ jobs:
             exit 0
           fi
 
-          if [ "$COMMAND" = "result" ]; then
+          if [ "$COMMAND" = "result" ] && [ "$TRIGGER" = "cron" ]; then
+            why="開催日の夕方に、Cron が当日のレースの結果を取ったため。"
+          elif [ "$COMMAND" = "result" ]; then
             why="${TRIGGER} から結果の取得を頼まれたため。"
           elif [ "$TRIGGER" = "cron" ]; then
             case "$STAGE" in
@@ -307,7 +321,7 @@ jobs:
       channel: deploy
       level: error
       title: ${{ inputs.command == 'result' && '結果' || '出走馬' }}の取得が落ちた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
-      description: netkeiba からの取得か、data:check か、PR の作成で止まっています。
+      description: netkeiba からの取得か、data:check か、PR の作成で止まっています。${{ inputs.command == 'result' && '結果が未確定だった・出走馬や枠順の PR が開いていたなら、確定やマージを待って Actions を command result で手で起動し、取り直してください。' || '' }}
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

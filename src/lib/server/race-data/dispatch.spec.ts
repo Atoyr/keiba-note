@@ -40,6 +40,11 @@ describe('workflowInputs', () => {
 		expect(workflowInputs(REQ)).not.toHaveProperty('stage');
 	});
 
+	it('command があれば inputs に入れ、無ければ入れない（ワークフローの既定は entries）', () => {
+		expect(workflowInputs({ ...REQ, command: 'result' })).toMatchObject({ command: 'result' });
+		expect(workflowInputs(REQ)).not.toHaveProperty('command');
+	});
+
 	it('race_id が読めなければ渡さない（Actions がレース一覧から引く）', () => {
 		expect(workflowInputs({ ...REQ, externalRef: null })).not.toHaveProperty('race_id');
 		expect(workflowInputs({ ...REQ, externalRef: 'jra-123' })).not.toHaveProperty('race_id');
