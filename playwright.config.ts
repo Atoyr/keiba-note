@@ -27,6 +27,9 @@ export default defineConfig({
 		timeout: webServerTimeout(new Date())
 	},
 	testMatch: '**/*.e2e.{ts,js}',
+	// 手元の既定の list はテスト1件ごとに1行出し、431行がそのまま会話のログに入る。
+	// dot なら1件1文字で済む。失敗したテストの詳細は最後に出る。CI の既定も dot。
+	reporter: 'dot',
 	// CI のランナーは 4 vCPU で、既定（コア数の半分）だと 2 になる。4 に増やして使い切る。
 	// サーバー（wrangler dev）は1つなので、増やしすぎるとテストよりそちらが詰まる。手元は既定のまま。
 	workers: process.env.CI ? 4 : undefined

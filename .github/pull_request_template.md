@@ -50,7 +50,7 @@ URL はそのコミット SHA で組まれる。キャプチャ（docs/screensho
 - [ ] 単体テストを追加・更新した（省いたなら理由: ）
 - [ ] E2E を追加・更新した（省いたなら理由: ）
 - [ ] 画面や状態を足したなら `e2e/screens.ts` に足した
-- [ ] `pnpm run verify`（check / lint / test:unit / test:e2e が全部 green。`.only` や `test.skip` を残していない）
+- [ ] `pnpm run verify`（check / lint / test:unit / test:e2e が全部 green。文書だけの変更では test:e2e は飛ぶ。`.only` や `test.skip` を残していない）
 - [ ] `data/` を触ったなら `pnpm run data:check`（マージ後に `data-import.yml` が本番へ投入する）
 
 <!--

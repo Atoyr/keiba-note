@@ -12,7 +12,7 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 調査・説明・レビューだけの依頼は結果の報告で完了する。ユーザーが成果物や作業範囲を指定した場合は、その指定を優先する。
 実装依頼の完了条件は次の5つ。検証を完了できない場合は [testing.md 1-2](./docs/testing.md#1-2-検証を完了できないとき) に従い、未完了として引き継ぐ。
 
-- `pnpm run verify` が green（型・lint・単体テスト・E2E）
+- `pnpm run verify` が green（型・lint・単体テスト・E2E。文書だけの変更では E2E は飛ぶ。→ [testing.md 第1章](./docs/testing.md#1-何をどこで確かめるか)）
 - 見た目が変わった画面の before / after が PR 本文の「画面」に貼られている
 - [evaluation.md 第0章](./docs/evaluation.md#0-評価が必要な変更) に従い、「評価」に Evaluator の結果と残る `✗` の理由、対象外の理由、または未評価（testing.md 1-2）がある
 - [review.md 第0章](./docs/review.md#0-いつ頼むか) に従い、「コードレビュー」に `review:plan` が選んだレビュアーの結果と、採らない `必須` の理由がある（重の `必須` が直っていなければ Draft。[review.md 第3章](./docs/review.md#3-手順)）
@@ -83,7 +83,7 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 
 ```bash
 pnpm run setup                          # 初回に Chromium と OS 依存パッケージを準備
-pnpm run verify                         # check / lint / test（単体テスト + E2E）を全部
+pnpm run verify                         # check / lint / test（単体テスト + E2E）を全部。文書だけの変更なら E2E は飛ぶ
 pnpm run test:unit                      # 単体テストを1回
 pnpm run test:watch                     # 単体テストを監視して再実行
 pnpm run test:e2e                       # E2E だけ（ビルドから走る）
