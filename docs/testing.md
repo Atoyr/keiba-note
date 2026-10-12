@@ -29,6 +29,7 @@ PR に貼るキャプチャの撮り方。
 
 `data:check` の行と、PR 本文以降の行を除いた上の行は `pnpm run verify`（check → lint → 単体 → E2E）に入っている。
 CI（`.github/workflows/ci.yml`）も同じものを回し、画面カタログのキャプチャを artifact `screens` として上げる。
+ただし `data/` と文書（`docs/`・`*.md`）だけの PR では E2E のジョブを飛ばす（アプリも E2E もそれらを読まない）。
 `verify` と `screens` はビルドを含むので数分かかる。
 
 ### 1-1. 初回の検証準備
@@ -140,6 +141,8 @@ webServer の command の先頭で `e2e/seed.ts` が毎回、次の順で状態�
 - `screens.e2e.ts` がこれを desktop（1280px）と mobile（390px）の2幅で開き、
   応答が 400 未満であること・ログイン画面に飛ばされないこと・`pageerror` と `console.error` が
   無いこと・mobile で横にはみ出さないことを確かめてから、全体を撮る
+- **画面カタログのテストは並列に走る。`prepare` でサーバーに書かない。** 書くとテスト同士がデータを取り合う。
+  保存の結果を見せたいときは `page.route` でモックする（例: `race-review-saved`）
 - 撮る前に末尾までスクロールする（下に貼り付く保存ボタンを本来の置き場に収めるため）。
   **下端で続きを読む一覧（`LoadMore`）は `stayAtTop: true` を付ける。** スクロールすると撮っている間に
   続きが読まれ、撮るたびに違う画像になる。読んだあとの状態は `prepare` で読み終えるまで待つ別の行にする

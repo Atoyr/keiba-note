@@ -26,5 +26,8 @@ export default defineConfig({
 		// seed が JST の 0 時をまたがないよう待つことがある（e2e/seed.ts）。その日は起動待ちを伸ばす。
 		timeout: webServerTimeout(new Date())
 	},
-	testMatch: '**/*.e2e.{ts,js}'
+	testMatch: '**/*.e2e.{ts,js}',
+	// CI のランナーは 4 vCPU で、既定（コア数の半分）だと 2 になる。4 に増やして使い切る。
+	// サーバー（wrangler dev）は1つなので、増やしすぎるとテストよりそちらが詰まる。手元は既定のまま。
+	workers: process.env.CI ? 4 : undefined
 });

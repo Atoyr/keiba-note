@@ -59,6 +59,11 @@ async function countChangedPixels(browser: Browser, a: Buffer, b: Buffer): Promi
 	}
 }
 
+// Playwright は1ファイルを1 worker に載せて順に回す。画面カタログは件数が多いので、
+// 並列にしないとこのファイル1本が E2E 全体の時間を決めてしまう。画面ごとに独立して撮るので、並べて回してよい。
+// 並べて安全なのは、`prepare` がサーバーに書かないから（保存の結果を見せる画面は `page.route` でモックする）。
+test.describe.configure({ mode: 'parallel' });
+
 for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 	ViewportName,
 	(typeof VIEWPORTS)[ViewportName]

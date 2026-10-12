@@ -54,8 +54,43 @@ jobs:
       - name: 単体テスト
         run: pnpm run test:unit
 
+  # data/ と文書だけの PR では E2E を飛ばす。アプリも E2E も data/ と文書を読まない
+  # （E2E の中身は e2e/seed.sql だけ）。data/ は検証ジョブの data:check、文書は lint の docs:check が見る。
+  # 対象は data/・docs/・*.md だけ。.claude/ の設定（.json など）は E2E に関わりうるので飛ばさない。
+  # PR のマージコミットの HEAD^1（取り込み先の先端）と HEAD の差で見る。
+  # PR 以外（main への push・workflow_call）と、判定できなかったときは回す側に倒す。
+  changes:
+    name: E2E の要否
+    runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.diff.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 2
+      - id: diff
+        run: |
+          e2e=true
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            files=$(git diff --name-only HEAD^1 HEAD)
+            echo "変更されたファイル:"
+            printf '%s\n' "$files"
+            if [ -n "$files" ] && ! printf '%s\n' "$files" | grep -qvE '^(data|docs)/|\.md$'; then
+              e2e=false
+              echo "data/ と文書だけの変更なので E2E を飛ばす"
+            else
+              echo "E2E を回す"
+            fi
+          else
+            echo "PR ではないので E2E を回す"
+          fi
+          echo "e2e=$e2e" >> "$GITHUB_OUTPUT"
+
   e2e:
     name: E2E
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -98,7 +133,7 @@ jobs:
   # ここでは送らず deploy.yml の通知に任せる。
   notify:
     name: 失敗を通知
-    needs: [check, e2e]
+    needs: [check, changes, e2e]
     if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/discord-notify.yml
     with:
