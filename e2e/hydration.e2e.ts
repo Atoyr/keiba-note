@@ -69,7 +69,8 @@ test('hydration 前に付けた札は残る', async ({ page }) => {
 	const release = await openWithoutJs(page, `/races/${BRACKET_RACE_ID}`);
 
 	// races.e2e.ts がソトワクに書くので、ウチワクの行で見る。
-	const row = page.locator('form li', { hasText: 'E2Eウチワク' });
+	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eウチワク' });
+	await row.locator('summary').first().click();
 	const tag = row.getByRole('checkbox', { name: '馬場向かず' });
 	const rendered = await tag.isChecked();
 	// 札は見た目だけのラベルで、チェックボックス本体は隠してある。押すのはラベル。
@@ -87,6 +88,7 @@ test('hydration 前に付け替えた印は残る', async ({ page }) => {
 	const release = await openWithoutJs(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
 	// seed では ◎。△ → ▲ → △ と迷ってから決める。触った順ではなく、最後に選んだものが残る。
+	await page.locator('li[id^="entry-"] > details > summary').click();
 	const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
 	await expect(marks.getByRole('radio', { name: '◎' })).toBeChecked();
 	for (const m of ['△', '▲', '△']) await marks.getByText(m, { exact: true }).click();
@@ -96,4 +98,23 @@ test('hydration 前に付け替えた印は残る', async ({ page }) => {
 	await expect(marks.getByRole('radio', { name: '△' })).toBeChecked();
 	await expect(marks.getByRole('radio', { name: '◎' })).not.toBeChecked();
 	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
+	// 閉じた行の見出しの印も、書き戻した印に追従する。
+	const row = page.locator('li[id^="entry-"]');
+	await expect(row.getByTitle('予想印 △')).toBeVisible();
+	await expect(row.getByTitle('予想印 ◎')).toHaveCount(0);
+});
+
+test('タブは hydration の前から描かれ、hydration でも出走馬の一覧が下へずれない', async ({
+	page
+}) => {
+	await login(page);
+	const release = await openWithoutJs(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	await expect(page.getByRole('tablist', { name: 'レースの表示' })).toBeVisible();
+	const row = page.locator('li[id^="entry-"]').first();
+	const before = (await row.boundingBox())!.y;
+
+	release();
+	await waitForHydration(page);
+	await expect(page.getByRole('tab', { name: 'レース情報', exact: true })).toBeVisible();
+	expect((await row.boundingBox())!.y).toBeCloseTo(before, 0);
 });

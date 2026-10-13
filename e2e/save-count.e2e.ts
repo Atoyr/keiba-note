@@ -64,6 +64,7 @@ test('ふりかえり: 送信中に書き足した分は保存の件数に入ら
 	await gotoHydrated(page, `/races/${COUNT_RACE_ID}`);
 	const toast = (text: string) => page.locator('[data-sonner-toast]', { hasText: text });
 	const row = page.locator('li', { has: page.getByRole('link', { name: 'E2Eコレカラ' }) });
+	await row.locator('summary').first().click();
 	const body = row.locator('textarea');
 	const raceNote = page.locator('textarea[name="raceNoteBody"]');
 	const save = page.getByRole('button', { name: 'まとめて保存' });

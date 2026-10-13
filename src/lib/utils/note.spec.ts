@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	conditionLabel,
+	horseNoteDigest,
 	latestConclusion,
 	noteHeading,
 	noteHeadingParts,
@@ -204,5 +205,49 @@ describe('savedMessage', () => {
 
 	it('変えたメモが無ければ「（0 件）」とは言わない', () => {
 		expect(savedMessage(16, 0)).toBe('保存しました');
+	});
+});
+
+describe('horseNoteDigest', () => {
+	const h = (id: string, kind: string, occurredAt: string) => ({ id, kind, occurredAt });
+
+	it('近況の新しい2件を出し、残りは件数に数える', () => {
+		const history = [
+			h('n3', 'horse', '2026-09-20'),
+			h('n2', 'horse', '2026-09-10'),
+			h('n1', 'horse', '2026-09-01')
+		];
+		const d = horseNoteDigest(history, [], '2026-10-01');
+		expect(d.recent.map((n) => n.id)).toEqual(['n3', 'n2']);
+		expect(d.moreCount).toBe(1);
+	});
+
+	it('レース日より後の近況は出さず、件数に数える（当日は出す）', () => {
+		const history = [
+			h('after', 'horse', '2026-10-05'),
+			h('same', 'horse', '2026-10-01'),
+			h('before', 'horse', '2026-09-01')
+		];
+		const d = horseNoteDigest(history, [], '2026-10-01');
+		expect(d.recent.map((n) => n.id)).toEqual(['same', 'before']);
+		expect(d.moreCount).toBe(1);
+	});
+
+	it('直近5走の各走メモに出ているものは件数に数えず、6走以上前の出走メモは数える', () => {
+		const history = [
+			h('run1', 'entry', '2026-09-01'),
+			h('run1-pre', 'preview', '2026-08-25'),
+			h('old-entry', 'entry', '2025-01-01'),
+			h('old-preview', 'preview', '2025-01-01'),
+			h('plan', 'race_preview', '2024-01-01')
+		];
+		const pastRuns = [{ notes: [{ id: 'run1' }, { id: 'run1-pre' }] }, { notes: [] }, {}];
+		const d = horseNoteDigest(history, pastRuns, '2026-10-01');
+		expect(d.recent).toEqual([]);
+		expect(d.moreCount).toBe(3);
+	});
+
+	it('メモが無ければ空で 0 件', () => {
+		expect(horseNoteDigest([], [], '2026-10-01')).toEqual({ recent: [], moreCount: 0 });
 	});
 });

@@ -2,16 +2,20 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { resolve as resolveRoute } from '$app/paths';
 import * as v from 'valibot';
 import { raceReviewSchema } from '$lib/schemas/note';
-import { listRaceNotes, saveRaceReview } from '$lib/server/services/notes';
+import {
+	saveRaceReview,
+	listSameConditionRaceNotes,
+	listRaceMemoContext
+} from '$lib/server/services/notes';
 import { getGradedRaceTrend } from '$lib/server/services/graded-races';
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
-import { getRace, listEntries } from '$lib/server/services/races';
+import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
-import { ctx } from '$lib/server/util';
+import { ctx, raceFormData } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
 /**
@@ -23,16 +27,15 @@ import type { Actions, PageServerLoad } from './$types';
  * ダッシュボードもレース一覧も開催前のレースを普通に並べるので、
  * **入口ごとに塞ぐのではなく、この画面自身が行き先を持つ**。
  *
- * 読みは4クエリ（race / entries+horse / notes+user / 騎手のまとめ）。重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。
+ * 読みは最大5往復（race+entriesのbatch / 騎手 / 馬柱 / 同条件メモ / 今回・過去メモのbatch）。重賞のときだけ、自分の傾向で+1。
+ * GETは更新セッション2回を含め最大8往復。JS無効のPOST→loadは共通マスタをlocalsから再利用し、保存1回を含め最大9往復。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 
-	const [race, entries, notes, jockeySummaries] = await Promise.all([
-		getRace(db, params.id),
-		listEntries(db, params.id),
-		listRaceNotes(db, params.id, user.id),
+	const [{ race, entries }, jockeySummaries] = await Promise.all([
+		raceFormData(db, locals, params.id, 'review'),
 		listRaceJockeySummaries(db, params.id, user.id)
 	]);
 
@@ -44,12 +47,31 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		redirect(302, resolveRoute('/races/[id]/preview', { id: params.id }));
 	}
 
-	// 重賞ごとの傾向。書く欄の上に読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+	// 重賞ごとの傾向。レース情報に読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
 	// 開催前のリダイレクトの後に引く（予想画面へ送るだけのときは要らない）。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
-	const trend = gradedKey ? await getGradedRaceTrend(db, gradedKey, user.id) : null;
+	const horseIds = entries.map((entry) => entry.horseId);
+	const [trend, pastRuns, sameCondition, memos] = await Promise.all([
+		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
+		listPastRuns(db, horseIds, race.date),
+		race.surface && race.distance
+			? listSameConditionRaceNotes(
+					db,
+					{
+						course: race.course,
+						surface: race.surface,
+						distance: race.distance,
+						before: race.date
+					},
+					user.id
+				)
+			: Promise.resolve([]),
+		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
+		listRaceMemoContext(db, params.id, horseIds, user.id)
+	]);
+	const { raceNotes: notes, pastRunNotes: runNotes, history } = memos;
 
-	// `listRaceNotes` が返すのは **viewer 自身のメモだけ**（product.md 第2章 2-2）。
+	// `listRaceMemoContext` が返すのは **viewer 自身のメモだけ**（product.md 第2章 2-2）。
 	// 以前あった「他人のメモを読み取り専用で出す」分岐は、返ってこない行を
 	// 選り分けるだけの死にコードになったので落とした。
 	const myRaceNote = notes.find((n) => n.kind === 'race') ?? null;
@@ -73,6 +95,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	return {
 		race,
+		sameCondition,
 		myRacePreview,
 		gradedTrend: gradedKey && trend ? { key: gradedKey, body: trend.body } : null,
 		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
@@ -81,6 +104,11 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 			const jockeySummary = e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null;
 			return {
 				...e,
+				history: history.get(e.horseId) ?? [],
+				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({
+					...run,
+					notes: runNotes.get(run.entryId) ?? []
+				})),
 				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
 				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
 				// 騎手名を押したときに開く、自分のまとめ。無ければ null。
@@ -99,7 +127,7 @@ export const actions: Actions = {
 	default: async ({ locals, platform, params, request }) => {
 		const { db, user } = ctx(locals, platform);
 
-		const race = await getRace(db, params.id);
+		const { race, entries } = await raceFormData(db, locals, params.id, 'review');
 		if (!race) error(404, 'レースが見つかりません');
 
 		// load が先に弾くのでフォーム自体そこにないが、直接叩かれた場合に
@@ -113,8 +141,6 @@ export const actions: Actions = {
 		// 出走馬の構成はフォームではなく DB を正とする。
 		// フォームから来た entryId を鵜呑みにすると、他のレースの entry に
 		// メモを書き込めてしまう。
-		const entries = await listEntries(db, params.id);
-
 		const parsed = v.safeParse(raceReviewSchema, {
 			raceNote: {
 				body: form.get('raceNoteBody')?.toString() ?? ''

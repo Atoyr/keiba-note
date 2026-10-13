@@ -225,12 +225,36 @@ export type ConclusionSource = {
  *
  * 拾うのは**走ったあとに書いたメモ**（ふりかえり `entry` と近況 `horse`）で、札が付いたもの。
  * 出走前メモの札は「そのレースでどう見ていたか」で、結果を見たあとの結論ではない。
- * `history` は新しいメモが先に並んでいる前提（`listHistoryForHorses` の並び）。
+ * `history` は新しいメモが先に並んでいる前提（`listRaceMemoContext` の `history` の並び）。
  */
 export function latestConclusion<T extends ConclusionSource>(history: T[]): T | null {
 	return (
 		history.find((n) => (n.kind === 'entry' || n.kind === 'horse') && n.tags.length > 0) ?? null
 	);
+}
+
+type DigestSource = { id: string; kind: string; occurredAt: string };
+
+/**
+ * 行の中の「馬のメモ」に出す近況と、行の中に出ていないメモの件数。
+ *
+ * - `recent`: 近況（`kind === 'horse'`）のうち、**レース日以前に書いたもの**の新しい2件。
+ *   レースの後に書いた近況は、そのレースの時点の「近況」ではないので出さない（古いレースを開いたとき、
+ *   あとで書いた近況が混ざらないように）。`history` は新しい順の前提
+ * - `moreCount`: `history` のうち、`recent` にも直近5走の各走メモにも出ていない件数。
+ *   5走より前の出走メモ・レース後の近況・見立てなど。馬の画面で読めるので、件数と入口だけを出す
+ */
+export function horseNoteDigest<T extends DigestSource>(
+	history: T[],
+	pastRuns: { notes?: { id: string }[] }[],
+	raceDate: string
+): { recent: T[]; moreCount: number } {
+	const recent = history.filter((n) => n.kind === 'horse' && n.occurredAt <= raceDate).slice(0, 2);
+	const shown = new Set([
+		...recent.map((n) => n.id),
+		...pastRuns.flatMap((run) => (run.notes ?? []).map((n) => n.id))
+	]);
+	return { recent, moreCount: history.filter((n) => !shown.has(n.id)).length };
 }
 
 export type RaceConditionSource = {

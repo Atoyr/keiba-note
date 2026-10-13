@@ -49,6 +49,12 @@ declare global {
 		}
 
 		interface Locals {
+			/** メモaction→loadで再利用する共通マスタ。リクエストをまたがない。 */
+			raceFormRead?: {
+				raceId: string;
+				mode: 'preview' | 'review';
+				data: Awaited<ReturnType<typeof import('$lib/server/services/races').getRaceForPreview>>;
+			};
 			/** hooks.server.ts が埋める。未ログインなら null。 */
 			user: import('$lib/server/auth/session').SessionUser | null;
 			/**

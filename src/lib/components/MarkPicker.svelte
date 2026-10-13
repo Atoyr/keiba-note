@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Attachment } from 'svelte/attachments';
 	import { MARKS, type Mark } from '$lib/schemas/note';
 
 	/**
@@ -8,7 +9,31 @@
 	 * 一目で見渡せる必要があるため。開いて確かめる操作が16回発生すると使えない。
 	 * 素のラジオなので JS 無効でも動く。
 	 */
-	let { name, value = null }: { name: string; value?: Mark | null } = $props();
+	let {
+		name,
+		value = null,
+		onpick
+	}: {
+		name: string;
+		value?: Mark | null;
+		/** 選ばれた印（「なし」は null）。閉じた行の見出しが、保存前の選択に追従するために聞く。 */
+		onpick?: (mark: Mark | null) => void;
+	} = $props();
+
+	/*
+	 * 選ばれたラジオの `change` を、要素に直に付けて聞く。Svelte の `onchange` はルートへの委譲なので、
+	 * 下書きの書き戻し（DraftKeeper）が投げる**泡立たない `change`** は届かない。
+	 * `change` は新しく選ばれたラジオにだけ起きる（ブラウザも DraftKeeper もそう投げる）。
+	 */
+	const watch =
+		(mark: Mark | null): Attachment<HTMLInputElement> =>
+		(el) => {
+			const picked = () => {
+				if (el.checked) onpick?.(mark);
+			};
+			el.addEventListener('change', picked);
+			return () => el.removeEventListener('change', picked);
+		};
 
 	/**
 	 * 本命だけ塗り、それ以外は薄い面か輪郭。◎ が視線を集めるようにする。
@@ -32,7 +57,14 @@
 <div class="flex items-center gap-1" role="radiogroup" aria-label="予想印">
 	{#each MARKS as m (m)}
 		<label class="relative">
-			<input type="radio" {name} value={m} checked={value === m} class="peer sr-only" />
+			<input
+				type="radio"
+				{name}
+				value={m}
+				checked={value === m}
+				class="peer sr-only"
+				{@attach watch(m)}
+			/>
 			<span
 				class="flex size-7 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent {glyph(
 					m
@@ -43,7 +75,14 @@
 		</label>
 	{/each}
 	<label class="relative">
-		<input type="radio" {name} value="" checked={!value} class="peer sr-only" />
+		<input
+			type="radio"
+			{name}
+			value=""
+			checked={!value}
+			class="peer sr-only"
+			{@attach watch(null)}
+		/>
 		<span
 			class="flex h-7 cursor-pointer items-center rounded-md px-1.5 text-xs text-muted-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring hover:bg-accent"
 		>

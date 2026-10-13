@@ -21,7 +21,7 @@
 			<p class="text-sm font-medium text-muted-foreground">予想まとめ</p>
 			{#if actions}<div class="flex shrink-0 items-center gap-2">{@render actions()}</div>{/if}
 		</div>
-		<RaceHeading {...summary.race} />
+		<RaceHeading {...summary.race} gradeBeforeName={false} />
 		<p class="mt-3 text-sm text-muted-foreground">{authorName} の予想</p>
 	</div>
 	{#if summary.body}

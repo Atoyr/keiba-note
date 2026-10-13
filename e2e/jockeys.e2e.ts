@@ -167,7 +167,9 @@ test('ふりかえり画面（中山）では騎手名の隣に中山巧者の�
 
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 	await expect(page.getByRole('button', { name: JOCKEYS.main }).first()).toBeVisible();
-	await expect(page.getByText('中山巧者')).toHaveCount(0);
+	await expect(
+		page.getByRole('button', { name: JOCKEYS.main }).first().locator('xpath=..')
+	).not.toContainText('中山巧者');
 });
 
 test('予想画面（京都の芝）では、騎手名の隣に芝巧者の札だけが出る（中山巧者・他の札は出ない）', async ({

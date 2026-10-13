@@ -13,27 +13,16 @@ import {
 	SAME_CONDITION_NOTE_BODY
 } from './seed';
 
-/**
- * この画面の用は「16頭を見比べる」ことなので、**自分の出走前メモは開かずに読める**
- * のが正。畳まれていた頃は1頭ずつ開かないと自分の見解が見えなかった。
- */
-test('書いた出走前メモは、開かなくても本文と付けた札が出る', async ({ page }) => {
+test('閉じた行は印・メモの有無を表示し、本文は展開して読む', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
-
-	// 何も開いていない状態で、本文と付けた札の両方が畳まれた見出しに出ていること。
-	// 札の名前は TagPicker 側にも（伏せた状態で）あるので、summary に絞って見る。
-	// 出走馬の行の summary だけ（コース図もスマホ用に summary を持つ）。
-	const summary = page.locator('main li[id^="entry-"] summary');
-	await expect(summary).toContainText('今回は内枠が向きそう。');
-	await expect(summary).toContainText('次走買い');
-
-	// 選んでいない札（TagPicker の全選択肢）は伏せたまま。
-	// こちらは TagBadges に出ないので、画面に1つしか無い＝そのまま見に行ける。
-	await expect(page.getByText('好上り', { exact: true })).toBeHidden();
-	// 本文の入力欄も畳まれている（畳むのは書く側だけ）。
-	// **画面にはレースの見立ての欄も出ている**ので、出走馬のぶんだけを名前で選ぶ。
-	await expect(page.locator('textarea[name^="body."]')).toBeHidden();
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	const row = page.locator('main li[id^="entry-"]');
+	await expect(row.getByText('予想メモあり')).toBeVisible();
+	await expect(row.locator('textarea')).toBeHidden();
+	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
+	await row.locator('summary').first().click();
+	await expect(row.locator('textarea')).toHaveValue('今回は内枠が向きそう。');
+	await expect(row.getByText('過去走の記録がありません。')).toHaveCount(0);
 });
 
 test('「書き直す」を開くと、本文欄と全部の札が出る', async ({ page }) => {
@@ -307,8 +296,8 @@ test('予想画面の見出しは、ふりかえりと同じ形で出る', async
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^京都11R\s*E2E予想賞$/);
-	await expect(page.locator('main').getByText('2099-05-05 · 芝2200m / 1頭')).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^京都11R\s*G2\s*E2E予想賞$/);
+	await expect(page.locator('main').getByText('2099-05-05 · 芝2200m')).toBeVisible();
 	await expect(page.locator('main').getByRole('link', { name: '今週の重賞' })).toHaveCount(0);
 });
 
@@ -320,6 +309,8 @@ test('見立ての下に、同じ条件で前に書いた自分のレースの�
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
+	await waitForHydration(page);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 	await expect(page.getByText('同じ条件（京都 芝2200m）で書いたレースのメモ')).toBeVisible();
 	await expect(page.getByText(SAME_CONDITION_NOTE_BODY)).toBeVisible();
 	// 押すとそのレースのふりかえりへ。
@@ -342,7 +333,7 @@ test('出走馬の行の見出しに、前回付けた結論の札が出る', as
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
-	const row = page.locator('main > form > ul > li').first();
+	const row = page.locator('main li[id^="entry-"]').first();
 	const conclusion = row.getByTitle('2026-04-26 に付けた札');
 	await expect(conclusion).toContainText('前回');
 	await expect(conclusion).toContainText('次走買い');
@@ -359,8 +350,14 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
 	// 同じ行の「自分の過去メモ」も ol > li でレース名を含むので、馬柱にだけ出る条件（芝2200m）で絞る
+	await waitForHydration(page);
+	await page.locator('main li[id^="entry-"] > details > summary').click();
+	await page
+		.locator('main li[id^="entry-"]', { hasText: 'E2Eプレビューホース' })
+		.locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' })
+		.click();
 	const run = page
-		.locator('main > form > ul > li')
+		.locator('main li[id^="entry-"]')
 		.first()
 		.locator('ol > li', { hasText: 'E2E同条件賞' })
 		.filter({ hasText: '芝2200m' });
@@ -376,7 +373,7 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 
 	// 頭数・枠・タイム・通過順が入っていない走（E2E霜月特別）は、入っているものだけ出す
 	const noTime = page
-		.locator('main > form > ul > li')
+		.locator('main li[id^="entry-"]')
 		.first()
 		.locator('ol > li', { hasText: 'E2E霜月特別' });
 	await expect(noTime).toContainText('1着');

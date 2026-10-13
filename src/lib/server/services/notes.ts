@@ -562,23 +562,16 @@ export async function listSameConditionRaceNotes(
 }
 
 /**
- * 予想画面で出す、出走馬たちの過去メモ。
+ * 予想・ふりかえり画面で出す、出走馬たちの過去メモ（`listRaceMemoContext` の中で読む）。
  *
- * **このレース以外の** メモを馬ごとにまとめて返す。1クエリ。
+ * **このレース以外の** メモを読む1クエリ（馬ごと・出走ごとの振り分けは `groupHistory`）。
  * `note.horse_id` を非正規化してあるおかげで、16頭分の過去メモが
  * `WHERE horse_id IN (...)` で一度に引ける（product.md 第2章の非正規化の回収）。
  */
-export async function listHistoryForHorses(
-	db: Db,
-	horseIds: string[],
-	excludeRaceId: string,
-	viewerId: string
-): Promise<Map<string, TimelineItem[]>> {
-	if (horseIds.length === 0) return new Map();
-
-	const rows = await db
+function horseHistoryQuery(db: Db, horseIds: string[], excludeRaceId: string, viewerId: string) {
+	return db
 		.select({
-			id: note.id,
+			id: sql<string>`${note.id}`.as('history_note_id'),
 			kind: note.kind,
 			body: note.body,
 			tags: note.tags,
@@ -588,7 +581,9 @@ export async function listHistoryForHorses(
 			authorId: note.authorId,
 			authorName: user.displayName,
 			horseId: note.horseId,
-			raceId: race.id,
+			// 各走のメモを出走IDで結ぶ。batch は列名で結果を組むので、別名を付けて衝突を避ける。
+			raceEntryId: sql<string | null>`${note.raceEntryId}`.as('history_entry_id'),
+			raceId: sql<string | null>`${race.id}`.as('history_race_id'),
 			raceName: race.name,
 			course: race.course,
 			raceNumber: race.raceNumber,
@@ -609,15 +604,80 @@ export async function listHistoryForHorses(
 		)
 		.orderBy(desc(note.occurredAt), desc(note.createdAt))
 		.limit(500);
+}
 
+/**
+ * 馬ごとの履歴と、出走ごとの各走メモ（出走前・ふりかえり）に振り分ける。
+ * 各走メモは履歴と同じ行から作るので、別に引かない。出走IDは画面のデータに残さない。
+ */
+function groupHistory(
+	rows: (TimelineItem & { horseId: string | null; raceEntryId: string | null })[]
+) {
 	const byHorse = new Map<string, TimelineItem[]>();
-	for (const r of rows) {
-		if (!r.horseId) continue;
-		const list = byHorse.get(r.horseId) ?? [];
-		list.push(r);
-		byHorse.set(r.horseId, list);
+	const byEntry = new Map<string, TimelineItem[]>();
+	for (const { raceEntryId, ...item } of rows) {
+		if (item.horseId) {
+			const list = byHorse.get(item.horseId) ?? [];
+			list.push(item);
+			byHorse.set(item.horseId, list);
+		}
+		if (raceEntryId && (item.kind === 'preview' || item.kind === 'entry')) {
+			const list = byEntry.get(raceEntryId) ?? [];
+			list.push(item);
+			byEntry.set(raceEntryId, list);
+		}
 	}
-	return byHorse;
+	return { byHorse, byEntry };
+}
+
+/**
+ * 予想・ふりかえりの画面が読むメモ。今回のレースの本人メモと、出走馬ごとの履歴・各走メモを
+ * **1 batch** で読む（今回の分と履歴は互いに要らないので、過去走の取得と並べて呼べる）。
+ *
+ * - `raceNotes`: 今回のレースの本人のメモ（レース・各馬）
+ * - `history`: 馬ごとの、今回以外のメモ。新しい順
+ * - `pastRunNotes`: `history` のうち出走前・ふりかえりのメモを出走ID（`race_entry.id`）で束ねたもの。
+ *   画面は各走の `entryId` で引く。同日の別レース・同名の別馬は出走IDが違うので混ざらない
+ *
+ * **`history` は新しい順の500件まで。** 直近5走のメモは新しい側にあるので落ちない。
+ * 500件を超える古いメモは、馬の画面で読む。
+ */
+export async function listRaceMemoContext(
+	db: Db,
+	raceId: string,
+	horseIds: string[],
+	viewerId: string
+) {
+	const [raceNotes, history] =
+		horseIds.length === 0
+			? [await raceNotesQuery(db, raceId, viewerId), []]
+			: await db.batch([
+					raceNotesQuery(db, raceId, viewerId),
+					horseHistoryQuery(db, horseIds, raceId, viewerId)
+				]);
+	const { byHorse, byEntry } = groupHistory(history);
+	return { raceNotes, history: byHorse, pastRunNotes: byEntry };
+}
+
+function raceNotesQuery(db: Db, raceId: string, viewerId: string) {
+	return db
+		.select({
+			id: note.id,
+			kind: note.kind,
+			body: note.body,
+			tags: note.tags,
+			mark: note.mark,
+			flow: note.flow,
+			visibility: note.visibility,
+			occurredAt: note.occurredAt,
+			raceEntryId: note.raceEntryId,
+			horseId: note.horseId,
+			authorId: note.authorId,
+			authorName: user.displayName
+		})
+		.from(note)
+		.innerJoin(user, eq(note.authorId, user.id))
+		.where(and(ownedBy(viewerId), eq(note.raceId, raceId)));
 }
 
 export type PreviewNoteInput = {

@@ -211,6 +211,13 @@ export const THIS_WEEK_RACES = {
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 
+/** 行展開・非表示の一括保存を検証する独立したレース（他の保存テストと共有しない）。 */
+export const ROW_RACE = {
+	id: '01JE2ERACEROW0000000000000',
+	entries: ['01JE2EENTRYROWA00000000000', '01JE2EENTRYROWB00000000000'],
+	names: ['E2E行展開アカウマ', 'E2E行展開アオウマ']
+};
+
 /** WebMCP の保存 E2E 専用。他の予想テストが保存するレースと分ける。 */
 export const WEBMCP_RACE_ID = '01JE2ERACEWEBMCP0000000000';
 export const WEBMCP_ENTRY_IDS = [

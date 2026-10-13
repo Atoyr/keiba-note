@@ -91,6 +91,7 @@ test('AI下書きは部分更新・未保存になり、人間のまとめて保
 	await waitForHydration(page);
 	await expect(page.locator('[name="raceNoteBody"]')).toHaveValue('AIの見立て');
 	await expect(row(first).locator('textarea')).toHaveValue('人間の本文を維持');
+	await row(first).locator('summary').first().click();
 	await expect(row(first).getByRole('radio', { name: '◎', exact: true })).toBeChecked();
 	await expect(page.locator('[name="flowMemo.start"]')).toHaveValue('ハナへ');
 	await expect(page.getByText('未保存の変更', { exact: false })).toBeHidden();
