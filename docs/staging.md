@@ -2,7 +2,7 @@
 
 固定名 `staging` の Workers Preview を、リリース前の確認環境として使う。
 
-作成日: 2026-09-23 / 最終更新日: 2026-10-12
+作成日: 2026-09-23 / 最終更新日: 2026-10-13
 
 - **読む場面:** ステージングを更新する・確認する・Google ログインや通知を設定するとき
 - **ここに無いもの:** 本番の構築とリダイレクト URI を足す手順は [operations.md](./operations.md)。
@@ -47,8 +47,11 @@ Cloudflare 側の都合で失敗したときのやり直しや、トークンの
 pnpm run data:check
 pnpm run db:migrate:staging
 pnpm run data:import:staging
-pnpm run deploy:staging
+pnpm run deploy:staging --secrets-file ~/staging-secrets.json
 ```
+
+`deploy:staging` に `--secrets-file` を付けないと、ステージングのシークレットが消えてログインできなくなる
+（→ [シークレットはデプロイのたびに渡す](#シークレットはデプロイのたびに渡す)）。
 
 `data:import:staging` はステージング D1 の `data_import` を読み、**変わったファイルだけ**を流す
 （`--target staging`）。`data:import:remote` は本番 D1 を参照して差分を判定するため、
@@ -75,22 +78,44 @@ Google Cloud Console の OAuth クライアントに次の承認済みリダイ�
 https://staging-k-note.lessironglance.workers.dev/auth/google/callback
 ```
 
-そのクライアントの値を固定 Preview にシークレットとして設定する。
+### シークレットはデプロイのたびに渡す
+
+Preview のシークレットは Preview ではなく**デプロイごと**に付く。`wrangler preview` は前のデプロイの
+シークレットを引き継がず、`wrangler.toml` の設定と `--secrets-file` で渡したものだけで新しいデプロイを作る。
+`wrangler preview secret put` で入れても、次のデプロイで消えてログインできなくなる
+（2026-10 に起きた。`pnpm exec wrangler preview secret list --name staging` で最新デプロイの名前だけ見られる）。
+
+そこで値は GitHub の Actions の Secret に置き、`staging.yml` が毎回 `--secrets-file` で渡す。
 値はリポジトリに保存しない。
 
-```bash
-pnpm exec wrangler preview secret put GOOGLE_CLIENT_ID --name staging
-pnpm exec wrangler preview secret put GOOGLE_CLIENT_SECRET --name staging
-pnpm exec wrangler preview secret put ADMIN_EMAIL --name staging
-```
+| Actions の Secret              | Preview での名前       | 無いとき（`staging.yml`）                                  |
+| ------------------------------ | ---------------------- | ---------------------------------------------------------- |
+| `STAGING_GOOGLE_CLIENT_ID`     | `GOOGLE_CLIENT_ID`     | D1 に当てる前に落とす。入れずに出すとログインできない      |
+| `STAGING_GOOGLE_CLIENT_SECRET` | `GOOGLE_CLIENT_SECRET` | 同上                                                       |
+| `STAGING_ADMIN_EMAIL`          | `ADMIN_EMAIL`          | 同上。入れずに出すとログインはできるが、誰も管理者になれない |
+| `STAGING_DISCORD_WEBHOOK_URL`  | `DISCORD_WEBHOOK_URL`  | 渡さない。staging からは通知しない                         |
 
-障害の通知（→ [monitoring.md](./monitoring.md)）を staging からも受けたいときは、
-`DISCORD_WEBHOOK_URL` も同じように入れる。通知の `Environment` 欄は `staging` になる
-（`wrangler.toml` の `[previews.vars]`）。入れなければ staging からは通知しない。
+Actions の Secret は登録したあと読み出せない。値の元は Google Cloud Console の OAuth クライアントと、
+管理者にするメールアドレス・Discord の Webhook。差し替えるときは Actions の Secret を入れ直し、
+Actions の「ステージング」を手動で流す。
+
+障害の通知（→ [monitoring.md](./monitoring.md)）を staging から受けると、通知の `Environment` 欄は `staging` になる
+（`wrangler.toml` の `[previews.vars]`）。`GITHUB_DISPATCH_TOKEN` は渡さない（ステージングから本番のデータの PR を作らせない）。
+
+手元から `pnpm run deploy:staging` を流すときも同じで、`--secrets-file` を付けないとシークレットが消える。
+手元には「揃っているか」の確認が無いので、デプロイは Actions の手動実行を使う。
+どうしても手元から出すときは、表の `Preview での名前` をキーにした JSON（少なくとも上の3つ）を
+リポジトリのチェックアウトの外（worktree の親の `../` は本体のチェックアウトの中になる）に置いて渡す。
+
+```bash
+pnpm run deploy:staging --secrets-file ~/staging-secrets.json
+```
 
 PR ごとの Preview も使うなら、`wrangler preview base-config secret put <NAME>` で
 新規 Preview 用の共通シークレットを別途設定する。
 Base 設定の変更は既存 Preview に反映されない。
+Base 設定のシークレットが Preview の2回目以降のデプロイにも残るかは確かめていない
+（残らなければ上と同じ理由で消える。2回出してから `wrangler preview secret list` で見る）。
 Google OAuth は Preview ごとに URL が変わるため、ログイン確認には固定名の
 `staging` を使う。
 

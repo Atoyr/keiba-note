@@ -61,6 +61,26 @@ jobs:
             echo 'ready=false' >> "$GITHUB_OUTPUT"
           fi
 
+      # デプロイで渡すシークレット（下の「固定 Preview にデプロイ」）が揃っているかを、
+      # D1 に何か当てる前に確かめる。マイグレーションだけ進んでアプリが古いまま残らないように。
+      - name: ステージングの Secret を確認
+        if: steps.current.outputs.ready == 'true'
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+          ADMIN_EMAIL: ${{ secrets.STAGING_ADMIN_EMAIL }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET ADMIN_EMAIL; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Actions の Secret STAGING_${name} がありません（docs/staging.md）。"
+              missing=1
+            fi
+          done
+          # GOOGLE_* が無いとログインできず、ADMIN_EMAIL が無いと誰も管理者になれない。
+          exit "$missing"
+
       - uses: pnpm/action-setup@v4
         if: steps.current.outputs.ready == 'true'
       - uses: actions/setup-node@v4
@@ -79,6 +99,24 @@ jobs:
         if: steps.current.outputs.ready == 'true'
         run: pnpm run data:import:staging
 
+      # Preview のシークレットは Preview ではなくデプロイごとに付き、`wrangler preview` は
+      # 前のデプロイのシークレットを引き継がない。毎回 --secrets-file で渡さないと、
+      # デプロイのたびに GOOGLE_CLIENT_ID などが消えてログインできなくなる（docs/staging.md）。
       - name: 固定 Preview にデプロイ
         if: steps.current.outputs.ready == 'true'
-        run: pnpm run deploy:staging
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.STAGING_GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.STAGING_GOOGLE_CLIENT_SECRET }}
+          ADMIN_EMAIL: ${{ secrets.STAGING_ADMIN_EMAIL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.STAGING_DISCORD_WEBHOOK_URL }}
+          SECRETS_FILE: ${{ runner.temp }}/staging-secrets.json
+        run: |
+          set -euo pipefail
+          trap 'rm -f "$SECRETS_FILE"' EXIT
+          # 空の値は渡さない。DISCORD_WEBHOOK_URL が無ければステージングからは通知しない。
+          node -e '
+            const names = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "ADMIN_EMAIL", "DISCORD_WEBHOOK_URL"];
+            const secrets = Object.fromEntries(names.filter((n) => process.env[n]).map((n) => [n, process.env[n]]));
+            require("node:fs").writeFileSync(process.env.SECRETS_FILE, JSON.stringify(secrets), { mode: 0o600 });
+          '
+          pnpm run deploy:staging --secrets-file "$SECRETS_FILE"
