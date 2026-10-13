@@ -50,11 +50,12 @@
 	<CourseMap {race} />
 	<section aria-label="基本情報">
 		<h2 class="text-sm font-semibold">基本情報</h2>
-		<dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+		<!-- 項目名と値を横に並べた表。項目名の面は薄く、値は2列ぶん取る。 -->
+		<dl class="mt-2 divide-y overflow-hidden rounded-lg border">
 			{#each facts as [label, value] (label)}
-				<div>
-					<dt class="text-xs text-muted-foreground">{label}</dt>
-					<dd>{value || '—'}</dd>
+				<div class="grid grid-cols-3">
+					<dt class="bg-muted/50 px-3 py-2 text-xs text-foreground">{label}</dt>
+					<dd class="col-span-2 px-3 py-2 text-sm">{value || '—'}</dd>
 				</div>
 			{/each}
 		</dl>

@@ -32,21 +32,97 @@ const run = (over: Partial<PastRun>): PastRun => ({
 	...over
 });
 
+/** 1走ぶんの tbody の、n 番目のセルの文字。 */
+const cellsOf = (container: Element, index: number) =>
+	[...container.querySelectorAll('tbody')].map((tbody) =>
+		tbody.querySelectorAll('tr')[0].querySelectorAll('td')[index].textContent?.trim()
+	);
+
 describe('PastRuns', () => {
+	it('列の見出し（日付・レース / 着順 / 枠番 / 通過 / 上り / 人気）を表で出す', async () => {
+		const screen = render(PastRuns, { runs: [run({})] });
+
+		for (const name of ['日付・レース', '着順', '枠番', '通過', '上り', '人気']) {
+			await expect.element(screen.getByRole('columnheader', { name, exact: true })).toBeVisible();
+		}
+		expect(screen.container.querySelectorAll('th[scope="col"]')).toHaveLength(6);
+	});
+
 	it('日付は YY/MM/DD で出す（年をまたいだ5走でも間隔が読める）', async () => {
 		const screen = render(PastRuns, { runs: [run({ date: '2025-12-28' })] });
 
 		await expect.element(screen.getByText('25/12/28')).toBeInTheDocument();
 	});
 
-	it('2行目の左に頭数・枠・馬番と騎手を出す', async () => {
+	it('レース名・開催場とR・馬場と距離を日付の列に重ねて出す', async () => {
+		const screen = render(PastRuns, { runs: [run({ course: '中山', raceNumber: 11 })] });
+
+		const cell = screen.container.querySelector('tbody td')!;
+		expect(cell.textContent).toContain('札幌記念');
+		expect(cell.textContent).toContain('中山11R');
+		expect(cell.textContent).toContain('芝2000m良');
+	});
+
+	it('着順は 着順/頭数、頭数が無ければ N着、着順が無ければ —', () => {
 		const screen = render(PastRuns, {
-			runs: [run({ fieldSize: 16, bracket: 3, horseNumber: 5, jockey: 'ルメール' })]
+			runs: [
+				run({ raceId: 'r1', finishPosition: 3, fieldSize: 16 }),
+				run({ raceId: 'r2', finishPosition: 5, fieldSize: null }),
+				run({ raceId: 'r3', finishPosition: null, fieldSize: 16 })
+			]
 		});
 
-		await expect.element(screen.getByText('16頭 3枠5番')).toBeInTheDocument();
-		// 騎手の見出しは読み上げだけ
-		await expect.element(screen.getByRole('listitem')).toHaveTextContent('騎手ルメール');
+		expect(cellsOf(screen.container, 1)).toEqual(['3/16', '5着', '—']);
+	});
+
+	it('1着は赤の太字、5着以内は強め、着順の無い走は薄い色にする', () => {
+		const screen = render(PastRuns, {
+			runs: [
+				run({ raceId: 'r1', finishPosition: 1 }),
+				run({ raceId: 'r2', finishPosition: 4 }),
+				run({ raceId: 'r3', finishPosition: null })
+			]
+		});
+
+		const classes = [...screen.container.querySelectorAll('tbody')].map(
+			(tbody) => tbody.querySelectorAll('td')[1].className
+		);
+		expect(classes[0]).toContain('text-red-700');
+		expect(classes[1]).toContain('font-medium');
+		expect(classes[2]).toContain('text-muted-foreground');
+	});
+
+	it('枠番の列は 枠-馬番、片方だけならある方、どちらも無ければ —', () => {
+		const screen = render(PastRuns, {
+			runs: [
+				run({ raceId: 'r1', bracket: 3, horseNumber: 5 }),
+				run({ raceId: 'r2', horseNumber: 7 }),
+				run({ raceId: 'r3', bracket: 2 }),
+				run({ raceId: 'r4' })
+			]
+		});
+
+		expect(cellsOf(screen.container, 2)).toEqual(['3-5', '7', '2', '—']);
+	});
+
+	it('通過・上り・人気は専用の列に出し、無ければ —', () => {
+		const screen = render(PastRuns, {
+			runs: [
+				run({ raceId: 'r1', passing: '5-5-4-2', last3f: 33.4, popularity: 2 }),
+				run({ raceId: 'r2', passing: null, last3f: null, popularity: null })
+			]
+		});
+
+		expect(cellsOf(screen.container, 3)).toEqual(['5-5-4-2', '—']);
+		expect(cellsOf(screen.container, 4)).toEqual(['33.4', '—']);
+		expect(cellsOf(screen.container, 5)).toEqual(['2', '—']);
+	});
+
+	it('2段目に騎手を出す（見出しは読み上げだけ）', async () => {
+		const screen = render(PastRuns, { runs: [run({ jockey: 'ルメール' })] });
+
+		const sub = screen.container.querySelectorAll('tbody tr')[1];
+		expect(sub.textContent).toContain('騎手ルメール');
 		await expect.element(screen.getByText('騎手', { exact: true })).toHaveClass(/sr-only/);
 	});
 
@@ -58,8 +134,9 @@ describe('PastRuns', () => {
 		});
 
 		await expect.element(screen.getByText('勝ち馬X（0.4）')).toBeInTheDocument();
-		await expect.element(screen.getByRole('listitem')).toHaveTextContent('勝ち馬勝ち馬X（0.4）');
-		await expect.element(screen.getByRole('listitem')).not.toHaveTextContent('2着馬Y');
+		const sub = screen.container.querySelectorAll('tbody tr')[1];
+		expect(sub.textContent).toContain('勝ち馬勝ち馬X（0.4）');
+		expect(sub.textContent).not.toContain('2着馬Y');
 	});
 
 	it('勝った走は2着馬と、2着につけた差を負で出す', async () => {
@@ -71,13 +148,15 @@ describe('PastRuns', () => {
 		await expect.element(screen.getByText('2着馬', { exact: true })).toHaveClass(/sr-only/);
 	});
 
-	it('着順の無い走（取消・結果が未入力）には勝ち馬を出さない', async () => {
+	it('着順の無い走（取消・結果が未入力）には勝ち馬を出さない', () => {
 		const screen = render(PastRuns, {
 			runs: [run({ finishPosition: null, winnerName: '勝ち馬X', horseNumber: 5 })]
 		});
 
-		await expect.element(screen.getByRole('listitem')).toHaveTextContent('5番');
-		await expect.element(screen.getByRole('listitem')).not.toHaveTextContent('勝ち馬X');
+		const body = screen.container.querySelector('tbody')!;
+		expect(body.textContent).not.toContain('勝ち馬X');
+		expect(cellsOf(screen.container, 1)).toEqual(['—']);
+		expect(cellsOf(screen.container, 2)).toEqual(['5']);
 	});
 
 	it('差が 0 の走（ハナ差・同着）も 0.0 と出す', async () => {
@@ -88,45 +167,78 @@ describe('PastRuns', () => {
 		await expect.element(screen.getByText('勝ち馬X（0.0）')).toBeInTheDocument();
 	});
 
-	it('頭数が入っていない走は枠・馬番だけ、枠も無ければ馬番だけ出す', async () => {
-		const screen = render(PastRuns, {
-			runs: [
-				run({ raceId: 'r1', bracket: 3, horseNumber: 5 }),
-				run({ raceId: 'r2', horseNumber: 7 })
-			]
-		});
+	it('走破タイムを読み上げ用の見出しを付けて2段目に出す', async () => {
+		const screen = render(PastRuns, { runs: [run({ finishTime: '1:58.4' })] });
 
-		await expect.element(screen.getByText('3枠5番', { exact: true })).toBeInTheDocument();
-		await expect.element(screen.getByText('7番', { exact: true })).toBeInTheDocument();
-		await expect.element(screen.getByRole('list')).not.toHaveTextContent('頭');
-	});
-
-	it('タイムと通過順を、読み上げ用の見出しを付けて2行目に出す', async () => {
-		const screen = render(PastRuns, {
-			runs: [run({ finishTime: '1:58.4', passing: '5-5-4-2' })]
-		});
-
-		const item = screen.getByRole('listitem');
-		await expect.element(item).toHaveTextContent('タイム1:58.4');
-		await expect.element(item).toHaveTextContent('通過順5-5-4-2');
+		const sub = screen.container.querySelectorAll('tbody tr')[1];
+		expect(sub.textContent).toContain('タイム1:58.4');
 		// 見出しの語は画面には出さない（形で見分けが付く）
 		await expect.element(screen.getByText('タイム', { exact: true })).toHaveClass(/sr-only/);
 	});
 
-	it('片方だけ入っていれば、その片方だけ出す', async () => {
-		const screen = render(PastRuns, { runs: [run({ passing: '3-3' })] });
-
-		const item = screen.getByRole('listitem');
-		await expect.element(item).toHaveTextContent('通過順3-3');
-		await expect.element(item).not.toHaveTextContent('タイム');
-	});
-
-	it('頭数・馬番・騎手・勝ち馬・タイム・通過順のどれも無い走は2行目ごと出さない', async () => {
+	it('騎手・勝ち馬・タイムのどれも無い走は2段目ごと出さない', () => {
 		const screen = render(PastRuns, {
 			runs: [run({ finishPosition: null, popularity: null, last3f: null })]
 		});
 
-		await expect.element(screen.getByRole('listitem')).toHaveTextContent('—');
-		expect(screen.container.querySelector('.basis-full')).toBeNull();
+		expect(screen.container.querySelectorAll('tbody tr')).toHaveLength(1);
+		expect(screen.container.querySelector('tbody')!.textContent).toContain('—');
+	});
+
+	it('0走なら表を出さず、記録が無いと伝える', async () => {
+		const screen = render(PastRuns, { runs: [] });
+
+		await expect.element(screen.getByText('過去走の記録がありません。')).toBeVisible();
+		expect(screen.container.querySelector('table')).toBeNull();
+	});
+
+	it('表は狭い幅でもページを広げないよう、横に動く箱に入れる', () => {
+		const screen = render(PastRuns, { runs: [run({})] });
+
+		expect(screen.container.querySelector('table')?.parentElement?.className).toContain(
+			'overflow-x-auto'
+		);
+	});
+
+	describe('各レースの過去メモ', () => {
+		const note = { id: 'n1', kind: 'entry', body: '直線で詰まった', tags: [], mark: null };
+
+		it('メモのある走だけを、表の下のかたまりに新しい順で出す', async () => {
+			const screen = render(PastRuns, {
+				runs: [
+					run({ raceId: 'r1', date: '2026-06-08', raceName: '安田記念', notes: [note] }),
+					run({ raceId: 'r2', date: '2026-05-01', raceName: 'メモ無し賞' }),
+					run({
+						raceId: 'r3',
+						date: '2026-04-01',
+						raceName: '古いメモ賞',
+						notes: [{ ...note, id: 'n3', kind: 'preview', body: '前に書いた' }]
+					})
+				]
+			});
+
+			await expect
+				.element(screen.getByRole('heading', { name: '各レースの過去メモ（自分のメモ）' }))
+				.toBeVisible();
+			const items = screen.container.querySelectorAll('section ol > li');
+			expect(items).toHaveLength(2);
+			expect(items[0].textContent).toContain('26/06/08');
+			expect(items[0].textContent).toContain('安田記念');
+			expect(items[0].textContent).toContain('ふりかえり');
+			expect(items[0].textContent).toContain('直線で詰まった');
+			expect(items[1].textContent).toContain('古いメモ賞');
+			expect(items[1].textContent).toContain('出走前');
+			expect(items[0].textContent).not.toContain('メモ無し賞');
+			await expect
+				.element(screen.getByRole('link', { name: 'この走りの画面でメモを確認・編集する' }).first())
+				.toHaveAttribute('href', '/races/r1');
+		});
+
+		it('メモのある走が1つも無ければ、かたまりごと出さない', () => {
+			const screen = render(PastRuns, { runs: [run({}), run({ raceId: 'r2', notes: [] })] });
+
+			expect(screen.container.querySelector('section')).toBeNull();
+			expect(screen.container.querySelector('h4')).toBeNull();
+		});
 	});
 });

@@ -42,3 +42,27 @@ describe('MarkPicker', () => {
 		expect(onpick).toHaveBeenCalledTimes(3);
 	});
 });
+
+// 横いっぱいに等幅で並べる（6つの印 + なし）。「なし」も印と同じ形の札にする。
+it('6つの印と「なし」を同じ高さ・同じ幅の札として7列に並べる', () => {
+	const screen = render(MarkPicker, { name: 'mark.x', value: null });
+
+	const group = screen.container.querySelector('[role="radiogroup"]')!;
+	expect(group.className).toContain('grid-cols-7');
+	const tiles = group.querySelectorAll('input + span');
+	expect(tiles).toHaveLength(7);
+	for (const tile of tiles) {
+		expect(tile.className).toContain('h-10');
+		expect(tile.className).toContain('w-full');
+		expect(tile.className).toContain('border');
+	}
+});
+
+it('「なし」を選ぶと枠が濃くなる（選んだ状態が枠で分かる）', async () => {
+	const screen = render(MarkPicker, { name: 'mark.x', value: '◎' });
+
+	const none = screen.container.querySelector('input[value=""] + span')!;
+	expect(none.className).toContain('peer-checked:border-foreground');
+	await screen.getByRole('radio', { name: 'なし' }).click({ force: true });
+	await expect.element(screen.getByRole('radio', { name: 'なし' })).toBeChecked();
+});

@@ -18,6 +18,7 @@
 	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { toast } from 'svelte-sonner';
@@ -159,7 +160,7 @@
 
 <svelte:head><title>{data.race.name ?? data.race.course} 予想 — uma-memo</title></svelte:head>
 
-<main class="mx-auto max-w-3xl px-6 py-8">
+<main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<RaceHeading
 		meeting={raceMeeting(data.race)}
 		name={data.race.name}
@@ -352,19 +353,34 @@
 							{/if}
 						</div>
 					{/if}
-					<ul class="{data.oddsAsOf ? 'mt-2' : 'mt-6'} grid grid-cols-1 gap-2">
-						{#each rows as r (r.entryId)}
-							{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
-							{@const conclusion = latestConclusion(r.history)}
-							{@const mark = markOf(r)}
-							{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
-							<li
-								id="entry-{r.entryId}"
-								class="scroll-mt-4 rounded-xl border p-3 {mark === '◎'
-									? 'border-red-300 bg-red-50/40'
-									: ''}"
-							>
-								<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
+					<!-- 出走馬は1枚の枠に、区切り線で行を並べる。角の丸みから行の面（◎ の赤）がはみ出さないよう overflow-hidden。 -->
+					<div class="{data.oddsAsOf ? 'mt-2' : 'mt-6'} overflow-hidden rounded-xl border">
+						<!-- 列の見出し。各行は読み上げ用の文字を持っているので、これは見るためだけ（aria-hidden）。
+						     列の幅は行の見出しの行と同じ（札 w-11・名前 flex-1・オッズ w-21・印 w-6）に取り、行と縦にそろえる。 -->
+						<div
+							aria-hidden="true"
+							class="flex items-center gap-x-1.5 border-b bg-muted px-3 py-1.5 text-xs text-foreground"
+						>
+							{#if rows.some((r) => r.bracket || r.horseNumber)}
+								<span class="w-11 shrink-0">馬番</span>
+							{/if}
+							<span class="min-w-0 flex-1">馬名・騎手</span>
+							{#if data.oddsAsOf}<span class="w-21 shrink-0 text-right">人気・単勝</span>{/if}
+							<span class="w-6 shrink-0 text-center">印</span>
+						</div>
+						<ul class="divide-y">
+							{#each rows as r (r.entryId)}
+								{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
+								{@const conclusion = latestConclusion(r.history)}
+								{@const mark = markOf(r)}
+								{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
+								<li
+									id="entry-{r.entryId}"
+									class="scroll-mt-4 p-3 {mark === '◎'
+										? 'bg-red-50/40 ring-1 ring-red-300 ring-inset'
+										: ''}"
+								>
+									<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
 						     札（枠・馬番 / 性齢）| 名前（馬名 / 騎手 / 前回の札）| オッズ（人気・単勝 / 複勝）| 印。
 						     - 列の幅は札・オッズ・印を固定して、残りを名前の列に渡す。取消で値が無い馬や桁の違う馬でも、
 						       上下の行と位置がずれない（レイアウトシフトも起きない）。
@@ -376,137 +392,144 @@
 						       値の形（単勝は1つの数・複勝は幅）と一覧の上の「単勝・複勝のオッズは…時点」で見分けられる。
 						       読み上げには sr-only で残す。
 						     - DOM の順は読む順（札 → 馬名 → 騎手 → 前回の札 → 人気 → 単勝 → 複勝 → 印）。 -->
-								<div class="flex items-start gap-x-1.5">
-									<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
+									<div class="flex items-start gap-x-1.5">
+										<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
 							     ふりかえり画面と同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
 							     その下に性齢の札（馬詳細と同じ。牡4）を置く。
 							     枠順が出る前（札が無い）は幅を取らない。空の列が馬名を右へ押し出さないように。 -->
-									{#if r.bracket || r.horseNumber || r.sexAge}
-										<span
-											class="flex shrink-0 flex-col items-start gap-1 {r.bracket || r.horseNumber
-												? 'w-11'
-												: ''}"
-										>
-											<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-											<span class="flex h-6 items-center">
-												<SexAgeBadge sex={r.sex} label={r.sexAge} />
+										{#if r.bracket || r.horseNumber || r.sexAge}
+											<span
+												class="flex shrink-0 flex-col items-start gap-1 {r.bracket || r.horseNumber
+													? 'w-11'
+													: ''}"
+											>
+												<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+												<span class="flex h-6 items-center">
+													<SexAgeBadge sex={r.sex} label={r.sexAge} />
+												</span>
 											</span>
-										</span>
-									{/if}
+										{/if}
 
-									<div class="flex min-w-0 flex-1 flex-col gap-1">
-										<a
-											href={resolve('/horses/[id]', { id: r.horseId })}
-											class="max-w-full self-start truncate leading-6 font-medium hover:underline"
-										>
-											{r.horseName}
-										</a>
-										<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
+										<div class="flex min-w-0 flex-1 flex-col gap-1">
+											<a
+												href={resolve('/horses/[id]', { id: r.horseId })}
+												class="max-w-full self-start truncate leading-6 font-medium hover:underline"
+											>
+												{r.horseName}
+											</a>
+											<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
 								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
-										{#if r.jockey}
-											<span
-												class="flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 self-start"
-											>
-												<JockeyLink
-													name={r.jockey}
-													summary={r.jockeySummary}
-													class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-												/>
-												<JockeyTagBadges tags={r.jockeyCourseTags} />
-											</span>
-										{/if}
-										<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
+											{#if r.jockey}
+												<span
+													class="flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 self-start"
+												>
+													<JockeyLink
+														name={r.jockey}
+														summary={r.jockeySummary}
+														class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+													/>
+													<JockeyTagBadges tags={r.jockeyCourseTags} />
+												</span>
+											{/if}
+											<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
-										{#if conclusion}
-											<span
-												class="flex items-center gap-1 text-[11px] text-muted-foreground"
-												title="{conclusion.occurredAt} に付けた札"
-											>
-												前回
-												<TagBadges tags={conclusion.tags} />
-											</span>
-										{/if}
-									</div>
+											{#if conclusion}
+												<span
+													class="flex items-center gap-1 text-[11px] text-muted-foreground"
+													title="{conclusion.occurredAt} に付けた札"
+												>
+													前回
+													<TagBadges tags={conclusion.tags} />
+												</span>
+											{/if}
+										</div>
 
-									<!-- オッズ。列の幅を固定する（w-21 = 84px）。1段目は人気（w-10）と単勝（w-9。nnn.n が入る）、
+										<!-- オッズ。列の幅を固定する（w-21 = 84px）。1段目は人気（w-10）と単勝（w-9。nnn.n が入る）、
 							     2段目は複勝（nn.n - nn.n が入る）で、どれも右に寄せる。
 							     取消の馬（人気も値も無い）も空のセルで幅を保つ。 -->
-									{#if data.oddsAsOf}
-										<div
-											class="flex w-21 shrink-0 flex-col items-end gap-1 text-xs leading-6 font-medium text-foreground"
-										>
-											<span class="flex justify-end gap-x-1.5">
-												<span class="w-10 text-right">
-													{#if r.popularity}{r.popularity}人気{/if}
+										{#if data.oddsAsOf}
+											<div
+												class="flex w-21 shrink-0 flex-col items-end gap-1 text-xs leading-6 font-medium text-foreground"
+											>
+												<span class="flex justify-end gap-x-1.5">
+													<span class="w-10 text-right">
+														{#if r.popularity}{r.popularity}人気{/if}
+													</span>
+													<span class="w-9 text-right font-mono">
+														<span class="sr-only">単勝</span>{formatWinOdds(
+															r.odds?.winOdds ?? null
+														)}
+													</span>
 												</span>
-												<span class="w-9 text-right font-mono">
-													<span class="sr-only">単勝</span>{formatWinOdds(r.odds?.winOdds ?? null)}
+												<span class="text-right font-mono whitespace-nowrap">
+													<span class="sr-only">複勝</span>{formatPlaceOdds(
+														r.odds?.placeOddsMin ?? null,
+														r.odds?.placeOddsMax ?? null
+													)}
 												</span>
-											</span>
-											<span class="text-right font-mono whitespace-nowrap">
-												<span class="sr-only">複勝</span>{formatPlaceOdds(
-													r.odds?.placeOddsMin ?? null,
-													r.odds?.placeOddsMax ?? null
-												)}
-											</span>
-										</div>
-									{/if}
+											</div>
+										{/if}
 
-									<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
-									<span class="flex size-6 shrink-0">
-										<MarkBadge {mark} />
-									</span>
-								</div>
+										<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
+										<span class="flex size-6 shrink-0">
+											<MarkBadge {mark} />
+										</span>
+									</div>
 
-								<RaceEntryEditor
-									openLabel={hasPreview ? '書き直す' : '＋ 出走前メモ'}
-									horseName={r.horseName}
-									status={hasPreview || r.myPreview?.mark
-										? '予想メモあり'
-										: r.history.length > 0 || r.jockeySummary
-											? '過去のメモあり'
-											: 'メモを入力する'}
-								>
-									<HorseNoteContext
-										horseId={r.horseId}
-										notes={digest.recent}
-										moreCount={digest.moreCount}
-										jockey={r.jockey}
-										summary={r.jockeySummary}
-										{conclusion}
-									/>
-
-									<section aria-label="今回の予想">
-										<h3 class="mb-2 text-sm font-semibold">今回の予想</h3>
-										<MarkPicker
-											name="mark.{r.entryId}"
-											value={r.myPreview?.mark ?? null}
-											onpick={(m) => pick(r.entryId, m)}
+									<RaceEntryEditor
+										openLabel={hasPreview ? '書き直す' : '＋ 出走前メモ'}
+										horseName={r.horseName}
+										status={hasPreview || r.myPreview?.mark
+											? '予想メモあり'
+											: r.history.length > 0 || r.jockeySummary
+												? '過去のメモあり'
+												: 'メモを入力する'}
+									>
+										<HorseNoteContext
+											horseId={r.horseId}
+											notes={digest.recent}
+											moreCount={digest.moreCount}
+											jockey={r.jockey}
+											summary={r.jockeySummary}
+											{conclusion}
 										/>
-										<Textarea
-											name="body.{r.entryId}"
-											aria-label="{r.horseName}の出走前メモ"
-											rows={2}
-											placeholder="今回は内枠が向きそう。"
-											class="mt-2 text-sm"
-											value={r.myPreview?.body ?? ''}
-										/>
-										<div class="mt-2">
-											<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
-										</div>
-									</section>
-									<details class="rounded-md border bg-background px-3 py-2">
-										<summary
-											class="min-h-6 cursor-pointer text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring"
-											><span class="sr-only">{r.horseName}の</span
-											>詳細情報（直近5走・レースメモ）</summary
-										>
-										<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>
-									</details>
-								</RaceEntryEditor>
-							</li>
-						{/each}
-					</ul>
+
+										<section aria-label="今回の予想" class="rounded-lg bg-muted/50 p-3">
+											<h3 class="mb-2 text-sm font-semibold">今回の予想</h3>
+											<MarkPicker
+												name="mark.{r.entryId}"
+												value={r.myPreview?.mark ?? null}
+												onpick={(m) => pick(r.entryId, m)}
+											/>
+											<Textarea
+												name="body.{r.entryId}"
+												aria-label="{r.horseName}の出走前メモ"
+												rows={2}
+												placeholder="今回は内枠が向きそう。"
+												class="mt-2 text-sm"
+												value={r.myPreview?.body ?? ''}
+											/>
+											<div class="mt-2">
+												<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
+											</div>
+										</section>
+										<details class="group/detail rounded-lg bg-muted/50 p-3">
+											<summary
+												class="flex min-h-6 cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+												><span
+													><span class="sr-only">{r.horseName}の</span
+													>詳細情報（直近5走・レースメモ）</span
+												><ChevronDown
+													class="size-4 shrink-0 group-open/detail:rotate-180"
+												/></summary
+											>
+											<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>
+										</details>
+									</RaceEntryEditor>
+								</li>
+							{/each}
+						</ul>
+					</div>
 				{/if}
 			</RacePanels>
 		{/key}

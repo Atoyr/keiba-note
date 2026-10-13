@@ -47,3 +47,40 @@ it('近況が無くても、ほかのメモがあれば件数と馬の画面へ�
 	await screen.rerender({ horseId: 'h1', notes: [], jockey: null, summary: null, moreCount: 0 });
 	expect(document.querySelectorAll('section')).toHaveLength(0);
 });
+
+it('馬のメモの見出しの右に、出している近況の件数を出す（騎手のメモには出さない）', async () => {
+	const screen = render(HorseNoteContext, {
+		horseId: 'h1',
+		notes: [1, 2, 3].map((id) => ({
+			id: String(id),
+			body: `近況${id}`,
+			tags: [],
+			occurredAt: '2026-05-01'
+		})),
+		jockey: '見本騎手',
+		summary: { body: '騎手のまとめ', tags: [] }
+	});
+	// 3件渡しても出すのは2件
+	await expect.element(screen.getByText('2件', { exact: true })).toBeVisible();
+	expect(
+		screen.container.querySelector('section[aria-label="騎手のメモ"]')?.textContent
+	).not.toMatch(/\d件/);
+
+	// 近況が無く、入口だけを出すときは件数を出さない
+	await screen.rerender({ horseId: 'h1', notes: [], jockey: null, summary: null, moreCount: 3 });
+	expect(screen.container.querySelector('section[aria-label="馬のメモ"]')?.textContent).not.toMatch(
+		/\d件/
+	);
+});
+
+it('かたまりごとに薄い面（bg-muted/50）にする', () => {
+	const screen = render(HorseNoteContext, {
+		horseId: 'h1',
+		notes: [{ id: '1', body: '近況', tags: [], occurredAt: '2026-05-01' }],
+		jockey: '見本騎手',
+		summary: { body: '騎手のまとめ', tags: [] }
+	});
+	for (const section of screen.container.querySelectorAll('section')) {
+		expect(section.className).toContain('bg-muted/50');
+	}
+});

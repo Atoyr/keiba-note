@@ -44,3 +44,28 @@ it('タブの並びを常に描き、パネルをタブの名前で結ぶ（出�
 	expect(form.querySelector('#race-panel-0')?.getAttribute('aria-labelledby')).toBe('race-tab-0');
 	expect(form.querySelector('#race-panel-1')?.getAttribute('aria-labelledby')).toBe('race-tab-1');
 });
+
+it('選んだタブは文字を primary・太字にして下に線を引き、選んでいないタブは線を透明にする', async () => {
+	const form = document.createElement('form');
+	document.body.appendChild(form);
+	const screen = render(RacePanels, {
+		target: form,
+		props: {
+			label: '予想',
+			children: createRawSnippet(() => ({ render: () => '<p>入力</p>' })),
+			information: createRawSnippet(() => ({ render: () => '<p>コース資料</p>' }))
+		}
+	});
+	const selected = screen.getByRole('tab', { name: '予想', exact: true });
+	const other = screen.getByRole('tab', { name: 'レース情報' });
+	await expect.element(selected).toHaveAttribute('aria-selected', 'true');
+	await expect.element(other).toHaveAttribute('aria-selected', 'false');
+	await expect.element(selected).toHaveClass(/border-primary/);
+	await expect.element(selected).toHaveClass(/text-primary/);
+	await expect.element(other).toHaveClass(/border-transparent/);
+
+	await other.click();
+	await expect.element(other).toHaveAttribute('aria-selected', 'true');
+	await expect.element(other).toHaveClass(/border-primary/);
+	await expect.element(selected).toHaveClass(/border-transparent/);
+});
