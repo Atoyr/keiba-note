@@ -15,8 +15,6 @@
 		race: RaceHeadingSource &
 			ComponentProps<typeof CourseMap>['race'] & {
 				name: string | null;
-				startTime: string | null;
-				fieldSize: number | null;
 			};
 		trend: { key: string; body: string } | null;
 		sameCondition: {
@@ -30,36 +28,10 @@
 			body: string;
 		}[];
 	} = $props();
-	const facts = $derived([
-		['開催日', race.date],
-		['開催', `${race.course}${race.raceNumber === null ? '' : `${race.raceNumber}R`}`],
-		['発走', race.startTime],
-		['格・クラス', race.grade ?? race.className],
-		[
-			'馬場・距離',
-			[race.surface, race.distance === null ? null : `${race.distance}m`].filter(Boolean).join(' ')
-		],
-		['回り', race.direction],
-		['馬場状態', race.trackCondition],
-		['天候', race.weather],
-		['頭数', race.fieldSize === null ? null : `${race.fieldSize}頭`]
-	]);
 </script>
 
+<!-- 重賞の傾向 → 過去成績・レースメモ → コースの順。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
-	<CourseMap {race} />
-	<section aria-label="基本情報">
-		<h2 class="text-sm font-semibold">基本情報</h2>
-		<!-- 項目名と値を横に並べた表。項目名の面は薄く、値は2列ぶん取る。 -->
-		<dl class="mt-2 divide-y overflow-hidden rounded-lg border">
-			{#each facts as [label, value] (label)}
-				<div class="grid grid-cols-3">
-					<dt class="bg-muted/50 px-3 py-2 text-xs text-foreground">{label}</dt>
-					<dd class="col-span-2 px-3 py-2 text-sm">{value || '—'}</dd>
-				</div>
-			{/each}
-		</dl>
-	</section>
 	{#if trend}<GradedRaceTrend raceKey={trend.key} body={trend.body} />{/if}
 	<section aria-label="過去成績・レースメモ">
 		<h2 class="text-sm font-semibold">過去成績・レースメモ</h2>
@@ -91,4 +63,5 @@
 			</ol>
 		{/if}
 	</section>
+	<CourseMap {race} />
 </div>

@@ -148,6 +148,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `HorseNumberBadge` | 枠番と馬番の札。枠番（帽子の色）の右に、枠の色を薄くした面の馬番をくっつける。出走馬の行で枠と馬番を出すときはこれを使う |
 | `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ☆ ×）の表示と選択。共有の画像（`utils/share-card.ts`）は画像の中にクラスが効かないので、印・枠・馬番・格の札の色を16進で写している。札の色を変えたら、そちらも変える |
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
+| `EntryMemo` | 出走馬の閉じた行に出すメモ（種別の札・本文3行まで・メモの札）。行を開くと隠れる（`RaceEntryEditor` の `memo`）。予想画面・ふりかえり画面が使う（→ [pages.md 4-3](./pages.md)） |
 | `HorseProfileHeader` | 馬詳細の頭（生年月日・性別の札つきの名前の行・推しの★・父母・母父・所属と調教師）。★のほかはすべて左寄せ。色は第7章 |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目。`label` は `sexAgeLabel` の結果で、null なら何も描かない。色は第7章 |
 | `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
@@ -155,7 +156,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
-| `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱。見出しは `links` を渡すと右端に `⋯` のメニュー（`DropdownMenu`）を出し、レース名を押しても同じメニューが開く（JS が無いときは `<noscript>` でボタンの行）。予想画面・ふりかえり画面が使う |
+| `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱。見出しは `startTime` を渡すと1行目の右端に「15:45発走」を出し、`links` を渡すとその右に `⋯` のメニュー（`DropdownMenu`）を出し、レース名を押しても同じメニューが開く（JS が無いときは `<noscript>` でボタンの行）。予想画面・ふりかえり画面と `RaceSummary` が使う（`startTime` を渡すのは予想・ふりかえりだけ） |
 | `RaceSummary` | 1レースの見立て・各馬のメモ・札・印。本人のまとめ画面と共有ページで共通 |
 | `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` / `FlowDigest` / `FlowOrder` | 展開の予想の入力・盤面・読むだけの畳んだ形（入力は `RaceFlowEditor`、盤面は `RaceFlowBoard`、畳んだ形は `RaceFlowView`・`RaceFlowDetails`・`FlowDigest`・`FlowOrder`）。盤面は前後 × 内外のマス目に枠の色のコマを置く。キーボードは矢印キー |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の生成物（`pnpm run course-maps`。手で直さない） |

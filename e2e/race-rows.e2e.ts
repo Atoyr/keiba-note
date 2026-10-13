@@ -19,6 +19,11 @@ async function login(page: Page) {
 const row = (page: Page, index: number) => page.locator(`#entry-${ROW_RACE.entries[index]}`);
 const open = async (page: Page, index: number) =>
 	row(page, index).locator('summary').first().click();
+/** 閉じた行に出すメモ（本文と札）。`<details>` の前に置かれる。メモごとの塊は `div:has(> p)`。 */
+const closedMemo = (page: Page, index: number) =>
+	row(page, index).locator(
+		'xpath=.//details[contains(@class, "group/entry")]/preceding-sibling::div[contains(@class, "grid gap-1.5")]'
+	);
 const detail = (page: Page, index: number) =>
 	row(page, index).locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' });
 const route = `/races/${ROW_RACE.id}/preview`;
@@ -60,7 +65,12 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	await page.getByLabel('レースの見立て', { exact: true }).fill('先行有利。');
 	await page.getByRole('button', { name: '人気順', exact: true }).click();
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
-	await expect(page.getByRole('region', { name: '基本情報' })).toContainText('18頭');
+	// 基本情報の表は無く、頭数と発走時刻は見出しにある。
+	await expect(page.getByRole('region', { name: '基本情報' })).toHaveCount(0);
+	await expect(page.locator('main p', { hasText: '18頭' }).first()).toContainText(
+		'芝2000m / 左 / 18頭'
+	);
+	await expect(page.getByText('15:45発走')).toBeVisible();
 	await expect(row(page, 1)).toBeHidden();
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
 	await expect(page.getByText('保存しました（3 件）')).toBeVisible();
@@ -157,6 +167,12 @@ test('ふりかえりの閉じた行も保存し、事前の予想を上書き�
 	await row(page, 0).locator('textarea').fill('直線の伸びをふりかえる。');
 	await row(page, 0).getByRole('checkbox', { name: '好上り' }).check({ force: true });
 	await open(page, 0);
+	// 保存する前でも、いま入力しているふりかえりのメモが札付きで閉じた行に出る（出走前の下）。
+	const kinds = closedMemo(page, 0).locator('div:has(> p)');
+	await expect(kinds).toHaveCount(2);
+	await expect(kinds.nth(1)).toContainText('ふりかえり');
+	await expect(kinds.nth(1)).toContainText('直線の伸びをふりかえる。');
+	await expect(kinds.nth(1)).toContainText('好上り');
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました（1 件）')).toBeVisible();
@@ -170,19 +186,34 @@ test('ふりかえりの閉じた行も保存し、事前の予想を上書き�
 	await expect(row(page, 0).locator('textarea')).toHaveValue('内で脚をためる。');
 });
 
-test('ふりかえりの閉じた行で、4角・上り・人気と状態の文言を見比べられる', async ({ page }) => {
+test('ふりかえりの閉じた行で、4角・上り・人気と、出走前・ふりかえりのメモを見比べられる', async ({
+	page
+}) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${ROW_RACE.id}`);
 	await expect(row(page, 0).locator('textarea')).toBeHidden();
 	await expect(row(page, 0)).toContainText('4角4番手→4着');
 	await expect(row(page, 0)).toContainText('上り34.2');
 	await expect(row(page, 0)).toContainText('2人気');
-	// 本人のふりかえりがあればそれ。なければ予想（印・本文・札）。
-	await expect(row(page, 0).locator('summary').first()).toContainText('ふりかえりメモあり');
-	await expect(row(page, 1).locator('summary').first()).toContainText('予想メモあり');
+	// 状態の文言は出さず、メモをそのまま出す。出走前（保存済み）→ ふりかえりの順で、どちらも札付き。
+	await expect(row(page, 0).locator('summary').first()).not.toContainText('メモあり');
+	const kinds0 = closedMemo(page, 0).locator('div:has(> p)');
+	await expect(kinds0).toHaveCount(2);
+	await expect(kinds0.nth(0)).toContainText('出走前');
+	await expect(kinds0.nth(0)).toContainText('内で脚をためる。');
+	await expect(kinds0.nth(0)).toContainText('次走買い');
+	await expect(kinds0.nth(1)).toContainText('ふりかえり');
+	await expect(kinds0.nth(1)).toContainText('直線の伸びをふりかえる。');
+	await expect(kinds0.nth(1)).toContainText('好上り');
+	// ふりかえりを書いていない馬は、出走前のメモだけ。
+	const kinds1 = closedMemo(page, 1).locator('div:has(> p)');
+	await expect(kinds1).toHaveCount(1);
+	await expect(kinds1).toContainText('出走前');
+	await expect(kinds1).toContainText('外から進出する。');
 	await open(page, 0);
-	// 開いた中には重ねて出さない。
+	// 開いた中には重ねて出さない。閉じた行用のメモも、開くと隠れる。
 	await expect(row(page, 0).getByText('4角4番手→4着')).toHaveCount(1);
+	await expect(closedMemo(page, 0)).toBeHidden();
 });
 
 test('JS無効でも行と詳細を開いて一括保存し、資料と既存導線を読める', async ({ browser }) => {
@@ -190,7 +221,10 @@ test('JS無効でも行と詳細を開いて一括保存し、資料と既存導
 	const page = await context.newPage();
 	await login(page);
 	await page.goto(route);
-	await expect(page.getByRole('region', { name: '基本情報' })).toBeVisible();
+	// 基本情報の表は無く、発走時刻は見出しにある。JS が無くても資料（過去成績・レースメモ）が続けて出る。
+	await expect(page.getByRole('region', { name: '基本情報' })).toHaveCount(0);
+	await expect(page.getByText('15:45発走')).toBeVisible();
+	await expect(page.getByRole('region', { name: '過去成績・レースメモ' })).toBeVisible();
 	// 押しても切り替わらないタブは出さない。
 	await expect(page.locator('[role="tablist"][aria-label="レースの表示"]')).toBeHidden();
 	await open(page, 1);

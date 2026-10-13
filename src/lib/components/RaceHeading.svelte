@@ -7,11 +7,11 @@
 	/**
 	 * レースページの見出し。
 	 *
-	 * 1行目は「開催（場・R）＋レース名」で、**折り返さない**。日付は2行目の先頭に置く。
-	 * 幅が足りないときに … で詰まるのはレース名だけで、開催は最後まで出す。
+	 * 1行目は「開催（場・R）＋レース名」で、**折り返さない**。右端に発走時刻（`startTime`。あれば）を
+	 * 置く（`⋯` の左）。幅が足りないときに … で詰まるのはレース名だけで、開催と時刻は最後まで出す。
 	 * どのレースを開いているかは開催のほうで分かるため。
 	 *
-	 * 格の札はレース名のすぐ左。開催と札は縮めず、名前だけを省略する。
+	 * 2行目は格の札、日付、条件（距離・馬場・頭数など）。格の札は常に2行目の先頭に置く。
 	 *
 	 * 他の画面への導線（`links`）は、見出しの下にボタンを並べず、右端の `⋯` に畳む。
 	 * 毎回は踏まない導線で、スマホ幅だと見出しの下を何行も取っていたため。
@@ -21,7 +21,7 @@
 		meeting,
 		name,
 		grade,
-		gradeBeforeName = true,
+		startTime = null,
 		spec,
 		links
 	}: {
@@ -30,9 +30,9 @@
 		/** レース名。幅が足りなければここが … になる。 */
 		name: string | null;
 		grade: string | null;
-		/** 予想まとめ・共有は従来どおり条件の行に置く。 */
-		gradeBeforeName?: boolean;
-		/** 2行目に出す日付と条件（距離・馬場など）。 */
+		/** 発走時刻（`15:45`）。あれば1行目の右端に「15:45発走」と出す。予想まとめ・共有は渡さない。 */
+		startTime?: string | null;
+		/** 2行目に出す日付と条件（距離・馬場・頭数など）。 */
 		spec: string;
 		/** `⋯` のメニューに並べる導線。省略か空ならメニューを出さない。href は呼び出し側が resolve() で組む。 */
 		links?: { href: string; label: string }[];
@@ -64,16 +64,26 @@
 
 {#snippet titleText()}
 	<span class="shrink-0">{meeting}</span>
-	{#if gradeBeforeName && grade}<span class="shrink-0"><GradeBadge {grade} /></span>{/if}
 	{#if name}
 		<span class="truncate" title={name}>{name}</span>
 	{/if}
 {/snippet}
 
+<!-- 発走時刻。h1 の外に置く（タイトルのボタン＝メニューを開く部分に含めない）。
+     h-7 は1行目の文字の行の高さ。 -->
+{#snippet time()}
+	{#if startTime}
+		<span
+			class="flex h-7 shrink-0 items-center text-sm whitespace-nowrap text-muted-foreground tabular-nums"
+			>{startTime}発走</span
+		>
+	{/if}
+{/snippet}
+
 {#snippet subline()}
-	{#if spec || (!gradeBeforeName && grade)}
+	{#if spec || grade}
 		<p class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-			{#if !gradeBeforeName}<GradeBadge {grade} />{/if}
+			<GradeBadge {grade} />
 			{#if spec}
 				<span class="truncate">{spec}</span>
 			{/if}
@@ -103,6 +113,8 @@
 					</h1>
 					{@render subline()}
 				</div>
+
+				{@render time()}
 
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
@@ -149,9 +161,14 @@
 	</div>
 {:else}
 	<div>
-		<h1 class="flex items-baseline gap-2 text-lg font-bold tracking-tight sm:text-xl">
-			{@render titleText()}
-		</h1>
+		<div class="flex items-start gap-2">
+			<h1
+				class="flex min-w-0 flex-1 items-baseline gap-2 text-lg font-bold tracking-tight sm:text-xl"
+			>
+				{@render titleText()}
+			</h1>
+			{@render time()}
+		</div>
 		{@render subline()}
 	</div>
 {/if}

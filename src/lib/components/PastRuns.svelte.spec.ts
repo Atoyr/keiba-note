@@ -127,6 +127,39 @@ describe('PastRuns', () => {
 		await expect.element(screen.getByText('騎手', { exact: true })).toHaveClass(/sr-only/);
 	});
 
+	it('騎手名は騎手の画面へのリンク（点線の下線）', async () => {
+		const screen = render(PastRuns, { runs: [run({ jockey: 'C.ルメール' })] });
+
+		const link = screen.getByRole('link', { name: 'C.ルメール' });
+		await expect
+			.element(link)
+			.toHaveAttribute('href', `/jockeys/${encodeURIComponent('C.ルメール')}`);
+		await expect.element(link).toHaveClass(/decoration-dotted/);
+		// sr-only の「騎手」は残す
+		await expect.element(screen.getByText('騎手', { exact: true })).toHaveClass(/sr-only/);
+	});
+
+	it('G1〜G3 でレース名のある走は、レース名が重賞の画面へのリンクになる', async () => {
+		const screen = render(PastRuns, {
+			runs: [
+				run({ raceId: 'r1', raceName: '札幌記念', grade: 'G2' }),
+				run({ raceId: 'r2', raceName: '1勝クラス特別', grade: null, className: '1勝' }),
+				run({ raceId: 'r3', raceName: 'リステッド競走', grade: 'L' }),
+				run({ raceId: 'r4', raceName: null, grade: 'G3' })
+			]
+		});
+
+		const links = [...screen.container.querySelectorAll('tbody a[href^="/graded-races/"]')];
+		expect(links).toHaveLength(1);
+		expect(links[0].textContent).toBe('札幌記念');
+		expect(links[0].getAttribute('href')).toBe(`/graded-races/${encodeURIComponent('札幌記念')}`);
+		// 条件戦・L・OP・名前の無い走は今までどおり文字のまま
+		const text = screen.container.textContent ?? '';
+		expect(text).toContain('1勝クラス特別');
+		expect(text).toContain('リステッド競走');
+		expect(screen.container.querySelectorAll('tbody a')).toHaveLength(1);
+	});
+
 	it('負けた走は勝ち馬とタイム差を出す', async () => {
 		const screen = render(PastRuns, {
 			runs: [
