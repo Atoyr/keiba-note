@@ -161,7 +161,7 @@
 							<p class="truncate">{title(r)}</p>
 							<p class="text-muted-foreground">
 								{r.course}{r.raceNumber ?? ''}R
-								<span class="font-mono">{cond(r)}</span>
+								<span class="font-mono whitespace-nowrap">{cond(r)}</span>
 							</p>
 						</td>
 						<td
