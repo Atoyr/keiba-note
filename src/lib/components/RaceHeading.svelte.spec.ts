@@ -6,14 +6,14 @@ import '../../routes/layout.css';
 
 /**
  * 見出しはスマホ幅（320px）で崩れないことが要件。
- * レース名が長くても1行目の高さが変わらず、重賞の札と開催を
+ * レース名が長くても1行目の高さが変わらず、開催と発走時刻を
  * 保つことを、実ブラウザ上の寸法で見る。
  */
 const PHONE = 320;
 
 /**
  * レース名が確実にあふれる長さ。**どのフォントで描いてもあふれるよう、実在の名前より長くしてある。**
- * 1行目に開催（場・R）と格の札が並ぶので、レース名にはその残りの幅を使う。
+ * 1行目に開催（場・R）と発走時刻が並ぶので、レース名にはその残りの幅を使う。
  * 19文字では、CI（Ubuntu）の字幅だとちょうど収まってしまい、… にならなかった。
  */
 const LONG_NAME = 'アイルランドトロフィー府中牝馬ステークス東京タイムズ杯';
@@ -43,18 +43,85 @@ function badge() {
 }
 
 describe('RaceHeading', () => {
-	it('予想まとめ・共有は格の札を従来の条件の行に置ける', () => {
+	it('格の札は2行目の先頭（日付の前）にあり、1行目の見出しには無い', () => {
 		render(RaceHeading, {
 			meeting: '東京11R',
-			name: '見本賞',
+			name: '毎日王冠',
 			grade: 'G2',
-			spec: '芝1800m / 左',
-			gradeBeforeName: false
+			spec: '2026-10-04 · 芝1800m / 左'
 		});
 		expect(h1().querySelector('[data-slot="badge"]')).toBeNull();
-		expect(badge()?.closest('p')?.textContent).toContain('芝1800m / 左');
+		const sub = badge()?.closest('p');
+		expect(sub?.textContent).toContain('2026-10-04');
+		expect(sub?.firstElementChild).toBe(badge());
+		expect(badge()!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+			h1().getBoundingClientRect().bottom
+		);
 	});
-	it('長いレース名だけを … で詰め、開催は最後まで出し、重賞の札はタイトル左隣に置く', () => {
+
+	it('格が無ければ札は出さず、条件の行だけ出す', () => {
+		render(RaceHeading, {
+			meeting: '東京8R',
+			name: '3歳以上1勝クラス',
+			grade: null,
+			spec: '2026-10-04 · 芝1600m'
+		});
+		expect(badge()).toBeNull();
+		expect(document.querySelector('p')?.textContent).toContain('芝1600m');
+	});
+
+	describe('startTime（発走時刻）', () => {
+		const time = () =>
+			[...document.querySelectorAll('span')].find((e) => e.textContent === '15:45発走');
+		const base = { meeting: '東京11R', name: '毎日王冠', grade: 'G2', spec: '芝1800m / 左' };
+
+		it('値があれば1行目の右端に「15:45発走」を出す（h1 の外）', () => {
+			render(RaceHeading, { ...base, startTime: '15:45' });
+			const el = time()!;
+			expect(el).toBeDefined();
+			expect(h1().contains(el)).toBe(false);
+			// 1行目と同じ高さの帯（2行目より上）にある
+			expect(el.getBoundingClientRect().top).toBeLessThan(
+				document.querySelector('p')!.getBoundingClientRect().top
+			);
+			expect(el.getBoundingClientRect().left).toBeGreaterThan(h1().getBoundingClientRect().left);
+		});
+
+		it('links があるときは ⋯ の左に出る', () => {
+			render(RaceHeading, {
+				...base,
+				startTime: '15:45',
+				links: [{ href: '/races/r1/summary', label: '予想をまとめて見る' }]
+			});
+			const menu = document.querySelector('[aria-label="レースのメニュー"]')!;
+			expect(time()!.getBoundingClientRect().right).toBeLessThanOrEqual(
+				menu.getBoundingClientRect().left
+			);
+			// メニューを開くタイトルのボタンには含めない
+			expect(h1().textContent).not.toContain('発走');
+		});
+
+		it('null か未指定なら出さない', () => {
+			render(RaceHeading, { ...base, startTime: null });
+			expect(document.body.textContent).not.toContain('発走');
+			document.body.innerHTML = '';
+			render(RaceHeading, base);
+			expect(document.body.textContent).not.toContain('発走');
+		});
+
+		it('320px で長いレース名でも、時刻は折り返さず最後まで出る', () => {
+			narrow();
+			render(RaceHeading, { ...base, name: LONG_NAME, startTime: '15:45' });
+			const el = time()!;
+			expect(el.scrollWidth).toBe(el.clientWidth);
+			expect(el.getBoundingClientRect().height).toBeLessThanOrEqual(28);
+			expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+				document.documentElement.clientWidth
+			);
+		});
+	});
+
+	it('長いレース名だけを … で詰め、開催は最後まで出す', () => {
 		narrow();
 		render(RaceHeading, {
 			meeting: '東京11R',
@@ -81,11 +148,12 @@ describe('RaceHeading', () => {
 		expect(meeting.scrollWidth).toBe(meeting.clientWidth);
 		expect(meeting.textContent).toBe('東京11R');
 
-		// 札は見出しの中でレース名のすぐ左にいる。
+		// 格の札は2行目にあり、1行目の幅を食わない。
 		const g = badge();
 		expect(g?.textContent?.trim()).toBe('G2');
-		expect(g!.getBoundingClientRect().top).toBeLessThan(h1().getBoundingClientRect().bottom);
-		expect(g!.getBoundingClientRect().right).toBeLessThanOrEqual(name.getBoundingClientRect().left);
+		expect(g!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+			h1().getBoundingClientRect().bottom
+		);
 	});
 
 	it('短いレース名は詰めない', () => {

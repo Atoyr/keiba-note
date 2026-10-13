@@ -22,6 +22,14 @@
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
+	import {
+		currentEntry,
+		EMPTY_LIVE,
+		hasMemo,
+		liveOf,
+		withField,
+		type LiveEntries
+	} from '$lib/utils/entry-fields';
 	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
@@ -29,6 +37,7 @@
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
 	import RaceEntryEditor from '$lib/components/RaceEntryEditor.svelte';
+	import EntryMemo from '$lib/components/EntryMemo.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -49,7 +58,10 @@
 	const draftKey = $derived(`uma-memo:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
 	const meeting = $derived(raceMeeting(data.race));
-	const spec = $derived(raceSpec(data.race));
+	// 頭数は予想画面と同じく、取得元の fieldSize があるときだけ末尾に足す（登録行数からは作らない）。
+	const spec = $derived(
+		raceSpec(data.race, data.race.fieldSize !== null ? [`${data.race.fieldSize}頭`] : [])
+	);
 
 	// 見出しの `⋯` メニューの項目。並びは予想画面の見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
 	const links = $derived([
@@ -106,24 +118,47 @@
 	const ta = 'mt-1 text-sm';
 
 	/**
-	 * 閉じた行の状態の文言。本人のふりかえりがあればそれ、なければ予想（印・本文・札）があるか。
-	 * 開催前の見立ての有無や過去のメモの有無は混ぜない（この行の中身を言い表す）。
+	 * このレースで、画面で入力しているふりかえりの本文・札（保存前を含む）。閉じた行に出すメモを、
+	 * 保存済みの値ではなくいま入力している値から出すために持つ（予想画面と同じ仕組み。pages.md 3）。
+	 * 下書きの復元・hydration 前の入力の書き戻しも、欄に `input` / `change` を投げるので同じ経路で入る。
+	 * 保存が通ったら空に戻し、保存済みの値（`data`）に任せる。別レースのものは無いものとして扱う。
 	 */
-	const rowStatus = (r: {
-		myNote: { body: string; tags: unknown[] } | null;
-		myPreview: { mark: string | null; body: string; tags: unknown[] } | null;
-	}) =>
-		r.myNote && (r.myNote.body || r.myNote.tags.length > 0)
-			? 'ふりかえりメモあり'
-			: r.myPreview && (r.myPreview.mark || r.myPreview.body || r.myPreview.tags.length > 0)
-				? '予想メモあり'
-				: 'メモを入力する';
+	let live = $state<LiveEntries>(EMPTY_LIVE);
+	/**
+	 * 別のレースへ移ったら、入力の控えを空に戻す。フォームの中身は `{#key data.race.id}` で作り直され、
+	 * 欄は保存済みの値に戻るため。戻さないと、A → B → A と戻ったときに、欄に無い古い入力が閉じた行に出る。
+	 * 最初の1回は戻さない（hydration 前の入力の書き戻しを消さないため）。
+	 */
+	let liveFor = '';
+	$effect.pre(() => {
+		const id = data.race.id;
+		if (liveFor && liveFor !== id) live = EMPTY_LIVE;
+		liveFor = id;
+	});
+	const liveEntries = $derived(liveOf(live, data.race.id));
+
+	/**
+	 * 本文・札の欄が変わったとき、いまの入力に反映する。**捕捉フェーズ（capture）で聞く。**
+	 * 下書きの書き戻し（DraftKeeper）が欄に投げる `input` / `change` は泡立たないので、泡立ちを待つとフォームに届かない。
+	 */
+	function onField(e: Event) {
+		const el = e.target;
+		if (!formEl || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
+		live = withField(live, data.race.id, el.name, formEl.elements);
+	}
 </script>
 
 <svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} {spec} {links} />
+	<RaceHeading
+		{meeting}
+		name={data.race.name}
+		grade={data.race.grade}
+		startTime={data.race.startTime}
+		{spec}
+		{links}
+	/>
 
 	<!-- 保存に失敗したときの文は、JS があれば保存ボタンの横に出す（SaveBar）。ここは JS が無いときだけ。 -->
 	{#if form && 'message' in form && form.message}
@@ -181,6 +216,9 @@
 					// 保存すると本当に消える。表示はサーバーの data が正で、
 					// フォームの初期値ではない。
 					await update({ reset: false });
+					// 保存が通ったら、入力した本文・札は保存済みの値になった。以降は data に任せる。
+					// 送信中に書き足した分は、下の clear が欄へ書き戻すときの input / change で入り直す。
+					if (result.type === 'success') live = EMPTY_LIVE;
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
@@ -192,6 +230,8 @@
 				}
 			};
 		}}
+		oninputcapture={onField}
+		onchangecapture={onField}
 		tabindex="-1"
 		class="mt-8 outline-none"
 	>
@@ -294,6 +334,10 @@
 							<ul class="divide-y">
 								{#each rows as r (r.entryId)}
 									{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
+									{@const preview = r.myPreview}
+									{@const review = currentEntry(liveEntries, r.entryId, r.myNote)}
+									{@const hasPreview = !!preview && hasMemo(preview)}
+									{@const hasReview = hasMemo(review)}
 									<li id="entry-{r.entryId}" class="scroll-mt-4 p-3">
 										<div class="flex items-start gap-x-2 text-sm">
 											<!-- 左は折り返す中身、右は印の固定の列。印は幅しだいで次の行へ落とさず、どの行でも1段目の右端にそろえる。 -->
@@ -357,7 +401,22 @@
 											</p>
 										{/if}
 
-										<RaceEntryEditor horseName={r.horseName} status={rowStatus(r)}>
+										<!-- 閉じた行に、出走前のメモ（保存済み。印だけなら見出しの印で足りるので出さない）と、
+										     いま入力しているふりかえりのメモを、札付きで時間の順に出す（開くと隠れる）。 -->
+										{#snippet memo()}
+											{#if hasPreview && preview}
+												<EntryMemo kind="出走前" body={preview.body} tags={preview.tags} />
+											{/if}
+											{#if hasReview}
+												<EntryMemo kind="ふりかえり" body={review.body} tags={review.tags} />
+											{/if}
+										{/snippet}
+
+										<RaceEntryEditor
+											horseName={r.horseName}
+											memo={hasPreview || hasReview ? memo : undefined}
+											status={hasPreview || hasReview || preview?.mark ? '' : 'メモを入力する'}
+										>
 											<HorseNoteContext
 												horseId={r.horseId}
 												notes={digest.recent}

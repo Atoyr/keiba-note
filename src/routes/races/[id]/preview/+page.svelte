@@ -23,6 +23,15 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { toast } from 'svelte-sonner';
 	import { byMark } from '$lib/utils/answer';
+	import {
+		currentEntry,
+		EMPTY_LIVE,
+		hasMemo,
+		liveOf,
+		withEntry,
+		withField,
+		type LiveEntries
+	} from '$lib/utils/entry-fields';
 	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import {
 		horseNoteDigest,
@@ -44,6 +53,7 @@
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
 	import RaceEntryEditor from '$lib/components/RaceEntryEditor.svelte';
+	import EntryMemo from '$lib/components/EntryMemo.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import type { PageProps } from './$types';
 
@@ -91,22 +101,43 @@
 	const ta = 'mt-1 text-sm';
 
 	/**
-	 * このレースで、画面で選んだ印（保存前を含む）。閉じた行の見出しの印と「付けた印」を、
-	 * 保存済みの値ではなくいま選んでいる値から出すために持つ。
-	 * `MarkPicker` の `onpick` が書く。下書きの復元・AI の反映・hydration 前の入力の書き戻しも、
-	 * ラジオに `change` を投げるので同じ経路で入る（`破棄` は欄を変えないので何もしなくてよい）。
+	 * このレースで、画面で入力している印・本文・札（保存前を含む）。閉じた行の見出しの印・メモと「付けた印」を、
+	 * 保存済みの値ではなくいま入力している値から出すために持つ（pages.md 4-3）。
+	 * 印は `MarkPicker` の `onpick` が、本文と札はフォームの `input` / `change`（下の `onField`）が書く。
+	 * 下書きの復元・AI の反映・hydration 前の入力の書き戻しも、欄に `input` / `change` を投げるので同じ経路で入る
+	 * （`破棄` は欄を変えないので何もしなくてよい）。
 	 * 保存が通ったら空に戻し、保存済みの値（`data`）に任せる。
 	 * SvelteKit は別レースでもページを再利用するので、レースの id を添えて、違うレースのものは無いものとして扱う。
 	 */
-	let picked = $state<{ raceId: string; marks: Record<string, Mark | null> }>({
-		raceId: '',
-		marks: {}
+	let live = $state<LiveEntries>(EMPTY_LIVE);
+	/**
+	 * 別のレースへ移ったら、入力の控えを空に戻す。フォームの中身は `{#key data.race.id}` で作り直され、
+	 * 欄は保存済みの値に戻るため。戻さないと、A → B → A と戻ったときに、欄に無い古い入力が閉じた行に出る。
+	 * 最初の1回は戻さない（hydration 前の入力の書き戻しを消さないため）。
+	 */
+	let liveFor = '';
+	$effect.pre(() => {
+		const id = data.race.id;
+		if (liveFor && liveFor !== id) live = EMPTY_LIVE;
+		liveFor = id;
 	});
-	const pickedMarks = $derived(picked.raceId === data.race.id ? picked.marks : {});
-	const markOf = (r: { entryId: string; myPreview: { mark: Mark | null } | null }): Mark | null =>
-		r.entryId in pickedMarks ? pickedMarks[r.entryId] : (r.myPreview?.mark ?? null);
+	const liveEntries = $derived(liveOf(live, data.race.id));
+	/** 1頭ぶんの、いま見える印・本文・札。 */
+	const noteOf = (r: (typeof data.rows)[number]) =>
+		currentEntry(liveEntries, r.entryId, r.myPreview);
+	const markOf = (r: (typeof data.rows)[number]): Mark | null => noteOf(r).mark;
 	const pick = (entryId: string, mark: Mark | null) =>
-		(picked = { raceId: data.race.id, marks: { ...pickedMarks, [entryId]: mark } });
+		(live = withEntry(live, data.race.id, entryId, { mark }));
+
+	/**
+	 * 本文・札の欄が変わったとき、いまの入力に反映する。**捕捉フェーズ（capture）で聞く。**
+	 * 下書きの書き戻し（DraftKeeper）が欄に投げる `input` / `change` は泡立たないので、泡立ちを待つとフォームに届かない。
+	 */
+	function onField(e: Event) {
+		const el = e.target;
+		if (!formEl || !(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
+		live = withField(live, data.race.id, el.name, formEl.elements);
+	}
 
 	// いま選んでいる印を印の順（◎ → ×）に。ふりかえりの答え合わせと同じ並び。
 	const marked = $derived(
@@ -132,10 +163,8 @@
 		{ value: 'popularity', label: '人気順' }
 	] as const;
 	const rows = $derived(order === 'popularity' ? sortByPopularity(data.rows) : data.rows);
-	/** 札の列（枠・馬番・性齢）を出すか。一覧全体で1つに決め、見出しと全行の列の幅をそろえる。 */
+	/** 札の列（枠・馬番・性齢）を出すか。一覧全体で1つに決め、全行の列の幅をそろえる。 */
 	const badgeColumn = $derived(data.rows.some((r) => r.bracket || r.horseNumber || r.sexAge));
-	/** 列の見出しを「馬番」と書くか（枠も馬番も誰にも無ければ、見出しは空）。 */
-	const hasNumbers = $derived(data.rows.some((r) => r.bracket || r.horseNumber));
 
 	/** 切り替えは JS が要るので、動くようになってから出す（JS が無いと押しても何も起きない）。 */
 	let hydrated = $state(false);
@@ -169,6 +198,7 @@
 		meeting={raceMeeting(data.race)}
 		name={data.race.name}
 		grade={data.race.grade}
+		startTime={data.race.startTime}
 		{spec}
 		{links}
 	/>
@@ -219,9 +249,9 @@
 					// 保存すると本当に消える。表示はサーバーの data が正で、
 					// フォームの初期値ではない。
 					await update({ reset: false });
-					// 保存が通ったら、選んだ印は保存済みの値になった。以降は data に任せる。
-					// 送信中に書き足した印は、下の clear が欄へ書き戻すときの change で入り直す。
-					if (result.type === 'success') picked = { raceId: '', marks: {} };
+					// 保存が通ったら、入力した印・本文・札は保存済みの値になった。以降は data に任せる。
+					// 送信中に書き足した分は、下の clear が欄へ書き戻すときの input / change で入り直す。
+					if (result.type === 'success') live = EMPTY_LIVE;
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
@@ -233,6 +263,8 @@
 				}
 			};
 		}}
+		oninputcapture={onField}
+		onchangecapture={onField}
 		tabindex="-1"
 		class="mt-6 outline-none"
 	>
@@ -359,24 +391,12 @@
 					{/if}
 					<!-- 出走馬は1枚の枠に、区切り線で行を並べる。角の丸みから行の面（◎ の赤）がはみ出さないよう overflow-hidden。 -->
 					<div class="{data.oddsAsOf ? 'mt-2' : 'mt-6'} overflow-hidden rounded-xl border">
-						<!-- 列の見出し。各行は読み上げ用の文字を持っているので、これは見るためだけ（aria-hidden）。
-						     列の幅は行の見出しの行と同じ（札 w-11・名前 flex-1・オッズ w-21・印 w-6）に取り、行と縦にそろえる。 -->
-						<div
-							aria-hidden="true"
-							class="flex items-center gap-x-1.5 border-b bg-muted px-3 py-1.5 text-xs text-foreground"
-						>
-							{#if badgeColumn}
-								<span class="w-11 shrink-0">{hasNumbers ? '馬番' : ''}</span>
-							{/if}
-							<span class="min-w-0 flex-1">馬名・騎手</span>
-							{#if data.oddsAsOf}<span class="w-21 shrink-0 text-right">人気・単勝</span>{/if}
-							<span class="w-6 shrink-0 text-center">印</span>
-						</div>
 						<ul class="divide-y">
 							{#each rows as r (r.entryId)}
-								{@const hasPreview = !!r.myPreview?.body || (r.myPreview?.tags.length ?? 0) > 0}
+								{@const note = noteOf(r)}
+								{@const hasNote = hasMemo(note)}
 								{@const conclusion = latestConclusion(r.history)}
-								{@const mark = markOf(r)}
+								{@const mark = note.mark}
 								{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
 								<li
 									id="entry-{r.entryId}"
@@ -398,8 +418,8 @@
 										<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
 							     ふりかえり画面と同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
 							     その下に性齢の札（馬詳細と同じ。牡4）を置く。
-							     札の列を出すかは一覧全体で1つに決める（badgeColumn）。出すなら見出しも全行も w-11 で取り、
-							     その行に札が無くても幅だけ取る。行ごとに決めると、列の見出しと馬名の位置が行ごとにずれる。
+							     札の列を出すかは一覧全体で1つに決める（badgeColumn）。出すなら全行が w-11 で取り、
+							     その行に札が無くても幅だけ取る。行ごとに決めると、馬名の位置が行ごとにずれる。
 							     枠順も性齢も誰にも無い（札が1つも無い）レースだけ、空の列で馬名を右へ押し出さないよう幅を取らない。 -->
 										{#if badgeColumn}
 											<span class="flex w-11 shrink-0 flex-col items-start gap-1">
@@ -476,11 +496,18 @@
 										</span>
 									</div>
 
+									<!-- 閉じた行に、いま入力している本文と札をそのまま出す（開くと隠れる）。
+								     種別の札（出走前）を付ける。無いと、すぐ上の「前回」の札の続きに読める。 -->
+									{#snippet memo()}
+										<EntryMemo kind="出走前" body={note.body} tags={note.tags} />
+									{/snippet}
+
 									<RaceEntryEditor
-										openLabel={hasPreview ? '書き直す' : '＋ 出走前メモ'}
+										openLabel={hasNote ? '書き直す' : '＋ 出走前メモ'}
 										horseName={r.horseName}
-										status={hasPreview || r.myPreview?.mark
-											? '予想メモあり'
+										memo={hasNote ? memo : undefined}
+										status={hasNote || mark
+											? ''
 											: r.history.length > 0 || r.jockeySummary
 												? '過去のメモあり'
 												: 'メモを入力する'}

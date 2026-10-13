@@ -25,7 +25,7 @@ export function raceMeeting(r: RaceHeadingSource): string {
  * 「2026-10-04 · 芝1800m / 左 / 良 / 晴」。`RaceHeading` の2行目に出す、日付と条件。
  *
  * 馬場状態と天気は当日に決まるので、開催前のレースでは出ない。
- * `extra` は画面ごとに条件の末尾へ足すもの（予想画面の頭数）。
+ * `extra` は画面ごとに条件の末尾へ足すもの（予想・ふりかえり画面の頭数）。
  */
 export function raceSpec(r: RaceHeadingSource, extra: string[] = []): string {
 	const spec = [

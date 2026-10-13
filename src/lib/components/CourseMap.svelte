@@ -37,9 +37,11 @@
 
 {#snippet figure(src: string, m: NonNullable<typeof map>)}
 	<!-- 置かれた枠の幅で並べ方を変える。全幅なら寸法を図の横に、半分の幅なら図の下に置く。
+	     図・寸法・高低断面は枠の中で中央に寄せる（左に寄りすぎないように）。
 	     寸法は1項目ずつ折り返す（「高低差 内回り / 3.1m」のように途中で切れると読めない）。 -->
 	<div class="@container mt-1">
-		<figure class="@md:flex @md:items-center @md:gap-6">
+		<figure class="@md:flex @md:items-center @md:justify-center @md:gap-6">
+			<!-- 広い幅では mx-0 に戻す。flex の中で auto の余白が残ると、寸法が枠の右端まで離れる。 -->
 			<div class="relative mx-auto w-fit max-w-full @md:mx-0">
 				<!-- lazy: スマホで畳んだまま（display: none）なら読まない。 -->
 				<img
@@ -79,7 +81,9 @@
 				{/if}
 			</div>
 			<figcaption class="mt-1 @md:mt-0">
-				<ul class="flex flex-wrap gap-x-3 text-xs text-muted-foreground @md:flex-col @md:gap-1">
+				<ul
+					class="flex flex-wrap justify-center gap-x-3 text-xs text-muted-foreground @md:flex-col @md:justify-start @md:gap-1"
+				>
 					{#each m.facts as fact (fact)}
 						<li class="whitespace-nowrap">{fact}</li>
 					{/each}

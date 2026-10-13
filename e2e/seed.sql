@@ -49,8 +49,8 @@ VALUES (
 -- 残り2走は「走ったが何も書かなかった」レースになる。
 
 -- 終わったレース（メモを書いた）。
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
-VALUES ('01JE2ERACEPAST0000000000000', '2026-06-14', '中山', 11, 'E2Eステークス', 'G3', '芝', 2000);
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, start_time)
+VALUES ('01JE2ERACEPAST0000000000000', '2026-06-14', '中山', 11, 'E2Eステークス', 'G3', '芝', 2000, '15:45');
 
 -- 終わったレース（何も書かなかった）。格が無いのでクラスが識別子になる。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance)
@@ -138,8 +138,8 @@ VALUES ('01JE2EFREEZEUSER0000000000', 'e2e-freeze-google-sub', 'freeze@example.i
 INSERT OR REPLACE INTO horse (id, name)
 VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース');
 
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance)
-VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200);
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, start_time)
+VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200, '15:45');
 
 -- 着順は未入力（まだ走っていない）。
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
@@ -925,9 +925,9 @@ INSERT INTO session (id, user_id, expires_at) VALUES ('badfa9dee369bdbdf49215171
 INSERT INTO horse (id, name, birth_year, sex) VALUES
  ('01JE2EHORSEROWA00000000000', 'E2E行展開アカウマ', 2015, '牡'),
  ('01JE2EHORSEROWB00000000000', 'E2E行展開アオウマ', 2015, '牝');
-INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size) VALUES
- ('01JE2ERACEROW0000000000000', '2020-05-10', '東京', 11, 'E2E行展開賞', 'G3', '芝', 2000, '左', 18),
- ('01JE2ERACEROWPAST000000000', '2020-04-10', '東京', 11, 'E2E行展開前走', NULL, '芝', 2000, '左', 18);
+INSERT INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size, start_time) VALUES
+ ('01JE2ERACEROW0000000000000', '2020-05-10', '東京', 11, 'E2E行展開賞', 'G3', '芝', 2000, '左', 18, '15:45'),
+ ('01JE2ERACEROWPAST000000000', '2020-04-10', '東京', 11, 'E2E行展開前走', NULL, '芝', 2000, '左', 18, NULL);
 INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, passing, last_3f, popularity) VALUES
  ('01JE2EENTRYROWA00000000000', '01JE2ERACEROW0000000000000', '01JE2EHORSEROWA00000000000', 1, 1, NULL, 4, '8-7-5-4', 34.2, 2),
  ('01JE2EENTRYROWB00000000000', '01JE2ERACEROW0000000000000', '01JE2EHORSEROWB00000000000', 2, 2, NULL, NULL, NULL, NULL, NULL),

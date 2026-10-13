@@ -1,10 +1,12 @@
 <script lang="ts">
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { resolve } from '$app/paths';
+	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import type { NoteTag, Mark } from '$lib/schemas/note';
+	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
 
 	/**
 	 * 1走ぶん。サーバーの `listPastRuns` の戻り値と同じ形だが、**型は import せずここで持つ**
@@ -54,6 +56,7 @@
 	 * 各走の2段目は薄い色の補足。「誰が乗ったか」（騎手）と
 	 * 「誰にどれだけ負けたか」（勝ち馬とタイム差。勝った走は2着馬と、2着につけた差を負で）、
 	 * 右に走破タイム。どれも無い走は2段目ごと出さない。
+	 * 騎手名は騎手の画面へ、G1〜G3 のレース名は重賞の画面へのリンク（詳細情報からそこへ飛べる）。
 	 *
 	 * 自分のメモは表の下に別のかたまりで出す（メモは長さがまちまちで、表の行に混ぜると列がそろわない）。
 	 *
@@ -158,7 +161,18 @@
 									</span>
 								{/if}
 							</div>
-							<p class="truncate">{title(r)}</p>
+							{#if isGraded(r.grade) && r.raceName}
+								<!-- 押せる高さを 24px 取る（leading-6）。block + w-fit で、押せる範囲は文字の幅まで。 -->
+								<a
+									href={resolve('/graded-races/[name]', {
+										name: gradedRaceParam(gradedRaceKey(r.raceName))
+									})}
+									class="block w-fit max-w-full truncate leading-6 underline underline-offset-2 hover:decoration-2"
+									>{r.raceName}</a
+								>
+							{:else}
+								<p class="truncate">{title(r)}</p>
+							{/if}
 							<p class="text-muted-foreground">
 								{r.course}{r.raceNumber ?? ''}R
 								<span class="font-mono whitespace-nowrap">{cond(r)}</span>
@@ -186,7 +200,13 @@
 							<td colspan="6" class="px-1.5 pb-2 text-muted-foreground">
 								<div class="flex flex-wrap gap-x-2">
 									{#if r.jockey}
-										<span><span class="sr-only">騎手</span>{r.jockey}</span>
+										<span
+											><span class="sr-only">騎手</span><JockeyLink
+												name={r.jockey}
+												summary={null}
+												class="inline-flex min-h-6 items-center underline decoration-dotted underline-offset-2 hover:decoration-solid"
+											/></span
+										>
 									{/if}
 									{#if vs}
 										<span><span class="sr-only">{vs.label}</span>{vs.text}</span>

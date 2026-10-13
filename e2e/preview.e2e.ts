@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import { openRaceMenu, raceMenuItem } from './race-menu';
@@ -13,16 +13,52 @@ import {
 	SAME_CONDITION_NOTE_BODY
 } from './seed';
 
-test('閉じた行は印・メモの有無を表示し、本文は展開して読む', async ({ page }) => {
+/** 閉じた行のメモ（本文と札）。`<details>` の前に置かれる。 */
+const closedMemo = (row: Locator) =>
+	row.locator(
+		'xpath=.//details[contains(@class, "group/entry")]/preceding-sibling::div[contains(@class, "grid gap-1.5")]'
+	);
+
+test('閉じた行は印とメモ（本文・札）をそのまま表示し、開くと入力欄に切り替わる', async ({
+	page
+}) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 	const row = page.locator('main li[id^="entry-"]');
-	await expect(row.getByText('予想メモあり')).toBeVisible();
+	const memo = closedMemo(row);
+	// 展開しなくても、書いた本文と札が読める。状態の文言（予想メモあり）は出さない。
+	await expect(memo).toBeVisible();
+	await expect(memo).toContainText('今回は内枠が向きそう。');
+	await expect(memo).toContainText('次走買い');
+	// 種別の札。無いと、見出しの「前回」の札の続きに読める。
+	await expect(memo).toContainText('出走前');
+	await expect(row.getByText('予想メモあり')).toHaveCount(0);
 	await expect(row.locator('textarea')).toBeHidden();
 	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
 	await row.locator('summary').first().click();
+	// 開くと、同じものが2つ並ばないよう閉じた行用のメモは隠れる。
+	await expect(memo).toBeHidden();
 	await expect(row.locator('textarea')).toHaveValue('今回は内枠が向きそう。');
 	await expect(row.getByText('過去走の記録がありません。')).toHaveCount(0);
+});
+
+/** 保存する前でも、いま入力している本文と札を閉じた行に出す（古い保存済みの値が残ると、書いたものが消えたように見える）。 */
+test('行を開いて書いた本文と札は、保存する前から閉じた行に出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	const row = page.locator('main li[id^="entry-"]');
+	const memo = closedMemo(row);
+	await row.locator('summary').first().click();
+	await row.locator('textarea').fill('書き換えた本文。まだ保存しない。');
+	await row.getByRole('checkbox', { name: '次走買い' }).uncheck({ force: true });
+	await row.getByRole('checkbox', { name: '馬場一致' }).check({ force: true });
+	await row.locator('summary').first().click();
+
+	await expect(memo).toBeVisible();
+	await expect(memo).toContainText('書き換えた本文。まだ保存しない。');
+	await expect(memo).toContainText('馬場一致');
+	await expect(memo).not.toContainText('次走買い');
+	await expect(memo).not.toContainText('今回は内枠が向きそう。');
 });
 
 test('「書き直す」を開くと、本文欄と全部の札が出る', async ({ page }) => {
@@ -296,8 +332,12 @@ test('予想画面の見出しは、ふりかえりと同じ形で出る', async
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^京都11R\s*G2\s*E2E予想賞$/);
-	await expect(page.locator('main').getByText('2099-05-05 · 芝2200m')).toBeVisible();
+	// 1行目は場・R とレース名、右端に発走時刻。格の札は2行目の先頭（日付の前）。
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^京都11R\s*E2E予想賞$/);
+	await expect(page.locator('main').getByText('15:45発走')).toBeVisible();
+	const sub = page.locator('main p', { hasText: '2099-05-05 · 芝2200m' });
+	await expect(sub).toBeVisible();
+	await expect(sub.locator('[data-slot="badge"]')).toHaveText('G2');
 	await expect(page.locator('main').getByRole('link', { name: '今週の重賞' })).toHaveCount(0);
 });
 

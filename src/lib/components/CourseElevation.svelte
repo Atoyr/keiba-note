@@ -15,7 +15,7 @@
 	const color = $derived(SURFACE_COLOR[profile.surface]);
 </script>
 
-<div class="mt-3 max-w-md">
+<div class="mx-auto mt-3 max-w-md">
 	<p class="text-xs font-semibold text-muted-foreground" aria-hidden="true">高低断面</p>
 	<!-- 左は高さの目盛りの幅。右は、端に来る「スタート」「ゴール」の文字を真ん中に揃えてもはみ出さない幅。 -->
 	<div role="img" aria-label={chart.summary} class="mt-1 pr-6 pl-9">
