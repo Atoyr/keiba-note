@@ -63,16 +63,17 @@ describe('PastRuns', () => {
 		expect(cell.textContent).toContain('芝2000m良');
 	});
 
-	it('着順は 着順/頭数、頭数が無ければ N着、着順が無ければ —', () => {
+	it('着順は 着順/頭数、頭数が無ければ N着、着順が無くても頭数があれば —/頭数、どちらも無ければ —', () => {
 		const screen = render(PastRuns, {
 			runs: [
 				run({ raceId: 'r1', finishPosition: 3, fieldSize: 16 }),
 				run({ raceId: 'r2', finishPosition: 5, fieldSize: null }),
-				run({ raceId: 'r3', finishPosition: null, fieldSize: 16 })
+				run({ raceId: 'r3', finishPosition: null, fieldSize: 16 }),
+				run({ raceId: 'r4', finishPosition: null, fieldSize: null })
 			]
 		});
 
-		expect(cellsOf(screen.container, 1)).toEqual(['3/16', '5着', '—']);
+		expect(cellsOf(screen.container, 1)).toEqual(['3/16', '5着', '—/16', '—']);
 	});
 
 	it('1着は赤の太字、5着以内は強め、着順の無い走は薄い色にする', () => {
@@ -92,7 +93,7 @@ describe('PastRuns', () => {
 		expect(classes[2]).toContain('text-muted-foreground');
 	});
 
-	it('枠番の列は 枠-馬番、片方だけならある方、どちらも無ければ —', () => {
+	it('枠番の列は 枠-馬番、片方だけなら単位を付けて 枠・番、どちらも無ければ —', () => {
 		const screen = render(PastRuns, {
 			runs: [
 				run({ raceId: 'r1', bracket: 3, horseNumber: 5 }),
@@ -102,7 +103,7 @@ describe('PastRuns', () => {
 			]
 		});
 
-		expect(cellsOf(screen.container, 2)).toEqual(['3-5', '7', '2', '—']);
+		expect(cellsOf(screen.container, 2)).toEqual(['3-5', '7番', '2枠', '—']);
 	});
 
 	it('通過・上り・人気は専用の列に出し、無ければ —', () => {
@@ -156,7 +157,7 @@ describe('PastRuns', () => {
 		const body = screen.container.querySelector('tbody')!;
 		expect(body.textContent).not.toContain('勝ち馬X');
 		expect(cellsOf(screen.container, 1)).toEqual(['—']);
-		expect(cellsOf(screen.container, 2)).toEqual(['5']);
+		expect(cellsOf(screen.container, 2)).toEqual(['5番']);
 	});
 
 	it('差が 0 の走（ハナ差・同着）も 0.0 と出す', async () => {

@@ -69,14 +69,22 @@
 	 */
 	const ymd = (d: string) => d.slice(2).replaceAll('-', '/');
 
-	/** `3-5`（枠-馬番）。片方だけならある方、どちらも無ければ `—`。 */
+	/** `3-5`（枠-馬番）。片方だけなら単位を付けて `3枠` / `5番`（裸の数字だと枠と読まれる）。どちらも無ければ `—`。 */
 	const post = (r: PastRun) =>
-		[r.bracket, r.horseNumber].filter((n) => n !== null && n !== 0).join('-') || '—';
+		r.bracket && r.horseNumber
+			? `${r.bracket}-${r.horseNumber}`
+			: r.bracket
+				? `${r.bracket}枠`
+				: r.horseNumber
+					? `${r.horseNumber}番`
+					: '—';
 
-	/** `3/16`（着順/頭数）。頭数が無ければ `3着`、着順が無ければ `—`。頭数は取得元の値。 */
+	/** `3/16`（着順/頭数）。頭数が無ければ `3着`。着順が無くても頭数があれば `—/16`、どちらも無ければ `—`。頭数は取得元の値。 */
 	const finish = (r: PastRun) =>
 		r.finishPosition === null
-			? '—'
+			? r.fieldSize
+				? `—/${r.fieldSize}`
+				: '—'
 			: r.fieldSize
 				? `${r.finishPosition}/${r.fieldSize}`
 				: `${r.finishPosition}着`;
@@ -151,7 +159,7 @@
 								{/if}
 							</div>
 							<p class="truncate">{title(r)}</p>
-							<p class="truncate text-muted-foreground">
+							<p class="text-muted-foreground">
 								{r.course}{r.raceNumber ?? ''}R
 								<span class="font-mono">{cond(r)}</span>
 							</p>

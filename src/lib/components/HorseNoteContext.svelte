@@ -27,12 +27,7 @@
 
 {#if notes.length > 0 || conclusion || moreCount > 0}
 	<section aria-label="馬のメモ" class="rounded-lg bg-muted/50 p-3">
-		<div class="flex items-baseline gap-x-2">
-			<h3 class="text-sm font-semibold">馬のメモ</h3>
-			<!-- 出している近況の件数（ここに出ない分は下の入口の文に出る）。近況が無ければ件数は出さない。 -->
-			{#if shownNotes.length > 0}<span class="text-xs text-primary">{shownNotes.length}件</span
-				>{/if}
-		</div>
+		<h3 class="text-sm font-semibold">馬のメモ</h3>
 		{#if conclusion}<p class="mt-2 flex flex-wrap items-center gap-1 text-xs">
 				前回の札（{conclusion.occurredAt}）<TagBadges tags={conclusion.tags} />
 			</p>{/if}

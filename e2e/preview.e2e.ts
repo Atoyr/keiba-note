@@ -380,7 +380,7 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 		.locator('tbody', { hasText: 'E2E霜月特別' });
 	const noTimeCells = noTime.locator('tr').first().locator('td');
 	await expect(noTimeCells.nth(1)).toHaveText('1着');
-	await expect(noTimeCells.nth(2)).toHaveText('2');
+	await expect(noTimeCells.nth(2)).toHaveText('2番');
 	await expect(noTimeCells.nth(3)).toHaveText('—');
 	// 勝った走は2着馬と、2着につけた差（負）
 	await expect(noTime).toContainText('2着馬E2E霜月2着馬（-0.2）');
