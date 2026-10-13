@@ -47,3 +47,15 @@ it('近況が無くても、ほかのメモがあれば件数と馬の画面へ�
 	await screen.rerender({ horseId: 'h1', notes: [], jockey: null, summary: null, moreCount: 0 });
 	expect(document.querySelectorAll('section')).toHaveLength(0);
 });
+
+it('かたまりごとに薄い面（bg-muted/50）にする', () => {
+	const screen = render(HorseNoteContext, {
+		horseId: 'h1',
+		notes: [{ id: '1', body: '近況', tags: [], occurredAt: '2026-05-01' }],
+		jockey: '見本騎手',
+		summary: { body: '騎手のまとめ', tags: [] }
+	});
+	for (const section of screen.container.querySelectorAll('section')) {
+		expect(section.className).toContain('bg-muted/50');
+	}
+});

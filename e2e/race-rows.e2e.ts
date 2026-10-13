@@ -32,14 +32,24 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	await row(page, 0).getByRole('radio', { name: '◎', exact: true }).check({ force: true });
 	await row(page, 0).getByRole('checkbox', { name: '次走買い' }).check({ force: true });
 	await detail(page, 0).click();
-	const run = row(page, 0).locator('ol > li', { hasText: 'E2E行展開前走' });
-	await expect(run).toContainText('18頭 3枠5番');
-	await expect(run).toContainText('前走の出走前メモ');
-	await expect(run).toContainText('前走のふりかえりメモ');
+	// 表の行（着順/頭数・枠-馬番）と、表の下の「各レースの過去メモ」は別のかたまり
+	const run = row(page, 0).locator('tbody', { hasText: 'E2E行展開前走' });
+	await expect(run.locator('tr').first().locator('td').nth(1)).toHaveText('4/18');
+	await expect(run.locator('tr').first().locator('td').nth(2)).toHaveText('3-5');
+	const pastNotes = row(page, 0)
+		.locator('section')
+		.filter({
+			has: page.getByRole('heading', { name: '各レースの過去メモ（自分のメモ）' })
+		});
+	const pastNote = pastNotes.locator('li', { hasText: 'E2E行展開前走' });
+	await expect(pastNote).toContainText('前走の出走前メモ');
+	await expect(pastNote).toContainText('前走のふりかえりメモ');
 	await expect(
-		run.getByRole('link', { name: 'この走りの画面でメモを確認・編集する' })
+		pastNote.getByRole('link', { name: 'この走りの画面でメモを確認・編集する' })
 	).toHaveAttribute('href', '/races/01JE2ERACEROWPAST000000000');
+	// 近況は走りに付けない（馬のメモの欄には出うるので、馬柱の表と各走のメモの中だけを見る）
 	await expect(run).not.toContainText('近況はこの走りに付けない');
+	await expect(pastNotes).not.toContainText('近況はこの走りに付けない');
 	await expect(page.getByText('他人の各走メモ')).toHaveCount(0);
 	await open(page, 0);
 	await open(page, 1);
@@ -77,13 +87,13 @@ test('行を開いて選んだ印は、閉じても保存前から見出しと�
 	await open(page, 1);
 	await expect(row(page, 1).locator('textarea')).toBeHidden();
 	await expect(row(page, 1).getByTitle('予想印 ◎')).toBeVisible();
-	await expect(row(page, 1)).toHaveClass(/border-red-300/);
+	await expect(row(page, 1)).toHaveClass(/ring-red-300/);
 	await expect(marks.getByText(name)).toBeVisible();
 	await open(page, 1);
 	await row(page, 1).getByRole('radio', { name: 'なし', exact: true }).check({ force: true });
 	await open(page, 1);
 	await expect(row(page, 1).getByTitle('予想印 ◎')).toHaveCount(0);
-	await expect(row(page, 1)).not.toHaveClass(/border-red-300/);
+	await expect(row(page, 1)).not.toHaveClass(/ring-red-300/);
 	await expect(marks.getByText(name)).toHaveCount(0);
 });
 

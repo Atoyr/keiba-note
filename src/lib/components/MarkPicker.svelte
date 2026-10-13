@@ -50,11 +50,12 @@
 		'×': 'peer-checked:bg-muted peer-checked:text-foreground peer-checked:border-muted-foreground'
 	};
 
-	/** ☆ と × は記号の字面が小さいので、1段大きくしてほかの印とそろえる（MarkBadge と同じ）。 */
-	const glyph = (m: Mark) => (m === '☆' || m === '×' ? 'text-base' : 'text-sm');
+	/** ☆ と × は記号の字面が小さいので、1段大きくしてほかの印とそろえる（MarkBadge と同じ形で、全体を1段上げた）。 */
+	const glyph = (m: Mark) => (m === '☆' || m === '×' ? 'text-lg' : 'text-base');
 </script>
 
-<div class="flex items-center gap-1" role="radiogroup" aria-label="予想印">
+<!-- 6つの印と「なし」を横いっぱいに等幅で並べる（指で押しやすい高さ 40px）。 -->
+<div class="grid grid-cols-7 gap-1" role="radiogroup" aria-label="予想印">
 	{#each MARKS as m (m)}
 		<label class="relative">
 			<input
@@ -66,7 +67,7 @@
 				{@attach watch(m)}
 			/>
 			<span
-				class="flex size-7 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent {glyph(
+				class="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent {glyph(
 					m
 				)} {tone[m]}"
 			>
@@ -84,7 +85,7 @@
 			{@attach watch(null)}
 		/>
 		<span
-			class="flex h-7 cursor-pointer items-center rounded-md px-1.5 text-xs text-muted-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring hover:bg-accent"
+			class="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-border text-xs text-muted-foreground peer-checked:border-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent"
 		>
 			なし
 		</span>

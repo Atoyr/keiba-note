@@ -31,6 +31,7 @@
 	import RaceEntryEditor from '$lib/components/RaceEntryEditor.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import type { PageProps } from './$types';
 
@@ -121,7 +122,7 @@
 
 <svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
-<main class="mx-auto max-w-3xl px-6 py-8">
+<main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<RaceHeading {meeting} name={data.race.name} grade={data.race.grade} {spec} {links} />
 
 	<!-- 保存に失敗したときの文は、JS があれば保存ボタンの横に出す（SaveBar）。ここは JS が無いときだけ。 -->
@@ -288,114 +289,128 @@
 					<section class="mt-8">
 						<h2 class="text-sm font-semibold text-gray-500">出走馬</h2>
 
-						<ul class="mt-2 grid grid-cols-1 gap-2">
-							{#each rows as r (r.entryId)}
-								{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
-								<li id="entry-{r.entryId}" class="scroll-mt-4 rounded-xl border p-3">
-									<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
-										{#if r.finishPosition}
-											<span class="font-bold">{r.finishPosition}着</span>
-										{/if}
-										<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
+						<!-- 出走馬は1枚の枠に、区切り線で行を並べる（予想画面と同じ）。 -->
+						<div class="mt-2 overflow-hidden rounded-xl border">
+							<ul class="divide-y">
+								{#each rows as r (r.entryId)}
+									{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
+									<li id="entry-{r.entryId}" class="scroll-mt-4 p-3">
+										<div class="flex items-start gap-x-2 text-sm">
+											<!-- 左は折り返す中身、右は印の固定の列。印は幅しだいで次の行へ落とさず、どの行でも1段目の右端にそろえる。 -->
+											<div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
+												{#if r.finishPosition}
+													<span class="font-bold">{r.finishPosition}着</span>
+												{/if}
+												<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
 								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
-										<!-- 札・性齢・馬名は折り返さない1組にする。別々に並べると、
+												<!-- 札・性齢・馬名は折り返さない1組にする。別々に並べると、
 								     狭い幅で馬名だけが次の行へ落ち、性齢が馬名の左から離れる。 -->
-										<span class="flex min-w-0 items-baseline gap-2">
-											<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-											<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
-											<SexAgeBadge sex={r.sex} label={r.sexAge} />
-											<a
-												href={resolve('/horses/[id]', { id: r.horseId })}
-												class="min-w-0 font-medium hover:underline"
-											>
-												{r.horseName}
-											</a>
-										</span>
-										<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
-										{#if r.jockey}
-											<span
-												class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1"
-											>
-												<JockeyLink
-													name={r.jockey}
-													summary={r.jockeySummary}
-													class="inline-flex min-h-6 max-w-full items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
-												/>
-												<JockeyTagBadges tags={r.jockeyCourseTags} />
+												<span class="flex min-w-0 items-baseline gap-2">
+													<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+													<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
+													<SexAgeBadge sex={r.sex} label={r.sexAge} />
+													<a
+														href={resolve('/horses/[id]', { id: r.horseId })}
+														class="min-w-0 font-medium hover:underline"
+													>
+														{r.horseName}
+													</a>
+												</span>
+												<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
+												{#if r.jockey}
+													<span
+														class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1"
+													>
+														<JockeyLink
+															name={r.jockey}
+															summary={r.jockeySummary}
+															class="inline-flex min-h-6 max-w-full items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
+														/>
+														<JockeyTagBadges tags={r.jockeyCourseTags} />
+													</span>
+												{/if}
+												{#if r.finishTime}<span class="font-mono text-xs text-gray-500"
+														>{r.finishTime}</span
+													>{/if}
+												{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
+											</div>
+											<!-- 印の場所は、印が無くても取っておく（予想画面と同じ）。 -->
+											<span class="flex size-6 shrink-0">
+												<MarkBadge mark={r.myPreview?.mark ?? null} />
 											</span>
-										{/if}
-										{#if r.finishTime}<span class="font-mono text-xs text-gray-500"
-												>{r.finishTime}</span
-											>{/if}
-										{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
-										<span class="flex-1"></span>
-										<MarkBadge mark={r.myPreview?.mark ?? null} />
-									</div>
+										</div>
 
-									<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
+										<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
 						     後ろから届いたのか」「上りが速かったのか」が読めない。
 						     スマホで1行に収まるよう、1行目とは分けて小さく出す。 -->
-									{#if r.corner4 !== null || r.last3f !== null || r.popularity}
-										<p
-											class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
-										>
-											{#if r.corner4 !== null}
-												<span
-													>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
-												>
-											{/if}
-											<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
-											{#if r.popularity}<span>{r.popularity}人気</span>{/if}
-										</p>
-									{/if}
-
-									<RaceEntryEditor horseName={r.horseName} status={rowStatus(r)}>
-										<HorseNoteContext
-											horseId={r.horseId}
-											notes={digest.recent}
-											moreCount={digest.moreCount}
-											jockey={r.jockey}
-											summary={r.jockeySummary}
-										/>
-										<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
-							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->
-										{#if r.myPreview && (r.myPreview.mark || r.myPreview.body || r.myPreview.tags.length > 0)}
-											<div
-												class="mt-1.5 rounded-md border border-sky-200 bg-sky-50/60 px-2.5 py-1.5 text-sm"
+										{#if r.corner4 !== null || r.last3f !== null || r.popularity}
+											<p
+												class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
 											>
-												<KindBadge label="出走前" /><MarkBadge mark={r.myPreview.mark} />
-												{#if r.myPreview.body}<span
-														class="ml-1 leading-relaxed whitespace-pre-wrap text-sky-950"
-														>{r.myPreview.body}</span
-													>{/if}
-												<TagBadges tags={r.myPreview.tags} class="ml-1" />
-											</div>
+												{#if r.corner4 !== null}
+													<span
+														>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
+													>
+												{/if}
+												<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
+												{#if r.popularity}<span>{r.popularity}人気</span>{/if}
+											</p>
 										{/if}
 
-										<Textarea
-											name="body.{r.entryId}"
-											rows={2}
-											aria-label="{r.horseName}のメモ"
-											placeholder="直線で外に出してから一完歩が速い。"
-											class={ta}
-											value={r.myNote?.body ?? ''}
-										/>
+										<RaceEntryEditor horseName={r.horseName} status={rowStatus(r)}>
+											<HorseNoteContext
+												horseId={r.horseId}
+												notes={digest.recent}
+												moreCount={digest.moreCount}
+												jockey={r.jockey}
+												summary={r.jockeySummary}
+											/>
+											<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
+							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->
+											{#if r.myPreview && (r.myPreview.mark || r.myPreview.body || r.myPreview.tags.length > 0)}
+												<div
+													class="mt-1.5 rounded-md border border-sky-200 bg-sky-50/60 px-2.5 py-1.5 text-sm"
+												>
+													<KindBadge label="出走前" /><MarkBadge mark={r.myPreview.mark} />
+													{#if r.myPreview.body}<span
+															class="ml-1 leading-relaxed whitespace-pre-wrap text-sky-950"
+															>{r.myPreview.body}</span
+														>{/if}
+													<TagBadges tags={r.myPreview.tags} class="ml-1" />
+												</div>
+											{/if}
 
-										<div class="mt-1.5">
-											<TagPicker name="tags.{r.entryId}" values={r.myNote?.tags ?? []} />
-										</div>
-										<details class="rounded-md border bg-background px-3 py-2">
-											<summary
-												class="min-h-6 cursor-pointer text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring"
-												><span class="sr-only">{r.horseName}の</span
-												>詳細情報（直近5走・レースメモ）</summary
-											>
-											<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>
-										</details>
-									</RaceEntryEditor>
-								</li>
-							{/each}
-						</ul>
+											<div class="rounded-lg bg-muted/50 p-3">
+												<Textarea
+													name="body.{r.entryId}"
+													rows={2}
+													aria-label="{r.horseName}のメモ"
+													placeholder="直線で外に出してから一完歩が速い。"
+													class={ta}
+													value={r.myNote?.body ?? ''}
+												/>
+
+												<div class="mt-1.5">
+													<TagPicker name="tags.{r.entryId}" values={r.myNote?.tags ?? []} />
+												</div>
+											</div>
+											<details class="group/detail rounded-lg bg-muted/50 p-3">
+												<summary
+													class="flex min-h-6 cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+													><span
+														><span class="sr-only">{r.horseName}の</span
+														>詳細情報（直近5走・レースメモ）</span
+													><ChevronDown
+														class="size-4 shrink-0 group-open/detail:rotate-180"
+													/></summary
+												>
+												<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>
+											</details>
+										</RaceEntryEditor>
+									</li>
+								{/each}
+							</ul>
+						</div>
 					</section>
 				{/if}
 			</RacePanels>

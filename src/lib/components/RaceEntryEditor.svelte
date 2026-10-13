@@ -24,7 +24,7 @@
 			<ChevronDown class="size-4 group-open/entry:rotate-180" />
 		</span>
 	</summary>
-	<div class="mt-3 grid grid-cols-1 gap-4 rounded-md border-t bg-background p-3">
+	<div class="mt-3 grid grid-cols-1 gap-3 border-t pt-3">
 		{@render children()}
 	</div>
 </details>

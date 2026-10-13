@@ -21,16 +21,18 @@
 		/** ここにも各走にも出ていないメモの件数。あるときは件数と馬の画面への入口を出す。 */
 		moreCount?: number;
 	} = $props();
+	/** 近況は新しい2件まで出す。 */
+	const shownNotes = $derived(notes.slice(0, 2));
 </script>
 
 {#if notes.length > 0 || conclusion || moreCount > 0}
-	<section aria-label="馬のメモ">
+	<section aria-label="馬のメモ" class="rounded-lg bg-muted/50 p-3">
 		<h3 class="text-sm font-semibold">馬のメモ</h3>
 		{#if conclusion}<p class="mt-2 flex flex-wrap items-center gap-1 text-xs">
 				前回の札（{conclusion.occurredAt}）<TagBadges tags={conclusion.tags} />
 			</p>{/if}
 		<ol class="mt-2 grid gap-2">
-			{#each notes.slice(0, 2) as note (note.id)}
+			{#each shownNotes as note (note.id)}
 				<li class="border-l-2 pl-3">
 					<p class="text-xs text-muted-foreground">{note.occurredAt} · 近況</p>
 					{#if note.body}<p class="mt-1 line-clamp-3 text-sm break-words whitespace-pre-wrap">
@@ -50,7 +52,7 @@
 	</section>
 {/if}
 {#if jockey && summary}
-	<section aria-label="騎手のメモ">
+	<section aria-label="騎手のメモ" class="rounded-lg bg-muted/50 p-3">
 		<h3 class="text-sm font-semibold">騎手のメモ · {jockey}</h3>
 		{#if summary.body}<p class="mt-2 line-clamp-3 text-sm break-words whitespace-pre-wrap">
 				{summary.body}

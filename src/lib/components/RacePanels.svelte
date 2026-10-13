@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { cn } from '$lib/utils';
 	let { label, children, information }: { label: string; children: Snippet; information: Snippet } =
 		$props();
 	let hydrated = $state(false);
@@ -32,7 +33,7 @@
 	bind:this={tabs}
 	role="tablist"
 	aria-label="レースの表示"
-	class="race-tablist mb-4 flex gap-2 border-b pb-2"
+	class="race-tablist mb-4 flex border-b"
 >
 	{#each [label, 'レース情報'] as name, index (name)}
 		<Button
@@ -42,7 +43,14 @@
 			aria-controls="race-panel-{index}"
 			aria-selected={active === index}
 			tabindex={active === index ? 0 : -1}
-			variant={active === index ? 'default' : 'ghost'}
+			variant="ghost"
+			class={cn(
+				// 下線のタブ。選んだタブの 2px の線を、tablist の下線に重ねる（-mb-px）。
+				'-mb-px h-auto min-h-11 rounded-none border-0 border-b-2 px-4 hover:bg-transparent dark:hover:bg-transparent',
+				active === index
+					? 'border-primary font-semibold text-primary hover:text-primary'
+					: 'border-transparent text-muted-foreground hover:text-foreground'
+			)}
 			onclick={() => (active = index)}
 			onkeydown={move}>{name}</Button
 		>

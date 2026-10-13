@@ -341,7 +341,8 @@ test('出走馬の行の見出しに、前回付けた結論の札が出る', as
 });
 
 /**
- * 馬柱の各走に、頭数・枠・馬番・騎手・勝ち馬とタイム差、タイム・通過順が2行目として出る。日付は YY/MM/DD。
+ * 馬柱は列のそろった表。各走に、着順/頭数・枠-馬番・通過・上り・人気の列と、2段目に騎手・勝ち馬とタイム差・タイムが出る。
+ * 日付は YY/MM/DD。
  * seed では、この馬の前走（E2E同条件賞・4着）は16頭の3枠5番で、勝ち馬と 0.4 差、2:12.8 と 8-8-7-6。
  * 3走前（E2E霜月特別）は勝った走で、馬番・騎手と2着馬との差だけ（頭数・枠・タイム・通過順が無い）。
  */
@@ -349,7 +350,7 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
-	// 同じ行の「自分の過去メモ」も ol > li でレース名を含むので、馬柱にだけ出る条件（芝2200m）で絞る
+	// 1走は1つの tbody（1段目が数字の列、2段目が補足）。表の下の「自分の過去メモ」は tbody ではない
 	await waitForHydration(page);
 	await page.locator('main li[id^="entry-"] > details > summary').click();
 	await page
@@ -359,32 +360,33 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 	const run = page
 		.locator('main li[id^="entry-"]')
 		.first()
-		.locator('ol > li', { hasText: 'E2E同条件賞' })
+		.locator('tbody', { hasText: 'E2E同条件賞' })
 		.filter({ hasText: '芝2200m' });
+	const cells = run.locator('tr').first().locator('td');
 	await expect(run).toContainText('26/04/26');
-	await expect(run).toContainText('4着');
-	await expect(run).toContainText('16頭 3枠5番');
+	await expect(cells.nth(1)).toHaveText('4/16');
+	await expect(cells.nth(2)).toHaveText('3-5');
+	await expect(cells.nth(3)).toHaveText('8-8-7-6');
 	await expect(run).toContainText('騎手E2E騎手');
 	// 負けた走は勝ち馬とのタイム差。2着馬は出さない
 	await expect(run).toContainText('勝ち馬E2E勝ち馬（0.4）');
 	await expect(run).not.toContainText('E2E2着馬');
 	await expect(run).toContainText('タイム2:12.8');
-	await expect(run).toContainText('通過順8-8-7-6');
 
 	// 頭数・枠・タイム・通過順が入っていない走（E2E霜月特別）は、入っているものだけ出す
 	const noTime = page
 		.locator('main li[id^="entry-"]')
 		.first()
-		.locator('ol > li', { hasText: 'E2E霜月特別' });
-	await expect(noTime).toContainText('1着');
-	await expect(noTime).toContainText('2番');
+		.locator('tbody', { hasText: 'E2E霜月特別' });
+	const noTimeCells = noTime.locator('tr').first().locator('td');
+	await expect(noTimeCells.nth(1)).toHaveText('1着');
+	await expect(noTimeCells.nth(2)).toHaveText('2番');
+	await expect(noTimeCells.nth(3)).toHaveText('—');
 	// 勝った走は2着馬と、2着につけた差（負）
 	await expect(noTime).toContainText('2着馬E2E霜月2着馬（-0.2）');
 	await expect(noTime).not.toContainText('頭');
-	await expect(noTime).not.toContainText('枠');
 	// 読み上げ用の「タイム差」はあるので、「タイム」の直後に数字が続くかで見る
 	await expect(noTime).not.toContainText(/タイム\d/);
-	await expect(noTime).not.toContainText('通過順');
 });
 
 /** 付けた印は画面の上にまとめて出る。押すとその馬の行へ飛ぶ。 */
