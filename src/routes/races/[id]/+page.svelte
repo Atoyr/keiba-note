@@ -386,8 +386,8 @@
 										</div>
 										<details class="rounded-md border bg-background px-3 py-2">
 											<summary
-												aria-label="{r.horseName}の詳細情報"
 												class="min-h-6 cursor-pointer text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring"
+												><span class="sr-only">{r.horseName}の</span
 												>詳細情報（直近5走・レースメモ）</summary
 											>
 											<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>

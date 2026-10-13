@@ -405,7 +405,10 @@ export const SCREENS: Screen[] = [
 		prepare: async (page) => {
 			await waitForHydration(page);
 			await page.getByText('書き直す', { exact: true }).click();
-			await page.getByLabel('E2Eプレビューホースの詳細情報', { exact: true }).click();
+			await page
+				.locator('main li[id^="entry-"]', { hasText: 'E2Eプレビューホース' })
+				.locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' })
+				.click();
 		}
 	},
 	{

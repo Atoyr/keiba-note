@@ -352,7 +352,10 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 	// 同じ行の「自分の過去メモ」も ol > li でレース名を含むので、馬柱にだけ出る条件（芝2200m）で絞る
 	await waitForHydration(page);
 	await page.locator('main li[id^="entry-"] > details > summary').click();
-	await page.getByLabel('E2Eプレビューホースの詳細情報', { exact: true }).click();
+	await page
+		.locator('main li[id^="entry-"]', { hasText: 'E2Eプレビューホース' })
+		.locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' })
+		.click();
 	const run = page
 		.locator('main li[id^="entry-"]')
 		.first()

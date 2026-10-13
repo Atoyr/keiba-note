@@ -225,7 +225,7 @@ export type ConclusionSource = {
  *
  * 拾うのは**走ったあとに書いたメモ**（ふりかえり `entry` と近況 `horse`）で、札が付いたもの。
  * 出走前メモの札は「そのレースでどう見ていたか」で、結果を見たあとの結論ではない。
- * `history` は新しいメモが先に並んでいる前提（`listHistoryForHorses` の並び）。
+ * `history` は新しいメモが先に並んでいる前提（`listRaceMemoContext` の `history` の並び）。
  */
 export function latestConclusion<T extends ConclusionSource>(history: T[]): T | null {
 	return (

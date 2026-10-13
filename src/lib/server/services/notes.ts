@@ -562,22 +562,12 @@ export async function listSameConditionRaceNotes(
 }
 
 /**
- * 予想画面で出す、出走馬たちの過去メモ。
+ * 予想・ふりかえり画面で出す、出走馬たちの過去メモ（`listRaceMemoContext` の中で読む）。
  *
- * **このレース以外の** メモを馬ごとにまとめて返す。1クエリ。
+ * **このレース以外の** メモを読む1クエリ（馬ごと・出走ごとの振り分けは `groupHistory`）。
  * `note.horse_id` を非正規化してあるおかげで、16頭分の過去メモが
  * `WHERE horse_id IN (...)` で一度に引ける（product.md 第2章の非正規化の回収）。
  */
-export async function listHistoryForHorses(
-	db: Db,
-	horseIds: string[],
-	excludeRaceId: string,
-	viewerId: string
-): Promise<Map<string, TimelineItem[]>> {
-	if (horseIds.length === 0) return new Map();
-	return groupHistory(await horseHistoryQuery(db, horseIds, excludeRaceId, viewerId)).byHorse;
-}
-
 function horseHistoryQuery(db: Db, horseIds: string[], excludeRaceId: string, viewerId: string) {
 	return db
 		.select({

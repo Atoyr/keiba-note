@@ -20,7 +20,7 @@ const row = (page: Page, index: number) => page.locator(`#entry-${ROW_RACE.entri
 const open = async (page: Page, index: number) =>
 	row(page, index).locator('summary').first().click();
 const detail = (page: Page, index: number) =>
-	row(page, index).getByLabel(`${ROW_RACE.names[index]}の詳細情報`, { exact: true });
+	row(page, index).locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' });
 const route = `/races/${ROW_RACE.id}/preview`;
 
 test('行・詳細・タブ・並び順を往復し、閉じた馬とレースの入力も一括保存する', async ({ page }) => {
