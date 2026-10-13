@@ -170,10 +170,10 @@
 							)}">{finish(r)}</td
 						>
 						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap">{post(r)}</td>
-						<td class="px-1.5 pt-2 pb-1 text-right align-middle font-mono whitespace-nowrap"
+						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap tabular-nums"
 							>{r.passing ?? '—'}</td
 						>
-						<td class="px-1.5 pt-2 pb-1 text-right align-middle font-mono whitespace-nowrap"
+						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap tabular-nums"
 							>{r.last3f ? r.last3f.toFixed(1) : '—'}</td
 						>
 						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap"

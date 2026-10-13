@@ -295,44 +295,49 @@
 								{#each rows as r (r.entryId)}
 									{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
 									<li id="entry-{r.entryId}" class="scroll-mt-4 p-3">
-										<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
-											{#if r.finishPosition}
-												<span class="font-bold">{r.finishPosition}着</span>
-											{/if}
-											<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
+										<div class="flex items-start gap-x-2 text-sm">
+											<!-- 左は折り返す中身、右は印の固定の列。印は幅しだいで次の行へ落とさず、どの行でも1段目の右端にそろえる。 -->
+											<div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
+												{#if r.finishPosition}
+													<span class="font-bold">{r.finishPosition}着</span>
+												{/if}
+												<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
 								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
-											<!-- 札・性齢・馬名は折り返さない1組にする。別々に並べると、
+												<!-- 札・性齢・馬名は折り返さない1組にする。別々に並べると、
 								     狭い幅で馬名だけが次の行へ落ち、性齢が馬名の左から離れる。 -->
-											<span class="flex min-w-0 items-baseline gap-2">
-												<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-												<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
-												<SexAgeBadge sex={r.sex} label={r.sexAge} />
-												<a
-													href={resolve('/horses/[id]', { id: r.horseId })}
-													class="min-w-0 font-medium hover:underline"
-												>
-													{r.horseName}
-												</a>
-											</span>
-											<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
-											{#if r.jockey}
-												<span
-													class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1"
-												>
-													<JockeyLink
-														name={r.jockey}
-														summary={r.jockeySummary}
-														class="inline-flex min-h-6 max-w-full items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
-													/>
-													<JockeyTagBadges tags={r.jockeyCourseTags} />
+												<span class="flex min-w-0 items-baseline gap-2">
+													<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+													<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
+													<SexAgeBadge sex={r.sex} label={r.sexAge} />
+													<a
+														href={resolve('/horses/[id]', { id: r.horseId })}
+														class="min-w-0 font-medium hover:underline"
+													>
+														{r.horseName}
+													</a>
 												</span>
-											{/if}
-											{#if r.finishTime}<span class="font-mono text-xs text-gray-500"
-													>{r.finishTime}</span
-												>{/if}
-											{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
-											<span class="flex-1"></span>
-											<MarkBadge mark={r.myPreview?.mark ?? null} />
+												<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
+												{#if r.jockey}
+													<span
+														class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1"
+													>
+														<JockeyLink
+															name={r.jockey}
+															summary={r.jockeySummary}
+															class="inline-flex min-h-6 max-w-full items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
+														/>
+														<JockeyTagBadges tags={r.jockeyCourseTags} />
+													</span>
+												{/if}
+												{#if r.finishTime}<span class="font-mono text-xs text-gray-500"
+														>{r.finishTime}</span
+													>{/if}
+												{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
+											</div>
+											<!-- 印の場所は、印が無くても取っておく（予想画面と同じ）。 -->
+											<span class="flex size-6 shrink-0">
+												<MarkBadge mark={r.myPreview?.mark ?? null} />
+											</span>
 										</div>
 
 										<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、

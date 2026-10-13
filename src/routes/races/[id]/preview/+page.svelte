@@ -132,6 +132,10 @@
 		{ value: 'popularity', label: '人気順' }
 	] as const;
 	const rows = $derived(order === 'popularity' ? sortByPopularity(data.rows) : data.rows);
+	/** 札の列（枠・馬番・性齢）を出すか。一覧全体で1つに決め、見出しと全行の列の幅をそろえる。 */
+	const badgeColumn = $derived(data.rows.some((r) => r.bracket || r.horseNumber || r.sexAge));
+	/** 列の見出しを「馬番」と書くか（枠も馬番も誰にも無ければ、見出しは空）。 */
+	const hasNumbers = $derived(data.rows.some((r) => r.bracket || r.horseNumber));
 
 	/** 切り替えは JS が要るので、動くようになってから出す（JS が無いと押しても何も起きない）。 */
 	let hydrated = $state(false);
@@ -361,8 +365,8 @@
 							aria-hidden="true"
 							class="flex items-center gap-x-1.5 border-b bg-muted px-3 py-1.5 text-xs text-foreground"
 						>
-							{#if rows.some((r) => r.bracket || r.horseNumber)}
-								<span class="w-11 shrink-0">馬番</span>
+							{#if badgeColumn}
+								<span class="w-11 shrink-0">{hasNumbers ? '馬番' : ''}</span>
 							{/if}
 							<span class="min-w-0 flex-1">馬名・騎手</span>
 							{#if data.oddsAsOf}<span class="w-21 shrink-0 text-right">人気・単勝</span>{/if}
@@ -376,9 +380,7 @@
 								{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
 								<li
 									id="entry-{r.entryId}"
-									class="scroll-mt-4 p-3 {mark === '◎'
-										? 'bg-red-50/40 ring-1 ring-red-300 ring-inset'
-										: ''}"
+									class="scroll-mt-4 p-3 {mark === '◎' ? 'ring-1 ring-red-300 ring-inset' : ''}"
 								>
 									<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
 						     札（枠・馬番 / 性齢）| 名前（馬名 / 騎手 / 前回の札）| オッズ（人気・単勝 / 複勝）| 印。
@@ -396,13 +398,11 @@
 										<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
 							     ふりかえり画面と同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
 							     その下に性齢の札（馬詳細と同じ。牡4）を置く。
-							     枠順が出る前（札が無い）は幅を取らない。空の列が馬名を右へ押し出さないように。 -->
-										{#if r.bracket || r.horseNumber || r.sexAge}
-											<span
-												class="flex shrink-0 flex-col items-start gap-1 {r.bracket || r.horseNumber
-													? 'w-11'
-													: ''}"
-											>
+							     札の列を出すかは一覧全体で1つに決める（badgeColumn）。出すなら見出しも全行も w-11 で取り、
+							     その行に札が無くても幅だけ取る。行ごとに決めると、列の見出しと馬名の位置が行ごとにずれる。
+							     枠順も性齢も誰にも無い（札が1つも無い）レースだけ、空の列で馬名を右へ押し出さないよう幅を取らない。 -->
+										{#if badgeColumn}
+											<span class="flex w-11 shrink-0 flex-col items-start gap-1">
 												<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
 												<span class="flex h-6 items-center">
 													<SexAgeBadge sex={r.sex} label={r.sexAge} />
