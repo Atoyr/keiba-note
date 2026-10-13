@@ -3,7 +3,7 @@
 人が行う運用の手順書。Cloudflare への構築、シークレットと Actions の設定、デプロイ、ワークフローの一覧、
 バックアップ、問い合わせへの対応を書く。
 
-作成日: 2026-09-23 / 最終更新日: 2026-10-12
+作成日: 2026-09-23 / 最終更新日: 2026-10-13
 
 - **読む場面:** Cloudflare を作り直す・シークレットや API トークンを入れる・GitHub Actions を設定する・
   リリースを出す・独自ドメインを触る・バックアップを取る・アカウントの削除を頼まれたとき。日々の開発では読まなくてよい
@@ -281,6 +281,7 @@ Settings > Secrets and variables > Actions。
 | Secret   | `CLOUDFLARE_API_TOKEN`       | 1 で作ったトークン                                                              |
 | Secret   | `CLOUDFLARE_ACCOUNT_ID`      | Cloudflare ダッシュボードの Account ID                                          |
 | Secret   | `DISCORD_WEBHOOK_URL` ほか   | 通知の Webhook と `HEALTH_CHECK_URL`。中身と差し替えは [monitoring.md 第8章](./monitoring.md) |
+| Secret   | `STAGING_GOOGLE_CLIENT_ID` ほか | ステージングのシークレット。無いと `staging.yml` が落ちる。一覧は [staging.md](./staging.md#シークレットはデプロイのたびに渡す) |
 
 **3. `wrangler.toml` の `database_id` が実値であること**（設定済み）
 
@@ -292,6 +293,7 @@ Settings > Secrets and variables > Actions。
 
 6 のとおり。`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `ADMIN_EMAIL` / `GITHUB_DISPATCH_TOKEN` は
 `wrangler secret put` で Cloudflare に入れ、GitHub 側には要らない。例外は `DISCORD_WEBHOOK_URL` で、両方に入れる。
+ステージングの分は逆に GitHub 側（`STAGING_` で始まる Secret）に置く。Preview はデプロイのたびにシークレットを渡し直すため（→ [staging.md](./staging.md)）。
 
 **5. Actions に PR を作らせる**
 

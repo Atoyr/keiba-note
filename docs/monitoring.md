@@ -3,7 +3,7 @@
 本番で何かが壊れたときに、人が気づけるようにする仕組み。Worker のログ、Discord への通知、
 GitHub Actions の結果の通知、外からの死活監視。
 
-作成日: 2026-09-23 / 最終更新日: 2026-10-12
+作成日: 2026-09-23 / 最終更新日: 2026-10-13
 
 - **読む場面:** ログを足す・エラーの扱いを変えるとき。通知が来た・来ないを調べるとき。
   Webhook を差し替えるとき。上限と課金の見張りを触るとき
@@ -249,13 +249,13 @@ E2E は `--var DISCORD_WEBHOOK_URL:` で空にしているので、残してい�
 | どこ | 名前 | 種別 | 中身 |
 | --- | --- | --- | --- |
 | Cloudflare（Worker `k-note`） | `DISCORD_WEBHOOK_URL` | シークレット | Webhook の URL（`pnpm exec wrangler secret put DISCORD_WEBHOOK_URL`） |
-| Cloudflare（Preview `staging`） | `DISCORD_WEBHOOK_URL` | シークレット | 任意。入れれば staging の ERROR も届く（`Environment: staging`）。別のチャンネルにしてもよい |
+| GitHub（Settings > Secrets and variables > Actions） | `STAGING_DISCORD_WEBHOOK_URL` | Secret | 任意。入れれば staging の ERROR も届く（`Environment: staging`）。別のチャンネルにしてもよい。`staging.yml` がデプロイのたびに Preview へ渡す。`wrangler preview secret put` で入れても次のデプロイで消える（[staging.md](./staging.md)） |
 | GitHub（Settings > Secrets and variables > Actions） | `DISCORD_WEBHOOK_URL` | Secret | 「障害」のチャンネルの Webhook。Cloudflare と同じもの |
 | 同上 | `DISCORD_DEPLOY_WEBHOOK_URL` | Secret | 「デプロイ」のチャンネルの Webhook。無ければ「障害」に送る。**Variables のタブに入れない** |
 | 同上 | `HEALTH_CHECK_URL` | Variable | `https://uma-memo.com/api/health`。無ければ死活監視が止まる |
 | `wrangler.toml` | `APP_ENV` | vars | `production`（`[previews.vars]` は `staging`）。シークレットではない |
 
-**「障害」の Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す。** URL が漏れたら、Discord の
+**「障害」の Webhook を差し替えるときは Cloudflare と GitHub の両方を入れ直す**（staging にも同じものを使っているなら `STAGING_DISCORD_WEBHOOK_URL` も）。 URL が漏れたら、Discord の
 チャンネル設定から Webhook を消して作り直す（URL を知っている人は誰でも書き込める）。
 Variable に入れた URL は、リポジトリに書き込める人なら誰でも画面や API で読める。漏れたものとして扱う。
 
