@@ -131,25 +131,24 @@ it('ほかの年が無いときは、案内の文を出す', async () => {
 	await expect.element(timeline.getByRole('link', { name: '重賞の画面で見る' })).toBeVisible();
 });
 
-it('タイムラインに出ているレースのメモは、同じ条件の欄から除く', async () => {
+it('重賞の同じ条件の欄には、渡されたメモと条件が出る', async () => {
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
 		graded: { key: '毎日王冠', trend: null, timeline: [lastYear] },
-		sameCondition: [sameNote('n1', 'last'), sameNote('n2', 'other')]
+		sameCondition: [sameNote('n2', 'other')]
 	});
 	const same = screen.getByRole('region', { name: /同じ条件で書いたレースのメモ/ });
 	await expect.element(same).toHaveTextContent('other のメモ');
-	await expect.element(same).not.toHaveTextContent('last のメモ');
 	await expect.element(same).toHaveTextContent('（東京 芝1800m）');
 });
 
-it('除いて0件になった重賞は「ほかに〜」の文言、重賞でなければ今の文言を出す', async () => {
+it('メモが0件のとき、重賞は「ほかに〜」の文言、重賞でなければ今の文言を出す', async () => {
 	const gradedScreen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
 		graded: { key: '毎日王冠', trend: null, timeline: [lastYear] },
-		sameCondition: [sameNote('n1', 'last')]
+		sameCondition: []
 	});
 	await expect
 		.element(gradedScreen.getByText('ほかに同じ条件で書いたレースのメモはありません。'))

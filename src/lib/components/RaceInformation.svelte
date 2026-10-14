@@ -40,24 +40,19 @@
 
 	const id = $props.id();
 	const condition = $derived(conditionLabel(race));
-
-	// 重賞のタイムラインに出ているレースのメモは、同じ条件の欄から除く（同じレースのふりかえりが2回並ぶため）。
-	const timelineRaceIds = $derived(
-		new Set(graded?.timeline.flatMap((y) => y.races.map((row) => row.race.id)) ?? [])
-	);
-	const sameConditionShown = $derived(sameCondition.filter((n) => !timelineRaceIds.has(n.raceId)));
 </script>
 
 <!-- 重賞の傾向 → 重賞のタイムライン → 同じ条件のレースメモ → コースの順。
+     同じ条件のメモからは、重賞のタイムラインに出るレースを load が SQL で除いてある。
      重賞のタイムラインは重賞（G1〜G3 で名前あり）だけ。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
 	{#if graded?.trend}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
 	{#if graded}
 		<section aria-labelledby="{id}-timeline">
 			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
-				<h2 id="{id}-timeline" class="text-sm font-semibold">
+				<h2 id="{id}-timeline" class="text-sm font-semibold text-muted-foreground">
 					重賞のタイムライン
-					<span class="font-normal text-muted-foreground">{graded.key}</span>
+					<span class="font-normal">{graded.key}</span>
 				</h2>
 				<a
 					href={resolve('/graded-races/[name]', { name: gradedRaceParam(graded.key) })}
@@ -76,11 +71,11 @@
 		</section>
 	{/if}
 	<section aria-labelledby="{id}-same-condition">
-		<h2 id="{id}-same-condition" class="text-sm font-semibold">
+		<h2 id="{id}-same-condition" class="text-sm font-semibold text-muted-foreground">
 			同じ条件で書いたレースのメモ
-			{#if condition}<span class="font-normal text-muted-foreground">（{condition}）</span>{/if}
+			{#if condition}<span class="font-normal">（{condition}）</span>{/if}
 		</h2>
-		{#if sameConditionShown.length === 0}
+		{#if sameCondition.length === 0}
 			<p class="mt-2 text-sm text-muted-foreground">
 				{graded
 					? 'ほかに同じ条件で書いたレースのメモはありません。'
@@ -88,7 +83,7 @@
 			</p>
 		{:else}
 			<ol class="mt-2 grid gap-3">
-				{#each sameConditionShown as note (note.id)}
+				{#each sameCondition as note (note.id)}
 					<li class="border-l-2 pl-3">
 						<p class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
 							{note.occurredAt}<GradeBadge grade={note.grade} /><a

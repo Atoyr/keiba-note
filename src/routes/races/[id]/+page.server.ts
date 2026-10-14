@@ -11,7 +11,7 @@ import { buildGradedRaceTimeline, readGradedRaceSeries } from '$lib/server/servi
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
-import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
+import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
@@ -62,7 +62,9 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 						course: race.course,
 						surface: race.surface,
 						distance: race.distance,
-						before: race.date
+						before: race.date,
+						// 重賞のタイムラインに出るレースは、同じ条件の欄に重ねない（SQL で除く）。
+						excludeRaceNames: gradedKey ? gradedRaceNames(gradedKey) : undefined
 					},
 					user.id
 				)
