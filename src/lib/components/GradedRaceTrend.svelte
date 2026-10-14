@@ -7,7 +7,7 @@
 	 * 重賞ごとの傾向のメモ（`/graded-races/[name]` で書くもの）を、予想画面とふりかえり画面に**読むだけで**出す。
 	 * このレースのメモではなく、毎年共通の重賞のメモだと見出しで分かるようにする。
 	 * 空色（sky。結果を見る前の見立て）にも amber（注意）にも寄せず、重賞の画面の傾向の枠と同じ白地にする。
-	 * 直すのは重賞の画面（リンク）。傾向が無いときは呼び出し側が出さない。
+	 * 直すのは重賞の画面（リンク）。傾向を書いていないとき（`body` が null）も枠を出し、案内と「重賞の画面で書く」を置く。
 	 */
 	let {
 		raceKey,
@@ -16,7 +16,8 @@
 	}: {
 		/** `gradedRaceKey` で寄せた重賞の名前。 */
 		raceKey: string;
-		body: string;
+		/** 書いた傾向。まだ書いていなければ null。 */
+		body: string | null;
 		class?: string;
 	} = $props();
 
@@ -28,14 +29,18 @@
 		重賞の傾向
 		<span class="font-normal">{raceKey}・毎年共通</span>
 	</h2>
-	<!-- 本文の改行は whitespace-pre-wrap で保つ（要素の前後の空白は Svelte が落とす）。 -->
-	<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">
-		{body}
-	</p>
+	{#if body}
+		<!-- 本文の改行は whitespace-pre-wrap で保つ（要素の前後の空白は Svelte が落とす）。 -->
+		<p class="mt-1 text-sm leading-relaxed whitespace-pre-wrap">
+			{body}
+		</p>
+	{:else}
+		<p class="mt-1 text-sm text-muted-foreground">まだ傾向のメモはありません。</p>
+	{/if}
 	<a
 		href={resolve('/graded-races/[name]', { name: gradedRaceParam(raceKey) })}
 		class="mt-1 inline-flex min-h-6 items-center text-xs text-muted-foreground underline-offset-2 hover:underline"
 	>
-		重賞の画面で直す
+		{body ? '重賞の画面で直す' : '重賞の画面で書く'}
 	</a>
 </section>

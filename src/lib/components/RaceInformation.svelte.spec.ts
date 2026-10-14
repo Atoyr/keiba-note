@@ -106,14 +106,16 @@ it('重賞の傾向 → 重賞のタイムライン → 同じ条件のレース
 		.toHaveAttribute('href', `/graded-races/${encodeURIComponent('毎日王冠')}`);
 });
 
-it('傾向が無くても重賞のタイムラインは出る（傾向の枠は出ない）', async () => {
+it('傾向が無くても重賞の傾向の枠とタイムラインが出る（傾向の枠は案内を出す）', async () => {
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
 		graded: { key: '毎日王冠', trend: null, timeline: [lastYear] }
 	});
 	await expect.element(screen.getByRole('region', { name: /重賞のタイムライン/ })).toBeVisible();
-	expect(screen.container.textContent).not.toContain('重賞の傾向');
+	const trend = screen.getByRole('region', { name: /重賞の傾向/ });
+	await expect.element(trend).toHaveTextContent('まだ傾向のメモはありません。');
+	await expect.element(trend.getByRole('link', { name: '重賞の画面で書く' })).toBeVisible();
 	expect(screen.container.textContent).not.toContain('重賞の画面で直す');
 });
 

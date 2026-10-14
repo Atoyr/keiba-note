@@ -21,6 +21,18 @@ describe('GradedRaceTrend', () => {
 		expect(getComputedStyle(p).whiteSpace).toBe('pre-wrap');
 	});
 
+	it('傾向がまだ無いとき（null）は案内の文を出し、リンクは「重賞の画面で書く」になる', async () => {
+		const screen = render(GradedRaceTrend, { raceKey: '毎日王冠', body: null });
+
+		const region = screen.getByRole('region', { name: /重賞の傾向/ });
+		await expect.element(region).toHaveTextContent('毎日王冠・毎年共通');
+		await expect.element(region).toHaveTextContent('まだ傾向のメモはありません。');
+		await expect
+			.element(screen.getByRole('link', { name: '重賞の画面で書く' }))
+			.toHaveAttribute('href', `/graded-races/${encodeURIComponent('毎日王冠')}`);
+		expect(screen.container.textContent).not.toContain('重賞の画面で直す');
+	});
+
 	it('リンクは重賞の画面（鍵をエンコード）へ向く', async () => {
 		const screen = render(GradedRaceTrend, { raceKey: '毎日王冠', body: '前哨戦。' });
 

@@ -200,13 +200,18 @@ test('レース情報タブの重賞のタイムラインに、ほかの年の�
 	await expect(same).not.toContainText(GRADED_RACE.review);
 });
 
-test('傾向を書いていない重賞のふりかえり画面には、重賞の傾向の欄が出ない', async ({ page }) => {
+test('傾向を書いていない重賞のふりかえり画面のレース情報には、書いていない案内が出る', async ({
+	page
+}) => {
 	await login(page);
 	// REVIEW_RACE_ID は G3 だが、誰も傾向を書かない。
-	await page.goto(`/races/${REVIEW_RACE_ID}`);
+	await gotoHydrated(page, `/races/${REVIEW_RACE_ID}`);
 
 	await expect(
 		page.getByRole('heading', { name: 'レースのメモ', level: 2, exact: true })
 	).toBeVisible();
-	await expect(page.getByRole('region', { name: '重賞の傾向' })).toHaveCount(0);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+	const trend = page.getByRole('region', { name: '重賞の傾向' });
+	await expect(trend).toContainText('まだ傾向のメモはありません。');
+	await expect(trend.getByRole('link', { name: '重賞の画面で書く' })).toBeVisible();
 });

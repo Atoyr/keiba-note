@@ -738,7 +738,7 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 重賞のレース（今年）のレース情報タブ。ほかの年（去年はメモあり・一昨年はメモなし）が重賞のタイムラインに並ぶ。
+		// 重賞のレース（今年）のレース情報タブ。傾向は書いていない（空の枠と案内）。ほかの年（去年はメモあり・一昨年はメモなし）が重賞のタイムラインに並ぶ。
 		name: 'race-preview-information-graded',
 		path: `/races/${GRADED_RACE.thisYearRaceId}/preview`,
 		auth: true,

@@ -46,7 +46,7 @@
      同じ条件のメモからは、重賞のタイムラインに出るレースを load が SQL で除いてある。
      重賞のタイムラインは重賞（G1〜G3 で名前あり）だけ。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
-	{#if graded?.trend}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
+	{#if graded}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
 	{#if graded}
 		<section aria-labelledby="{id}-timeline">
 			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
