@@ -49,8 +49,8 @@ test('行は畳まず、印とメモ（本文・札）をそのまま表示し�
 	await expect(row.locator('textarea')).toBeFocused();
 	await expect(row.locator('textarea')).toHaveValue('今回は内枠が向きそう。');
 	await expect(row.getByText('過去走の記録がありません。')).toHaveCount(0);
-	// 完了で書いたメモの表示に戻り、フォーカスもそのボタンへ戻る。
-	await row.getByRole('button', { name: '完了', exact: true }).click();
+	// 見出しを押して折りたたむと、書いたメモの表示に戻り、フォーカスもそのボタンへ戻る。
+	await row.getByRole('button', { name: /出走前メモ/, expanded: true }).click();
 	await expect(row.locator('textarea')).toBeHidden();
 	await expect(memo).toContainText('今回は内枠が向きそう。');
 	await expect(memoButton(row)).toBeFocused();
@@ -71,7 +71,7 @@ test('書いた本文と札は、保存する前から行に出る', async ({ pa
 	await row.locator('textarea').fill('書き換えた本文。まだ保存しない。');
 	await row.getByRole('checkbox', { name: '次走買い' }).uncheck({ force: true });
 	await row.getByRole('checkbox', { name: '馬場一致' }).check({ force: true });
-	await row.getByRole('button', { name: '完了', exact: true }).click();
+	await row.getByRole('button', { name: /出走前メモ/, expanded: true }).click();
 
 	await expect(memo).toBeVisible();
 	await expect(memo).toContainText('書き換えた本文。まだ保存しない。');
@@ -96,10 +96,12 @@ test('メモを押すと、本文欄と全部の札が出る', async ({ page }) 
 
 /**
  * 行の並びは 見出し → 詳細情報 → 印 → 出走前メモ。メモが無い馬は「＋ 出走前メモ」を押すとその場で書ける。
- * 書いて「完了」すると行に書いたメモが出る。保存して再読み込みしても残ることは race-rows.e2e.ts で見る
+ * 書いて折りたたむと行に書いたメモが出る。保存して再読み込みしても残ることは race-rows.e2e.ts で見る
  * （印見本のレースは読むだけの前提なので、ここでは保存しない）。
  */
-test('「＋ 出走前メモ」を押してその場で書き、完了で行に書いたメモが出る', async ({ page }) => {
+test('「＋ 出走前メモ」を押してその場で書き、折りたたむと行に書いたメモが出る', async ({
+	page
+}) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/preview`);
 	const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eタンアナ' });
@@ -120,7 +122,7 @@ test('「＋ 出走前メモ」を押してその場で書き、完了で行に�
 	await row.getByRole('checkbox', { name: '次走買い' }).check({ force: true });
 	// 印は入力欄を開いたままでも、閉じていても選べる。
 	await marks.getByText('○', { exact: true }).click();
-	await row.getByRole('button', { name: '完了', exact: true }).click();
+	await row.getByRole('button', { name: /出走前メモ/, expanded: true }).click();
 	await expect(memoText(row)).toContainText('距離短縮で前に行けそう。');
 	await expect(memoText(row)).toContainText('次走買い');
 	// 見出しの印も、選んだ ○ に追従する（保存済みは ▲）。
