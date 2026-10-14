@@ -412,7 +412,8 @@ test('見立ての下に、同じ条件で前に書いた自分のレースの�
 
 	await waitForHydration(page);
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
-	await expect(page.getByText('同じ条件（京都 芝2200m）で書いたレースのメモ')).toBeVisible();
+	const same = page.getByRole('region', { name: /同じ条件で書いたレースのメモ/ });
+	await expect(same).toContainText('（京都 芝2200m）');
 	await expect(page.getByText(SAME_CONDITION_NOTE_BODY)).toBeVisible();
 	// 押すとそのレースのふりかえりへ。
 	await expect(page.getByRole('link', { name: /E2E同条件賞/ })).toHaveAttribute(

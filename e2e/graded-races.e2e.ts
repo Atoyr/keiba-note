@@ -151,10 +151,53 @@ test('本人の毎年共通の重賞の傾向はレース情報に集約し、�
 			gradedPath(TREND_RACE.key)
 		);
 		await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
-		await expect(
-			page.getByRole('link', { name: '重賞のタイムラインで過去年の結果・見立てを見る' })
-		).toHaveAttribute('href', gradedPath(TREND_RACE.key));
+		// 重賞のタイムラインは傾向の下。重賞の画面へのリンクが見出しの行にある。
+		const timeline = page.getByRole('region', { name: /重賞のタイムライン/ });
+		await expect(timeline.getByRole('link', { name: '重賞の画面で見る' })).toHaveAttribute(
+			'href',
+			gradedPath(TREND_RACE.key)
+		);
+		// TREND_RACE はほかの年が無い（このレース自身の行はタイムラインに出さない）。
+		await expect(timeline).toContainText('ほかの年のこのレースは、まだ登録されていません。');
 	}
+});
+
+test('レース情報タブの重賞のタイムラインに、ほかの年の見立て・ふりかえり・印が並ぶ', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${GRADED_RACE.thisYearRaceId}/preview`);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+
+	const timeline = page.getByRole('region', { name: /重賞のタイムライン/ });
+	// 去年（別名）と一昨年の2行。このレース自身（今年）の行は出さない。
+	const rows = timeline.locator('ol > li');
+	await expect(rows).toHaveCount(2);
+	await expect(
+		timeline.locator(`a[href="/races/${GRADED_RACE.thisYearRaceId}/preview"]`)
+	).toHaveCount(0);
+
+	const last = rows.filter({ hasText: GRADED_RACE.aliasName });
+	await expect(last).toHaveCount(1);
+	await expect(last).toContainText(GRADED_RACE.outlook);
+	await expect(last).toContainText(GRADED_RACE.review);
+	await expect(last).toContainText(`勝ち馬 ${GRADED_RACE.winner}`);
+	await expect(last.locator('ul > li')).toHaveText([/E2E重賞イチバン.*1着/, /E2E重賞ニバン.*4着/]);
+	await expect(rows.filter({ hasText: 'メモはありません' })).toHaveCount(1);
+	await expect(timeline.getByRole('link', { name: '重賞の画面で見る' })).toHaveAttribute(
+		'href',
+		gradedPath(GRADED_RACE.key)
+	);
+
+	// 1頭ごとのメモの本文と、他人のメモ・傾向は出ない。
+	await expect(timeline.getByText(GRADED_RACE.horseNoteBody)).toHaveCount(0);
+	await expect(page.getByText(GRADED_RACE.otherUserOutlook)).toHaveCount(0);
+	await expect(page.getByText(GRADED_RACE.otherUserTrend)).toHaveCount(0);
+
+	// タイムラインに出た去年のふりかえりは、同じ条件のレースメモ（中山 芝2200m）に重ねて出さない。
+	const same = page.getByRole('region', { name: /同じ条件で書いたレースのメモ/ });
+	await expect(same).toBeVisible();
+	await expect(same).not.toContainText(GRADED_RACE.review);
 });
 
 test('傾向を書いていない重賞のふりかえり画面には、重賞の傾向の欄が出ない', async ({ page }) => {
@@ -162,6 +205,8 @@ test('傾向を書いていない重賞のふりかえり画面には、重賞�
 	// REVIEW_RACE_ID は G3 だが、誰も傾向を書かない。
 	await page.goto(`/races/${REVIEW_RACE_ID}`);
 
-	await expect(page.getByRole('heading', { name: 'レースのメモ', level: 2 })).toBeVisible();
+	await expect(
+		page.getByRole('heading', { name: 'レースのメモ', level: 2, exact: true })
+	).toBeVisible();
 	await expect(page.getByRole('region', { name: '重賞の傾向' })).toHaveCount(0);
 });

@@ -7,7 +7,7 @@ import {
 	listSameConditionRaceNotes,
 	listRaceMemoContext
 } from '$lib/server/services/notes';
-import { getGradedRaceTrend } from '$lib/server/services/graded-races';
+import { buildGradedRaceTimeline, readGradedRaceSeries } from '$lib/server/services/graded-races';
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
@@ -27,7 +27,7 @@ import type { Actions, PageServerLoad } from './$types';
  * ダッシュボードもレース一覧も開催前のレースを普通に並べるので、
  * **入口ごとに塞ぐのではなく、この画面自身が行き先を持つ**。
  *
- * 読みは最大5往復（race+entriesのbatch / 騎手 / 馬柱 / 同条件メモ / 今回・過去メモのbatch）。重賞のときだけ、自分の傾向で+1。
+ * 読みは最大5往復（race+entriesのbatch / 騎手 / 馬柱 / 同条件メモ / 今回・過去メモのbatch）。重賞のときだけ、自分の傾向と重賞のタイムライン（1 batch）で+1。
  * GETは更新セッション2回を含め最大8往復。JS無効のPOST→loadは共通マスタをlocalsから再利用し、保存1回を含め最大9往復。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
@@ -43,16 +43,17 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	// 開催前なら予想画面へ送る。302（恒久ではない）なのは、
 	// **同じ URL が開催日を過ぎれば正しい行き先になる**ため。
-	if (isUpcoming(race.date, todayJst())) {
+	const today = todayJst();
+	if (isUpcoming(race.date, today)) {
 		redirect(302, resolveRoute('/races/[id]/preview', { id: params.id }));
 	}
 
-	// 重賞ごとの傾向。レース情報に読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+	// 重賞ごとの傾向と、重賞のタイムライン。レース情報に読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
 	// 開催前のリダイレクトの後に引く（予想画面へ送るだけのときは要らない）。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
 	const horseIds = entries.map((entry) => entry.horseId);
-	const [trend, pastRuns, sameCondition, memos] = await Promise.all([
-		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
+	const [series, pastRuns, sameCondition, memos] = await Promise.all([
+		gradedKey ? readGradedRaceSeries(db, gradedKey, user.id) : Promise.resolve(null),
 		listPastRuns(db, horseIds, race.date),
 		race.surface && race.distance
 			? listSameConditionRaceNotes(
@@ -97,7 +98,22 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		race,
 		sameCondition,
 		myRacePreview,
-		gradedTrend: gradedKey && trend ? { key: gradedKey, body: trend.body } : null,
+		// このレース自身の行は除く（このレースの見立て・ふりかえりは入力側にあり、重ねると食い違って見える）。
+		graded:
+			gradedKey && series
+				? {
+						key: gradedKey,
+						trend: series.trend?.body ?? null,
+						timeline: buildGradedRaceTimeline(
+							series.races.filter((r) => r.id !== race.id),
+							series.notes,
+							series.marks,
+							today,
+							series.entryNoteCounts
+						)
+					}
+				: null,
+		today,
 		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
 		rows: entries.map((e) => {
 			const p = myPreviews.get(e.entryId);

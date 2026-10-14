@@ -11,6 +11,7 @@ import {
 	listNotedGradedYears,
 	listSeriesNotes,
 	listSeriesRaces,
+	readGradedRaceSeries,
 	saveGradedRaceTrend,
 	type SeriesMark,
 	type SeriesNote,
@@ -145,6 +146,52 @@ describe('重賞のレースとメモ', () => {
 		expect((await listSeriesNotes(state.db, names, 'a')).entryNoteCounts).toEqual({ r25: 4 });
 		expect((await listSeriesNotes(state.db, names, 'b')).entryNoteCounts).toEqual({ r25: 1 });
 		expect((await listSeriesNotes(state.db, names, 'nobody')).entryNoteCounts).toEqual({});
+	});
+});
+
+describe('重賞1本ぶんの読み（1往復）', () => {
+	it('別名の行を含めて、傾向・レース・メモ・印・件数が今の3関数と同じ中身で返る', async () => {
+		await saveGradedRaceTrend(state.db, '産経賞オールカマー', '別名で書いた傾向', 'a');
+		for (const viewer of ['a', 'b']) {
+			const names = gradedRaceNames('オールカマー');
+			const series = await readGradedRaceSeries(state.db, 'オールカマー', viewer);
+			expect(series.races.map((r) => r.id)).toEqual(['r26', 'r25', 'r24']);
+			expect(series.races).toEqual(await listSeriesRaces(state.db, names));
+			const { notes, marks, entryNoteCounts } = await listSeriesNotes(state.db, names, viewer);
+			expect(series.notes).toEqual(notes);
+			expect(series.marks).toEqual(marks);
+			expect(series.entryNoteCounts).toEqual(entryNoteCounts);
+			expect(series.trend).toEqual(await getGradedRaceTrend(state.db, 'オールカマー', viewer));
+		}
+		const mine = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
+		expect(mine.trend).toEqual({ body: '別名で書いた傾向' });
+		expect(mine.notes.map((n) => n.id)).toEqual(['n1', 'n2']);
+		expect(mine.marks.map((m) => m.entryId).sort()).toEqual(['e1', 'e2']);
+		expect(mine.entryNoteCounts).toEqual({ r25: 4 });
+	});
+
+	it('別のユーザーのメモ・印・件数・傾向は入らない', async () => {
+		await saveGradedRaceTrend(state.db, 'オールカマー', 'a の傾向', 'a');
+		const other = await readGradedRaceSeries(state.db, 'オールカマー', 'b');
+		expect(other.trend).toBeNull();
+		expect(other.notes.map((n) => n.id)).toEqual(['n6']);
+		expect(other.marks.map((m) => m.mark)).toEqual(['○']);
+		expect(other.entryNoteCounts).toEqual({ r25: 1 });
+
+		const nobody = await readGradedRaceSeries(state.db, 'オールカマー', 'nobody');
+		expect(nobody).toMatchObject({ trend: null, notes: [], marks: [], entryNoteCounts: {} });
+		// レースはマスタなので、誰が見ても同じ。
+		expect(nobody.races.map((r) => r.id)).toEqual(['r26', 'r25', 'r24']);
+	});
+
+	it('名前に当たるレースが無い鍵でも落ちず、空で返る', async () => {
+		expect(await readGradedRaceSeries(state.db, '存在しない重賞', 'a')).toEqual({
+			trend: null,
+			races: [],
+			notes: [],
+			marks: [],
+			entryNoteCounts: {}
+		});
 	});
 });
 

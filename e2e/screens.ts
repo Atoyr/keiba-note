@@ -737,6 +737,16 @@ export const SCREENS: Screen[] = [
 			await page.getByText('＋ 傾向を書く').click();
 		}
 	},
+	{
+		// 重賞のレース（今年）のレース情報タブ。ほかの年（去年はメモあり・一昨年はメモなし）が重賞のタイムラインに並ぶ。
+		name: 'race-preview-information-graded',
+		path: `/races/${GRADED_RACE.thisYearRaceId}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+		}
+	},
 	// 傾向を書いた重賞のレース。予想画面は見立ての上、ふりかえり画面はレースのメモの上に、重賞の傾向が出る。
 	{ name: 'race-preview-graded-trend', path: `/races/${TREND_RACE.raceId}/preview`, auth: true },
 	{ name: 'race-review-graded-trend', path: `/races/${TREND_RACE.raceId}`, auth: true },

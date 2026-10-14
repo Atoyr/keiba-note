@@ -2,21 +2,30 @@
 	import type { ComponentProps } from 'svelte';
 	import { resolve } from '$app/paths';
 	import CourseMap from '$lib/components/CourseMap.svelte';
+	import GradedRaceTimeline from '$lib/components/GradedRaceTimeline.svelte';
 	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
+	import { gradedRaceParam } from '$lib/utils/graded-race';
 	import { conditionLabel, noteHeading } from '$lib/utils/note';
 	import type { RaceHeadingSource } from '$lib/utils/race-heading';
 	let {
 		race,
-		trend,
+		graded,
+		today,
 		sameCondition
 	}: {
 		race: RaceHeadingSource &
 			ComponentProps<typeof CourseMap>['race'] & {
 				name: string | null;
 			};
-		trend: { key: string; body: string } | null;
+		/** G1〜G3 で名前のあるレースだけ。傾向が無ければ `trend` は null。`timeline` はこのレース自身の行を含まない。 */
+		graded: {
+			key: string;
+			trend: string | null;
+			timeline: ComponentProps<typeof GradedRaceTimeline>['timeline'];
+		} | null;
+		/** 今日（`YYYY-MM-DD`）。重賞のタイムラインの行の行き先を決める。 */
+		today: string;
 		sameCondition: {
 			id: string;
 			raceId: string;
@@ -28,28 +37,58 @@
 			body: string;
 		}[];
 	} = $props();
+
+	const id = $props.id();
+	const condition = $derived(conditionLabel(race));
+
+	// 重賞のタイムラインに出ているレースのメモは、同じ条件の欄から除く（同じレースのふりかえりが2回並ぶため）。
+	const timelineRaceIds = $derived(
+		new Set(graded?.timeline.flatMap((y) => y.races.map((row) => row.race.id)) ?? [])
+	);
+	const sameConditionShown = $derived(sameCondition.filter((n) => !timelineRaceIds.has(n.raceId)));
 </script>
 
-<!-- 重賞の傾向 → 過去成績・レースメモ → コースの順。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
+<!-- 重賞の傾向 → 重賞のタイムライン → 同じ条件のレースメモ → コースの順。
+     重賞のタイムラインは重賞（G1〜G3 で名前あり）だけ。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
-	{#if trend}<GradedRaceTrend raceKey={trend.key} body={trend.body} />{/if}
-	<section aria-label="過去成績・レースメモ">
-		<h2 class="text-sm font-semibold">過去成績・レースメモ</h2>
-		{#if isGraded(race.grade) && race.name}
-			<a
-				href={resolve('/graded-races/[name]', { name: gradedRaceParam(gradedRaceKey(race.name)) })}
-				class="mt-2 inline-flex min-h-6 items-center text-sm underline"
-				>重賞のタイムラインで過去年の結果・見立てを見る</a
-			>
-		{/if}
-		<h3 class="mt-3 text-xs font-semibold text-muted-foreground">
-			同じ条件（{conditionLabel(race)}）で書いたレースのメモ
-		</h3>
-		{#if sameCondition.length === 0}
-			<p class="mt-2 text-sm text-muted-foreground">同じ条件のレースメモはまだありません。</p>
+	{#if graded?.trend}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
+	{#if graded}
+		<section aria-labelledby="{id}-timeline">
+			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
+				<h2 id="{id}-timeline" class="text-sm font-semibold">
+					重賞のタイムライン
+					<span class="font-normal text-muted-foreground">{graded.key}</span>
+				</h2>
+				<a
+					href={resolve('/graded-races/[name]', { name: gradedRaceParam(graded.key) })}
+					class="inline-flex min-h-6 items-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+				>
+					重賞の画面で見る
+				</a>
+			</div>
+			{#if graded.timeline.length === 0}
+				<p class="mt-2 text-sm text-muted-foreground">
+					ほかの年のこのレースは、まだ登録されていません。
+				</p>
+			{:else}
+				<GradedRaceTimeline timeline={graded.timeline} {today} />
+			{/if}
+		</section>
+	{/if}
+	<section aria-labelledby="{id}-same-condition">
+		<h2 id="{id}-same-condition" class="text-sm font-semibold">
+			同じ条件で書いたレースのメモ
+			{#if condition}<span class="font-normal text-muted-foreground">（{condition}）</span>{/if}
+		</h2>
+		{#if sameConditionShown.length === 0}
+			<p class="mt-2 text-sm text-muted-foreground">
+				{graded
+					? 'ほかに同じ条件で書いたレースのメモはありません。'
+					: '同じ条件のレースメモはまだありません。'}
+			</p>
 		{:else}
 			<ol class="mt-2 grid gap-3">
-				{#each sameCondition as note (note.id)}
+				{#each sameConditionShown as note (note.id)}
 					<li class="border-l-2 pl-3">
 						<p class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
 							{note.occurredAt}<GradeBadge grade={note.grade} /><a
