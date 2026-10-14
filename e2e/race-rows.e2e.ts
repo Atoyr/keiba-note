@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
-import { ROW_RACE, EMPTY_RACE_ID } from './seed';
+import { ROW_RACE, EMPTY_RACE_ID, PAST_RUN_RACE_ID } from './seed';
 import { failNextAction } from './action-failure';
 
 async function login(page: Page) {
@@ -90,6 +90,23 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	await expect(row(page, 0).getByRole('checkbox', { name: '次走買い' })).toBeChecked();
 	await open(page, 1);
 	await expect(row(page, 1).locator('textarea')).toHaveValue('外から進出する。');
+});
+
+test('見出しの馬場・天候は、ふりかえりだけが条件の下の段に出す', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PAST_RUN_RACE_ID}`);
+	// 2行目は日付と条件（馬場・天候は入れない）。3行目に「馬場：… / 天候：…」。
+	const spec = page.locator('main p', { hasText: '2025-12-28' }).first();
+	await expect(spec).toContainText('芝2000m / 14頭');
+	await expect(spec).not.toContainText('稍重');
+	await expect(page.locator('main p', { hasText: '馬場：稍重 / 天候：曇' })).toHaveCount(1);
+	// 予想画面には出さない（予想の時点では決まっていない）。
+	await gotoHydrated(page, `/races/${PAST_RUN_RACE_ID}/preview`);
+	const previewSpec = page.locator('main p', { hasText: '2025-12-28' }).first();
+	await expect(previewSpec).toContainText('14頭');
+	await expect(previewSpec).not.toContainText('稍重');
+	await expect(previewSpec).not.toContainText('曇');
+	await expect(page.getByText('馬場：')).toHaveCount(0);
 });
 
 test('行を開かずに選んだ印は、保存前から見出しと「付けた印」に出る', async ({ page }) => {

@@ -22,9 +22,10 @@ export function raceMeeting(r: RaceHeadingSource): string {
 }
 
 /**
- * 「2026-10-04 · 芝1800m / 左 / 良 / 晴」。`RaceHeading` の2行目に出す、日付と条件。
+ * 「2026-10-04 · 芝1800m / 左」。`RaceHeading` の2行目に出す、日付と条件。
  *
- * 馬場状態と天気は当日に決まるので、開催前のレースでは出ない。
+ * 馬場状態と天候は入れない。当日に決まるので、予想の時点では出せない。ふりかえりだけが
+ * `raceGoing` で別の段（3行目）に出す。
  * `extra` は画面ごとに条件の末尾へ足すもの（予想・ふりかえり画面の頭数）。
  */
 export function raceSpec(r: RaceHeadingSource, extra: string[] = []): string {
@@ -33,9 +34,22 @@ export function raceSpec(r: RaceHeadingSource, extra: string[] = []): string {
 		r.grade ? '' : (r.className ?? ''),
 		r.surface && r.distance ? `${r.surface}${r.distance}m` : (r.surface ?? ''),
 		r.direction ?? '',
-		r.trackCondition ?? '',
-		r.weather ?? '',
 		...extra
 	].filter(Boolean);
 	return [r.date, spec.join(' / ')].filter(Boolean).join(' · ');
+}
+
+/**
+ * 「馬場：良 / 天候：曇」。`RaceHeading` の `going` に渡す、ふりかえりだけが出す3行目。
+ *
+ * 馬場状態と天候は当日に決まるので、予想・予想まとめ・共有では出さない。
+ * 片方だけあればその片方だけ、どちらも無ければ空文字。
+ */
+export function raceGoing(r: RaceHeadingSource): string {
+	return [
+		r.trackCondition ? `馬場：${r.trackCondition}` : '',
+		r.weather ? `天候：${r.weather}` : ''
+	]
+		.filter(Boolean)
+		.join(' / ');
 }

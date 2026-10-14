@@ -127,7 +127,7 @@ describe('RaceHeading', () => {
 			meeting: '東京11R',
 			name: LONG_NAME,
 			grade: 'G2',
-			spec: '2026-10-04 · 芝1800m / 左 / 良'
+			spec: '2026-10-04 · 芝1800m / 左'
 		});
 
 		const { meeting, name } = spans();
@@ -154,6 +154,121 @@ describe('RaceHeading', () => {
 		expect(g!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
 			h1().getBoundingClientRect().bottom
 		);
+	});
+
+	describe('going（馬場・天候）', () => {
+		const base = {
+			meeting: '東京11R',
+			name: '毎日王冠',
+			grade: 'G2',
+			spec: '2026-10-04 · 芝1800m'
+		};
+		const going = () =>
+			[...document.querySelectorAll('p')].find((p) => p.textContent === '馬場：良 / 天候：晴');
+
+		it('渡すと、条件の下の別の段に出る', () => {
+			render(RaceHeading, { ...base, going: '馬場：良 / 天候：晴' });
+			const spec = badge()!.closest('p')!;
+			expect(going()).toBeDefined();
+			expect(going()).not.toBe(spec);
+			expect(spec.textContent).not.toContain('馬場');
+			expect(going()!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+				spec.getBoundingClientRect().bottom
+			);
+			// 左端は見出し（=札）の左端にそろう。
+			expect(going()!.getBoundingClientRect().left).toBeCloseTo(
+				h1().getBoundingClientRect().left,
+				0
+			);
+		});
+
+		it('渡さなければ（空でも）出さない', () => {
+			render(RaceHeading, base);
+			expect(document.body.textContent).not.toContain('馬場');
+			document.body.innerHTML = '';
+			render(RaceHeading, { ...base, going: '' });
+			expect(document.querySelectorAll('p')).toHaveLength(1);
+		});
+
+		it('links があっても出る', () => {
+			render(RaceHeading, {
+				...base,
+				going: '馬場：良 / 天候：晴',
+				links: [{ href: '/races/r1/summary', label: '予想をまとめて見る' }]
+			});
+			expect(going()).toBeDefined();
+		});
+
+		it('条件も札も無く、馬場・天候だけでも出す', () => {
+			render(RaceHeading, {
+				meeting: '東京8R',
+				name: null,
+				grade: null,
+				spec: '',
+				going: '馬場：良 / 天候：晴'
+			});
+			expect(going()).toBeDefined();
+			expect(document.querySelectorAll('p')).toHaveLength(1);
+		});
+
+		it('320px で長い条件でも … にせず全文が折り返して出る。札は1行目の頭にそろう', () => {
+			narrow();
+			render(RaceHeading, {
+				...base,
+				grade: null,
+				spec: '2026-10-04 · 3歳以上2勝クラス / 芝2000m / 左 / 外回り / 16頭立てのレース',
+				going: '馬場：不良 / 天候：小雨'
+			});
+			const spec = document.querySelector('p span')!;
+			expect(spec.scrollWidth).toBeLessThanOrEqual(spec.clientWidth);
+			expect(getComputedStyle(spec).textOverflow).not.toBe('ellipsis');
+			expect(getComputedStyle(spec).whiteSpace).not.toBe('nowrap');
+			expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+				document.documentElement.clientWidth
+			);
+		});
+
+		it('発走時刻と ⋯ があっても、条件の段は見出し全体の幅を使う', () => {
+			narrow();
+			for (const links of [
+				undefined,
+				[{ href: '/races/r1/summary', label: '予想をまとめて見る' }]
+			]) {
+				document.body.innerHTML = '';
+				render(RaceHeading, { ...base, startTime: '15:45', going: '馬場：良 / 天候：晴', links });
+				// タイトル・発走時刻・⋯ が並ぶ1行目の行。
+				const row = document.querySelector<HTMLElement>('div.flex.items-start')!;
+				const spec = badge()!.closest('p')!;
+				const goingEl = going()!;
+				expect(spec.getBoundingClientRect().width).toBeCloseTo(
+					row.getBoundingClientRect().width,
+					0
+				);
+				expect(goingEl.getBoundingClientRect().width).toBeCloseTo(
+					row.getBoundingClientRect().width,
+					0
+				);
+				// 1行目の行（発走時刻・⋯ が並ぶ）の下にある。
+				expect(spec.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+					row.getBoundingClientRect().bottom
+				);
+			}
+		});
+
+		it('320px で札があっても、長い条件は折り返し、札は1行目の高さにそろう', () => {
+			narrow();
+			render(RaceHeading, {
+				...base,
+				spec: '2026-10-04 · 3歳以上2勝クラス / 芝2000m / 左 / 外回り / 16頭立てのレース',
+				going: '馬場：良 / 天候：晴'
+			});
+			const spec = badge()!.nextElementSibling as HTMLElement;
+			expect(spec.getBoundingClientRect().height).toBeGreaterThan(20);
+			expect(badge()!.getBoundingClientRect().top).toBeLessThan(
+				spec.getBoundingClientRect().top + 16
+			);
+			expect(spec.scrollWidth).toBeLessThanOrEqual(spec.clientWidth);
+		});
 	});
 
 	it('短いレース名は詰めない', () => {

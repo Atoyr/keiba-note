@@ -29,7 +29,7 @@
 		type LiveEntries
 	} from '$lib/utils/entry-fields';
 	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
-	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
+	import { raceGoing, raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import RacePanels from '$lib/components/RacePanels.svelte';
@@ -60,6 +60,8 @@
 	const spec = $derived(
 		raceSpec(data.race, data.race.fieldSize !== null ? [`${data.race.fieldSize}頭`] : [])
 	);
+	// 馬場状態・天候は条件の下の段に出す（ふりかえりだけ。予想の時点では決まらない）。
+	const going = $derived(raceGoing(data.race));
 
 	// 見出しの `⋯` メニューの項目。並びは予想画面の見出しと同じ（向こうの画面への導線が先、管理者の編集が後）。
 	const links = $derived([
@@ -163,6 +165,7 @@
 		grade={data.race.grade}
 		startTime={data.race.startTime}
 		{spec}
+		{going}
 		{links}
 	/>
 
