@@ -149,7 +149,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ☆ ×）の表示と選択。`MarkPicker` の札の大きさと並びは [pages.md 4-3](./pages.md)。共有の画像（`utils/share-card.ts`）は画像の中にクラスが効かないので、印・枠・馬番・格の札の色を16進で写している。札の色を変えたら、そちらも変える |
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
 | `EntryMemo` | 出走馬の行に出すメモ（種別の札・本文3行まで・メモの札）。`EntryNoteEditor` の `memo` に渡すとそのままボタンになり、押すとその場で書ける。予想画面・ふりかえり画面が使う（→ [pages.md 4-3](./pages.md)） |
-| `EntryNoteEditor` | 出走馬の行でメモを「その場で書く」部分。メモの表示（または「＋ 出走前メモ」）を押すと入力欄（`children`）に替わる。振る舞いは [pages.md 4-3](./pages.md) |
+| `EntryNoteEditor` | 出走馬の行でメモを「その場で書く」部分。見出しで開け閉めする折りたたみ。メモの表示（または「＋ 出走前メモ」）を押すと、そのボタンが見出し「{label} ⌃」になって入力欄（`children`）が開き、見出しを押すと折りたたまれる。振る舞いは [pages.md 4-3](./pages.md) |
 | `HorseProfileHeader` | 馬詳細の頭（生年月日・性別の札つきの名前の行・推しの★・父母・母父・所属と調教師）。★のほかはすべて左寄せ。色は第7章 |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目。`label` は `sexAgeLabel` の結果で、null なら何も描かない。色は第7章 |
 | `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
