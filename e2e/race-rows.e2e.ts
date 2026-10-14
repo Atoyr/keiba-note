@@ -229,10 +229,10 @@ test('JS無効でも入力欄が出ていて一括保存でき、資料と既存
 	const page = await context.newPage();
 	await login(page);
 	await page.goto(route);
-	// 基本情報の表は無く、発走時刻は見出しにある。JS が無くても資料（過去成績・レースメモ）が続けて出る。
+	// 基本情報の表は無く、発走時刻は見出しにある。JS が無くても資料（同じ条件で書いたレースのメモ）が続けて出る。
 	await expect(page.getByRole('region', { name: '基本情報' })).toHaveCount(0);
 	await expect(page.getByText('15:45発走')).toBeVisible();
-	await expect(page.getByRole('region', { name: '過去成績・レースメモ' })).toBeVisible();
+	await expect(page.getByRole('region', { name: /同じ条件で書いたレースのメモ/ })).toBeVisible();
 	// 押しても切り替わらないタブは出さない。
 	await expect(page.locator('[role="tablist"][aria-label="レースの表示"]')).toBeHidden();
 	// 押しても動かないボタンは隠し、入力欄を出しっぱなしにする。

@@ -5,12 +5,11 @@ import {
 	buildGradedRaceList,
 	buildGradedRaceTimeline,
 	currentGrade,
-	getGradedRaceTrend,
 	listGradedRaceTrendKeys,
 	listGradedRacesOfYear,
 	listNotedGradedYears,
-	listSeriesNotes,
 	listSeriesRaces,
+	readGradedRaceSeries,
 	saveGradedRaceTrend,
 	type SeriesMark,
 	type SeriesNote,
@@ -48,6 +47,10 @@ beforeEach(() => {
 	`);
 });
 afterEach(() => state.sqlite.close());
+
+/** viewer が重賞に書いた傾向（`readGradedRaceSeries` の傾向）。 */
+const trendOf = async (key: string, viewerId: string) =>
+	(await readGradedRaceSeries(state.db, key, viewerId)).trend;
 
 describe('今年の重賞', () => {
 	it('今年の G1〜G3 だけが日付の昇順で並ぶ（OP・去年のレースは出ない）', async () => {
@@ -114,8 +117,7 @@ describe('重賞のレースとメモ', () => {
 	});
 
 	it('メモは自分のレース全体のメモと印だけ（他人のメモ・印なし・別のレースは出ない）', async () => {
-		const names = gradedRaceNames('オールカマー');
-		const { notes, marks } = await listSeriesNotes(state.db, names, 'a');
+		const { notes, marks } = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
 		expect(notes.map((n) => [n.id, n.kind, n.pace])).toEqual([
 			['n1', 'race_preview', 'スロー'],
 			['n2', 'race', null]
@@ -128,32 +130,68 @@ describe('重賞のレースとメモ', () => {
 			].sort()
 		);
 
-		const other = await listSeriesNotes(state.db, names, 'b');
+		const other = await readGradedRaceSeries(state.db, 'オールカマー', 'b');
 		expect(other.notes.map((n) => n.id)).toEqual(['n6']);
 		expect(other.marks.map((m) => m.mark)).toEqual(['○']);
 
-		expect(await listSeriesNotes(state.db, ['E2E特別'], 'b')).toEqual({
+		// b は重賞でないレースにメモを書いていない。
+		const noted = await readGradedRaceSeries(state.db, 'E2E特別', 'b');
+		expect(noted).toMatchObject({ notes: [], marks: [], entryNoteCounts: {} });
+	});
+
+	it('1頭ごとのメモの件数は、レースごとに自分の出走前（印なしも）とふりかえりを数える', async () => {
+		const counts = async (viewer: string) =>
+			(await readGradedRaceSeries(state.db, 'オールカマー', viewer)).entryNoteCounts;
+		// a: n3・n4・n5（出走前。n5 は印なし）と n9（ふりかえり）。他人の n7 は数えない。
+		expect(await counts('a')).toEqual({ r25: 4 });
+		expect(await counts('b')).toEqual({ r25: 1 });
+		expect(await counts('nobody')).toEqual({});
+	});
+});
+
+describe('重賞1本ぶんの読み（1往復）', () => {
+	it('別名の行を含めて、傾向・レース・メモ・印・件数が揃って返る', async () => {
+		await saveGradedRaceTrend(state.db, '産経賞オールカマー', '別名で書いた傾向', 'a');
+		const series = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
+		expect(series.races.map((r) => r.id)).toEqual(['r26', 'r25', 'r24']);
+		expect(series.races).toEqual(await listSeriesRaces(state.db, gradedRaceNames('オールカマー')));
+		expect(series.trend).toEqual({ body: '別名で書いた傾向' });
+		expect(series.notes.map((n) => n.id)).toEqual(['n1', 'n2']);
+		expect(series.marks.map((m) => m.entryId).sort()).toEqual(['e1', 'e2']);
+		expect(series.entryNoteCounts).toEqual({ r25: 4 });
+	});
+
+	it('別のユーザーのメモ・印・件数・傾向は入らない', async () => {
+		await saveGradedRaceTrend(state.db, 'オールカマー', 'a の傾向', 'a');
+		const other = await readGradedRaceSeries(state.db, 'オールカマー', 'b');
+		expect(other.trend).toBeNull();
+		expect(other.notes.map((n) => n.id)).toEqual(['n6']);
+		expect(other.marks.map((m) => m.mark)).toEqual(['○']);
+		expect(other.entryNoteCounts).toEqual({ r25: 1 });
+
+		const nobody = await readGradedRaceSeries(state.db, 'オールカマー', 'nobody');
+		expect(nobody).toMatchObject({ trend: null, notes: [], marks: [], entryNoteCounts: {} });
+		// レースはマスタなので、誰が見ても同じ。
+		expect(nobody.races.map((r) => r.id)).toEqual(['r26', 'r25', 'r24']);
+	});
+
+	it('名前に当たるレースが無い鍵でも落ちず、空で返る', async () => {
+		expect(await readGradedRaceSeries(state.db, '存在しない重賞', 'a')).toEqual({
+			trend: null,
+			races: [],
 			notes: [],
 			marks: [],
 			entryNoteCounts: {}
 		});
-	});
-
-	it('1頭ごとのメモの件数は、レースごとに自分の出走前（印なしも）とふりかえりを数える', async () => {
-		const names = gradedRaceNames('オールカマー');
-		// a: n3・n4・n5（出走前。n5 は印なし）と n9（ふりかえり）。他人の n7 は数えない。
-		expect((await listSeriesNotes(state.db, names, 'a')).entryNoteCounts).toEqual({ r25: 4 });
-		expect((await listSeriesNotes(state.db, names, 'b')).entryNoteCounts).toEqual({ r25: 1 });
-		expect((await listSeriesNotes(state.db, names, 'nobody')).entryNoteCounts).toEqual({});
 	});
 });
 
 describe('傾向のメモ', () => {
 	it('1人・1重賞につき1本で、書き直すと上書きになり、前後の空白は落ちる', async () => {
 		await saveGradedRaceTrend(state.db, 'オールカマー', ' 内枠が残る ', 'a');
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'a')).toEqual({ body: '内枠が残る' });
+		expect(await trendOf('オールカマー', 'a')).toEqual({ body: '内枠が残る' });
 		expect(await saveGradedRaceTrend(state.db, 'オールカマー', '外差しも届く', 'a')).toBe('saved');
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'a')).toEqual({
+		expect(await trendOf('オールカマー', 'a')).toEqual({
 			body: '外差しも届く'
 		});
 		expect(state.sqlite.prepare('SELECT count(*) AS n FROM graded_race_note').get()).toEqual({
@@ -164,7 +202,7 @@ describe('傾向のメモ', () => {
 	it('別名の鍵で書いた傾向も読め、鍵の行があればそちらを優先する', async () => {
 		await saveGradedRaceTrend(state.db, '産経賞オールカマー', '古い鍵の傾向', 'a');
 		// 鍵ではなく別名で書いた行も、同じ重賞の傾向として読める。
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'a')).toEqual({
+		expect(await trendOf('オールカマー', 'a')).toEqual({
 			body: '古い鍵の傾向'
 		});
 		// 別の別名の行が2つあれば、更新の新しいほう。
@@ -174,9 +212,9 @@ describe('傾向のメモ', () => {
 		state.sqlite.exec(
 			`UPDATE graded_race_note SET updated_at = 2 WHERE race_key = '産経賞オールカマー'`
 		);
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'a')).toEqual({ body: '鍵の傾向' });
+		expect(await trendOf('オールカマー', 'a')).toEqual({ body: '鍵の傾向' });
 		// 他人の行は読まない。
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'b')).toBeNull();
+		expect(await trendOf('オールカマー', 'b')).toBeNull();
 	});
 
 	it('鍵で保存すると別名の行は消える。空で保存すると別名も全部消える。他人の行は残る', async () => {
@@ -208,19 +246,19 @@ describe('傾向のメモ', () => {
 	it('空で保存すると消える', async () => {
 		await saveGradedRaceTrend(state.db, 'オールカマー', '内枠が残る', 'a');
 		expect(await saveGradedRaceTrend(state.db, 'オールカマー', '  ', 'a')).toBe('cleared');
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'a')).toBeNull();
+		expect(await trendOf('オールカマー', 'a')).toBeNull();
 	});
 
 	it('他人の傾向は読めず、自分の傾向を消しても他人のものは残る', async () => {
 		await saveGradedRaceTrend(state.db, 'オールカマー', 'a の傾向', 'a');
 		await saveGradedRaceTrend(state.db, 'オールカマー', 'b の傾向', 'b');
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'a')).toEqual({ body: 'a の傾向' });
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'b')).toEqual({ body: 'b の傾向' });
+		expect(await trendOf('オールカマー', 'a')).toEqual({ body: 'a の傾向' });
+		expect(await trendOf('オールカマー', 'b')).toEqual({ body: 'b の傾向' });
 		expect(await listGradedRaceTrendKeys(state.db, 'a')).toEqual(['オールカマー']);
 		expect(await listGradedRaceTrendKeys(state.db, 'nobody')).toEqual([]);
 
 		await saveGradedRaceTrend(state.db, 'オールカマー', '', 'a');
-		expect(await getGradedRaceTrend(state.db, 'オールカマー', 'b')).toEqual({ body: 'b の傾向' });
+		expect(await trendOf('オールカマー', 'b')).toEqual({ body: 'b の傾向' });
 	});
 });
 

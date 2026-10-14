@@ -10,6 +10,7 @@ import {
 	lt,
 	lte,
 	ne,
+	notInArray,
 	or,
 	sql
 } from 'drizzle-orm';
@@ -519,6 +520,8 @@ export type SameConditionNote = {
  * - **自分のメモだけ**（`ownedBy`）
  * - レース全体のふりかえり（`kind='race'`）だけ。1頭のメモは馬の話で、舞台の話ではない
  * - このレースより前に走ったレースだけ（先の日付のレースには、まだふりかえりが無いはず）
+ * - `excludeRaceNames` の名前のレースは除く（重賞のタイムラインに別に出すレース。名前が無いレースは残る）。
+ *   **`limit` で切る前に SQL で除く**（あとで除くと、除かれた分だけ件数が減る）
  *
  * 1クエリ。新しいレースから `limit` 件。
  */
@@ -530,6 +533,8 @@ export async function listSameConditionRaceNotes(
 		distance: number;
 		/** このレースの日付。これより前のレースだけを見る。 */
 		before: string;
+		/** 除くレース名（重賞なら `gradedRaceNames(鍵)`）。空・省略なら除かない。 */
+		excludeRaceNames?: string[];
 	},
 	viewerId: string,
 	limit = 5
@@ -554,7 +559,11 @@ export async function listSameConditionRaceNotes(
 				eq(race.course, condition.course),
 				eq(race.surface, condition.surface),
 				eq(race.distance, condition.distance),
-				lt(race.date, condition.before)
+				lt(race.date, condition.before),
+				// `NOT IN` だけだと名前が NULL のレースまで落ちる。
+				condition.excludeRaceNames?.length
+					? or(isNull(race.name), notInArray(race.name, condition.excludeRaceNames))
+					: undefined
 			)
 		)
 		.orderBy(desc(race.date))

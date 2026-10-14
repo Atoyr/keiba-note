@@ -250,7 +250,8 @@
 				{#snippet information()}
 					<RaceInformation
 						race={data.race}
-						trend={data.gradedTrend}
+						graded={data.graded}
+						today={data.today}
 						sameCondition={data.sameCondition}
 					/>
 				{/snippet}

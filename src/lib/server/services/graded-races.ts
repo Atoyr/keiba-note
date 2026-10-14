@@ -103,9 +103,8 @@ export type SeriesRace = Pick<
 	resultCount: number;
 };
 
-/** 名前（鍵と別名）に当たるレース。日付の降順。マスタなので viewerId を取らない。索引は race_name。 */
-export async function listSeriesRaces(db: Db, names: string[]): Promise<SeriesRace[]> {
-	if (names.length === 0) return [];
+/** 名前（鍵と別名）に当たるレースを引く問い合わせ。`names` は空でない。 */
+function seriesRacesQuery(db: Db, names: string[]) {
 	return db
 		.select({
 			id: race.id,
@@ -123,6 +122,12 @@ export async function listSeriesRaces(db: Db, names: string[]): Promise<SeriesRa
 		.from(race)
 		.where(inArray(race.name, names))
 		.orderBy(desc(race.date), desc(race.raceNumber));
+}
+
+/** 名前（鍵と別名）に当たるレース。日付の降順。マスタなので viewerId を取らない。索引は race_name。 */
+export async function listSeriesRaces(db: Db, names: string[]): Promise<SeriesRace[]> {
+	if (names.length === 0) return [];
+	return seriesRacesQuery(db, names);
 }
 
 /** レース全体のメモ。`race_preview`（予想の見立て）か `race`（ふりかえり）。 */
@@ -149,28 +154,38 @@ export type SeriesMark = {
 };
 
 /**
- * 名前に当たるレースに viewer が書いたメモ。2クエリ。
- * 1頭ごとのメモの本文は出さない（年数 × 頭数で傾向が読めなくなる）ので、印と、レースごとの件数だけ別に拾う。
- * 件数は出走前メモ（`preview`。印の有無を問わない）とふりかえり（`entry`）を合わせて数える。
+ * 名前に当たるレースの id（副問い合わせ）。メモ側を `note.race_id IN (…)` で絞り、
+ * `note_author_race_id`（本人 + レース）と `race_name` の索引を使う。
+ * `race.name IN` を後ろに置くと、本人のメモを全件読んでから絞ることになる。
  */
-export async function listSeriesNotes(
-	db: Db,
-	names: string[],
-	viewerId: string
-): Promise<{
+function raceIdsNamed(db: Db, names: string[]) {
+	return db.select({ id: race.id }).from(race).where(inArray(race.name, names));
+}
+
+/**
+ * `race.id` に別名を付けて選ぶ。`db.batch()` の行は列名をキーにした object で返るので、
+ * 同じ名前（`note.id` と `race.id` はどちらも "id"）の列を2つ選ぶと、後ろが前を潰して値がずれる。
+ */
+const raceIdColumn = sql<string>`${race.id}`.as('race_id');
+
+type SeriesNotes = {
 	notes: SeriesNote[];
 	marks: SeriesMark[];
 	/** レースごとの1頭ごとのメモの件数（0 のレースは入らない）。 */
 	entryNoteCounts: Record<string, number>;
-}> {
-	if (names.length === 0) return { notes: [], marks: [], entryNoteCounts: {} };
+};
 
-	const [noteRows, markRows, countRows] = await Promise.all([
+/**
+ * 名前に当たるレースに viewer が書いたメモを引く3つの問い合わせ（レース全体のメモ・印・1頭ごとの件数）。
+ * `names` は空でない。どれも WHERE に `author_id = viewer` を入れる（architecture.md 第0章）。
+ */
+function seriesNotesQueries(db: Db, names: string[], viewerId: string) {
+	return [
 		db
 			.select({
 				id: note.id,
 				kind: note.kind,
-				raceId: race.id,
+				raceId: raceIdColumn,
 				body: note.body,
 				tags: note.tags,
 				flow: note.flow
@@ -181,14 +196,15 @@ export async function listSeriesNotes(
 				and(
 					eq(note.authorId, viewerId),
 					inArray(note.kind, ['race_preview', 'race']),
-					inArray(race.name, names)
+					inArray(note.raceId, raceIdsNamed(db, names))
 				)
 			)
-			.orderBy(asc(note.createdAt)),
+			// 索引（本人 + レース）の順に読み、同じレースの中だけ書いた順にする。
+			.orderBy(asc(note.raceId), asc(note.createdAt)),
 		db
 			.select({
 				entryId: raceEntry.id,
-				raceId: race.id,
+				raceId: raceIdColumn,
 				mark: note.mark,
 				horseName: horse.name,
 				bracket: raceEntry.bracket,
@@ -204,7 +220,7 @@ export async function listSeriesNotes(
 					eq(note.authorId, viewerId),
 					eq(note.kind, 'preview'),
 					isNotNull(note.mark),
-					inArray(race.name, names)
+					inArray(note.raceId, raceIdsNamed(db, names))
 				)
 			),
 		db
@@ -215,12 +231,25 @@ export async function listSeriesNotes(
 				and(
 					eq(note.authorId, viewerId),
 					inArray(note.kind, ['preview', 'entry']),
-					inArray(race.name, names)
+					inArray(note.raceId, raceIdsNamed(db, names))
 				)
 			)
 			.groupBy(note.raceId)
-	]);
+	] as const;
+}
 
+type SeriesNotesRows = {
+	[K in keyof ReturnType<typeof seriesNotesQueries>]: Awaited<
+		ReturnType<typeof seriesNotesQueries>[K]
+	>;
+};
+
+/** `seriesNotesQueries` の行を、画面に渡す形に整える。 */
+function shapeSeriesNotes(
+	noteRows: SeriesNotesRows[0],
+	markRows: SeriesNotesRows[1],
+	countRows: SeriesNotesRows[2]
+): SeriesNotes {
 	const notes = noteRows.flatMap((r): SeriesNote[] =>
 		r.kind === 'race_preview' || r.kind === 'race'
 			? [
@@ -242,17 +271,13 @@ export async function listSeriesNotes(
 }
 
 /**
- * viewer がその重賞に書いた傾向のメモ。無ければ null。
+ * 傾向のメモを引く問い合わせ（鍵と別名すべて。viewer の行だけ）。
  *
  * 別名の表に行を足すと、鍵が変わることがある。古い鍵で書いた傾向が消えないよう、鍵と別名すべて
- * （`gradedRaceNames(key)`）で引き、鍵の行があればそれを、なければ更新の新しい行を返す。
+ * （`gradedRaceNames(key)`）で引く。
  */
-export async function getGradedRaceTrend(
-	db: Db,
-	key: string,
-	viewerId: string
-): Promise<{ body: string } | null> {
-	const rows = await db
+function trendQuery(db: Db, key: string, viewerId: string) {
+	return db
 		.select({ raceKey: gradedRaceNote.raceKey, body: gradedRaceNote.body })
 		.from(gradedRaceNote)
 		.where(
@@ -262,8 +287,40 @@ export async function getGradedRaceTrend(
 			)
 		)
 		.orderBy(desc(gradedRaceNote.updatedAt), desc(gradedRaceNote.createdAt));
+}
+
+/** `trendQuery` の行から、鍵の行があればそれを、なければ更新の新しい行を選ぶ。無ければ null。 */
+function pickTrend(
+	rows: { raceKey: string; body: string }[],
+	key: string
+): { body: string } | null {
 	const found = rows.find((r) => r.raceKey === key) ?? rows.at(0);
 	return found ? { body: found.body } : null;
+}
+
+/**
+ * 重賞1本ぶんの読み（傾向・シリーズのレース・見立てとふりかえり・印・1頭ごとのメモの件数）。
+ * 重賞の画面と、予想・ふりかえり画面のレース情報タブで使う。**5文を1つの `db.batch()` で読む（1往復）。**
+ * 傾向は viewer が書いたもの（鍵の行を優先）、レースは名前（鍵と別名）に当たるもの（日付の降順）、
+ * メモと印と件数は viewer が書いたものだけ。
+ * メモと傾向は viewerId で絞る（architecture.md 第0章）。
+ */
+export async function readGradedRaceSeries(
+	db: Db,
+	key: string,
+	viewerId: string
+): Promise<SeriesNotes & { trend: { body: string } | null; races: SeriesRace[] }> {
+	const names = gradedRaceNames(key);
+	const [trendRows, races, noteRows, markRows, countRows] = await db.batch([
+		trendQuery(db, key, viewerId),
+		seriesRacesQuery(db, names),
+		...seriesNotesQueries(db, names, viewerId)
+	]);
+	return {
+		trend: pickTrend(trendRows, key),
+		races,
+		...shapeSeriesNotes(noteRows, markRows, countRows)
+	};
 }
 
 /**

@@ -4,9 +4,8 @@ import { gradedRaceTrendSchema } from '$lib/schemas/graded-race';
 import {
 	buildGradedRaceTimeline,
 	currentGrade,
-	getGradedRaceTrend,
-	listSeriesNotes,
 	listSeriesRaces,
+	readGradedRaceSeries,
 	saveGradedRaceTrend
 } from '$lib/server/services/graded-races';
 import { ctx } from '$lib/server/util';
@@ -18,30 +17,25 @@ import type { Actions, PageServerLoad } from './$types';
  * 重賞の画面＝傾向のメモ + 年ごとのメモ（予想とふりかえり）。
  *
  * 骨は同じ重賞のレース（レース名を別名の表で寄せた鍵で束ねる。誰が見ても同じ）で、そこに viewer 自身の
- * レース全体のメモと印を重ねる。1頭ごとのメモの本文は出さない。読みは3つで、並行に投げる。
+ * レース全体のメモと印を重ねる。1頭ごとのメモの本文は出さない。読みは1往復（傾向・レース・メモを1つの batch で）。
  * 見出しの格は今年のレースの格（無ければいちばん新しい年の格）。G1〜G3 のレースが1つも無い名前は 404。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 	const key = gradedRaceKey(params.name);
-	const names = gradedRaceNames(key);
 	const today = todayJst();
 
-	const [races, series, trend] = await Promise.all([
-		listSeriesRaces(db, names),
-		listSeriesNotes(db, names, user.id),
-		getGradedRaceTrend(db, key, user.id)
-	]);
-	const headline = currentGrade(races, today.slice(0, 4));
+	const series = await readGradedRaceSeries(db, key, user.id);
+	const headline = currentGrade(series.races, today.slice(0, 4));
 	if (!headline) error(404, '重賞が見つかりません');
 
 	return {
 		key,
 		name: headline.race.name ?? key,
 		headline,
-		trend,
+		trend: series.trend,
 		timeline: buildGradedRaceTimeline(
-			races,
+			series.races,
 			series.notes,
 			series.marks,
 			today,

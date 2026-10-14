@@ -7,12 +7,12 @@ import {
 	listSameConditionRaceNotes,
 	savePreviewNotes
 } from '$lib/server/services/notes';
-import { getGradedRaceTrend } from '$lib/server/services/graded-races';
+import { buildGradedRaceTimeline, readGradedRaceSeries } from '$lib/server/services/graded-races';
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { getRaceOdds } from '$lib/server/services/odds';
 import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
-import { gradedRaceKey, isGraded } from '$lib/utils/graded-race';
+import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { popularityByNumber } from '$lib/utils/odds';
@@ -34,7 +34,7 @@ import type { Actions, PageServerLoad } from './$types';
  *
  * 読みは最大6往復（race+entriesのbatch / 馬柱 / 同条件メモ / オッズ / 騎手のまとめ / 今回・過去メモのbatch）。
  * 2段目の5つは互いに待たず並べて読む。
- * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）で+1。レース情報に読むだけで出す。
+ * 重賞のときだけ、自分の傾向（重賞の画面で書くもの）と重賞のタイムライン（1 batch）で+1。レース情報に読むだけで出す。
  * GETはセッションのSELECTと更新のUPDATEを含め最大9往復。
  * JS無効のPOST後のloadでは、actionで読んだ共通マスタをlocalsから再利用する。保存1回を含め最大10往復。
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
@@ -49,25 +49,33 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const horseIds = entries.map((e) => e.horseId);
 
 	const { surface, distance } = race;
+	const today = todayJst();
 
 	// 重賞の傾向を引く鍵。別名で走った年のレースでも、重賞の画面と同じ名前になる。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
 
-	const [pastRuns, sameCondition, odds, trend, jockeySummaries, memos] = await Promise.all([
+	const [pastRuns, sameCondition, odds, series, jockeySummaries, memos] = await Promise.all([
 		// 馬柱。このレースより前の出走歴だけを見る。
 		listPastRuns(db, horseIds, race.date),
 		// 見立ての材料。同じ舞台で前に自分が何を見たか。馬場か距離が未定なら「同じ条件」が決まらない。
 		surface && distance
 			? listSameConditionRaceNotes(
 					db,
-					{ course: race.course, surface, distance, before: race.date },
+					{
+						course: race.course,
+						surface,
+						distance,
+						before: race.date,
+						// 重賞のタイムラインに出るレースは、同じ条件の欄に重ねない（SQL で除く）。
+						excludeRaceNames: gradedKey ? gradedRaceNames(gradedKey) : undefined
+					},
 					user.id
 				)
 			: Promise.resolve([]),
 		// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
 		getRaceOdds(db, params.id),
-		// 重賞ごとの傾向。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
-		gradedKey ? getGradedRaceTrend(db, gradedKey, user.id) : Promise.resolve(null),
+		// 重賞ごとの傾向と、重賞のタイムライン。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
+		gradedKey ? readGradedRaceSeries(db, gradedKey, user.id) : Promise.resolve(null),
 		// 行展開や騎手名を押したときに読む、自分のまとめ（このレースの出走馬の騎手だけ）。
 		listRaceJockeySummaries(db, params.id, user.id),
 		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
@@ -95,9 +103,24 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		// 取り下げで出走馬から外れた馬は盤面から落とす。
 		myFlow: restrictFlowTo(myRaceNote?.flow ?? null, new Set(entries.map((e) => e.entryId))),
 		sameCondition,
-		gradedTrend: gradedKey && trend ? { key: gradedKey, body: trend.body } : null,
+		// このレース自身の行は除く（このレースの見立てと印は入力側にあり、重ねると入力中の値と食い違って見える）。
+		graded:
+			gradedKey && series
+				? {
+						key: gradedKey,
+						trend: series.trend?.body ?? null,
+						timeline: buildGradedRaceTimeline(
+							series.races.filter((r) => r.id !== race.id),
+							series.notes,
+							series.marks,
+							today,
+							series.entryNoteCounts
+						)
+					}
+				: null,
+		today,
 		// 開催前はふりかえりへの導線を出さない（開いても戻されるだけなので）。
-		upcoming: isUpcoming(race.date, todayJst()),
+		upcoming: isUpcoming(race.date, today),
 		// 取れた時点。1度も取れていなければ null で、オッズの欄ごと出さない。
 		oddsAsOf: odds?.asOf ?? null,
 		rows: entries.map((e) => {
