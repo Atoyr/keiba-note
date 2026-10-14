@@ -17,6 +17,7 @@ import {
 	JOCKEYS,
 	MARKS_RACE_ID,
 	PAST_EMPTY_RACE_ID,
+	PAST_RUN_RACE_ID,
 	PREVIEW_RACE_ID,
 	REVIEW_RACE_ID,
 	SPRINT_RACE_ID,
@@ -200,6 +201,8 @@ export const SCREENS: Screen[] = [
 	// 100件を超えるので、下端に「続きを読み込む」が出る。
 	{ name: 'races-all', path: '/races?year=', auth: true, stayAtTop: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
+	// 馬場・天候・頭数が入っているレース。見出しは条件（2行目）の下に「馬場：稍重 / 天候：曇」の3行目が出る。
+	{ name: 'race-review-going', path: `/races/${PAST_RUN_RACE_ID}`, auth: true },
 	{
 		// 騎手名をクリックして、自分のまとめ（本文と札）が開いたところ。
 		name: 'race-review-jockey-summary',

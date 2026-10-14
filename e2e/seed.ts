@@ -162,6 +162,12 @@ export const FILLY_HORSE_ID = '01JE2EHORSEFILLY0000000000';
 export const REVIEW_RACE_ID = '01JE2ERACEPAST0000000000000';
 
 /**
+ * 馬の過去走として置いた条件戦（中山10R E2E師走特別・3勝クラス・芝2000・稍重・曇・14頭）。出走1頭。
+ * ふりかえり画面の見出しの3行目（馬場・天候）を見せる。
+ */
+export const PAST_RUN_RACE_ID = '01JE2ERACEPASTRUN100000000';
+
+/**
  * **出走馬が1頭も登録されていない未来のレース。**
  *
  * これから組まれる重賞は、出馬表が出る前に日付と格だけ先に登録される。

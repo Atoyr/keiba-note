@@ -49,8 +49,9 @@ VALUES (
 -- 残り2走は「走ったが何も書かなかった」レースになる。
 
 -- 終わったレース（メモを書いた）。
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, start_time)
-VALUES ('01JE2ERACEPAST0000000000000', '2026-06-14', '中山', 11, 'E2Eステークス', 'G3', '芝', 2000, '15:45');
+-- 格の札・回り・頭数・発走時刻・馬場・天候がそろっていて、スマホ幅でも見出しが2段に収まるかを画面カタログ（race-review）で見る。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, direction, track_condition, weather, field_size, start_time)
+VALUES ('01JE2ERACEPAST0000000000000', '2026-06-14', '中山', 11, 'E2Eステークス', 'G3', '芝', 2000, '右', '良', '晴', 16, '15:45');
 
 -- 終わったレース（何も書かなかった）。格が無いのでクラスが識別子になる。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance)
@@ -138,8 +139,8 @@ VALUES ('01JE2EFREEZEUSER0000000000', 'e2e-freeze-google-sub', 'freeze@example.i
 INSERT OR REPLACE INTO horse (id, name)
 VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース');
 
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, start_time)
-VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200, '15:45');
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size, start_time)
+VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200, '右', 18, '15:45');
 
 -- 着順は未入力（まだ走っていない）。
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
@@ -488,8 +489,9 @@ VALUES (
 -- 1走は頭数・枠・人気・上がり・タイム・通過順まで入っていて勝ち馬が無い。もう1走は勝った走で、
 -- 頭数・枠・タイム・通過順が無い（2行目は馬番・騎手と、2着馬とのタイム差になる）。
 -- 条件戦・2025年に置いて、レース一覧の既定（今年の重賞）とダッシュボードには出ないようにする。
-INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, field_size)
-VALUES ('01JE2ERACEPASTRUN100000000', '2025-12-28', '中山', 10, 'E2E師走特別', '3勝クラス', '芝', 2000, '稍重', 14);
+-- 天候も入れてある。ふりかえり画面の見出しの3行目「馬場：稍重 / 天候：曇」を画面カタログ（race-review-going）で見せる。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, weather, field_size)
+VALUES ('01JE2ERACEPASTRUN100000000', '2025-12-28', '中山', 10, 'E2E師走特別', '3勝クラス', '芝', 2000, '稍重', '曇', 14);
 
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, popularity, last_3f, finish_time, passing)
 VALUES (

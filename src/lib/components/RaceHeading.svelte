@@ -11,7 +11,10 @@
 	 * 置く（`⋯` の左）。幅が足りないときに … で詰まるのはレース名だけで、開催と時刻は最後まで出す。
 	 * どのレースを開いているかは開催のほうで分かるため。
 	 *
-	 * 2行目は格の札、日付、条件（距離・馬場・頭数など）。格の札は常に2行目の先頭に置く。
+	 * 2行目は格の札、日付、条件（距離・回り・頭数など）。格の札は常に2行目の先頭に置く。
+	 * 条件は省略せず、幅が足りなければ折り返す（スマホで長い条件が … で読めなくならないように）。
+	 * 条件の段は発走時刻・⋯ の下まで幅いっぱいに使う（右の列の幅を取られて、スマホで折り返さないように）。
+	 * 馬場状態・天候（`going`）は、渡されたときだけ条件のすぐ下の3行目に出す。
 	 *
 	 * 他の画面への導線（`links`）は、見出しの下にボタンを並べず、右端の `⋯` に畳む。
 	 * 毎回は踏まない導線で、スマホ幅だと見出しの下を何行も取っていたため。
@@ -23,6 +26,7 @@
 		grade,
 		startTime = null,
 		spec,
+		going = '',
 		links
 	}: {
 		/** 場・R。詰めずに必ず出す部分。 */
@@ -32,8 +36,10 @@
 		grade: string | null;
 		/** 発走時刻（`15:45`）。あれば1行目の右端に「15:45発走」と出す。予想まとめ・共有は渡さない。 */
 		startTime?: string | null;
-		/** 2行目に出す日付と条件（距離・馬場・頭数など）。 */
+		/** 2行目に出す日付と条件（距離・回り・頭数など）。 */
 		spec: string;
+		/** 馬場状態・天候（`馬場：良 / 天候：曇`）。渡すと条件の下の段に出す。ふりかえりだけが渡す。 */
+		going?: string;
 		/** `⋯` のメニューに並べる導線。省略か空ならメニューを出さない。href は呼び出し側が resolve() で組む。 */
 		links?: { href: string; label: string }[];
 	} = $props();
@@ -82,12 +88,15 @@
 
 {#snippet subline()}
 	{#if spec || grade}
-		<p class="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+		<p class="mt-1 flex items-start gap-2 text-sm text-muted-foreground">
 			<GradeBadge {grade} />
 			{#if spec}
-				<span class="truncate">{spec}</span>
+				<span class="min-w-0">{spec}</span>
 			{/if}
 		</p>
+	{/if}
+	{#if going}
+		<p class="mt-0.5 text-sm text-muted-foreground">{going}</p>
 	{/if}
 {/snippet}
 
@@ -111,7 +120,6 @@
 							{@render titleText()}
 						</Button>
 					</h1>
-					{@render subline()}
 				</div>
 
 				{@render time()}
@@ -149,6 +157,8 @@
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</div>
+		<!-- 条件の段は、タイトル・発走時刻・⋯ の行の下に置き、見出しの幅いっぱいを使う。 -->
+		{@render subline()}
 		<!-- JS が無いと `⋯` もタイトルも開かない。同じ導線を、見出しの下のボタンとして出す。 -->
 		<noscript>
 			<div class="mt-2 flex flex-wrap gap-2">
