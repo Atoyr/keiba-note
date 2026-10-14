@@ -557,7 +557,7 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 「＋ 出走前メモ」を押して、その場で書いているところ。入力欄の下に「完了」が出る。
+		// 「＋ 出走前メモ」を押して、その場で書いているところ。入力欄の下に「閉じる」が出る。
 		name: 'race-preview-editing-inline',
 		path: `/races/${COUNT_RACE_ID}/preview`,
 		auth: true,

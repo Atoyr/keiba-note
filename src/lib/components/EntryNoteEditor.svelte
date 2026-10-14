@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount, tick, type Snippet } from 'svelte';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
+	import XIcon from '@lucide/svelte/icons/x';
 	import { Button } from '$lib/components/ui/button/index.js';
 
 	/**
 	 * 出走馬の行の、メモを「その場で書く」部分。行は畳まない。
 	 *
 	 * - 書いていないとき: メモがあれば**メモの表示そのものがボタン**（押すと書き直せる）、無ければ「＋ {label}」のボタン。
-	 * - 押すと入力欄（`children`）に替わり、本文の欄にフォーカスが移る。下の「完了」（か Esc）で戻り、フォーカスはボタンへ戻る。
+	 * - 押すと入力欄（`children`）に替わり、本文の欄にフォーカスが移る。下の「閉じる」（か Esc）で戻り、フォーカスはボタンへ戻る。
+	 *   閉じるは保存でも破棄でもない（入力は一括フォームに残る）。保存の操作と取り違えないよう、ボタンは控えめに出す。
 	 *   書いている間はメモの表示を出さない（入力欄と同じものが2つ並ぶため）。
 	 *
 	 * **入力欄は書いていない間も DOM に残す**（`hidden`）。一括フォームに乗り続けるので、未保存の件数・下書き・AI の反映は
@@ -55,7 +57,7 @@
 		box?.querySelector('textarea')?.focus();
 	}
 
-	async function done() {
+	async function close() {
 		editing = false;
 		await tick();
 		opener?.focus();
@@ -65,7 +67,7 @@
 		// 変換中の Esc（変換の取り消し）では閉じない。
 		if (e.key !== 'Escape' || !editing || e.isComposing || e.keyCode === 229) return;
 		e.preventDefault();
-		void done();
+		void close();
 	}
 </script>
 
@@ -80,7 +82,7 @@
 				}
 			}
 			.entry-note-open,
-			.entry-note-done {
+			.entry-note-close {
 				display: none !important;
 			}
 		</style></noscript
@@ -132,8 +134,15 @@
 	>
 		{@render children()}
 		<div class="flex justify-end">
-			<Button type="button" variant="outline" size="sm" class="entry-note-done" onclick={done}>
-				完了
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				class="entry-note-close -mr-2.5 text-muted-foreground"
+				onclick={close}
+			>
+				<XIcon class="size-4" aria-hidden="true" />
+				<span class="sr-only">{horseName}の{label}を</span>閉じる
 			</Button>
 		</div>
 	</div>

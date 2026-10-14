@@ -66,18 +66,28 @@ it('押すと入力欄が出て本文にフォーカスが移り、メモの表�
 	expect(form.textContent).not.toContain('内枠が向きそう');
 });
 
-it('「完了」で閉じてフォーカスが押したボタンへ戻る', async () => {
+it('「閉じる」で閉じてフォーカスが押したボタンへ戻る。「完了」のボタンは無い', async () => {
 	const { form, screen } = mount({ hasMemo: false });
 	await screen.getByRole('button', { name: /＋ 出走前メモ/ }).click();
 	expect(box(form).hidden).toBe(false);
-	await screen.getByRole('button', { name: '完了' }).click();
+	await expect.element(screen.getByRole('button', { name: /完了/ })).not.toBeInTheDocument();
+	await screen.getByRole('button', { name: /見本馬の出走前メモを\s*閉じる/ }).click();
 	expect(box(form).hidden).toBe(true);
 	const opener = screen.getByRole('button', { name: /＋ 出走前メモ/ });
 	await expect.element(opener).toBeVisible();
 	await expect.element(opener).toHaveFocus();
 });
 
-it('Esc でも「完了」と同じに閉じて、フォーカスがボタンへ戻る', async () => {
+it('閉じても入力は捨てない（打った値がフォームに残る）', async () => {
+	const { form, screen } = mount({ hasMemo: false });
+	await screen.getByRole('button', { name: /＋ 出走前メモ/ }).click();
+	form.querySelector('textarea')!.value = '閉じる前に打った本文';
+	await screen.getByRole('button', { name: /見本馬の出走前メモを\s*閉じる/ }).click();
+	expect(box(form).hidden).toBe(true);
+	expect(new FormData(form).get('body.e1')).toBe('閉じる前に打った本文');
+});
+
+it('Esc でも「閉じる」と同じに閉じて、フォーカスがボタンへ戻る', async () => {
 	const { form, screen } = mount({ hasMemo: true });
 	await screen.getByRole('button', { name: /書き直す/ }).click();
 	expect(document.activeElement).toBe(form.querySelector('textarea'));
