@@ -158,7 +158,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
-| `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱。見出しは `startTime` を渡すと1行目の右端に「15:45発走」を出し、`links` を渡すとその右に `⋯` のメニュー（`DropdownMenu`）を出し、レース名を押しても同じメニューが開く（JS が無いときは `<noscript>` でボタンの行）。予想画面・ふりかえり画面と `RaceSummary` が使う（`startTime` を渡すのは予想・ふりかえりだけ） |
+| `RaceHeading` / `RaceFilterForm` / `RaceListEmpty` / `PastRuns` | レースの見出し・絞り込み・一覧が0件のときの文・馬柱。見出しは `startTime` を渡すと1行目の右端に「15:45発走」を出し、`going`（`馬場：良 / 天候：曇`。ふりかえりだけが渡す）を渡すと条件の行の下にもう1段出し（条件の行は省略せず折り返す）、`links` を渡すとその右に `⋯` のメニュー（`DropdownMenu`）を出し、レース名を押しても同じメニューが開く（JS が無いときは `<noscript>` でボタンの行）。予想画面・ふりかえり画面と `RaceSummary` が使う（`startTime` を渡すのは予想・ふりかえりだけ） |
 | `RaceSummary` | 1レースの見立て・各馬のメモ・札・印。本人のまとめ画面と共有ページで共通 |
 | `RaceFlowEditor` / `RaceFlowBoard` / `RaceFlowDetails` / `RaceFlowView` / `FlowDigest` / `FlowOrder` | 展開の予想の入力・盤面・読むだけの畳んだ形（入力は `RaceFlowEditor`、盤面は `RaceFlowBoard`、畳んだ形は `RaceFlowView`・`RaceFlowDetails`・`FlowDigest`・`FlowOrder`）。盤面は前後 × 内外のマス目に枠の色のコマを置く。キーボードは矢印キー |
 | `CourseMap` | レースを走るコースの図と、回り・直線・高低差。図は `src/lib/assets/courses/` の生成物（`pnpm run course-maps`。手で直さない） |
