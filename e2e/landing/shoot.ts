@@ -57,13 +57,15 @@ const SHOTS: Shot[] = [
 			await waitForHydration(page);
 		}
 	},
-	// 予想画面の行展開: 印・オッズ・前回の札・近況・今回の入力。◎の1頭を撮る。
+	// 予想画面の行: 印・オッズ・前回の札・詳細情報の見出し・印のボタン・書いている出走前メモ。◎の1頭を撮る。
+	// 詳細情報は開かない（開くと紹介ページで縦に長くなりすぎる）。
 	{
 		name: 'preview-entry',
 		path: `/races/${TODAY_RACE_ID}/preview`,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page.locator('#entry-01JLPENTRYTODAY00000000001 > details > summary').click();
+			const row = page.locator('#entry-01JLPENTRYTODAY00000000001');
+			await row.getByRole('button', { name: /出走前メモ/ }).click();
 		},
 		target: (page) => page.locator('#entry-01JLPENTRYTODAY00000000001')
 	},

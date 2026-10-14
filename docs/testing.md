@@ -7,7 +7,7 @@ PR に貼るキャプチャの撮り方。
 - **ここに無いもの:** 仕組みをなぜこう組んだか・これから足す検査は [harness.md 第5層](./harness.md)、
   ルートごとの入出力は [api.md](./api.md)、
   評価（Evaluator）は [evaluation.md](./evaluation.md)、レビューは [review.md](./review.md)
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-14
 
 ---
 
@@ -80,7 +80,7 @@ PR に書く「確認したこと」の形はここで決める。
 - **MCP の tool やスコープを足したら、スコープ不足と他人のデータの確認を単体と E2E の両方に足す**
   （`/mcp` は 302 でなく 401 なので `PROTECTED` では確かめられない。何を足すかは [mcp.md](./mcp.md)）
 - **form POST を足したら E2E で確かめる。** CSRF の検証は本番ビルドでしか効かない（`vite dev` では通ってしまう）
-- **E2E で入力欄に書く・送信する前は hydration を待つ。** `gotoHydrated` か `waitForHydration`
+- **E2E で入力欄に書く・送信する前と、JS で動くボタン（出走馬の行のメモのボタンなど）を押す前は hydration を待つ。** `gotoHydrated` か `waitForHydration`
   （`e2e/hydration.ts`）を使う。`page.goto` が待つのは load までで、hydration はそのあとに走る。
   先に書いた値は hydration のあとに書き戻される（[frontend.md 第4章](./frontend.md)）が、済む前に
   送信すると `use:enhance` の無い送信になり、`DraftKeeper` もまだ動いていない。並列で JS の配信が
@@ -140,7 +140,10 @@ webServer の command の先頭で `e2e/seed.ts` が毎回、次の順で状態�
 
 ```ts
 { name: 'race-preview-editing', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true,
-  prepare: async (page) => { await page.getByText('書き直す', { exact: true }).click(); } }
+  prepare: async (page) => {
+    await waitForHydration(page); // メモのボタンは JS で開く。hydration 前に押しても何も起きない
+    await page.getByRole('button', { name: /出走前メモを書き直す/ }).click();
+  } }
 ```
 
 - `name` はファイル名になる（英小文字とハイフン）

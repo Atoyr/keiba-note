@@ -404,10 +404,9 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page.getByText('書き直す', { exact: true }).click();
 			await page
 				.locator('main li[id^="entry-"]', { hasText: 'E2Eプレビューホース' })
-				.locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' })
+				.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
 				.click();
 		}
 	},
@@ -430,7 +429,7 @@ export const SCREENS: Screen[] = [
 			if (page.viewportSize()!.width < 600) {
 				await page.setViewportSize({ width: 320, height: 844 });
 			}
-			await page.getByText('書き直す', { exact: true }).click();
+			await page.getByRole('button', { name: /出走前メモを書き直す/ }).click();
 			const input = page.locator('textarea[name^="body."]').first();
 			await input.fill(
 				'道中の位置取りと直線の進路を確認。次走は展開と馬場を見て判断する。\n'.repeat(40)
@@ -444,7 +443,10 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page.locator('summary', { hasText: 'E2Eソトワク' }).first().click();
+			await page
+				.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' })
+				.getByRole('button', { name: /ふりかえりメモ/ })
+				.click();
 		}
 	},
 	{
@@ -550,7 +552,20 @@ export const SCREENS: Screen[] = [
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
-			await page.getByText('書き直す', { exact: true }).click();
+			await waitForHydration(page);
+			await page.getByRole('button', { name: /出走前メモを書き直す/ }).click();
+		}
+	},
+	{
+		// 「＋ 出走前メモ」を押して、その場で書いているところ。入力欄の下に「完了」が出る。
+		name: 'race-preview-editing-inline',
+		path: `/races/${COUNT_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eコレカラ' });
+			await row.getByRole('button', { name: /＋ 出走前メモ/ }).click();
+			await row.locator('textarea').fill('距離短縮で前に行けそう。');
 		}
 	},
 	{
@@ -563,7 +578,7 @@ export const SCREENS: Screen[] = [
 			await waitForHydration(page);
 			await expect.poll(() => page.evaluate(() => window.__predictionTools.size)).toBe(2);
 			const entryId = await page.locator('textarea[name^="body."]').getAttribute('name');
-			await page.getByText('書き直す', { exact: true }).click();
+			await page.getByRole('button', { name: /出走前メモを書き直す/ }).click();
 			await applyPrediction(page, {
 				race: { body: '前半から流れそう。差し中心。', pace: 'ハイ' },
 				entries: [
@@ -598,7 +613,7 @@ export const SCREENS: Screen[] = [
 		prepare: async (page) => {
 			await waitForHydration(page);
 			const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eコレカラ' });
-			await row.getByText('＋ 出走前メモ').click();
+			await row.getByRole('button', { name: /＋ 出走前メモ/ }).click();
 			await row.locator('textarea').fill('距離短縮で前に行けそう。');
 			await row.getByText('次走買い', { exact: true }).click();
 			await row.getByText('▲', { exact: true }).click();
@@ -633,28 +648,15 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 印を ☆（穴）に付け替えたところ。保存はしない。選んだ ☆ の色（violet）がほかの印と見分けられるかを見る。
+		// 印を ☆（穴）に付け替えたところ。保存はしない。行は開かずに選べる。
+		// 選んだ ☆ の色（violet）がほかの印と見分けられるか、見出しの印と「付けた印」が保存済みの ◎ ではなく選んだ ☆ に追従するかを見る。
 		name: 'race-preview-mark-star',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
-			await page.getByText('書き直す', { exact: true }).click();
-			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
-			await marks.getByText('☆', { exact: true }).click();
-		}
-	},
-	{
-		// 印を ☆ に付け替えて行を閉じたところ。保存はしない。見出しの印と「付けた印」が、保存済みの ◎ ではなく選んだ ☆ に追従する。
-		name: 'race-preview-mark-unsaved-closed',
-		path: `/races/${PREVIEW_RACE_ID}/preview`,
-		auth: true,
-		prepare: async (page) => {
 			await waitForHydration(page);
-			const summary = page.locator('li[id^="entry-"] > details > summary');
-			await summary.click();
-			const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
+			const marks = page.getByRole('radiogroup', { name: /予想印/ }).first();
 			await marks.getByText('☆', { exact: true }).click();
-			await summary.click();
 		}
 	},
 	{
@@ -664,7 +666,8 @@ export const SCREENS: Screen[] = [
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
 		prepare: async (page) => {
-			await page.getByText('書き直す', { exact: true }).click();
+			await waitForHydration(page);
+			await page.getByRole('button', { name: /出走前メモを書き直す/ }).click();
 			await page.getByRole('group', { name: 'メモの札' }).getByText('次走消し').click();
 		}
 	},

@@ -64,23 +64,22 @@ test('予想画面でも、hydration 前に書いた見立ては未保存に数�
 	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
 });
 
-test('hydration 前に付けた札は残る', async ({ page }) => {
+test('hydration 前は開くボタンが押せず、hydration 後に押すと書ける', async ({ page }) => {
 	await login(page);
 	const release = await openWithoutJs(page, `/races/${BRACKET_RACE_ID}`);
 
 	// races.e2e.ts がソトワクに書くので、ウチワクの行で見る。
 	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eウチワク' });
-	await row.locator('summary').first().click();
-	const tag = row.getByRole('checkbox', { name: '馬場向かず' });
-	const rendered = await tag.isChecked();
-	// 札は見た目だけのラベルで、チェックボックス本体は隠してある。押すのはラベル。
-	await row.getByText('馬場向かず', { exact: true }).click();
-	await expect(tag).toBeChecked({ checked: !rendered });
+	const opener = row.getByRole('button', { name: /(出走前|ふりかえり)メモ/ });
+	// 押しても何も起きないボタンは、押せない状態で届く。入力欄は隠れたまま。
+	await expect(opener).toBeDisabled();
+	await expect(row.locator('textarea')).toBeHidden();
 
 	release();
 	await waitForHydration(page);
-	await expect(tag).toBeChecked({ checked: !rendered });
-	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
+	await expect(opener).toBeEnabled();
+	await opener.click();
+	await expect(row.locator('textarea')).toBeFocused();
 });
 
 test('hydration 前に付け替えた印は残る', async ({ page }) => {
@@ -88,8 +87,7 @@ test('hydration 前に付け替えた印は残る', async ({ page }) => {
 	const release = await openWithoutJs(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
 	// seed では ◎。△ → ▲ → △ と迷ってから決める。触った順ではなく、最後に選んだものが残る。
-	await page.locator('li[id^="entry-"] > details > summary').click();
-	const marks = page.getByRole('radiogroup', { name: '予想印' }).first();
+	const marks = page.getByRole('radiogroup', { name: /予想印/ }).first();
 	await expect(marks.getByRole('radio', { name: '◎' })).toBeChecked();
 	for (const m of ['△', '▲', '△']) await marks.getByText(m, { exact: true }).click();
 

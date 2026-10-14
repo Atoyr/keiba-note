@@ -3,7 +3,7 @@ import { NOTE_TAGS, type Mark, type NoteTag } from '$lib/schemas/note';
 /**
  * 出走馬ごとの入力欄（`mark.{entryId}` / `body.{entryId}` / `tags.{entryId}`）の、いま入力している値。
  *
- * 閉じた行に出す印・メモ・札は、保存済みの値ではなく**いま入力している値（保存前を含む）**から出す。
+ * 行に出す印・メモ・札は、保存済みの値ではなく**いま入力している値（保存前を含む）**から出す。
  * 古い値が出ると、書いたものが消えたように見えるため（pages.md 4-3）。
  * 予想画面とふりかえり画面で同じ仕組みを使う。
  */
@@ -102,7 +102,7 @@ export function currentEntry(
 	};
 }
 
-/** 閉じた行にメモとして出すものがあるか（本文は前後の空白を除いて見る。札だけでもある）。 */
+/** 行にメモとして出すものがあるか（本文は前後の空白を除いて見る。札だけでもある）。 */
 export function hasMemo(note: { body: string; tags: readonly unknown[] }): boolean {
 	return note.body.trim() !== '' || note.tags.length > 0;
 }
