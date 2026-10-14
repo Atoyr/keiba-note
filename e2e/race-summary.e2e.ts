@@ -130,7 +130,6 @@ test('予想をまとめ、公開名で共有・更新・解除できる。本�
 	await otherContext.close();
 
 	await gotoHydrated(page, `/races/${SUMMARY_RACE_ID}/preview`);
-	await page.getByText('書き直す', { exact: true }).click();
 	await page.locator('textarea[name="raceNoteBody"]').fill('共有後に書き直した見立て');
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
 	await expect(page.getByRole('button', { name: '出走前メモを保存' })).toHaveCount(0);

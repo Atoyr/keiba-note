@@ -299,8 +299,6 @@ test('ふりかえり画面の上に、予想の印と着順が印の順に並�
 test('各馬の行に、4角の位置から着順・上りの順位・人気が出る', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${MARKS_RACE_ID}`);
-	for (const summary of await page.locator('li[id^="entry-"] > details > summary').all())
-		await summary.click();
 
 	const row = (name: string) => page.locator('form li[id^="entry-"]', { hasText: name });
 
@@ -547,7 +545,7 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 	await gotoHydrated(page, `/races/${BRACKET_RACE_ID}`);
 
 	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' });
-	await row.locator('summary').first().click();
+	await row.getByRole('button', { name: /ふりかえりメモ/ }).click();
 	await row.locator('textarea').fill('結局外を回して届かず。');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
@@ -559,7 +557,7 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 
 	// 後片付け。空で保存するとふりかえりのメモは消える。
 	await waitForHydration(page);
-	await row.locator('summary').first().click();
+	await row.getByRole('button', { name: /ふりかえりメモ/ }).click();
 	await row.locator('textarea').fill('');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();

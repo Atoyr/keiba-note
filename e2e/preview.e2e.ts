@@ -13,46 +13,65 @@ import {
 	SAME_CONDITION_NOTE_BODY
 } from './seed';
 
-/** 閉じた行のメモ（本文と札）。`<details>` の前に置かれる。 */
-const closedMemo = (row: Locator) =>
-	row.locator(
-		'xpath=.//details[contains(@class, "group/entry")]/preceding-sibling::div[contains(@class, "grid gap-1.5")]'
-	);
+/** 行のメモそのもの（書いたメモがあるときの、押すと書き直せるボタン）。 */
+const memoButton = (row: Locator) => row.getByRole('button', { name: /出走前メモを書き直す/ });
+/** 行に見えているメモ（本文と札）。詳細情報の中は畳んでいるので数えない。 */
+const memoText = (row: Locator) => row.locator('.entry-memo:visible');
 
-test('閉じた行は印とメモ（本文・札）をそのまま表示し、開くと入力欄に切り替わる', async ({
+test('行は畳まず、印とメモ（本文・札）をそのまま表示し、メモを押すとその場で入力欄に切り替わる', async ({
 	page
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 	const row = page.locator('main li[id^="entry-"]');
-	const memo = closedMemo(row);
-	// 展開しなくても、書いた本文と札が読める。状態の文言（予想メモあり）は出さない。
+	const memo = memoText(row);
+	// 開かなくても、書いた本文と札が読める。状態の文言（予想メモあり）は出さない。
 	await expect(memo).toBeVisible();
 	await expect(memo).toContainText('今回は内枠が向きそう。');
 	await expect(memo).toContainText('次走買い');
 	// 種別の札。無いと、見出しの「前回」の札の続きに読める。
 	await expect(memo).toContainText('出走前');
 	await expect(row.getByText('予想メモあり')).toHaveCount(0);
+	await expect(row.getByText('メモを入力する')).toHaveCount(0);
+	await expect(row.getByText('過去のメモあり')).toHaveCount(0);
 	await expect(row.locator('textarea')).toBeHidden();
 	await expect(row.getByTitle('予想印 ◎')).toBeVisible();
-	await row.locator('summary').first().click();
-	// 開くと、同じものが2つ並ばないよう閉じた行用のメモは隠れる。
-	await expect(memo).toBeHidden();
+	// 印は行を開かなくても選べる（ボタンは正方形・左寄せ）。
+	const marks = row.getByRole('radiogroup', { name: /予想印/ });
+	await expect(marks).toBeVisible();
+	const tile = (await marks.getByText('◎', { exact: true }).boundingBox())!;
+	expect(tile.width).toBe(tile.height);
+	expect(tile.x).toBeLessThan((await marks.boundingBox())!.x + 1);
+
+	await memoButton(row).click();
+	// 押すと入力欄に替わり、同じものが2つ並ばないよう書いたメモの表示は消える。本文の欄にフォーカスが移る。
+	await expect(memo).toHaveCount(0);
+	await expect(row.locator('textarea')).toBeFocused();
 	await expect(row.locator('textarea')).toHaveValue('今回は内枠が向きそう。');
 	await expect(row.getByText('過去走の記録がありません。')).toHaveCount(0);
+	// 完了で書いたメモの表示に戻り、フォーカスもそのボタンへ戻る。
+	await row.getByRole('button', { name: '完了', exact: true }).click();
+	await expect(row.locator('textarea')).toBeHidden();
+	await expect(memo).toContainText('今回は内枠が向きそう。');
+	await expect(memoButton(row)).toBeFocused();
+	// Esc でも同じ。
+	await memoButton(row).click();
+	await page.keyboard.press('Escape');
+	await expect(row.locator('textarea')).toBeHidden();
+	await expect(memoButton(row)).toBeFocused();
 });
 
-/** 保存する前でも、いま入力している本文と札を閉じた行に出す（古い保存済みの値が残ると、書いたものが消えたように見える）。 */
-test('行を開いて書いた本文と札は、保存する前から閉じた行に出る', async ({ page }) => {
+/** 保存する前でも、いま入力している本文と札を行に出す（古い保存済みの値が残ると、書いたものが消えたように見える）。 */
+test('書いた本文と札は、保存する前から行に出る', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 	const row = page.locator('main li[id^="entry-"]');
-	const memo = closedMemo(row);
-	await row.locator('summary').first().click();
+	const memo = memoText(row);
+	await memoButton(row).click();
 	await row.locator('textarea').fill('書き換えた本文。まだ保存しない。');
 	await row.getByRole('checkbox', { name: '次走買い' }).uncheck({ force: true });
 	await row.getByRole('checkbox', { name: '馬場一致' }).check({ force: true });
-	await row.locator('summary').first().click();
+	await row.getByRole('button', { name: '完了', exact: true }).click();
 
 	await expect(memo).toBeVisible();
 	await expect(memo).toContainText('書き換えた本文。まだ保存しない。');
@@ -61,11 +80,11 @@ test('行を開いて書いた本文と札は、保存する前から閉じた�
 	await expect(memo).not.toContainText('今回は内枠が向きそう。');
 });
 
-test('「書き直す」を開くと、本文欄と全部の札が出る', async ({ page }) => {
+test('メモを押すと、本文欄と全部の札が出る', async ({ page }) => {
 	await login(page);
-	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
-	await page.getByText('書き直す', { exact: true }).click();
+	await memoButton(page.locator('main li[id^="entry-"]')).click();
 
 	// 入力欄には保存済みの本文が入っている（見立ての欄と混ざらないよう名前で選ぶ）。
 	await expect(page.locator('textarea[name^="body."]')).toHaveValue('今回は内枠が向きそう。');
@@ -73,6 +92,46 @@ test('「書き直す」を開くと、本文欄と全部の札が出る', async
 	await expect(page.getByText('好上り', { exact: true })).toBeVisible();
 	// 付けた札はチェック済みで出る。
 	await expect(page.getByRole('checkbox', { name: '次走買い' })).toBeChecked();
+});
+
+/**
+ * 行の並びは 見出し → 詳細情報 → 印 → 出走前メモ。メモが無い馬は「＋ 出走前メモ」を押すとその場で書ける。
+ * 書いて「完了」すると行に書いたメモが出る。保存して再読み込みしても残ることは race-rows.e2e.ts で見る
+ * （印見本のレースは読むだけの前提なので、ここでは保存しない）。
+ */
+test('「＋ 出走前メモ」を押してその場で書き、完了で行に書いたメモが出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/preview`);
+	const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eタンアナ' });
+	await expect(row.getByText('メモを入力する')).toHaveCount(0);
+	await expect(row.getByText('過去のメモあり')).toHaveCount(0);
+
+	// 並び: 詳細情報 → 印 → 出走前メモ。
+	const details = row.locator(':scope > details');
+	const marks = row.getByRole('radiogroup', { name: /予想印/ });
+	const add = row.getByRole('button', { name: /＋ 出走前メモ/ });
+	const y = async (l: Locator) => (await l.boundingBox())!.y;
+	expect(await y(details)).toBeLessThan(await y(marks));
+	expect(await y(marks)).toBeLessThan(await y(add));
+
+	await add.click();
+	await expect(row.locator('textarea')).toBeFocused();
+	await row.locator('textarea').fill('距離短縮で前に行けそう。');
+	await row.getByRole('checkbox', { name: '次走買い' }).check({ force: true });
+	// 印は入力欄を開いたままでも、閉じていても選べる。
+	await marks.getByText('○', { exact: true }).click();
+	await row.getByRole('button', { name: '完了', exact: true }).click();
+	await expect(memoText(row)).toContainText('距離短縮で前に行けそう。');
+	await expect(memoText(row)).toContainText('次走買い');
+	// 見出しの印も、選んだ ○ に追従する（保存済みは ▲）。
+	await expect(row.getByTitle('予想印 ○')).toBeVisible();
+	await expect(row.getByTitle('予想印 ▲')).toHaveCount(0);
+
+	// 書いたメモを押すと入力欄に戻る。
+	await memoButton(row).click();
+	await expect(row.locator('textarea')).toBeVisible();
+	await expect(row.locator('textarea')).toHaveValue('距離短縮で前に行けそう。');
+	await expect(row.getByRole('checkbox', { name: '次走買い' })).toBeChecked();
 });
 
 /**
@@ -392,10 +451,9 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 
 	// 1走は1つの tbody（1段目が数字の列、2段目が補足）。表の下の「自分の過去メモ」は tbody ではない
 	await waitForHydration(page);
-	await page.locator('main li[id^="entry-"] > details > summary').click();
 	await page
 		.locator('main li[id^="entry-"]', { hasText: 'E2Eプレビューホース' })
-		.locator('summary', { hasText: '詳細情報（直近5走・レースメモ）' })
+		.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
 		.click();
 	const run = page
 		.locator('main li[id^="entry-"]')

@@ -12,11 +12,14 @@
 	let {
 		name,
 		value = null,
+		label = '予想印',
 		onpick
 	}: {
 		name: string;
 		value?: Mark | null;
-		/** 選ばれた印（「なし」は null）。閉じた行の見出しが、保存前の選択に追従するために聞く。 */
+		/** radiogroup の名前。行ごとに馬名を足して渡す（読み上げで、どの馬の印か分かるように）。 */
+		label?: string;
+		/** 選ばれた印（「なし」は null）。行の見出しの印と「付けた印」が、保存前の選択に追従するために聞く。 */
 		onpick?: (mark: Mark | null) => void;
 	} = $props();
 
@@ -54,8 +57,8 @@
 	const glyph = (m: Mark) => (m === '☆' || m === '×' ? 'text-lg' : 'text-base');
 </script>
 
-<!-- 6つの印と「なし」を横いっぱいに等幅で並べる（指で押しやすい高さ 40px）。 -->
-<div class="grid grid-cols-7 gap-1" role="radiogroup" aria-label="予想印">
+<!-- 6つの印と「なし」を、正方形の札（40px 四方。指で押しやすい大きさ）にして左寄せで並べる。幅が足りなければ折り返す。 -->
+<div class="flex flex-wrap gap-1" role="radiogroup" aria-label={label}>
 	{#each MARKS as m (m)}
 		<label class="relative">
 			<input
@@ -67,7 +70,7 @@
 				{@attach watch(m)}
 			/>
 			<span
-				class="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent {glyph(
+				class="flex size-10 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent {glyph(
 					m
 				)} {tone[m]}"
 			>
@@ -85,7 +88,7 @@
 			{@attach watch(null)}
 		/>
 		<span
-			class="flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-border text-xs text-muted-foreground peer-checked:border-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent"
+			class="flex size-10 cursor-pointer items-center justify-center rounded-md border border-border text-xs text-muted-foreground peer-checked:border-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent"
 		>
 			なし
 		</span>

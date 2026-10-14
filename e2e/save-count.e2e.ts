@@ -23,9 +23,10 @@ test('予想: 1頭に本文・札・印を付けると未保存は1件で、保�
 	await gotoHydrated(page, `/races/${COUNT_RACE_ID}/preview`);
 
 	const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eコレカラ' });
-	await row.getByText('＋ 出走前メモ').click();
+	await row.getByRole('button', { name: /＋ 出走前メモ/ }).click();
 	await row.locator('textarea').fill('距離短縮で前に行けそう。');
-	await row.getByRole('checkbox', { name: '次走買い' }).check({ force: true });
+	// 札は見た目だけのラベルで、チェックボックス本体は隠してある。押すのはラベル（下に貼り付く保存ボタンに隠れたら、押せる位置まで待つ）。
+	await row.getByText('次走買い', { exact: true }).click();
 	await row.getByRole('radio', { name: '▲' }).check({ force: true });
 	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
 
@@ -36,9 +37,10 @@ test('予想: 1頭に本文・札・印を付けると未保存は1件で、保�
 
 	// 後片付け。すべて空で保存すると消える。レースの見立ても一緒に書いて、2つなら2件と出ることも見る。
 	await page.locator('textarea[name="raceNoteBody"]').fill('前に行ける馬から。');
-	// 出走前メモの欄は開いたまま（保存しても畳まない）。
+	// 保存が通ると入力欄は閉じて、書いたメモの表示に戻る。押して開き直す。
+	await row.getByRole('button', { name: /出走前メモを書き直す/ }).click();
 	await row.locator('textarea').fill('');
-	await row.getByRole('checkbox', { name: '次走買い' }).uncheck({ force: true });
+	await row.getByText('次走買い', { exact: true }).click();
 	await row.getByRole('radio', { name: 'なし' }).check({ force: true });
 	await expect(page.getByText('未保存の変更が 2 件あります')).toBeVisible();
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
@@ -64,13 +66,14 @@ test('ふりかえり: 送信中に書き足した分は保存の件数に入ら
 	await gotoHydrated(page, `/races/${COUNT_RACE_ID}`);
 	const toast = (text: string) => page.locator('[data-sonner-toast]', { hasText: text });
 	const row = page.locator('li', { has: page.getByRole('link', { name: 'E2Eコレカラ' }) });
-	await row.locator('summary').first().click();
+	const openBody = () => row.getByRole('button', { name: /(＋ |を書き直す)/ }).click();
+	await openBody();
 	const body = row.locator('textarea');
 	const raceNote = page.locator('textarea[name="raceNoteBody"]');
 	const save = page.getByRole('button', { name: 'まとめて保存' });
 
 	await body.fill('直線で詰まった。');
-	await row.getByRole('checkbox', { name: '不利' }).check({ force: true });
+	await row.getByText('不利', { exact: true }).click();
 	await expect(page.getByText('未保存の変更が 1 件あります')).toBeVisible();
 
 	// POST だけを止め、その間にレースのメモを書き足す。
@@ -93,6 +96,8 @@ test('ふりかえり: 送信中に書き足した分は保存の件数に入ら
 	await page.unroute(isThisPage);
 
 	// 末尾に空白を付けて書き直す。保存されるのは空白を落とした値で、欄もそれで描き直される。
+	// 保存が通ると入力欄は閉じるので、押して開き直す。
+	await openBody();
 	await body.fill('外に出せず。 ');
 	await expect(page.getByText('未保存の変更が 2 件あります')).toBeVisible();
 	await save.click();
@@ -101,12 +106,13 @@ test('ふりかえり: 送信中に書き足した分は保存の件数に入ら
 	await expect(save).toHaveCount(0);
 
 	// 空白を足しただけでは、変更に数えない（サーバーは何も変えない）。
+	await openBody();
 	await body.fill('外に出せず。  ');
 	await expect(save).toHaveCount(0);
 
 	// 後片付け。すべて空で保存すると消える。
 	await body.fill('');
-	await row.getByRole('checkbox', { name: '不利' }).uncheck({ force: true });
+	await row.getByText('不利', { exact: true }).click();
 	await raceNote.fill('');
 	await expect(page.getByText('未保存の変更が 2 件あります')).toBeVisible();
 	await save.click();

@@ -1,3 +1,4 @@
+import '../../routes/layout.css';
 import { describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import MarkPicker from './MarkPicker.svelte';
@@ -30,9 +31,9 @@ describe('MarkPicker', () => {
 		const onpick = vi.fn();
 		const screen = render(MarkPicker, { name: 'mark.x', value: null, onpick });
 
-		await screen.getByRole('radio', { name: '◎' }).click({ force: true });
+		await screen.getByText('◎', { exact: true }).click();
 		expect(onpick).toHaveBeenLastCalledWith('◎');
-		await screen.getByRole('radio', { name: 'なし' }).click({ force: true });
+		await screen.getByText('なし', { exact: true }).click();
 		expect(onpick).toHaveBeenLastCalledWith(null);
 
 		const circle = screen.container.querySelector<HTMLInputElement>('input[value="○"]')!;
@@ -43,19 +44,33 @@ describe('MarkPicker', () => {
 	});
 });
 
-// 横いっぱいに等幅で並べる（6つの印 + なし）。「なし」も印と同じ形の札にする。
-it('6つの印と「なし」を同じ高さ・同じ幅の札として7列に並べる', () => {
+// 正方形の札（40px 四方）を左寄せで並べる（6つの印 + なし）。「なし」も印と同じ大きさにする。
+it('6つの印と「なし」を、40px 四方の同じ札として左寄せで並べる', () => {
 	const screen = render(MarkPicker, { name: 'mark.x', value: null });
 
-	const group = screen.container.querySelector('[role="radiogroup"]')!;
-	expect(group.className).toContain('grid-cols-7');
-	const tiles = group.querySelectorAll('input + span');
+	const group = screen.container.querySelector<HTMLElement>('[role="radiogroup"]')!;
+	const tiles = Array.from(group.querySelectorAll<HTMLElement>('input + span'));
 	expect(tiles).toHaveLength(7);
 	for (const tile of tiles) {
-		expect(tile.className).toContain('h-10');
-		expect(tile.className).toContain('w-full');
+		const box = tile.getBoundingClientRect();
+		expect(box.width).toBe(40);
+		expect(box.height).toBe(40);
 		expect(tile.className).toContain('border');
 	}
+	// 左寄せ: 先頭の札は箱の左端から始まり、札の右端は箱の右端まで伸びない（横いっぱいに広がらない）。
+	const first = tiles[0].getBoundingClientRect();
+	const last = tiles[6].getBoundingClientRect();
+	const groupBox = group.getBoundingClientRect();
+	expect(first.left).toBe(groupBox.left);
+	expect(last.right).toBeLessThan(groupBox.right);
+});
+
+it('label が radiogroup の名前になり、省略すると「予想印」', async () => {
+	const named = render(MarkPicker, { name: 'mark.x', label: '見本馬の予想印' });
+	await expect.element(named.getByRole('radiogroup', { name: '見本馬の予想印' })).toBeVisible();
+	named.unmount();
+	const plain = render(MarkPicker, { name: 'mark.y' });
+	await expect.element(plain.getByRole('radiogroup', { name: '予想印' })).toBeVisible();
 });
 
 it('「なし」を選ぶと枠が濃くなる（選んだ状態が枠で分かる）', async () => {
@@ -63,6 +78,6 @@ it('「なし」を選ぶと枠が濃くなる（選んだ状態が枠で分か�
 
 	const none = screen.container.querySelector('input[value=""] + span')!;
 	expect(none.className).toContain('peer-checked:border-foreground');
-	await screen.getByRole('radio', { name: 'なし' }).click({ force: true });
+	await screen.getByText('なし', { exact: true }).click();
 	await expect.element(screen.getByRole('radio', { name: 'なし' })).toBeChecked();
 });

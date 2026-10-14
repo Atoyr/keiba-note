@@ -52,7 +52,7 @@
 	import { registerPredictionTools } from '$lib/webmcp/prediction';
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
-	import RaceEntryEditor from '$lib/components/RaceEntryEditor.svelte';
+	import EntryNoteEditor from '$lib/components/EntryNoteEditor.svelte';
 	import EntryMemo from '$lib/components/EntryMemo.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import type { PageProps } from './$types';
@@ -101,7 +101,7 @@
 	const ta = 'mt-1 text-sm';
 
 	/**
-	 * このレースで、画面で入力している印・本文・札（保存前を含む）。閉じた行の見出しの印・メモと「付けた印」を、
+	 * このレースで、画面で入力している印・本文・札（保存前を含む）。行の見出しの印・メモと「付けた印」を、
 	 * 保存済みの値ではなくいま入力している値から出すために持つ（pages.md 4-3）。
 	 * 印は `MarkPicker` の `onpick` が、本文と札はフォームの `input` / `change`（下の `onField`）が書く。
 	 * 下書きの復元・AI の反映・hydration 前の入力の書き戻しも、欄に `input` / `change` を投げるので同じ経路で入る
@@ -111,14 +111,22 @@
 	 */
 	let live = $state<LiveEntries>(EMPTY_LIVE);
 	/**
+	 * いま入力欄を開いている行（出走馬の id → 開いているか）。入力欄は閉じていても DOM に残るので、これは見た目だけの状態。
+	 * 保存が通ったら全部閉じて書いたメモの表示に戻し、別のレースへ移っても空に戻す（`live` と同じ扱い）。
+	 */
+	let editingRows = $state<Record<string, boolean>>({});
+	/**
 	 * 別のレースへ移ったら、入力の控えを空に戻す。フォームの中身は `{#key data.race.id}` で作り直され、
-	 * 欄は保存済みの値に戻るため。戻さないと、A → B → A と戻ったときに、欄に無い古い入力が閉じた行に出る。
+	 * 欄は保存済みの値に戻るため。戻さないと、A → B → A と戻ったときに、欄に無い古い入力が行に出る。
 	 * 最初の1回は戻さない（hydration 前の入力の書き戻しを消さないため）。
 	 */
 	let liveFor = '';
 	$effect.pre(() => {
 		const id = data.race.id;
-		if (liveFor && liveFor !== id) live = EMPTY_LIVE;
+		if (liveFor && liveFor !== id) {
+			live = EMPTY_LIVE;
+			editingRows = {};
+		}
 		liveFor = id;
 	});
 	const liveEntries = $derived(liveOf(live, data.race.id));
@@ -251,7 +259,10 @@
 					await update({ reset: false });
 					// 保存が通ったら、入力した印・本文・札は保存済みの値になった。以降は data に任せる。
 					// 送信中に書き足した分は、下の clear が欄へ書き戻すときの input / change で入り直す。
-					if (result.type === 'success') live = EMPTY_LIVE;
+					if (result.type === 'success') {
+						live = EMPTY_LIVE;
+						editingRows = {};
+					}
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
@@ -496,63 +507,63 @@
 										</span>
 									</div>
 
-									<!-- 閉じた行に、いま入力している本文と札をそのまま出す（開くと隠れる）。
-								     種別の札（出走前）を付ける。無いと、すぐ上の「前回」の札の続きに読める。 -->
+									<!-- 詳細情報は行の直下（印とメモの上）に畳む。馬のメモ・騎手のメモは常に出すと18頭ぶん縦に伸びる。
+									     前回の札は見出し、騎手のまとめは騎手名の枠で読めるので、日常の比較は畳んだままで足りる。 -->
+									<details class="group/detail mt-1">
+										<summary
+											class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-md text-xs text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+											><span
+												><span class="sr-only">{r.horseName}の</span>詳細情報（メモ・直近5走）</span
+											><ChevronDown class="size-4 shrink-0 group-open/detail:rotate-180" /></summary
+										>
+										<div class="grid gap-3 pb-2">
+											<HorseNoteContext
+												horseId={r.horseId}
+												notes={digest.recent}
+												moreCount={digest.moreCount}
+												jockey={r.jockey}
+												summary={r.jockeySummary}
+												{conclusion}
+											/>
+											<div class="rounded-lg bg-muted/50 p-3"><PastRuns runs={r.pastRuns} /></div>
+										</div>
+									</details>
+
+									<!-- 印は常に出す。行を開かずに付けられる。 -->
+									<div class="mt-1">
+										<MarkPicker
+											name="mark.{r.entryId}"
+											label="{r.horseName}の予想印"
+											value={r.myPreview?.mark ?? null}
+											onpick={(m) => pick(r.entryId, m)}
+										/>
+									</div>
+
+									<!-- 書いたメモはそのまま出し、押すとその場で入力欄に替わる。種別の札（出走前）を付ける。
+									     無いと、すぐ上の「前回」の札の続きに読める。 -->
 									{#snippet memo()}
 										<EntryMemo kind="出走前" body={note.body} tags={note.tags} />
 									{/snippet}
 
-									<RaceEntryEditor
-										openLabel={hasNote ? '書き直す' : '＋ 出走前メモ'}
+									<EntryNoteEditor
+										label="出走前メモ"
 										horseName={r.horseName}
-										memo={hasNote ? memo : undefined}
-										status={hasNote || mark
-											? ''
-											: r.history.length > 0 || r.jockeySummary
-												? '過去のメモあり'
-												: 'メモを入力する'}
+										hasMemo={hasNote}
+										bind:editing={
+											() => !!editingRows[r.entryId], (v) => (editingRows[r.entryId] = v)
+										}
+										{memo}
 									>
-										<HorseNoteContext
-											horseId={r.horseId}
-											notes={digest.recent}
-											moreCount={digest.moreCount}
-											jockey={r.jockey}
-											summary={r.jockeySummary}
-											{conclusion}
+										<Textarea
+											name="body.{r.entryId}"
+											aria-label="{r.horseName}の出走前メモ"
+											rows={2}
+											placeholder="今回は内枠が向きそう。"
+											class="text-sm"
+											value={r.myPreview?.body ?? ''}
 										/>
-
-										<section aria-label="今回の予想" class="rounded-lg bg-muted/50 p-3">
-											<h3 class="mb-2 text-sm font-semibold">今回の予想</h3>
-											<MarkPicker
-												name="mark.{r.entryId}"
-												value={r.myPreview?.mark ?? null}
-												onpick={(m) => pick(r.entryId, m)}
-											/>
-											<Textarea
-												name="body.{r.entryId}"
-												aria-label="{r.horseName}の出走前メモ"
-												rows={2}
-												placeholder="今回は内枠が向きそう。"
-												class="mt-2 text-sm"
-												value={r.myPreview?.body ?? ''}
-											/>
-											<div class="mt-2">
-												<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
-											</div>
-										</section>
-										<details class="group/detail rounded-lg bg-muted/50 p-3">
-											<summary
-												class="flex min-h-6 cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
-												><span
-													><span class="sr-only">{r.horseName}の</span
-													>詳細情報（直近5走・レースメモ）</span
-												><ChevronDown
-													class="size-4 shrink-0 group-open/detail:rotate-180"
-												/></summary
-											>
-											<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>
-										</details>
-									</RaceEntryEditor>
+										<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
+									</EntryNoteEditor>
 								</li>
 							{/each}
 						</ul>

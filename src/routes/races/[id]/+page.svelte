@@ -10,7 +10,6 @@
 	import InfoTip from '$lib/components/InfoTip.svelte';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
-	import KindBadge from '$lib/components/KindBadge.svelte';
 	import RaceLaps from '$lib/components/RaceLaps.svelte';
 	import Last3fBadge from '$lib/components/Last3fBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
@@ -18,7 +17,6 @@
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import SexAgeBadge from '$lib/components/SexAgeBadge.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { toast } from 'svelte-sonner';
 	import { answerCheck } from '$lib/utils/answer';
@@ -36,7 +34,7 @@
 	import { isAdmin } from '$lib/utils/role';
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
-	import RaceEntryEditor from '$lib/components/RaceEntryEditor.svelte';
+	import EntryNoteEditor from '$lib/components/EntryNoteEditor.svelte';
 	import EntryMemo from '$lib/components/EntryMemo.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
@@ -118,21 +116,29 @@
 	const ta = 'mt-1 text-sm';
 
 	/**
-	 * このレースで、画面で入力しているふりかえりの本文・札（保存前を含む）。閉じた行に出すメモを、
+	 * このレースで、画面で入力しているふりかえりの本文・札（保存前を含む）。行に出すメモを、
 	 * 保存済みの値ではなくいま入力している値から出すために持つ（予想画面と同じ仕組み。pages.md 3）。
 	 * 下書きの復元・hydration 前の入力の書き戻しも、欄に `input` / `change` を投げるので同じ経路で入る。
 	 * 保存が通ったら空に戻し、保存済みの値（`data`）に任せる。別レースのものは無いものとして扱う。
 	 */
 	let live = $state<LiveEntries>(EMPTY_LIVE);
 	/**
+	 * いま入力欄を開いている行（出走馬の id → 開いているか）。入力欄は閉じていても DOM に残るので、これは見た目だけの状態。
+	 * 保存が通ったら全部閉じて書いたメモの表示に戻し、別のレースへ移っても空に戻す（`live` と同じ扱い）。
+	 */
+	let editingRows = $state<Record<string, boolean>>({});
+	/**
 	 * 別のレースへ移ったら、入力の控えを空に戻す。フォームの中身は `{#key data.race.id}` で作り直され、
-	 * 欄は保存済みの値に戻るため。戻さないと、A → B → A と戻ったときに、欄に無い古い入力が閉じた行に出る。
+	 * 欄は保存済みの値に戻るため。戻さないと、A → B → A と戻ったときに、欄に無い古い入力が行に出る。
 	 * 最初の1回は戻さない（hydration 前の入力の書き戻しを消さないため）。
 	 */
 	let liveFor = '';
 	$effect.pre(() => {
 		const id = data.race.id;
-		if (liveFor && liveFor !== id) live = EMPTY_LIVE;
+		if (liveFor && liveFor !== id) {
+			live = EMPTY_LIVE;
+			editingRows = {};
+		}
 		liveFor = id;
 	});
 	const liveEntries = $derived(liveOf(live, data.race.id));
@@ -218,7 +224,10 @@
 					await update({ reset: false });
 					// 保存が通ったら、入力した本文・札は保存済みの値になった。以降は data に任せる。
 					// 送信中に書き足した分は、下の clear が欄へ書き戻すときの input / change で入り直す。
-					if (result.type === 'success') live = EMPTY_LIVE;
+					if (result.type === 'success') {
+						live = EMPTY_LIVE;
+						editingRows = {};
+					}
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
 					if (result.type === 'success') {
@@ -401,71 +410,61 @@
 											</p>
 										{/if}
 
-										<!-- 閉じた行に、出走前のメモ（保存済み。印だけなら見出しの印で足りるので出さない）と、
-										     いま入力しているふりかえりのメモを、札付きで時間の順に出す（開くと隠れる）。 -->
-										{#snippet memo()}
-											{#if hasPreview && preview}
+										<!-- 詳細情報は予想画面と同じ。行の直下に畳む。 -->
+										<details class="group/detail mt-1">
+											<summary
+												class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-md text-xs text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+												><span
+													><span class="sr-only">{r.horseName}の</span
+													>詳細情報（メモ・直近5走）</span
+												><ChevronDown
+													class="size-4 shrink-0 group-open/detail:rotate-180"
+												/></summary
+											>
+											<div class="grid gap-3 pb-2">
+												<HorseNoteContext
+													horseId={r.horseId}
+													notes={digest.recent}
+													moreCount={digest.moreCount}
+													jockey={r.jockey}
+													summary={r.jockeySummary}
+												/>
+												<div class="rounded-lg bg-muted/50 p-3"><PastRuns runs={r.pastRuns} /></div>
+											</div>
+										</details>
+
+										<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
+									     印は見出しにある。本文も札も無いときは出さない。 -->
+										{#if hasPreview && preview}
+											<div class="mt-1">
 												<EntryMemo kind="出走前" body={preview.body} tags={preview.tags} />
-											{/if}
-											{#if hasReview}
-												<EntryMemo kind="ふりかえり" body={review.body} tags={review.tags} />
-											{/if}
+											</div>
+										{/if}
+
+										<!-- いま入力しているふりかえりのメモを、札付きでそのまま出す。押すとその場で入力欄に替わる。 -->
+										{#snippet memo()}
+											<EntryMemo kind="ふりかえり" body={review.body} tags={review.tags} />
 										{/snippet}
 
-										<RaceEntryEditor
+										<EntryNoteEditor
+											label="ふりかえりメモ"
 											horseName={r.horseName}
-											memo={hasPreview || hasReview ? memo : undefined}
-											status={hasPreview || hasReview || preview?.mark ? '' : 'メモを入力する'}
+											hasMemo={hasReview}
+											bind:editing={
+												() => !!editingRows[r.entryId], (v) => (editingRows[r.entryId] = v)
+											}
+											{memo}
 										>
-											<HorseNoteContext
-												horseId={r.horseId}
-												notes={digest.recent}
-												moreCount={digest.moreCount}
-												jockey={r.jockey}
-												summary={r.jockeySummary}
+											<Textarea
+												name="body.{r.entryId}"
+												rows={2}
+												aria-label="{r.horseName}のメモ"
+												placeholder="直線で外に出してから一完歩が速い。"
+												class="text-sm"
+												value={r.myNote?.body ?? ''}
 											/>
-											<!-- 走る前にこの馬をどう見ていたか。**読むだけ**（直すのは予想画面）。
-							     印だけで本文も札も無いときは、右上の印で足りるので枠を出さない。 -->
-											{#if r.myPreview && (r.myPreview.mark || r.myPreview.body || r.myPreview.tags.length > 0)}
-												<div
-													class="mt-1.5 rounded-md border border-sky-200 bg-sky-50/60 px-2.5 py-1.5 text-sm"
-												>
-													<KindBadge label="出走前" /><MarkBadge mark={r.myPreview.mark} />
-													{#if r.myPreview.body}<span
-															class="ml-1 leading-relaxed whitespace-pre-wrap text-sky-950"
-															>{r.myPreview.body}</span
-														>{/if}
-													<TagBadges tags={r.myPreview.tags} class="ml-1" />
-												</div>
-											{/if}
-
-											<div class="rounded-lg bg-muted/50 p-3">
-												<Textarea
-													name="body.{r.entryId}"
-													rows={2}
-													aria-label="{r.horseName}のメモ"
-													placeholder="直線で外に出してから一完歩が速い。"
-													class={ta}
-													value={r.myNote?.body ?? ''}
-												/>
-
-												<div class="mt-1.5">
-													<TagPicker name="tags.{r.entryId}" values={r.myNote?.tags ?? []} />
-												</div>
-											</div>
-											<details class="group/detail rounded-lg bg-muted/50 p-3">
-												<summary
-													class="flex min-h-6 cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
-													><span
-														><span class="sr-only">{r.horseName}の</span
-														>詳細情報（直近5走・レースメモ）</span
-													><ChevronDown
-														class="size-4 shrink-0 group-open/detail:rotate-180"
-													/></summary
-												>
-												<div class="mt-2"><PastRuns runs={r.pastRuns} /></div>
-											</details>
-										</RaceEntryEditor>
+											<TagPicker name="tags.{r.entryId}" values={r.myNote?.tags ?? []} />
+										</EntryNoteEditor>
 									</li>
 								{/each}
 							</ul>
