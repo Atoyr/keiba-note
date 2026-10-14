@@ -65,7 +65,7 @@ const SHOTS: Shot[] = [
 		prepare: async (page) => {
 			await waitForHydration(page);
 			const row = page.locator('#entry-01JLPENTRYTODAY00000000001');
-			await row.getByRole('button', { name: /出走前メモ/ }).click();
+			await row.getByRole('button', { name: /出走前メモ/, expanded: false }).click();
 		},
 		target: (page) => page.locator('#entry-01JLPENTRYTODAY00000000001')
 	},

@@ -17,15 +17,15 @@ async function login(page: Page) {
 }
 
 const row = (page: Page, index: number) => page.locator(`#entry-${ROW_RACE.entries[index]}`);
-/** 行の「その場で書く」ボタン（書いたメモそのもの、または「＋ 出走前メモ」「＋ ふりかえりメモ」）を押して、入力欄を出す。 */
+/** 折りたたんでいる行の「その場で書く」ボタン（書いたメモそのもの、または「＋ 出走前メモ」「＋ ふりかえりメモ」）を押して、入力欄を出す。 */
 const open = async (page: Page, index: number) =>
 	row(page, index)
-		.getByRole('button', { name: /(出走前|ふりかえり)メモ/ })
+		.getByRole('button', { name: /(出走前|ふりかえり)メモ/, expanded: false })
 		.click();
-/** 入力欄の「閉じる」。書いたメモの表示に戻る（保存でも破棄でもない）。 */
+/** 開いている入力欄の見出し（「{label} ⌃」）を押して折りたたむ。書いたメモの表示に戻る（保存でも破棄でもない）。 */
 const done = async (page: Page, index: number) =>
 	row(page, index)
-		.getByRole('button', { name: /メモを\s*閉じる$/ })
+		.getByRole('button', { name: /(出走前|ふりかえり)メモ/, expanded: true })
 		.click();
 /** 行に見えているメモ（本文と札）。メモごとの塊は `EntryMemo` の `.entry-memo`。詳細情報の中は畳んでいるので数えない。 */
 const memos = (page: Page, index: number) => row(page, index).locator('.entry-memo:visible');
@@ -236,9 +236,9 @@ test('JS無効でも入力欄が出ていて一括保存でき、資料と既存
 	// 押しても切り替わらないタブは出さない。
 	await expect(page.locator('[role="tablist"][aria-label="レースの表示"]')).toBeHidden();
 	// 押しても動かないボタンは隠し、入力欄を出しっぱなしにする。
-	await expect(
-		row(page, 1).getByRole('button', { name: /(出走前|ふりかえり)メモ|閉じる/ })
-	).toHaveCount(0);
+	await expect(row(page, 1).getByRole('button', { name: /(出走前|ふりかえり)メモ/ })).toHaveCount(
+		0
+	);
 	await row(page, 1).locator('textarea').fill('JSなしで入力');
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
 	await expect(row(page, 1).locator('textarea')).toHaveValue('JSなしで入力');

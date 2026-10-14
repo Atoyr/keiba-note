@@ -445,7 +445,7 @@ export const SCREENS: Screen[] = [
 			await waitForHydration(page);
 			await page
 				.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' })
-				.getByRole('button', { name: /ふりかえりメモ/ })
+				.getByRole('button', { name: /ふりかえりメモ/, expanded: false })
 				.click();
 		}
 	},
@@ -557,7 +557,7 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 「＋ 出走前メモ」を押して、その場で書いているところ。入力欄の下に「閉じる」が出る。
+		// 「＋ 出走前メモ」を押して、その場で書いているところ。入力欄の上に見出し（⌃）が出る。
 		name: 'race-preview-editing-inline',
 		path: `/races/${COUNT_RACE_ID}/preview`,
 		auth: true,
