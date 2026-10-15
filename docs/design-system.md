@@ -100,7 +100,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 どちらかの色を変えるときはこの2つを並べて確かめる（画面カタログの `race-preview-editing-drop`）。
 予想印の `×`（消し）は薄いグレーの面（`bg-muted`）に、字を `text-foreground`、輪郭を
 `border-muted-foreground` で出す。表示と選択中の印で色をそろえ、記号でも意味を伝える。
-候補のチェック `✓`（予想の印ではない）は teal（`bg-teal-100 text-teal-900 border-teal-500`）。emerald は済み・的中、sky は案内・共有中、violet は ☆ で使っているので避けた。
+候補のチェック `✓`（予想の印ではない）は teal の系統。emerald は済み・的中、sky は案内・共有中、violet は ☆ で使っているので避けた（第7章）。
 
 **ステージングでもテーマカラーは変えない。** ステージングはリリース前に本番と同じ見た目で確かめる場所なので、
 違うのは次の2つだけにする（`AppEnvMark`。`APP_ENV` が `staging` のときに出る）。
@@ -221,6 +221,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | 推しの星（`/horses/[id]`） | 輪郭は橙寄りの amber、塗りは黄 | 推しなら塗った★、そうでなければ輪郭だけの☆。`aria-label` と `title` に「推しにする」「推しから外す」 | `+page.svelte` のボタン |
 | 馬の札（`HorseProfileHeader` / `SexAgeBadge`） | 牡・父・母父は青、牝・母はピンク、セは緑、美浦は紺、栗東は橙、地方・海外・調教師は無彩色 | 札の中に `牡`・`牝`・`セ`、`父`・`母`・`母父`、`美浦`・`栗東` の字を出す | `utils/horse-chip.ts` の `tv()` |
 | 上りの順位の札（`Last3fBadge`） | 1位は黄、2位は水色、3位は橙 | 札の中に「上り1位」と字で出す | 部品の中の `tv()` |
+| 予想印（`MarkBadge` / `MarkPicker`） | ◎ は赤の塗り、○ は橙、▲ は amber、△ は slate、☆ は violet、✓（候補）は teal、× は無彩色 | 札の中に印の記号を出す。✓ は読み上げ用に「候補」を添える | 部品の中の `tone` の表（共有の画像は `utils/share-card.ts` に16進で写す） |
 
 - **推しの星は文字を添えない星だけのボタン。** 星は「お気に入り」の印として広く通じ、押すと何が起きるかが読めると人が選んだ。
   星の黄色は外の世界で「お気に入り」の色として通っているので、意味の色（トークン）に置き換えない。

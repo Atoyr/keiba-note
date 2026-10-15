@@ -18,6 +18,8 @@ describe('MarkBadge', () => {
 		const badge = screen.getByTitle('候補');
 		await expect.element(badge).toHaveTextContent('✓');
 		await expect.element(badge).toHaveClass(/bg-teal-100/);
+		// title は読み上げで読まれないことがあるので、札の中にも読み上げ用の「候補」を持つ。
+		await expect.element(badge).toHaveTextContent('候補');
 		expect(screen.container.querySelector('[title^="予想印"]')).toBeNull();
 	});
 

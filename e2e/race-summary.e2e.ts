@@ -179,7 +179,11 @@ test('候補のチェック（✓）を付けて保存しても、まとめと�
 			.locator(`input[value="${mark}"] + span`)
 			.click();
 		await page.getByRole('button', { name: '出走前メモを保存' }).click();
-		await expect(page.getByRole('button', { name: '出走前メモを保存' })).toHaveCount(0);
+		// 送信中のボタンは「保存しています…」に名前が変わる。そこで次の画面へ移ると保存が切れるので、
+		// 保存バーのボタンが消える（保存が終わる）まで待つ。
+		await expect(page.getByRole('button', { name: /出走前メモを保存|保存しています/ })).toHaveCount(
+			0
+		);
 	};
 	try {
 		await pick('✓');

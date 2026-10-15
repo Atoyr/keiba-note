@@ -26,5 +26,9 @@
 		title={mark === CANDIDATE_MARK ? '候補' : `予想印 ${mark}`}
 	>
 		{mark}
+		{#if mark === CANDIDATE_MARK}
+			<!-- title は読み上げで読まれないことがある。「✓」だけだと「チェックマーク」と読まれ、意味が伝わらない。 -->
+			<span class="sr-only">候補</span>
+		{/if}
 	</span>
 {/if}

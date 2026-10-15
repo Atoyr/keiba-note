@@ -149,7 +149,7 @@ export function registerPredictionTools(options: {
 		{
 			name: 'apply_prediction_draft',
 			description:
-				'現在の予想フォームへ未保存の下書きを部分更新します。送信・外部保存・購入は行いません。保存はユーザーが既存の保存ボタン（「出走前メモを保存」または「レースの見立てを保存」）で行います。未指定の欄は維持し、空文字・空配列・null は明示クリアです。flow は pace と3局面を含む全体を置き換え、null は展開全体をクリアします。race.pace も指定された場合は flow.pace より優先します。',
+				'現在の予想フォームへ未保存の下書きを部分更新します。送信・外部保存・購入は行いません。保存はユーザーが既存の保存ボタン（「出走前メモを保存」または「レースの見立てを保存」）で行います。未指定の欄は維持し、空文字・空配列・null は明示クリアです。flow は pace と3局面を含む全体を置き換え、null は展開全体をクリアします。race.pace も指定された場合は flow.pace より優先します。印 mark の ✓ は印を決める途中の候補のチェックで予想の印ではないため、ユーザーが候補のチェックを頼んだときだけ使ってください。',
 			inputSchema: draftInputSchema,
 			annotations: { readOnlyHint: false, consequentialHint: false, untrustedContentHint: false },
 			execute: async (input, execution) => {
