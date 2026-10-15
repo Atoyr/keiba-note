@@ -116,6 +116,18 @@ describe('重賞のレースとメモ', () => {
 		expect(await listSeriesRaces(state.db, [])).toEqual([]);
 	});
 
+	// ✓ は候補のチェックで予想の印ではない。年ごとの印は予想の答え合わせなので並べない。
+	it('候補のチェック（✓）は年ごとの印に出さない', async () => {
+		state.sqlite.exec(`
+			INSERT INTO horse (id,name) VALUES ('h4','ヨンバンテ');
+			INSERT INTO race_entry (id,race_id,horse_id,horse_number,finish_position) VALUES ('e6','r25','h4',7,2);
+			INSERT INTO note (id,author_id,kind,race_id,horse_id,race_entry_id,body,tags,mark,occurred_at) VALUES
+				('n11','a','preview','r25','h4','e6','候補だけ。','[]','✓','2025-09-28');
+		`);
+		const { marks } = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
+		expect(marks.map((m) => m.entryId).sort()).toEqual(['e1', 'e2']);
+	});
+
 	it('メモは自分のレース全体のメモと印だけ（他人のメモ・印なし・別のレースは出ない）', async () => {
 		const { notes, marks } = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
 		expect(notes.map((n) => [n.id, n.kind, n.pace])).toEqual([

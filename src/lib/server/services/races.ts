@@ -14,6 +14,7 @@ import {
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
+import { CANDIDATE_MARK } from '$lib/schemas/note';
 import { GRADED } from '$lib/schemas/race';
 import type { HorseSex } from '$lib/schemas/horse';
 import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
@@ -161,7 +162,7 @@ export async function listRacesBetween(
 			noteCount: countDistinct(note.id),
 			resultCount: raceResultCount(),
 			outlookCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'race_preview' THEN ${note.id} END)`,
-			markCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'preview' AND ${note.mark} IS NOT NULL THEN ${note.id} END)`,
+			markCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'preview' AND ${note.mark} IS NOT NULL AND ${note.mark} <> ${CANDIDATE_MARK} THEN ${note.id} END)`,
 			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
 		})
 		.from(race)

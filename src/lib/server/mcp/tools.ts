@@ -383,7 +383,7 @@ export const TOOLS = [
 		title: '自分の予想を書く',
 		description:
 			'このレースの自分の予想を書きます。レースの見立て（raceNote.body）と、出走馬ごとの出走前メモ' +
-			`（entries。entryId は get_race の値。body・印 mark（${MARKS.join('')}、null で外す）・札 tags（${NOTE_TAGS.join('・')}））。` +
+			`（entries。entryId は get_race の値。body・印 mark（${MARKS.join('')}、null で外す。✓ は印を決める途中の候補のチェックで、予想の印ではありません）・札 tags（${NOTE_TAGS.join('・')}））。` +
 			'渡した見立て・渡した馬の渡した項目だけを書き換え、ほかの馬のメモや省いた項目はそのまま残します。' +
 			'body は今の本文を丸ごと置き換えます（追記ではありません）。追記するときは先に get_my_race_notes で今の本文を読み、つなげて渡してください。' +
 			'本文・印・札をすべて空にした馬の出走前メモは消えます。見立ての本文を空にすると見立ても消えます（展開の予想があれば展開は残ります）。' +

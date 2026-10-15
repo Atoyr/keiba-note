@@ -68,6 +68,35 @@ describe('予想まとめの共有', () => {
 		expect(share).not.toBeNull();
 		expect((await getSharedRaceSummary(state.db, share!.id))?.content).toEqual(summary);
 	});
+	// ✓ は候補のチェックで予想の印ではない。まとめ・共有のコピーには印として入れない。
+	it('候補のチェック（✓）は印なしとして載せ、本文も札も無い馬は行ごと外す', async () => {
+		state.sqlite.exec(`
+			INSERT INTO horse (id,name) VALUES ('h2','ホース2'), ('h3','ホース3'), ('h4','ホース4');
+			INSERT INTO race_entry (id,race_id,horse_id,horse_number) VALUES ('e2','r','h2',2), ('e3','r','h3',3), ('e4','r','h4',4);
+			INSERT INTO note (id,author_id,kind,race_id,horse_id,race_entry_id,body,tags,mark,occurred_at) VALUES
+				('c1','a','preview','r','h2','e2','','[]','✓','2099-01-01'),
+				('c2','a','preview','r','h3','e3','気になる','[]','✓','2099-01-01'),
+				('c3','a','preview','r','h4','e4','','["次走買い"]','✓','2099-01-01');
+		`);
+		const summary = await getRaceSummary(state.db, 'r', 'a');
+		expect(summary?.rows.map((r) => [r.horseName, r.mark, r.body, r.tags])).toEqual([
+			['テストホース', '◎', '内枠を評価', []],
+			['ホース3', null, '気になる', []],
+			['ホース4', null, '', ['次走買い']]
+		]);
+		expect(JSON.stringify(summary)).not.toContain('✓');
+		const share = await publishRaceSummary(state.db, 'r', 'a');
+		expect(
+			JSON.stringify((await getSharedRaceSummary(state.db, share!.id))?.content)
+		).not.toContain('✓');
+	});
+	it('✓ だけの予想は、見立ても無ければ共有できない', async () => {
+		state.sqlite.exec(
+			"DELETE FROM note WHERE id='outlook'; UPDATE note SET mark='✓', body='' WHERE id='preview'"
+		);
+		expect((await getRaceSummary(state.db, 'r', 'a'))?.rows).toEqual([]);
+		expect(await publishRaceSummary(state.db, 'r', 'a')).toBeNull();
+	});
 	it('共有はコピー。予想の編集や削除が自動で反映されず、明示更新だけが反映される', async () => {
 		const share = await publishRaceSummary(state.db, 'r', 'a');
 		state.sqlite.exec(

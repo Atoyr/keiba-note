@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
-	import { MARKS, type Mark } from '$lib/schemas/note';
+	import { CANDIDATE_MARK, MARKS, type Mark } from '$lib/schemas/note';
 
 	/**
 	 * 予想印。ラジオボタンを札の見た目にしたもの。
@@ -43,6 +43,7 @@
 	 * △・☆・× は背景に近い灰色だと付けたのかが見分けにくいので、濃い輪郭で背景から浮かせる。
 	 * × は薄いグレーの面にする。濃い面で ◎ より目立たせず、未選択の白い面とも区別する。
 	 * ☆ の violet はほかで使っていない色。sky は「案内・共有中」に使っている（design-system.md 2-2）。
+	 * ✓（候補。予想の印ではない）は teal。emerald は「済み・的中」、sky は「案内・共有中」、violet は ☆ で使っている。
 	 */
 	const tone: Record<Mark, string> = {
 		'◎': 'peer-checked:bg-red-600 peer-checked:text-white peer-checked:border-red-600',
@@ -50,14 +51,15 @@
 		'▲': 'peer-checked:bg-amber-100 peer-checked:text-amber-900 peer-checked:border-amber-400',
 		'△': 'peer-checked:bg-slate-200 peer-checked:text-slate-900 peer-checked:border-slate-500',
 		'☆': 'peer-checked:bg-violet-100 peer-checked:text-violet-900 peer-checked:border-violet-500',
+		'✓': 'peer-checked:bg-teal-100 peer-checked:text-teal-900 peer-checked:border-teal-500',
 		'×': 'peer-checked:bg-muted peer-checked:text-foreground peer-checked:border-muted-foreground'
 	};
 
-	/** ☆ と × は記号の字面が小さいので、1段大きくしてほかの印とそろえる（MarkBadge と同じ形で、全体を1段上げた）。 */
-	const glyph = (m: Mark) => (m === '☆' || m === '×' ? 'text-lg' : 'text-base');
+	/** ☆・✓・× は記号の字面が小さいので、1段大きくしてほかの印とそろえる（MarkBadge と同じ形で、全体を1段上げた）。 */
+	const glyph = (m: Mark) => (m === '☆' || m === '✓' || m === '×' ? 'text-lg' : 'text-base');
 </script>
 
-<!-- 6つの印と「なし」を、正方形の札（40px 四方。指で押しやすい大きさ）にして左寄せで並べる。幅が足りなければ折り返す。 -->
+<!-- 7つの印と「なし」を、正方形の札（40px 四方。指で押しやすい大きさ）にして左寄せで並べる。幅が足りなければ折り返す。 -->
 <div class="flex flex-wrap gap-1" role="radiogroup" aria-label={label}>
 	{#each MARKS as m (m)}
 		<label class="relative">
@@ -75,6 +77,10 @@
 				)} {tone[m]}"
 			>
 				{m}
+				{#if m === CANDIDATE_MARK}
+					<!-- 「✓」だけではスクリーンリーダーが「チェックマーク」と読み、意味が伝わらない。 -->
+					<span class="sr-only">候補</span>
+				{/if}
 			</span>
 		</label>
 	{/each}

@@ -6,10 +6,23 @@ export const VISIBILITIES = ['private', 'unlisted'] as const;
 /**
  * 予想印。本命 → 消し の順。
  * ☆ は穴（来るかもしれない）。△ より下に見るが、「馬券に絡む」と読んだ印なので答え合わせでは ◎○▲△ と同じに数える。
+ * ✓ は**候補**のチェック。印を決める途中で残しておく馬に付けるもので、**予想の印ではない**。
+ * 付ける場所と保存はほかの印と同じ（1頭に付くのは印か候補のどちらか1つ）だが、
+ * 予想をまとめる・数える場所（付けた印の一覧・予想まとめ・答え合わせ・重賞の年ごとの印・ダッシュボードの印の数）では「印なし」と同じに扱う。
  */
-export const MARKS = ['◎', '○', '▲', '△', '☆', '×'] as const;
+export const MARKS = ['◎', '○', '▲', '△', '☆', '✓', '×'] as const;
 
 export type Mark = (typeof MARKS)[number];
+
+/** 候補のチェック。予想の印ではない（`MARKS` の JSDoc）。 */
+export const CANDIDATE_MARK = '✓' as const satisfies Mark;
+
+/** 予想の印。候補のチェックを除いた `Mark`。まとめ・答え合わせなど、予想として扱う場所の型。 */
+export type PredictionMark = Exclude<Mark, typeof CANDIDATE_MARK>;
+
+/** 予想の印か。null（印なし）と候補のチェックは false。 */
+export const isPredictionMark = (m: Mark | null): m is PredictionMark =>
+	m !== null && m !== CANDIDATE_MARK;
 
 /** 選択肢のどれでもなければ null。印なしが既定。 */
 export const markSchema = v.pipe(

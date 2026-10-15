@@ -100,6 +100,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 どちらかの色を変えるときはこの2つを並べて確かめる（画面カタログの `race-preview-editing-drop`）。
 予想印の `×`（消し）は薄いグレーの面（`bg-muted`）に、字を `text-foreground`、輪郭を
 `border-muted-foreground` で出す。表示と選択中の印で色をそろえ、記号でも意味を伝える。
+候補のチェック `✓`（予想の印ではない）は teal（`bg-teal-100 text-teal-900 border-teal-500`）。emerald は済み・的中、sky は案内・共有中、violet は ☆ で使っているので避けた。
 
 **ステージングでもテーマカラーは変えない。** ステージングはリリース前に本番と同じ見た目で確かめる場所なので、
 違うのは次の2つだけにする（`AppEnvMark`。`APP_ENV` が `staging` のときに出る）。
@@ -147,7 +148,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `RacePlace` | 一覧の行の「中山11R」。「中山12R」が収まる幅を最小にして、1R と 11R で後ろの格の札の位置がずれないようにする。ダッシュボード・今週の重賞・レース一覧・管理画面の行で使う |
 | `BracketBadge` | 枠番。色だけでなく必ず数字を出す |
 | `HorseNumberBadge` | 枠番と馬番の札。枠番（帽子の色）の右に、枠の色を薄くした面の馬番をくっつける。出走馬の行で枠と馬番を出すときはこれを使う |
-| `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ☆ ×）の表示と選択。`MarkPicker` の札の大きさと並びは [pages.md 4-3](./pages.md)。共有の画像（`utils/share-card.ts`）は画像の中にクラスが効かないので、印・枠・馬番・格の札の色を16進で写している。札の色を変えたら、そちらも変える |
+| `MarkBadge` / `MarkPicker` | 予想印（◎ ○ ▲ △ ☆ ×）と候補のチェック（✓。teal。予想の印ではない）の表示と選択。`MarkPicker` の札の大きさと並びは [pages.md 4-3](./pages.md)。共有の画像（`utils/share-card.ts`）は画像の中にクラスが効かないので、印・枠・馬番・格の札の色を16進で写している。札の色を変えたら、そちらも変える |
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
 | `EntryMemo` | 出走馬の行に出すメモ（種別の札・本文3行まで・メモの札）。`EntryNoteEditor` の `memo` に渡すとそのままボタンになり、押すとその場で書ける。予想画面・ふりかえり画面が使う（→ [pages.md 4-3](./pages.md)） |
 | `EntryNoteEditor` | 出走馬の行でメモを「その場で書く」部分。見出しで開け閉めする折りたたみ。メモの表示（または「＋ 出走前メモ」）を押すと、そのボタンが見出し「{label} ⌃」になって入力欄（`children`）が開き、見出しを押すと折りたたまれる。振る舞いは [pages.md 4-3](./pages.md) |
