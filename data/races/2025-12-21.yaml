@@ -205,6 +205,7 @@ races:
         finish: 4
         popularity: 3
         time: "1:33.5"
+        timeDiff: 0.3
         passing: "7-8"
         last3f: 34.7
         weight: 56
@@ -889,7 +890,24 @@ races:
     direction: 右
     trackCondition: 重
     weather: 曇
+    fieldSize: 16
+    winner: ロデオドライブ
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: カナルサンマルタン
+        jockey: マーカンド
+        ref: nk-2023106846
+        finish: 2
+        popularity: 1
+        time: "1:35.3"
+        timeDiff: 0.2
+        passing: "2-3-2"
+        last3f: 35.6
+        weight: 55
+        horseWeight: 444
+        horseWeightDiff: 0
+        odds: 2.7
       - horseNumber: 16
         bracket: 8
         name: ロデオドライブ
@@ -1073,3 +1091,31 @@ races:
         horseWeight: 482
         horseWeightDiff: 0
         odds: 23.2
+  - course: 中京
+    raceNumber: 8
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 稍重
+    weather: 雨
+    fieldSize: 16
+    winner: ミトノオルフェ
+    runnerUp: ゴールドブレス
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: ミトノオルフェ
+        jockey: 菅原明良
+        ref: nk-2022104053
+        finish: 1
+        popularity: 5
+        time: "1:35.8"
+        timeDiff: 0
+        passing: "5-3-3"
+        last3f: 35.4
+        weight: 57
+        horseWeight: 516
+        horseWeightDiff: -6
+        odds: 12.8

@@ -517,3 +517,30 @@ races:
         horseWeight: 534
         horseWeightDiff: -2
         odds: 9.2
+  - course: 京都
+    raceNumber: 3
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 15
+    winner: ダイチノナポリ
+    entries:
+      - horseNumber: 12
+        bracket: 7
+        name: ハヤブササキチャン
+        jockey: 西村淳也
+        ref: nk-2023106894
+        finish: 2
+        popularity: 1
+        time: "1:45.7"
+        timeDiff: 0.1
+        passing: "4-4"
+        last3f: 34.7
+        weight: 55
+        horseWeight: 422
+        horseWeightDiff: 6
+        odds: 2

@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 12
+    winner: ゴーラッキー
     entries:
       - horseNumber: 1
         bracket: 1
@@ -48,6 +50,7 @@ races:
         finish: 7
         popularity: 5
         time: "1:34.4"
+        timeDiff: 1.2
         passing: "5-5"
         last3f: 35.5
         weight: 55
@@ -942,3 +945,31 @@ races:
         horseWeight: 478
         horseWeightDiff: -12
         odds: 270.6
+  - course: 小倉
+    raceNumber: 1
+    name: 3歳未勝利
+    className: 未勝利
+    surface: ダート
+    distance: 1700
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: ガーネットフレア
+    runnerUp: シオンダンサー
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ガーネットフレア
+        jockey: 北村友一
+        ref: nk-2023107075
+        finish: 1
+        popularity: 3
+        time: "1:48.2"
+        timeDiff: -0.8
+        passing: "1-1-1-1"
+        last3f: 39
+        weight: 55
+        horseWeight: 442
+        horseWeightDiff: 2
+        odds: 5.7

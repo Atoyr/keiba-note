@@ -325,6 +325,7 @@ races:
     weather: 晴
     fieldSize: 17
     winner: トロヴァトーレ
+    runnerUp: ステレンボッシュ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -432,6 +433,7 @@ races:
         popularity: 6
         time: "1:45.5"
         margin: "クビ"
+        timeDiff: 0.2
         passing: "8-9-9"
         last3f: 33.2
         weight: 57
@@ -527,6 +529,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:45.3"
+        timeDiff: 0
         passing: "8-9-9"
         last3f: 33
         weight: 58
@@ -801,6 +804,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 12
+    winner: アンパドゥ
+    runnerUp: アウフヘーベン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -824,6 +830,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:32.2"
+        timeDiff: 0
         passing: "8-8"
         last3f: 32.7
         weight: 58

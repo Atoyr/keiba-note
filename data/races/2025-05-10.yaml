@@ -52,6 +52,8 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 18
+    winner: セイウンハーデス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -187,6 +189,7 @@ races:
         finish: 9
         popularity: 5
         time: "1:45.1"
+        timeDiff: 1.2
         passing: "5-4-4"
         last3f: 35.9
         weight: 57

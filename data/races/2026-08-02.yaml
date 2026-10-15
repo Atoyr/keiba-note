@@ -206,6 +206,7 @@ races:
         popularity: 7
         time: "1:49.3"
         margin: "9"
+        timeDiff: 3.2
         passing: "6-5-5-7"
         last3f: 37.8
         weight: 52

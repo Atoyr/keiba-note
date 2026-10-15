@@ -598,7 +598,24 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 9
+    winner: キンググローリー
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ロザーンジュ
+        jockey: 今村聖奈
+        ref: nk-2023103661
+        finish: 4
+        popularity: 4
+        time: "1:58.5"
+        timeDiff: 0.7
+        passing: "6-7-7-8"
+        last3f: 34.7
+        weight: 55
+        horseWeight: 422
+        horseWeightDiff: -4
+        odds: 9.5
       - horseNumber: 4
         bracket: 4
         name: サイモンシャリオ

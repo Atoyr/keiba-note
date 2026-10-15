@@ -35,6 +35,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 小雨
+    fieldSize: 8
+    winner: エコロアルバ
+    runnerUp: ガリレア
     entries:
       - horseNumber: 1
         bracket: 1
@@ -114,6 +117,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:33.8"
+        timeDiff: -0.3
         passing: "8-8"
         last3f: 33.2
         weight: 56

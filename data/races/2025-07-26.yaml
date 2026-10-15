@@ -97,6 +97,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: エコロアルバ
+    runnerUp: アパレイユ
     entries:
       - horseNumber: 6
         bracket: 3
@@ -106,6 +109,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:21.3"
+        timeDiff: -0.4
         passing: "9-9"
         last3f: 34
         weight: 55

@@ -182,3 +182,31 @@ races:
         horseWeight: 482
         horseWeightDiff: -4
         odds: 3.2
+  - course: 札幌
+    raceNumber: 9
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 10
+    winner: ガーネットフレア
+    runnerUp: ディヒターリーベ
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ガーネットフレア
+        jockey: 北村友一
+        ref: nk-2023107075
+        finish: 1
+        popularity: 6
+        time: "1:48.5"
+        timeDiff: -0.6
+        passing: "1-1-1-1"
+        last3f: 34.4
+        weight: 53
+        horseWeight: 444
+        horseWeightDiff: -6
+        odds: 24.7

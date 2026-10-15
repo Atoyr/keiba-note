@@ -83,6 +83,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 9
+    winner: サムシングスイート
+    runnerUp: ヴィスコンテッサ
     entries:
       - horseNumber: 3
         bracket: 3
@@ -92,6 +95,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:58.5"
+        timeDiff: -0.1
         passing: "6-4-5-5"
         last3f: 33.7
         weight: 53
@@ -169,7 +173,24 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 14
+    winner: イヌボウノウタゴエ
     entries:
+      - horseNumber: 5
+        bracket: 4
+        name: ハヤブササキチャン
+        jockey: 吉田隼人
+        ref: nk-2023106894
+        finish: 3
+        popularity: 4
+        time: "1:29.2"
+        timeDiff: 0.2
+        passing: "6-6-7"
+        last3f: 34.3
+        weight: 53
+        horseWeight: 430
+        horseWeightDiff: 6
+        odds: 5.8
       - horseNumber: 11
         bracket: 7
         name: アンディムジーク

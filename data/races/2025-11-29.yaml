@@ -511,6 +511,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 9
+    winner: アンパドゥ
+    runnerUp: ジャサルディア
     entries:
       - horseNumber: 4
         bracket: 4
@@ -520,9 +523,37 @@ races:
         finish: 1
         popularity: 1
         time: "1:33.8"
+        timeDiff: -0.4
         passing: "4-2"
         last3f: 33.7
         weight: 58
         horseWeight: 494
         horseWeightDiff: -12
         odds: 1.5
+  - course: 京都
+    raceNumber: 7
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 18
+    winner: ジーティーマン
+    entries:
+      - horseNumber: 15
+        bracket: 7
+        name: ミトノオルフェ
+        jockey: 坂井瑠星
+        ref: nk-2022104053
+        finish: 16
+        popularity: 14
+        time: "1:47.4"
+        timeDiff: 1.1
+        passing: "3-3"
+        last3f: 35.7
+        weight: 56
+        horseWeight: 522
+        horseWeightDiff: 20
+        odds: 113.3

@@ -435,6 +435,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ラベルセーヌ
+    runnerUp: トーセンブリラーレ
     entries:
       - horseNumber: 9
         bracket: 5
@@ -444,6 +447,7 @@ races:
         finish: 1
         popularity: 8
         time: "1:47.0"
+        timeDiff: -0.8
         passing: "11-11-11-10"
         last3f: 35
         weight: 55

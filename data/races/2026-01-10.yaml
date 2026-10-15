@@ -413,6 +413,21 @@ races:
         horseWeight: 478
         horseWeightDiff: 4
         odds: 2.9
+      - horseNumber: 14
+        bracket: 7
+        name: ミトノオルフェ
+        jockey: 三浦皇成
+        ref: nk-2022104053
+        finish: 4
+        popularity: 10
+        time: "1:34.1"
+        timeDiff: 0.3
+        passing: "8-7-9"
+        last3f: 34.2
+        weight: 57
+        horseWeight: 518
+        horseWeightDiff: 2
+        odds: 38
   - course: 中山
     raceNumber: 2
     name: 3歳未勝利

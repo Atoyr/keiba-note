@@ -239,6 +239,7 @@ races:
         popularity: 3
         time: "2:25.6"
         margin: "クビ"
+        timeDiff: 0
         passing: "4-4-3-3"
         last3f: 34.3
         weight: 55
@@ -257,6 +258,7 @@ races:
         popularity: 4
         time: "2:25.9"
         margin: "3/4"
+        timeDiff: 0.3
         passing: "17-17-17-17"
         last3f: 33.1
         weight: 55
@@ -332,6 +334,7 @@ races:
         popularity: 11
         time: "2:25.7"
         margin: "アタマ"
+        timeDiff: 0.1
         passing: "3-3-6-5"
         last3f: 34.1
         weight: 55
@@ -683,3 +686,31 @@ races:
         horseWeight: 436
         horseWeightDiff: 2
         odds: 8.3
+  - course: 京都
+    raceNumber: 3
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 18
+    winner: ハヤブササキチャン
+    runnerUp: リン
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ハヤブササキチャン
+        jockey: 吉田隼人
+        ref: nk-2023106894
+        finish: 1
+        popularity: 1
+        time: "1:32.9"
+        timeDiff: -0.4
+        passing: "2-2"
+        last3f: 35.1
+        weight: 55
+        horseWeight: 424
+        horseWeightDiff: 2
+        odds: 2.1

@@ -159,6 +159,7 @@ races:
         finish: 14
         popularity: 1
         time: "1:32.7"
+        timeDiff: 1
         passing: "3-2"
         last3f: 36
         weight: 57

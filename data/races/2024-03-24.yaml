@@ -35,6 +35,9 @@ races:
     direction: 左
     trackCondition: 重
     weather: 小雨
+    fieldSize: 10
+    winner: シュガークン
+    runnerUp: オールナット
     entries:
       - horseNumber: 10
         bracket: 8
@@ -44,6 +47,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:17.4"
+        timeDiff: -0.3
         passing: "1-1-1-1"
         last3f: 35.6
         weight: 57

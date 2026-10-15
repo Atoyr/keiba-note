@@ -747,6 +747,7 @@ races:
         finish: 14
         popularity: 15
         time: "1:21.1"
+        timeDiff: 1.2
         passing: "10-9"
         last3f: 33.2
         weight: 56
@@ -907,3 +908,30 @@ races:
         horseWeight: 464
         horseWeightDiff: -2
         odds: 3.9
+  - course: 京都
+    raceNumber: 11
+    name: 白百合S
+    grade: L
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 9
+    winner: ロサルゴサ
+    entries:
+      - horseNumber: 9
+        bracket: 8
+        name: バースデイフライト
+        jockey: 田口貫太
+        ref: nk-2023102906
+        finish: 4
+        popularity: 6
+        time: "1:47.3"
+        timeDiff: 0.2
+        passing: "5-5"
+        last3f: 32.8
+        weight: 55
+        horseWeight: 450
+        horseWeightDiff: 2
+        odds: 16.9

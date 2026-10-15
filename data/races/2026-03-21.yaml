@@ -1029,3 +1029,59 @@ races:
         horseWeight: 462
         horseWeightDiff: -6
         odds: 20.1
+  - course: 中京
+    raceNumber: 9
+    name: 岡崎特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 10
+    winner: ミトノオルフェ
+    runnerUp: パルティクラール
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ミトノオルフェ
+        jockey: 三浦皇成
+        ref: nk-2022104053
+        finish: 1
+        popularity: 4
+        time: "1:20.0"
+        timeDiff: -0.2
+        passing: "7-7"
+        last3f: 34.1
+        weight: 58
+        horseWeight: 510
+        horseWeightDiff: -8
+        odds: 7.3
+  - course: 阪神
+    raceNumber: 5
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 18
+    winner: テイエムアイラン
+    runnerUp: ブランチアウト
+    entries:
+      - horseNumber: 15
+        bracket: 7
+        name: テイエムアイラン
+        jockey: 丹内祐次
+        ref: nk-2023100448
+        finish: 1
+        popularity: 6
+        time: "1:34.6"
+        timeDiff: -0.1
+        passing: "2-2"
+        last3f: 34.4
+        weight: 55
+        horseWeight: 410
+        horseWeightDiff: 2
+        odds: 10.6
