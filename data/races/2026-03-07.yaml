@@ -810,6 +810,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 18
+    winner: サムシングスイート
+    runnerUp: クレアノア
     entries:
       - horseNumber: 9
         bracket: 5
@@ -819,6 +822,7 @@ races:
         finish: 1
         popularity: 2
         time: "2:03.1"
+        timeDiff: -0.5
         passing: "6-6-3-2"
         last3f: 35.7
         weight: 55

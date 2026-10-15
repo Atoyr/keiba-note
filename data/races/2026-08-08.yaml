@@ -441,3 +441,59 @@ races:
         horseWeight: 424
         horseWeightDiff: 4
         odds: 1.9
+  - course: 中京
+    raceNumber: 6
+    name: 納屋橋特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: テイエムアイラン
+    runnerUp: ビップディラン
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: テイエムアイラン
+        jockey: 富田暁
+        ref: nk-2023100448
+        finish: 1
+        popularity: 1
+        time: "1:32.5"
+        timeDiff: -0.3
+        passing: "1-1-1"
+        last3f: 33.7
+        weight: 53
+        horseWeight: 414
+        horseWeightDiff: 4
+        odds: 3.6
+  - course: 新潟
+    raceNumber: 6
+    name: 三面川特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 10
+    winner: ラベルセーヌ
+    runnerUp: クライスレリアーナ
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: ラベルセーヌ
+        jockey: 荻野極
+        ref: nk-2023103818
+        finish: 1
+        popularity: 1
+        time: "1:45.1"
+        timeDiff: -0.3
+        passing: "5-4"
+        last3f: 32.3
+        weight: 53
+        horseWeight: 436
+        horseWeightDiff: 10
+        odds: 1.5

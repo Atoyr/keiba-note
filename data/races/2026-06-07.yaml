@@ -213,6 +213,7 @@ races:
         popularity: 9
         time: "1:33.1"
         margin: "クビ"
+        timeDiff: 1
         passing: "16-17"
         last3f: 33.1
         weight: 58
@@ -370,6 +371,7 @@ races:
         popularity: 2
         time: "1:32.8"
         margin: "3/4"
+        timeDiff: 0.7
         passing: "15-14"
         last3f: 33.1
         weight: 58

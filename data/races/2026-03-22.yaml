@@ -860,3 +860,59 @@ races:
         horseWeight: 532
         horseWeightDiff: 8
         odds: 114.9
+  - course: 中山
+    raceNumber: 5
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 16
+    winner: カナルサンマルタン
+    runnerUp: シヴィータス
+    entries:
+      - horseNumber: 4
+        bracket: 2
+        name: カナルサンマルタン
+        jockey: ルメール
+        ref: nk-2023106846
+        finish: 1
+        popularity: 1
+        time: "1:33.7"
+        timeDiff: -0.2
+        passing: "3-5-3"
+        last3f: 35
+        weight: 55
+        horseWeight: 448
+        horseWeightDiff: 4
+        odds: 1.2
+  - course: 中京
+    raceNumber: 4
+    name: 3歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 15
+    winner: ロザーンジュ
+    runnerUp: コティノス
+    entries:
+      - horseNumber: 11
+        bracket: 6
+        name: ロザーンジュ
+        jockey: 今村聖奈
+        ref: nk-2023103661
+        finish: 1
+        popularity: 4
+        time: "2:00.3"
+        timeDiff: -0.1
+        passing: "6-7-7-8"
+        last3f: 35
+        weight: 53
+        horseWeight: 426
+        horseWeightDiff: -2
+        odds: 7.2

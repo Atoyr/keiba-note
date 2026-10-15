@@ -364,3 +364,30 @@ races:
         ref: nk-2018106055
       - name: リリージョワ
         ref: nk-2023105312
+  - course: 阪神
+    raceNumber: 8
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 小雨
+    fieldSize: 12
+    winner: コニーアイランド
+    entries:
+      - horseNumber: 12
+        bracket: 8
+        name: バースデイフライト
+        jockey: 田山旺佑
+        ref: nk-2023102906
+        finish: 4
+        popularity: 2
+        time: "1:48.2"
+        timeDiff: 0.3
+        passing: "6-6"
+        last3f: 34.1
+        weight: 52
+        horseWeight: 462
+        horseWeightDiff: 10
+        odds: 3.3

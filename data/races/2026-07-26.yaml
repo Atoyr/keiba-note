@@ -13,6 +13,7 @@ races:
     weather: 雨
     fieldSize: 14
     winner: アンパドゥ
+    runnerUp: クランフォード
     entries:
       - horseNumber: 1
         bracket: 1
@@ -28,6 +29,7 @@ races:
         popularity: 6
         time: "1:33.3"
         margin: "クビ"
+        timeDiff: 0.9
         passing: "3-3"
         last3f: 35
         weight: 57
@@ -67,6 +69,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:32.4"
+        timeDiff: -0.9
         passing: "12-11"
         last3f: 33.7
         weight: 56
@@ -714,3 +717,30 @@ races:
         horseWeight: 428
         horseWeightDiff: 12
         odds: 9.2
+  - course: 中京
+    raceNumber: 11
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 16
+    winner: ロケベンドラ
+    entries:
+      - horseNumber: 11
+        bracket: 6
+        name: バースデイフライト
+        jockey: 田山旺佑
+        ref: nk-2023102906
+        finish: 3
+        popularity: 1
+        time: "1:33.3"
+        timeDiff: 0.3
+        passing: "10-8-8"
+        last3f: 33.6
+        weight: 52
+        horseWeight: 444
+        horseWeightDiff: -10
+        odds: 4.1

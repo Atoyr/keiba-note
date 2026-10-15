@@ -87,6 +87,7 @@ races:
         popularity: 6
         time: "1:45.6"
         margin: "アタマ"
+        timeDiff: 0.5
         passing: "7-7-7-7"
         last3f: 34.1
         weight: 56
@@ -305,6 +306,8 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 15
+    winner: タイセイボーグ
+    runnerUp: ナムラコスモス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -547,6 +550,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:34.3"
+        timeDiff: 0
         passing: "9-8"
         last3f: 33.1
         weight: 55

@@ -848,3 +848,30 @@ races:
         horseWeight: 480
         horseWeightDiff: 0
         odds: 2.9
+  - course: 阪神
+    raceNumber: 8
+    name: 3歳以上1勝クラス
+    className: 1勝クラス
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 15
+    winner: アイニードユー
+    entries:
+      - horseNumber: 8
+        bracket: 5
+        name: バースデイフライト
+        jockey: 田口貫太
+        ref: nk-2023102906
+        finish: 2
+        popularity: 4
+        time: "1:33.4"
+        timeDiff: 0
+        passing: "2-2"
+        last3f: 33.6
+        weight: 53
+        horseWeight: 454
+        horseWeightDiff: 4
+        odds: 13.4

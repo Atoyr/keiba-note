@@ -340,6 +340,8 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 雨
+    fieldSize: 12
+    winner: オルネーロ
     entries:
       - horseNumber: 3
         bracket: 3
@@ -363,6 +365,7 @@ races:
         finish: 2
         popularity: 2
         time: "1:49.1"
+        timeDiff: 0.3
         passing: "4-3"
         last3f: 33.5
         weight: 55

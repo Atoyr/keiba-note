@@ -293,6 +293,8 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 雨
+    fieldSize: 10
+    winner: フィロステファニ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -302,6 +304,7 @@ races:
         finish: 3
         popularity: 3
         time: "1:34.2"
+        timeDiff: 0.4
         passing: "9-9"
         last3f: 33.7
         weight: 55

@@ -685,6 +685,9 @@ races:
     direction: 右
     trackCondition: 重
     weather: 曇
+    fieldSize: 13
+    winner: モンローウォーク
+    runnerUp: アストリル
     entries:
       - horseNumber: 4
         bracket: 4
@@ -708,6 +711,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:48.4"
+        timeDiff: -0.6
         passing: "2-2-2-2"
         last3f: 35.4
         weight: 53

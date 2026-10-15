@@ -35,6 +35,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: アドマイヤズーム
+    runnerUp: ミュージアムマイル
     entries:
       - horseNumber: 2
         bracket: 1
@@ -44,6 +47,7 @@ races:
         finish: 1
         popularity: 5
         time: "1:34.1"
+        timeDiff: -0.4
         passing: "2-2"
         last3f: 33.6
         weight: 56

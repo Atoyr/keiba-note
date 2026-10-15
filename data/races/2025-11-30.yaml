@@ -498,6 +498,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 8
+    winner: ドリームコア
+    runnerUp: コルテオソレイユ
     entries:
       - horseNumber: 3
         bracket: 3
@@ -521,6 +524,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:33.1"
+        timeDiff: 0
         passing: "4-5"
         last3f: 33.7
         weight: 55

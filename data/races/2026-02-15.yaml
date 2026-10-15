@@ -538,6 +538,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ナックホワイト
     entries:
       - horseNumber: 14
         bracket: 7
@@ -561,6 +563,7 @@ races:
         finish: 2
         popularity: 1
         time: "1:48.0"
+        timeDiff: 0.2
         passing: "16-13-13"
         last3f: 33.6
         weight: 55
@@ -785,6 +788,7 @@ races:
         finish: 7
         popularity: 1
         time: "1:34.5"
+        timeDiff: 0.5
         passing: "6-7"
         last3f: 33.3
         weight: 58

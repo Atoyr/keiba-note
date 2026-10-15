@@ -271,6 +271,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 11
+    winner: モンローウォーク
+    runnerUp: キリミツ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -280,6 +283,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:35.5"
+        timeDiff: -0.5
         passing: "1-1"
         last3f: 33.9
         weight: 55
