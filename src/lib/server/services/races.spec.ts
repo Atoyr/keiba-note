@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '$lib/server/db';
-import { resolveWeek } from './races';
+import { createTestDb } from '$lib/server/db/test-d1';
+import { listRacesBetween, resolveWeek } from './races';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */
 const utc = (iso: string) => new Date(iso);
@@ -31,5 +32,29 @@ describe('resolveWeek', () => {
 			start: '2026-09-29',
 			end: '2026-10-04'
 		});
+	});
+});
+
+describe('listRacesBetween の印の数', () => {
+	let state: ReturnType<typeof createTestDb>;
+	beforeEach(() => {
+		state = createTestDb();
+		state.sqlite.exec(`
+			INSERT INTO user (id, google_sub, email, display_name) VALUES ('a','ga','a@example.invalid','A');
+			INSERT INTO race (id,date,course,name) VALUES ('r','2099-01-01','東京','テスト賞');
+			INSERT INTO horse (id,name) VALUES ('h1','ホース1'), ('h2','ホース2'), ('h3','ホース3');
+			INSERT INTO race_entry (id,race_id,horse_id,horse_number) VALUES ('e1','r','h1',1), ('e2','r','h2',2), ('e3','r','h3',3);
+			INSERT INTO note (id,author_id,kind,race_id,horse_id,race_entry_id,body,mark,occurred_at) VALUES
+				('n1','a','preview','r','h1','e1','','◎','2099-01-01'),
+				('n2','a','preview','r','h2','e2','','✓','2099-01-01'),
+				('n3','a','preview','r','h3','e3','','×','2099-01-01');
+		`);
+	});
+	afterEach(() => state.sqlite.close());
+
+	// ✓ は候補のチェックで予想の印ではない。✓ だけ付けた段階を「印 済み」に見せない。
+	it('候補のチェック（✓）は印の数に入れない', async () => {
+		const [item] = await listRacesBetween(state.db, 'a', { from: '2099-01-01', to: '2099-01-01' });
+		expect(item.markCount).toBe(2);
 	});
 });

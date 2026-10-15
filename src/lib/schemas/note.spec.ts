@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
-import { markSchema, tagsSchema } from './note';
+import { isPredictionMark, markSchema, tagsSchema } from './note';
 
 const parse = (input: unknown) => v.parse(tagsSchema, input);
 
@@ -35,13 +35,23 @@ describe('tagsSchema', () => {
 
 /** 印もフォームから文字列で来る。選択肢に無いものは「印なし」にする。 */
 describe('markSchema', () => {
-	it('☆ を含む選択肢の印を通す', () => {
-		for (const m of ['◎', '○', '▲', '△', '☆', '×']) expect(v.parse(markSchema, m)).toBe(m);
+	it('☆ と候補の ✓ を含む選択肢の印を通す', () => {
+		for (const m of ['◎', '○', '▲', '△', '☆', '✓', '×']) expect(v.parse(markSchema, m)).toBe(m);
 	});
 
 	it('選択肢に無い値・空・未指定は null（印なし）', () => {
 		expect(v.parse(markSchema, '★')).toBeNull();
 		expect(v.parse(markSchema, '')).toBeNull();
 		expect(v.parse(markSchema, undefined)).toBeNull();
+	});
+});
+
+/** ✓ は候補のチェック。予想をまとめる・数える場所では印なしと同じに扱うための判定。 */
+describe('isPredictionMark', () => {
+	it('候補のチェックと印なしは予想の印ではなく、それ以外の印は予想の印', () => {
+		expect(isPredictionMark('✓')).toBe(false);
+		expect(isPredictionMark(null)).toBe(false);
+		expect(isPredictionMark('◎')).toBe(true);
+		expect(isPredictionMark('×')).toBe(true);
 	});
 });

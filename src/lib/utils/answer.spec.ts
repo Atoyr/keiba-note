@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Mark } from '$lib/schemas/note';
+import type { Mark, PredictionMark } from '$lib/schemas/note';
 import { answerCheck, asMarked, byMark, inTheMoneyCount, placing } from './answer';
 
 describe('byMark', () => {
@@ -16,6 +16,21 @@ describe('byMark', () => {
 			{ mark: '◎', horseNumber: 12 },
 			{ mark: '△', horseNumber: 2 },
 			{ mark: '△', horseNumber: 9 }
+		]);
+	});
+
+	// ✓ は候補のチェックで予想の印ではない。「付けた印」に並べない。
+	it('候補のチェック（✓）の馬も落とす', () => {
+		const rows = [
+			{ mark: '✓' as const, horseNumber: 3 },
+			{ mark: '☆' as const, horseNumber: 5 },
+			{ mark: '✓' as const, horseNumber: 1 },
+			{ mark: '×' as const, horseNumber: 2 }
+		];
+
+		expect(byMark(rows)).toEqual([
+			{ mark: '☆', horseNumber: 5 },
+			{ mark: '×', horseNumber: 2 }
 		]);
 	});
 });
@@ -36,7 +51,7 @@ describe('placing', () => {
 
 describe('asMarked', () => {
 	it('◎○▲△☆ は馬券内なら読みどおり', () => {
-		for (const mark of ['◎', '○', '▲', '△', '☆'] as Mark[]) {
+		for (const mark of ['◎', '○', '▲', '△', '☆'] as PredictionMark[]) {
 			expect(asMarked(mark, 'in')).toBe(true);
 			expect(asMarked(mark, 'out')).toBe(false);
 		}
@@ -80,6 +95,15 @@ describe('answerCheck', () => {
 		expect(answers.map((a) => a.mark)).toEqual(['◎', '○', '▲', '△', '☆', '×']);
 		expect(answers.map((a) => a.placing)).toEqual(['out', 'in', 'out', 'in', 'out', 'in']);
 		expect(answers.map((a) => a.asMarked)).toEqual([false, true, false, true, false, false]);
+	});
+
+	// ✓ を馬券内と読んだ印に数えると、答え合わせの集計が狂う。
+	it('候補のチェック（✓）の馬は答え合わせに出さず、馬券内の集計にも入れない', () => {
+		const answers = answerCheck([row('✓', 1, 1), row('◎', 2, 2), row('✓', 3, 9)]);
+
+		expect(answers.map((a) => a.horseName)).toEqual(['馬2']);
+		expect(inTheMoneyCount(answers)).toEqual({ in: 1, of: 1 });
+		expect(inTheMoneyCount(answerCheck([row('✓', 1, 1)]))).toBeNull();
 	});
 
 	it('同じ印が複数あれば馬番の順。馬番が無い馬は後ろ', () => {

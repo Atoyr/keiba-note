@@ -1,7 +1,13 @@
 import { and, asc, count, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { gradedRaceNote, horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
-import { MARKS, type Mark, type NoteTag } from '$lib/schemas/note';
+import {
+	CANDIDATE_MARK,
+	isPredictionMark,
+	MARKS,
+	type NoteTag,
+	type PredictionMark
+} from '$lib/schemas/note';
 import type { Pace } from '$lib/schemas/race-flow';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
 import { raceResultCount } from './races';
@@ -141,12 +147,12 @@ export type SeriesNote = {
 	pace: Pace | null;
 };
 
-/** 付けた印（`preview` で印のあるもの）。 */
+/** 付けた印（`preview` で予想の印のあるもの。候補のチェック ✓ は含めない）。 */
 export type SeriesMark = {
 	/** 出走（race_entry）の id。画面の each の鍵。 */
 	entryId: string;
 	raceId: string;
-	mark: Mark;
+	mark: PredictionMark;
 	horseName: string;
 	bracket: number | null;
 	horseNumber: number | null;
@@ -220,6 +226,8 @@ function seriesNotesQueries(db: Db, names: string[], viewerId: string) {
 					eq(note.authorId, viewerId),
 					eq(note.kind, 'preview'),
 					isNotNull(note.mark),
+					// 候補のチェックは予想の印ではない。年ごとの印は「予想の答え合わせ」なので並べない。
+					ne(note.mark, CANDIDATE_MARK),
 					inArray(note.raceId, raceIdsNamed(db, names))
 				)
 			),
@@ -264,7 +272,9 @@ function shapeSeriesNotes(
 				]
 			: []
 	);
-	const marks = markRows.flatMap((r): SeriesMark[] => (r.mark ? [{ ...r, mark: r.mark }] : []));
+	const marks = markRows.flatMap((r): SeriesMark[] =>
+		isPredictionMark(r.mark) ? [{ ...r, mark: r.mark }] : []
+	);
 	const entryNoteCounts: Record<string, number> = {};
 	for (const r of countRows) if (r.raceId && r.n > 0) entryNoteCounts[r.raceId] = r.n;
 	return { notes, marks, entryNoteCounts };
@@ -480,7 +490,7 @@ export function buildGradedRaceTimeline(
 	today: string,
 	entryNoteCounts: Record<string, number> = {}
 ): GradedTimelineYear[] {
-	const markOrder = (m: Mark) => MARKS.indexOf(m);
+	const markOrder = (m: PredictionMark) => MARKS.indexOf(m);
 	const years = new Map<string, GradedTimelineRace[]>();
 
 	const ordered = [...races].sort(

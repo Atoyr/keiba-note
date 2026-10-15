@@ -1,4 +1,4 @@
-import type { Mark } from '../schemas/note';
+import type { PredictionMark } from '../schemas/note';
 import { orderedSummaryRows, type RaceSummary } from './race-summary';
 
 /**
@@ -20,7 +20,7 @@ export const CARD_FONT = 'Noto Sans JP';
  * 色は画面の札（MarkBadge・BracketBadge・HorseNumberBadge・GradeBadge）の Tailwind の色を16進にしたもの。
  * 画像の中はクラスが効かないので写してある。札の色を変えたら、ここも変える。
  */
-const MARK_TONE: Record<Mark, { fill: string; stroke: string; text: string }> = {
+const MARK_TONE: Record<PredictionMark, { fill: string; stroke: string; text: string }> = {
 	'◎': { fill: '#dc2626', stroke: '#dc2626', text: '#ffffff' },
 	'○': { fill: '#ffedd5', stroke: '#fb923c', text: '#7c2d12' },
 	'▲': { fill: '#fef3c7', stroke: '#fbbf24', text: '#78350f' },
@@ -53,12 +53,14 @@ const PAD = 64;
 type Row = RaceSummary['rows'][number];
 
 /** 画像に並べる馬。印を付けた馬だけを、まとめと同じ順（印順、同じ印は馬番順）に。 */
-export function markedRows(summary: RaceSummary): (Row & { mark: Mark })[] {
-	return orderedSummaryRows(summary.rows).filter((r): r is Row & { mark: Mark } => !!r.mark);
+export function markedRows(summary: RaceSummary): (Row & { mark: PredictionMark })[] {
+	return orderedSummaryRows(summary.rows).filter(
+		(r): r is Row & { mark: PredictionMark } => !!r.mark
+	);
 }
 
 /** 「◎1 E2Eホンメイ」。馬番が未確定なら馬名だけ。 */
-const markedLabel = (r: Row & { mark: Mark }) =>
+const markedLabel = (r: Row & { mark: PredictionMark }) =>
 	`${r.mark}${r.horseNumber ? `${r.horseNumber} ` : ''}${r.horseName}`;
 
 /**
@@ -203,7 +205,12 @@ const ROWS_PER_COLUMN = 5;
 const COLUMN_GAP = 48;
 
 /** 印・枠と馬番・馬名の1行。枠や馬番が未確定でも印と馬名は出す。 */
-function horseRow(r: Row & { mark: Mark }, x: number, top: number, width: number): string {
+function horseRow(
+	r: Row & { mark: PredictionMark },
+	x: number,
+	top: number,
+	width: number
+): string {
 	const cy = top + BADGE / 2;
 	const tone = MARK_TONE[r.mark];
 	const parts = [
@@ -233,7 +240,7 @@ function horseRow(r: Row & { mark: Mark }, x: number, top: number, width: number
 }
 
 /** 印を付けた馬の表。5頭までは1列、それより多ければ2列。入りきらない分は「ほか n 頭」。 */
-function markTable(rows: (Row & { mark: Mark })[]): string {
+function markTable(rows: (Row & { mark: PredictionMark })[]): string {
 	const twoColumns = rows.length > ROWS_PER_COLUMN;
 	const capacity = twoColumns ? ROWS_PER_COLUMN * 2 : ROWS_PER_COLUMN;
 	const overflow = rows.length > capacity;

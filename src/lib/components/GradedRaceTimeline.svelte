@@ -4,7 +4,7 @@
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
-	import type { Mark, NoteTag } from '$lib/schemas/note';
+	import type { NoteTag, PredictionMark } from '$lib/schemas/note';
 	import { isSettled } from '$lib/utils/date';
 
 	/**
@@ -42,7 +42,7 @@
 				entryNoteCount: number;
 				marks: {
 					entryId: string;
-					mark: Mark;
+					mark: PredictionMark;
 					horseName: string;
 					bracket: number | null;
 					horseNumber: number | null;

@@ -6,7 +6,7 @@
  * 両方を持っているのはふりかえり画面だけ。ここで並べないと、どこでも並ばない。
  */
 
-import { MARKS, type Mark } from '$lib/schemas/note';
+import { isPredictionMark, MARKS, type Mark, type PredictionMark } from '$lib/schemas/note';
 
 /**
  * 1頭の結果を競馬の言い方で。
@@ -36,7 +36,7 @@ export function placing(finishPosition: number | null): Placing {
  * × は「来ない」と読んだ印なので着外なら読みどおり。未確定なら null。
  * 言葉は馬券内／着外のままで、× が馬券内に来たとき（消した馬に来られた）だけ目立たせる。
  */
-export function asMarked(mark: Mark, p: Placing): boolean | null {
+export function asMarked(mark: PredictionMark, p: Placing): boolean | null {
 	if (p === 'pending') return null;
 	return mark === '×' ? p === 'out' : p === 'in';
 }
@@ -48,7 +48,7 @@ export type AnswerSource = {
 };
 
 export type Answer<T extends AnswerSource> = T & {
-	mark: Mark;
+	mark: PredictionMark;
 	placing: Placing;
 	asMarked: boolean | null;
 };
@@ -69,15 +69,16 @@ export function answerCheck<T extends AnswerSource>(rows: T[]): Answer<T>[] {
 
 /**
  * 印を付けた馬だけを印の順（◎ → ×）に並べる。同じ印は馬番の順、馬番の無い馬は後ろ。
+ * **候補のチェック（✓）は予想の印ではないので落とす。** 答え合わせで ◎○▲△☆ と同じ「馬券内と読んだ」に数えると集計が狂う。
  *
  * 答え合わせと、予想画面の「付けた印」の一覧で同じ並びにする。
  * 予想で見た並びと結果で見る並びが違うと、同じ予想に見えない。
  */
 export function byMark<T extends { mark: Mark | null; horseNumber: number | null }>(
 	rows: T[]
-): (T & { mark: Mark })[] {
+): (T & { mark: PredictionMark })[] {
 	return rows
-		.filter((r): r is T & { mark: Mark } => r.mark !== null)
+		.filter((r): r is T & { mark: PredictionMark } => isPredictionMark(r.mark))
 		.sort(
 			(a, b) =>
 				MARKS.indexOf(a.mark) - MARKS.indexOf(b.mark) ||
