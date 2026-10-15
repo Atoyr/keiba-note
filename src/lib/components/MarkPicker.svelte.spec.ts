@@ -1,6 +1,7 @@
 import '../../routes/layout.css';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
+import { page } from 'vitest/browser';
 import MarkPicker from './MarkPicker.svelte';
 
 describe('MarkPicker', () => {
@@ -62,17 +63,60 @@ describe('MarkPicker', () => {
 	});
 });
 
-// 正方形の札（40px 四方）を左寄せで並べる（7つの印 + なし）。「なし」も印と同じ大きさにする。
-it('7つの印と「なし」を、40px 四方の同じ札として左寄せで並べる', () => {
+// 正方形の札を左寄せで並べる（7つの印 + なし）。「なし」も印と同じ大きさにする。
+// sm 以上は 40px 四方、スマホは 36px 四方（390px でも8枚が1行に収まるように）。
+describe('札の大きさ', () => {
+	afterEach(async () => {
+		await page.viewport(1280, 800);
+	});
+
+	const tilesOf = (container: HTMLElement) => {
+		const group = container.querySelector<HTMLElement>('[role="radiogroup"]')!;
+		return Array.from(group.querySelectorAll<HTMLElement>('input + span'));
+	};
+
+	it('広い画面では 40px 四方', async () => {
+		await page.viewport(1280, 800);
+		const screen = render(MarkPicker, { name: 'mark.x', value: null });
+
+		const tiles = tilesOf(screen.container);
+		expect(tiles).toHaveLength(8);
+		for (const tile of tiles) {
+			const box = tile.getBoundingClientRect();
+			expect(box.width).toBe(40);
+			expect(box.height).toBe(40);
+		}
+	});
+
+	// 出走馬の行の中の札の幅（390px − 両側の余白 16px − 行の内側の余白 12px）。ここに8枚が1行で並ぶ。
+	it('スマホ（390px）では 36px 四方で、8枚が1行に収まる', async () => {
+		await page.viewport(390, 800);
+		const screen = render(MarkPicker, { name: 'mark.x', value: null });
+		(screen.container as HTMLElement).style.width = `${390 - 16 * 2 - 12 * 2}px`;
+
+		const tiles = tilesOf(screen.container);
+		expect(tiles).toHaveLength(8);
+		for (const tile of tiles) {
+			const box = tile.getBoundingClientRect();
+			expect(box.width).toBe(36);
+			expect(box.height).toBe(36);
+		}
+		const tops = new Set(tiles.map((t) => t.getBoundingClientRect().top));
+		expect(tops.size).toBe(1);
+	});
+});
+
+it('7つの印と「なし」を、同じ札として左寄せで並べる', () => {
 	const screen = render(MarkPicker, { name: 'mark.x', value: null });
 
 	const group = screen.container.querySelector<HTMLElement>('[role="radiogroup"]')!;
 	const tiles = Array.from(group.querySelectorAll<HTMLElement>('input + span'));
 	expect(tiles).toHaveLength(8);
+	const size = tiles[0].getBoundingClientRect().width;
 	for (const tile of tiles) {
 		const box = tile.getBoundingClientRect();
-		expect(box.width).toBe(40);
-		expect(box.height).toBe(40);
+		expect(box.width).toBe(size);
+		expect(box.height).toBe(size);
 		expect(tile.className).toContain('border');
 	}
 	// 左寄せ: 先頭の札は箱の左端から始まり、札の右端は箱の右端まで伸びない（横いっぱいに広がらない）。

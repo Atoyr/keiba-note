@@ -59,7 +59,11 @@
 	const glyph = (m: Mark) => (m === '☆' || m === '✓' || m === '×' ? 'text-lg' : 'text-base');
 </script>
 
-<!-- 7つの印と「なし」を、正方形の札（40px 四方。指で押しやすい大きさ）にして左寄せで並べる。幅が足りなければ折り返す。 -->
+<!--
+	7つの印と「なし」を、正方形の札にして左寄せで並べる。幅が足りなければ折り返す。
+	sm 以上は 40px 四方。スマホは 36px 四方にして、390px でも8枚を1行に収める（40px だと「なし」だけが2行目に回り、
+	出走馬の行が毎行のびる）。36px でも指で押せる大きさ（WCAG 2.5.8 の 24px を十分に超える）。
+-->
 <div class="flex flex-wrap gap-1" role="radiogroup" aria-label={label}>
 	{#each MARKS as m (m)}
 		<label class="relative">
@@ -72,7 +76,7 @@
 				{@attach watch(m)}
 			/>
 			<span
-				class="flex size-10 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent {glyph(
+				class="flex size-9 cursor-pointer items-center justify-center rounded-md border border-border text-muted-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent sm:size-10 {glyph(
 					m
 				)} {tone[m]}"
 			>
@@ -94,7 +98,7 @@
 			{@attach watch(null)}
 		/>
 		<span
-			class="flex size-10 cursor-pointer items-center justify-center rounded-md border border-border text-xs text-muted-foreground peer-checked:border-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent"
+			class="flex size-9 cursor-pointer items-center justify-center rounded-md border border-border text-xs text-muted-foreground peer-checked:border-foreground peer-checked:text-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-not-checked:hover:bg-accent sm:size-10"
 		>
 			なし
 		</span>
