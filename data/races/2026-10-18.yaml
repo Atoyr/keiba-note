@@ -61,14 +61,6 @@ races:
         trainer: 北出成人
         trainingCenter: 栗東
         weight: 55
-      - name: スマートプリエール
-        jockey: 幸英明
-        sex: 牝
-        age: 3
-        ref: nk-2023107079
-        trainer: 大久保龍志
-        trainingCenter: 栗東
-        weight: 55
       - name: タイセイボーグ
         jockey: 西村淳也
         sex: 牝
@@ -157,3 +149,6 @@ races:
         trainer: 寺島良
         trainingCenter: 栗東
         weight: 55
+    withdrawn:
+      - name: スマートプリエール
+        ref: nk-2023107079
