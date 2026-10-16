@@ -69,8 +69,13 @@ export function parseNetkeibaOdds(source: unknown, raceId: string, fetchedAt: Da
 	for (const [key, value] of Object.entries(place)) {
 		const [min, max] = cells(value, key);
 		const h = row(horseNumber(key));
-		h.placeOddsMin = oddsValue(min, key);
-		h.placeOddsMax = oddsValue(max, key);
+		const lo = oddsValue(min, key);
+		const hi = oddsValue(max, key);
+		// 前売りの始まった直後は、票の少ない馬の複勝が片側だけで来る（2026-10-16 19時台に数回）。
+		// 幅として出せないので、その馬の複勝はまだ無いものとして両方 null にする
+		const both = lo !== null && hi !== null;
+		h.placeOddsMin = both ? lo : null;
+		h.placeOddsMax = both ? hi : null;
 	}
 
 	return {
