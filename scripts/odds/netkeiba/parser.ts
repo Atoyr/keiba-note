@@ -66,11 +66,24 @@ export function parseNetkeibaOdds(source: unknown, raceId: string, fetchedAt: Da
 	for (const [key, value] of Object.entries(win)) {
 		row(horseNumber(key)).winOdds = oddsValue(cells(value, key)[0], key);
 	}
+	// 前売りの始まった直後は、一部の馬の複勝が片側だけで来る（2026-10-16 18:54〜19:35 JST に3回）。
+	// 幅として出せないので、その馬の複勝はまだ無いものとして両方 null にする。
+	// ただし両側そろった馬が1頭もいなければ、欄の形が変わった疑いとして投げる（黙って全頭を空にしない）
+	let oneSided = 0;
+	let twoSided = 0;
 	for (const [key, value] of Object.entries(place)) {
 		const [min, max] = cells(value, key);
 		const h = row(horseNumber(key));
-		h.placeOddsMin = oddsValue(min, key);
-		h.placeOddsMax = oddsValue(max, key);
+		const lo = oddsValue(min, key);
+		const hi = oddsValue(max, key);
+		const both = lo !== null && hi !== null;
+		if (both) twoSided++;
+		else if (lo !== null || hi !== null) oneSided++;
+		h.placeOddsMin = both ? lo : null;
+		h.placeOddsMax = both ? hi : null;
+	}
+	if (oneSided > 0 && twoSided === 0) {
+		throw new OddsError('parse', '複勝の下限・上限がそろった馬が1頭もいません');
 	}
 
 	return {

@@ -95,6 +95,46 @@ describe('parseNetkeibaOdds', () => {
 		expect(() => validateRaceOdds(odds)).not.toThrow();
 	});
 
+	it('複勝が片側だけの馬は、複勝を両方 null にして単勝は残す', () => {
+		const source = {
+			status: 'middle',
+			data: {
+				odds: {
+					'1': { '01': ['11.0', '0', '6'], '02': ['38.9', '0', '12'], '03': ['4.3', '0', '2'] },
+					'2': {
+						'01': ['4.2', '0.0', '7'],
+						'02': ['---.-', '12.7', '12'],
+						'03': ['1.4', '1.7', '1']
+					}
+				}
+			}
+		};
+		const odds = parseNetkeibaOdds(source, 'r1', fetchedAt);
+
+		expect(odds.horses[0]).toEqual({
+			horseNumber: 1,
+			winOdds: 11.0,
+			placeOddsMin: null,
+			placeOddsMax: null
+		});
+		expect(odds.horses[1]).toMatchObject({ winOdds: 38.9, placeOddsMin: null, placeOddsMax: null });
+		expect(odds.horses[2]).toMatchObject({ placeOddsMin: 1.4, placeOddsMax: 1.7 });
+		expect(() => validateRaceOdds(odds)).not.toThrow();
+	});
+
+	it('両側そろった馬が1頭もいない複勝は parse で投げる（欄の形が変わった疑い）', () => {
+		const source = {
+			status: 'middle',
+			data: {
+				odds: {
+					'1': { '01': ['11.0', '0', '6'], '02': ['38.9', '0', '12'] },
+					'2': { '01': ['4.2', '0.0', '7'], '02': ['8.6', '0.0', '12'] }
+				}
+			}
+		};
+		expect(kindOf(() => parseNetkeibaOdds(source, 'r1', fetchedAt))).toBe('parse');
+	});
+
 	it('全頭が値なしの応答は、読めても保存してよい値にならない', () => {
 		const odds = parseNetkeibaOdds(middleBlank, 'r1', fetchedAt);
 		expect(odds.horses.every((h) => h.winOdds === null)).toBe(true);
