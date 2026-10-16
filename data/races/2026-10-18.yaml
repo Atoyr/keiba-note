@@ -13,31 +13,9 @@ races:
     ref: nk-202608040711
     startTime: "15:40"
     entries:
-      - name: エンネ
-        jockey: 坂井瑠星
-        sex: 牝
-        age: 3
-        ref: nk-2023102102
-        trainer: 吉岡辰弥
-        trainingCenter: 栗東
-        weight: 55
-      - name: カナルサンマルタン
-        jockey: 岩田望来
-        sex: 牝
-        age: 3
-        ref: nk-2023106846
-        trainer: 宮田敬介
-        trainingCenter: 美浦
-        weight: 55
-      - name: ガーネットフレア
-        jockey: 北村友一
-        sex: 牝
-        age: 3
-        ref: nk-2023107075
-        trainer: 杉山佳明
-        trainingCenter: 栗東
-        weight: 55
-      - name: ギャラボーグ
+      - horseNumber: 1
+        bracket: 1
+        name: ギャラボーグ
         jockey: 横山和生
         sex: 牝
         age: 3
@@ -45,31 +23,9 @@ races:
         trainer: 杉山晴紀
         trainingCenter: 栗東
         weight: 55
-      - name: サムシングスイート
-        jockey: 松山弘平
-        sex: 牝
-        age: 3
-        ref: nk-2023106219
-        trainer: 伊藤大士
-        trainingCenter: 美浦
-        weight: 55
-      - name: スウィートハピネス
-        jockey: 佐々木大輔
-        sex: 牝
-        age: 3
-        ref: nk-2023104475
-        trainer: 北出成人
-        trainingCenter: 栗東
-        weight: 55
-      - name: タイセイボーグ
-        jockey: 西村淳也
-        sex: 牝
-        age: 3
-        ref: nk-2023106900
-        trainer: 松下武士
-        trainingCenter: 栗東
-        weight: 55
-      - name: テイエムアイラン
+      - horseNumber: 2
+        bracket: 1
+        name: テイエムアイラン
         jockey: 富田暁
         sex: 牝
         age: 3
@@ -77,47 +33,9 @@ races:
         trainer: 宮地貴稔
         trainingCenter: 栗東
         weight: 55
-      - name: ドリームコア
-        jockey: ルメール
-        sex: 牝
-        age: 3
-        ref: nk-2023107146
-        trainer: 田中博康
-        trainingCenter: 美浦
-        weight: 55
-      - name: ナイスプレーアスク
-        jockey: 岩田康誠
-        sex: 牝
-        age: 3
-        ref: nk-2023105420
-        trainer: 中舘英二
-        trainingCenter: 美浦
-        weight: 55
-      - name: ハヤブササキチャン
-        jockey: 吉田隼人
-        sex: 牝
-        age: 3
-        ref: nk-2023106894
-        trainer: 東田明士
-        trainingCenter: 栗東
-        weight: 55
-      - name: バースデイフライト
-        jockey: 田山旺佑
-        sex: 牝
-        age: 3
-        ref: nk-2023102906
-        trainer: 新谷功一
-        trainingCenter: 栗東
-        weight: 55
-      - name: フェスティバルヒル
-        jockey: 浜中俊
-        sex: 牝
-        age: 3
-        ref: nk-2023107265
-        trainer: 四位洋文
-        trainingCenter: 栗東
-        weight: 55
-      - name: マスターソアラ
+      - horseNumber: 3
+        bracket: 2
+        name: マスターソアラ
         jockey: 武豊
         sex: 牝
         age: 3
@@ -125,15 +43,29 @@ races:
         trainer: 蛯名正義
         trainingCenter: 美浦
         weight: 55
-      - name: モンローウォーク
-        jockey: 戸崎圭太
+      - horseNumber: 4
+        bracket: 2
+        name: エンネ
+        jockey: 坂井瑠星
         sex: 牝
         age: 3
-        ref: nk-2023106859
-        trainer: 上村洋行
+        ref: nk-2023102102
+        trainer: 吉岡辰弥
         trainingCenter: 栗東
         weight: 55
-      - name: ラベルセーヌ
+      - horseNumber: 5
+        bracket: 3
+        name: タイセイボーグ
+        jockey: 西村淳也
+        sex: 牝
+        age: 3
+        ref: nk-2023106900
+        trainer: 松下武士
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 6
+        bracket: 3
+        name: ラベルセーヌ
         jockey: 荻野極
         sex: 牝
         age: 3
@@ -141,7 +73,109 @@ races:
         trainer: 鹿戸雄一
         trainingCenter: 美浦
         weight: 55
-      - name: ロザーンジュ
+      - horseNumber: 7
+        bracket: 4
+        name: バースデイフライト
+        jockey: 田山旺佑
+        sex: 牝
+        age: 3
+        ref: nk-2023102906
+        trainer: 新谷功一
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 8
+        bracket: 4
+        name: モンローウォーク
+        jockey: 戸崎圭太
+        sex: 牝
+        age: 3
+        ref: nk-2023106859
+        trainer: 上村洋行
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 9
+        bracket: 5
+        name: スウィートハピネス
+        jockey: 佐々木大輔
+        sex: 牝
+        age: 3
+        ref: nk-2023104475
+        trainer: 北出成人
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 10
+        bracket: 5
+        name: ナイスプレーアスク
+        jockey: 岩田康誠
+        sex: 牝
+        age: 3
+        ref: nk-2023105420
+        trainer: 中舘英二
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 11
+        bracket: 6
+        name: ガーネットフレア
+        jockey: 北村友一
+        sex: 牝
+        age: 3
+        ref: nk-2023107075
+        trainer: 杉山佳明
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 12
+        bracket: 6
+        name: カナルサンマルタン
+        jockey: 岩田望来
+        sex: 牝
+        age: 3
+        ref: nk-2023106846
+        trainer: 宮田敬介
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 13
+        bracket: 7
+        name: ドリームコア
+        jockey: ルメール
+        sex: 牝
+        age: 3
+        ref: nk-2023107146
+        trainer: 田中博康
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 14
+        bracket: 7
+        name: サムシングスイート
+        jockey: 松山弘平
+        sex: 牝
+        age: 3
+        ref: nk-2023106219
+        trainer: 伊藤大士
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 15
+        bracket: 8
+        name: フェスティバルヒル
+        jockey: 浜中俊
+        sex: 牝
+        age: 3
+        ref: nk-2023107265
+        trainer: 四位洋文
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 16
+        bracket: 8
+        name: ハヤブササキチャン
+        jockey: 吉田隼人
+        sex: 牝
+        age: 3
+        ref: nk-2023106894
+        trainer: 東田明士
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 17
+        bracket: 8
+        name: ロザーンジュ
         jockey: 今村聖奈
         sex: 牝
         age: 3
