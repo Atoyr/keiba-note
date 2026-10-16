@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { ROW_RACE, EMPTY_RACE_ID, PAST_RUN_RACE_ID } from './seed';
 import { failNextAction } from './action-failure';
+import { expectLinkTo } from './link';
 
 async function login(page: Page) {
 	await page.context().addCookies([
@@ -54,9 +55,10 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	const pastNote = pastNotes.locator('li', { hasText: 'E2E行展開前走' });
 	await expect(pastNote).toContainText('前走の出走前メモ');
 	await expect(pastNote).toContainText('前走のふりかえりメモ');
-	await expect(
-		pastNote.getByRole('link', { name: 'この走りの画面でメモを確認・編集する' })
-	).toHaveAttribute('href', '/races/01JE2ERACEROWPAST000000000');
+	await expectLinkTo(
+		pastNote.getByRole('link', { name: 'この走りの画面でメモを確認・編集する' }),
+		'/races/01JE2ERACEROWPAST000000000'
+	);
 	// 近況は走りに付けない（馬のメモの欄には出うるので、馬柱の表と各走のメモの中だけを見る）
 	await expect(run).not.toContainText('近況はこの走りに付けない');
 	await expect(pastNotes).not.toContainText('近況はこの走りに付けない');

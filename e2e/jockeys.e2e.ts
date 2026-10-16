@@ -9,6 +9,7 @@ import {
 	THIS_WEEK_RACES,
 	TIMELINE_RUN_RACES
 } from './seed';
+import { expectLinkTo } from './link';
 
 const jockeyPath = (name: string) => `/jockeys/${encodeURIComponent(name)}`;
 const rides = 'main section ol > li';
@@ -54,15 +55,16 @@ test('騎手の画面に、まとめと騎乗ごとの自分のメモが並ぶ',
 	// メモはその騎乗の下に出る。馬名は馬の画面へ、レースは結果の有無で振り分ける。
 	const noted = rows.filter({ hasText: '直線だけの競馬になった。' });
 	await expect(noted).toContainText('E2Eテストホース');
-	await expect(noted.getByRole('link', { name: /E2Eステークス/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		noted.getByRole('link', { name: /E2Eステークス/ }),
 		`/races/${REVIEW_RACE_ID}`
 	);
 	// メモの無い騎乗も並ぶ。
 	await expect(rows.filter({ hasText: 'E2E特別' })).toHaveCount(1);
-	await expect(
-		rows.filter({ hasText: 'E2E未来賞' }).getByRole('link', { name: /E2E未来賞/ })
-	).toHaveAttribute('href', `/races/${TIMELINE_RUN_RACES.future}/preview`);
+	await expectLinkTo(
+		rows.filter({ hasText: 'E2E未来賞' }).getByRole('link', { name: /E2E未来賞/ }),
+		`/races/${TIMELINE_RUN_RACES.future}/preview`
+	);
 
 	// 他人のメモとまとめは出ない。
 	await expect(page.getByText(OTHER_USER_PREVIEW_BODY)).toHaveCount(0);
@@ -282,10 +284,7 @@ test('騎乗の無い騎手は 404 で、まとめも書けない', async ({ pag
 	expect(res?.status()).toBe(404);
 	// 既定のエラー画面ではなく、一覧へ戻る道を出す（名前の表記が変わるとリンクが古くなる）。
 	await expect(page.getByRole('heading', { name: '騎手が見つかりません' })).toBeVisible();
-	await expect(page.getByRole('link', { name: '騎手の一覧で探す' })).toHaveAttribute(
-		'href',
-		'/jockeys'
-	);
+	await expectLinkTo(page.getByRole('link', { name: '騎手の一覧で探す' }), '/jockeys');
 
 	const post = await page.request.post(`${path}?/saveSummary`, {
 		headers: { origin: `http://localhost:${process.env.E2E_PORT ?? 4173}` },

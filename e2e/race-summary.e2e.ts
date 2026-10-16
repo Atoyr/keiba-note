@@ -4,6 +4,7 @@ import { failNextAction } from './action-failure';
 import { login } from './login';
 import { raceMenuItem } from './race-menu';
 import { MARKS_RACE_ID, SHARED_NOTE_ID, SHARED_RACE_ID, SUMMARY_RACE_ID } from './seed';
+import { expectLinkTo } from './link';
 
 const summaryPath = `/races/${SUMMARY_RACE_ID}/summary`;
 
@@ -52,7 +53,7 @@ test('未ログインの人にだけ、共有ページの一番下に紹介ペ�
 	// まとめ本体より下にある。
 	const summary = (await page.locator('article').boundingBox())!;
 	expect((await guide.boundingBox())!.y).toBeGreaterThan(summary.y + summary.height);
-	await expect(guide.getByRole('link', { name: 'できることを見る' })).toHaveAttribute('href', '/');
+	await expectLinkTo(guide.getByRole('link', { name: 'できることを見る' }), '/');
 	await guide.getByRole('link', { name: 'ログインして始める' }).click();
 	await expect(page).toHaveURL('/login');
 	await expect(page.getByRole('button', { name: 'Google でログイン' })).toBeVisible();

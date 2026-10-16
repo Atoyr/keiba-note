@@ -14,6 +14,7 @@ import {
 	REVIEW_RACE_ID,
 	THIS_WEEK_RACES
 } from './seed';
+import { expectLinkTo } from './link';
 
 /**
  * レース一覧の絞り込みは GET クエリで表される。
@@ -163,12 +164,12 @@ test('今週の重賞から、結果が出たレースはふりかえりへ、�
 	await page.goto('/this-week');
 
 	const { settled, upcoming } = THIS_WEEK_RACES;
-	await expect(page.getByRole('link', { name: new RegExp(settled.name) })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		page.getByRole('link', { name: new RegExp(settled.name) }),
 		`/races/${settled.id}`
 	);
-	await expect(page.getByRole('link', { name: new RegExp(upcoming.name) })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		page.getByRole('link', { name: new RegExp(upcoming.name) }),
 		`/races/${upcoming.id}/preview`
 	);
 
@@ -190,17 +191,14 @@ test('レース一覧から、結果が出たレースはふりかえりへ、�
 	await login(page);
 	await page.goto('/races?year=');
 
-	await expect(page.getByRole('link', { name: /E2E枠色賞/ })).toHaveAttribute(
-		'href',
-		`/races/${BRACKET_RACE_ID}`
-	);
-	await expect(page.getByRole('link', { name: /E2E結果待ち賞/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(page.getByRole('link', { name: /E2E枠色賞/ }), `/races/${BRACKET_RACE_ID}`);
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E結果待ち賞/ }),
 		`/races/${PAST_EMPTY_RACE_ID}/preview`
 	);
 	// 結果の投入前でも、ふりかえりを書いてあるレース（E2E別距離賞）はそれがあるふりかえりへ。
-	await expect(page.getByRole('link', { name: /E2E別距離賞/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E別距離賞/ }),
 		`/races/${OTHER_DISTANCE_RACE_ID}`
 	);
 });

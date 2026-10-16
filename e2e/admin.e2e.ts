@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import { THIS_WEEK_RACES } from './seed';
+import { expectLinkTo } from './link';
 
 /**
  * 管理画面（/settings/admin）。サイト管理者だけが開ける。
@@ -33,8 +34,8 @@ test('これからのレースが頭数とともに並び、トークンが無�
 	await expect(settled.getByRole('button', { name: /出走馬を取得する$/ })).toBeDisabled();
 
 	// 予想画面へ行ける
-	await expect(settled.getByRole('link', { name: THIS_WEEK_RACES.settled.name })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		settled.getByRole('link', { name: THIS_WEEK_RACES.settled.name }),
 		`/races/${THIS_WEEK_RACES.settled.id}/preview`
 	);
 });

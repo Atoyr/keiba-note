@@ -12,6 +12,7 @@ import {
 	PREVIEW_RACE_ID,
 	SAME_CONDITION_NOTE_BODY
 } from './seed';
+import { expectLinkTo } from './link';
 
 /** 行のメモそのもの（書いたメモがあるときの、押すと書き直せるボタン）。 */
 const memoButton = (row: Locator) => row.getByRole('button', { name: /出走前メモを書き直す/ });
@@ -179,7 +180,7 @@ test('スマホの幅でも、全角9文字の馬名が切れずに出る', asyn
 
 	const name = page
 		.locator('main li[id^="entry-"]', { hasText: 'アナウマスペシャル' })
-		.locator('a[href^="/horses/"]');
+		.getByRole('link', { name: 'アナウマスペシャル', exact: true });
 	await expect(name).toHaveText('アナウマスペシャル');
 	const { scrollWidth, clientWidth } = await name.evaluate((el) => ({
 		scrollWidth: el.scrollWidth,
@@ -379,10 +380,7 @@ test('開催済みの予想画面のメニューには「ふりかえりを書�
 	await login(page);
 	await page.goto(`/races/${PAST_EMPTY_RACE_ID}/preview`);
 
-	await expect(await raceMenuItem(page, 'ふりかえりを書く')).toHaveAttribute(
-		'href',
-		`/races/${PAST_EMPTY_RACE_ID}`
-	);
+	await expectLinkTo(await raceMenuItem(page, 'ふりかえりを書く'), `/races/${PAST_EMPTY_RACE_ID}`);
 });
 
 /**
@@ -416,9 +414,9 @@ test('見立ての下に、同じ条件で前に書いた自分のレースの�
 	await expect(same).toContainText('（京都 芝2200m）');
 	await expect(page.getByText(SAME_CONDITION_NOTE_BODY)).toBeVisible();
 	// 押すとそのレースのふりかえりへ。
-	await expect(page.getByRole('link', { name: /E2E同条件賞/ })).toHaveAttribute(
-		'href',
-		/^\/races\/01JE2ERACESAMECOND/
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E同条件賞/ }),
+		'/races/01JE2ERACESAMECOND0000000'
 	);
 
 	// 条件が違う（距離が違う）レースのメモは出ない。
