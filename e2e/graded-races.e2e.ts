@@ -3,6 +3,7 @@ import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import { raceMenuItem } from './race-menu';
 import { GRADED_RACE, REVIEW_RACE_ID, TREND_RACE } from './seed';
+import { expectLinkTo } from './link';
 
 const gradedPath = (name: string) => `/graded-races/${encodeURIComponent(name)}`;
 // 傾向の文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
@@ -31,8 +32,8 @@ test('年ごとに、別名のレースも同じ重賞として自分の予想�
 	const rows = page.locator(years);
 	await expect(rows).toHaveCount(3);
 	await expect(rows.first()).toContainText('開催予定');
-	await expect(rows.first().getByRole('link')).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		rows.first().getByRole('link'),
 		`/races/${GRADED_RACE.thisYearRaceId}/preview`
 	);
 
@@ -44,14 +45,14 @@ test('年ごとに、別名のレースも同じ重賞として自分の予想�
 	await expect(last).toContainText(`勝ち馬 ${GRADED_RACE.winner}`);
 	// 印は印の順（◎ → ▲）。着順も出る。
 	await expect(last.locator('ul > li')).toHaveText([/E2E重賞イチバン.*1着/, /E2E重賞ニバン.*4着/]);
-	await expect(last.getByRole('link', { name: /産経賞オールカマー/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		last.getByRole('link', { name: /産経賞オールカマー/ }),
 		`/races/${GRADED_RACE.lastYearRaceId}`
 	);
 
 	// 1頭ごとのメモは本文を出さず、数だけをレースへのリンクにする（印を付けた出走前メモが2件）。
-	await expect(last.getByRole('link', { name: '1頭ごとのメモ 2件' })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		last.getByRole('link', { name: '1頭ごとのメモ 2件' }),
 		`/races/${GRADED_RACE.lastYearRaceId}`
 	);
 
@@ -111,10 +112,7 @@ test('予想画面とふりかえり画面から重賞のタイムラインへ�
 
 	// 予想画面: 右端の ⋯ から。
 	await page.goto(`/races/${GRADED_RACE.thisYearRaceId}/preview`);
-	await expect(await raceMenuItem(page, '重賞のタイムライン')).toHaveAttribute(
-		'href',
-		gradedPath(GRADED_RACE.key)
-	);
+	await expectLinkTo(await raceMenuItem(page, '重賞のタイムライン'), gradedPath(GRADED_RACE.key));
 });
 
 test('重賞に当たらない名前は 404 で、傾向も書けない', async ({ page }) => {
@@ -125,10 +123,7 @@ test('重賞に当たらない名前は 404 で、傾向も書けない', async 
 	const res = await page.goto(path);
 	expect(res?.status()).toBe(404);
 	await expect(page.getByRole('heading', { name: '重賞が見つかりません' })).toBeVisible();
-	await expect(page.getByRole('link', { name: '重賞の一覧で探す' })).toHaveAttribute(
-		'href',
-		'/graded-races'
-	);
+	await expectLinkTo(page.getByRole('link', { name: '重賞の一覧で探す' }), '/graded-races');
 
 	const post = await page.request.post(`${path}?/saveTrend`, {
 		headers: { origin: `http://localhost:${process.env.E2E_PORT ?? 4173}` },
@@ -146,15 +141,15 @@ test('本人の毎年共通の重賞の傾向はレース情報に集約し、�
 		const trend = page.getByRole('region', { name: '重賞の傾向' });
 		await expect(trend).toContainText(TREND_RACE.trend);
 		await expect(trend).toContainText(`${TREND_RACE.key}・毎年共通`);
-		await expect(trend.getByRole('link', { name: '重賞の画面で直す' })).toHaveAttribute(
-			'href',
+		await expectLinkTo(
+			trend.getByRole('link', { name: '重賞の画面で直す' }),
 			gradedPath(TREND_RACE.key)
 		);
 		await expect(page.getByText(TREND_RACE.otherUserTrend)).toHaveCount(0);
 		// 重賞のタイムラインは傾向の下。重賞の画面へのリンクが見出しの行にある。
 		const timeline = page.getByRole('region', { name: /重賞のタイムライン/ });
-		await expect(timeline.getByRole('link', { name: '重賞の画面で見る' })).toHaveAttribute(
-			'href',
+		await expectLinkTo(
+			timeline.getByRole('link', { name: '重賞の画面で見る' }),
 			gradedPath(TREND_RACE.key)
 		);
 		// TREND_RACE はほかの年が無い（このレース自身の行はタイムラインに出さない）。
@@ -184,8 +179,8 @@ test('レース情報タブの重賞のタイムラインに、ほかの年の�
 	await expect(last).toContainText(`勝ち馬 ${GRADED_RACE.winner}`);
 	await expect(last.locator('ul > li')).toHaveText([/E2E重賞イチバン.*1着/, /E2E重賞ニバン.*4着/]);
 	await expect(rows.filter({ hasText: 'メモはありません' })).toHaveCount(1);
-	await expect(timeline.getByRole('link', { name: '重賞の画面で見る' })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		timeline.getByRole('link', { name: '重賞の画面で見る' }),
 		gradedPath(GRADED_RACE.key)
 	);
 

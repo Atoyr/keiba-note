@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import { FAVORITE_HORSES, TIMELINE_RUN_RACES, TOGGLE_FAVORITE_HORSE_ID } from './seed';
+import { expectLinkTo } from './link';
 
 const favorites = (page: Page) =>
 	page
@@ -18,8 +19,8 @@ test('ダッシュボードに自分の推しの出走予定だけが出る', as
 	await expect(row).toContainText('E2E未来賞');
 	await expect(row).toContainText('3番');
 	// 開催前のレースは予想画面へ。
-	await expect(row.getByRole('link', { name: /E2E未来賞/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		row.getByRole('link', { name: /E2E未来賞/ }),
 		`/races/${TIMELINE_RUN_RACES.future}/preview`
 	);
 
@@ -38,10 +39,7 @@ test('推しがいなければ、どこで推しにするかを案内する', as
 	await page.goto('/');
 
 	await expect(favorites(page)).toContainText('の画面で星のボタンを押すと');
-	await expect(favorites(page).getByRole('link', { name: '馬' })).toHaveAttribute(
-		'href',
-		'/horses'
-	);
+	await expectLinkTo(favorites(page).getByRole('link', { name: '馬' }), '/horses');
 });
 
 test('馬の画面で推しにすると出走予定に並び、外すと消える', async ({ page }) => {

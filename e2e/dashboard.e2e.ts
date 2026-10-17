@@ -8,6 +8,7 @@ import {
 	THIS_WEEK_RACES,
 	WATCH_HORSES
 } from './seed';
+import { expectLinkTo } from './link';
 
 /** 見出しの文字で枠を選ぶ。並び順ではなく**どの枠に出るか**を見たいので。 */
 const section = (page: Page, heading: string) =>
@@ -184,17 +185,20 @@ test('ダッシュボードのリンクは、結果が出たものとふりか�
 	await page.goto('/');
 
 	const { settled, upcoming } = THIS_WEEK_RACES;
-	await expect(
+	await expectLinkTo(
 		section(page, '今週出走する注目馬')
 			.locator('li', { hasText: WATCH_HORSES.buy })
-			.getByRole('link', { name: new RegExp(upcoming.name) })
-	).toHaveAttribute('href', `/races/${upcoming.id}/preview`);
-	await expect(
-		section(page, '今週のレース').getByRole('link', { name: new RegExp(settled.name) })
-	).toHaveAttribute('href', `/races/${settled.id}`);
-	await expect(
-		section(page, '最近のメモ').getByRole('link', { name: /E2E別距離賞/ })
-	).toHaveAttribute('href', `/races/${OTHER_DISTANCE_RACE_ID}`);
+			.getByRole('link', { name: new RegExp(upcoming.name) }),
+		`/races/${upcoming.id}/preview`
+	);
+	await expectLinkTo(
+		section(page, '今週のレース').getByRole('link', { name: new RegExp(settled.name) }),
+		`/races/${settled.id}`
+	);
+	await expectLinkTo(
+		section(page, '最近のメモ').getByRole('link', { name: /E2E別距離賞/ }),
+		`/races/${OTHER_DISTANCE_RACE_ID}`
+	);
 });
 
 /**
@@ -205,8 +209,5 @@ test('「すべてのレースを見る」は絞り込みなしのレース一�
 	await login(page);
 	await page.goto('/');
 
-	await expect(page.getByRole('link', { name: 'すべてのレースを見る →' })).toHaveAttribute(
-		'href',
-		'/races?year='
-	);
+	await expectLinkTo(page.getByRole('link', { name: 'すべてのレースを見る →' }), '/races?year=');
 });

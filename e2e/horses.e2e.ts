@@ -8,6 +8,7 @@ import {
 	OUTER_HORSE_ID,
 	TIMELINE_RUN_RACES
 } from './seed';
+import { expectLinkTo } from './link';
 
 const TIMELINE = 'main ol > li';
 
@@ -73,19 +74,19 @@ test('タイムラインから、結果が出たレースはふりかえりへ�
 	await login(page);
 	await page.goto(`/horses/${HORSE_ID}`);
 
-	await expect(page.getByRole('link', { name: /E2E特別/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E特別/ }),
 		`/races/${TIMELINE_RUN_RACES.quiet}`
 	);
-	await expect(page.getByRole('link', { name: /E2E未来賞/ })).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E未来賞/ }),
 		`/races/${TIMELINE_RUN_RACES.future}/preview`
 	);
 
 	// 出走前メモ（ふりかえりではない）でも、着順の入ったレースならふりかえりへ。
 	await page.goto(`/horses/${OUTER_HORSE_ID}`);
-	await expect(page.getByRole('link', { name: /E2E枠色賞/ }).first()).toHaveAttribute(
-		'href',
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E枠色賞/ }).first(),
 		`/races/${BRACKET_RACE_ID}`
 	);
 });
