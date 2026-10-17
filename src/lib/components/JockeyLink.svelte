@@ -77,7 +77,7 @@
 		>
 		<Popover.Content
 			role="dialog"
-			aria-label="{name}のまとめ"
+			aria-label="{name}のメモ"
 			collisionPadding={8}
 			class="w-auto max-w-sm items-start gap-1.5"
 		>
