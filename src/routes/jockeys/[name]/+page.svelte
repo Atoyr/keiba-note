@@ -38,7 +38,7 @@
 	</p>
 
 	<section class="mt-6" aria-labelledby="jockey-summary">
-		<h2 id="jockey-summary" class="text-sm font-semibold text-muted-foreground">まとめ</h2>
+		<h2 id="jockey-summary" class="text-sm font-semibold text-muted-foreground">メモ</h2>
 
 		<!-- 書いたまとめは畳まない。畳むのは書く側だけ（予想画面の出走前メモと同じ）。
 		     `<details>` なので JS が無くても開ける。
@@ -54,7 +54,7 @@
 					<JockeyTagBadges tags={data.summary.tags} class="mt-1" />
 				{:else}
 					<p class="text-sm text-muted-foreground">
-						まだまとめはありません。乗り方の癖や得意な場を、札と一言で残せます。
+						まだメモはありません。乗り方の癖や得意な場を、札と一言で残せます。
 					</p>
 				{/if}
 			{/if}
@@ -63,7 +63,7 @@
 					bind:this={toggle}
 					class="mt-1 inline-flex min-h-6 cursor-pointer list-none items-center text-xs text-muted-foreground underline-offset-2 hover:underline [&::-webkit-details-marker]:hidden"
 				>
-					<span class="group-open:hidden">{hasSummary ? '書き直す' : '＋ まとめを書く'}</span>
+					<span class="group-open:hidden">{hasSummary ? '書き直す' : '＋ メモを書く'}</span>
 					<span class="hidden group-open:inline">閉じる</span>
 				</summary>
 
@@ -88,9 +88,7 @@
 									await tick();
 									toggle?.focus();
 									toast.success(
-										result.data?.summary === 'cleared'
-											? 'まとめを消しました'
-											: 'まとめを保存しました'
+										result.data?.summary === 'cleared' ? 'メモを消しました' : 'メモを保存しました'
 									);
 								}
 							} finally {
@@ -102,18 +100,18 @@
 					<Textarea
 						name="body"
 						rows={3}
-						aria-label="まとめの本文"
+						aria-label="メモの本文"
 						placeholder="中山の内回りは前に行く。追ってからしぶとい。"
 						class="text-sm"
 						value={data.summary?.body ?? ''}
 					/>
 					<JockeyTagPicker name="tags" values={data.summary?.tags ?? []} />
 					<p class="text-xs text-muted-foreground">
-						本文も札も空にして保存すると、まとめは消えます。
+						本文も札も空にして保存すると、メモは消えます。
 					</p>
 					<div class="flex flex-wrap items-center gap-3">
 						<Button type="submit" aria-disabled={pending} class="aria-disabled:opacity-50">
-							まとめを保存する
+							メモを保存する
 						</Button>
 						{#if form?.message}
 							<p class="text-sm text-destructive" role="alert">{form.message}</p>
@@ -124,7 +122,7 @@
 		</div>
 		{#if form && 'summary' in form}<noscript
 				><p class="mt-1 text-sm">
-					{form.summary === 'cleared' ? 'まとめを消しました。' : 'まとめを保存しました。'}
+					{form.summary === 'cleared' ? 'メモを消しました。' : 'メモを保存しました。'}
 				</p></noscript
 			>{/if}
 	</section>

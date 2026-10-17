@@ -14,7 +14,7 @@ import { expectLinkTo } from './link';
 const jockeyPath = (name: string) => `/jockeys/${encodeURIComponent(name)}`;
 const rides = 'main section ol > li';
 // まとめの文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
-const summaryRegion = (page: Page) => page.getByRole('region', { name: 'まとめ' });
+const summaryRegion = (page: Page) => page.getByRole('region', { name: 'メモ', exact: true });
 
 test('騎手の一覧は騎乗の多い順に並び、名前と自分が付けた札で絞れる', async ({ page }) => {
 	await login(page);
@@ -85,12 +85,12 @@ test('まとめを書いて札を付け、空にすると消える', async ({ pa
 	await login(page);
 	await gotoHydrated(page, jockeyPath(JOCKEYS.rookie));
 
-	await expect(page.getByText('まだまとめはありません。')).toBeVisible();
-	await page.getByText('＋ まとめを書く').click();
-	await page.getByLabel('まとめの本文').fill('若手らしく積極的。');
+	await expect(page.getByText('まだメモはありません。')).toBeVisible();
+	await page.getByText('＋ メモを書く').click();
+	await page.getByLabel('メモの本文').fill('若手らしく積極的。');
 	await page.getByRole('group', { name: '得意な場' }).getByText('福島巧者').click();
-	await page.getByRole('button', { name: 'まとめを保存する' }).click();
-	await expect(page.getByText('まとめを保存しました')).toBeVisible();
+	await page.getByRole('button', { name: 'メモを保存する' }).click();
+	await expect(page.getByText('メモを保存しました')).toBeVisible();
 	// 入力欄が閉じたら、フォーカスは開閉のボタンに戻る（押した保存ボタンは閉じた中に消える）。
 	await expect(summaryRegion(page).locator('summary')).toBeFocused();
 
@@ -102,12 +102,12 @@ test('まとめを書いて札を付け、空にすると消える', async ({ pa
 
 	await gotoHydrated(page, jockeyPath(JOCKEYS.rookie));
 	await page.getByText('書き直す').click();
-	await page.getByLabel('まとめの本文').fill('');
+	await page.getByLabel('メモの本文').fill('');
 	await page.getByRole('group', { name: '得意な場' }).getByText('福島巧者').click();
-	await page.getByRole('button', { name: 'まとめを保存する' }).click();
-	await expect(page.getByText('まとめを消しました')).toBeVisible();
+	await page.getByRole('button', { name: 'メモを保存する' }).click();
+	await expect(page.getByText('メモを消しました')).toBeVisible();
 	await page.reload();
-	await expect(page.getByText('まだまとめはありません。')).toBeVisible();
+	await expect(page.getByText('まだメモはありません。')).toBeVisible();
 });
 
 test('予想画面の騎手名から、まとめを開いて騎手の画面へ行ける', async ({ page }) => {
