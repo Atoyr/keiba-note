@@ -25,15 +25,15 @@
 	let editing = $state(startOpen);
 	let pending = $state(false);
 	let toggle = $state<HTMLElement>();
-	let details: HTMLDetailsElement;
+	let details = $state<HTMLDetailsElement>();
 
 	// hydration の前に開かれていたら、ここで拾う。
 	onMount(() => {
-		editing = details.open;
+		editing = details!.open;
 	});
 
 	function sync() {
-		editing = details.open;
+		editing = details!.open;
 	}
 
 	const hasTrend = $derived(!!data.trend);
@@ -101,7 +101,7 @@
 								await update({ reset: false });
 								if (result.type === 'success') {
 									// toggle イベントは後から来るので、editing もここで揃える。
-									details.open = false;
+									details!.open = false;
 									editing = false;
 									// 押した保存ボタンは閉じた中に消えるので、フォーカスを開閉のボタンへ戻す。
 									await tick();

@@ -76,6 +76,9 @@ test('傾向を書いて保存でき、空にして保存すると消える', as
 	await expect(page.getByText('傾向を保存しました')).toBeVisible();
 	// 入力欄が閉じたら、フォーカスは開閉のボタンに戻る。
 	await expect(trendRegion(page).locator('summary')).toBeFocused();
+	// 欄そのものも閉じている。
+	await expect(trendRegion(page).locator('details')).toHaveJSProperty('open', false);
+	await expect(page.getByLabel('傾向の本文')).toBeHidden();
 
 	// 読み込み直しても残る。一覧にも「傾向」が出る。
 	await page.reload();
@@ -209,4 +212,28 @@ test('傾向を書いていない重賞のふりかえり画面のレース情�
 	const trend = page.getByRole('region', { name: '重賞の傾向' });
 	await expect(trend).toContainText('まだ傾向のメモはありません。');
 	await expect(trend.getByRole('link', { name: '重賞の画面で書く' })).toBeVisible();
+});
+
+/**
+ * JS が無いと、失敗した保存の画面は描き直される。そのとき書いた欄を閉じて返すと、
+ * 失敗のメッセージも入力も見えない。開いたまま返す（`<details open>` の枝）。
+ * 保存は失敗するので、DB は変わらない。
+ */
+test.describe('JavaScript が無いとき', () => {
+	test.use({ javaScriptEnabled: false });
+
+	test('傾向の保存に失敗した画面は、欄が開いたまま入力も残る', async ({ page }) => {
+		await login(page);
+		await page.goto(gradedPath(GRADED_RACE.key));
+
+		const tooLong = 'あ'.repeat(10001);
+		const details = trendRegion(page).locator('details');
+		await details.locator('summary').click();
+		await page.getByLabel('傾向の本文').fill(tooLong);
+		await page.getByRole('button', { name: '傾向を保存する' }).click();
+
+		await expect(page.getByRole('alert').filter({ hasText: 'メモが長すぎます' })).toBeVisible();
+		await expect(details).toHaveJSProperty('open', true);
+		await expect(page.getByLabel('傾向の本文')).toHaveValue(tooLong);
+	});
 });
