@@ -10,6 +10,12 @@ races:
     surface: 芝
     distance: 2000
     direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 17
+    winner: モンローウォーク
+    runnerUp: ギャラボーグ
+    laps: [12.2, 10.9, 11.9, 11.5, 11.3, 11.6, 11.3, 11.4, 12, 12]
     ref: nk-202608040711
     startTime: "15:40"
     entries:
@@ -22,7 +28,16 @@ races:
         ref: nk-2023105825
         trainer: 杉山晴紀
         trainingCenter: 栗東
+        finish: 2
+        popularity: 7
+        time: "1:56.1"
+        margin: "クビ"
+        timeDiff: 0
+        last3f: 35.2
         weight: 55
+        horseWeight: 498
+        horseWeightDiff: 8
+        odds: 36.2
       - horseNumber: 2
         bracket: 1
         name: テイエムアイラン
@@ -32,7 +47,16 @@ races:
         ref: nk-2023100448
         trainer: 宮地貴稔
         trainingCenter: 栗東
+        finish: 14
+        popularity: 13
+        time: "1:58.0"
+        margin: "3/4"
+        timeDiff: 1.9
+        last3f: 37.3
         weight: 55
+        horseWeight: 420
+        horseWeightDiff: 6
+        odds: 129.5
       - horseNumber: 3
         bracket: 2
         name: マスターソアラ
@@ -42,7 +66,16 @@ races:
         ref: nk-2023106810
         trainer: 蛯名正義
         trainingCenter: 美浦
+        finish: 8
+        popularity: 5
+        time: "1:57.0"
+        margin: "1.1/4"
+        timeDiff: 0.9
+        last3f: 34.9
         weight: 55
+        horseWeight: 492
+        horseWeightDiff: 0
+        odds: 18.9
       - horseNumber: 4
         bracket: 2
         name: エンネ
@@ -52,7 +85,16 @@ races:
         ref: nk-2023102102
         trainer: 吉岡辰弥
         trainingCenter: 栗東
+        finish: 4
+        popularity: 6
+        time: "1:56.4"
+        margin: "1/2"
+        timeDiff: 0.3
+        last3f: 34.5
         weight: 55
+        horseWeight: 526
+        horseWeightDiff: 4
+        odds: 22.8
       - horseNumber: 5
         bracket: 3
         name: タイセイボーグ
@@ -62,7 +104,16 @@ races:
         ref: nk-2023106900
         trainer: 松下武士
         trainingCenter: 栗東
+        finish: 10
+        popularity: 12
+        time: "1:57.4"
+        margin: "3/4"
+        timeDiff: 1.3
+        last3f: 35.3
         weight: 55
+        horseWeight: 496
+        horseWeightDiff: -2
+        odds: 86.2
       - horseNumber: 6
         bracket: 3
         name: ラベルセーヌ
@@ -72,7 +123,16 @@ races:
         ref: nk-2023103818
         trainer: 鹿戸雄一
         trainingCenter: 美浦
+        finish: 6
+        popularity: 3
+        time: "1:56.7"
+        margin: "1.1/4"
+        timeDiff: 0.6
+        last3f: 34.6
         weight: 55
+        horseWeight: 432
+        horseWeightDiff: -4
+        odds: 11
       - horseNumber: 7
         bracket: 4
         name: バースデイフライト
@@ -82,7 +142,16 @@ races:
         ref: nk-2023102906
         trainer: 新谷功一
         trainingCenter: 栗東
+        finish: 12
+        popularity: 16
+        time: "1:57.6"
+        margin: "アタマ"
+        timeDiff: 1.5
+        last3f: 35.1
         weight: 55
+        horseWeight: 458
+        horseWeightDiff: -4
+        odds: 275.3
       - horseNumber: 8
         bracket: 4
         name: モンローウォーク
@@ -92,7 +161,15 @@ races:
         ref: nk-2023106859
         trainer: 上村洋行
         trainingCenter: 栗東
+        finish: 1
+        popularity: 1
+        time: "1:56.1"
+        timeDiff: 0
+        last3f: 34.5
         weight: 55
+        horseWeight: 452
+        horseWeightDiff: 2
+        odds: 1.3
       - horseNumber: 9
         bracket: 5
         name: スウィートハピネス
@@ -102,7 +179,11 @@ races:
         ref: nk-2023104475
         trainer: 北出成人
         trainingCenter: 栗東
+        popularity: 11
         weight: 55
+        horseWeight: 450
+        horseWeightDiff: 6
+        odds: 76.8
       - horseNumber: 10
         bracket: 5
         name: ナイスプレーアスク
@@ -112,7 +193,16 @@ races:
         ref: nk-2023105420
         trainer: 中舘英二
         trainingCenter: 美浦
+        finish: 16
+        popularity: 17
+        time: "2:00.0"
+        margin: "7"
+        timeDiff: 3.9
+        last3f: 39
         weight: 55
+        horseWeight: 438
+        horseWeightDiff: 0
+        odds: 294
       - horseNumber: 11
         bracket: 6
         name: ガーネットフレア
@@ -122,7 +212,16 @@ races:
         ref: nk-2023107075
         trainer: 杉山佳明
         trainingCenter: 栗東
+        finish: 11
+        popularity: 10
+        time: "1:57.6"
+        margin: "3/4"
+        timeDiff: 1.5
+        last3f: 36.2
         weight: 55
+        horseWeight: 446
+        horseWeightDiff: 0
+        odds: 53.8
       - horseNumber: 12
         bracket: 6
         name: カナルサンマルタン
@@ -132,7 +231,16 @@ races:
         ref: nk-2023106846
         trainer: 宮田敬介
         trainingCenter: 美浦
+        finish: 13
+        popularity: 4
+        time: "1:57.9"
+        margin: "1.3/4"
+        timeDiff: 1.8
+        last3f: 36
         weight: 55
+        horseWeight: 460
+        horseWeightDiff: 12
+        odds: 16.9
       - horseNumber: 13
         bracket: 7
         name: ドリームコア
@@ -142,7 +250,16 @@ races:
         ref: nk-2023107146
         trainer: 田中博康
         trainingCenter: 美浦
+        finish: 3
+        popularity: 2
+        time: "1:56.3"
+        margin: "1.1/4"
+        timeDiff: 0.2
+        last3f: 34
         weight: 55
+        horseWeight: 512
+        horseWeightDiff: 10
+        odds: 8.4
       - horseNumber: 14
         bracket: 7
         name: サムシングスイート
@@ -152,7 +269,16 @@ races:
         ref: nk-2023106219
         trainer: 伊藤大士
         trainingCenter: 美浦
+        finish: 5
+        popularity: 8
+        time: "1:56.5"
+        margin: "クビ"
+        timeDiff: 0.4
+        last3f: 33.8
         weight: 55
+        horseWeight: 498
+        horseWeightDiff: 0
+        odds: 43.4
       - horseNumber: 15
         bracket: 8
         name: フェスティバルヒル
@@ -162,7 +288,16 @@ races:
         ref: nk-2023107265
         trainer: 四位洋文
         trainingCenter: 栗東
+        finish: 7
+        popularity: 15
+        time: "1:56.8"
+        margin: "1/2"
+        timeDiff: 0.7
+        last3f: 33.8
         weight: 55
+        horseWeight: 458
+        horseWeightDiff: -8
+        odds: 191.1
       - horseNumber: 16
         bracket: 8
         name: ハヤブササキチャン
@@ -172,7 +307,16 @@ races:
         ref: nk-2023106894
         trainer: 東田明士
         trainingCenter: 栗東
+        finish: 9
+        popularity: 9
+        time: "1:57.3"
+        margin: "2"
+        timeDiff: 1.2
+        last3f: 35
         weight: 55
+        horseWeight: 422
+        horseWeightDiff: -8
+        odds: 53.6
       - horseNumber: 17
         bracket: 8
         name: ロザーンジュ
@@ -182,7 +326,16 @@ races:
         ref: nk-2023103661
         trainer: 寺島良
         trainingCenter: 栗東
+        finish: 15
+        popularity: 14
+        time: "1:58.8"
+        margin: "5"
+        timeDiff: 2.7
+        last3f: 35.7
         weight: 55
+        horseWeight: 436
+        horseWeightDiff: -2
+        odds: 142.7
     withdrawn:
       - name: スマートプリエール
         ref: nk-2023107079
