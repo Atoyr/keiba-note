@@ -53,7 +53,9 @@ declare global {
 			raceFormRead?: {
 				raceId: string;
 				mode: 'preview' | 'review';
-				data: Awaited<ReturnType<typeof import('$lib/server/services/races').getRaceForPreview>>;
+				data:
+					| Awaited<ReturnType<typeof import('$lib/server/services/races').getRaceForPreview>>
+					| Awaited<ReturnType<typeof import('$lib/server/services/races').getRaceForReview>>;
 			};
 			/** hooks.server.ts が埋める。未ログインなら null。 */
 			user: import('$lib/server/auth/session').SessionUser | null;

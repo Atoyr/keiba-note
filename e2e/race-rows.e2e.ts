@@ -185,7 +185,7 @@ test('保存失敗後の閉じた入力を端末の下書きから明示復元�
 test('ふりかえりの閉じた行も保存し、事前の予想を上書きしない', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${ROW_RACE.id}`);
-	await expect(row(page, 0)).toContainText('4角4番手→4着');
+	await expect(row(page, 0)).toContainText('4角4番手');
 	await expect(row(page, 0)).toContainText('内で脚をためる。');
 	await open(page, 0);
 	await row(page, 0).locator('textarea').fill('直線の伸びをふりかえる。');
@@ -216,7 +216,8 @@ test('ふりかえりの閉じた行で、4角・上り・人気と、出走前�
 	await login(page);
 	await gotoHydrated(page, `/races/${ROW_RACE.id}`);
 	await expect(row(page, 0).locator('textarea')).toBeHidden();
-	await expect(row(page, 0)).toContainText('4角4番手→4着');
+	await expect(row(page, 0)).toContainText('4着');
+	await expect(row(page, 0)).toContainText('4角4番手');
 	await expect(row(page, 0)).toContainText('上り34.2');
 	await expect(row(page, 0)).toContainText('2人気');
 	// 状態の文言は出さず、メモをそのまま出す。出走前（保存済み）→ ふりかえりの順で、どちらも札付き。
@@ -237,7 +238,7 @@ test('ふりかえりの閉じた行で、4角・上り・人気と、出走前�
 	await expect(kinds1).toContainText('外から進出する。');
 	// ふりかえりのメモを押すと入力欄に替わる。同じものが2つ並ばないよう、書いたメモの表示は隠れる（出走前は読むだけで残る）。
 	await open(page, 0);
-	await expect(row(page, 0).getByText('4角4番手→4着')).toHaveCount(1);
+	await expect(row(page, 0).getByText('4角4番手')).toHaveCount(1);
 	await expect(row(page, 0).locator('textarea')).toHaveValue('直線の伸びをふりかえる。');
 	await expect(memos(page, 0)).toHaveCount(1);
 	await expect(memos(page, 0)).toContainText('出走前');

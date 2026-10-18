@@ -1,5 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { horseAge, sexAgeLabel } from './horse';
+import { formatHorseWeight, horseAge, sexAgeLabel } from './horse';
+
+describe('formatHorseWeight', () => {
+	it('増えた分は + を付ける', () => {
+		expect(formatHorseWeight(486, 4)).toBe('486(+4)');
+	});
+
+	it('減った分は - を付ける', () => {
+		expect(formatHorseWeight(486, -6)).toBe('486(-6)');
+	});
+
+	it('増減が 0 なら ±0', () => {
+		expect(formatHorseWeight(486, 0)).toBe('486(±0)');
+	});
+
+	it('増減が無ければ（初出走など）馬体重だけ', () => {
+		expect(formatHorseWeight(486, null)).toBe('486');
+	});
+
+	it('馬体重が無ければ null（表示しない）', () => {
+		expect(formatHorseWeight(null, null)).toBeNull();
+		expect(formatHorseWeight(null, 4)).toBeNull();
+	});
+});
 
 describe('horseAge', () => {
 	it('レースの年 − 生年。月日は使わない', () => {

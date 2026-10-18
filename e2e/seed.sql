@@ -588,19 +588,21 @@ VALUES ('01JE2EENTRYMARK70000000000', '01JE2ERACEMARKS00000000000', '01JE2EMARKH
 INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, mark, occurred_at)
 VALUES ('01JE2EPREVIEWMARK700000000', '01JE2EUSER0000000000000000', 'preview', '01JE2ERACEMARKS00000000000', '01JE2EMARKHORSE70000000000', '01JE2EENTRYMARK70000000000', '印は保留。距離延長での走りに注目。', NULL, '2026-06-07');
 
--- ふりかえり画面の「4角 → 着順」・上りの順位・確定の人気用（人気は予想画面の単勝オッズの並びにそろえた）。上り1〜3位が別々の馬に付き、
+-- ふりかえり画面の「4角の位置」・上りの順位・確定の人気と単勝・馬体重・着差用（人気は予想画面の単勝オッズの並びにそろえた）。上り1〜3位が別々の馬に付き、
 -- 4角の位置と着順が入れ替わる（⑤アナウマは4角5番手から2着）ようにしてある。
--- メモノミ（着順なし）は通過順も上りも無いまま＝2行目を出さない形（取消なので頭数は6）。
+-- メモノミ（着順なし）は通過順も上りも無いまま＝3段目も出さない形（取消なので頭数は6）。
 -- 上りの順位は、上りの入った頭数が頭数（field_size）と同じときだけ出る。
+-- 確定の単勝（odds）は人気の順に低い（予想画面の race_odds とは別の値）。馬体重は増・減・±0・増減なし（④）・馬体重なし（⑥）を混ぜた。
+-- 着差は 1着が NULL、ほかは着差の表記（`3.1/2` の `.` は整数と分数の区切り。run-stats の marginLengths）。
 UPDATE race SET field_size = 6 WHERE id = '01JE2ERACEMARKS00000000000';
 -- ラップ（1800m なので9区間）。前半3F 36.0・後半3F 34.6（後半が1.4秒速い）。予想のペースはスロー。
 UPDATE race SET laps = '[12.6,11.4,12.0,12.5,12.4,12.2,11.6,11.2,11.8]' WHERE id = '01JE2ERACEMARKS00000000000';
-UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1 WHERE id = '01JE2EENTRYMARK10000000000';
-UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2 WHERE id = '01JE2EENTRYMARK20000000000';
-UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3 WHERE id = '01JE2EENTRYMARK30000000000';
-UPDATE race_entry SET passing = '4-4-4-4', last_3f = 35.3, popularity = 5 WHERE id = '01JE2EENTRYMARK40000000000';
-UPDATE race_entry SET passing = '6-6-5-5', last_3f = 33.7, popularity = 6 WHERE id = '01JE2EENTRYMARK50000000000';
-UPDATE race_entry SET passing = '3-3-3-3', last_3f = 34.4, popularity = 4 WHERE id = '01JE2EENTRYMARK60000000000';
+UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1, odds = 2.8, horse_weight = 486, horse_weight_diff = 4, margin = NULL, finish_time = '1:47.2' WHERE id = '01JE2EENTRYMARK10000000000';
+UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2, odds = 4.6, horse_weight = 502, horse_weight_diff = -6, margin = '2', finish_time = '1:48.0' WHERE id = '01JE2EENTRYMARK20000000000';
+UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3, odds = 6.7, horse_weight = 470, horse_weight_diff = 0, margin = '1/2', finish_time = '1:47.5' WHERE id = '01JE2EENTRYMARK30000000000';
+UPDATE race_entry SET passing = '4-4-4-4', last_3f = 35.3, popularity = 5, odds = 15.2, horse_weight = 458, horse_weight_diff = NULL, margin = '3.1/2', finish_time = '1:48.4' WHERE id = '01JE2EENTRYMARK40000000000';
+UPDATE race_entry SET passing = '6-6-5-5', last_3f = 33.7, popularity = 6, odds = 28.9, horse_weight = 480, horse_weight_diff = 8, margin = 'クビ', finish_time = '1:47.3' WHERE id = '01JE2EENTRYMARK50000000000';
+UPDATE race_entry SET passing = '3-3-3-3', last_3f = 34.4, popularity = 4, odds = 9.1, horse_weight = NULL, horse_weight_diff = NULL, margin = '1.1/4', finish_time = '1:47.8' WHERE id = '01JE2EENTRYMARK60000000000';
 
 -- 展開の予想の見本。印見本のレースの見立てに、3局面の隊列を置いてある。
 -- 予想画面（畳んだ1行・盤面）・予想まとめ・ふりかえり（開催前の見立て）のキャプチャで使う。

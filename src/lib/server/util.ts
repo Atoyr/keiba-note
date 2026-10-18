@@ -10,9 +10,22 @@ export async function raceFormData(
 	db: Db,
 	locals: App.Locals,
 	raceId: string,
+	mode: 'preview'
+): Promise<Awaited<ReturnType<typeof getRaceForPreview>>>;
+export async function raceFormData(
+	db: Db,
+	locals: App.Locals,
+	raceId: string,
+	mode: 'review'
+): Promise<Awaited<ReturnType<typeof getRaceForReview>>>;
+export async function raceFormData(
+	db: Db,
+	locals: App.Locals,
+	raceId: string,
 	mode: 'preview' | 'review'
 ) {
 	const cached = locals.raceFormRead;
+	// mode が同じものだけ返す。画面ごとに引く列が違う（ふりかえりは確定の単勝・馬体重も引く）ので、型は mode で分ける。
 	if (cached?.raceId === raceId && cached.mode === mode) return cached.data;
 	const data = await (mode === 'preview'
 		? getRaceForPreview(db, raceId)

@@ -289,7 +289,7 @@ test('ふりかえり画面の上に、予想の印と着順が印の順に並�
 });
 
 /**
- * 各馬の行に、走りを読むための数字（4角の位置 → 着順・上りの順位・人気）が出る。
+ * 各馬の行に、走りを読むための数字（4角の位置・上りの順位・着順・人気）が出る。
  *
  * seed の E2E印見本特別では、⑤アナウマが6人気・4角5番手から2着・上り1位、①ホンメイが上り2位、
  * ⑥ケシウマが上り3位。上りの順位は出走馬全体で数えるので、行ごとの値だけでは決まらない。
@@ -300,7 +300,8 @@ test('各馬の行に、4角の位置から着順・上りの順位・人気が�
 
 	const row = (name: string) => page.locator('form li[id^="entry-"]', { hasText: name });
 
-	await expect(row('アナウマスペシャル')).toContainText('4角5番手→2着');
+	await expect(row('アナウマスペシャル')).toContainText('4角5番手');
+	await expect(row('アナウマスペシャル')).toContainText('2着');
 	await expect(row('アナウマスペシャル')).toContainText('6人気');
 	await expect(row('アナウマスペシャル').getByTitle('上り1位')).toHaveText('上り1位 33.7');
 	await expect(row('E2Eホンメイ').getByTitle('上り2位')).toBeVisible();
@@ -314,6 +315,46 @@ test('各馬の行に、4角の位置から着順・上りの順位・人気が�
 	await expect(row('E2Eメモノミ')).not.toContainText('4角');
 	// 札の「好上り」には当たらないよう、上りのタイム（上り＋数字）で見る。
 	await expect(row('E2Eメモノミ')).not.toContainText(/上り\d/);
+});
+
+/**
+ * 各馬の行の見出しは予想画面と同じ列の並びで、着順・馬体重（増減）・確定の人気と単勝・着差が出る。
+ *
+ * seed の E2E印見本特別: ①ホンメイは486(+4)・1人気2.8・1着（着差なし）、⑤アナウマは480(+8)・6人気28.9・2着・クビ、
+ * ②は−6・③は±0・④は増減なし、⑥ケシウマは馬体重なし。
+ */
+test('各馬の行に、着順・馬体重と増減・確定の人気と単勝・着差が出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}`);
+
+	const row = (name: string) => page.locator('form li[id^="entry-"]', { hasText: name });
+
+	// 予想画面の人気・オッズは取得時点の値。ここは確定の値だと添える。
+	await expect(page.getByText('人気・単勝オッズは確定の値')).toBeVisible();
+
+	const first = row('E2Eホンメイ');
+	await expect(first).toContainText('1着');
+	await expect(first).toContainText('馬体重486(+4)');
+	await expect(first).toContainText(/1人気\s*単勝\s*2\.8/);
+	// 1着は着差なし。
+	await expect(first).not.toContainText('着差');
+
+	const second = row('アナウマスペシャル');
+	await expect(second).toContainText('2着');
+	await expect(second).toContainText('馬体重480(+8)');
+	await expect(second).toContainText(/6人気\s*単勝\s*28\.9/);
+	await expect(second).toContainText('着差クビ');
+
+	// 増減は −・±0・なし。馬体重が無い馬は馬体重を出さない。
+	await expect(row('E2Eタイコウ')).toContainText('馬体重502(-6)');
+	await expect(row('E2Eタンアナ')).toContainText('馬体重470(±0)');
+	await expect(row('E2Eレンシタ')).toContainText(/馬体重458(?!\()/);
+	await expect(row('E2Eケシウマ')).not.toContainText('馬体重');
+	await expect(row('E2Eケシウマ')).toContainText('着差1.1/4');
+
+	// 取消（着順なし）は着順も走りの数字も出ない。
+	await expect(row('E2Eメモノミ')).not.toContainText(/\d着/);
+	await expect(row('E2Eメモノミ')).not.toContainText('着差');
 });
 
 /**
@@ -398,9 +439,9 @@ test('展開を予想していないレースでも、4角とゴール前の実�
 	await expect(page.locator('form li[id^="entry-"]', { hasText: 'E2Eチュウシ' })).not.toContainText(
 		'4角'
 	);
-	await expect(page.locator('form li[id^="entry-"]', { hasText: 'E2Eマクリ' })).toContainText(
-		'4角2番手→3着'
-	);
+	const makuri = page.locator('form li[id^="entry-"]', { hasText: 'E2Eマクリ' });
+	await expect(makuri).toContainText('4角2番手');
+	await expect(makuri).toContainText('3着');
 });
 
 /**
