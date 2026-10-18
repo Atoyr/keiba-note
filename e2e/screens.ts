@@ -128,6 +128,14 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true,
 		touch: true
 	},
+	{
+		// 騎手の画面で「騎手のメモ」の info アイコンに乗せて、メモがどこに出るかの説明が浮かんだところ。
+		name: 'jockey-memo-info-tip',
+		path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}`,
+		auth: true,
+		prepare: openInfoTip('騎手のメモの説明', 'hover'),
+		stayAtTop: true
+	},
 	{ name: 'webmcp-guide', path: '/help/webmcp', auth: true },
 	// MCP（Claude・ChatGPT のプラグイン）の登録の案内。
 	{ name: 'mcp-guide', path: '/help/mcp', auth: true },

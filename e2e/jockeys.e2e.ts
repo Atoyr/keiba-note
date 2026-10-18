@@ -14,7 +14,7 @@ import { expectLinkTo } from './link';
 const jockeyPath = (name: string) => `/jockeys/${encodeURIComponent(name)}`;
 const rides = 'main section ol > li';
 // まとめの文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
-const summaryRegion = (page: Page) => page.getByRole('region', { name: 'まとめ' });
+const summaryRegion = (page: Page) => page.getByRole('region', { name: '騎手のメモ', exact: true });
 
 test('騎手の一覧は騎乗の多い順に並び、名前と自分が付けた札で絞れる', async ({ page }) => {
 	await login(page);
@@ -81,16 +81,25 @@ test('メモのある騎乗だけに絞れる', async ({ page }) => {
 	await expect(page.locator(rides).filter({ hasText: 'E2E特別' })).toHaveCount(0);
 });
 
+test('「騎手のメモ」の info アイコンを押すと、メモがどこに出るかの説明が開く', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, jockeyPath(JOCKEYS.main));
+	await page.getByRole('button', { name: '騎手のメモの説明' }).click();
+	await expect(page.getByRole('dialog', { name: '騎手のメモの説明' })).toContainText(
+		'騎手名を押したときと出走馬の詳細情報に出て、札は騎手名の隣と騎手の一覧にも出ます'
+	);
+});
+
 test('まとめを書いて札を付け、空にすると消える', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, jockeyPath(JOCKEYS.rookie));
 
-	await expect(page.getByText('まだまとめはありません。')).toBeVisible();
-	await page.getByText('＋ まとめを書く').click();
-	await page.getByLabel('まとめの本文').fill('若手らしく積極的。');
+	await expect(page.getByText('まだメモはありません。')).toBeVisible();
+	await page.getByText('＋ メモを書く').click();
+	await page.getByLabel('メモの本文').fill('若手らしく積極的。');
 	await page.getByRole('group', { name: '得意な場' }).getByText('福島巧者').click();
-	await page.getByRole('button', { name: 'まとめを保存する' }).click();
-	await expect(page.getByText('まとめを保存しました')).toBeVisible();
+	await page.getByRole('button', { name: 'メモを保存する' }).click();
+	await expect(page.getByText('メモを保存しました')).toBeVisible();
 	// 入力欄が閉じたら、フォーカスは開閉のボタンに戻る（押した保存ボタンは閉じた中に消える）。
 	await expect(summaryRegion(page).locator('summary')).toBeFocused();
 
@@ -102,12 +111,12 @@ test('まとめを書いて札を付け、空にすると消える', async ({ pa
 
 	await gotoHydrated(page, jockeyPath(JOCKEYS.rookie));
 	await page.getByText('書き直す').click();
-	await page.getByLabel('まとめの本文').fill('');
+	await page.getByLabel('メモの本文').fill('');
 	await page.getByRole('group', { name: '得意な場' }).getByText('福島巧者').click();
-	await page.getByRole('button', { name: 'まとめを保存する' }).click();
-	await expect(page.getByText('まとめを消しました')).toBeVisible();
+	await page.getByRole('button', { name: 'メモを保存する' }).click();
+	await expect(page.getByText('メモを消しました')).toBeVisible();
 	await page.reload();
-	await expect(page.getByText('まだまとめはありません。')).toBeVisible();
+	await expect(page.getByText('まだメモはありません。')).toBeVisible();
 });
 
 test('予想画面の騎手名から、まとめを開いて騎手の画面へ行ける', async ({ page }) => {
@@ -138,7 +147,7 @@ for (const [label, path] of [
 
 		await trigger.click();
 
-		const dialog = page.getByRole('dialog');
+		const dialog = page.getByRole('dialog', { name: `${JOCKEYS.main}のメモ` });
 		await expect(dialog).toContainText(JOCKEYS.mainSummary);
 		await expect(dialog).toContainText('中山巧者');
 		await expect(page.getByText(JOCKEYS.otherUserSummary)).toHaveCount(0);

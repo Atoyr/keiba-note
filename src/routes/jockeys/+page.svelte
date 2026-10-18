@@ -73,7 +73,7 @@
 						</div>
 						<div class="mt-0.5 text-xs text-muted-foreground">
 							騎乗 {j.rideCount} 回 ・最後 {j.lastRideDate}
-							{#if j.noteCount > 0}・メモ {j.noteCount} 件{/if}
+							{#if j.noteCount > 0}・騎乗のメモ {j.noteCount} 件{/if}
 						</div>
 					</a>
 				</li>

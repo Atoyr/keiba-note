@@ -155,7 +155,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `HorseProfileHeader` | 馬詳細の頭（生年月日・性別の札つきの名前の行・推しの★・父母・母父・所属と調教師）。★のほかはすべて左寄せ。色は第7章 |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目。`label` は `sexAgeLabel` の結果で、null なら何も描かない。色は第7章 |
 | `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
-| `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分のまとめがあれば notebook-pen のアイコンを添え、クリック・タップで `Popover` にまとめの全文と「騎手の画面へ」を開く（hydration 前とまとめが無いときはただのリンク）。隣の札は呼ぶ側が `JockeyTagBadges` で置く |
+| `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分の騎手のメモがあれば notebook-pen のアイコンを添え、クリック・タップで `Popover` にメモの全文と「騎手の画面へ」を開く（hydration 前とメモが無いときはただのリンク）。隣の札は呼ぶ側が `JockeyTagBadges` で置く |
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
