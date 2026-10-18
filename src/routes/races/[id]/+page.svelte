@@ -32,7 +32,7 @@
 	import { formatWinOdds } from '$lib/utils/odds';
 	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceGoing, raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { actualFlow, corner4Positions, formatMargin, last3fRanks } from '$lib/utils/run-stats';
+	import { actualFlow, formatMargin, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
@@ -97,15 +97,12 @@
 		)
 	);
 
-	// 4コーナーの位置と上りの順位。上りの順位は走った全頭で数えるので、行ごとには出せない
+	// 上りの順位。走った全頭で数えるので、行ごとには出せない
 	// （全頭の上りがそろっていないレースでは順位を出さない。→ last3fRanks）。
 	const rows = $derived.by(() => {
 		const ranks = last3fRanks(data.rows, data.race.fieldSize);
-		// 直線のレース・通過順が途中で切れた中止の馬は4角の位置を持たない（→ corner4Positions）。
-		const corners = corner4Positions(data.rows, data.race);
 		return data.rows.map((r) => ({
 			...r,
-			corner4: corners.get(r.entryId) ?? null,
 			last3fRank: ranks.get(r.entryId) ?? null,
 			weightLabel: formatHorseWeight(r.horseWeight, r.horseWeightDiff),
 			marginLabel: formatMargin(r.margin)
@@ -368,7 +365,7 @@
 									{@const hasReview = hasMemo(review)}
 									<li id="entry-{r.entryId}" class="scroll-mt-4 p-3">
 										<!-- 見出しの行は、予想画面と同じ「縦に段を持つ列を横に並べた表」にする。
-								     着順 | 札（枠・馬番 / 性齢）| 名前（1段目: 馬名・人気・単勝・印 / 2段目: 騎手・馬体重 / 3段目: 走りの数字）。
+								     着順 | 札（枠・馬番 / 性齢）| 名前（1段目: 馬名・人気・単勝・印 / 2段目: 騎手・馬体重 / 騎手の札 / 走りの数字）。
 								     予想画面の行と、札・馬名・人気・単勝・印が同じ位置に来るので、予想で見た並びのまま結果を読める。
 								     - 列の幅は着順・札・オッズ・印を固定して、残りを馬名に渡す。着順が無い馬（取消・中止）や桁の違う馬でも、
 								       上下の行と位置がずれない。
@@ -378,8 +375,9 @@
 								       騎手・馬体重・着差・上りが折り返して1頭が4〜5段になる。広げれば3段に収まる。
 								       左端は札の列の右のまま（2段目は性齢の札の高さにそろう）。
 								     - 各段は高さ 24px（h-6 / leading-6 / min-h-6）、段の間は gap-1 にして、札の列の2段（枠・馬番 / 性齢）とそろえる。
-								     - 3段目は上りと着差などの数字。人気は右のオッズの列にある。
-								     - DOM の順は読む順（着順 → 札 → 馬名 → 人気 → 単勝 → 印 → 騎手 → 馬体重 → 着差・上り・4角・タイム）。
+								     - 騎手の札（芝巧者）は騎手の下の段に置く（人が選んだ）。札がある騎手だけ段が増える。
+								     - 最後の段は上りと着差などの数字。人気は右のオッズの列にある。
+								     - DOM の順は読む順（着順 → 札 → 馬名 → 人気 → 単勝 → 印 → 騎手 → 馬体重 → 騎手の札 → 着差・上り・通過順・タイム）。
 								       1段目を左から右へ読み、次の段へ進む。 -->
 										<div class="flex items-start gap-x-1.5">
 											<!-- 着順の列。出すかは一覧全体で1つに決める（rankColumn）。出すなら全行が w-8 で取り、
@@ -437,18 +435,15 @@
 												</div>
 
 												<!-- 2段目。騎手と馬体重。騎手の画面へのリンクは、予想画面と同じく下線（点線）を常に出してリンクと分かるようにする。
-									     騎手と札（芝巧者）は騎手のものなので1組のまま、馬体重はその後ろに置く。幅が足りなければ折り返す。 -->
+									     幅が足りなければ折り返す。 -->
 												{#if r.jockey || r.weightLabel}
 													<span class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
 														{#if r.jockey}
-															<span class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
-																<JockeyLink
-																	name={r.jockey}
-																	summary={r.jockeySummary}
-																	class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-																/>
-																<JockeyTagBadges tags={r.jockeyCourseTags} />
-															</span>
+															<JockeyLink
+																name={r.jockey}
+																summary={r.jockeySummary}
+																class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+															/>
 														{/if}
 														{#if r.weightLabel}
 															<span
@@ -460,11 +455,18 @@
 													</span>
 												{/if}
 
-												<!-- 走りを読むための数字（3段目）。着順と上りのタイムだけでは「前で粘ったのか、
+												<!-- 騎手の札（芝巧者）。騎手の下に段を作って出す（人が選んだ）。騎手の隣に置くと、
+									     スマホで馬体重が次の行へ押し出される。このレースに合う札が無い騎手は段ごと出さない。 -->
+												{#if r.jockey && r.jockeyCourseTags.length > 0}
+													<JockeyTagBadges tags={r.jockeyCourseTags} class="min-h-6" />
+												{/if}
+
+												<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
 									     後ろから届いたのか」「上りが速かったのか」が読めない。着差で「どれだけ負けたか」を足す。
-									     上りの1〜3位は色の札で強調する（Last3fBadge）。4角の位置の着順は左の列にあるので添えない。
+									     上りの1〜3位は色の札で強調する（Last3fBadge）。位置取りはコーナーの通過順（`5-5-4-2`）を
+									     取得元の表記のまま出す（人が選んだ。4角だけでなく道中の動きも読める）。
 									     どれも無い馬（取消）は段ごと出さない。 -->
-												{#if r.marginLabel || r.last3f !== null || r.corner4 !== null || r.finishTime}
+												{#if r.marginLabel || r.last3f !== null || r.passing || r.finishTime}
 													<p
 														class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
 													>
@@ -472,7 +474,9 @@
 																><span class="sr-only">着差</span>{r.marginLabel}</span
 															>{/if}
 														<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
-														{#if r.corner4 !== null}<span>4角{r.corner4}番手</span>{/if}
+														{#if r.passing}<span class="font-mono whitespace-nowrap"
+																><span class="sr-only">通過順</span>{r.passing}</span
+															>{/if}
 														{#if r.finishTime}<span class="font-mono">{r.finishTime}</span>{/if}
 													</p>
 												{/if}
