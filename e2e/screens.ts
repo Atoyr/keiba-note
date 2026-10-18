@@ -734,7 +734,10 @@ export const SCREENS: Screen[] = [
 		path: `/jockeys/${encodeURIComponent(JOCKEYS.main)}`,
 		auth: true,
 		prepare: async (page) => {
+			// `<details bind:open>` は hydration で `open` を状態（閉じ）に書き戻す。先に開いても閉じて写る。
+			await waitForHydration(page);
 			await page.getByText('書き直す', { exact: true }).click();
+			await expect(page.locator('main details')).toHaveJSProperty('open', true);
 		}
 	},
 	// まとめがまだ無い騎手（1騎乗だけ）。
@@ -749,7 +752,10 @@ export const SCREENS: Screen[] = [
 		path: `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`,
 		auth: true,
 		prepare: async (page) => {
+			// jockey-summary-editing と同じく、hydration の前に開くと閉じて写る。
+			await waitForHydration(page);
 			await page.getByText('＋ 傾向を書く').click();
+			await expect(page.locator('main details')).toHaveJSProperty('open', true);
 		}
 	},
 	{
