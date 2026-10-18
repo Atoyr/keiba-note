@@ -131,7 +131,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
 				// 騎手名を押したときに開く、自分のまとめ。無ければ null。
 				jockeySummary,
-				// 騎手名の隣に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
+				// 騎手名の下の段に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
 				myNote: myEntryNotes.get(e.entryId) ?? null,
 				myPreview: p ? { mark: p.mark, body: p.body, tags: p.tags } : null
