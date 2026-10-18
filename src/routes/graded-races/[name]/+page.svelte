@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, untrack } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
@@ -13,13 +13,28 @@
 	let { data, form }: PageProps = $props();
 
 	/**
-	 * 傾向の入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。
 	 * JS が無いと失敗の画面は描き直されるので、失敗したときは開いたまま始める（失敗のメッセージと入力が見える）。
 	 * 見るのは最初の描画の `form` だけ（JS があるときの失敗は、開いた欄の中でそのまま出る）。
 	 */
-	let editing = $state(untrack(() => !!form?.message));
+	const startOpen = untrack(() => !!form?.message);
+	/**
+	 * 傾向の入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。
+	 * 正は `<details>` の `open` で、これはその写し。`bind:open` にしないのは、hydration が
+	 * この状態の値（閉）を要素に書き込み、JS が届く前に開いた欄が閉じてしまうため（NoteMenu.svelte と同じ）。
+	 */
+	let editing = $state(startOpen);
 	let pending = $state(false);
 	let toggle = $state<HTMLElement>();
+	let details = $state<HTMLDetailsElement>();
+
+	// hydration の前に開かれていたら、ここで拾う。
+	onMount(() => {
+		editing = details!.open;
+	});
+
+	function sync() {
+		editing = details!.open;
+	}
 
 	const hasTrend = $derived(!!data.trend);
 	const head = $derived(data.headline);
@@ -60,7 +75,7 @@
 					</p>
 				{/if}
 			{/if}
-			<details class="group" bind:open={editing}>
+			{#snippet editor()}
 				<summary
 					bind:this={toggle}
 					class="mt-1 inline-flex min-h-6 cursor-pointer list-none items-center text-xs text-muted-foreground underline-offset-2 hover:underline [&::-webkit-details-marker]:hidden"
@@ -85,6 +100,8 @@
 								// （frontend.md 第3章「update({ reset: false })」）。
 								await update({ reset: false });
 								if (result.type === 'success') {
+									// toggle イベントは後から来るので、editing もここで揃える。
+									details!.open = false;
 									editing = false;
 									// 押した保存ボタンは閉じた中に消えるので、フォーカスを開閉のボタンへ戻す。
 									await tick();
@@ -117,7 +134,18 @@
 						{/if}
 					</div>
 				</form>
-			</details>
+			{/snippet}
+			<!-- `open={startOpen}` とは書かない。式の `open` は hydration が要素に書き込み、JS が届く前に
+			     開いた欄が閉じてしまう。直に書いた属性は hydration で触られないので、属性の有無で2つに分ける。 -->
+			{#if startOpen}
+				<details class="group" open bind:this={details} ontoggle={sync}>
+					{@render editor()}
+				</details>
+			{:else}
+				<details class="group" bind:this={details} ontoggle={sync}>
+					{@render editor()}
+				</details>
+			{/if}
 		</div>
 		{#if form && 'trend' in form}<noscript
 				><p class="mt-1 text-sm">

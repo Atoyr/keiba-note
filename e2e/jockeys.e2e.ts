@@ -102,6 +102,7 @@ test('まとめを書いて札を付け、空にすると消える', async ({ pa
 	await expect(page.getByText('メモを保存しました')).toBeVisible();
 	// 入力欄が閉じたら、フォーカスは開閉のボタンに戻る（押した保存ボタンは閉じた中に消える）。
 	await expect(summaryRegion(page).locator('summary')).toBeFocused();
+	await expect(summaryRegion(page).locator('details')).toHaveJSProperty('open', false);
 
 	// 読み込み直しても残る。一覧にも札が出る。
 	await page.reload();

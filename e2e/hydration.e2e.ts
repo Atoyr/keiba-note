@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
 import { login } from './login';
-import { BRACKET_RACE_ID, PAST_EMPTY_RACE_ID, PREVIEW_RACE_ID } from './seed';
+import { BRACKET_RACE_ID, GRADED_RACE, JOCKEYS, PAST_EMPTY_RACE_ID, PREVIEW_RACE_ID } from './seed';
 
 /**
  * **hydration の前に書いた値は、hydration のあとも残る。**
@@ -116,3 +116,34 @@ test('タブは hydration の前から描かれ、hydration でも出走馬の�
 	await expect(page.getByRole('tab', { name: 'レース情報', exact: true })).toBeVisible();
 	expect((await row.boundingBox())!.y).toBeCloseTo(before, 0);
 });
+
+/**
+ * 騎手のまとめと重賞の傾向の書く欄は `<details>`。`bind:open` にすると、hydration が状態の値（閉）を
+ * 要素に書き込み、JS が届く前に開いた欄が閉じる。開いたままのこと、読む形が隠れること（`editing` が
+ * 要素に追従したこと）を見る。保存はしない（ファイル冒頭の約束）。
+ */
+for (const [label, path] of [
+	['騎手のまとめ', `/jockeys/${encodeURIComponent(JOCKEYS.main)}`],
+	['重賞の傾向', `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`]
+] as const) {
+	test(`${label}の書く欄は、hydration の前に開いても hydration のあとに開いたまま`, async ({
+		page
+	}) => {
+		await login(page);
+		const release = await openWithoutJs(page, path);
+
+		const details = page.locator('main details');
+		// 読む形は、欄の前の兄弟要素。閉じている間は出ている。
+		const reading = details.locator('xpath=preceding-sibling::*');
+		await expect(reading).not.toHaveCount(0);
+		await details.locator('summary').click();
+		await expect(details).toHaveJSProperty('open', true);
+		await expect(page.locator('html')).not.toHaveAttribute('data-hydrated');
+
+		release();
+		await waitForHydration(page);
+		await expect(details).toHaveJSProperty('open', true);
+		await expect(details.locator('textarea[name="body"]')).toBeVisible();
+		await expect(reading).toHaveCount(0);
+	});
+}

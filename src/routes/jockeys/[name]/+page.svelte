@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
@@ -19,10 +19,20 @@
 
 	let { data, form }: PageProps = $props();
 
-	/** まとめの入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。 */
+	/**
+	 * まとめの入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。
+	 * 正は `<details>` の `open` で、これはその写し。`bind:open` にしないのは、hydration が
+	 * この状態の値（閉）を要素に書き込み、JS が届く前に開いた欄が閉じてしまうため（NoteMenu.svelte と同じ）。
+	 */
 	let editing = $state(false);
 	let pending = $state(false);
 	let toggle = $state<HTMLElement>();
+	let details: HTMLDetailsElement;
+
+	// hydration の前に開かれていたら、ここで拾う。
+	onMount(() => {
+		editing = details.open;
+	});
 
 	const hasSummary = $derived(!!data.summary);
 	const self = $derived(resolve('/jockeys/[name]', { name: jockeyParam(data.name) }));
@@ -65,7 +75,7 @@
 					</p>
 				{/if}
 			{/if}
-			<details class="group" bind:open={editing}>
+			<details class="group" bind:this={details} ontoggle={() => (editing = details.open)}>
 				<summary
 					bind:this={toggle}
 					class="mt-1 inline-flex min-h-6 cursor-pointer list-none items-center text-xs text-muted-foreground underline-offset-2 hover:underline [&::-webkit-details-marker]:hidden"
@@ -90,6 +100,8 @@
 								// （frontend.md 第3章「update({ reset: false })」）。
 								await update({ reset: false });
 								if (result.type === 'success') {
+									// toggle イベントは後から来るので、editing もここで揃える。
+									details.open = false;
 									editing = false;
 									// 押した保存ボタンは閉じた中に消えるので、フォーカスを開閉のボタンへ戻す。
 									await tick();
