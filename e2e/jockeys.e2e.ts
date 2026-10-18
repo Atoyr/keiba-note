@@ -14,7 +14,7 @@ import { expectLinkTo } from './link';
 const jockeyPath = (name: string) => `/jockeys/${encodeURIComponent(name)}`;
 const rides = 'main section ol > li';
 // まとめの文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
-const summaryRegion = (page: Page) => page.getByRole('region', { name: 'メモ', exact: true });
+const summaryRegion = (page: Page) => page.getByRole('region', { name: '騎手のメモ', exact: true });
 
 test('騎手の一覧は騎乗の多い順に並び、名前と自分が付けた札で絞れる', async ({ page }) => {
 	await login(page);
@@ -79,6 +79,15 @@ test('メモのある騎乗だけに絞れる', async ({ page }) => {
 	await expect(page).toHaveURL(`${jockeyPath(JOCKEYS.main)}?notes=1`);
 	await expect(page.locator(rides).filter({ hasText: '直線だけの競馬になった。' })).toHaveCount(1);
 	await expect(page.locator(rides).filter({ hasText: 'E2E特別' })).toHaveCount(0);
+});
+
+test('「騎手のメモ」の info アイコンを押すと、メモがどこに出るかの説明が開く', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, jockeyPath(JOCKEYS.main));
+	await page.getByRole('button', { name: '騎手のメモの説明' }).click();
+	await expect(page.getByRole('dialog', { name: '騎手のメモの説明' })).toContainText(
+		'騎手名を押したときと出走馬の詳細情報に出ます'
+	);
 });
 
 test('まとめを書いて札を付け、空にすると消える', async ({ page }) => {

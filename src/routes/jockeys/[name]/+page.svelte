@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
+	import InfoTip from '$lib/components/InfoTip.svelte';
 	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import JockeyTagPicker from '$lib/components/JockeyTagPicker.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
@@ -38,7 +39,13 @@
 	</p>
 
 	<section class="mt-6" aria-labelledby="jockey-summary">
-		<h2 id="jockey-summary" class="text-sm font-semibold text-muted-foreground">メモ</h2>
+		<div class="flex items-center gap-x-1">
+			<h2 id="jockey-summary" class="text-sm font-semibold text-muted-foreground">騎手のメモ</h2>
+			<InfoTip
+				label="騎手のメモ"
+				text="予想とふりかえりの画面で、騎手名を押したときと出走馬の詳細情報に出ます"
+			/>
+		</div>
 
 		<!-- 書いたまとめは畳まない。畳むのは書く側だけ（予想画面の出走前メモと同じ）。
 		     `<details>` なので JS が無くても開ける。
