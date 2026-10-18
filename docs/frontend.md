@@ -92,6 +92,11 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   （`src/lib/utils/early-input.ts`）。書き戻した値は `DraftKeeper` の「未保存」に数えられる。
   `bind:value` の欄も同じ扱いになるので、フォームごとに何もしなくてよい。
   今は `kit.csp` を設定していない（設定する場所は `vite.config.ts` の `sveltekit({…})`）。入れるときは、このスクリプトに nonce が要る
+- **`<details>` の開閉は `bind:open` にしない。** hydration が状態の値（閉）を要素の `open` に書き込み、
+  JS が届く前に開いた欄が閉じる。`open={式}` も同じ。要素を `bind:this` で取り、onMount と `toggle` イベントで
+  状態に写し、閉じるときは `details.open = false` と書く（`NoteMenu.svelte`・騎手のまとめ・重賞の傾向）。
+  SSR で開いて返したいときは、属性を直に書いた `<details open>` と無い方を `{#if}` で分ける（直に書いた属性は
+  hydration で触られない。重賞の傾向の「JS 無しで保存に失敗した画面」）
 - フィールド名と action の一覧は [api.md 第3章](./api.md)
 
 ## 5. コンポーネント

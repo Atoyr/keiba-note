@@ -75,8 +75,6 @@
 					</p>
 				{/if}
 			{/if}
-			<!-- `open={startOpen}` とは書かない。式の `open` は hydration が要素に書き込み、JS が届く前に
-			     開いた欄が閉じてしまう。直に書いた属性は hydration で触られないので、属性の有無で2つに分ける。 -->
 			{#snippet editor()}
 				<summary
 					bind:this={toggle}
@@ -137,6 +135,8 @@
 					</div>
 				</form>
 			{/snippet}
+			<!-- `open={startOpen}` とは書かない。式の `open` は hydration が要素に書き込み、JS が届く前に
+			     開いた欄が閉じてしまう。直に書いた属性は hydration で触られないので、属性の有無で2つに分ける。 -->
 			{#if startOpen}
 				<details class="group" open bind:this={details} ontoggle={sync}>
 					{@render editor()}
