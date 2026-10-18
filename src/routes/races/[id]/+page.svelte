@@ -32,7 +32,7 @@
 	import { formatWinOdds } from '$lib/utils/odds';
 	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceGoing, raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
+	import { actualFlow, corner4Positions, formatMargin, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
@@ -107,7 +107,8 @@
 			...r,
 			corner4: corners.get(r.entryId) ?? null,
 			last3fRank: ranks.get(r.entryId) ?? null,
-			weightLabel: formatHorseWeight(r.horseWeight, r.horseWeightDiff)
+			weightLabel: formatHorseWeight(r.horseWeight, r.horseWeightDiff),
+			marginLabel: formatMargin(r.margin)
 		}));
 	});
 
@@ -463,11 +464,12 @@
 									     後ろから届いたのか」「上りが速かったのか」が読めない。着差で「どれだけ負けたか」を足す。
 									     上りの1〜3位は色の札で強調する（Last3fBadge）。4角の位置の着順は左の列にあるので添えない。
 									     どれも無い馬（取消）は段ごと出さない。 -->
-												{#if r.margin || r.last3f !== null || r.corner4 !== null || r.finishTime}
+												{#if r.marginLabel || r.last3f !== null || r.corner4 !== null || r.finishTime}
 													<p
 														class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
 													>
-														{#if r.margin}<span><span class="sr-only">着差</span>{r.margin}</span
+														{#if r.marginLabel}<span class="whitespace-nowrap"
+																><span class="sr-only">着差</span>{r.marginLabel}</span
 															>{/if}
 														<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
 														{#if r.corner4 !== null}<span>4角{r.corner4}番手</span>{/if}

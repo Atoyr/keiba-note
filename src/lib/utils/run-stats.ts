@@ -144,6 +144,19 @@ export function marginLengths(margin: string | null): number | null {
 	return Number(whole ?? 0) + Number(a) / Number(b);
 }
 
+/**
+ * 着差を画面に出す形にする。数字の着差は `馬身` を付け、`1.1/4` は `1 1/4馬身` と書き直す
+ * （`.` は小数点ではなく整数と分数の区切りなので、そのままだと小数に見える。上りやタイムと並ぶと `2` だけでは何の数か読めない）。
+ * `クビ`・`ハナ` などの言葉や読めない表記はそのまま。空・null は null。
+ */
+export function formatMargin(margin: string | null): string | null {
+	const text = margin?.trim();
+	if (!text) return null;
+	const m = /^(?:(\d+)\.(?=\d+\/))?(\d+(?:\/\d+)?)$/.exec(text);
+	if (!m) return text;
+	return `${m[1] ? `${m[1]} ` : ''}${m[2]}馬身`;
+}
+
 type ActualFlowSource = FlowHorse & {
 	entryId: string;
 	finishPosition: number | null;

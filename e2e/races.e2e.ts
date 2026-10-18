@@ -350,7 +350,7 @@ test('各馬の行に、着順・馬体重と増減・確定の人気と単勝�
 	await expect(row('E2Eタンアナ')).toContainText('馬体重470(±0)');
 	await expect(row('E2Eレンシタ')).toContainText(/馬体重458(?!\()/);
 	await expect(row('E2Eケシウマ')).not.toContainText('馬体重');
-	await expect(row('E2Eケシウマ')).toContainText('着差1.1/4');
+	await expect(row('E2Eケシウマ')).toContainText('着差1 1/4馬身');
 
 	// 取消（着順なし）は着順も走りの数字も出ない。
 	await expect(row('E2Eメモノミ')).not.toContainText(/\d着/);
