@@ -86,7 +86,7 @@ test('「騎手のメモ」の info アイコンを押すと、メモがどこ�
 	await gotoHydrated(page, jockeyPath(JOCKEYS.main));
 	await page.getByRole('button', { name: '騎手のメモの説明' }).click();
 	await expect(page.getByRole('dialog', { name: '騎手のメモの説明' })).toContainText(
-		'騎手名を押したときと出走馬の詳細情報に出ます'
+		'騎手名を押したときと出走馬の詳細情報に出て、札は騎手名の隣と騎手の一覧にも出ます'
 	);
 });
 
@@ -147,7 +147,7 @@ for (const [label, path] of [
 
 		await trigger.click();
 
-		const dialog = page.getByRole('dialog');
+		const dialog = page.getByRole('dialog', { name: `${JOCKEYS.main}のメモ` });
 		await expect(dialog).toContainText(JOCKEYS.mainSummary);
 		await expect(dialog).toContainText('中山巧者');
 		await expect(page.getByText(JOCKEYS.otherUserSummary)).toHaveCount(0);

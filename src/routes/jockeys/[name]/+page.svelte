@@ -43,7 +43,7 @@
 			<h2 id="jockey-summary" class="text-sm font-semibold text-muted-foreground">騎手のメモ</h2>
 			<InfoTip
 				label="騎手のメモ"
-				text="予想とふりかえりの画面で、騎手名を押したときと出走馬の詳細情報に出ます"
+				text="予想とふりかえりの画面で騎手名を押したときと出走馬の詳細情報に出て、札は騎手名の隣と騎手の一覧にも出ます"
 			/>
 		</div>
 
