@@ -28,9 +28,11 @@
 		withField,
 		type LiveEntries
 	} from '$lib/utils/entry-fields';
+	import { formatHorseWeight } from '$lib/utils/horse';
+	import { formatWinOdds } from '$lib/utils/odds';
 	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
 	import { raceGoing, raceMeeting, raceSpec } from '$lib/utils/race-heading';
-	import { actualFlow, corner4Positions, last3fRanks } from '$lib/utils/run-stats';
+	import { actualFlow, formatMargin, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
@@ -95,18 +97,24 @@
 		)
 	);
 
-	// 4コーナーの位置と上りの順位。上りの順位は走った全頭で数えるので、行ごとには出せない
+	// 上りの順位。走った全頭で数えるので、行ごとには出せない
 	// （全頭の上りがそろっていないレースでは順位を出さない。→ last3fRanks）。
 	const rows = $derived.by(() => {
 		const ranks = last3fRanks(data.rows, data.race.fieldSize);
-		// 直線のレース・通過順が途中で切れた中止の馬は4角の位置を持たない（→ corner4Positions）。
-		const corners = corner4Positions(data.rows, data.race);
 		return data.rows.map((r) => ({
 			...r,
-			corner4: corners.get(r.entryId) ?? null,
-			last3fRank: ranks.get(r.entryId) ?? null
+			last3fRank: ranks.get(r.entryId) ?? null,
+			weightLabel: formatHorseWeight(r.horseWeight, r.horseWeightDiff),
+			marginLabel: formatMargin(r.margin)
 		}));
 	});
+
+	// 行の見出しの列（着順・札・オッズ）を出すかは、一覧全体で1つに決める（予想画面の badgeColumn と同じ）。
+	// 行ごとに決めると、馬名の位置が行ごとにずれる。出すなら全行が同じ幅で取り、その行に値が無くても幅だけ取る。
+	// 値が一覧の誰にも無いレースだけ、空の列で馬名を右へ押し出さないよう幅を取らない。
+	const rankColumn = $derived(data.rows.some((r) => r.finishPosition !== null));
+	const badgeColumn = $derived(data.rows.some((r) => r.bracket || r.horseNumber || r.sexAge));
+	const oddsColumn = $derived(data.rows.some((r) => r.popularity !== null || r.odds !== null));
 
 	// 4角とゴール前の実際の隊列。予想で展開を置いていなくても出す（走った全頭がそろったレースだけ）。
 	const actual = $derived(actualFlow(data.rows, data.race));
@@ -341,6 +349,10 @@
 				{#if data.rows.length > 0}
 					<section class="mt-8">
 						<h2 class="text-sm font-semibold text-gray-500">出走馬</h2>
+						<!-- 予想画面の人気・オッズは取得時点の値。ここは結果として入った確定の値なので、見分けられるよう添える。 -->
+						{#if oddsColumn}
+							<p class="mt-1 text-xs text-muted-foreground">人気・単勝オッズは確定の値</p>
+						{/if}
 
 						<!-- 出走馬は1枚の枠に、区切り線で行を並べる（予想画面と同じ）。 -->
 						<div class="mt-2 overflow-hidden rounded-xl border">
@@ -352,67 +364,124 @@
 									{@const hasPreview = !!preview && hasMemo(preview)}
 									{@const hasReview = hasMemo(review)}
 									<li id="entry-{r.entryId}" class="scroll-mt-4 p-3">
-										<div class="flex items-start gap-x-2 text-sm">
-											<!-- 左は折り返す中身、右は印の固定の列。印は幅しだいで次の行へ落とさず、どの行でも1段目の右端にそろえる。 -->
-											<div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
-												{#if r.finishPosition}
-													<span class="font-bold">{r.finishPosition}着</span>
-												{/if}
-												<!-- 枠と馬番は1つの札（予想画面と同じ）。この画面の並びは着順なので、
-								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。 -->
-												<!-- 札・性齢・馬名は折り返さない1組にする。別々に並べると、
-								     狭い幅で馬名だけが次の行へ落ち、性齢が馬名の左から離れる。 -->
-												<span class="flex min-w-0 items-baseline gap-2">
+										<!-- 見出しの行は、予想画面と同じ「縦に段を持つ列を横に並べた表」にする。
+								     着順 | 札（枠・馬番 / 性齢）| 名前（1段目: 馬名・人気・単勝・印 / 2段目: 騎手・馬体重 / 騎手の札 / 走りの数字）。
+								     予想画面の行と、札・馬名・人気・単勝・印が同じ位置に来るので、予想で見た並びのまま結果を読める。
+								     - 列の幅は着順・札・オッズ・印を固定して、残りを馬名に渡す。着順が無い馬（取消・中止）や桁の違う馬でも、
+								       上下の行と位置がずれない。
+								     - 着順は左端の独立した列。スマホでは馬名の幅が狭くなり、長い馬名は … で切れる（承知のうえ）。
+								     - **2段目から下は、オッズと印の列の下まで広げて行の右端まで使う。** ふりかえりのオッズの列は1段しか使わない
+								       （複勝が無い）ので、その下は空いている。ここを使わないと、スマホ（390px）では名前の列が約124pxしかなく、
+								       騎手・馬体重・着差・上りが折り返して段が増える。
+								       左端は札の列の右のまま（2段目は性齢の札の高さにそろう）。
+								     - 各段は高さ 24px（h-6 / leading-6 / min-h-6）、段の間は gap-1 にして、札の列の2段（枠・馬番 / 性齢）とそろえる。
+								     - 騎手の札（芝巧者）は騎手の下の段に置く（人が選んだ）。札がある騎手だけ段が増える。
+								     - 最後の段は上りと着差などの数字。人気は右のオッズの列にある。
+								     - DOM の順は読む順（着順 → 札 → 馬名 → 人気 → 単勝 → 印 → 騎手 → 馬体重 → 騎手の札 → 着差・上り・通過順・タイム）。
+								       1段目を左から右へ読み、次の段へ進む。 -->
+										<div class="flex items-start gap-x-1.5">
+											<!-- 着順の列。出すかは一覧全体で1つに決める（rankColumn）。出すなら全行が w-8 で取り、
+								     着順の無い馬も幅だけ取る。行ごとに決めると、馬名の位置が行ごとにずれる。 -->
+											{#if rankColumn}
+												<span class="w-8 shrink-0 text-sm leading-6 font-bold whitespace-nowrap">
+													{#if r.finishPosition}{r.finishPosition}着{/if}
+												</span>
+											{/if}
+
+											<!-- 札の列（w-11 は枠・馬番の札の幅）。予想画面と同じ札で、枠と馬番は1つの札、その下に性齢の札。
+								     枠の色が無いと「内の馬で決まったのか」がひと目で読めない。
+								     札の列を出すかは一覧全体で1つに決める（badgeColumn。理由は着順の列と同じ）。 -->
+											{#if badgeColumn}
+												<span class="flex w-11 shrink-0 flex-col items-start gap-1">
 													<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-													<!-- 馬詳細と同じ性齢の札（牡4）。性で色を分ける。 -->
-													<SexAgeBadge sex={r.sex} label={r.sexAge} />
+													<span class="flex h-6 items-center">
+														<SexAgeBadge sex={r.sex} label={r.sexAge} />
+													</span>
+												</span>
+											{/if}
+
+											<div class="flex min-w-0 flex-1 flex-col gap-1">
+												<!-- 1段目。馬名の幅は札の列からオッズの列までの間（予想画面と同じ）。 -->
+												<div class="flex items-start gap-x-1.5">
 													<a
 														href={resolve('/horses/[id]', { id: r.horseId })}
-														class="min-w-0 font-medium hover:underline"
+														class="min-w-0 flex-1 truncate leading-6 font-medium hover:underline"
 													>
 														{r.horseName}
 													</a>
-												</span>
-												<!-- 騎手の画面へ。予想画面と同じく、下線（点線）を常に出してリンクと分かるようにする。 -->
-												{#if r.jockey}
-													<span
-														class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1"
-													>
-														<JockeyLink
-															name={r.jockey}
-															summary={r.jockeySummary}
-															class="inline-flex min-h-6 max-w-full items-center text-gray-600 underline decoration-dotted underline-offset-2 hover:decoration-solid"
-														/>
-														<JockeyTagBadges tags={r.jockeyCourseTags} />
+
+													<!-- オッズ。列の幅は予想画面と同じ（w-21）。確定の人気（w-10）と単勝（w-9）を右に寄せる。
+										     予想画面の2段目（複勝）は置かない：確定の複勝はデータに無い。
+										     出すかは一覧全体で1つ（oddsColumn）。取消の馬（人気も値も無い）も空のセルで幅を保つ。 -->
+													{#if oddsColumn}
+														<div
+															class="flex w-21 shrink-0 flex-col items-end gap-1 text-xs leading-6 font-medium text-foreground"
+														>
+															<span class="flex justify-end gap-x-1.5">
+																<span class="w-10 text-right">
+																	{#if r.popularity}{r.popularity}人気{/if}
+																</span>
+																<span class="w-9 text-right font-mono">
+																	<span class="sr-only">単勝</span>{formatWinOdds(r.odds)}
+																</span>
+															</span>
+														</div>
+													{/if}
+
+													<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
+													<span class="flex size-6 shrink-0">
+														<MarkBadge mark={r.myPreview?.mark ?? null} />
+													</span>
+												</div>
+
+												<!-- 2段目。騎手と馬体重。騎手の画面へのリンクは、予想画面と同じく下線（点線）を常に出してリンクと分かるようにする。
+									     幅が足りなければ折り返す。 -->
+												{#if r.jockey || r.weightLabel}
+													<span class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+														{#if r.jockey}
+															<JockeyLink
+																name={r.jockey}
+																summary={r.jockeySummary}
+																class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+															/>
+														{/if}
+														{#if r.weightLabel}
+															<span
+																class="inline-flex min-h-6 items-center font-mono text-xs text-muted-foreground"
+															>
+																<span class="sr-only">馬体重</span>{r.weightLabel}
+															</span>
+														{/if}
 													</span>
 												{/if}
-												{#if r.finishTime}<span class="font-mono text-xs text-gray-500"
-														>{r.finishTime}</span
-													>{/if}
-												{#if r.margin}<span class="text-xs text-gray-500">{r.margin}</span>{/if}
-											</div>
-											<!-- 印の場所は、印が無くても取っておく（予想画面と同じ）。 -->
-											<span class="flex size-6 shrink-0">
-												<MarkBadge mark={r.myPreview?.mark ?? null} />
-											</span>
-										</div>
 
-										<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
-						     後ろから届いたのか」「上りが速かったのか」が読めない。
-						     スマホで1行に収まるよう、1行目とは分けて小さく出す。 -->
-										{#if r.corner4 !== null || r.last3f !== null || r.popularity}
-											<p
-												class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
-											>
-												{#if r.corner4 !== null}
-													<span
-														>4角{r.corner4}番手{#if r.finishPosition}→{r.finishPosition}着{/if}</span
-													>
+												<!-- 騎手の札（芝巧者）。騎手の下に段を作って出す（人が選んだ）。騎手の隣に置くと、
+									     スマホで馬体重が次の行へ押し出される。このレースに合う札が無い騎手は段ごと出さない。 -->
+												{#if r.jockey && r.jockeyCourseTags.length > 0}
+													<JockeyTagBadges tags={r.jockeyCourseTags} class="min-h-6" />
 												{/if}
-												<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
-												{#if r.popularity}<span>{r.popularity}人気</span>{/if}
-											</p>
-										{/if}
+
+												<!-- 走りを読むための数字。着順と上りのタイムだけでは「前で粘ったのか、
+									     後ろから届いたのか」「上りが速かったのか」が読めない。着差で「どれだけ負けたか」を足す。
+									     上りの1〜3位は色の札で強調する（Last3fBadge）。位置取りはコーナーの通過順（`5-5-4-2`）を
+									     取得元の表記のまま出す（人が選んだ。4角だけでなく道中の動きも読める）。
+									     どれも無い馬（取消）は段ごと出さない。 -->
+												{#if r.marginLabel || r.last3f !== null || r.passing || r.finishTime}
+													<p
+														class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+													>
+														{#if r.marginLabel}<span class="whitespace-nowrap"
+																><span class="sr-only">着差</span>{r.marginLabel}</span
+															>{/if}
+														<Last3fBadge last3f={r.last3f} rank={r.last3fRank} />
+														{#if r.passing}<span class="font-mono whitespace-nowrap"
+																><span class="sr-only">通過順</span>{r.passing}</span
+															>{/if}
+														{#if r.finishTime}<span class="font-mono">{r.finishTime}</span>{/if}
+													</p>
+												{/if}
+											</div>
+										</div>
 
 										<!-- 詳細情報は予想画面と同じ。行の直下に畳む。 -->
 										<details class="group/detail mt-1">

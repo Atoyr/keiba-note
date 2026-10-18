@@ -4,6 +4,7 @@ import {
 	corner4Position,
 	corner4Positions,
 	hasCorners,
+	formatMargin,
 	last3fRanks,
 	marginLengths
 } from './run-stats';
@@ -149,6 +150,26 @@ describe('marginLengths', () => {
 		expect(marginLengths('不明')).toBeNull();
 		expect(marginLengths('1/0')).toBeNull();
 		expect(marginLengths('1.5')).toBeNull();
+	});
+});
+
+describe('formatMargin', () => {
+	it.each([
+		['2', '2馬身'],
+		['1/2', '1/2馬身'],
+		['1.1/4', '1 1/4馬身'],
+		[' 3.1/2 ', '3 1/2馬身'],
+		['クビ', 'クビ'],
+		['大', '大差'],
+		['大差', '大差'],
+		['1.5', '1.5']
+	])('%s は %s', (margin, shown) => {
+		expect(formatMargin(margin)).toBe(shown);
+	});
+
+	it('空・null は null', () => {
+		expect(formatMargin(null)).toBeNull();
+		expect(formatMargin('  ')).toBeNull();
 	});
 });
 

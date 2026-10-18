@@ -133,7 +133,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
 				// 騎手名を押したときに開く、自分のまとめ。無ければ null。
 				jockeySummary,
-				// 騎手名の隣に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
+				// 騎手名の下の段に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
 				myPreview: myPreview.get(e.entryId) ?? null,
 				history: history.get(e.horseId) ?? [],

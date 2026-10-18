@@ -86,7 +86,7 @@ test('「騎手のメモ」の info アイコンを押すと、メモがどこ�
 	await gotoHydrated(page, jockeyPath(JOCKEYS.main));
 	await page.getByRole('button', { name: '騎手のメモの説明' }).click();
 	await expect(page.getByRole('dialog', { name: '騎手のメモの説明' })).toContainText(
-		'騎手名を押したときと出走馬の詳細情報に出て、札は騎手名の隣と騎手の一覧にも出ます'
+		'騎手名を押したときと出走馬の詳細情報に出て、札は騎手名の下と騎手の一覧にも出ます'
 	);
 });
 
@@ -166,13 +166,13 @@ for (const [label, path] of [
 	});
 }
 
-test('ふりかえり画面（中山）では騎手名の隣に中山巧者の札が出て、予想画面（京都）では出ない', async ({
+test('ふりかえり画面（中山）では騎手名の下に中山巧者の札が出て、予想画面（京都）では出ない', async ({
 	page
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${REVIEW_RACE_ID}`);
 
-	// 札は騎手名の隣（Popover の外）に出る。開く前から見えている。
+	// 札は騎手名の下の段（Popover の外）に出る。開く前から見えている。
 	const row = page.locator('li', { has: page.getByRole('button', { name: JOCKEYS.main }) }).first();
 	await expect(row).toContainText('中山巧者');
 	await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -184,17 +184,18 @@ test('ふりかえり画面（中山）では騎手名の隣に中山巧者の�
 	).not.toContainText('中山巧者');
 });
 
-test('予想画面（京都の芝）では、騎手名の隣に芝巧者の札だけが出る（中山巧者・他の札は出ない）', async ({
+test('予想画面（京都の芝）では、騎手名の下の段に芝巧者の札だけが出る（中山巧者・他の札は出ない）', async ({
 	page
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
 	const trigger = page.getByRole('button', { name: JOCKEYS.main }).first();
-	const group = trigger.locator('xpath=..');
-	await expect(group).toContainText('芝巧者');
-	await expect(group).not.toContainText('中山巧者');
-	await expect(group).not.toContainText('穴で怖い');
+	// 札は騎手名のすぐ後ろの要素で、騎手名より下の段にある（隣には並べない）。
+	const tags = trigger.locator('xpath=following-sibling::*[1]');
+	await expect(tags).toHaveText('芝巧者');
+	const [name, tag] = [await trigger.boundingBox(), await tags.boundingBox()];
+	expect(tag!.y).toBeGreaterThanOrEqual(name!.y + name!.height);
 	await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 

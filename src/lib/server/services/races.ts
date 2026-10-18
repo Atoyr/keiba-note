@@ -261,8 +261,15 @@ export type RaceEntryView = {
 	passing: string | null;
 };
 
+/** ふりかえりの出走馬。結果として入る確定の単勝と馬体重（増減）を足したもの。 */
+export type ReviewEntryView = RaceEntryView & {
+	odds: number | null;
+	horseWeight: number | null;
+	horseWeightDiff: number | null;
+};
+
 /** そのレースの出走馬。着順 → 馬番の順に並べる（ふりかえり用）。 */
-export async function listEntries(db: Db, raceId: string): Promise<RaceEntryView[]> {
+export async function listEntries(db: Db, raceId: string): Promise<ReviewEntryView[]> {
 	return reviewEntriesQuery(db, raceId);
 }
 
@@ -292,7 +299,11 @@ function reviewEntriesQuery(db: Db, raceId: string) {
 				margin: raceEntry.margin,
 				last3f: raceEntry.last3f,
 				popularity: raceEntry.popularity,
-				passing: raceEntry.passing
+				passing: raceEntry.passing,
+				// 確定の単勝・馬体重と増減。ふりかえりの行が、予想画面の行と同じ位置に出す。
+				odds: raceEntry.odds,
+				horseWeight: raceEntry.horseWeight,
+				horseWeightDiff: raceEntry.horseWeightDiff
 			})
 			.from(raceEntry)
 			.innerJoin(horse, eq(raceEntry.horseId, horse.id))
