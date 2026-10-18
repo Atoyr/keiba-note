@@ -415,17 +415,18 @@
 									class="scroll-mt-4 p-3 {mark === '◎' ? 'ring-1 ring-red-300 ring-inset' : ''}"
 								>
 									<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
-						     札（枠・馬番 / 性齢）| 名前（馬名 / 騎手 / 前回の札）| オッズ（人気・単勝 / 複勝）| 印。
+						     札（枠・馬番 / 性齢）| 名前（馬名 / 騎手 / 騎手の札 / 前回の札）| オッズ（人気・単勝 / 複勝）| 印。
 						     - 列の幅は札・オッズ・印を固定して、残りを名前の列に渡す。取消で値が無い馬や桁の違う馬でも、
 						       上下の行と位置がずれない（レイアウトシフトも起きない）。
 						     - 馬名と騎手は折り返さず（truncate）、1行に収める。スマホ（390px）でも全角9文字が
 						       切れずに入る幅を名前の列に残す。入らない幅では … で切る。
 						     - 各列の1段目・2段目は高さ 24px（h-6 / leading-6 / min-h-6）、段の間はどの列も gap-1 にして、
-						       段を列どうしでそろえる。前回の札があるときだけ、名前の列が3段目の分だけ伸びる。
+						       段を列どうしでそろえる。騎手の札（芝巧者など）・前回の札があるときだけ、名前の列がその段の分だけ伸びる。
+						     - 騎手の札は騎手の隣ではなく下の段に置く（ふりかえり画面と同じ。人が選んだ）。
 						     - 見える「単勝」「複勝」の文字は外した。スマホの1段目に文字を置く幅が無いため。
 						       値の形（単勝は1つの数・複勝は幅）と一覧の上の「単勝・複勝のオッズは…時点」で見分けられる。
 						       読み上げには sr-only で残す。
-						     - DOM の順は読む順（札 → 馬名 → 騎手 → 前回の札 → 人気 → 単勝 → 複勝 → 印）。 -->
+						     - DOM の順は読む順（札 → 馬名 → 騎手 → 騎手の札 → 前回の札 → 人気 → 単勝 → 複勝 → 印）。 -->
 									<div class="flex items-start gap-x-1.5">
 										<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
 							     ふりかえり画面と同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
@@ -452,16 +453,16 @@
 											<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
 								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
 											{#if r.jockey}
-												<span
-													class="flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 self-start"
-												>
-													<JockeyLink
-														name={r.jockey}
-														summary={r.jockeySummary}
-														class="inline-flex min-h-6 max-w-full items-center text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-													/>
-													<JockeyTagBadges tags={r.jockeyCourseTags} />
-												</span>
+												<JockeyLink
+													name={r.jockey}
+													summary={r.jockeySummary}
+													class="inline-flex min-h-6 max-w-full items-center self-start text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+												/>
+												<!-- 騎手の札（芝巧者など）。騎手の下に段を作って出す（ふりかえり画面と同じ）。
+									     このレースに合う札が無い騎手は段ごと出さない。 -->
+												{#if r.jockeyCourseTags.length > 0}
+													<JockeyTagBadges tags={r.jockeyCourseTags} class="min-h-6 self-start" />
+												{/if}
 											{/if}
 											<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
