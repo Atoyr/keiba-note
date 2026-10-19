@@ -7,7 +7,7 @@
   UX の原則（何を優先して見せるか）は [harness.md 1-3（草案）](./harness.md)、
   この決まりを lint でどう止めるか・移行の順番は [harness.md 第3層](./harness.md)、
   見た目の確かめ方は [testing.md 第5章](./testing.md)
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-14
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-19
 - ステータス: **移行中。** 第2章の「これから足すトークン」はまだ `layout.css` に無い。
   足されるまでは使えない（未定義のクラスは何も描かないので、書いても見た目が消えるだけ）
 
@@ -133,7 +133,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | 入力 | `Input` / `Textarea` / `Select` + `Label` |
 | リンクに、読むだけの補足を浮かべる（hover・フォーカス） | `Tooltip`。今は使っていない（hover の無い端末で読めないため、`JockeyLink` は `Popover` にした）。使うなら操作（ボタン・リンク）を中に入れない |
 | 見出しに付ける補足の説明 | `InfoTip`（第4章）。見出しの下の小さな字で常に出さない（理由と、注意書きは畳まないことは第6章） |
-| 押して（クリック・タップして）開く小さな枠。読むものと、リンクなど少しの操作を入れる | `Popover`。trigger はボタンになる（`aria-haspopup="dialog"`）。外を押す・Esc で閉じる。マウスでもタッチでも同じ（`JockeyLink`。hover でも開くのは `InfoTip` だけ）。長く読ませるものも、hover だと途中で消えるのでこちら。ui の既定は暗い面なので、白い面にしたいときは呼ぶ側で `class` を渡す |
+| 押して（クリック・タップして）開く小さな枠。読むものと、リンクなど少しの操作を入れる | `Popover`。trigger はボタンになる（`aria-haspopup="dialog"`）。外を押す・Esc で閉じる。マウスでもタッチでも同じ（`JockeyLink`・`HorseLink`。hover でも開くのは `InfoTip` だけ）。長く読ませるものも、hover だと途中で消えるのでこちら。ui の既定は暗い面なので、白い面にしたいときは呼ぶ側で `class` を渡す |
 | 操作が済んだことを一時的に知らせる（保存しました） | トースト（`toast.success`。`Toaster` はルートレイアウトに1つだけ、下の中央、`theme="light"` 固定、`richColors` なし＝成功の緑の文字が 4.5:1 に届かない）。失敗は画面に残す |
 
 ## 4. ③ ドメイン部品
@@ -152,10 +152,12 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
 | `EntryMemo` | 出走馬の行に出すメモ（種別の札・本文3行まで・メモの札）。`EntryNoteEditor` の `memo` に渡すとそのままボタンになり、押すとその場で書ける。予想画面・ふりかえり画面が使う（→ [pages.md 4-3](./pages.md)） |
 | `EntryNoteEditor` | 出走馬の行でメモを「その場で書く」部分。見出しで開け閉めする折りたたみ。メモの表示（または「＋ 出走前メモ」）を押すと、そのボタンが見出し「{label} ⌃」になって入力欄（`children`）が開き、見出しを押すと折りたたまれる。振る舞いは [pages.md 4-3](./pages.md) |
-| `HorseProfileHeader` | 馬詳細の頭（生年月日・性別の札つきの名前の行・推しの★・父母・母父・所属と調教師）。★のほかはすべて左寄せ。色は第7章 |
+| `HorseProfileHeader` | 馬詳細の頭（生年月日・性別の札つきの名前の行・推しの★、その下に `HorseProfileBadges`）。★のほかはすべて左寄せ。色は第7章 |
+| `HorseProfileBadges` | 馬の基本情報の札（父 / 母・母父 / 所属・調教師の3段）。値の無い項目は出さず、全部無ければ何も描かない。`HorseProfileHeader` と `HorseLink` が使う。色は第7章 |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目。`label` は `sexAgeLabel` の結果で、null なら何も描かない。色は第7章 |
 | `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
 | `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分の騎手のメモがあれば notebook-pen のアイコンを添え、クリック・タップで `Popover` にメモの全文と「騎手の画面へ」を開く（hydration 前とメモが無いときはただのリンク）。隣の札は呼ぶ側が `JockeyTagBadges` で置く |
+| `HorseLink` | 出走馬の行の馬名。馬の画面へのリンクで、基本情報が1つでもあれば、クリック・タップで `Popover` に `HorseProfileBadges` と「馬の画面へ」を開く（hydration 前と基本情報が無いときはただのリンク。→ [pages.md 5-1](./pages.md)） |
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |
@@ -219,7 +221,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | 部品 | 色の系統 | 色だけに頼らない手当て | 配色の正 |
 | --- | --- | --- | --- |
 | 推しの星（`/horses/[id]`） | 輪郭は橙寄りの amber、塗りは黄 | 推しなら塗った★、そうでなければ輪郭だけの☆。`aria-label` と `title` に「推しにする」「推しから外す」 | `+page.svelte` のボタン |
-| 馬の札（`HorseProfileHeader` / `SexAgeBadge`） | 牡・父・母父は青、牝・母はピンク、セは緑、美浦は紺、栗東は橙、地方・海外・調教師は無彩色 | 札の中に `牡`・`牝`・`セ`、`父`・`母`・`母父`、`美浦`・`栗東` の字を出す | `utils/horse-chip.ts` の `tv()` |
+| 馬の札（`HorseProfileBadges` / `SexAgeBadge`） | 牡・父・母父は青、牝・母はピンク、セは緑、美浦は紺、栗東は橙、地方・海外・調教師は無彩色 | 札の中に `牡`・`牝`・`セ`、`父`・`母`・`母父`、`美浦`・`栗東` の字を出す | `utils/horse-chip.ts` の `tv()` |
 | 上りの順位の札（`Last3fBadge`） | 1位は黄、2位は水色、3位は橙 | 札の中に「上り1位」と字で出す | 部品の中の `tv()` |
 | 予想印（`MarkBadge` / `MarkPicker`） | ◎ は赤の塗り、○ は橙、▲ は amber、△ は slate、☆ は violet、✓（候補）は teal、× は無彩色 | 札の中に印の記号を出す。✓ は読み上げ用に「候補」を添える | 部品の中の `tone` の表（共有の画像は `utils/share-card.ts` に16進で写す） |
 

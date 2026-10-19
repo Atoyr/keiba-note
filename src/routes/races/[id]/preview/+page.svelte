@@ -14,6 +14,7 @@
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import MarkPicker from '$lib/components/MarkPicker.svelte';
 	import InfoTip from '$lib/components/InfoTip.svelte';
+	import HorseLink from '$lib/components/HorseLink.svelte';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
 	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
@@ -444,12 +445,12 @@
 										{/if}
 
 										<div class="flex min-w-0 flex-1 flex-col gap-1">
-											<a
-												href={resolve('/horses/[id]', { id: r.horseId })}
-												class="max-w-full self-start truncate leading-6 font-medium hover:underline"
-											>
-												{r.horseName}
-											</a>
+											<HorseLink
+												horseId={r.horseId}
+												name={r.horseName}
+												profile={r}
+												class="flex max-w-full self-start leading-6 font-medium hover:underline"
+											/>
 											<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
 								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
 											{#if r.jockey}

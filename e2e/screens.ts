@@ -95,6 +95,24 @@ const tapJockeySummary = async (page: Page) => {
 };
 
 /**
+ * 出走馬の行の馬名をクリック（`how: 'tap'` ならタップ）して、基本情報の Popover が見えるまで待つ。
+ * 全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、先に表示域をページの高さまで伸ばしてから開く
+ * （伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
+ * `tap` を使う画面は `touch` にする。
+ */
+const openHorseProfile =
+	(name: string, father: string, how: 'click' | 'tap') => async (page: Page) => {
+		await waitForHydration(page);
+		const { width } = page.viewportSize()!;
+		const height = await page.evaluate(() => document.documentElement.scrollHeight);
+		await page.setViewportSize({ width, height });
+		const button = page.getByRole('button', { name, exact: true });
+		if (how === 'tap') await button.tap();
+		else await button.click();
+		await expect(page.getByRole('dialog')).toContainText(father);
+	};
+
+/**
  * 見出しの info アイコンの説明を開く。全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、
  * 先に表示域をページの高さまで伸ばしてから開く（伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
  * `touch` の画面ではタップ、それ以外はマウスの hover で開く。
@@ -227,6 +245,14 @@ export const SCREENS: Screen[] = [
 		prepare: tapJockeySummary,
 		stayAtTop: true,
 		touch: true
+	},
+	{
+		// 馬名をクリックして、基本情報（父・母・母父・所属・調教師）が開いたところ。
+		name: 'race-review-horse-profile',
+		path: `/races/${REVIEW_RACE_ID}`,
+		auth: true,
+		prepare: openHorseProfile('E2Eテストホース', 'E2Eチチウマ', 'click'),
+		stayAtTop: true
 	},
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
@@ -470,6 +496,23 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'race-preview', path: `/races/${PREVIEW_RACE_ID}/preview`, auth: true },
+	{
+		// 馬名をクリックして、基本情報が開いたところ。
+		name: 'race-preview-horse-profile',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: openHorseProfile('E2Eプレビューホース', 'E2Eプレビューチチ', 'click'),
+		stayAtTop: true
+	},
+	{
+		// hover できない端末で、馬名をタップして基本情報が開いたところ。
+		name: 'race-preview-horse-profile-tap',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: openHorseProfile('E2Eプレビューホース', 'E2Eプレビューチチ', 'tap'),
+		stayAtTop: true,
+		touch: true
+	},
 	{
 		// 騎手名をクリックして、自分のまとめ（本文と札）が開いたところ。
 		name: 'race-preview-jockey-summary',
