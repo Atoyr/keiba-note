@@ -404,12 +404,16 @@
 											<div class="flex min-w-0 flex-1 flex-col gap-1">
 												<!-- 1段目。馬名の幅は札の列からオッズの列までの間（予想画面と同じ）。 -->
 												<div class="flex items-start gap-x-1.5">
-													<HorseLink
-														horseId={r.horseId}
-														name={r.horseName}
-														profile={r}
-														class="flex min-w-0 flex-1 leading-6 font-medium hover:underline"
-													/>
+													<!-- 馬名の幅の取り方（flex-1）は外側の要素に持たせ、ボタンは馬名の幅だけにする。
+										     ボタンが伸びると、基本情報の枠がその幅の中央に付いて馬名から離れ、右の空白を押しても開いてしまう。 -->
+													<div class="flex min-w-0 flex-1">
+														<HorseLink
+															horseId={r.horseId}
+															name={r.horseName}
+															profile={r}
+															class="flex max-w-full leading-6 font-medium hover:underline"
+														/>
+													</div>
 
 													<!-- オッズ。列の幅は予想画面と同じ（w-21）。確定の人気（w-10）と単勝（w-9）を右に寄せる。
 										     予想画面の2段目（複勝）は置かない：確定の複勝はデータに無い。

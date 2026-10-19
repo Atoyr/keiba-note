@@ -40,6 +40,7 @@ test('ふりかえり画面の馬名を押すと基本情報が開き、馬の�
 	// Esc で閉じる。
 	await page.keyboard.press('Escape');
 	await expect(dialog).toHaveCount(0);
+	await expect(trigger).toBeFocused();
 
 	await trigger.click();
 	await dialog.getByRole('link', { name: '馬の画面へ' }).click();
