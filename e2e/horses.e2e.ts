@@ -6,11 +6,63 @@ import {
 	FILLY_HORSE_ID,
 	HORSE_ID,
 	OUTER_HORSE_ID,
+	PREVIEW_RACE_ID,
+	REVIEW_RACE_ID,
 	TIMELINE_RUN_RACES
 } from './seed';
 import { expectLinkTo } from './link';
 
 const TIMELINE = 'main ol > li';
+
+// 出走馬の行の馬名を押す（クリック）と、基本情報を開く。hover では開かない。基本情報の無い馬はリンクのまま。
+test('ふりかえり画面の馬名を押すと基本情報が開き、馬の画面へ行ける', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${REVIEW_RACE_ID}`);
+
+	const trigger = page.getByRole('button', { name: 'E2Eテストホース', exact: true });
+	await trigger.hover();
+	await page.waitForTimeout(500);
+	await expect(page.getByRole('dialog')).toHaveCount(0);
+	await expect(page.getByRole('tooltip')).toHaveCount(0);
+
+	await trigger.click();
+
+	const dialog = page.getByRole('dialog', { name: 'E2Eテストホースの基本情報' });
+	await expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+	await expect(dialog).toContainText('父 E2Eチチウマ');
+	await expect(dialog).toContainText('母 E2Eハハウマ');
+	await expect(dialog).toContainText('母父 E2Eハハチチ');
+	await expect(dialog).toContainText('調教師 E2E調教師');
+	await expect(dialog).toContainText('美浦');
+	// 性齢・生年月日は行の札にもうある（または出さない）ので、枠には出さない。
+	await expect(dialog).not.toContainText('2020');
+
+	// Esc で閉じる。
+	await page.keyboard.press('Escape');
+	await expect(dialog).toHaveCount(0);
+	await expect(trigger).toBeFocused();
+
+	await trigger.click();
+	await dialog.getByRole('link', { name: '馬の画面へ' }).click();
+	await expect(page).toHaveURL(`/horses/${HORSE_ID}`);
+	await expect(page.getByRole('heading', { name: 'E2Eテストホース', level: 1 })).toBeVisible();
+});
+
+test('予想画面の馬名を押すと基本情報が開く（性も生年も無い馬でも）', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	await page.getByRole('button', { name: 'E2Eプレビューホース', exact: true }).click();
+
+	const dialog = page.getByRole('dialog', { name: 'E2Eプレビューホースの基本情報' });
+	await expect(dialog).toContainText('父 E2Eプレビューチチ');
+	await expect(dialog).toContainText('母 E2Eプレビューハハ');
+	await expect(dialog).toContainText('母父 E2Eプレビューハハチチ');
+	await expect(dialog).toContainText('調教師 E2Eプレビュー調教師');
+	await expect(dialog).toContainText('栗東');
+	await dialog.getByRole('link', { name: '馬の画面へ' }).click();
+	await expect(page.getByRole('heading', { name: 'E2Eプレビューホース', level: 1 })).toBeVisible();
+});
 
 test('メモを書かなかった出走もタイムラインに並ぶ', async ({ page }) => {
 	await login(page);

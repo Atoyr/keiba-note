@@ -16,7 +16,7 @@ import type { Db } from '$lib/server/db';
 import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
 import { CANDIDATE_MARK } from '$lib/schemas/note';
 import { GRADED } from '$lib/schemas/race';
-import type { HorseSex } from '$lib/schemas/horse';
+import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
 import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
 import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
 import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '$lib/utils/race-filter';
@@ -259,6 +259,15 @@ export type RaceEntryView = {
 	popularity: number | null;
 	/** 通過順（`5-5-4-2`）。ふりかえり画面が4コーナーの位置を出すのに使う。 */
 	passing: string | null;
+	/**
+	 * 馬名を押して開く基本情報の材料（馬の画面の頭と同じ項目）。分からない項目は null。
+	 * 馬の列をそのまま持つ（JOIN 済みの horse から読むだけで、問い合わせは増えない）。
+	 */
+	sire: string | null;
+	dam: string | null;
+	damSire: string | null;
+	trainer: string | null;
+	trainingCenter: TrainingCenter | null;
 };
 
 /** ふりかえりの出走馬。結果として入る確定の単勝と馬体重（増減）を足したもの。 */
@@ -291,6 +300,11 @@ function reviewEntriesQuery(db: Db, raceId: string) {
 				horseName: horse.name,
 				sex: horse.sex,
 				birthYear: horse.birthYear,
+				sire: horse.sire,
+				dam: horse.dam,
+				damSire: horse.damSire,
+				trainer: horse.trainer,
+				trainingCenter: horse.trainingCenter,
 				bracket: raceEntry.bracket,
 				horseNumber: raceEntry.horseNumber,
 				jockey: raceEntry.jockey,
@@ -477,6 +491,11 @@ function previewEntriesQuery(db: Db, raceId: string) {
 			horseName: horse.name,
 			sex: horse.sex,
 			birthYear: horse.birthYear,
+			sire: horse.sire,
+			dam: horse.dam,
+			damSire: horse.damSire,
+			trainer: horse.trainer,
+			trainingCenter: horse.trainingCenter,
 			bracket: raceEntry.bracket,
 			horseNumber: raceEntry.horseNumber,
 			jockey: raceEntry.jockey,

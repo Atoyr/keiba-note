@@ -1,12 +1,9 @@
-<script lang="ts" module>
-	const CENTER_TONE = { 美浦: 'indigo', 栗東: 'orange', 地方: 'none', 海外: 'none' } as const;
-</script>
-
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
 	import { sexAgeLabel } from '$lib/utils/horse';
 	import { SEX_TONE, chip, type Tone } from '$lib/utils/horse-chip';
+	import HorseProfileBadges from './HorseProfileBadges.svelte';
 
 	/**
 	 * 馬詳細の頭。生年月日の行、名前の行（性別の札・`heading`＝h1・右端に `actions`＝推しの★）、プロフィールの札を出す。
@@ -22,6 +19,7 @@
 	 * 性別の札は性齢（`牡6`。性だけなら `牡`、馬齢だけなら `6歳`）。馬齢は `currentYear - birthYear`（JRA は1月1日に一斉に加齢する）。
 	 * 生年月日の行は生年月日が正（生年だけなら `2021年生`）。値の無い項目は出さず、項目が1つも無い行は描かない。
 	 * 名前の行の★のほかは左寄せで、折り返しても左から詰まる。ラベルと値の組なので行ごとに `dl` で組み、読み上げで「父 ○○」と対になるようにする。
+	 * 父・母・母父・所属・調教師の札は `HorseProfileBadges`（出走馬の行の馬名を押して開く枠と共通）。
 	 * 生年月日・性齢・所属は字だけで伝わるのでラベルは読み上げ専用（sr-only）。
 	 * 色は `utils/horse-chip.ts` の `chip`。ラベルを `bg-muted` 上の `text-muted-foreground` にすると 4.5:1 に届かない（約 4.35:1）ので、無彩色の地は `bg-background`。
 	 */
@@ -79,37 +77,6 @@
 				}
 			: null
 	);
-
-	const centerItem = $derived<Item | null>(
-		trainingCenter
-			? {
-					key: 'center',
-					label: '所属',
-					srOnly: true,
-					value: trainingCenter,
-					tone: CENTER_TONE[trainingCenter]
-				}
-			: null
-	);
-
-	const sireItems = $derived<Item[]>(
-		sire ? [{ key: 'sire', label: '父', srOnly: false, value: sire, tone: 'blue' }] : []
-	);
-
-	const damItems = $derived.by(() => {
-		const items: Item[] = [];
-		if (dam) items.push({ key: 'dam', label: '母', srOnly: false, value: dam, tone: 'pink' });
-		if (damSire) {
-			items.push({ key: 'damSire', label: '母父', srOnly: false, value: damSire, tone: 'blue' });
-		}
-		return items;
-	});
-
-	const trainerItem = $derived<Item | null>(
-		trainer
-			? { key: 'trainer', label: '調教師', srOnly: false, value: trainer, tone: 'none' }
-			: null
-	);
 </script>
 
 {#snippet badge(item: Item)}
@@ -136,20 +103,5 @@
 		{@render heading()}
 		<div class="ms-auto shrink-0">{@render actions()}</div>
 	</div>
-	{#if sireItems.length > 0}
-		<dl class="flex flex-wrap items-center gap-1.5">
-			{#each sireItems as item (item.key)}{@render badge(item)}{/each}
-		</dl>
-	{/if}
-	{#if damItems.length > 0}
-		<dl class="flex flex-wrap items-center gap-1.5">
-			{#each damItems as item (item.key)}{@render badge(item)}{/each}
-		</dl>
-	{/if}
-	{#if centerItem || trainerItem}
-		<dl class="flex flex-wrap items-center gap-1.5">
-			{#if centerItem}{@render badge(centerItem)}{/if}
-			{#if trainerItem}{@render badge(trainerItem)}{/if}
-		</dl>
-	{/if}
+	<HorseProfileBadges {sire} {dam} {damSire} {trainer} {trainingCenter} />
 </div>

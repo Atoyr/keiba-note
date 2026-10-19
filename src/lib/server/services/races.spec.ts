@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { listRacesBetween, resolveWeek } from './races';
+import { getRaceForPreview, getRaceForReview, listRacesBetween, resolveWeek } from './races';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */
 const utc = (iso: string) => new Date(iso);
@@ -56,5 +56,39 @@ describe('listRacesBetween の印の数', () => {
 	it('候補のチェック（✓）は印の数に入れない', async () => {
 		const [item] = await listRacesBetween(state.db, 'a', { from: '2099-01-01', to: '2099-01-01' });
 		expect(item.markCount).toBe(2);
+	});
+});
+
+describe('出走馬の基本情報（馬名を押して開く枠の材料）', () => {
+	let state: ReturnType<typeof createTestDb>;
+	beforeEach(() => {
+		state = createTestDb();
+		state.sqlite.exec(`
+			INSERT INTO race (id,date,course,name) VALUES ('r','2099-01-01','東京','テスト賞');
+			INSERT INTO horse (id,name,sire,dam,dam_sire,trainer,training_center) VALUES
+				('h1','ホース1','チチ','ハハ','ハハチチ','調教師A','栗東');
+			INSERT INTO horse (id,name) VALUES ('h2','ホース2');
+			INSERT INTO race_entry (id,race_id,horse_id,horse_number) VALUES ('e1','r','h1',1), ('e2','r','h2',2);
+		`);
+	});
+	afterEach(() => state.sqlite.close());
+
+	const profile = {
+		sire: 'チチ',
+		dam: 'ハハ',
+		damSire: 'ハハチチ',
+		trainer: '調教師A',
+		trainingCenter: '栗東'
+	};
+	const none = { sire: null, dam: null, damSire: null, trainer: null, trainingCenter: null };
+
+	it('予想の出走馬に父・母・母父・調教師・所属が入り、無い馬は null', async () => {
+		const { entries } = await getRaceForPreview(state.db, 'r');
+		expect(entries).toMatchObject([profile, none]);
+	});
+
+	it('ふりかえりの出走馬にも入る', async () => {
+		const { entries } = await getRaceForReview(state.db, 'r');
+		expect(entries).toMatchObject([profile, none]);
 	});
 });

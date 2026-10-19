@@ -180,7 +180,9 @@ test('スマホの幅でも、全角9文字の馬名が切れずに出る', asyn
 
 	const name = page
 		.locator('main li[id^="entry-"]', { hasText: 'アナウマスペシャル' })
-		.getByRole('link', { name: 'アナウマスペシャル', exact: true });
+		.getByRole('link', { name: 'アナウマスペシャル', exact: true })
+		// 切り詰めは中の span が受け持つので、測るのは span。
+		.locator('span');
 	await expect(name).toHaveText('アナウマスペシャル');
 	const { scrollWidth, clientWidth } = await name.evaluate((el) => ({
 		scrollWidth: el.scrollWidth,

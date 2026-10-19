@@ -136,8 +136,9 @@ VALUES ('01JE2EFREEZEUSER0000000000', 'e2e-freeze-google-sub', 'freeze@example.i
 -- 出走前メモを足すと役目が入れ替わってしまう。
 -- 性も生年も入れない。出走馬の行の性齢を出さない形（値の無い馬には空の箱も置かない）を予想画面で見せる。
 -- 生年を入れると、2099年のレースでは馬齢が 78 になってしまう。
-INSERT OR REPLACE INTO horse (id, name)
-VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース');
+-- 父・母・母父・調教師・所属は入れる。馬名を押して基本情報が開く形を予想画面で見せる（性も生年も無い馬でも開く）。
+INSERT OR REPLACE INTO horse (id, name, sire, dam, dam_sire, trainer, training_center)
+VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース', 'E2Eプレビューチチ', 'E2Eプレビューハハ', 'E2Eプレビューハハチチ', 'E2Eプレビュー調教師', '栗東');
 
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size, start_time)
 VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200, '右', 18, '15:45');
