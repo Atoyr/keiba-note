@@ -70,9 +70,9 @@ export const session = sqliteTable(
 		createdAt: createdAt()
 	},
 	(t) => [
-		// 「全端末からログアウト」用
+		// 凍結で、その人の全端末のセッションを消す用
 		index('session_user').on(t.userId),
-		// 期限切れの一括削除用
+		// 期限切れの一括削除用に作った。いまは検証時の遅延削除だけで、この索引を使う問い合わせは無い
 		index('session_expires').on(t.expiresAt)
 	]
 );
