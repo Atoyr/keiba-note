@@ -223,13 +223,6 @@ export async function createRace(
 	return id;
 }
 
-export async function updateRace(db: Db, id: string, input: CreateRaceInput): Promise<void> {
-	await db
-		.update(race)
-		.set({ ...input, updatedAt: Math.floor(Date.now() / 1000) })
-		.where(eq(race.id, id));
-}
-
 export type EntryRow = {
 	horseName: string;
 	bracket: number | null;

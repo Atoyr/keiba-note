@@ -10,9 +10,6 @@ import { addDays, todayJst } from '$lib/utils/date';
  * （docs/architecture.md 第0章）。レースと出走馬は全員に共通のマスタなので `viewerId` で絞らない。
  */
 
-/** Cron が取りに行く格。オッズと同じく重賞だけ。 */
-export const ENTRIES_FETCH_GRADES = ['G1', 'G2', 'G3'] as const;
-
 /**
  * Cron の3段。重賞の出馬表は、候補（日曜16時）→ 出走馬（木曜午後）→ 枠・馬番（金曜午前）の順に決まる。
  *
