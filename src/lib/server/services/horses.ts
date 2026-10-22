@@ -1,7 +1,7 @@
-import { and, asc, countDistinct, desc, eq, like, or } from 'drizzle-orm';
+import { and, asc, countDistinct, eq, like, or } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
-import { horse, note, race, raceEntry, type Horse } from '$lib/server/db/schema';
+import { horse, note, raceEntry, type Horse } from '$lib/server/db/schema';
 import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
 
 /**
@@ -118,23 +118,4 @@ export async function updateHorseProfile(
 		.update(horse)
 		.set({ ...patch, updatedAt: Math.floor(Date.now() / 1000) })
 		.where(eq(horse.id, id));
-}
-
-/** 馬が走ったレースの一覧（タイムラインの見出しに使う）。 */
-export async function getHorseEntries(db: Db, horseId: string) {
-	return db
-		.select({
-			entryId: raceEntry.id,
-			raceId: race.id,
-			date: race.date,
-			course: race.course,
-			raceNumber: race.raceNumber,
-			raceName: race.name,
-			grade: race.grade,
-			finishPosition: raceEntry.finishPosition
-		})
-		.from(raceEntry)
-		.innerJoin(race, eq(raceEntry.raceId, race.id))
-		.where(eq(raceEntry.horseId, horseId))
-		.orderBy(desc(race.date));
 }

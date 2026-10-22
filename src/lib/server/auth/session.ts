@@ -1,6 +1,6 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
-import { and, eq, isNull, lte } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { session, user, type User } from '$lib/server/db/schema';
@@ -122,16 +122,6 @@ export async function validateSession(
 /** ログアウト。該当の1行だけ消す。 */
 export async function invalidateSession(db: Db, token: string): Promise<void> {
 	await db.delete(session).where(eq(session.id, hashSessionToken(token)));
-}
-
-/** 全端末からログアウト。退会処理でも使う。 */
-export async function invalidateAllSessions(db: Db, userId: string): Promise<void> {
-	await db.delete(session).where(eq(session.userId, userId));
-}
-
-/** 期限切れセッションの一括削除。Phase 4 で Cron から呼ぶ想定。 */
-export async function deleteExpiredSessions(db: Db, now = new Date()): Promise<void> {
-	await db.delete(session).where(lte(session.expiresAt, Math.floor(now.getTime() / 1000)));
 }
 
 /** google_sub で引く。email は変わりうるので引き当てキーには使わない。 */

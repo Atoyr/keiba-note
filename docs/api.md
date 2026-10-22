@@ -231,8 +231,8 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 
 | ファイル | 役割 |
 | --- | --- |
-| `services/horses.ts` | 馬の一覧・詳細・出走歴、馬の作成・プロフィール更新 |
-| `services/races.ts` | レースの一覧・件数・年・週の重賞、出走馬（予想用を含む）、過去走。レースと出走馬の作成・更新 |
+| `services/horses.ts` | 馬の一覧・詳細、馬の作成・プロフィール更新 |
+| `services/races.ts` | レースの一覧・件数・年・週の重賞、出走馬（予想用を含む）、過去走・馬の出走歴。レースの作成、出走馬の作成・更新 |
 | `services/odds.ts` | オッズの読み、取得対象のレースの選び。書くのは GitHub Actions（`scripts/odds/store.ts` の SQL。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | 出走馬の取得を頼む対象と、頼めないレースの判定（`entriesFetchBlocker`。D1 を読まない）。出馬表は YAML の PR で入る |
 | `services/results-fetch.ts` | 結果の取得を頼む対象（`listResultsFetchTargets`。当日・JRA の10場・R 1〜12・出走馬あり）。結果は YAML の PR で入る |

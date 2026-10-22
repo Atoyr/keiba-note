@@ -65,7 +65,7 @@ Google アカウント1つ。`google_sub` がログイン時の引き当てキ�
 ### session
 
 ログイン中の端末1台。`id` は**セッショントークンの SHA-256（hex）**で、生のトークンは保存しない（D1 が漏れてもなりすませない）。
-索引は `user_id`（全端末からログアウト）と `expires_at`（期限切れの一括削除）。流れは [architecture.md 3-4](./architecture.md)。
+索引は `user_id`（凍結で全端末のセッションを消す）と `expires_at`（期限切れの一括削除用に作ったが、いまは使う問い合わせが無い。期限切れは検証時に消す）。流れは [architecture.md 3-4](./architecture.md)。
 
 ### horse
 
