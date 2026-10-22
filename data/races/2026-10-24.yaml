@@ -37,13 +37,6 @@ races:
         trainer: 昆貢
         trainingCenter: 栗東
         weight: 55
-      - name: シュヴァルツペルレ
-        sex: 牝
-        age: 2
-        ref: nk-2024106514
-        trainer: 武幸四郎
-        trainingCenter: 栗東
-        weight: 55
       - name: ジーティーキャリー
         jockey: 西村淳也
         sex: 牝
@@ -124,3 +117,6 @@ races:
         trainer: 松永康利
         trainingCenter: 美浦
         weight: 55
+    withdrawn:
+      - name: シュヴァルツペルレ
+        ref: nk-2024106514
