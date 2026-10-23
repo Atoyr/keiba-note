@@ -13,39 +13,9 @@ races:
     ref: nk-202605040811
     startTime: "15:45"
     entries:
-      - name: カナデルペガサス
-        jockey: 今村聖奈
-        sex: 牝
-        age: 2
-        ref: nk-2024101108
-        trainer: 尾形和幸
-        trainingCenter: 美浦
-        weight: 55
-      - name: サトノスプレマシー
-        jockey: 田辺裕信
-        sex: 牝
-        age: 2
-        ref: nk-2024107260
-        trainer: 久保田貴士
-        trainingCenter: 美浦
-        weight: 55
-      - name: シティオブドリーム
-        jockey: 横山典弘
-        sex: 牝
-        age: 2
-        ref: nk-2024104953
-        trainer: 昆貢
-        trainingCenter: 栗東
-        weight: 55
-      - name: ジーティーキャリー
-        jockey: 西村淳也
-        sex: 牝
-        age: 2
-        ref: nk-2024106677
-        trainer: 松下武士
-        trainingCenter: 栗東
-        weight: 55
-      - name: タプティ
+      - horseNumber: 1
+        bracket: 1
+        name: タプティ
         jockey: 小沢大仁
         sex: 牝
         age: 2
@@ -53,47 +23,9 @@ races:
         trainer: 岡田稲男
         trainingCenter: 栗東
         weight: 55
-      - name: ピコベリー
-        jockey: 津村明秀
-        sex: 牝
-        age: 2
-        ref: nk-2024100713
-        trainer: 奥村武
-        trainingCenter: 美浦
-        weight: 55
-      - name: ファミーリエ
-        jockey: 吉村誠之助
-        sex: 牝
-        age: 2
-        ref: nk-2024103478
-        trainer: 清水久詞
-        trainingCenter: 栗東
-        weight: 55
-      - name: プルヴィナル
-        jockey: ルメール
-        sex: 牝
-        age: 2
-        ref: nk-2024106287
-        trainer: 栗田徹
-        trainingCenter: 美浦
-        weight: 55
-      - name: ベストプラージュ
-        jockey: 山本政聡
-        sex: 牝
-        age: 2
-        ref: nk-2024101469
-        trainer: 飯田弘道
-        trainingCenter: 地方
-        weight: 55
-      - name: ホウオウプレマ
-        jockey: 池添謙一
-        sex: 牝
-        age: 2
-        ref: nk-2024106597
-        trainer: 大竹正博
-        trainingCenter: 美浦
-        weight: 55
-      - name: マリアンデール
+      - horseNumber: 2
+        bracket: 2
+        name: マリアンデール
         jockey: 横山武史
         sex: 牝
         age: 2
@@ -101,7 +33,39 @@ races:
         trainer: 中村直也
         trainingCenter: 栗東
         weight: 55
-      - name: リスグロワール
+      - horseNumber: 3
+        bracket: 3
+        name: ファミーリエ
+        jockey: 吉村誠之助
+        sex: 牝
+        age: 2
+        ref: nk-2024103478
+        trainer: 清水久詞
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 4
+        bracket: 4
+        name: ピコベリー
+        jockey: 津村明秀
+        sex: 牝
+        age: 2
+        ref: nk-2024100713
+        trainer: 奥村武
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 5
+        bracket: 4
+        name: シティオブドリーム
+        jockey: 横山典弘
+        sex: 牝
+        age: 2
+        ref: nk-2024104953
+        trainer: 昆貢
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 6
+        bracket: 5
+        name: リスグロワール
         jockey: 坂井瑠星
         sex: 牝
         age: 2
@@ -109,7 +73,69 @@ races:
         trainer: 矢作芳人
         trainingCenter: 栗東
         weight: 55
-      - name: ローズサルーテ
+      - horseNumber: 7
+        bracket: 5
+        name: ホウオウプレマ
+        jockey: 池添謙一
+        sex: 牝
+        age: 2
+        ref: nk-2024106597
+        trainer: 大竹正博
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 8
+        bracket: 6
+        name: ベストプラージュ
+        jockey: 山本政聡
+        sex: 牝
+        age: 2
+        ref: nk-2024101469
+        trainer: 飯田弘道
+        trainingCenter: 地方
+        weight: 55
+      - horseNumber: 9
+        bracket: 6
+        name: プルヴィナル
+        jockey: ルメール
+        sex: 牝
+        age: 2
+        ref: nk-2024106287
+        trainer: 栗田徹
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 10
+        bracket: 7
+        name: ジーティーキャリー
+        jockey: 西村淳也
+        sex: 牝
+        age: 2
+        ref: nk-2024106677
+        trainer: 松下武士
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 11
+        bracket: 7
+        name: カナデルペガサス
+        jockey: 今村聖奈
+        sex: 牝
+        age: 2
+        ref: nk-2024101108
+        trainer: 尾形和幸
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 12
+        bracket: 8
+        name: サトノスプレマシー
+        jockey: 田辺裕信
+        sex: 牝
+        age: 2
+        ref: nk-2024107260
+        trainer: 久保田貴士
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 13
+        bracket: 8
+        name: ローズサルーテ
         jockey: 小林美駒
         sex: 牝
         age: 2
