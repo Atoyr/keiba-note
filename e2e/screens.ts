@@ -112,6 +112,18 @@ const openHorseProfile =
 		await expect(page.getByRole('dialog')).toContainText(father);
 	};
 
+/** 幅が md（768px）以上のときだけ「馬柱を表示」を押す（スマホは押せない＝帯が出ないことを撮る）。 */
+async function pressPastRunsToggle(page: Page) {
+	await waitForHydration(page);
+	if (page.viewportSize()!.width >= 768) {
+		await page.getByRole('button', { name: '馬柱を表示' }).click();
+		await page
+			.getByRole('list', { name: /の馬柱（直近5走）/ })
+			.first()
+			.waitFor();
+	}
+}
+
 /**
  * 見出しの info アイコンの説明を開く。全体を撮るときに表示域を伸ばすと Popover が閉じてしまうので、
  * 先に表示域をページの高さまで伸ばしてから開く（伸ばしたあとはスクロールが要らないので、画面の側は `stayAtTop` にする）。
@@ -253,6 +265,12 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: openHorseProfile('E2Eテストホース', 'E2Eチチウマ', 'click'),
 		stayAtTop: true
+	},
+	{
+		name: 'race-review-past-runs-strip',
+		path: `/races/${PAST_RUN_RACE_ID}`,
+		auth: true,
+		prepare: pressPastRunsToggle
 	},
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
@@ -446,6 +464,13 @@ export const SCREENS: Screen[] = [
 				.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
 				.click();
 		}
+	},
+	{
+		// 馬柱の帯（PC・タブレットだけ）をトグルで出したところ。スマホはトグルが出ない（押せない＝出ないことの確認）。
+		name: 'race-preview-past-runs-strip',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: pressPastRunsToggle
 	},
 	{
 		name: 'race-preview-information',

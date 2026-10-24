@@ -110,7 +110,7 @@ test('「＋ 出走前メモ」を押してその場で書き、折りたたむ�
 	await expect(row.getByText('過去のメモあり')).toHaveCount(0);
 
 	// 並び: 詳細情報 → 印 → 出走前メモ。
-	const details = row.locator(':scope > details');
+	const details = row.locator(':scope > div > details');
 	const marks = row.getByRole('radiogroup', { name: /予想印/ });
 	const add = row.getByRole('button', { name: /＋ 出走前メモ/ });
 	const y = async (l: Locator) => (await l.boundingBox())!.y;
@@ -662,4 +662,41 @@ test('書きかけのまま「戻る」を押しても、離れる前に確認�
 		.toEqual(['保存していない変更があります。保存せずにこのページを離れますか？']);
 	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
 	await expect(body).toHaveValue('外差しが決まる馬場。');
+});
+
+/**
+ * 馬柱の帯（PC・タブレットだけ）。トグル「馬柱を表示」で、各馬の行に直近5走が横に並ぶ。
+ * 設定は端末に残り（読み込み直しても ON）、もう一度押すと消える。スマホ（390px）ではトグルが見えない。
+ * seed では E2Eプレビューホース の前走が E2E同条件賞（26/04/26・16頭中4着）。
+ */
+test('馬柱の帯は、トグルで出し入れでき、読み込み直しても残る', async ({ page }) => {
+	await login(page);
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	const toggle = page.getByRole('button', { name: '馬柱を表示' });
+	const strip = page.getByRole('list', { name: 'E2Eプレビューホースの馬柱（直近5走）' });
+	await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+	await expect(strip).toBeHidden();
+
+	await toggle.click();
+	await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+	// 前走のマス（新しい順の先頭）に日付と着順が出る。縦の表は詳細情報の中に残る。
+	const latest = strip.getByRole('listitem').first();
+	await expect(latest).toContainText('26/04/26');
+	await expect(latest).toContainText('4/16');
+
+	await page.reload();
+	await waitForHydration(page);
+	await expect(page.getByRole('button', { name: '馬柱を表示' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+	await expect(strip).toBeVisible();
+
+	await page.getByRole('button', { name: '馬柱を表示' }).click();
+	await expect(strip).toBeHidden();
+
+	await page.setViewportSize({ width: 390, height: 844 });
+	await expect(page.getByRole('button', { name: '馬柱を表示' })).toBeHidden();
 });
