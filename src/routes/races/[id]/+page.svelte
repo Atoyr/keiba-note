@@ -185,7 +185,7 @@
 
 <svelte:head><title>{data.race.name ?? data.race.course} — uma-memo</title></svelte:head>
 
-<main class={cn('mx-auto max-w-3xl px-4 py-8 sm:px-6', showStrip && 'lg:max-w-6xl')}>
+<main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<RaceHeading
 		{meeting}
 		name={data.race.name}
@@ -366,7 +366,8 @@
 				</section>
 
 				{#if data.rows.length > 0}
-					<section class="mt-8">
+					<!-- 馬柱の帯を出すときは、この塊（見出しの行と一覧の枠）だけ左右へ広げる（lg 以上）。main とナビの幅は変えない。 -->
+					<section class={cn('mt-8', showStrip && 'lg:-mx-28 xl:-mx-48')}>
 						<!-- 馬柱のトグルは見出しの行の右端。出るのは JS が動いてからなので、高さ（min-h-8）を先に取っておく。 -->
 						<div class={cn('flex items-center justify-between gap-2', hasPastRuns && 'md:min-h-8')}>
 							<h2 class="text-sm font-semibold text-gray-500">出走馬</h2>

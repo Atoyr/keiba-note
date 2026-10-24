@@ -22,21 +22,23 @@
 {:else}
 	<ol aria-label="{horseName}の馬柱（直近5走）" class="grid grid-cols-5 gap-1.5">
 		{#each shown as r (r.raceId)}
-			<li class="flex min-w-0 flex-col gap-0.5 rounded-md bg-muted/50 p-1.5 text-xs">
+			<li class="flex min-w-0 flex-col gap-0.5 rounded-md border p-1.5 text-xs">
 				<p class="flex min-w-0 items-baseline gap-x-1">
 					<span class="shrink-0 font-mono text-muted-foreground">{ymd(r.date)}</span>
 					<span class="truncate text-muted-foreground">{r.course}</span>
 				</p>
-				<p class="flex min-w-0 items-center gap-x-1">
-					<GradeBadge grade={r.grade} />
-					{#if !r.grade && r.className}
-						<span class="shrink-0 rounded bg-muted px-1 text-xs text-muted-foreground">
-							{r.className}
-						</span>
-					{/if}
-					<!-- 1マスは 110px ほどで、レース名はたいてい切れる。マウスでは title で全部読める。 -->
-					<span class="min-w-0 truncate" title={title(r)}>{title(r)}</span>
-				</p>
+				{#if r.grade || r.className}
+					<p class="flex min-w-0 items-center gap-x-1">
+						<GradeBadge grade={r.grade} />
+						{#if !r.grade && r.className}
+							<span class="shrink-0 rounded bg-muted px-1 text-xs text-foreground">
+								{r.className}
+							</span>
+						{/if}
+					</p>
+				{/if}
+				<!-- 1マスは 110px ほどなので、レース名は別の段にして2行まで折り返す。それでも切れる分は title（マウス）と詳細情報の表で読める。 -->
+				<p class="line-clamp-2 break-words" title={title(r)}>{title(r)}</p>
 				{#if cond(r)}
 					<p class="truncate font-mono text-muted-foreground">{cond(r)}</p>
 				{/if}
@@ -68,7 +70,7 @@
 			</li>
 		{/each}
 		{#each Array.from({ length: blanks }, (_, i) => i) as i (i)}
-			<li aria-hidden="true" class="rounded-md bg-muted/20"></li>
+			<li aria-hidden="true" class="rounded-md border border-dashed"></li>
 		{/each}
 	</ol>
 {/if}

@@ -9,6 +9,7 @@ import {
 	OTHER_DISTANCE_NOTE_BODY,
 	OTHER_USER_SAME_CONDITION_BODY,
 	PAST_EMPTY_RACE_ID,
+	PAST_RUN_RACE_ID,
 	PREVIEW_RACE_ID,
 	SAME_CONDITION_NOTE_BODY
 } from './seed';
@@ -699,4 +700,27 @@ test('馬柱の帯は、トグルで出し入れでき、読み込み直して�
 
 	await page.setViewportSize({ width: 390, height: 844 });
 	await expect(page.getByRole('button', { name: '馬柱を表示' })).toBeHidden();
+});
+
+/** スマホ（390px）は、設定が ON で残っていても帯を出さない。 */
+test('馬柱の帯は、設定が ON でも 390px では出ない', async ({ page }) => {
+	await login(page);
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.addInitScript(() => localStorage.setItem('uma-memo:past-runs-strip', '1'));
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+
+	await expect(page.getByRole('button', { name: '馬柱を表示' })).toBeHidden();
+	await expect(page.getByRole('list', { name: /の馬柱（直近5走）/ })).toHaveCount(0);
+});
+
+/** ふりかえり画面にも同じトグルがあり、1280px で押すと帯が出る。 */
+test('ふりかえり画面でも、馬柱の帯をトグルで出せる', async ({ page }) => {
+	await login(page);
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await gotoHydrated(page, `/races/${PAST_RUN_RACE_ID}`);
+
+	await page.getByRole('button', { name: '馬柱を表示' }).click();
+	const strip = page.getByRole('list', { name: /の馬柱（直近5走）/ }).first();
+	await expect(strip).toBeVisible();
+	await expect(strip.getByRole('listitem').first()).toContainText('25/11/09');
 });
