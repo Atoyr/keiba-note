@@ -27,16 +27,17 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 
 ## 知識の目次
 
-| 分野         | 文書                                             | 何が書いてあるか                                                                  | 開く場面                                       |
-| ------------ | ------------------------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------- |
-| architecture | [docs/architecture.md](./docs/architecture.md)   | **第0章 守ること**（ランタイム・DB とデータ）、層と機能の依存の向き、D1 の使い方  | 毎回 第0章。サーバー側・DB・依存を触るとき全体 |
-| frontend     | [docs/frontend.md](./docs/frontend.md)           | ファイルの役割、Svelte 5 の書き方、フォームと入力、コンポーネント、コードの書き方 | 画面・ルート・コンポーネントを触るとき         |
-| design       | [docs/design-system.md](./docs/design-system.md) | トークン、shadcn の部品、ドメイン部品、大きさと文言                               | 見た目を触るとき                               |
-| testing      | [docs/testing.md](./docs/testing.md)             | テストの置き場と約束、E2E の環境、画面カタログ、キャプチャ                        | 毎回（テストを書く・確かめる・撮る）           |
-| api          | [docs/api.md](./docs/api.md)                     | ルートと action の一覧、認証、action の約束、サービス層の関数の約束               | ルート・action・サービス関数を足す・変えるとき |
-| mcp          | [docs/mcp.md](./docs/mcp.md)                     | MCP・OAuth の経路と決まり、スコープと tools、回数の上限、WebMCP                   | `/mcp`・`/oauth/*`・WebMCP を触るとき          |
-| evaluation   | [docs/evaluation.md](./docs/evaluation.md)       | Generator と Evaluator の分け方、評価の観点、返す形                               | PR の前に評価を頼むとき・評価するとき          |
-| review       | [docs/review.md](./docs/review.md)               | 分野ごとのレビュアー（YAML・SQL・フロント・AI プロンプト）、重さの決め方、観点    | PR の前にレビューを頼むとき・レビューするとき  |
+| 分野          | 文書                                             | 何が書いてあるか                                                                  | 開く場面                                       |
+| ------------- | ------------------------------------------------ | --------------------------------------------------------------------------------- | ---------------------------------------------- |
+| architecture  | [docs/architecture.md](./docs/architecture.md)   | **第0章 守ること**（ランタイム・DB とデータ）、層と機能の依存の向き、D1 の使い方  | 毎回 第0章。サーバー側・DB・依存を触るとき全体 |
+| frontend      | [docs/frontend.md](./docs/frontend.md)           | ファイルの役割、Svelte 5 の書き方、フォームと入力、コンポーネント、コードの書き方 | 画面・ルート・コンポーネントを触るとき         |
+| design        | [docs/design-system.md](./docs/design-system.md) | トークン、shadcn の部品、ドメイン部品、大きさと文言                               | 見た目を触るとき                               |
+| testing       | [docs/testing.md](./docs/testing.md)             | テストの置き場と約束、E2E の環境、画面カタログ、キャプチャ                        | 毎回（テストを書く・確かめる・撮る）           |
+| api           | [docs/api.md](./docs/api.md)                     | ルートと action の一覧、認証、action の約束、サービス層の関数の約束               | ルート・action・サービス関数を足す・変えるとき |
+| mcp           | [docs/mcp.md](./docs/mcp.md)                     | MCP・OAuth の経路と決まり、スコープと tools、回数の上限、WebMCP                   | `/mcp`・`/oauth/*`・WebMCP を触るとき          |
+| evaluation    | [docs/evaluation.md](./docs/evaluation.md)       | Generator と Evaluator の分け方、評価の観点、返す形                               | PR の前に評価を頼むとき・評価するとき          |
+| review        | [docs/review.md](./docs/review.md)               | 分野ごとのレビュアー（YAML・SQL・フロント・AI プロンプト）、重さの決め方、観点    | PR の前にレビューを頼むとき・レビューするとき  |
+| orchestration | [docs/orchestration.md](./docs/orchestration.md) | Lead と Worker の分担、人の承認、Worker に渡すもの、再開                          | Issue を Lead・Worker として進めるとき         |
 
 ほかに、必要なときだけ読むもの:
 
