@@ -145,6 +145,11 @@ describe('planReview — AI プロンプト', () => {
 		expect(weights([file('docs/product.md', ['文'])]).prompt).toBe(1);
 	});
 
+	it('Claude Code と Codex の権限の設定は重', () => {
+		expect(weights([file('.claude/settings.json', ['"deny": []'])]).prompt).toBe(3);
+		expect(weights([file('.codex/rules/uma-memo.rules', ['prefix_rule()'])]).prompt).toBe(3);
+	});
+
 	it('取り消しにくい操作に触れた指示は重', () => {
 		expect(weights([file('AGENTS.md', ['pnpm run data:import:remote を叩く'])]).prompt).toBe(3);
 		// スキルが最初に読む data/README.md も同じ
