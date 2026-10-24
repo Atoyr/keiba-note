@@ -340,6 +340,8 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 
 書式（途中の `*` が効くか、PowerShell 経由も止まるか）は入れる PR で実際に叩いて確かめる。
 Claude Code 以外のエージェントには効かないので、文章の約束は残す。
+Orca が起動する Worker は確認なしで動いている（[orchestration.md 第0章](./orchestration.md)）。deny が効くのは Claude Code の Worker だけで、
+Codex の Worker を止める方法は未解決（同第7章）。
 **最後の防波堤は構造のほう**で、Cloudflare の API トークンは手元にも、PR で走るワークフロー（`ci.yml`・`pr-body.yml`）にも無い。
 持っているのは、main か人・Worker の起動でしか走らないワークフロー（`deploy.yml`・`data-import.yml`・`odds-update.yml`・`staging.yml`）だけ。
 
@@ -557,6 +559,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | **止まる条件を決める。** 確認が要る条件と、検証できないときの引き継ぎを区別する | AGENTS.md「目指す状態」 / [testing.md 1-2](./testing.md#1-2-検証を完了できないとき) |
 | 取り消しにくい操作は権限の確認を残す | 今は AGENTS.md と architecture.md 第0章の文章だけ。権限の deny は 4-3 の案で、まだ無い |
 | **長い作業は進み具合をファイルに残す。** 会話が要約されても続きを拾える | AGENTS.md「作業の手順」の `TASKS.md`（コミットしない） |
+| 複数のエージェントで進める作業は、Issue に再開地点を残す。セッションを作り直しても続きを拾える | [orchestration.md](./orchestration.md) のチェックポイント |
 | **サブエージェントの結果は確かめてから採る** | evaluation.md・review.md の手順（指摘をそのまま採らない） |
 | **確かめていないものは確かめていないと書く** | evaluation.md の `?`、review.md の「確かめられなかったもの」 |
 | 人のレビューの前にエージェントに差分を見させる | 第6層 6-2（Evaluator と分野ごとのレビュアー）。どれにも当たらないコードは `/code-review` も使える |
