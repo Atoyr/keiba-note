@@ -9,6 +9,8 @@
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
+	import PastRunsStrip from '$lib/components/PastRunsStrip.svelte';
+	import PastRunsToggle from '$lib/components/PastRunsToggle.svelte';
 	import RaceFlowEditor from '$lib/components/RaceFlowEditor.svelte';
 	import SexAgeBadge from '$lib/components/SexAgeBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
@@ -180,6 +182,14 @@
 	onMount(() => {
 		hydrated = true;
 	});
+
+	/**
+	 * 馬柱の帯（PC・タブレットだけ。pages.md 4-2）を出すか。トグルが bind して、ブラウザに残した設定を読む。
+	 * 見せる過去走がどの馬にも無ければ、トグルも帯も出さない。
+	 */
+	let strip = $state(false);
+	const hasPastRuns = $derived(data.rows.some((r) => r.pastRuns.length > 0));
+	const showStrip = $derived(strip && hasPastRuns);
 
 	// SvelteKit は別レースでもページを再利用する。race.id ごとに古い登録を abort する。
 	$effect(() => {
@@ -370,52 +380,83 @@
 				{:else}
 					<!-- 取れた時点を必ず添える。30分おきにしか取らず、失敗した回は前の値が残るので、
 			     「現在の」オッズのようには見せない（pages.md）。 -->
-					{#if data.oddsAsOf}
-						<!-- min-h-8 は切り替えの高さ。切り替えは JS が動いてから出るので、先に高さを取っておかないと
+					<!-- 馬柱の帯を出すときは、この塊（トグルの行と一覧の枠）だけ左右へ広げる（lg 以上）。main とナビの幅は変えない。 -->
+					<div class={cn(showStrip && 'lg:-mx-28 xl:-mx-48')}>
+						{#if data.oddsAsOf}
+							<!-- min-h-8 は切り替えの高さ。切り替えは JS が動いてから出るので、先に高さを取っておかないと
 				     出た瞬間に一覧が下へずれる。 -->
-						<div class="mt-6 flex min-h-8 flex-wrap items-center justify-between gap-2">
-							<p class="text-xs text-muted-foreground">
-								単勝・複勝のオッズは {formatOddsAsOf(data.oddsAsOf)}
-							</p>
-							<!-- 並び順。オッズが無ければ人気も無いので、オッズがあるときだけ出す。 -->
-							{#if hydrated}
-								<div class="flex gap-1 rounded-md bg-muted p-0.5" role="group" aria-label="並び順">
-									{#each ORDERS as o (o.value)}
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											aria-pressed={order === o.value}
-											class={cn(
-												'h-7 px-2.5 text-xs',
-												// 選んでいない側も text-foreground（bg-muted の上の muted は 4.5:1 に届かない）。
-												order === o.value
-													? 'bg-background font-semibold text-foreground shadow-xs hover:bg-background'
-													: 'font-normal text-foreground'
-											)}
-											onclick={() => (order = o.value)}
+							<div class="mt-6 flex min-h-8 flex-wrap items-center justify-between gap-2">
+								<p class="text-xs text-muted-foreground">
+									単勝・複勝のオッズは {formatOddsAsOf(data.oddsAsOf)}
+								</p>
+								<!-- 並び順。オッズが無ければ人気も無いので、オッズがあるときだけ出す。 -->
+								<div class="flex flex-wrap items-center gap-2">
+									{#if hydrated}
+										<div
+											class="flex gap-1 rounded-md bg-muted p-0.5"
+											role="group"
+											aria-label="並び順"
 										>
-											{o.label}
-										</Button>
-									{/each}
+											{#each ORDERS as o (o.value)}
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													aria-pressed={order === o.value}
+													class={cn(
+														'h-7 px-2.5 text-xs',
+														// 選んでいない側も text-foreground（bg-muted の上の muted は 4.5:1 に届かない）。
+														order === o.value
+															? 'bg-background font-semibold text-foreground shadow-xs hover:bg-background'
+															: 'font-normal text-foreground'
+													)}
+													onclick={() => (order = o.value)}
+												>
+													{o.label}
+												</Button>
+											{/each}
+										</div>
+									{/if}
+									{#if hydrated && hasPastRuns}
+										<PastRunsToggle bind:pressed={strip} />
+									{/if}
 								</div>
-							{/if}
-						</div>
-					{/if}
-					<!-- 出走馬は1枚の枠に、区切り線で行を並べる。角の丸みから行の面（◎ の赤）がはみ出さないよう overflow-hidden。 -->
-					<div class="{data.oddsAsOf ? 'mt-2' : 'mt-6'} overflow-hidden rounded-xl border">
-						<ul class="divide-y">
-							{#each rows as r (r.entryId)}
-								{@const note = noteOf(r)}
-								{@const hasNote = hasMemo(note)}
-								{@const conclusion = latestConclusion(r.history)}
-								{@const mark = note.mark}
-								{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
-								<li
-									id="entry-{r.entryId}"
-									class="scroll-mt-4 p-3 {mark === '◎' ? 'ring-1 ring-red-300 ring-inset' : ''}"
-								>
-									<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
+							</div>
+						{:else if hasPastRuns}
+							<!-- オッズが無いレースでも馬柱のトグルは出す。高さ（min-h-8）は並び順の行と同じ。 -->
+							<div class="mt-6 hidden min-h-8 items-center justify-end md:flex">
+								{#if hydrated}
+									<PastRunsToggle bind:pressed={strip} />
+								{/if}
+							</div>
+						{/if}
+						<!-- 出走馬は1枚の枠に、区切り線で行を並べる。角の丸みから行の面（◎ の赤）がはみ出さないよう overflow-hidden。 -->
+						<div
+							class="{data.oddsAsOf
+								? 'mt-2'
+								: hasPastRuns
+									? 'mt-6 md:mt-2'
+									: 'mt-6'} overflow-hidden rounded-xl border"
+						>
+							<ul class="divide-y">
+								{#each rows as r (r.entryId)}
+									{@const note = noteOf(r)}
+									{@const hasNote = hasMemo(note)}
+									{@const conclusion = latestConclusion(r.history)}
+									{@const mark = note.mark}
+									{@const digest = horseNoteDigest(r.history, r.pastRuns, data.race.date)}
+									<li
+										id="entry-{r.entryId}"
+										class={cn(
+											'scroll-mt-4 p-3',
+											mark === '◎' && 'ring-1 ring-red-300 ring-inset',
+											showStrip && 'lg:grid lg:grid-cols-12 lg:gap-x-3'
+										)}
+									>
+										<!-- 馬柱の帯を出すとき、lg 以上は左（見出し・残り）と右（帯）の2列にする。
+									     DOM の順は 見出し → 帯 → 残り（読む順を保つ）。 -->
+										<div class={showStrip ? 'lg:col-span-5 lg:col-start-1' : undefined}>
+											<!-- 見出しの行は、縦に2段の列を横に4つ並べた表にする。
 						     札（枠・馬番 / 性齢）| 名前（馬名 / 騎手 / 騎手の札 / 前回の札）| オッズ（人気・単勝 / 複勝）| 印。
 						     - 列の幅は札・オッズ・印を固定して、残りを名前の列に渡す。取消で値が無い馬や桁の違う馬でも、
 						       上下の行と位置がずれない（レイアウトシフトも起きない）。
@@ -428,148 +469,168 @@
 						       値の形（単勝は1つの数・複勝は幅）と一覧の上の「単勝・複勝のオッズは…時点」で見分けられる。
 						       読み上げには sr-only で残す。
 						     - DOM の順は読む順（札 → 馬名 → 騎手 → 騎手の札 → 前回の札 → 人気 → 単勝 → 複勝 → 印）。 -->
-									<div class="flex items-start gap-x-1.5">
-										<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
+											<div class="flex items-start gap-x-1.5">
+												<!-- 札の列（w-11 は枠・馬番の札の幅）。枠と馬番は1つの札にする（馬番の面は枠の色を薄くしたもの）。
 							     ふりかえり画面と同じ札にして、予想で見た枠と結果で見る枠が別物に見えないようにする。
 							     その下に性齢の札（馬詳細と同じ。牡4）を置く。
 							     札の列を出すかは一覧全体で1つに決める（badgeColumn）。出すなら全行が w-11 で取り、
 							     その行に札が無くても幅だけ取る。行ごとに決めると、馬名の位置が行ごとにずれる。
 							     枠順も性齢も誰にも無い（札が1つも無い）レースだけ、空の列で馬名を右へ押し出さないよう幅を取らない。 -->
-										{#if badgeColumn}
-											<span class="flex w-11 shrink-0 flex-col items-start gap-1">
-												<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
-												<span class="flex h-6 items-center">
-													<SexAgeBadge sex={r.sex} label={r.sexAge} />
-												</span>
-											</span>
-										{/if}
-
-										<div class="flex min-w-0 flex-1 flex-col gap-1">
-											<HorseLink
-												horseId={r.horseId}
-												name={r.horseName}
-												profile={r}
-												class="flex max-w-full self-start leading-6 font-medium hover:underline"
-											/>
-											<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
-								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
-											{#if r.jockey}
-												<JockeyLink
-													name={r.jockey}
-													summary={r.jockeySummary}
-													class="inline-flex min-h-6 max-w-full items-center self-start text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
-												/>
-												<!-- 騎手の札（芝巧者など）。騎手の下に段を作って出す（ふりかえり画面と同じ）。
-									     このレースに合う札が無い騎手は段ごと出さない。 -->
-												{#if r.jockeyCourseTags.length > 0}
-													<JockeyTagBadges tags={r.jockeyCourseTags} class="min-h-6 self-start" />
+												{#if badgeColumn}
+													<span class="flex w-11 shrink-0 flex-col items-start gap-1">
+														<HorseNumberBadge bracket={r.bracket} horseNumber={r.horseNumber} />
+														<span class="flex h-6 items-center">
+															<SexAgeBadge sex={r.sex} label={r.sexAge} />
+														</span>
+													</span>
 												{/if}
-											{/if}
-											<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
-								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
-											{#if conclusion}
-												<span
-													class="flex items-center gap-1 text-[11px] text-muted-foreground"
-													title="{conclusion.occurredAt} に付けた札"
-												>
-													前回
-													<TagBadges tags={conclusion.tags} />
-												</span>
-											{/if}
-										</div>
 
-										<!-- オッズ。列の幅を固定する（w-21 = 84px）。1段目は人気（w-10）と単勝（w-9。nnn.n が入る）、
+												<div class="flex min-w-0 flex-1 flex-col gap-1">
+													<HorseLink
+														horseId={r.horseId}
+														name={r.horseName}
+														profile={r}
+														class="flex max-w-full self-start leading-6 font-medium hover:underline"
+													/>
+													<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
+								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
+													{#if r.jockey}
+														<JockeyLink
+															name={r.jockey}
+															summary={r.jockeySummary}
+															class="inline-flex min-h-6 max-w-full items-center self-start text-sm leading-6 text-muted-foreground underline decoration-dotted underline-offset-2 hover:decoration-solid"
+														/>
+														<!-- 騎手の札（芝巧者など）。騎手の下に段を作って出す（ふりかえり画面と同じ）。
+									     このレースに合う札が無い騎手は段ごと出さない。 -->
+														{#if r.jockeyCourseTags.length > 0}
+															<JockeyTagBadges
+																tags={r.jockeyCourseTags}
+																class="min-h-6 self-start"
+															/>
+														{/if}
+													{/if}
+													<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
+								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
+													{#if conclusion}
+														<span
+															class="flex items-center gap-1 text-[11px] text-muted-foreground"
+															title="{conclusion.occurredAt} に付けた札"
+														>
+															前回
+															<TagBadges tags={conclusion.tags} />
+														</span>
+													{/if}
+												</div>
+
+												<!-- オッズ。列の幅を固定する（w-21 = 84px）。1段目は人気（w-10）と単勝（w-9。nnn.n が入る）、
 							     2段目は複勝（nn.n - nn.n が入る）で、どれも右に寄せる。
 							     取消の馬（人気も値も無い）も空のセルで幅を保つ。 -->
-										{#if data.oddsAsOf}
+												{#if data.oddsAsOf}
+													<div
+														class="flex w-21 shrink-0 flex-col items-end gap-1 text-xs leading-6 font-medium text-foreground"
+													>
+														<span class="flex justify-end gap-x-1.5">
+															<span class="w-10 text-right">
+																{#if r.popularity}{r.popularity}人気{/if}
+															</span>
+															<span class="w-9 text-right font-mono">
+																<span class="sr-only">単勝</span>{formatWinOdds(
+																	r.odds?.winOdds ?? null
+																)}
+															</span>
+														</span>
+														<span class="text-right font-mono whitespace-nowrap">
+															<span class="sr-only">複勝</span>{formatPlaceOdds(
+																r.odds?.placeOddsMin ?? null,
+																r.odds?.placeOddsMax ?? null
+															)}
+														</span>
+													</div>
+												{/if}
+
+												<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
+												<span class="flex size-6 shrink-0">
+													<MarkBadge {mark} />
+												</span>
+											</div>
+										</div>
+
+										{#if showStrip}
 											<div
-												class="flex w-21 shrink-0 flex-col items-end gap-1 text-xs leading-6 font-medium text-foreground"
+												class="mt-2 hidden md:block lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1 lg:mt-0"
 											>
-												<span class="flex justify-end gap-x-1.5">
-													<span class="w-10 text-right">
-														{#if r.popularity}{r.popularity}人気{/if}
-													</span>
-													<span class="w-9 text-right font-mono">
-														<span class="sr-only">単勝</span>{formatWinOdds(
-															r.odds?.winOdds ?? null
-														)}
-													</span>
-												</span>
-												<span class="text-right font-mono whitespace-nowrap">
-													<span class="sr-only">複勝</span>{formatPlaceOdds(
-														r.odds?.placeOddsMin ?? null,
-														r.odds?.placeOddsMax ?? null
-													)}
-												</span>
+												<PastRunsStrip runs={r.pastRuns} horseName={r.horseName} />
 											</div>
 										{/if}
 
-										<!-- 印の場所は、印が無くても取っておく。印の有無でオッズの位置が変わらないように。 -->
-										<span class="flex size-6 shrink-0">
-											<MarkBadge {mark} />
-										</span>
-									</div>
-
-									<!-- 詳細情報は行の直下（印とメモの上）に畳む。馬のメモ・騎手のメモは常に出すと18頭ぶん縦に伸びる。
+										<div class={showStrip ? 'lg:col-span-5 lg:col-start-1' : undefined}>
+											<!-- 詳細情報は行の直下（印とメモの上）に畳む。馬のメモ・騎手のメモは常に出すと18頭ぶん縦に伸びる。
 									     前回の札は見出し、騎手のまとめは騎手名の枠で読めるので、日常の比較は畳んだままで足りる。 -->
-									<details class="group/detail mt-1">
-										<summary
-											class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-md text-xs text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
-											><span
-												><span class="sr-only">{r.horseName}の</span>詳細情報（メモ・直近5走）</span
-											><ChevronDown class="size-4 shrink-0 group-open/detail:rotate-180" /></summary
-										>
-										<div class="grid gap-3 pb-2">
-											<HorseNoteContext
-												horseId={r.horseId}
-												notes={digest.recent}
-												moreCount={digest.moreCount}
-												jockey={r.jockey}
-												summary={r.jockeySummary}
-												{conclusion}
-											/>
-											<div class="rounded-lg bg-muted/50 p-3"><PastRuns runs={r.pastRuns} /></div>
-										</div>
-									</details>
+											<details class="group/detail mt-1">
+												<summary
+													class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-md text-xs text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+													><span
+														><span class="sr-only">{r.horseName}の</span
+														>詳細情報（メモ・直近5走）</span
+													><ChevronDown
+														class="size-4 shrink-0 group-open/detail:rotate-180"
+													/></summary
+												>
+												<div class="grid gap-3 pb-2">
+													<HorseNoteContext
+														horseId={r.horseId}
+														notes={digest.recent}
+														moreCount={digest.moreCount}
+														jockey={r.jockey}
+														summary={r.jockeySummary}
+														{conclusion}
+													/>
+													<div class="rounded-lg bg-muted/50 p-3">
+														<PastRuns runs={r.pastRuns} />
+													</div>
+												</div>
+											</details>
 
-									<!-- 印は常に出す。行を開かずに付けられる。 -->
-									<div class="mt-1">
-										<MarkPicker
-											name="mark.{r.entryId}"
-											label="{r.horseName}の予想印"
-											value={r.myPreview?.mark ?? null}
-											onpick={(m) => pick(r.entryId, m)}
-										/>
-									</div>
+											<!-- 印は常に出す。行を開かずに付けられる。 -->
+											<div class="mt-1">
+												<MarkPicker
+													name="mark.{r.entryId}"
+													label="{r.horseName}の予想印"
+													value={r.myPreview?.mark ?? null}
+													onpick={(m) => pick(r.entryId, m)}
+												/>
+											</div>
 
-									<!-- 書いたメモはそのまま出し、押すとその場で入力欄が開く（見出しで折りたためる）。種別の札（出走前）を付ける。
+											<!-- 書いたメモはそのまま出し、押すとその場で入力欄が開く（見出しで折りたためる）。種別の札（出走前）を付ける。
 									     無いと、すぐ上の「前回」の札の続きに読める。 -->
-									{#snippet memo()}
-										<EntryMemo kind="出走前" body={note.body} tags={note.tags} />
-									{/snippet}
+											{#snippet memo()}
+												<EntryMemo kind="出走前" body={note.body} tags={note.tags} />
+											{/snippet}
 
-									<EntryNoteEditor
-										label="出走前メモ"
-										horseName={r.horseName}
-										hasMemo={hasNote}
-										bind:editing={
-											() => !!editingRows[r.entryId], (v) => (editingRows[r.entryId] = v)
-										}
-										{memo}
-									>
-										<Textarea
-											name="body.{r.entryId}"
-											aria-label="{r.horseName}の出走前メモ"
-											rows={2}
-											placeholder="今回は内枠が向きそう。"
-											class="text-sm"
-											value={r.myPreview?.body ?? ''}
-										/>
-										<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
-									</EntryNoteEditor>
-								</li>
-							{/each}
-						</ul>
+											<EntryNoteEditor
+												label="出走前メモ"
+												horseName={r.horseName}
+												hasMemo={hasNote}
+												bind:editing={
+													() => !!editingRows[r.entryId], (v) => (editingRows[r.entryId] = v)
+												}
+												{memo}
+											>
+												<Textarea
+													name="body.{r.entryId}"
+													aria-label="{r.horseName}の出走前メモ"
+													rows={2}
+													placeholder="今回は内枠が向きそう。"
+													class="text-sm"
+													value={r.myPreview?.body ?? ''}
+												/>
+												<TagPicker name="tags.{r.entryId}" values={r.myPreview?.tags ?? []} />
+											</EntryNoteEditor>
+										</div>
+									</li>
+								{/each}
+							</ul>
+						</div>
 					</div>
 				{/if}
 			</RacePanels>
