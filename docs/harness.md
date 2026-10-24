@@ -72,7 +72,7 @@ flowchart LR
 | 1 目的 | README / product.md | なし | 仕様はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない（原則は 1-3 の草案だけ） |
 | 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反がある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | パレットの生の色指定が数百箇所残る。shadcn のトークンが半分しか使われていない |
-| 4 操作 | AGENTS.md「コマンド」/ README.md「セットアップ」 | なし | Dev Container と `pnpm run setup` は稼働中。本番に触るコマンドの禁止は言葉だけ（権限の deny と hook はまだ無い） |
+| 4 操作 | AGENTS.md「コマンド」/ README.md「セットアップ」 | `.claude/settings.json` の deny / `.codex/rules/`（4-3） | Dev Container と `pnpm run setup` は稼働中。本番に触るコマンドは権限で止める（すり抜けの穴は 4-3）。hook はまだ無い |
 | 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
 | 6 評価 | evaluation.md / review.md | `pr-body.yml`（評価の欄と、`review:plan` が選んだレビュアーの結果があるか） | Evaluator と分野ごとのレビュアーが PR の前に見る。指摘を規則に戻すのは人の判断（6-4） |
 
@@ -318,30 +318,24 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 コマンドを script にして `.claude/launch.json` に載せれば、Claude のブラウザから
 キャプチャと同じ状態を操作できる。
 
-### 4-3. 叩いてはいけないもの — 言葉から権限へ（まだ無い）
+### 4-3. 叩いてはいけないもの — 言葉から権限へ
 
-いま本番に触るコマンドの禁止は architecture.md 第0章と AGENTS.md の文章だけ。これを Claude Code の権限設定で止める。
+本番に触るコマンド・PR のマージ・force push と `main` への push を、文章の約束（architecture.md 第0章・[orchestration.md 第0章](./orchestration.md)）に加えて
+エージェントの権限設定で止める。Orca はどちらのエージェントも確認なしで起動するので、確認のダイアログには頼れない。
 
-```jsonc
-// .claude/settings.json（コミットする。案）
-{
-  "permissions": {
-    "deny": [
-      "Bash(pnpm run deploy:*)",
-      "Bash(pnpm run db:migrate:remote:*)",
-      "Bash(pnpm run data:import:remote:*)",
-      "Bash(pnpm exec wrangler deploy:*)",
-      "Bash(pnpm exec wrangler secret:*)",
-      "Bash(*--remote*)"
-    ]
-  }
-}
-```
+| エージェント | 置き場 | 止まり方 | 止まらないもの |
+| --- | --- | --- | --- |
+| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`） |
+| Codex | `.codex/rules/uma-memo.rules` の `forbidden` | コマンドの先頭一致。`&&` でつないだものも分解して見る。`--dangerously-bypass-approvals-and-sandbox` を付けた `codex exec` でも拒否した（Orca が起動する対話の Codex で効くかは [orchestration.md 第7章](./orchestration.md)） | 引数の途中に出るもの（`wrangler d1 execute … --remote` など）、`gh api` でのマージ、`git -C <dir> push`、`sh -c '...'` で包んだもの |
 
-書式（途中の `*` が効くか、PowerShell 経由も止まるか）は入れる PR で実際に叩いて確かめる。
-Claude Code 以外のエージェントには効かないので、文章の約束は残す。
-Orca が起動する Worker は確認なしで動いている（[orchestration.md 第0章](./orchestration.md)）。deny が効くのは Claude Code の Worker だけで、
-Codex の Worker を止める方法は未解決（同第7章）。
+- 2つの置き場は書き方が違うだけで、止めたいものは同じ。変えるときは両方を揃える。script は `pnpm run <名前>`・`pnpm <名前>`（pnpm は `run` を省いても実行する）・`npm run <名前>` のどれでも止める
+- Claude Code の `*--remote*`・`*db:migrate:remote*` などは、`grep` の検索語のように文字列として入っているだけでも拒否する。そのときの扱いは AGENTS.md「読み落とすと事故になること」
+- **Codex には `git push` を丸ごと禁じている。** 先頭一致では「force だけ」「`main` だけ」を書き分けきれないうえ、Codex は Worker としてだけ使い、push は Lead が行うため（orchestration.md 第4章）
+- `odds:update` は `--local` が無ければ、ほかにどんな引数を付けても、`node … scripts/odds-update.ts` で直接呼んでも本番の D1 を書く。
+  Claude Code で止めているのは引数なしの `pnpm run odds:update`・`pnpm odds:update` だけで、Codex では止めない（先頭一致だと `--local` まで止まるため）。手元に認証情報が無いので構造で失敗する
+- 確かめ方: Claude Code は、止まらなくても害の無い形（`--help`・`--dry-run`・`echo`）を叩いて拒否されることを見た。
+  Codex は `codex execpolicy check -r .codex/rules/uma-memo.rules <コマンド>` で一致を見て、承認なしで起動した `codex exec` で拒否されることを見た
+
 **最後の防波堤は構造のほう**で、Cloudflare の API トークンは手元にも、PR で走るワークフロー（`ci.yml`・`pr-body.yml`）にも無い。
 持っているのは、main か人・Worker の起動でしか走らないワークフロー（`deploy.yml`・`data-import.yml`・`odds-update.yml`・`staging.yml`）だけ。
 
@@ -557,7 +551,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | --- | --- |
 | **完了の条件を先に書く。** 何がそろえば終わりかが分かれば、途中で確認を求めずに進められる | AGENTS.md「目指す状態」の完了の条件 |
 | **止まる条件を決める。** 確認が要る条件と、検証できないときの引き継ぎを区別する | AGENTS.md「目指す状態」 / [testing.md 1-2](./testing.md#1-2-検証を完了できないとき) |
-| 取り消しにくい操作は権限の確認を残す | 今は AGENTS.md と architecture.md 第0章の文章だけ。権限の deny は 4-3 の案で、まだ無い |
+| 取り消しにくい操作は権限の確認を残す | AGENTS.md と architecture.md 第0章の文章に加え、4-3 の権限の設定（確認なしで動くエージェントにも効く） |
 | **長い作業は進み具合をファイルに残す。** 会話が要約されても続きを拾える | AGENTS.md「作業の手順」の `TASKS.md`（コミットしない） |
 | 複数のエージェントで進める作業は、Issue に再開地点を残す。セッションを作り直しても続きを拾える | [orchestration.md](./orchestration.md) のチェックポイント |
 | **サブエージェントの結果は確かめてから採る** | evaluation.md・review.md の手順（指摘をそのまま採らない） |
@@ -618,7 +612,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | --- | --- | --- | --- | --- |
 | 0 | コンテキストと評価（**済み**） | 5 / 6 / 7 | AGENTS.md を目次にし、分野の文書に分けた。`docs:check`・Evaluator のサブエージェント・`pr-body.yml`。分野ごとのレビュアーと `review:plan` | なし |
 | 1 | 依存の規則（まだ） | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の違反を直す | なし（キャプチャ0枚を確かめる） |
-| 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`。**まだ:** `.claude/settings.json`（deny と hook）、`preview:e2e`、`.claude/launch.json` | なし |
+| 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook、`preview:e2e`、`.claude/launch.json` | なし |
 | 3 | トークンと lint（まだ） | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え（まだ） | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |
 | 5 | 目的の型（まだ） | 1 | product.md の冒頭に UX 原則、issue テンプレート、PR テンプレートの「なぜ」に原則の番号 | なし |

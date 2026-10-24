@@ -186,7 +186,7 @@ Evaluator が画面の上で確かめること（操作できるか・見た目�
 | 観点 | 見ること |
 | --- | --- |
 | ★ 食い違い | 変えた約束が、ほかの文書・エージェントの定義・スキルと矛盾していないか。同じ知識を2か所に写していないか（片方だけ直されてずれる。[harness.md 7-3](./harness.md)） |
-| ★ 権限 | エージェントの `tools` が役割に対して最小か（読むだけの役に `Edit`・`Write` を与えていない）。`.claude/settings.json` の allow が広すぎないか・deny を外していないか |
+| ★ 権限 | エージェントの `tools` が役割に対して最小か（読むだけの役に `Edit`・`Write` を与えていない）。`.claude/settings.json` の allow が広すぎないか・deny を外していないか。`.codex/rules/` の `forbidden` を外していないか。2つが同じものを止めているか（[harness.md 4-3](./harness.md)） |
 | ★ 取り消しにくい操作 | 本番の D1（`--remote`）・`wrangler secret`・`deploy`・force push を、エージェントが自分で叩く読み方ができないか |
 | ★ 外から来た文 | netkeiba の HTML・PR や issue の本文・ツールの出力を、指示として扱わせる書き方になっていないか |
 | 止まる条件と完了の条件 | いつ終わりで、いつ止めて人に聞くかが [AGENTS.md「目指す状態」](../AGENTS.md) と食い違わないか |

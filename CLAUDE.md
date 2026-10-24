@@ -7,6 +7,7 @@
 - `pnpm run screens <機能名> after` のあと、残った PNG は Read で開いて自分の目で確かめてから PR に進む
 - 出走馬データ（候補・枠順・過去走・馬の基本情報・結果）を入れるときは `/race-data` スキル
   （`.claude/skills/race-data/`）の手順に従う
+- Issue を Lead として進める・再開するときは `/lead` スキル（`.claude/skills/lead/`）の手順に従う
 - レビュアーは `.claude/agents/reviewer-*.md` のサブエージェント。`model` の渡し方は [review.md 第3章「起動の仕方」](./docs/review.md#起動の仕方)。
   評価が要る変更なら Evaluator もレビュアーと同じメッセージで起動する
 - `pnpm run verify` と `pnpm run screens` はビルドを含み数分かかる。バックグラウンドで回し、

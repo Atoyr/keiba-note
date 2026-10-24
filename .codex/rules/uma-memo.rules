@@ -1,0 +1,64 @@
+# Codex が叩いてはいけないコマンド（docs/orchestration.md 第0章）。
+#
+# Orca は Codex を --dangerously-bypass-approvals-and-sandbox で起動するが、ここの forbidden はその下でも拒否する。
+# 規則はコマンドの先頭一致だけなので、止まらない形がある（一覧は docs/harness.md 4-3 の表）。
+# 最後の防波堤は、手元に Cloudflare の認証情報が無いこと（同 4-3）。
+# Claude Code の同じ規則は .claude/settings.json の permissions.deny にある。変えるときは両方を揃える。
+
+PROD_SCRIPTS = [
+    "deploy",
+    "deploy:staging",
+    "db:migrate:remote",
+    "db:migrate:staging",
+    "data:import:remote",
+    "data:import:staging",
+]
+
+prefix_rule(
+    pattern = [["pnpm", "npm"], "run", PROD_SCRIPTS],
+    decision = "forbidden",
+    justification = "本番・ステージングの D1 とデプロイは人が行う（docs/architecture.md 第0章）",
+)
+
+# pnpm は run を省いても script を実行する。
+prefix_rule(
+    pattern = ["pnpm", PROD_SCRIPTS],
+    decision = "forbidden",
+    justification = "本番・ステージングの D1 とデプロイは人が行う（docs/architecture.md 第0章）",
+)
+
+prefix_rule(
+    pattern = ["wrangler", ["deploy", "secret"]],
+    decision = "forbidden",
+    justification = "デプロイとシークレットは人が行う（docs/architecture.md 第0章）",
+)
+
+prefix_rule(
+    pattern = [["pnpm", "npx"], "wrangler", ["deploy", "secret"]],
+    decision = "forbidden",
+    justification = "デプロイとシークレットは人が行う（docs/architecture.md 第0章）",
+)
+
+prefix_rule(
+    pattern = ["bunx", "wrangler", ["deploy", "secret"]],
+    decision = "forbidden",
+    justification = "デプロイとシークレットは人が行う（docs/architecture.md 第0章）",
+)
+
+prefix_rule(
+    pattern = ["pnpm", ["exec", "dlx"], "wrangler", ["deploy", "secret"]],
+    decision = "forbidden",
+    justification = "デプロイとシークレットは人が行う（docs/architecture.md 第0章）",
+)
+
+prefix_rule(
+    pattern = ["gh", "pr", "merge"],
+    decision = "forbidden",
+    justification = "PR のマージは人が行う（docs/orchestration.md 第0章）",
+)
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "forbidden",
+    justification = "Worker は push しない。push は Lead が行う（docs/orchestration.md 第4章）",
+)

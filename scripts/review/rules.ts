@@ -295,6 +295,13 @@ export const RULES: Rule[] = [
 		reason: '権限・hook'
 	},
 	{
+		// Orca は Codex を承認なしで起動するので、.codex/rules/ の forbidden が Codex を止める唯一の権限（docs/orchestration.md 第0章）。
+		reviewer: 'prompt',
+		path: /^\.codex\//,
+		weight: 3,
+		reason: 'Codex の権限・設定'
+	},
+	{
 		reviewer: 'prompt',
 		path: /^docs\/(architecture|evaluation|review|testing)\.md$/,
 		weight: 2,
