@@ -133,6 +133,26 @@ test('行を開かずに選んだ印は、保存前から見出しと「付け�
 	await expect(marks.getByText(name)).toHaveCount(0);
 });
 
+test('行を開かずに選んだ候補（✓）は、複数頭とも「付けた印」に出て、外すと消える', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, route);
+	const marks = page.getByRole('region', { name: '付けた印' });
+	const [a, b] = [ROW_RACE.names[0], ROW_RACE.names[1]];
+	await row(page, 0).getByRole('radio', { name: '✓ 候補', exact: true }).check({ force: true });
+	await row(page, 1).getByRole('radio', { name: '✓ 候補', exact: true }).check({ force: true });
+	await expect(marks.getByText(a)).toBeVisible();
+	await expect(marks.getByText(b)).toBeVisible();
+	await expect(marks.getByTitle('候補')).toHaveCount(2);
+	await row(page, 0).getByRole('radio', { name: 'なし', exact: true }).check({ force: true });
+	await expect(marks.getByText(a)).toHaveCount(0);
+	await expect(marks.getByText(b)).toBeVisible();
+	await row(page, 1).getByRole('radio', { name: '◎', exact: true }).check({ force: true });
+	await expect(marks.getByTitle('候補')).toHaveCount(0);
+	await expect(marks.getByText(b)).toBeVisible();
+});
+
 test('保存失敗→リロード→「復元する」で、閉じた行の見出しに下書きの印が出る', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, route);

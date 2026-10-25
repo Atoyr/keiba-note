@@ -365,6 +365,19 @@ export const SCREENS: Screen[] = [
 	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{
+		// 4番（保存済みは △）と印の無い7番に ✓（候補）を選んだところ。保存はしない。「付けた印」で ✓ が
+		// ☆ と × の間に馬番の順で2頭並び、teal の札がほかの印と同じ大きさ・間隔で揃うかを見る。
+		name: 'race-preview-marks-candidate',
+		path: `/races/${MARKS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const marks = page.getByRole('radiogroup', { name: /予想印/ });
+			await marks.nth(3).locator('input[value="✓"] + span').click();
+			await marks.nth(6).locator('input[value="✓"] + span').click();
+		}
+	},
+	{
 		// 人気順に並べ替えたところ（同じ2人気は馬番の順、取消で人気の無い馬は最後）。
 		name: 'race-preview-popularity',
 		path: `/races/${MARKS_RACE_ID}/preview`,
@@ -739,8 +752,8 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 印を ✓（候補）に付け替えたところ。保存はしない。✓ は予想の印ではないので、見出しには teal の ✓ が出るが、
-		// 一覧の上の「付けた印」には出ない（保存済みの ◎ から ✓ に変えたその馬が一覧から消える）。
+		// 印を ✓（候補）に付け替えたところ。保存はしない。見出しにも一覧の上の「付けた印」にも
+		// teal の ✓ で ☆ と × の間に出る（保存済みの ◎ から ✓ に変えたその馬が ◎ の並びから候補の並びへ移る）。
 		name: 'race-preview-mark-candidate',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,

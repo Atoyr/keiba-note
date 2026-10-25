@@ -25,7 +25,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { toast } from 'svelte-sonner';
-	import { byMark } from '$lib/utils/answer';
+	import { markedInOrder } from '$lib/utils/answer';
 	import {
 		currentEntry,
 		EMPTY_LIVE,
@@ -150,9 +150,9 @@
 		live = withField(live, data.race.id, el.name, formEl.elements);
 	}
 
-	// いま選んでいる印を印の順（◎ → ×）に。ふりかえりの答え合わせと同じ並び。
+	// いま選んでいる印を、候補の ✓ も含め、印の順（◎ → ×、✓ は ☆ と × の間）に。
 	const marked = $derived(
-		byMark(
+		markedInOrder(
 			data.rows.map((r) => ({
 				entryId: r.entryId,
 				horseName: r.horseName,
