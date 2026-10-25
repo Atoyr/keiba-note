@@ -37,8 +37,8 @@ const wrangler = (args: string, state: string) =>
  * 全テーブルを空にしてから流すので、前回のテストが書いた行は残らない。
  * テーブル名はその場で引くので、テーブルを足しても ここを直す必要はない。
  *
- * **プレビューサーバー（wrangler dev）が上がる前に走らせる。** playwright.config.ts の
- * webServer の command の先頭で `node --experimental-strip-types e2e/seed.ts` として呼ぶ。
+ * **プレビューサーバー（wrangler dev）が上がる前に走らせる。** scripts/preview-e2e.ts の
+ * 最初の手順で `node --experimental-strip-types e2e/seed.ts` として呼ぶ（紹介ページは playwright.landing.config.ts の command の先頭）。
  * `globalSetup` には置かない。Playwright は webServer を globalSetup より先に立ち上げるので、
  * 上がったあとの wrangler dev と同じ SQLite をここで開くことになり、取り合って
  * `database is locked: SQLITE_BUSY` で落ちることがある。

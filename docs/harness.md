@@ -310,13 +310,13 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 ### 4-2. 操作面
 
 コマンドの一覧は [AGENTS.md「コマンド」](../AGENTS.md#コマンド) と `package.json` の `scripts` が正。
-ここには、これから足すものだけを書く。
+ここには、操作面をそろえる理由と、これから足すものを書く。
 
-**`pnpm run preview:e2e` を足す（まだ無い）。** E2E と同じビルドと D1 で上げるコマンド。
+**`pnpm run preview:e2e`。** E2E と同じビルドと D1 で上げるコマンド。
 開発サーバー（`.dev.vars` に `MOCK_AUTH="1"` を置いた `pnpm run dev`）は手元の D1 を見るので、エージェントがブラウザで
 触った画面とキャプチャの画面が一致しない。E2E の webServer（`playwright.config.ts`）と同じ
-コマンドを script にして `.claude/launch.json` に載せれば、Claude のブラウザから
-キャプチャと同じ状態を操作できる。
+定義を `scripts/preview-e2e.ts` にまとめ、単独でもキャプチャと同じ状態を操作できる。
+`.claude/launch.json` への登録はまだ無い（#206）。
 
 ### 4-3. 叩いてはいけないもの — 言葉から権限へ
 
@@ -612,7 +612,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | --- | --- | --- | --- | --- |
 | 0 | コンテキストと評価（**済み**） | 5 / 6 / 7 | AGENTS.md を目次にし、分野の文書に分けた。`docs:check`・Evaluator のサブエージェント・`pr-body.yml`。分野ごとのレビュアーと `review:plan` | なし |
 | 1 | 依存の規則（まだ） | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の違反を直す | なし（キャプチャ0枚を確かめる） |
-| 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook、`preview:e2e`、`.claude/launch.json` | なし |
+| 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、`preview:e2e`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook、`.claude/launch.json` | なし |
 | 3 | トークンと lint（まだ） | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え（まだ） | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |
 | 5 | 目的の型（まだ） | 1 | product.md の冒頭に UX 原則、issue テンプレート、PR テンプレートの「なぜ」に原則の番号 | なし |

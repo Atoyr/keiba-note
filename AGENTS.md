@@ -90,6 +90,7 @@ pnpm run verify                         # check / lint / test（単体テスト 
 pnpm run test:unit                      # 単体テストを1回
 pnpm run test:watch                     # 単体テストを監視して再実行
 pnpm run test:e2e                       # E2E だけ（ビルドから走る）
+pnpm run preview:e2e                    # E2E と同じ seed・ビルド・D1 でサーバーを上げる（verify・screens の前に止める。testing.md 3-1）
 pnpm run screens <機能名> before|after   # PR 用キャプチャ（画面名を並べれば絞れる）
 pnpm run screens:pr <機能名>            # キャプチャを screenshots ブランチへ上げ、PR 本文に貼る Markdown を出す
 pnpm run landing:shots                  # 紹介ページ（未ログインの /）に載せるキャプチャを撮り直す（testing.md 第8章）

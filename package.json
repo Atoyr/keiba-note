@@ -9,6 +9,7 @@
 		"dev": "vite dev",
 		"build": "wrangler types && vite build",
 		"preview": "wrangler dev --port 4173",
+		"preview:e2e": "node --experimental-strip-types scripts/preview-e2e.ts",
 		"prepare": "svelte-kit sync && wrangler types",
 		"check": "svelte-kit sync && wrangler types && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && wrangler types && svelte-check --tsconfig ./tsconfig.json --watch",
