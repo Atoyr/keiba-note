@@ -78,6 +78,8 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 - 画面側はサーバーのコードを型ですら import しない。サービス層は SvelteKit を import しない（[architecture.md 第2章](./docs/architecture.md)）
 - `src/lib/components/ui/` と `drizzle/` の生成物は手で直さない（[design-system.md](./docs/design-system.md) / [architecture.md 第0章](./docs/architecture.md)）
 - 本番の D1（`--remote`）・`wrangler secret`・`deploy` は叩かない。人が行う
+- 権限の設定（[harness.md 4-3](./docs/harness.md)）で拒否された操作は、`sh -c` で包むなどの回り道で通さない。要る操作なら人に回すか、未完了として引き継ぐ（[testing.md 1-2](./docs/testing.md#1-2-検証を完了できないとき)）。
+  Codex は Worker として使うので `git push` も拒否される。検索語などに文字列として入っていただけなら、ファイルに置くなどしてその操作をせずに続けてよい
 - キャプチャに実在のメールアドレスや本番データを写さない。`pnpm run screens` で撮る（[testing.md 5-4](./docs/testing.md)）
 
 ## コマンド

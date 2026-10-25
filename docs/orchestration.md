@@ -36,9 +36,10 @@ Issue のチェックポイント（第3章）に承認を記録してよいが�
 
 **いまの権限の実情。** Orca が起動する Codex には `--dangerously-bypass-approvals-and-sandbox` が付き（Orca の worktree で動く `codex` のプロセスの引数で確認）、
 Claude Code も確認なしで動いている（Orca の Claude のプロファイルは `permissions` を持たず、確認を飛ばす設定）。
-上の約束は文章だけで、エージェントの操作は確認なしで通る。手元に Cloudflare の認証情報が無い（`wrangler` は未ログイン）ので、
-本番に触る操作は構造で失敗するが、`git push` と `gh pr merge` は通る。権限で止める設定は
-[harness.md 4-3](./harness.md) の案で、まだ無い。
+確認のダイアログでは止まらないので、本番に触るコマンド・`gh pr merge`・force push と `main` への push は、権限の設定（Claude Code は `.claude/settings.json`、
+Codex は `.codex/rules/`）で拒否する。どちらも `sh -c '...'` で包めばすり抜けるガードレールで、残りは文章の約束が支える
+（止まるもの・止まらないものは [harness.md 4-3](./harness.md)）。**Orca が起動する対話の Codex に `.codex/rules/` が効くかはまだ確かめていない**（第7章）ので、
+それまでは Codex の Worker の push とマージも、文章の約束だけで止まっている前提で扱う。手元に Cloudflare の認証情報が無い（`wrangler` は未ログイン）ので、本番に触る操作は構造でも失敗する。
 
 ---
 
@@ -217,8 +218,7 @@ Orca の Worker にも `implementer` にも同じものを渡し、同じ形で�
 #204 の試運転（Phase 4・5）で確かめ、確かめたら本文に移す。それまでは、ここに書いた手順が実機と違えば実機に従い、この章に書き足す。
 
 - `worker-start` で起動した Claude Code が、Lead と同じ Orca のプロファイル（確認を飛ばす設定）で動くか。第0章の実情は、Lead のセッションで見たもの
-- `.claude/settings.json` の deny が、確認を飛ばすモードの Claude Code でも効くか（harness.md 4-3 を入れる PR で確かめる）
 - `--report-path` に `.git` の中のパスを渡して Lead から読めるか
 - Orca の decision gate を人の承認待ちに使えるか（いまは使わず、承認はチャットで受けて Issue に残す）
-- Codex の操作を権限で止める方法（Orca が付ける承認なしの起動を、リポジトリの側で狭められるか）
+- Orca が起動する対話の Codex（`codex exec` ではない）も `.codex/rules/` を読むか。`codex exec` では、信頼済みにしていないディレクトリでも読んだ
 - Worker が Issue に書かないことを支えているのは文章の約束だけ。Worker の `gh` も Lead と同じ管理者のアカウントなので、第2章のアカウントでの絞り込みでは Worker の書いたコメントを外せない
