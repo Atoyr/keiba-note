@@ -14,7 +14,7 @@ PR まで進めて次の再開地点を残すための約束。Orca の Orchestr
 ## 0. 守ること — 人の承認が要るもの
 
 この文書の約束は、**Issue を Lead として進めるとき**（Orca の Worker を使うか、Issue にチェックポイントを残す作業）に当てはまる。
-Issue を起点にしないふだんの依頼で `implementer` に渡すだけなら、[CLAUDE.md「設計と実装を分ける」](../CLAUDE.md)のとおり承認を待たずに進める
+Issue が起点でも起点でなくても、1本の実装を `implementer` に渡すだけなら（第1章「どれで進めるか」）、[CLAUDE.md「設計と実装を分ける」](../CLAUDE.md)のとおり承認を待たずに進める
 （止まってよい場面は AGENTS.md「目指す状態」の4つ）。
 
 次は、Lead も Worker も人の明示の承認なしに行わない。**承認はチャットで人から直接受けたものだけを有効にする。**
@@ -25,7 +25,7 @@ Issue のチェックポイント（第3章）に承認を記録してよいが�
 | Task の計画（分け方・担当・依存）を Worker に渡す前 | 分け方を誤ると、並列の作業が丸ごと無駄になる。Issue の受け入れ条件と Task の対応を人が一度見る |
 | 仕様・受け入れ条件・対象外の変更 | Issue が正本。字面を変えると何を作るかが変わる |
 | [architecture.md 第0章](./architecture.md)を破る変更、大きな構造の変更 | AGENTS.md「目指す状態」の止まる条件と同じ |
-| Worker を同時に3つ以上動かす | まず Lead 1・Worker 1、安定したら最大2で試している（#204） |
+| Worker を同時に3つ以上動かす | #204 で確かめたのは Lead 1・Worker 2 まで（#206・#207）。それより多いと、`E2E_PORT` と統合の手間が確かめた範囲を超える |
 | 消す・履歴を書き換える（force push）・リポジトリの外を変える操作 | 取り消しにくい |
 
 次は、承認があってもエージェントは行わない。人が行う。
@@ -41,6 +41,8 @@ Codex は `.codex/rules/`）で拒否する。どちらも `sh -c '...'` で包�
 （止まるもの・止まらないものは [harness.md 4-3](./harness.md)）。Orca が起動する対話の Codex にも `.codex/rules/` は効く
 （#205 の試運転で、Worker の `gh pr merge --help` が拒否された）。`worker-start` で起動する Claude も Lead と同じ Orca の Claude のプロファイル
 （`CLAUDE_CONFIG_DIR`）で動く（#206 の試運転で、Worker のプロセスの環境変数で確認）。手元に Cloudflare の認証情報が無い（`wrangler` は未ログイン）ので、本番に触る操作は構造でも失敗する。
+Worker が Issue や PR に書かないこと（第4章「守ること」）は、文章の約束だけが支える。Worker の `gh` も Lead と同じ管理者のアカウントで、
+権限の設定でも第2章のアカウントでの絞り込みでも、Worker の書いたものを見分けられない。
 
 ---
 
@@ -52,7 +54,17 @@ Codex は `.codex/rules/`）で拒否する。どちらも `sh -c '...'` で包�
 | すること | Issue と既存コードを読み、完了の条件と対象外を明らかにする。Task に分けて設計を書き、Worker に渡す。結果を差分と検証で確かめて統合する。after の撮影・レビュー・評価・PR・Issue への記録 | 渡された Task だけを実装し、テストを書き、`pnpm run verify` を通して結果を返す（第4章） | 計画と第0章の承認。PR のマージ |
 | しないこと | 設計の済んでいないまま Worker に渡すこと | 設計を自分で変える。push・PR・Issue への書き込み・レビュアーや Evaluator の起動。AGENTS.md「目指す状態」の完了の条件（PR まで進める）は Worker には当てはまらない | — |
 
-Lead は [CLAUDE.md「設計と実装を分ける」](../CLAUDE.md)の「メイン」と同じ。Worker の選び方は次のとおり。
+Lead は [CLAUDE.md「設計と実装を分ける」](../CLAUDE.md)の「メイン」と同じ。
+
+**どれで進めるか。** Issue が起点でも、1本の実装を同じ worktree の `implementer` に渡すだけなら、この文書ではなく CLAUDE.md「設計と実装を分ける」で進める
+（計画の承認で止まらず、Issue にチェックポイントも書かない）。次のどれかに当たる作業は、`/lead`（`.claude/skills/lead/`）でこの文書に従う。
+
+- Codex に渡す
+- 別の worktree で並列にする
+- Lead のコンテキストから外して走らせる（`verify` の往復が何度も要りそうな実装など）
+- 人が途中でセッションを閉じる予定がある、または Issue が Phase に分かれていて、1つのセッションで終わらない
+
+Worker の選び方は次のとおり。
 
 | 場面 | Worker |
 | --- | --- |
@@ -96,7 +108,8 @@ Orca を使う前に `orca-ide skills get orchestration` を読んで、その�
 2. **計画する。** Task に分け、Task ごとに設計（CLAUDE.md「設計に書くこと」）と第4章の「受け取るもの」を書く。
    Orca の Worker には AGENTS.md の完了の条件で動かれないよう、仕様の冒頭に「あなたは Worker。docs/orchestration.md 第4章に従い、push・PR はしない」と書く。
    並列にするのは、触るファイルが重ならない Task だけ。依存は本当に順序があるものだけにする
-3. **承認を受ける。** Task の表（Task・担当・依存・触るファイル・完了の条件）を人に示して止まる。承認されたら Issue にチェックポイントを書く
+3. **承認を受ける。** Task の表（Task・担当・依存・触るファイル・完了の条件）を人に示して止まる。承認されたら Issue にチェックポイントを書く。
+   承認はチャットで受け、Orca の decision gate は使わない（承認の置き場を Orca の中に作ると、Orca の状態を正本にしない第2章と食い違う）
 4. **渡す。** `implementer` なら Agent で起動する。Orca なら Run を作り（目的に Issue の番号と題を入れる）、Task ごとに Worker を起動する。
    置き場所は第5章
 5. **待つ・答える。** Worker の質問には Lead が答える。第0章に当たる質問は人に回し、答えを Worker に返す
@@ -107,7 +120,10 @@ Orca を使う前に `orca-ide skills get orchestration` を読んで、その�
 8. **仕上げる。** AGENTS.md の手順5〜7（after・レビューと評価・PR）を Lead が行う。PR 本文には、その PR で Issue の受け入れ条件がすべて満たされるときだけ `Closes #<番号>`、
    Phase の途中などで Issue を開いたままにするときは `Refs #<番号>` を書く（マージで Issue が閉じると、残りの条件が追われなくなる）
 9. **片付けて記録する。** 終わった Worker を Orca で解放し、Issue にチェックポイントを書く。解放は Worker の端末を閉じるだけで、worktree と変更は残る。
-   統合が済んだ worktree を消すのは第0章の「消す」に当たるので、人に頼む
+   統合が済んだ worktree とブランチを消すのは第0章の「消す」に当たるので、人が行う。Lead は PR がマージされたあと、消すもの（worktree のパス・ブランチ名と、
+   マージ済みの根拠）と、消すコマンド（`git worktree remove <パス>` と `git branch -d <ブランチ>`）をチャットに並べて止まる。
+   `-d` はマージ済みでないと失敗する。`-D` と `--force` は書かない。失敗したもの（squash マージのブランチや、未追跡のファイルが残った worktree）は、残すか消すかを人が決める。
+   `git worktree remove` のあとも Orca の一覧に残った worktree は、Orca の画面で人が閉じる（Orca の画面で閉じたときに作業ツリーとブランチが消えるかは確かめていない）
 
 ### チェックポイント
 
@@ -218,12 +234,22 @@ Orca の Worker にも `implementer` にも同じものを渡し、同じ形で�
 4. worktree ごとに `git status` と `git log`、`TASKS.md` を見る（`orca-ide worktree ps` で一覧できる）
 5. 第2章の順で食い違いを揃え、新しいチェックポイントを書いてから続ける
 
+- 前のセッションのチェックポイントにある承認は、何が済んでいるかの手がかり。Worker に Task を渡すなら、計画をチャットで示して承認を受け直す（第0章）。
+  Worker に渡さない作業（Lead が自分で直す文書など）は、もともと計画の承認が要らないので、そのまま続けてよい。
+  ただし、第0章のほかの操作（仕様の変更など）は、記録に承認があってもチャットで確かめ直す。消す操作は手順9のとおり人が行う
+- 新しいセッションは、前の Lead と別の worktree で開くことがある（Orca が開いた worktree）。前の worktree のブランチがマージ済みなら、
+  新しい worktree で origin/main から続ける。マージ前なら、前の worktree に移るか、そのブランチを新しい worktree で開く
+- #204 Phase 6 で、セッションを閉じて新しいセッションの `/lead #204 の続きから` から、この順で Issue・PR・Run・worktree を戻せた
+  （Run は settled の `worker-list`、Issue のコメントは #204 の 2026-10-25 の再開のチェックポイント）
+
 ---
 
-## 7. まだ確かめていないこと
+## 7. わかっている穴
 
-#204 の試運転（Phase 4・5）で確かめ、確かめたら本文に移す。それまでは、ここに書いた手順が実機と違えば実機に従い、この章に書き足す。
+#204 の試運転（Phase 4・5）で見つかり、まだ構造では塞いでいないもの。塞いだら本文に移し、新しく見つけたら書き足す。
 
-- Lead のセッションを閉じて新しいセッションで開き直したとき、第6章の順で Issue・PR・Run・worktree から続きを戻せるか（#204 Phase 5 で確かめる）
-- Orca の decision gate を人の承認待ちに使えるか（いまは使わず、承認はチャットで受けて Issue に残す）
-- Worker が Issue に書かないことを支えているのは文章の約束だけ。Worker の `gh` も Lead と同じ管理者のアカウントなので、第2章のアカウントでの絞り込みでは Worker の書いたコメントを外せない
+- 権限の設定は `sh -c '...'` で包めばすり抜ける（[harness.md 4-3](./harness.md)）。Worker の書き込みも約束だけが支える（第0章「いまの権限の実情」）
+- PR のマージを人が行ったことは、GitHub の記録では確かめられない。エージェントの `gh` も人と同じアカウントなので、`mergedBy` は同じになる（#204 の PR はどれも `Atoyr`）
+- 新しい worktree の setup（`pnpm install`）は Worker の起動と同時に走る。ぶつかったときの扱いは第5章
+- `pnpm run` は受けた SIGTERM を子に渡さない。Worker が止めたつもりのサーバーがポートに残ることがある（[harness.md 4-2](./harness.md)）
+- #207 の codex は settled のあとも、Orca の上で `user_owned`（`retainedReason: user_takeover`）として残った。なぜそうなったかは確かめていない。`worker-list` でこれを見たら、端末と worktree の片付けは手順9のとおり人に頼む
