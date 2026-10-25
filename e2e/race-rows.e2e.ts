@@ -45,8 +45,8 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	await detail(page, 0).click();
 	// 表の行（着順/頭数・枠-馬番）と、表の下の「各レースの過去メモ」は別のかたまり
 	const run = row(page, 0).locator('tbody', { hasText: 'E2E行展開前走' });
-	await expect(run.locator('tr').first().locator('td').nth(1)).toHaveText('4/18');
-	await expect(run.locator('tr').first().locator('td').nth(2)).toHaveText('3-5');
+	await expect(run.locator('tr').nth(1).locator('td').nth(1)).toHaveText('4/18');
+	await expect(run.locator('tr').nth(1).locator('td').nth(2)).toHaveText('3-5');
 	const pastNotes = row(page, 0)
 		.locator('section')
 		.filter({

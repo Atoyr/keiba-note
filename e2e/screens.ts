@@ -267,7 +267,7 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true
 	},
 	{
-		// ふりかえりで、詳細情報（直近5走）を開いたところ。長いレース名の過去走が折り返して全部出るか（#218）を見る。
+		// ふりかえりで、詳細情報（直近5走）を開いたところ。長いレース名の過去走が1行で全部出るか（#218）を見る。
 		name: 'race-review-details',
 		path: '/races/01JE2ERACESAMECOND0000000',
 		auth: true,

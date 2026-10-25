@@ -444,7 +444,7 @@ test('出走馬の行の見出しに、前回付けた結論の札が出る', as
 });
 
 /**
- * 馬柱は列のそろった表。各走に、着順/頭数・枠-馬番・通過・上り・人気の列と、2段目に騎手・勝ち馬とタイム差・タイムが出る。
+ * 馬柱は列のそろった表。各走に、着順/頭数・枠-馬番・通過・上り・人気の列（名前の段の下）と、3段目に騎手・勝ち馬とタイム差・タイムが出る。
  * 日付は YY/MM/DD。
  * seed では、この馬の前走（E2E同条件賞・4着）は16頭の3枠5番で、勝ち馬と 0.4 差、2:12.8 と 8-8-7-6。
  * 3走前（E2E霜月特別）は勝った走で、馬番・騎手と2着馬との差だけ（頭数・枠・タイム・通過順が無い）。
@@ -453,7 +453,7 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 	await login(page);
 	await page.goto(`/races/${PREVIEW_RACE_ID}/preview`);
 
-	// 1走は1つの tbody（1段目が数字の列、2段目が補足）。表の下の「自分の過去メモ」は tbody ではない
+	// 1走は1つの tbody（1段目が名前、2段目が数字の列、3段目が補足）。表の下の「自分の過去メモ」は tbody ではない
 	await waitForHydration(page);
 	await page
 		.locator('main li[id^="entry-"]', { hasText: 'E2Eプレビューホース' })
@@ -464,7 +464,7 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 		.first()
 		.locator('tbody', { hasText: 'E2E同条件賞' })
 		.filter({ hasText: '芝2200m' });
-	const cells = run.locator('tr').first().locator('td');
+	const cells = run.locator('tr').nth(1).locator('td');
 	await expect(run).toContainText('26/04/26');
 	await expect(cells.nth(1)).toHaveText('4/16');
 	await expect(cells.nth(2)).toHaveText('3-5');
@@ -480,7 +480,7 @@ test('馬柱の走に、頭数・枠・馬番・騎手・勝ち馬とタイム�
 		.locator('main li[id^="entry-"]')
 		.first()
 		.locator('tbody', { hasText: 'E2E霜月特別' });
-	const noTimeCells = noTime.locator('tr').first().locator('td');
+	const noTimeCells = noTime.locator('tr').nth(1).locator('td');
 	await expect(noTimeCells.nth(1)).toHaveText('1着');
 	await expect(noTimeCells.nth(2)).toHaveText('2番');
 	await expect(noTimeCells.nth(3)).toHaveText('—');

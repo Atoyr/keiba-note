@@ -491,8 +491,9 @@ VALUES (
 -- 頭数・枠・タイム・通過順が無い（2行目は馬番・騎手と、2着馬とのタイム差になる）。
 -- 条件戦・2025年に置いて、レース一覧の既定（今年の重賞）とダッシュボードには出ないようにする。
 -- 天候も入れてある。ふりかえり画面の見出しの3行目「馬場：稍重 / 天候：曇」を画面カタログ（race-review-going）で見せる。
--- 勝った走（E2E霜月特別オータムハンデキャップ）のレース名はわざと長くしてある。390px の馬柱でレース名が省略されず
--- 折り返すこと（#218）を画面カタログ（race-preview-details・race-review-details）で見るため。短くしない。
+-- 勝った走（E2E霜月特別ハンデキャップ）のレース名は、実データの長い名前（全角12文字ほど）に合わせて長くしてある。
+-- 390px の馬柱でレース名が省略も折り返しもされず1行で出ること（#218）を、画面カタログ
+-- （race-preview-details・race-review-details）で見るため。短くしない。
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, weather, field_size)
 VALUES ('01JE2ERACEPASTRUN100000000', '2025-12-28', '中山', 10, 'E2E師走特別', '3勝クラス', '芝', 2000, '稍重', '曇', 14);
 
@@ -505,7 +506,7 @@ VALUES (
 );
 
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, runner_up_name)
-VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別オータムハンデキャップ', '2勝クラス', '芝', 2400, '良', 'E2E霜月2着馬');
+VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別ハンデキャップ', '2勝クラス', '芝', 2400, '良', 'E2E霜月2着馬');
 
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position, popularity, last_3f, time_diff)
 VALUES (

@@ -33,10 +33,10 @@ const run = (over: Partial<PastRun>): PastRun => ({
 	...over
 });
 
-/** 1走ぶんの tbody の、n 番目のセルの文字。 */
+/** 1走ぶんの tbody の、数字の段（2段目）の n 番目のセルの文字。 */
 const cellsOf = (container: Element, index: number) =>
 	[...container.querySelectorAll('tbody')].map((tbody) =>
-		tbody.querySelectorAll('tr')[0].querySelectorAll('td')[index].textContent?.trim()
+		tbody.querySelectorAll('tr')[1].querySelectorAll('td')[index].textContent?.trim()
 	);
 
 describe('PastRuns', () => {
@@ -55,10 +55,10 @@ describe('PastRuns', () => {
 		await expect.element(screen.getByText('25/12/28')).toBeInTheDocument();
 	});
 
-	it('レース名・開催場とR・馬場と距離を日付の列に重ねて出す', async () => {
+	it('レース名（1段目）・開催場とR・馬場と距離（2段目）を出す', async () => {
 		const screen = render(PastRuns, { runs: [run({ course: '中山', raceNumber: 11 })] });
 
-		const cell = screen.container.querySelector('tbody td')!;
+		const cell = screen.container.querySelector('tbody')!;
 		expect(cell.textContent).toContain('札幌記念');
 		expect(cell.textContent).toContain('中山11R');
 		expect(cell.textContent).toContain('芝2000m良');
@@ -120,10 +120,10 @@ describe('PastRuns', () => {
 		expect(cellsOf(screen.container, 5)).toEqual(['2', '—']);
 	});
 
-	it('2段目に騎手を出す（見出しは読み上げだけ）', async () => {
+	it('3段目に騎手を出す（見出しは読み上げだけ）', async () => {
 		const screen = render(PastRuns, { runs: [run({ jockey: 'ルメール' })] });
 
-		const sub = screen.container.querySelectorAll('tbody tr')[1];
+		const sub = screen.container.querySelectorAll('tbody tr')[2];
 		expect(sub.textContent).toContain('騎手ルメール');
 		await expect.element(screen.getByText('騎手', { exact: true })).toHaveClass(/sr-only/);
 	});
@@ -169,7 +169,7 @@ describe('PastRuns', () => {
 		});
 
 		await expect.element(screen.getByText('勝ち馬X（0.4）')).toBeInTheDocument();
-		const sub = screen.container.querySelectorAll('tbody tr')[1];
+		const sub = screen.container.querySelectorAll('tbody tr')[2];
 		expect(sub.textContent).toContain('勝ち馬勝ち馬X（0.4）');
 		expect(sub.textContent).not.toContain('2着馬Y');
 	});
@@ -202,21 +202,21 @@ describe('PastRuns', () => {
 		await expect.element(screen.getByText('勝ち馬X（0.0）')).toBeInTheDocument();
 	});
 
-	it('走破タイムを読み上げ用の見出しを付けて2段目に出す', async () => {
+	it('走破タイムを読み上げ用の見出しを付けて3段目に出す', async () => {
 		const screen = render(PastRuns, { runs: [run({ finishTime: '1:58.4' })] });
 
-		const sub = screen.container.querySelectorAll('tbody tr')[1];
+		const sub = screen.container.querySelectorAll('tbody tr')[2];
 		expect(sub.textContent).toContain('タイム1:58.4');
 		// 見出しの語は画面には出さない（形で見分けが付く）
 		await expect.element(screen.getByText('タイム', { exact: true })).toHaveClass(/sr-only/);
 	});
 
-	it('騎手・勝ち馬・タイムのどれも無い走は2段目ごと出さない', () => {
+	it('騎手・勝ち馬・タイムのどれも無い走は3段目ごと出さない', () => {
 		const screen = render(PastRuns, {
 			runs: [run({ finishPosition: null, popularity: null, last3f: null })]
 		});
 
-		expect(screen.container.querySelectorAll('tbody tr')).toHaveLength(1);
+		expect(screen.container.querySelectorAll('tbody tr')).toHaveLength(2);
 		expect(screen.container.querySelector('tbody')!.textContent).toContain('—');
 	});
 
@@ -279,7 +279,17 @@ describe('PastRuns', () => {
 });
 
 describe('PastRuns のレース名', () => {
-	it('長いレース名は条件戦も重賞も省略せず、切るクラスを持たない', () => {
+	it('名前の段は 6列ぶんの th[scope="rowgroup"] で、日付とレース名を持つ', () => {
+		const { container } = render(PastRuns, { runs: [run({})] });
+
+		const th = container.querySelector('tbody tr th')!;
+		expect(th.getAttribute('scope')).toBe('rowgroup');
+		expect(th.getAttribute('colspan')).toBe('6');
+		expect(th.textContent).toContain('26/08/23');
+		expect(th.textContent).toContain('札幌記念');
+	});
+
+	it('長いレース名は条件戦も重賞も折り返さず、切るクラスも持たない', () => {
 		const { container } = render(PastRuns, {
 			runs: [
 				run({ raceId: 'a', raceName: 'ラジオN杯京都2歳S', grade: null, className: '2歳オープン' }),
@@ -287,51 +297,76 @@ describe('PastRuns のレース名', () => {
 			]
 		});
 
-		const names = [...container.querySelectorAll('tbody')].map((tbody) => {
-			const cell = tbody.querySelectorAll('td')[0];
-			return [...cell.querySelectorAll('a, p')].find((el) =>
+		const names = [...container.querySelectorAll('tbody')].map((tbody) =>
+			[...tbody.querySelectorAll('th a, th p')].find((el) =>
 				el.textContent?.includes('ラジオN杯京都2歳S')
-			);
-		});
+			)
+		);
 		expect(names).toHaveLength(2);
 		for (const el of names) {
 			expect(el?.textContent?.trim()).toBe('ラジオN杯京都2歳S');
-			expect(el?.className).not.toContain('truncate');
-			expect(el?.className).not.toContain('line-clamp');
+			expect(el?.className).toContain('whitespace-nowrap');
+			for (const cls of ['truncate', 'line-clamp', 'break-words']) {
+				expect(el?.className).not.toContain(cls);
+			}
 		}
 	});
 
-	it('幅 320px の入れ物でも、長いレース名は列の中で折り返し、表が横に動かない', () => {
+	/** 幅 width の入れ物に描き、名前の段の要素（リンクか p）とそのセルの箱を返す。 */
+	const renderIn = (width: number, runs: PastRun[]) => {
 		const target = document.createElement('div');
-		target.style.width = '320px';
+		target.style.width = `${width}px`;
 		document.body.appendChild(target);
-		const longName = 'ラジオN杯京都2歳ステークスE2E長い名前';
-		try {
-			const { container } = render(PastRuns, {
-				target,
-				props: {
-					runs: [
-						run({ raceId: 'a', raceName: longName, grade: 'G2' }),
-						run({ raceId: 'b', raceName: longName, grade: null, className: '2歳オープン' })
-					]
-				}
-			});
+		const { container } = render(PastRuns, { target, props: { runs } });
+		const rows = [...container.querySelectorAll('tbody')].map((tbody) => {
+			const th = tbody.querySelector('th') as HTMLElement;
+			return { th, el: th.querySelector('a, p') as HTMLElement };
+		});
+		return {
+			rows,
+			scroller: container.querySelector('.overflow-x-auto') as HTMLElement,
+			done: () => target.remove()
+		};
+	};
 
-			const scroller = container.querySelector('.overflow-x-auto') as HTMLElement;
+	it('幅 307px（390px 画面の表の幅）で、実データ最長級の名前は1行でセルに収まり、表が横に動かない', () => {
+		const { rows, scroller, done } = renderIn(307, [
+			run({ raceId: 'a', raceName: 'サウジアラビアロイヤルC', grade: 'G3' }),
+			run({ raceId: 'b', raceName: '東京スポーツ杯2歳S', grade: null, className: '2歳オープン' })
+		]);
+		try {
+			expect(rows).toHaveLength(2);
 			expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth);
-			for (const tbody of container.querySelectorAll('tbody')) {
-				const cell = tbody.querySelectorAll('td')[0];
-				const el = [...cell.querySelectorAll('a, p')].find((e) =>
-					e.textContent?.includes(longName)
-				) as HTMLElement;
+			for (const { th, el } of rows) {
 				expect(el.getBoundingClientRect().right).toBeLessThanOrEqual(
-					cell.getBoundingClientRect().right
+					th.getBoundingClientRect().right
 				);
-				// 1行は leading-6 = 24px。それより高ければ折り返している
-				expect(el.getBoundingClientRect().height).toBeGreaterThan(24);
+				expect(el.getBoundingClientRect().height).toBeLessThanOrEqual(24);
 			}
 		} finally {
-			target.remove();
+			done();
+		}
+	});
+
+	it('入りきらない長さの名前でも折り返さず1行のまま（表の箱の中で横に動く）', () => {
+		const { rows, scroller, done } = renderIn(307, [
+			run({ raceId: 'a', raceName: 'ラジオN杯京都2歳ステークスE2E長い名前', grade: 'G2' }),
+			run({
+				raceId: 'b',
+				raceName: 'ラジオN杯京都2歳ステークスE2E長い名前',
+				grade: null,
+				className: '2歳オープン'
+			})
+		]);
+		try {
+			for (const { el } of rows) {
+				// 1行は leading-6 = 24px。それより高ければ折り返している
+				expect(el.getBoundingClientRect().height).toBeLessThanOrEqual(24);
+			}
+			// 入りきらない分は箱の中で動く。ページ全体（この入れ物）は広がらない
+			expect(scroller.getBoundingClientRect().width).toBeLessThanOrEqual(307);
+		} finally {
+			done();
 		}
 	});
 });
