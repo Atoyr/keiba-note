@@ -104,10 +104,15 @@ E2E の出力は dot（1件1文字）。失敗したテストだけ、最後に�
 E2E のプレビューサーバー（`playwright.config.ts` の webServer）は `wrangler dev --persist-to .wrangler/e2e`
 で上がり、開発用の `.wrangler/state` とは別の D1 を見る。**開発用 D1 の中身は E2E に関係しない。**
 
+サーバーの定義は `scripts/preview-e2e.ts` にあり、`pnpm run preview:e2e` で単独でも上げられる。
+起動のたびに E2E の D1 を seed し直すため、手元で書いたメモも次の起動や E2E で消える。
+**同じ worktree で `verify`・`test:e2e`・`screens` を回す前に `preview:e2e` を止める。** E2E は自分でサーバーを上げるので、
+同じポートなら起動で落ち、`E2E_PORT` だけ変えても同じ `.wrangler/e2e` を取り合って落ちる（`E2E_PORT` は worktree を並べるときに使う）。
+
 同じ D1 を共有すると、手元で `data:import:local` した本物の出馬表や `pnpm run dev` で書いたメモが
 E2E とキャプチャに混ざり、人によって結果が変わって before / after の比較が成り立たないため、分けてある。
 
-webServer の command の先頭で `e2e/seed.ts` が毎回、次の順で状態を作り直してから、ビルドと `wrangler dev` に進む。
+`scripts/preview-e2e.ts` の最初の手順で `e2e/seed.ts` が毎回、次の順で状態を作り直してから、ビルドと `wrangler dev` に進む。
 
 1. `wrangler d1 migrations apply --local --persist-to .wrangler/e2e`（冪等）
 2. 全テーブルを `DELETE`（テーブル名はその場で `sqlite_master` から引く。テーブルを足しても直さなくてよい）
