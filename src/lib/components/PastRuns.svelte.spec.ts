@@ -1,3 +1,4 @@
+import '../../routes/layout.css';
 import type { ComponentProps } from 'svelte';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
@@ -297,6 +298,40 @@ describe('PastRuns のレース名', () => {
 			expect(el?.textContent?.trim()).toBe('ラジオN杯京都2歳S');
 			expect(el?.className).not.toContain('truncate');
 			expect(el?.className).not.toContain('line-clamp');
+		}
+	});
+
+	it('幅 320px の入れ物でも、長いレース名は列の中で折り返し、表が横に動かない', () => {
+		const target = document.createElement('div');
+		target.style.width = '320px';
+		document.body.appendChild(target);
+		const longName = 'ラジオN杯京都2歳ステークスE2E長い名前';
+		try {
+			const { container } = render(PastRuns, {
+				target,
+				props: {
+					runs: [
+						run({ raceId: 'a', raceName: longName, grade: 'G2' }),
+						run({ raceId: 'b', raceName: longName, grade: null, className: '2歳オープン' })
+					]
+				}
+			});
+
+			const scroller = container.querySelector('.overflow-x-auto') as HTMLElement;
+			expect(scroller.scrollWidth).toBeLessThanOrEqual(scroller.clientWidth);
+			for (const tbody of container.querySelectorAll('tbody')) {
+				const cell = tbody.querySelectorAll('td')[0];
+				const el = [...cell.querySelectorAll('a, p')].find((e) =>
+					e.textContent?.includes(longName)
+				) as HTMLElement;
+				expect(el.getBoundingClientRect().right).toBeLessThanOrEqual(
+					cell.getBoundingClientRect().right
+				);
+				// 1行は leading-6 = 24px。それより高ければ折り返している
+				expect(el.getBoundingClientRect().height).toBeGreaterThan(24);
+			}
+		} finally {
+			target.remove();
 		}
 	});
 });
