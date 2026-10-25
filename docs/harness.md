@@ -4,7 +4,7 @@
 何を作るかの伝え方から、どこに書いてよいか、どう見せるか、何を操作してよいか、
 どう確かめるか、良かったかをどう判断して次に活かすかまでを、6つの層に分けて決める。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-25
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
 - **ここに無いもの:** 作業の手順と完了の条件は [AGENTS.md](../AGENTS.md)、検証の仕組みの使い方は [testing.md](./testing.md)、
@@ -47,7 +47,7 @@
 ```mermaid
 flowchart LR
     subgraph before["書く前"]
-        L1["1 目的<br/>product.md /（issue テンプレート: まだ無い）"]
+        L1["1 目的<br/>product.md / issue テンプレート"]
         L2["2 構造の制約<br/>（ESLint boundaries: まだ無い）"]
         L3["3 デザインシステム<br/>shadcn + トークン"]
     end
@@ -69,7 +69,7 @@ flowchart LR
 
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
-| 1 目的 | README / product.md | なし | 仕様はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない（原則は 1-3 の草案だけ） |
+| 1 目的 | README / product.md / `.github/ISSUE_TEMPLATE/` | なし | 仕様と頼み方の型（1-4）はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない（原則は 1-3 の草案だけ） |
 | 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反がある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | パレットの生の色指定が数百箇所残る。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」/ README.md「セットアップ」 | `.claude/settings.json` の deny / `.codex/rules/`（4-3） | Dev Container と `pnpm run setup` は稼働中。本番に触るコマンドは権限で止める（すり抜けの穴は 4-3）。hook はまだ無い |
@@ -98,7 +98,7 @@ flowchart LR
 | [README.md](../README.md) | 何のアプリか・いまのフェーズ | ある |
 | [product.md](./product.md)（旧 design.md） | 要件・やらないこと（画面ごとの仕様は pages.md、データモデルは data-model.md） | ある |
 | product.md の冒頭 | 誰が・どの場面で・何のために使うか。UX 原則（1-3） | **まだ無い**（足す） |
-| **`.github/ISSUE_TEMPLATE/`** | 変更の頼み方の型 | **まだ無い**（足す） |
+| `.github/ISSUE_TEMPLATE/` | 変更の頼み方の型（1-4） | ある |
 
 product.md は仕様の詳細で長いので、UX 原則は冒頭の1画面に収め、エージェントが最初に読む入口にする。
 
@@ -120,19 +120,17 @@ product.md・pages.md とこれまでの PR で下された判断から拾った
 これは草案で、正にするのは product.md の冒頭に入れる PR で人が確かめてから（第9章 #5）。
 それまでは Evaluator の Product の観点も、この草案を物差しにする。
 
-### 1-4. 頼み方の型 — issue テンプレート（まだ無い）
+### 1-4. 頼み方の型 — issue テンプレート
 
 指示が「〜を直して」だけだと、エージェントは受け入れ条件を自分で作るしかない。
 issue を次の型で書けば、そのまま PR の「なぜ」と第6層の評価の物差しになる。
+Lead が Issue から作業を始めるときの入力にもなる（[orchestration.md](./orchestration.md)）。
 
-```yaml
-# .github/ISSUE_TEMPLATE/change.yml（案）
-- 場面: いつ・どの端末で・何をしようとしているとき
-- 困っていること: いま何が起きていて、なぜ困るか
-- できたら: 何ができるようになれば良いか（見た目の案ではなく結果で）
-- 関係する原則: P1〜P7 から（無ければ「新しい原則が要るか」を書く）
-- 受け入れ条件: 箇条書き。E2E か画面カタログの1行に落とせる粒度で
-```
+型の正は `.github/ISSUE_TEMPLATE/change.yml`（GitHub の「変更の依頼」のフォーム）。項目と説明はそちらを見る。
+場面と受け入れ条件を必須にし、受け入れ条件を E2E か画面カタログの1行に落とせる粒度で書かせるのが、この型の要。
+
+空の Issue（テンプレートを使わない作成）は許す（`.github/ISSUE_TEMPLATE/config.yml`）。6-5 のとおり、使っていて引っかかったことを
+「場面」と「困っていること」だけで残す使い方を、受け入れ条件が必須のフォームで塞がないため。清書するときにフォームの型へ直す。
 
 ### 1-5. 機械の強制
 
@@ -316,7 +314,10 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 開発サーバー（`.dev.vars` に `MOCK_AUTH="1"` を置いた `pnpm run dev`）は手元の D1 を見るので、エージェントがブラウザで
 触った画面とキャプチャの画面が一致しない。E2E の webServer（`playwright.config.ts`）と同じ
 定義を `scripts/preview-e2e.ts` にまとめ、単独でもキャプチャと同じ状態を操作できる。
-`.claude/launch.json` への登録はまだ無い（#206）。
+`.claude/launch.json` にも同じサーバーを `preview-e2e` として載せ、Claude Code デスクトップの Preview から上げられる。
+`pnpm run preview:e2e` を挟まず `node --experimental-strip-types scripts/preview-e2e.ts` を直接起動するのは、`pnpm run` が受けた SIGTERM を子に渡さず、
+PID だけを止めると workerd がポートに残るため（#206 で確かめた。`scripts/preview-e2e.ts` は受けたシグナルを子まで渡す）。
+ポートは `env` の `E2E_PORT` と `port` を 4173 にそろえ、`autoPort: false` でぶつかったら誤りにする（Preview は script の中のポートを移せない）。
 
 ### 4-3. 叩いてはいけないもの — 言葉から権限へ
 
@@ -326,7 +327,7 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 | エージェント | 置き場 | 止まり方 | 止まらないもの |
 | --- | --- | --- | --- |
 | Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`） |
-| Codex | `.codex/rules/uma-memo.rules` の `forbidden` | コマンドの先頭一致。`&&` でつないだものも分解して見る。`--dangerously-bypass-approvals-and-sandbox` を付けた `codex exec` でも拒否した（Orca が起動する対話の Codex で効くかは [orchestration.md 第7章](./orchestration.md)） | 引数の途中に出るもの（`wrangler d1 execute … --remote` など）、`gh api` でのマージ、`git -C <dir> push`、`sh -c '...'` で包んだもの |
+| Codex | `.codex/rules/uma-memo.rules` の `forbidden` | コマンドの先頭一致。`&&` でつないだものも分解して見る。`--dangerously-bypass-approvals-and-sandbox` を付けた `codex exec` でも、Orca が起動する対話の Codex でも拒否した（#205 の試運転） | 引数の途中に出るもの（`wrangler d1 execute … --remote` など）、`gh api` でのマージ、`git -C <dir> push`、`sh -c '...'` で包んだもの |
 
 - 2つの置き場は書き方が違うだけで、止めたいものは同じ。変えるときは両方を揃える。script は `pnpm run <名前>`・`pnpm <名前>`（pnpm は `run` を省いても実行する）・`npm run <名前>` のどれでも止める
 - Claude Code の `*--remote*`・`*db:migrate:remote*` などは、`grep` の検索語のように文字列として入っているだけでも拒否する。そのときの扱いは AGENTS.md「読み落とすと事故になること」
@@ -334,7 +335,7 @@ shadcn-svelte を前提に「① トークン → ② shadcn の部品 → ③ �
 - `odds:update` は `--local` が無ければ、ほかにどんな引数を付けても、`node … scripts/odds-update.ts` で直接呼んでも本番の D1 を書く。
   Claude Code で止めているのは引数なしの `pnpm run odds:update`・`pnpm odds:update` だけで、Codex では止めない（先頭一致だと `--local` まで止まるため）。手元に認証情報が無いので構造で失敗する
 - 確かめ方: Claude Code は、止まらなくても害の無い形（`--help`・`--dry-run`・`echo`）を叩いて拒否されることを見た。
-  Codex は `codex execpolicy check -r .codex/rules/uma-memo.rules <コマンド>` で一致を見て、承認なしで起動した `codex exec` で拒否されることを見た
+  Codex は `codex execpolicy check -r .codex/rules/uma-memo.rules <コマンド>` で一致を見て、承認なしで起動した `codex exec` と Orca の Worker で拒否されることを見た
 
 **最後の防波堤は構造のほう**で、Cloudflare の API トークンは手元にも、PR で走るワークフロー（`ci.yml`・`pr-body.yml`）にも無い。
 持っているのは、main か人・Worker の起動でしか走らないワークフロー（`deploy.yml`・`data-import.yml`・`odds-update.yml`・`staging.yml`）だけ。
@@ -501,7 +502,7 @@ Evaluator はできあがった画面と振る舞いを見るので、コード�
 ### 6-5. ③ 使った感触
 
 実際の利用は週末に集中する（architecture.md 第1章）。使って引っかかったことは、
-その場で issue に「場面」と「困っていること」だけ書いて残す（型は 1-4。テンプレートはまだ無い）。
+その場で issue に「場面」と「困っていること」だけ書いて残す（型は 1-4。テンプレートは受け入れ条件が必須なので、メモだけなら空の Issue でよい）。
 清書は平日にやればよい。本番のエラーは Discord の通知と Workers Logs で人が見る（[monitoring.md](./monitoring.md)。エージェントからは見ない）。
 
 ---
@@ -612,10 +613,10 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | --- | --- | --- | --- | --- |
 | 0 | コンテキストと評価（**済み**） | 5 / 6 / 7 | AGENTS.md を目次にし、分野の文書に分けた。`docs:check`・Evaluator のサブエージェント・`pr-body.yml`。分野ごとのレビュアーと `review:plan` | なし |
 | 1 | 依存の規則（まだ） | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の違反を直す | なし（キャプチャ0枚を確かめる） |
-| 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、`preview:e2e`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook、`.claude/launch.json` | なし |
+| 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、`preview:e2e` と `.claude/launch.json`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook | なし |
 | 3 | トークンと lint（まだ） | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え（まだ） | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |
-| 5 | 目的の型（まだ） | 1 | product.md の冒頭に UX 原則、issue テンプレート、PR テンプレートの「なぜ」に原則の番号 | なし |
+| 5 | 目的の型（一部済み） | 1 | **済み:** issue テンプレート。**まだ:** product.md の冒頭に UX 原則、PR テンプレートの「なぜ」に原則の番号 | なし |
 | 6 | 画面カタログの検査（まだ） | 5 | axe、押せる大きさ、D1 クエリ数、カタログに無い admin の画面（`/races/new`・`/races/[id]/entries`。`/settings/admin` はもうある） | なし |
 
 2 を 3 より先にするのは、hook があると置き換え中の違反がその場で分かり、4 以降の PR が速くなるため。

@@ -1,0 +1,48 @@
+name: 変更の依頼
+description: 直したいこと・足したいことを、場面と受け入れ条件で頼む
+body:
+  - type: textarea
+    id: scene
+    attributes:
+      label: 場面
+      description: いつ・どの端末で・何をしようとしているとき
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 困っていること
+      description: いま何が起きていて、なぜ困るか
+    validations:
+      required: false
+  - type: textarea
+    id: outcome
+    attributes:
+      label: できたら
+      description: 何ができるようになれば良いか（見た目の案ではなく結果で）
+    validations:
+      required: false
+  - type: textarea
+    id: principles
+    attributes:
+      label: 関係する原則
+      description: docs/harness.md 1-3 の P1〜P7 から。無ければ「新しい原則が要るか」
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件
+      description: 箇条書き。E2E か画面カタログの1行に落とせる粒度で
+      placeholder: |
+        - [ ] スマホ幅（390px）でメモを入力して保存できる
+        - [ ] 保存したメモが再読み込み後も表示される
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: 対象外
+      description: 今回やらないこと
+    validations:
+      required: false

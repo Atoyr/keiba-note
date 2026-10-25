@@ -7,7 +7,7 @@ PR に貼るキャプチャの撮り方。
 - **ここに無いもの:** 仕組みをなぜこう組んだか・これから足す検査は [harness.md 第5層](./harness.md)、
   ルートごとの入出力は [api.md](./api.md)、
   評価（Evaluator）は [evaluation.md](./evaluation.md)、レビューは [review.md](./review.md)
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-14
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-25
 
 ---
 
@@ -106,7 +106,7 @@ E2E のプレビューサーバー（`playwright.config.ts` の webServer）は 
 
 サーバーの定義は `scripts/preview-e2e.ts` にあり、`pnpm run preview:e2e` で単独でも上げられる。
 起動のたびに E2E の D1 を seed し直すため、手元で書いたメモも次の起動や E2E で消える。
-**同じ worktree で `verify`・`test:e2e`・`screens` を回す前に `preview:e2e` を止める。** E2E は自分でサーバーを上げるので、
+**同じ worktree で `verify`・`test:e2e`・`screens` を回す前に `preview:e2e` を止める**（Claude Code の Preview で `.claude/launch.json` の `preview-e2e` から上げたものも同じサーバー。ポートは 4173 に決めてあるので、上げたままだとどの worktree の既定の `verify` も起動で落ちる）。 E2E は自分でサーバーを上げるので、
 同じポートなら起動で落ち、`E2E_PORT` だけ変えても同じ `.wrangler/e2e` を取り合って落ちる（`E2E_PORT` は worktree を並べるときに使う）。
 
 同じ D1 を共有すると、手元で `data:import:local` した本物の出馬表や `pnpm run dev` で書いたメモが
