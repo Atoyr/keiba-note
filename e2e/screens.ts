@@ -365,6 +365,19 @@ export const SCREENS: Screen[] = [
 	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{
+		// 4番（保存済みは △）と印の無い7番に ✓（候補）を選んだところ。保存はしない。「付けた印」で ✓ が
+		// ☆ と × の間に馬番の順で2頭並び、teal の札がほかの印と同じ大きさ・間隔で揃うかを見る。
+		name: 'race-preview-marks-candidate',
+		path: `/races/${MARKS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const marks = page.getByRole('radiogroup', { name: /予想印/ });
+			await marks.nth(3).locator('input[value="✓"] + span').click();
+			await marks.nth(6).locator('input[value="✓"] + span').click();
+		}
+	},
+	{
 		// 人気順に並べ替えたところ（同じ2人気は馬番の順、取消で人気の無い馬は最後）。
 		name: 'race-preview-popularity',
 		path: `/races/${MARKS_RACE_ID}/preview`,
