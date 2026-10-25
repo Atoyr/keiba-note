@@ -363,8 +363,9 @@ describe('PastRuns のレース名', () => {
 				// 1行は leading-6 = 24px。それより高ければ折り返している
 				expect(el.getBoundingClientRect().height).toBeLessThanOrEqual(24);
 			}
-			// 入りきらない分は箱の中で動く。ページ全体（この入れ物）は広がらない
-			expect(scroller.getBoundingClientRect().width).toBeLessThanOrEqual(307);
+			// 入りきらない分は箱の中で動く（中身が箱より広い）。箱そのものは入れ物の幅を越えない
+			expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth);
+			expect(scroller.clientWidth).toBeLessThanOrEqual(307);
 		} finally {
 			done();
 		}
