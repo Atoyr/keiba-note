@@ -167,9 +167,11 @@ test('予想をまとめ、公開名で共有・更新・解除できる。本�
 	await guest.dispose();
 });
 
-// ✓ は候補のチェックで、予想の印ではない。付けて保存しても、まとめにも「付けた印」にも出ない。
+// ✓ は候補のチェックで、予想の印ではない。付けて保存すると「付けた印」には候補として出て、まとめには出ない。
 // SUMMARY_RACE_ID はこのファイルの操作テスト専用。最後に ◎ に戻す。
-test('候補のチェック（✓）を付けて保存しても、まとめと「付けた印」には出ない', async ({ page }) => {
+test('候補のチェック（✓）を付けて保存すると、「付けた印」には候補として出て、まとめには出ない', async ({
+	page
+}) => {
 	await login(page);
 	const previewPath = `/races/${SUMMARY_RACE_ID}/preview`;
 	const pick = async (mark: string) => {
@@ -188,10 +190,11 @@ test('候補のチェック（✓）を付けて保存しても、まとめと�
 	};
 	try {
 		await pick('✓');
-		// 予想画面の見出しには候補として出るが、一覧の上の「付けた印」の枠には出ない。
+		// 予想画面では、見出しにも一覧の上の「付けた印」の枠にも候補として出る。
 		await gotoHydrated(page, previewPath);
-		await expect(page.getByTitle('候補')).toBeVisible();
-		await expect(page.getByRole('heading', { name: '付けた印' })).toHaveCount(0);
+		const marks = page.getByRole('region', { name: '付けた印' });
+		await expect(marks.getByTitle('候補')).toBeVisible();
+		await expect(marks.getByText('E2Eまとめホース')).toBeVisible();
 		// まとめでは印なしの行（本文は残る）。✓ も候補の札も出ない。
 		await gotoHydrated(page, `/races/${SUMMARY_RACE_ID}/summary`);
 		const row = page.locator('li', { hasText: 'E2Eまとめホース' });

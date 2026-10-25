@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Mark, PredictionMark } from '$lib/schemas/note';
-import { answerCheck, asMarked, byMark, inTheMoneyCount, placing } from './answer';
+import { answerCheck, asMarked, byMark, markedInOrder, inTheMoneyCount, placing } from './answer';
 
 describe('byMark', () => {
-	// 予想画面の「付けた印」と答え合わせで同じ並びにする。
 	it('印の無い馬を落とし、◎ → × の順、同じ印は馬番の順に並べる', () => {
 		const rows = [
 			{ mark: '△' as const, horseNumber: 9 },
@@ -19,7 +18,7 @@ describe('byMark', () => {
 		]);
 	});
 
-	// ✓ は候補のチェックで予想の印ではない。「付けた印」に並べない。
+	// ✓ は候補のチェックで予想の印ではない。答え合わせに並べない。
 	it('候補のチェック（✓）の馬も落とす', () => {
 		const rows = [
 			{ mark: '✓' as const, horseNumber: 3 },
@@ -31,6 +30,37 @@ describe('byMark', () => {
 		expect(byMark(rows)).toEqual([
 			{ mark: '☆', horseNumber: 5 },
 			{ mark: '×', horseNumber: 2 }
+		]);
+	});
+});
+
+describe('markedInOrder', () => {
+	it('✓ を含めて ◎ → ✓ → × の順、同じ印は馬番の順に並べ、印の無い馬は落とす', () => {
+		const rows = [
+			{ mark: '×' as const, horseNumber: 2 },
+			{ mark: '✓' as const, horseNumber: 7 },
+			{ mark: null, horseNumber: 1 },
+			{ mark: '◎' as const, horseNumber: 12 },
+			{ mark: '✓' as const, horseNumber: 3 }
+		];
+
+		expect(markedInOrder(rows)).toEqual([
+			{ mark: '◎', horseNumber: 12 },
+			{ mark: '✓', horseNumber: 3 },
+			{ mark: '✓', horseNumber: 7 },
+			{ mark: '×', horseNumber: 2 }
+		]);
+	});
+
+	it('馬番の無い馬は同じ印の中で後ろ', () => {
+		const rows = [
+			{ mark: '✓' as const, horseNumber: null },
+			{ mark: '✓' as const, horseNumber: 5 }
+		];
+
+		expect(markedInOrder(rows)).toEqual([
+			{ mark: '✓', horseNumber: 5 },
+			{ mark: '✓', horseNumber: null }
 		]);
 	});
 });

@@ -68,22 +68,33 @@ export function answerCheck<T extends AnswerSource>(rows: T[]): Answer<T>[] {
 }
 
 /**
- * 印を付けた馬だけを印の順（◎ → ×）に並べる。同じ印は馬番の順、馬番の無い馬は後ろ。
- * **候補のチェック（✓）は予想の印ではないので落とす。** 答え合わせで ◎○▲△☆ と同じ「馬券内と読んだ」に数えると集計が狂う。
- *
- * 答え合わせと、予想画面の「付けた印」の一覧で同じ並びにする。
- * 予想で見た並びと結果で見る並びが違うと、同じ予想に見えない。
+ * 印（候補の ✓ を含む）を付けた馬だけを、`MARKS` の順（◎ → ×、✓ は ☆ と × の間）に並べる。
+ * 同じ印は馬番の順、馬番の無い馬は後ろ。予想画面の「付けた印」の一覧で使う。
  */
-export function byMark<T extends { mark: Mark | null; horseNumber: number | null }>(
+export function markedInOrder<T extends { mark: Mark | null; horseNumber: number | null }>(
 	rows: T[]
-): (T & { mark: PredictionMark })[] {
+): (T & { mark: Mark })[] {
 	return rows
-		.filter((r): r is T & { mark: PredictionMark } => isPredictionMark(r.mark))
+		.filter((r): r is T & { mark: Mark } => r.mark !== null)
 		.sort(
 			(a, b) =>
 				MARKS.indexOf(a.mark) - MARKS.indexOf(b.mark) ||
 				(a.horseNumber ?? Infinity) - (b.horseNumber ?? Infinity)
 		);
+}
+
+/**
+ * 予想の印を付けた馬だけを印の順（◎ → ×）に並べる。同じ印は馬番の順、馬番の無い馬は後ろ。
+ * **候補のチェック（✓）は予想の印ではないので落とす。** 答え合わせで ◎○▲△☆ と同じ「馬券内と読んだ」に数えると集計が狂う。
+ *
+ * 並びは `markedInOrder` と同じ。予想画面の「付けた印」は ✓ も並べるが、答え合わせは落とす。
+ */
+export function byMark<T extends { mark: Mark | null; horseNumber: number | null }>(
+	rows: T[]
+): (T & { mark: PredictionMark })[] {
+	return markedInOrder(rows).filter((r): r is typeof r & { mark: PredictionMark } =>
+		isPredictionMark(r.mark)
+	);
 }
 
 /**
