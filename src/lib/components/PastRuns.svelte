@@ -18,7 +18,8 @@
 	 *
 	 * 列は「日付・レース / 着順 / 枠番 / 通過 / 上り / 人気」。列を縦にそろえて、
 	 * 着順や上りを5走ぶん縦に拾い読みできるようにする。
-	 * 日付・レースの列だけが残りの幅を取り、レース名は切る（truncate）。
+	 * 日付・レースの列だけが残りの幅を取り、レース名は切らず折り返して全部出す
+	 * （「ラジオN杯京都2歳S」と「ラジオNIKKEI賞」のような似た名前を見分けるため。#218）。
 	 *
 	 * 各走の2段目は薄い色の補足。「誰が乗ったか」（騎手）と
 	 * 「誰にどれだけ負けたか」（勝ち馬とタイム差。勝った走は2着馬と、2着につけた差を負で）、
@@ -58,7 +59,7 @@
 				{@const vs = rival(r)}
 				<tbody class="border-t border-border/60">
 					<tr>
-						<!-- max-w-0 + w-full で、この列だけが残りの幅を取り、レース名が長くても表を広げない。 -->
+						<!-- max-w-0 + w-full で、この列だけが残りの幅を取り、レース名が長くても表を広げず折り返す。 -->
 						<td class="w-full max-w-0 px-1.5 pt-2 pb-1 align-middle">
 							<div class="flex flex-wrap items-baseline gap-x-1.5">
 								<span class="font-mono text-muted-foreground">{ymd(r.date)}</span>
@@ -78,11 +79,11 @@
 									href={resolve('/graded-races/[name]', {
 										name: gradedRaceParam(gradedRaceKey(r.raceName))
 									})}
-									class="block w-fit max-w-full truncate leading-6 underline underline-offset-2 hover:decoration-2"
+									class="block w-fit max-w-full leading-6 break-words underline underline-offset-2 hover:decoration-2"
 									>{r.raceName}</a
 								>
 							{:else}
-								<p class="truncate">{title(r)}</p>
+								<p class="break-words">{title(r)}</p>
 							{/if}
 							<p class="text-muted-foreground">
 								{r.course}{r.raceNumber ?? ''}R

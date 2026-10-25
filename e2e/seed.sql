@@ -503,7 +503,7 @@ VALUES (
 );
 
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, runner_up_name)
-VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別', '2勝クラス', '芝', 2400, '良', 'E2E霜月2着馬');
+VALUES ('01JE2ERACEPASTRUN200000000', '2025-11-09', '東京', 10, 'E2E霜月特別オータムハンデキャップ', '2勝クラス', '芝', 2400, '良', 'E2E霜月2着馬');
 
 INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_position, popularity, last_3f, time_diff)
 VALUES (

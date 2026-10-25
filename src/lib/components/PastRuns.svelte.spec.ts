@@ -276,3 +276,27 @@ describe('PastRuns', () => {
 		});
 	});
 });
+
+describe('PastRuns のレース名', () => {
+	it('長いレース名は条件戦も重賞も省略せず、切るクラスを持たない', () => {
+		const { container } = render(PastRuns, {
+			runs: [
+				run({ raceId: 'a', raceName: 'ラジオN杯京都2歳S', grade: null, className: '2歳オープン' }),
+				run({ raceId: 'b', raceName: 'ラジオN杯京都2歳S', grade: 'G2' })
+			]
+		});
+
+		const names = [...container.querySelectorAll('tbody')].map((tbody) => {
+			const cell = tbody.querySelectorAll('td')[0];
+			return [...cell.querySelectorAll('a, p')].find((el) =>
+				el.textContent?.includes('ラジオN杯京都2歳S')
+			);
+		});
+		expect(names).toHaveLength(2);
+		for (const el of names) {
+			expect(el?.textContent?.trim()).toBe('ラジオN杯京都2歳S');
+			expect(el?.className).not.toContain('truncate');
+			expect(el?.className).not.toContain('line-clamp');
+		}
+	});
+});

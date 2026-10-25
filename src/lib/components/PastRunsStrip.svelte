@@ -37,8 +37,8 @@
 						{/if}
 					</p>
 				{/if}
-				<!-- 1マスは 110px ほどなので、レース名は別の段にして2行まで折り返す。それでも切れる分は title（マウス）と詳細情報の表で読める。 -->
-				<p class="line-clamp-2 break-words" title={title(r)}>{title(r)}</p>
+				<!-- 1マスは 110px ほどなので、レース名は別の段にして、切らずに折り返して全部出す（#218）。 -->
+				<p class="break-words">{title(r)}</p>
 				{#if cond(r)}
 					<p class="truncate font-mono text-muted-foreground">{cond(r)}</p>
 				{/if}

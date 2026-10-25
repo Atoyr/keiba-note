@@ -88,3 +88,18 @@ describe('PastRunsStrip', () => {
 		expect(text).not.toContain('人');
 	});
 });
+
+describe('PastRunsStrip のレース名', () => {
+	it('長いレース名を line-clamp で切らない', () => {
+		const { container } = render(PastRunsStrip, {
+			runs: [run({ raceName: 'ラジオN杯京都2歳S' })],
+			horseName: 'テスト馬'
+		});
+
+		const el = [...container.querySelectorAll('p')].find((p) =>
+			p.textContent?.includes('ラジオN杯京都2歳S')
+		);
+		expect(el).toBeDefined();
+		expect(el?.className).not.toContain('line-clamp');
+	});
+});
