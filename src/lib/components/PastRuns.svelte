@@ -9,7 +9,7 @@
 	import { cond, finish, post, rival, title, tone, ymd, type PastRun } from '$lib/utils/past-runs';
 
 	/**
-	 * 馬柱（簡略版）。1走を表の1行（と補足の1行）で出す。
+	 * 馬柱（簡略版）。1走を表の3段（名前・数字・補足）で出す。
 	 *
 	 * 競馬新聞のフル馬柱は斤量・馬体重・通過順・タイムまで載せるが、
 	 * この画面は**競馬場で片手で読む**ことを前提にしている（pages.md 4-2）。
@@ -18,11 +18,14 @@
 	 *
 	 * 列は「日付・レース / 着順 / 枠番 / 通過 / 上り / 人気」。列を縦にそろえて、
 	 * 着順や上りを5走ぶん縦に拾い読みできるようにする。
-	 * 日付・レースの列だけが残りの幅を取り、レース名は切る（truncate）。
+	 * 各走の1段目は名前の段。日付・格の札・レース名を、表の幅いっぱいを使って1行で、
+	 * 折り返さず切らずに出す（「ラジオN杯京都2歳S」と「ラジオNIKKEI賞」のような
+	 * 似た名前を見分けるため。#218）。折り返すと枠が広がって見にくい。
+	 * 2段目は開催場・条件と数字の5列。
 	 *
-	 * 各走の2段目は薄い色の補足。「誰が乗ったか」（騎手）と
+	 * 各走の3段目は薄い色の補足。「誰が乗ったか」（騎手）と
 	 * 「誰にどれだけ負けたか」（勝ち馬とタイム差。勝った走は2着馬と、2着につけた差を負で）、
-	 * 右に走破タイム。どれも無い走は2段目ごと出さない。
+	 * 右に走破タイム。どれも無い走は3段目ごと出さない。
 	 * 騎手名は騎手の画面へ、G1〜G3 のレース名は重賞の画面へのリンク（詳細情報からそこへ飛べる）。
 	 *
 	 * 自分のメモは表の下に別のかたまりで出す（メモは長さがまちまちで、表の行に混ぜると列がそろわない）。
@@ -53,14 +56,20 @@
 					{/each}
 				</tr>
 			</thead>
-			<!-- 1走を1つの tbody にする（1段目が数字の列、2段目が補足）。 -->
+			<!-- 1走を1つの tbody にする（1段目が名前、2段目が数字の列、3段目が補足）。 -->
 			{#each runs as r (r.raceId)}
 				{@const vs = rival(r)}
 				<tbody class="border-t border-border/60">
 					<tr>
-						<!-- max-w-0 + w-full で、この列だけが残りの幅を取り、レース名が長くても表を広げない。 -->
-						<td class="w-full max-w-0 px-1.5 pt-2 pb-1 align-middle">
-							<div class="flex flex-wrap items-baseline gap-x-1.5">
+						<!-- 名前の段。6列ぶんの幅を使い、日付・格・レース名を1行で、折り返さず切らずに並べる。
+						     6列すべての見出しの下に入る td にすると読み上げで「着順」などが名前に付くので、
+						     1走（tbody）の見出しとして th scope="rowgroup" にする。 -->
+						<th
+							scope="rowgroup"
+							colspan="6"
+							class="px-1.5 pt-2 text-left font-normal whitespace-nowrap"
+						>
+							<div class="flex items-baseline gap-x-1.5">
 								<span class="font-mono text-muted-foreground">{ymd(r.date)}</span>
 								<!-- 格の札は一覧の行ではレース名の前（pages.md）。
 								     重賞は格の札で足りるが、**条件戦は条件そのものがレースの識別子**。
@@ -71,37 +80,39 @@
 										{r.className}
 									</span>
 								{/if}
+								{#if isGraded(r.grade) && r.raceName}
+									<!-- 押せる高さを 24px 取る（leading-6）。押せる範囲は文字の幅まで。 -->
+									<a
+										href={resolve('/graded-races/[name]', {
+											name: gradedRaceParam(gradedRaceKey(r.raceName))
+										})}
+										class="leading-6 whitespace-nowrap underline underline-offset-2 hover:decoration-2"
+										>{r.raceName}</a
+									>
+								{:else}
+									<p class="whitespace-nowrap">{title(r)}</p>
+								{/if}
 							</div>
-							{#if isGraded(r.grade) && r.raceName}
-								<!-- 押せる高さを 24px 取る（leading-6）。block + w-fit で、押せる範囲は文字の幅まで。 -->
-								<a
-									href={resolve('/graded-races/[name]', {
-										name: gradedRaceParam(gradedRaceKey(r.raceName))
-									})}
-									class="block w-fit max-w-full truncate leading-6 underline underline-offset-2 hover:decoration-2"
-									>{r.raceName}</a
-								>
-							{:else}
-								<p class="truncate">{title(r)}</p>
-							{/if}
-							<p class="text-muted-foreground">
-								{r.course}{r.raceNumber ?? ''}R
-								<span class="font-mono whitespace-nowrap">{cond(r)}</span>
-							</p>
+						</th>
+					</tr>
+					<tr>
+						<!-- w-full で、この列が残りの幅を取り、数字の列を右に詰める。 -->
+						<td class="w-full px-1.5 pb-1 align-middle text-muted-foreground">
+							{r.course}{r.raceNumber ?? ''}R
+							<span class="font-mono whitespace-nowrap">{cond(r)}</span>
 						</td>
 						<td
-							class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap {tone(
-								r.finishPosition
-							)}">{finish(r)}</td
+							class="px-1.5 pb-1 text-right align-middle whitespace-nowrap {tone(r.finishPosition)}"
+							>{finish(r)}</td
 						>
-						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap">{post(r)}</td>
-						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap tabular-nums"
+						<td class="px-1.5 pb-1 text-right align-middle whitespace-nowrap">{post(r)}</td>
+						<td class="px-1.5 pb-1 text-right align-middle whitespace-nowrap tabular-nums"
 							>{r.passing ?? '—'}</td
 						>
-						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap tabular-nums"
+						<td class="px-1.5 pb-1 text-right align-middle whitespace-nowrap tabular-nums"
 							>{r.last3f ? r.last3f.toFixed(1) : '—'}</td
 						>
-						<td class="px-1.5 pt-2 pb-1 text-right align-middle whitespace-nowrap"
+						<td class="px-1.5 pb-1 text-right align-middle whitespace-nowrap"
 							>{r.popularity ?? '—'}</td
 						>
 					</tr>
