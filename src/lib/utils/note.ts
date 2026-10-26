@@ -1,5 +1,6 @@
 /** メモの見出しと札の見せ方。タイムライン・ダッシュボード・予想画面で共通。 */
 
+import { FLOW_PHASES, FLOW_PHASE_LABEL } from '$lib/schemas/race-flow';
 import type { NoteTag } from '$lib/schemas/note';
 
 /**
@@ -287,6 +288,8 @@ export function noteSaveError(
 		field = mode === 'preview' ? 'レースの見立て' : 'レースのふりかえり';
 	} else if (path[0] === 'raceNote' && path[1] === 'flow') {
 		field = '展開の予想';
+		const phase = FLOW_PHASES.find((p) => p === path[2]);
+		if (phase && path[3] === 'memo') field += `（${FLOW_PHASE_LABEL[phase]}）`;
 	} else if (path[0] === 'entries' && typeof path[1] === 'number' && path[2] === 'body') {
 		const horse = entries[path[1]]?.horseName;
 		if (horse) field = `${horse}の${mode === 'preview' ? '出走前メモ' : 'メモ'}`;

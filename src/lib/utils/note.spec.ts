@@ -264,6 +264,9 @@ describe('一括保存のエラー', () => {
 		['preview', ['raceNote', 'body'], 'レースの見立て'],
 		['review', ['raceNote', 'body'], 'レースのふりかえり'],
 		['preview', ['raceNote', 'flow', 'early', 'memo'], '展開の予想'],
+		['preview', ['raceNote', 'flow', 'start', 'memo'], '展開の予想（スタート）'],
+		['preview', ['raceNote', 'flow', 'corner4', 'memo'], '展開の予想（4コーナー）'],
+		['preview', ['raceNote', 'flow', 'finish', 'memo'], '展開の予想（ゴール前）'],
 		['preview', ['entries', 0, 'body'], 'テストホースの出走前メモ'],
 		['review', ['entries', 0, 'body'], 'テストホースのメモ']
 	] as const)('%s の %j は欄と直し方を示す', (mode, path, field) => {
