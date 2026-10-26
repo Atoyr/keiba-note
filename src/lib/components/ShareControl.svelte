@@ -25,6 +25,7 @@
 	const shared = $derived(visibility === 'unlisted');
 
 	let copied = $state(false);
+	let pending = $state(false);
 
 	// `page.url` は SSR でも埋まっているので、location を待たずに URL を出せる。
 	// 渡す相手に見せる値なので、描画のたびにちらつかせたくない。
@@ -43,12 +44,34 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-2">
-	<form method="POST" action="/settings/shares" use:enhance>
+	<form
+		method="POST"
+		action="/settings/shares"
+		use:enhance={({ cancel }) => {
+			if (pending) {
+				cancel();
+				return;
+			}
+			pending = true;
+			return async ({ update }) => {
+				try {
+					await update({ reset: false });
+				} finally {
+					pending = false;
+				}
+			};
+		}}
+	>
 		<input type="hidden" name="noteId" value={noteId} />
 		<input type="hidden" name="redirect" value={redirectTo} />
 		<input type="hidden" name="visibility" value={shared ? 'private' : 'unlisted'} />
-		<Button type="submit" variant={shared ? 'secondary' : 'outline'} size="sm">
-			{shared ? '共有をやめる' : '共有リンクを作る'}
+		<Button
+			type="submit"
+			variant={shared ? 'secondary' : 'outline'}
+			size="sm"
+			aria-disabled={pending}
+		>
+			{pending ? '処理中…' : shared ? '共有をやめる' : '共有リンクを作る'}
 		</Button>
 	</form>
 

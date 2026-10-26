@@ -27,6 +27,7 @@
 	let profileOpen = $state(false);
 	let favoritePending = $state(false);
 	let deletePending = $state(false);
+	let addPending = $state(false);
 	let sexValue = $state(data.horse.sex ?? '');
 	let centerValue = $state(data.horse.trainingCenter ?? '');
 
@@ -220,6 +221,9 @@
 		</p>
 	{/if}
 
+	{#if form && 'added' in form}<noscript
+			><p class="mt-1 text-sm">近況メモを追加しました</p></noscript
+		>{/if}
 	{#if form && 'deleted' in form}<noscript
 			><p class="mt-1 text-sm">近況メモを削除しました</p></noscript
 		>{/if}
@@ -228,7 +232,28 @@
 
 		<details class="mt-2 rounded-md border border-gray-200 p-3">
 			<summary class="cursor-pointer text-sm text-gray-700">＋ 近況メモを追加</summary>
-			<form method="POST" action="?/addNote" use:enhance class="mt-3">
+			<form
+				method="POST"
+				action="?/addNote"
+				use:enhance={({ cancel }) => {
+					if (addPending) {
+						cancel();
+						return;
+					}
+					addPending = true;
+					return async ({ result, update }) => {
+						try {
+							if (result.type === 'success') {
+								await update();
+								toast.success('近況メモを追加しました');
+							} else await update({ reset: false });
+						} finally {
+							addPending = false;
+						}
+					};
+				}}
+				class="mt-3"
+			>
 				<textarea
 					name="body"
 					rows="3"
@@ -249,12 +274,12 @@
 							class="rounded border border-gray-300 px-2 py-1"
 						/>
 					</label>
-					<button
-						type="submit"
-						class="rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:bg-primary/80"
+					<Button type="submit" size="sm" aria-disabled={addPending}
+						>{addPending ? '処理中…' : '追加'}</Button
 					>
-						追加
-					</button>
+					{#if form?.message}<p role="alert" class="text-sm text-destructive">
+							{form.message}
+						</p>{/if}
 				</div>
 			</form>
 		</details>
