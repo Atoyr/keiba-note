@@ -139,7 +139,7 @@
 			<a class="underline" href={resolve('/races/[id]/preview', { id: data.raceId })}>予想を書く</a>
 		</p>
 	{/if}
-	{#if hasSummary(data.summary) || data.shareId}
+	{#if hasSummary(data.summary) || data.shareId || form?.message}
 		<section
 			id="share-settings"
 			bind:this={shareSection}
