@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { jockeySummarySchema } from '$lib/schemas/jockey';
+import { JOCKEY_TAGS, jockeySummarySchema } from '$lib/schemas/jockey';
 import {
 	countJockeyRides,
 	getJockeySummary,
@@ -73,6 +73,7 @@ export const actions: Actions = {
 		if (!parsed.success) {
 			return fail(400, {
 				...input,
+				tags: JOCKEY_TAGS.filter((t) => input.tags.includes(t)),
 				message: parsed.issues[0]?.message ?? '入力を確認してください'
 			});
 		}
