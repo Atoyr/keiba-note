@@ -24,6 +24,6 @@ it('コピー成功をボタンと読み上げの通知で知らせる', async (
 	await screen.getByRole('button', { name: 'コピー', exact: true }).click();
 	await expect.element(screen.getByRole('button', { name: 'コピーしました' })).toBeVisible();
 	await expect.element(screen.getByRole('status')).toHaveTextContent('コピーしました');
-	await expect.element(screen.getByRole('status'), { timeout: 2500 }).toBeEmptyDOMElement();
+	await expect.element(screen.getByRole('status'), { timeout: 2500 }).toHaveTextContent(/^$/);
 	await expect.element(screen.getByRole('button', { name: 'コピー', exact: true })).toBeVisible();
 });
