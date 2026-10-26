@@ -63,11 +63,11 @@
 				{@const r = row.race}
 				{@const empty =
 					!row.preview && !row.review && row.marks.length === 0 && row.entryNoteCount === 0}
-				<!-- 結果が出たか、レース全体のふりかえりを書いたレースはふりかえりへ。それ以外は予想画面へ送る。 -->
+				<!-- 結果が出たか、本人のふりかえりを書いたレースはふりかえりへ。それ以外は予想画面へ送る。 -->
 				{@const raceHref = opensReview(
 					{ date: r.date, resultCount: r.resultCount },
 					today,
-					!!row.review
+					row.reviewed
 				)
 					? resolve('/races/[id]', { id: r.id })
 					: resolve('/races/[id]/preview', { id: r.id })}

@@ -14,7 +14,7 @@
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { opensReview } from '$lib/utils/date';
 	import { jockeyParam } from '$lib/utils/jockey';
-	import { isReviewNote, raceLabel } from '$lib/utils/note';
+	import { raceLabel } from '$lib/utils/note';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -199,7 +199,7 @@
 								href={opensReview(
 									{ date: r.date, resultCount: r.resultCount },
 									data.today,
-									row.notes.some((n) => isReviewNote(n.kind))
+									row.reviewed
 								)
 									? resolve('/races/[id]', { id: r.raceId })
 									: resolve('/races/[id]/preview', { id: r.raceId })}

@@ -112,7 +112,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 							series.notes,
 							series.marks,
 							today,
-							series.entryNoteCounts
+							series.entryNoteCounts,
+							series.entryReviewCounts
 						)
 					}
 				: null,

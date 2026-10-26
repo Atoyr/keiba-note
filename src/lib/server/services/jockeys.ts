@@ -1,4 +1,16 @@
-import { and, asc, countDistinct, desc, eq, isNotNull, like, max, ne, sql } from 'drizzle-orm';
+import {
+	and,
+	asc,
+	countDistinct,
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	like,
+	max,
+	ne,
+	sql
+} from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { horse, jockeyNote, note, race, raceEntry, type Note } from '$lib/server/db/schema';
 import { JOCKEY_TAGS, type JockeyTag } from '$lib/schemas/jockey';
@@ -306,4 +318,26 @@ export function mergeJockeyTimeline(
 		upcoming: ride.date > today,
 		notes: [...(byEntry.get(ride.entryId) ?? [])].sort((a, b) => order(a) - order(b))
 	}));
+}
+
+/** その騎手の騎乗があるレースのうち、本人がレース全体か各馬のふりかえりを書いたもの。 */
+export async function listJockeyReviewedRaceIds(
+	db: Db,
+	name: string,
+	viewerId: string
+): Promise<string[]> {
+	const rows = await db
+		.selectDistinct({ raceId: note.raceId })
+		.from(note)
+		.where(
+			and(
+				eq(note.authorId, viewerId),
+				inArray(note.kind, ['race', 'entry']),
+				inArray(
+					note.raceId,
+					db.select({ raceId: raceEntry.raceId }).from(raceEntry).where(eq(raceEntry.jockey, name))
+				)
+			)
+		);
+	return rows.flatMap((r) => (r.raceId ? [r.raceId] : []));
 }

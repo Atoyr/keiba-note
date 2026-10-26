@@ -179,6 +179,7 @@ type SeriesNotes = {
 	marks: SeriesMark[];
 	/** レースごとの1頭ごとのメモの件数（0 のレースは入らない）。 */
 	entryNoteCounts: Record<string, number>;
+	entryReviewCounts: Record<string, number>;
 };
 
 /**
@@ -232,7 +233,11 @@ function seriesNotesQueries(db: Db, names: string[], viewerId: string) {
 				)
 			),
 		db
-			.select({ raceId: note.raceId, n: count() })
+			.select({
+				raceId: note.raceId,
+				n: count(),
+				reviewed: sql<number>`count(CASE WHEN ${note.kind} = 'entry' THEN 1 END)`.mapWith(Number)
+			})
 			.from(note)
 			.innerJoin(race, eq(note.raceId, race.id))
 			.where(
@@ -277,7 +282,10 @@ function shapeSeriesNotes(
 	);
 	const entryNoteCounts: Record<string, number> = {};
 	for (const r of countRows) if (r.raceId && r.n > 0) entryNoteCounts[r.raceId] = r.n;
-	return { notes, marks, entryNoteCounts };
+	const entryReviewCounts: Record<string, number> = {};
+	for (const r of countRows)
+		if (r.raceId && r.reviewed > 0) entryReviewCounts[r.raceId] = r.reviewed;
+	return { notes, marks, entryNoteCounts, entryReviewCounts };
 }
 
 /**
@@ -467,6 +475,7 @@ export function currentGrade(races: SeriesRace[], thisYear: string): CurrentGrad
 }
 
 export type GradedTimelineRace = {
+	reviewed: boolean;
 	race: SeriesRace;
 	/** まだ日が来ていないレース。当日は予定にしない（馬のタイムラインと同じ線引き）。 */
 	upcoming: boolean;
@@ -488,7 +497,8 @@ export function buildGradedRaceTimeline(
 	notes: SeriesNote[],
 	marks: SeriesMark[],
 	today: string,
-	entryNoteCounts: Record<string, number> = {}
+	entryNoteCounts: Record<string, number> = {},
+	entryReviewCounts: Record<string, number> = {}
 ): GradedTimelineYear[] {
 	const markOrder = (m: PredictionMark) => MARKS.indexOf(m);
 	const years = new Map<string, GradedTimelineRace[]>();
@@ -502,6 +512,7 @@ export function buildGradedRaceTimeline(
 		const review = mine.find((n) => n.kind === 'race');
 		const row: GradedTimelineRace = {
 			race: r,
+			reviewed: !!review || (entryReviewCounts[r.id] ?? 0) > 0,
 			upcoming: r.date > today,
 			preview: outlook ? { body: outlook.body, pace: outlook.pace } : null,
 			review: review ? { body: review.body, tags: review.tags } : null,

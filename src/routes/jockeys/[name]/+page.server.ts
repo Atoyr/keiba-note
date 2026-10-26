@@ -7,6 +7,7 @@ import {
 	JOCKEY_RIDE_LIMIT,
 	jockeyExists,
 	listJockeyRideNotes,
+	listJockeyReviewedRaceIds,
 	listJockeyRides,
 	mergeJockeyTimeline,
 	saveJockeySummary
@@ -19,7 +20,7 @@ import type { Actions, PageServerLoad } from './$types';
  * 騎手の画面＝まとめ + 騎乗のタイムライン。
  *
  * 骨は騎乗（`race_entry`。誰が見ても同じ）で、そこに viewer 自身のメモ（その騎乗の出走前・ふりかえり）を重ねる。
- * まとめは1人・1騎手につき1本（本文と札）。読みは4クエリで、並行に投げる。
+ * まとめは1人・1騎手につき1本（本文と札）。読みは5クエリで、並行に投げる。
  *
  * `?notes=1` でメモのある騎乗だけにする。騎乗は数百になるので、メモを読み返したいときに
  * メモの無い行を送らなくて済むように。URL に残るのは、予想の最中に開き直しても同じ絞りで見られるように。
@@ -29,15 +30,20 @@ export const load: PageServerLoad = async ({ locals, platform, params, url }) =>
 	const name = params.name;
 	const today = todayJst();
 
-	const [rides, rideCount, notes, summary] = await Promise.all([
+	const [rides, rideCount, notes, summary, reviewedIds] = await Promise.all([
 		listJockeyRides(db, name),
 		countJockeyRides(db, name),
 		listJockeyRideNotes(db, name, user.id),
-		getJockeySummary(db, name, user.id)
+		getJockeySummary(db, name, user.id),
+		listJockeyReviewedRaceIds(db, name, user.id)
 	]);
 	if (rides.length === 0) error(404, '騎手が見つかりません');
 
-	const timeline = mergeJockeyTimeline(rides, notes, today);
+	const reviewed = new Set(reviewedIds);
+	const timeline = mergeJockeyTimeline(rides, notes, today).map((row) => ({
+		...row,
+		reviewed: reviewed.has(row.ride.raceId)
+	}));
 	// 上限で切る前の数で数える（古い騎乗に付いたメモも数に入る）。
 	const notedCount = new Set(notes.map((n) => n.raceEntryId)).size;
 	const onlyNoted = url.searchParams.get('notes') === '1';

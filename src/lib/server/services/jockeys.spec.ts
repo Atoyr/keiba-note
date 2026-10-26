@@ -5,6 +5,7 @@ import {
 	getJockeySummary,
 	jockeyExists,
 	listJockeyRideNotes,
+	listJockeyReviewedRaceIds,
 	listJockeyRides,
 	listJockeys,
 	listJockeyTagsInUse,
@@ -204,4 +205,10 @@ describe('騎手のまとめ', () => {
 			tags: []
 		});
 	});
+});
+
+it('騎乗の別の馬の本人のふりかえりを含み、他人のふりかえりは含めない', async () => {
+	expect((await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'a')).sort()).toEqual(['r1', 'r2']);
+	expect(await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'b')).toEqual(['r2']);
+	expect(await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'nobody')).toEqual([]);
 });

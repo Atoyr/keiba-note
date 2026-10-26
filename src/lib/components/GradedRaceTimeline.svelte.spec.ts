@@ -16,7 +16,14 @@ const base = {
 	winnerName: null,
 	resultCount: 0
 };
-const empty = { upcoming: false, preview: null, review: null, entryNoteCount: 0, marks: [] };
+const empty = {
+	reviewed: false,
+	upcoming: false,
+	preview: null,
+	review: null,
+	entryNoteCount: 0,
+	marks: []
+};
 
 const timeline: Timeline = [
 	{
@@ -135,7 +142,7 @@ it('結果の投入前でもレース全体のふりかえりがあればふり�
 					{
 						...empty,
 						race: { ...base, id: 'reviewed', date: '2026-09-27' },
-						review: { body: '結果を待たずに書いた', tags: [] }
+						reviewed: true
 					}
 				]
 			}
