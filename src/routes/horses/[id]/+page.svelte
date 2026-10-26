@@ -212,6 +212,17 @@
 		</form>
 	{/if}
 
+	<!-- 失敗の文は1か所にまとめる。推し・プロフィール欄・近況メモの追加と削除のどれが失敗しても、
+	     タイムラインの上のここに残る（近況メモの削除はメニューの中なので、閉じても見えるように外に置く）。 -->
+	{#if form && 'message' in form && form.message}
+		<p
+			class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+			role="alert"
+		>
+			{form.message}
+		</p>
+	{/if}
+
 	{#if form && 'added' in form}<noscript
 			><p class="mt-1 text-sm">近況メモを追加しました</p></noscript
 		>{/if}
@@ -271,8 +282,6 @@
 				</div>
 			</form>
 		</details>
-
-		{#if form?.message}<p role="alert" class="mt-2 text-sm text-destructive">{form.message}</p>{/if}
 
 		{#if data.timeline.length === 0}
 			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>
