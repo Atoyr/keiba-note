@@ -163,3 +163,20 @@ test('admin のプロフィール編集で、所属・性別・生年月日・�
 	await expect(rows.nth(4)).toContainText('栗東');
 	await expect(rows.nth(4)).toContainText('調教師 E2E栗東調教師');
 });
+
+test('近況メモは削除の確認を開いただけでは消えず、確定すると消える', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByText('＋ 近況メモを追加').click();
+	const body = '削除の確認テスト用の近況メモ';
+	await page.getByLabel('近況メモ', { exact: true }).fill(body);
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	const row = page.locator(TIMELINE, { hasText: body });
+	await row.getByTitle('メモの操作').click();
+	await row.getByText('この近況メモを削除', { exact: true }).click();
+	await expect(row.getByText(body, { exact: true })).toBeVisible();
+	await expect(row.getByText('この近況メモを削除すると、元に戻せません。')).toBeVisible();
+	await row.getByRole('button', { name: '削除する', exact: true }).click();
+	await expect(row).toHaveCount(0);
+	await expect(page.getByText('近況メモを削除しました', { exact: true })).toBeVisible();
+});

@@ -818,6 +818,20 @@ export const SCREENS: Screen[] = [
 				.click();
 		}
 	},
+	{
+		name: 'horse-timeline-delete-confirm',
+		path: `/horses/${HORSE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page
+				.locator('main ol > li')
+				.filter({ has: page.getByText('この近況メモを削除', { exact: true }) })
+				.first();
+			await row.getByTitle('メモの操作').click();
+			await row.getByText('この近況メモを削除', { exact: true }).click();
+		}
+	},
 	// 騎手の一覧。騎乗の多い順に、自分が付けた札と一緒に並ぶ。上に「札で絞る」。
 	{ name: 'jockeys', path: '/jockeys', auth: true },
 	// 札で絞ったところ（選んだ札に ✓）。

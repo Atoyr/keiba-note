@@ -26,6 +26,7 @@
 
 	let profileOpen = $state(false);
 	let favoritePending = $state(false);
+	let deletePending = $state(false);
 	let sexValue = $state(data.horse.sex ?? '');
 	let centerValue = $state(data.horse.trainingCenter ?? '');
 
@@ -219,6 +220,9 @@
 		</p>
 	{/if}
 
+	{#if form && 'deleted' in form}<noscript
+			><p class="mt-1 text-sm">近況メモを削除しました</p></noscript
+		>{/if}
 	<section class="mt-8">
 		<h2 class="text-sm font-semibold text-gray-500">タイムライン</h2>
 
@@ -320,17 +324,41 @@
 											redirectTo="/horses/{data.horse.id}"
 										/>
 										{#if n.kind === 'horse'}
-											<form
-												method="POST"
-												action="?/deleteNote"
-												use:enhance
-												class="mt-2 border-t pt-2"
-											>
-												<input type="hidden" name="noteId" value={n.id} />
-												<button type="submit" class="text-xs text-red-700 hover:underline">
-													この近況メモを削除
-												</button>
-											</form>
+											<details class="mt-2 border-t pt-2">
+												<summary class="cursor-pointer text-xs text-destructive hover:underline"
+													>この近況メモを削除</summary
+												>
+												<p class="mt-2 text-sm">この近況メモを削除すると、元に戻せません。</p>
+												<form
+													method="POST"
+													action="?/deleteNote"
+													class="mt-2"
+													use:enhance={({ cancel }) => {
+														if (deletePending) {
+															cancel();
+															return;
+														}
+														deletePending = true;
+														return async ({ result, update }) => {
+															try {
+																await update({ reset: false });
+																if (result.type === 'success')
+																	toast.success('近況メモを削除しました');
+															} finally {
+																deletePending = false;
+															}
+														};
+													}}
+												>
+													<input type="hidden" name="noteId" value={n.id} />
+													<Button
+														variant="destructive"
+														size="sm"
+														type="submit"
+														aria-disabled={deletePending}>削除する</Button
+													>
+												</form>
+											</details>
 										{/if}
 									</NoteMenu>
 								</div>
