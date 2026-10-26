@@ -212,15 +212,6 @@
 		</form>
 	{/if}
 
-	{#if form && 'message' in form && form.message}
-		<p
-			class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
-			role="alert"
-		>
-			{form.message}
-		</p>
-	{/if}
-
 	{#if form && 'added' in form}<noscript
 			><p class="mt-1 text-sm">近況メモを追加しました</p></noscript
 		>{/if}

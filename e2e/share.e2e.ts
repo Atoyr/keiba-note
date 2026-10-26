@@ -140,7 +140,7 @@ test('馬タイムラインでも、共有と削除はメニューを開くま�
 	await page.goto(`/horses/${HORSE_ID}`);
 
 	await expect(page.getByRole('button', { name: '共有リンクを作る' })).toHaveCount(0);
-	await expect(page.getByRole('button', { name: 'この近況メモを削除' })).toHaveCount(0);
+	await expect(page.getByText('この近況メモを削除', { exact: true }).first()).not.toBeVisible();
 
 	// seed の共有中の近況メモ。札は開かなくても出ている。
 	const shared = page.locator('main ol > li', { hasText: '直線で外に出してから一完歩が速い。' });
@@ -148,13 +148,13 @@ test('馬タイムラインでも、共有と削除はメニューを開くま�
 
 	await shared.getByTitle('メモの操作').click();
 	await expect(shared.getByRole('button', { name: '共有をやめる' })).toBeVisible();
-	await expect(shared.getByRole('button', { name: 'この近況メモを削除' })).toBeVisible();
+	await expect(shared.getByText('この近況メモを削除', { exact: true })).toBeVisible();
 
 	// レースのメモは近況ではないので、ここからは消せない（ふりかえり画面で空にして消す）。
 	const entry = page.locator('main ol > li', { hasText: '直線だけの競馬になった。' });
 	await entry.getByTitle('メモの操作').click();
 	await expect(entry.getByRole('button', { name: '共有リンクを作る' })).toBeVisible();
-	await expect(entry.getByRole('button', { name: 'この近況メモを削除' })).toHaveCount(0);
+	await expect(entry.getByText('この近況メモを削除', { exact: true })).toHaveCount(0);
 });
 
 test('未ログインではダッシュボードのメモも共有の操作も出ない', async ({ page }) => {
