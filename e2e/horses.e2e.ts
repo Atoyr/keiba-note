@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { failNextAction } from './action-failure';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import {
@@ -179,4 +180,53 @@ test('近況メモは削除の確認を開いただけでは消えず、確定�
 	await row.getByRole('button', { name: '削除する', exact: true }).click();
 	await expect(row).toHaveCount(0);
 	await expect(page.getByText('近況メモを削除しました', { exact: true })).toBeVisible();
+});
+
+test('近況メモの追加失敗では入力とエラーを残す', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByText('＋ 近況メモを追加').click();
+	await page.getByLabel('近況メモ', { exact: true }).fill('失敗しても残す本文');
+	await failNextAction(page, `/horses/${HORSE_ID}`, { message: '追加できませんでした' });
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	await expect(page.getByRole('alert')).toHaveText('追加できませんでした');
+	await expect(page.getByLabel('近況メモ', { exact: true })).toHaveValue('失敗しても残す本文');
+});
+
+test('近況追加は送信中を示し、二重送信しない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByText('＋ 近況メモを追加').click();
+	await page.getByLabel('近況メモ', { exact: true }).fill('送信中の本文');
+	let requests = 0;
+	let release!: () => void;
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route(
+		(url) => url.pathname === `/horses/${HORSE_ID}`,
+		async (route) => {
+			if (route.request().method() !== 'POST') return route.continue();
+			requests++;
+			await gate;
+			await route.fulfill({
+				contentType: 'application/json',
+				body: JSON.stringify({
+					type: 'failure',
+					status: 400,
+					data: JSON.stringify([{ message: 1 }, 'テスト用の失敗'])
+				})
+			});
+		}
+	);
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	const pending = page.getByRole('button', { name: '処理中…', exact: true });
+	await expect(pending).toHaveAttribute('aria-disabled', 'true');
+	await pending.evaluate((button: HTMLButtonElement) => button.form!.requestSubmit(button));
+	expect(requests).toBe(1);
+	release();
+	await expect(page.getByRole('button', { name: '追加', exact: true })).toHaveAttribute(
+		'aria-disabled',
+		'false'
+	);
 });

@@ -277,12 +277,11 @@
 					<Button type="submit" size="sm" aria-disabled={addPending}
 						>{addPending ? '処理中…' : '追加'}</Button
 					>
-					{#if form?.message}<p role="alert" class="text-sm text-destructive">
-							{form.message}
-						</p>{/if}
 				</div>
 			</form>
 		</details>
+
+		{#if form?.message}<p role="alert" class="mt-2 text-sm text-destructive">{form.message}</p>{/if}
 
 		{#if data.timeline.length === 0}
 			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>
