@@ -317,7 +317,8 @@ test('保存失敗は入力を残し、同じフォームから再試行でき�
 });
 
 test('空の予想まとめは共有枠を出さず、予想を書くリンクを出す', async ({ page }) => {
-	await login(page);
+	// 通常ユーザーは別ファイルでこのレースに保存する。メモのない既存ユーザーで空状態を保つ。
+	await login(page, 'admin');
 	await gotoHydrated(page, `/races/${EMPTY_RACE_ID}/summary`);
 	await expect(page.getByText('まだ予想がありません。', { exact: false })).toBeVisible();
 	await expect(page.getByRole('region', { name: 'この予想を共有' })).toHaveCount(0);
