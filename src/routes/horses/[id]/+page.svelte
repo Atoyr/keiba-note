@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Star from '@lucide/svelte/icons/star';
@@ -23,6 +23,7 @@
 
 	let { data, form }: PageProps = $props();
 
+	const startOpen = untrack(() => !!form && 'body' in form);
 	const admin = $derived(isAdmin(data.user));
 
 	let profileOpen = $state(false);
@@ -235,7 +236,7 @@
 			タイムライン
 		</h2>
 
-		<details class="mt-2 rounded-md border border-gray-200 p-3">
+		{#snippet addEditor()}
 			<summary class="cursor-pointer text-sm text-gray-700">＋ 近況メモを追加</summary>
 			<form
 				method="POST"
@@ -265,9 +266,10 @@
 					required
 					aria-label="近況メモ"
 					placeholder="北海道滞在。追い切りの動き良いとのこと。"
-					class={input}></textarea>
+					class={input}>{form && 'body' in form ? form.body : ''}</textarea
+				>
 				<div class="mt-2">
-					<TagPicker name="tags" />
+					<TagPicker name="tags" values={form && 'tags' in form ? form.tags : []} />
 				</div>
 				<div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-600">
 					<label class="flex items-center gap-1.5">
@@ -275,7 +277,7 @@
 						<input
 							type="date"
 							name="occurredAt"
-							value={data.today}
+							value={form && 'occurredAt' in form ? form.occurredAt : data.today}
 							class="rounded border border-gray-300 px-2 py-1"
 						/>
 					</label>
@@ -284,7 +286,15 @@
 					>
 				</div>
 			</form>
-		</details>
+		{/snippet}
+		<!-- SSR で開いて返すときは属性の有無を分け、hydration で開閉を上書きしない。 -->
+		{#if startOpen}
+			<details open class="mt-2 rounded-md border border-gray-200 p-3">
+				{@render addEditor()}
+			</details>
+		{:else}
+			<details class="mt-2 rounded-md border border-gray-200 p-3">{@render addEditor()}</details>
+		{/if}
 
 		{#if data.timeline.length === 0}
 			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>

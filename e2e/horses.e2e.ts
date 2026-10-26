@@ -236,3 +236,22 @@ test('近況追加は送信中を示し、二重送信しない', async ({ page 
 		'false'
 	);
 });
+
+test.describe('JavaScriptなしの近況追加', () => {
+	test.use({ javaScriptEnabled: false });
+	test('追加失敗で欄を開き、本文・札・日付を残す', async ({ page }) => {
+		await login(page);
+		await page.goto(`/horses/${HORSE_ID}`);
+		await page.getByText('＋ 近況メモを追加').click();
+		const body = '長'.repeat(10001);
+		await page.getByLabel('近況メモ', { exact: true }).fill(body);
+		await page.locator('form[action="?/addNote"] input[value="次走買い"]').check({ force: true });
+		await page.locator('input[name="occurredAt"]').fill('2026-10-01');
+		await page.getByRole('button', { name: '追加', exact: true }).click();
+		await expect(page.getByLabel('近況メモ', { exact: true })).toBeVisible();
+		await expect(page.getByLabel('近況メモ', { exact: true })).toHaveValue(body);
+		await expect(page.locator('form[action="?/addNote"] input[value="次走買い"]')).toBeChecked();
+		await expect(page.locator('input[name="occurredAt"]')).toHaveValue('2026-10-01');
+		await expect(page.getByRole('alert')).toContainText('10,000文字以内');
+	});
+});
