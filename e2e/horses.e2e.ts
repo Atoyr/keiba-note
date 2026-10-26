@@ -177,8 +177,14 @@ test('近況メモは削除の確認を開いただけでは消えず、確定�
 	await row.getByText('この近況メモを削除', { exact: true }).click();
 	await expect(row.getByText(body, { exact: true })).toBeVisible();
 	await expect(row.getByText('この近況メモを削除すると、元に戻せません。')).toBeVisible();
+	await row.getByRole('button', { name: '削除する', exact: true }).focus();
+	await page.keyboard.press('Escape');
+	await row.getByTitle('メモの操作').click();
+	await expect(row.getByRole('button', { name: '削除する', exact: true })).not.toBeVisible();
+	await row.getByText('この近況メモを削除', { exact: true }).click();
 	await row.getByRole('button', { name: '削除する', exact: true }).click();
 	await expect(row).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'タイムライン', exact: true })).toBeFocused();
 	await expect(page.getByText('近況メモを削除しました', { exact: true })).toBeVisible();
 });
 

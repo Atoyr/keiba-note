@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Star from '@lucide/svelte/icons/star';
@@ -230,7 +231,9 @@
 			><p class="mt-1 text-sm">近況メモを削除しました</p></noscript
 		>{/if}
 	<section class="mt-8">
-		<h2 class="text-sm font-semibold text-gray-500">タイムライン</h2>
+		<h2 id="horse-timeline" tabindex="-1" class="text-sm font-semibold text-gray-500">
+			タイムライン
+		</h2>
 
 		<details class="mt-2 rounded-md border border-gray-200 p-3">
 			<summary class="cursor-pointer text-sm text-gray-700">＋ 近況メモを追加</summary>
@@ -366,8 +369,11 @@
 														return async ({ result, update }) => {
 															try {
 																await update({ reset: false });
-																if (result.type === 'success')
+																if (result.type === 'success') {
 																	toast.success('近況メモを削除しました');
+																	await tick();
+																	document.getElementById('horse-timeline')?.focus();
+																}
 															} finally {
 																deletePending = false;
 															}
