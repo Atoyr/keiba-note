@@ -42,6 +42,7 @@ const lastYear = {
 				resultCount: 16
 			},
 			upcoming: false,
+			reviewed: true,
 			preview: { body: '去年の見立て。', pace: null },
 			review: { body: '去年のふりかえり。', tags: [] },
 			entryNoteCount: 0,
