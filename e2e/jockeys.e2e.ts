@@ -303,3 +303,21 @@ test('騎乗の無い騎手は 404 で、まとめも書けない', async ({ pag
 	});
 	expect(post.status()).toBe(404);
 });
+
+test.describe('JS なしの騎手メモ', () => {
+	test.use({ javaScriptEnabled: false });
+	test('保存失敗でも入力欄を開いて本文と札とエラーを残す', async ({ page }) => {
+		await login(page);
+		await page.goto(jockeyPath(JOCKEYS.main));
+		await summaryRegion(page).locator('summary').click();
+		const body = 'あ'.repeat(10001);
+		await page.getByLabel('メモの本文').fill(body);
+		await page.getByRole('button', { name: 'メモを保存する' }).click();
+		await expect(summaryRegion(page).locator('details')).toHaveAttribute('open', '');
+		await expect(page.getByLabel('メモの本文')).toHaveValue(body);
+		await expect(page.getByRole('alert')).toBeVisible();
+		await expect(
+			summaryRegion(page).getByRole('checkbox', { name: '中山巧者', exact: true })
+		).toBeChecked();
+	});
+});

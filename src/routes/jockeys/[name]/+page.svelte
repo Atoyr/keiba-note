@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
@@ -24,14 +24,15 @@
 	 * 正は `<details>` の `open` で、これはその写し。`bind:open` にしないのは、hydration が
 	 * この状態の値（閉）を要素に書き込み、JS が届く前に開いた欄が閉じてしまうため（NoteMenu.svelte と同じ）。
 	 */
-	let editing = $state(false);
+	const startOpen = untrack(() => !!form?.message);
+	let editing = $state(startOpen);
 	let pending = $state(false);
 	let toggle = $state<HTMLElement>();
-	let details: HTMLDetailsElement;
+	let details = $state<HTMLDetailsElement>();
 
 	// hydration の前に開かれていたら、ここで拾う。
 	onMount(() => {
-		editing = details.open;
+		editing = details!.open;
 	});
 
 	const hasSummary = $derived(!!data.summary);
@@ -75,7 +76,7 @@
 					</p>
 				{/if}
 			{/if}
-			<details class="group" bind:this={details} ontoggle={() => (editing = details.open)}>
+			{#snippet editor()}
 				<summary
 					bind:this={toggle}
 					class="mt-1 inline-flex min-h-6 cursor-pointer list-none items-center text-xs text-muted-foreground underline-offset-2 hover:underline [&::-webkit-details-marker]:hidden"
@@ -101,7 +102,7 @@
 								await update({ reset: false });
 								if (result.type === 'success') {
 									// toggle イベントは後から来るので、editing もここで揃える。
-									details.open = false;
+									details!.open = false;
 									editing = false;
 									// 押した保存ボタンは閉じた中に消えるので、フォーカスを開閉のボタンへ戻す。
 									await tick();
@@ -122,9 +123,9 @@
 						aria-label="メモの本文"
 						placeholder="中山の内回りは前に行く。追ってからしぶとい。"
 						class="text-sm"
-						value={data.summary?.body ?? ''}
+						value={form?.body ?? data.summary?.body ?? ''}
 					/>
-					<JockeyTagPicker name="tags" values={data.summary?.tags ?? []} />
+					<JockeyTagPicker name="tags" values={form?.tags ?? data.summary?.tags ?? []} />
 					<p class="text-xs text-muted-foreground">
 						本文も札も空にして保存すると、メモは消えます。
 					</p>
@@ -137,7 +138,18 @@
 						{/if}
 					</div>
 				</form>
-			</details>
+			{/snippet}
+			<!-- `open={startOpen}` とは書かない。式の `open` は hydration が要素に書き込み、JS が届く前に
+			     開いた欄が閉じてしまう。直に書いた属性は hydration で触られないので、属性の有無で2つに分ける。 -->
+			{#if startOpen}
+				<details class="group" open bind:this={details} ontoggle={() => (editing = details!.open)}>
+					{@render editor()}
+				</details>
+			{:else}
+				<details class="group" bind:this={details} ontoggle={() => (editing = details!.open)}>
+					{@render editor()}
+				</details>
+			{/if}
 		</div>
 		{#if form && 'summary' in form}<noscript
 				><p class="mt-1 text-sm">

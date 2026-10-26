@@ -65,12 +65,16 @@ export const actions: Actions = {
 		if (!(await jockeyExists(db, params.name))) error(404, '騎手が見つかりません');
 
 		const form = await request.formData();
-		const parsed = v.safeParse(jockeySummarySchema, {
+		const input = {
 			body: form.get('body')?.toString() ?? '',
 			tags: form.getAll('tags').map(String)
-		});
+		};
+		const parsed = v.safeParse(jockeySummarySchema, input);
 		if (!parsed.success) {
-			return fail(400, { message: parsed.issues[0]?.message ?? '入力を確認してください' });
+			return fail(400, {
+				...input,
+				message: parsed.issues[0]?.message ?? '入力を確認してください'
+			});
 		}
 
 		const result = await saveJockeySummary(db, params.name, parsed.output, user.id);
