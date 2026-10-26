@@ -3,7 +3,13 @@ import { gotoHydrated } from './hydration';
 import { failNextAction } from './action-failure';
 import { login } from './login';
 import { raceMenuItem } from './race-menu';
-import { MARKS_RACE_ID, SHARED_NOTE_ID, SHARED_RACE_ID, SUMMARY_RACE_ID } from './seed';
+import {
+	EMPTY_RACE_ID,
+	MARKS_RACE_ID,
+	SHARED_NOTE_ID,
+	SHARED_RACE_ID,
+	SUMMARY_RACE_ID
+} from './seed';
 import { expectLinkTo } from './link';
 
 const summaryPath = `/races/${SUMMARY_RACE_ID}/summary`;
@@ -308,4 +314,15 @@ test('保存失敗は入力を残し、同じフォームから再試行でき�
 	await page.getByLabel('公開用の名前', { exact: true }).fill('');
 	await page.getByRole('button', { name: '公開用の名前を保存', exact: true }).click();
 	await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('空の予想まとめは共有枠を出さず、予想を書くリンクを出す', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${EMPTY_RACE_ID}/summary`);
+	await expect(page.getByText('まだ予想がありません。', { exact: false })).toBeVisible();
+	await expect(page.getByRole('region', { name: 'この予想を共有' })).toHaveCount(0);
+	await expectLinkTo(
+		page.getByRole('link', { name: '予想を書く', exact: true }),
+		`/races/${EMPTY_RACE_ID}/preview`
+	);
 });

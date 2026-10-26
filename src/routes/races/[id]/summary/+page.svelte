@@ -135,66 +135,76 @@
 	</RaceSummary>
 	{#if !hasSummary(data.summary)}
 		<p class="rounded-lg border p-4 text-sm text-muted-foreground">
-			まだ予想がありません。「予想」から見立てや印を保存すると、ここにまとまります。
+			まだ予想がありません。
+			<a class="underline" href={resolve('/races/[id]/preview', { id: data.raceId })}>予想を書く</a>
 		</p>
 	{/if}
-	<section
-		id="share-settings"
-		bind:this={shareSection}
-		tabindex="-1"
-		aria-labelledby="share-heading"
-		class="space-y-4 rounded-lg border p-4 focus-visible:outline-2 focus-visible:outline-ring"
-	>
-		<h2 id="share-heading" class="font-semibold">この予想を共有</h2>
-		<p class="text-sm text-muted-foreground">
-			このページの見立て・展開・各馬のメモ・札・印を共有します。リンクを知っている人はログインなしで見られます。
-		</p>
-		<p class="text-sm break-words">
-			公開用の名前：<strong>{data.authorName}</strong>
-			<a class="ml-2 underline" href={resolve('/settings/profile')}>名前を設定する</a>
-		</p>
-		<p class="text-sm text-muted-foreground">
-			シェアボタンは保存済みの予想のリンクを作成・更新して、投稿先の選択を開きます。あとから予想を書き直した場合も、シェアボタンか「共有内容を更新」で反映できます。
-		</p>
-		{#if data.changed}<p class="text-sm font-medium">
-				共有後に予想が変わっています。共有ページに反映するには、共有内容を更新してください。
-			</p>{/if}
-		<div class="flex flex-wrap gap-2">
+	{#if hasSummary(data.summary) || data.shareId}
+		<section
+			id="share-settings"
+			bind:this={shareSection}
+			tabindex="-1"
+			aria-labelledby="share-heading"
+			class="space-y-4 rounded-lg border p-4 focus-visible:outline-2 focus-visible:outline-ring"
+		>
+			<h2 id="share-heading" class="font-semibold">この予想を共有</h2>
+			<p class="text-sm text-muted-foreground">
+				このページの見立て・展開・各馬のメモ・札・印を共有します。リンクを知っている人はログインなしで見られます。
+			</p>
+			<p class="text-sm break-words">
+				公開用の名前：<strong>{data.authorName}</strong>
+				<a class="ml-2 underline" href={resolve('/settings/profile')}>名前を設定する</a>
+			</p>
 			{#if hasSummary(data.summary)}
-				<form method="POST" action="?/share" use:enhance={submit}>
-					<Button type="submit" aria-disabled={pending}
-						>{pending ? '処理中…' : data.shareId ? '共有内容を更新' : '共有リンクを作る'}</Button
-					>
-				</form>
+				<p class="text-sm text-muted-foreground">
+					シェアボタンは保存済みの予想のリンクを作成・更新して、投稿先の選択を開きます。あとから予想を書き直した場合も、シェアボタンか「共有内容を更新」で反映できます。
+				</p>
 			{/if}
-			{#if data.shareId}
-				<form method="POST" action="?/revoke" use:enhance={submit}>
-					<Button type="submit" variant="outline" aria-disabled={pending}>共有をやめる</Button>
-				</form>
-			{/if}
-		</div>
-		{#if form?.message}<p role={'failed' in form ? 'alert' : 'status'} class="text-sm">
-				{form.message}
-			</p>{/if}
-		{#if data.shareId}
-			<div class="space-y-2">
-				{#if deviceMessage}<p role="status" class="text-sm">{deviceMessage}</p>{/if}
-				<Label for="share-url">共有リンク</Label>
-				<Input id="share-url" value={shareUrl} readonly onfocus={(e) => e.currentTarget.select()} />
-				<div class="flex flex-wrap gap-2">
-					{#if retryDeviceShare}<Button
-							type="button"
-							variant="outline"
-							aria-disabled={pending}
-							onclick={shareExisting}>投稿先を選ぶ</Button
-						>{/if}
-					<Button type="button" variant="outline" onclick={copy}>リンクをコピー</Button>
-					<Button variant="outline" href={resolve('/shared/races/[id]', { id: data.shareId })}
-						>共有ページを確認</Button
-					>
-				</div>
-				{#if copyMessage}<p role="status" class="text-sm">{copyMessage}</p>{/if}
+			{#if data.changed}<p class="text-sm font-medium">
+					共有後に予想が変わっています。共有ページに反映するには、共有内容を更新してください。
+				</p>{/if}
+			<div class="flex flex-wrap gap-2">
+				{#if hasSummary(data.summary)}
+					<form method="POST" action="?/share" use:enhance={submit}>
+						<Button type="submit" aria-disabled={pending}
+							>{pending ? '処理中…' : data.shareId ? '共有内容を更新' : '共有リンクを作る'}</Button
+						>
+					</form>
+				{/if}
+				{#if data.shareId}
+					<form method="POST" action="?/revoke" use:enhance={submit}>
+						<Button type="submit" variant="outline" aria-disabled={pending}>共有をやめる</Button>
+					</form>
+				{/if}
 			</div>
-		{/if}
-	</section>
+			{#if form?.message}<p role={'failed' in form ? 'alert' : 'status'} class="text-sm">
+					{form.message}
+				</p>{/if}
+			{#if data.shareId}
+				<div class="space-y-2">
+					{#if deviceMessage}<p role="status" class="text-sm">{deviceMessage}</p>{/if}
+					<Label for="share-url">共有リンク</Label>
+					<Input
+						id="share-url"
+						value={shareUrl}
+						readonly
+						onfocus={(e) => e.currentTarget.select()}
+					/>
+					<div class="flex flex-wrap gap-2">
+						{#if retryDeviceShare}<Button
+								type="button"
+								variant="outline"
+								aria-disabled={pending}
+								onclick={shareExisting}>投稿先を選ぶ</Button
+							>{/if}
+						<Button type="button" variant="outline" onclick={copy}>リンクをコピー</Button>
+						<Button variant="outline" href={resolve('/shared/races/[id]', { id: data.shareId })}
+							>共有ページを確認</Button
+						>
+					</div>
+					{#if copyMessage}<p role="status" class="text-sm">{copyMessage}</p>{/if}
+				</div>
+			{/if}
+		</section>
+	{/if}
 </main>
