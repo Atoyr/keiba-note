@@ -109,15 +109,16 @@ test.describe('スマホ幅', () => {
  */
 test('メニューから共有を始めて、やめられる', async ({ page, playwright }) => {
 	await login(page);
-	await page.goto('/');
+	await gotoHydrated(page, '/');
 
 	const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
 	await note.getByTitle('メモの操作').click();
 	await note.getByRole('button', { name: '共有リンクを作る' }).click();
 
+	await expect(page.getByText('共有リンクを作りました', { exact: true })).toBeVisible();
 	// 見出しに札が付き、メニューの中に URL が出る。
 	await expect(note.getByTitle(SHARED_BADGE)).toBeVisible();
-	await page.reload();
+	await gotoHydrated(page, '/');
 	await note.getByTitle('メモの操作').click();
 	await expect(note.locator('input[readonly]')).toHaveValue(
 		new RegExp(`/notes/${TOGGLE_SHARE_NOTE_ID}$`)
@@ -131,6 +132,7 @@ test('メニューから共有を始めて、やめられる', async ({ page, pl
 	// やめると、札が消えて共有ページは 404 に戻る。
 	await note.getByRole('button', { name: '共有をやめる' }).click();
 	await expect(note.getByTitle(SHARED_BADGE)).toHaveCount(0);
+	await expect(page.getByText('共有をやめました', { exact: true })).toBeVisible();
 	expect((await other.get(`/notes/${TOGGLE_SHARE_NOTE_ID}`)).status()).toBe(404);
 	await other.dispose();
 });
