@@ -25,7 +25,8 @@
 	let summary: HTMLElement;
 
 	function closeNested() {
-		if (!details.open)
+		// toggle は要素を外したあとにも届くため、bind:this が解除済みなら何もしない。
+		if (details && !details.open)
 			for (const nested of details.querySelectorAll('details[open]')) {
 				(nested as HTMLDetailsElement).open = false;
 			}
