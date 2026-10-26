@@ -327,3 +327,17 @@ test('空の予想まとめは共有枠を出さず、予想を書くリンク�
 		`/races/${EMPTY_RACE_ID}/preview`
 	);
 });
+
+test('空の予想まとめでも共有解除の結果を残す', async ({ page }) => {
+	await login(page, 'admin');
+	await gotoHydrated(page, `/races/${EMPTY_RACE_ID}/summary`);
+	await page.evaluate(() => {
+		const form = document.createElement('form');
+		form.method = 'POST';
+		form.action = '?/revoke';
+		document.body.append(form);
+		form.requestSubmit();
+	});
+	await expect(page.getByRole('status')).toHaveText('共有をやめました。以前のリンクは開けません。');
+	await expect(page.getByRole('region', { name: 'この予想を共有' })).toBeVisible();
+});
