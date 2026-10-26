@@ -5,7 +5,7 @@
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import type { NoteTag, PredictionMark } from '$lib/schemas/note';
-	import { isSettled } from '$lib/utils/date';
+	import { opensReview } from '$lib/utils/date';
 
 	/**
 	 * 重賞の年ごとのメモ（その年のレースの下に、見立て・ペース・印・ふりかえり・勝ち馬を重ねたもの）。
@@ -63,8 +63,12 @@
 				{@const r = row.race}
 				{@const empty =
 					!row.preview && !row.review && row.marks.length === 0 && row.entryNoteCount === 0}
-				<!-- 結果が出たレースだけふりかえりへ。開催予定や結果の投入前は予想画面へ送る。 -->
-				{@const raceHref = isSettled({ date: r.date, resultCount: r.resultCount }, today)
+				<!-- 結果が出たか、レース全体のふりかえりを書いたレースはふりかえりへ。それ以外は予想画面へ送る。 -->
+				{@const raceHref = opensReview(
+					{ date: r.date, resultCount: r.resultCount },
+					today,
+					!!row.review
+				)
 					? resolve('/races/[id]', { id: r.id })
 					: resolve('/races/[id]/preview', { id: r.id })}
 				{@const spec = [

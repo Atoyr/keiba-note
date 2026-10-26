@@ -125,3 +125,24 @@ describe('GradedRaceTimeline', () => {
 			.toHaveAttribute('href', '/races/noresult/preview');
 	});
 });
+
+it('結果の投入前でもレース全体のふりかえりがあればふりかえりへ向く', async () => {
+	const screen = render(GradedRaceTimeline, {
+		timeline: [
+			{
+				year: '2026',
+				races: [
+					{
+						...empty,
+						race: { ...base, id: 'reviewed', date: '2026-09-27' },
+						review: { body: '結果を待たずに書いた', tags: [] }
+					}
+				]
+			}
+		],
+		today: '2026-10-14'
+	});
+	await expect
+		.element(screen.getByRole('link', { name: /オールカマー/ }))
+		.toHaveAttribute('href', '/races/reviewed');
+});

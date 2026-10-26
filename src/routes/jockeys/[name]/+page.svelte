@@ -12,9 +12,9 @@
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { isSettled } from '$lib/utils/date';
+	import { opensReview } from '$lib/utils/date';
 	import { jockeyParam } from '$lib/utils/jockey';
-	import { raceLabel } from '$lib/utils/note';
+	import { isReviewNote, raceLabel } from '$lib/utils/note';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -194,9 +194,13 @@
 						<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
 							<span class="font-mono text-muted-foreground">{r.date}</span>
 							<KindBadge label={row.upcoming ? '出走予定' : null} />
-							<!-- 結果が出たレースだけふりかえりへ。出走予定や結果の投入前は予想画面へ送る。 -->
+							<!-- 結果が出たか、この騎乗にふりかえりを書いたレースはふりかえりへ。それ以外は予想画面へ送る。 -->
 							<a
-								href={isSettled({ date: r.date, resultCount: r.resultCount }, data.today)
+								href={opensReview(
+									{ date: r.date, resultCount: r.resultCount },
+									data.today,
+									row.notes.some((n) => isReviewNote(n.kind))
+								)
 									? resolve('/races/[id]', { id: r.raceId })
 									: resolve('/races/[id]/preview', { id: r.raceId })}
 								class="hover:underline {row.notes.length > 0 ? '' : 'text-muted-foreground'}"
