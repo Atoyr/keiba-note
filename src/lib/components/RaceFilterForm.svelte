@@ -41,7 +41,7 @@
 
 		<fieldset class="m-0 flex min-w-0 flex-col gap-1 border-0 p-0">
 			<!-- legend は flex の子にならず gap が効かないので、mb-1 で他の欄の見出しと同じ間を取る。 -->
-			<legend class="mb-1 p-0 text-xs font-medium text-muted-foreground">ランク</legend>
+			<legend class="mb-1 p-0 text-xs font-medium text-gray-600">ランク</legend>
 			<!-- チェックした格付けの OR。1つも選ばなければ絞らない。 -->
 			<div class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
 				{#each GRADES as grade (grade)}
