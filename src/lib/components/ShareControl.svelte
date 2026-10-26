@@ -25,6 +25,7 @@
 	const shared = $derived(visibility === 'unlisted');
 
 	let copied = $state(false);
+	let copyMessage = $state('');
 	let pending = $state(false);
 
 	// `page.url` は SSR でも埋まっているので、location を待たずに URL を出せる。
@@ -32,12 +33,14 @@
 	const url = $derived(`${page.url.origin}/notes/${noteId}`);
 
 	async function copy() {
+		copyMessage = '';
 		try {
 			await navigator.clipboard.writeText(url);
 			copied = true;
+			copyMessage = 'コピーしました';
 			setTimeout(() => (copied = false), 1500);
 		} catch {
-			// クリップボードが使えない環境では input を選ばせるだけにする。
+			copyMessage = 'コピーできませんでした。リンクの欄を選んでコピーしてください。';
 			copied = false;
 		}
 	}
@@ -85,6 +88,7 @@
 		     潰れて「http」しか見えないと、何のリンクを渡すのか確かめられない。 -->
 		<input
 			class="min-w-48 flex-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700"
+			aria-label="共有リンク"
 			value={url}
 			readonly
 			onfocus={(e) => e.currentTarget.select()}
@@ -92,5 +96,6 @@
 		<Button type="button" variant="ghost" size="sm" onclick={copy}>
 			{copied ? 'コピーしました' : 'コピー'}
 		</Button>
+		<p role="status" class="text-xs">{copyMessage}</p>
 	{/if}
 </div>
