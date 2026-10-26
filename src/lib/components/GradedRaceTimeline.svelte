@@ -37,6 +37,7 @@
 				};
 				/** まだ日が来ていないレース。 */
 				upcoming: boolean;
+				reviewed: boolean;
 				preview: { body: string; pace: string | null } | null;
 				review: { body: string; tags: NoteTag[] } | null;
 				entryNoteCount: number;

@@ -361,7 +361,9 @@ describe('見出しの格', () => {
 });
 
 it('各馬のふりかえりだけでも本人のreviewedに含み、他人は含めない', async () => {
+	state.sqlite.exec("DELETE FROM note WHERE id = 'n2'");
 	const series = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
+	expect(series.entryReviewCounts).toEqual({ r25: 1 });
 	const timeline = buildGradedRaceTimeline(
 		series.races,
 		series.notes,
