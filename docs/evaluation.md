@@ -3,11 +3,11 @@
 変更を書いたエージェント（Generator）とは**別の**エージェント（Evaluator）が、
 できあがったものを評価するための基準と手順。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
+- 作成日: 2026-09-23 / 最終更新日: 2026-10-26
 - **読む場面:** Evaluator として評価するとき。Generator が PR を出す前に、評価を頼むとき
 - **ここに無いもの:** 機械で止める検査（型・lint・E2E・画面カタログ）は [testing.md](./testing.md)、
   見た目の決まりは [design-system.md](./design-system.md)、何を作るかは [product.md](./product.md)（画面ごとの仕様は [pages.md](./pages.md)）、
-  UX の原則（草案）は [harness.md 1-3](./harness.md)、
+  UX の原則（草案）は [harness.md 1-3](./harness.md)、設計のときの物差しは [ux.md](./ux.md)、
   なぜ Generator と Evaluator を分けるかは [harness.md 第6層](./harness.md)、
   コード・データ・指示文を分野ごとに読むレビュアーは [review.md](./review.md)
 
