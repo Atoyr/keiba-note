@@ -273,3 +273,27 @@ export function conditionLabel(r: RaceConditionSource): string | null {
 	if (!r.surface || !r.distance) return null;
 	return `${r.course} ${r.surface}${r.distance}m`;
 }
+
+/** 一括保存の最初の検証エラーに、利用者が探せる欄の名前と直し方を添える。 */
+export function noteSaveError(
+	issue: { message: string; type?: string; path?: readonly { key: unknown }[] } | undefined,
+	mode: 'preview' | 'review',
+	entries: readonly { horseName: string }[]
+): string {
+	if (!issue) return '入力を確認してください';
+	const path = issue.path?.map((part) => part.key) ?? [];
+	let field: string | undefined;
+	if (path[0] === 'raceNote' && path[1] === 'body') {
+		field = mode === 'preview' ? 'レースの見立て' : 'レースのふりかえり';
+	} else if (path[0] === 'raceNote' && path[1] === 'flow') {
+		field = '展開の予想';
+	} else if (path[0] === 'entries' && typeof path[1] === 'number' && path[2] === 'body') {
+		const horse = entries[path[1]]?.horseName;
+		if (horse) field = `${horse}の${mode === 'preview' ? '出走前メモ' : 'メモ'}`;
+	}
+	if (!field) return issue.message;
+	const message = issue.message.replace(/[。]+$/, '');
+	return issue.type === 'max_length'
+		? `${field}が長すぎます。${message}。短くしてから、もう一度保存してください。`
+		: `${field}：${message}。入力を直してから、もう一度保存してください。`;
+}
