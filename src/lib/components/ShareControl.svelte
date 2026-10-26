@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -25,6 +26,7 @@
 	const shared = $derived(visibility === 'unlisted');
 
 	let copied = $state(false);
+	let copyTimer: ReturnType<typeof setTimeout> | undefined;
 	let copyMessage = $state('');
 	let pending = $state(false);
 
@@ -33,12 +35,17 @@
 	const url = $derived(`${page.url.origin}/notes/${noteId}`);
 
 	async function copy() {
+		clearTimeout(copyTimer);
+		copied = false;
 		copyMessage = '';
 		try {
 			await navigator.clipboard.writeText(url);
 			copied = true;
 			copyMessage = 'コピーしました';
-			setTimeout(() => (copied = false), 1500);
+			copyTimer = setTimeout(() => {
+				copied = false;
+				copyMessage = '';
+			}, 1500);
 		} catch {
 			copyMessage = 'コピーできませんでした。リンクの欄を選んでコピーしてください。';
 			copied = false;
@@ -56,9 +63,11 @@
 				return;
 			}
 			pending = true;
-			return async ({ update }) => {
+			const successMessage = shared ? '共有をやめました' : '共有リンクを作りました';
+			return async ({ result, update }) => {
 				try {
 					await update({ reset: false });
+					if (result.type === 'redirect') toast.success(successMessage);
 				} finally {
 					pending = false;
 				}
