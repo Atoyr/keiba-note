@@ -165,3 +165,37 @@ test('未ログインではダッシュボードのメモも共有の操作も�
 	await expect(page.getByText(TOGGLE_SHARE_NOTE_BODY)).toHaveCount(0);
 	await expect(page.getByTitle('メモの操作')).toHaveCount(0);
 });
+
+test('単体メモの共有は処理中を示し、同じフォームを二重送信しない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByTitle('メモの操作').first().click();
+	let requests = 0;
+	let release!: () => void;
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route('**/settings/shares', async (route) => {
+		requests++;
+		await gate;
+		await route.fulfill({
+			contentType: 'application/json',
+			body: JSON.stringify({
+				type: 'failure',
+				status: 400,
+				data: JSON.stringify([{ message: 1 }, 'テスト用の失敗'])
+			})
+		});
+	});
+	await page.getByRole('button', { name: /共有リンクを作る|共有をやめる/ }).click();
+	const pending = page.getByRole('button', { name: '処理中…', exact: true });
+	await expect(pending).toHaveAttribute('aria-disabled', 'true');
+	await expect.poll(() => requests).toBe(1);
+	await pending.evaluate((button: HTMLButtonElement) => button.form!.requestSubmit(button));
+	release();
+	await expect(page.getByRole('button', { name: /共有リンクを作る|共有をやめる/ })).toHaveAttribute(
+		'aria-disabled',
+		'false'
+	);
+	expect(requests).toBe(1);
+});

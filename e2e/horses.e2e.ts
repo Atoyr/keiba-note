@@ -223,7 +223,7 @@ test('近況追加は送信中を示し、二重送信しない', async ({ page 
 	const pending = page.getByRole('button', { name: '処理中…', exact: true });
 	await expect(pending).toHaveAttribute('aria-disabled', 'true');
 	await pending.evaluate((button: HTMLButtonElement) => button.form!.requestSubmit(button));
-	expect(requests).toBe(1);
+	await expect.poll(() => requests).toBe(1);
 	release();
 	await expect(page.getByRole('button', { name: '追加', exact: true })).toHaveAttribute(
 		'aria-disabled',
