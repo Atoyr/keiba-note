@@ -270,7 +270,7 @@ export const RULES: Rule[] = [
 	},
 	{
 		reviewer: 'prompt',
-		path: /^\.claude\/(agents|skills|commands)\//,
+		path: /^\.claude\/(agents|skills|commands)\/|^\.agents\/skills\//,
 		weight: 2,
 		reason: 'サブエージェント・スキル・コマンドの定義'
 	},

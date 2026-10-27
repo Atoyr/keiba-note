@@ -145,6 +145,10 @@ describe('planReview — AI プロンプト', () => {
 		expect(weights([file('docs/product.md', ['文'])]).prompt).toBe(1);
 	});
 
+	it('Codex が読むスキルの symlink もスキルの定義として中', () => {
+		expect(weights([file('.agents/skills/ui-ux', ['../../.claude/skills/ui-ux'])]).prompt).toBe(2);
+	});
+
 	it('Claude Code と Codex の権限の設定は重', () => {
 		expect(weights([file('.claude/settings.json', ['"deny": []'])]).prompt).toBe(3);
 		expect(weights([file('.codex/rules/uma-memo.rules', ['prefix_rule()'])]).prompt).toBe(3);
