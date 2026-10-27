@@ -291,7 +291,7 @@ pnpm run data:fetch result  2026-09-27 中山 11  # 着順から馬体重まで�
 
 ### アプリから取らせる
 
-`entries`（出馬表）と `result`（結果）を GitHub Actions（`.github/workflows/race-data-fetch.yml`）でも回せる。**書くのは YAML と PR までで、
+`entries`（出馬表。過去5走つき）と `result`（結果）を GitHub Actions（`.github/workflows/race-data-fetch.yml`）でも回せる。**書くのは YAML と PR までで、
 本番に入るのは人がマージしたとき**なのは手で流すときと同じ。PR ができると Discord の「デプロイ」に知らせる。
 
 - **重賞の定期取得。** アプリの Cron が、馬番がまだ無い重賞を JRA の発表に合わせて Actions に頼む。
@@ -313,7 +313,9 @@ pnpm run data:fetch result  2026-09-27 中山 11  # 着順から馬体重まで�
   PR のブランチは `data-fetch/<日付>-<場><R>R-result`（出馬表の PR とは別）。管理画面からは頼まない。
   **Actions は main の YAML を読む。出走馬・枠順の PR を main にマージしてから起動する**（開いていれば Actions は書かずに落ちる）。
   候補のままだと、main にいる馬だけに書き、開いている枠順の PR と同じレースを書き換え合う
-- 過去走・馬の基本情報はアプリからは取らせない。今までどおり手で流す
+- **出馬表の回は、続けて出走馬の過去5走（`data:fetch past`）も取り、同じ PR に入れる。** 過去走は各過去走の開催日のファイルに足すので、PR が複数のファイルを触る。
+  過去走だけが落ちても出馬表の PR は作り、Discord に知らせる（手で `data:fetch past` を流すか、管理画面から取り直す）。枠順未確定で何も書かない回と、結果の回は流さない
+- 馬の基本情報（`horses`）はアプリからは取らせない。今までどおり手で流す。Actions を通さずに出馬表を入れたレースの過去走も手で流す
 
 レース一覧（`races` と、race_id の引き当て）は netkeiba の都合で**当週ぶんしか出ない**
 （特別登録が済んだ重賞は例外で、2週先の G1 でも出る）。

@@ -9,6 +9,8 @@ name: 出走馬・結果の取得
 #           結果の Cron が取れなかったとき（未発表・通信の失敗）の取り直しもここから
 #
 # netkeiba の出馬表を `data:fetch entries`、結果を `data:fetch result` で data/races/<開催日>.yaml に書き、差分があれば PR を作る。
+# entries の回は、続けて出走馬の過去5走も `data:fetch past` で取り（各過去走の開催日のファイルに足す）、同じ PR に入れる。
+# 過去走の取得が落ちても出馬表の PR は作り、Discord に知らせる（notify-past-failed）。枠順未確定で何も書かない回は past も流さない。
 # PR のブランチは command ごとに分けるが、どちらも main の YAML の同じレースを書く。結果は出走馬・枠順の PR をマージしてから取る。
 # **D1 には触らない。** 本番に入るのは、人がその PR をマージしたとき（data-import.yml）。
 # 出走馬データの正は YAML のまま（docs/architecture.md 第0章）。
@@ -82,6 +84,7 @@ jobs:
     outputs:
       pr_url: ${{ steps.pr.outputs.url }}
       unconfirmed: ${{ steps.fetch.outputs.unconfirmed }}
+      past_failed: ${{ steps.check.outputs.past_failed || steps.fetch.outputs.past_failed }}
     # 入力は環境変数で渡す。run の中に ${{ }} で埋め込むと、値がシェルとして解釈されうる。
     env:
       COMMAND: ${{ inputs.command }}
@@ -148,28 +151,90 @@ jobs:
           if [ "$COMMAND" = "entries" ] && [ "$REQUIRE_CONFIRMED" = "true" ]; then args+=(--require-confirmed); fi
           pnpm run --silent data:fetch "${args[@]}" | tee "$RUNNER_TEMP/fetch.log"
           # 金曜の回は1日1回しか取らない。枠順が未確定で終わったら、黙らずに知らせる（notify-unconfirmed）
-          if [ "$STAGE" = "frames" ] && grep -q "枠順未確定のため書きません" "$RUNNER_TEMP/fetch.log"; then
+          not_written=false
+          if grep -q "枠順未確定のため書きません" "$RUNNER_TEMP/fetch.log"; then not_written=true; fi
+          if [ "$STAGE" = "frames" ] && [ "$not_written" = "true" ]; then
             echo "unconfirmed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # 出走馬の過去5走。entries の回だけ、何か書いたときだけ流す（結果の回と、枠順未確定で何も書かない回は流さない）。
+          # past は空いている項目だけ埋めるので、何度流しても同じ結果になる。落ちても出馬表の PR は作る（past_failed で知らせる）。
+          # past は最後にまとめて保存するので、途中で落ちたら過去走のファイルは書かれない。
+          if [ "$COMMAND" = "entries" ] && [ "$not_written" != "true" ]; then
+            # fetchPage にタイムアウトが無く、netkeiba が応答しないと job の timeout で出馬表の PR ごと止まる。
+            # 8分で打ち切る。pnpm を挟むと SIGTERM が子に届かず tee が待ち続けるので、node を直接呼ぶ（data:fetch の中身と同じ）
+            # data:check が落ちたとき、出馬表の YAML だけに戻せるよう、entries が書いた直後の中身を覚えておく
+            if [ -f "data/races/${DATE}.yaml" ]; then cp "data/races/${DATE}.yaml" "$RUNNER_TEMP/entries-file.yaml"; fi
+            set +e
+            timeout --kill-after=10s 8m node --experimental-strip-types scripts/race-data.ts past "$DATE" "$COURSE" "$RACE_NUMBER" 2>&1 | tee -a "$RUNNER_TEMP/fetch.log"
+            rc=${PIPESTATUS[0]}
+            set -e
+            echo "past_ran=true" >> "$GITHUB_OUTPUT"
+            if [ "$rc" -ne 0 ]; then
+              if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+                reason="過去走の取得が8分で終わらず打ち切った（終了コード ${rc}）"
+              else
+                reason="過去走の取得が落ちた（終了コード ${rc}）"
+              fi
+              echo "::warning::${reason}。出馬表だけで PR を作ります"
+              echo "! ${reason}。過去走は書いていない" | tee -a "$RUNNER_TEMP/fetch.log"
+              echo "past_failed=true" >> "$GITHUB_OUTPUT"
+              echo "past_reason=${reason}" >> "$GITHUB_OUTPUT"
+              # 打ち切りで途中まで書かれていても、出馬表だけにそろえる（past は最後に保存するので、ふつうは書かれていない）
+              git status --porcelain -- data/races | while IFS= read -r line; do
+                f="${line:3}"
+                [ "$f" = "data/races/${DATE}.yaml" ] && continue
+                if [ "${line:0:2}" = "??" ]; then rm -f -- "$f"; else git checkout -- "$f"; fi
+              done
+              if [ -f "$RUNNER_TEMP/entries-file.yaml" ]; then cp "$RUNNER_TEMP/entries-file.yaml" "data/races/${DATE}.yaml"; fi
+            fi
           fi
 
       - name: 差分を見る
         id: diff
         run: |
-          if git diff --quiet -- data/races; then
+          # 過去走は新しいファイルも作るので、未追跡も見る
+          if [ -z "$(git status --porcelain -- data/races)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "main と同じ中身なので PR は作らない"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --stat
+            git status --short -- data/races
           fi
 
       - name: 出走馬データの検証
+        id: check
         if: steps.diff.outputs.changed == 'true'
-        run: pnpm run --silent data:check | tee "$RUNNER_TEMP/check.log"
+        env:
+          PAST_RAN: ${{ steps.fetch.outputs.past_ran }}
+          PAST_FAILED: ${{ steps.fetch.outputs.past_failed }}
+        run: |
+          set +e
+          pnpm run --silent data:check | tee "$RUNNER_TEMP/check.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          [ "$rc" -eq 0 ] && exit 0
+
+          # 過去走が書いたファイルが原因かもしれない。過去走を外し、出馬表だけで通れば PR は作る（通らなければ今までどおり落とす）
+          if [ "$PAST_RAN" != "true" ] || [ "$PAST_FAILED" = "true" ]; then exit "$rc"; fi
+          echo "::warning::data:check が落ちたので、過去走を外して出馬表だけで検証し直します"
+          cp "$RUNNER_TEMP/check.log" "$RUNNER_TEMP/check-with-past.log"
+          git status --porcelain -- data/races | while IFS= read -r line; do
+            f="${line:3}"
+            [ "$f" = "data/races/${DATE}.yaml" ] && continue
+            if [ "${line:0:2}" = "??" ]; then rm -f -- "$f"; else git checkout -- "$f"; fi
+          done
+          if [ -f "$RUNNER_TEMP/entries-file.yaml" ]; then cp "$RUNNER_TEMP/entries-file.yaml" "data/races/${DATE}.yaml"; fi
+          pnpm run --silent data:check | tee "$RUNNER_TEMP/check.log"
+          echo "past_failed=true" >> "$GITHUB_OUTPUT"
+          echo "past_reason=過去走が data:check に落ちたので外した" >> "$GITHUB_OUTPUT"
 
       - name: PR を作る・更新する
         id: pr
         if: steps.diff.outputs.changed == 'true'
+        env:
+          PAST_FAILED: ${{ steps.check.outputs.past_failed || steps.fetch.outputs.past_failed }}
+          PAST_REASON: ${{ steps.check.outputs.past_reason || steps.fetch.outputs.past_reason }}
         run: |
           COMMAND="${COMMAND:-entries}"
           # 出馬表と結果は別のブランチ・別の PR にする
@@ -182,13 +247,18 @@ jobs:
           fi
           file="data/races/${DATE}.yaml"
 
+          # 今回変えたファイル（過去走は各過去走の開催日のファイルを書く。新規も含む）
+          git add -A -- data/races
+          mapfile -t files < <(git diff --cached --name-only -- data/races)
+
           # 同じレースは段ごとに何度も取る（候補・出走馬・枠順）。開いている PR が同じ中身なら何もしない
-          # （url を出さないので、通知も送らない）。ブランチだけを見ると、PR の作成で落ちた回に
+          # （url を出さないので、通知も送らない）。比べるのは今回変えたファイルだけ（main が進むたびに作り直さないため）。
+          # PR ブランチ側にだけあるファイルは見ない。ブランチだけを見ると、PR の作成で落ちた回に
           # push したブランチが残り、そのあとは PR が無いまま何もしなくなる。
           # --head はブランチ名だけで照らすので、同じ名前の fork からの PR も当たる。このリポジトリの PR だけを見る。
           url=$(gh pr list --head "$branch" --state open --json url,isCrossRepository \
             --jq '[.[] | select(.isCrossRepository | not)][0].url // ""')
-          if [ -n "$url" ] && git fetch --quiet origin "$branch" 2>/dev/null && git diff --quiet FETCH_HEAD -- "$file"; then
+          if [ -n "$url" ] && git fetch --quiet origin "$branch" 2>/dev/null && git diff --cached --quiet FETCH_HEAD -- "${files[@]}"; then
             echo "開いている PR（$url）と同じ中身なので何もしない"
             exit 0
           fi
@@ -218,6 +288,15 @@ jobs:
             echo "## 何を変えたか"
             echo
             echo "- \`${file}\` の ${COURSE}${RACE_NUMBER}R に、${what}（起動元: ${TRIGGER}）"
+            if [ "$COMMAND" != "result" ]; then
+              if [ "$PAST_FAILED" = "true" ]; then
+                echo "- **過去走の取得は落ちたので入っていない**（${PAST_REASON}。出馬表だけ。前の回にこの PR へ入っていた過去走も抜けている）。手で \`pnpm run data:fetch past\` を流すか、管理画面の「出走馬を取得」で取り直す"
+              else
+                echo "- 出走馬の過去5走を \`data:fetch past\` で、それぞれの開催日のファイルに足した"
+              fi
+            fi
+            echo "- 変えたファイル:"
+            git status --short -- data/races | sed 's/^/  - `/; s/$/`/' || true
             echo "- このブランチは Actions が作り直す。同じレースをもう一度取ると、main から作り直して上書きする（手で足したコミットは消える）"
             echo
             echo "**⚠️ マージすると \`data-import.yml\` が本番 D1 に投入する。**"
@@ -233,6 +312,8 @@ jobs:
               echo "- 下のログの \`- …（出馬表に無いので withdrawn へ）\` は取り下げた馬。投入すると出走馬行が消え、付いていたメモは近況メモへ移る"
               echo "- \`! 馬名\` の行は馬名の食い違い（馬名は書き換えていない。data/README.md「馬名を直す」）"
               echo "- 頭数と馬番が出馬表と合っているか"
+              echo "- 過去走で書き換えたファイルは投入で流し直され、そのレースで YAML に無い出走馬（画面から入れた馬）の枠・馬番は消える（.claude/skills/race-data/SKILL.md「3. 過去5走を取る」）"
+              echo "- 別のレースの PR が同じ過去のレースを書いていると、片方をマージしたあと他方が競合する。そのときは管理画面の「出走馬を取得」で取り直せば main から作り直される"
             fi
             echo
             echo "## なぜ"
@@ -250,7 +331,16 @@ jobs:
             echo "\`data:check\`:"
             echo
             echo '```'
-            grep -E "(^✗|${DATE}\.yaml|^合計)" "$RUNNER_TEMP/check.log" || true
+            if [ -f "$RUNNER_TEMP/check-with-past.log" ]; then
+              echo "過去走を外す前の \`data:check\`（落ちた）:"
+              echo
+              grep -E "(^✗|^合計)" "$RUNNER_TEMP/check-with-past.log" | head -40 || true
+              echo
+              echo "外したあと:"
+              echo
+            fi
+            names=$(printf '%s\n' "${files[@]}" | xargs -n1 basename | paste -sd'|')
+            grep -E "(^✗|${names}|^合計)" "$RUNNER_TEMP/check.log" || true
             echo '```'
             echo
             echo "run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
@@ -267,7 +357,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch --quiet -c "$branch"
-          git add -- "$file"
           git commit --quiet -m "data: ${subject}を netkeiba から取る" -m "起動元: ${TRIGGER}${STAGE:+（段: ${STAGE}）}"
           # Actions だけが書くブランチなので、作り直して上書きする。
           git push --quiet --force origin "$branch"
@@ -308,6 +397,21 @@ jobs:
       level: warn
       title: 枠順がまだ出ていない（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
       description: 金曜の Cron の回で枠順が未確定だった。発表を待って管理画面の「出走馬を取得」で取り直してください。
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+
+  # 過去走だけが落ちた。出馬表の PR は作られている。
+  notify-past-failed:
+    name: 過去走の失敗を通知
+    needs: [fetch]
+    if: needs.fetch.outputs.past_failed == 'true' && needs.fetch.result == 'success'
+    uses: ./.github/workflows/discord-notify.yml
+    with:
+      channel: deploy
+      level: warn
+      title: 過去走の取得が落ちた（${{ inputs.date }} ${{ inputs.course }}${{ inputs.race_number }}R）
+      description: 過去走は取れなかったか、data:check に落ちて外しました（理由は PR 本文と run のログ）。出馬表は取れています（PR ができていればそちらに入っています。PR を作り直した回は、前の回に入っていた過去走もその PR から抜けています）。過去走は手で pnpm run data:fetch past を流すか、管理画面の「出走馬を取得」で取り直してください。
     secrets:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
