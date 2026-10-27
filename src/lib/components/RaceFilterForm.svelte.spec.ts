@@ -51,3 +51,14 @@ describe('RaceFilterForm', () => {
 			.toHaveAttribute('href', '/races?year=');
 	});
 });
+
+it('ランクの選択肢を名前のあるグループにまとめる', async () => {
+	const screen = setup();
+	await expect
+		.element(
+			screen
+				.getByRole('group', { name: 'ランク' })
+				.getByRole('checkbox', { name: 'G1', exact: true })
+		)
+		.toBeVisible();
+});

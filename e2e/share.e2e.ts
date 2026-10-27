@@ -109,15 +109,16 @@ test.describe('スマホ幅', () => {
  */
 test('メニューから共有を始めて、やめられる', async ({ page, playwright }) => {
 	await login(page);
-	await page.goto('/');
+	await gotoHydrated(page, '/');
 
 	const note = page.locator('main li', { hasText: TOGGLE_SHARE_NOTE_BODY });
 	await note.getByTitle('メモの操作').click();
 	await note.getByRole('button', { name: '共有リンクを作る' }).click();
 
+	await expect(page.getByText('共有リンクを作りました', { exact: true })).toBeVisible();
 	// 見出しに札が付き、メニューの中に URL が出る。
 	await expect(note.getByTitle(SHARED_BADGE)).toBeVisible();
-	await page.reload();
+	await gotoHydrated(page, '/');
 	await note.getByTitle('メモの操作').click();
 	await expect(note.locator('input[readonly]')).toHaveValue(
 		new RegExp(`/notes/${TOGGLE_SHARE_NOTE_ID}$`)
@@ -131,6 +132,7 @@ test('メニューから共有を始めて、やめられる', async ({ page, pl
 	// やめると、札が消えて共有ページは 404 に戻る。
 	await note.getByRole('button', { name: '共有をやめる' }).click();
 	await expect(note.getByTitle(SHARED_BADGE)).toHaveCount(0);
+	await expect(page.getByText('共有をやめました', { exact: true })).toBeVisible();
 	expect((await other.get(`/notes/${TOGGLE_SHARE_NOTE_ID}`)).status()).toBe(404);
 	await other.dispose();
 });
@@ -140,7 +142,7 @@ test('馬タイムラインでも、共有と削除はメニューを開くま�
 	await page.goto(`/horses/${HORSE_ID}`);
 
 	await expect(page.getByRole('button', { name: '共有リンクを作る' })).toHaveCount(0);
-	await expect(page.getByRole('button', { name: 'この近況メモを削除' })).toHaveCount(0);
+	await expect(page.getByText('この近況メモを削除', { exact: true }).first()).not.toBeVisible();
 
 	// seed の共有中の近況メモ。札は開かなくても出ている。
 	const shared = page.locator('main ol > li', { hasText: '直線で外に出してから一完歩が速い。' });
@@ -148,13 +150,13 @@ test('馬タイムラインでも、共有と削除はメニューを開くま�
 
 	await shared.getByTitle('メモの操作').click();
 	await expect(shared.getByRole('button', { name: '共有をやめる' })).toBeVisible();
-	await expect(shared.getByRole('button', { name: 'この近況メモを削除' })).toBeVisible();
+	await expect(shared.getByText('この近況メモを削除', { exact: true })).toBeVisible();
 
 	// レースのメモは近況ではないので、ここからは消せない（ふりかえり画面で空にして消す）。
 	const entry = page.locator('main ol > li', { hasText: '直線だけの競馬になった。' });
 	await entry.getByTitle('メモの操作').click();
 	await expect(entry.getByRole('button', { name: '共有リンクを作る' })).toBeVisible();
-	await expect(entry.getByRole('button', { name: 'この近況メモを削除' })).toHaveCount(0);
+	await expect(entry.getByText('この近況メモを削除', { exact: true })).toHaveCount(0);
 });
 
 test('未ログインではダッシュボードのメモも共有の操作も出ない', async ({ page }) => {
@@ -164,4 +166,38 @@ test('未ログインではダッシュボードのメモも共有の操作も�
 	await expect(page.getByRole('button', { name: 'Google でログイン' }).first()).toBeVisible();
 	await expect(page.getByText(TOGGLE_SHARE_NOTE_BODY)).toHaveCount(0);
 	await expect(page.getByTitle('メモの操作')).toHaveCount(0);
+});
+
+test('単体メモの共有は処理中を示し、同じフォームを二重送信しない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByTitle('メモの操作').first().click();
+	let requests = 0;
+	let release!: () => void;
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route('**/settings/shares', async (route) => {
+		requests++;
+		await gate;
+		await route.fulfill({
+			contentType: 'application/json',
+			body: JSON.stringify({
+				type: 'failure',
+				status: 400,
+				data: JSON.stringify([{ message: 1 }, 'テスト用の失敗'])
+			})
+		});
+	});
+	await page.getByRole('button', { name: /共有リンクを作る|共有をやめる/ }).click();
+	const pending = page.getByRole('button', { name: '処理中…', exact: true });
+	await expect(pending).toHaveAttribute('aria-disabled', 'true');
+	await expect.poll(() => requests).toBe(1);
+	await pending.evaluate((button: HTMLButtonElement) => button.form!.requestSubmit(button));
+	release();
+	await expect(page.getByRole('button', { name: /共有リンクを作る|共有をやめる/ })).toHaveAttribute(
+		'aria-disabled',
+		'false'
+	);
+	expect(requests).toBe(1);
 });

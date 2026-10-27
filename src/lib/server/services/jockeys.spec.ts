@@ -5,6 +5,7 @@ import {
 	getJockeySummary,
 	jockeyExists,
 	listJockeyRideNotes,
+	listJockeyReviewedRaceIds,
 	listJockeyRides,
 	listJockeys,
 	listJockeyTagsInUse,
@@ -204,4 +205,25 @@ describe('騎手のまとめ', () => {
 			tags: []
 		});
 	});
+});
+
+it('騎乗の別の馬の本人のふりかえりを含み、他人のふりかえりは含めない', async () => {
+	expect((await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'a')).sort()).toEqual(['r1', 'r2']);
+	expect(await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'b')).toEqual(['r2']);
+	expect(await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'nobody')).toEqual([]);
+});
+
+it('レース全体のふりかえりだけのレースは含め、出走前のメモだけのレースは含めない', async () => {
+	state.sqlite.exec(`
+		INSERT INTO note (id,author_id,kind,race_id,body,tags,occurred_at) VALUES
+			('n6','a','race','r3','レース全体のふりかえり。','[]','2099-04-04');
+		INSERT INTO note (id,author_id,kind,race_id,horse_id,race_entry_id,body,tags,mark,occurred_at) VALUES
+			('n7','b','preview','r1','h1','e1','b の出走前メモ。','[]','○','2026-06-14');
+	`);
+	expect((await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'a')).sort()).toEqual([
+		'r1',
+		'r2',
+		'r3'
+	]);
+	expect(await listJockeyReviewedRaceIds(state.db, 'ヤマダ', 'b')).toEqual(['r2']);
 });

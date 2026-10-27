@@ -251,3 +251,30 @@ describe('horseNoteDigest', () => {
 		expect(horseNoteDigest([], [], '2026-10-01')).toEqual({ recent: [], moreCount: 0 });
 	});
 });
+
+import { noteSaveError } from './note';
+
+describe('一括保存のエラー', () => {
+	const issue = (keys: unknown[]) => ({
+		message: '10,000文字以内にしてください',
+		type: 'max_length',
+		path: keys.map((key) => ({ key }))
+	});
+	it.each([
+		['preview', ['raceNote', 'body'], 'レースの見立て'],
+		['review', ['raceNote', 'body'], 'レースのふりかえり'],
+		['preview', ['raceNote', 'flow', 'early', 'memo'], '展開の予想'],
+		['preview', ['raceNote', 'flow', 'start', 'memo'], '展開の予想（スタート）'],
+		['preview', ['raceNote', 'flow', 'corner4', 'memo'], '展開の予想（4コーナー）'],
+		['preview', ['raceNote', 'flow', 'finish', 'memo'], '展開の予想（ゴール前）'],
+		['preview', ['entries', 0, 'body'], 'テストホースの出走前メモ'],
+		['review', ['entries', 0, 'body'], 'テストホースのメモ']
+	] as const)('%s の %j は欄と直し方を示す', (mode, path, field) => {
+		expect(noteSaveError(issue([...path]), mode, [{ horseName: 'テストホース' }])).toBe(
+			`${field}が長すぎます。10,000文字以内にしてください。短くしてから、もう一度保存してください。`
+		);
+	});
+	it('不明な path は元の文を返す', () => {
+		expect(noteSaveError(issue(['unknown']), 'preview', [])).toBe('10,000文字以内にしてください');
+	});
+});

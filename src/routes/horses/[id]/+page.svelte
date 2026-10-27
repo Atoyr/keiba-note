@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Star from '@lucide/svelte/icons/star';
@@ -22,10 +23,13 @@
 
 	let { data, form }: PageProps = $props();
 
+	const startOpen = untrack(() => !!form && 'body' in form);
 	const admin = $derived(isAdmin(data.user));
 
 	let profileOpen = $state(false);
 	let favoritePending = $state(false);
+	let deletePending = $state(false);
+	let addPending = $state(false);
 	let sexValue = $state(data.horse.sex ?? '');
 	let centerValue = $state(data.horse.trainingCenter ?? '');
 
@@ -210,6 +214,8 @@
 		</form>
 	{/if}
 
+	<!-- 失敗の文は1か所にまとめる。推し・プロフィール欄・近況メモの追加と削除のどれが失敗しても、
+	     タイムラインの上のここに残る（近況メモの削除はメニューの中なので、閉じても見えるように外に置く）。 -->
 	{#if form && 'message' in form && form.message}
 		<p
 			class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
@@ -219,21 +225,51 @@
 		</p>
 	{/if}
 
+	{#if form && 'added' in form}<noscript
+			><p class="mt-1 text-sm">近況メモを追加しました</p></noscript
+		>{/if}
+	{#if form && 'deleted' in form}<noscript
+			><p class="mt-1 text-sm">近況メモを削除しました</p></noscript
+		>{/if}
 	<section class="mt-8">
-		<h2 class="text-sm font-semibold text-gray-500">タイムライン</h2>
+		<h2 id="horse-timeline" tabindex="-1" class="text-sm font-semibold text-gray-500">
+			タイムライン
+		</h2>
 
-		<details class="mt-2 rounded-md border border-gray-200 p-3">
+		{#snippet addEditor()}
 			<summary class="cursor-pointer text-sm text-gray-700">＋ 近況メモを追加</summary>
-			<form method="POST" action="?/addNote" use:enhance class="mt-3">
+			<form
+				method="POST"
+				action="?/addNote"
+				use:enhance={({ cancel }) => {
+					if (addPending) {
+						cancel();
+						return;
+					}
+					addPending = true;
+					return async ({ result, update }) => {
+						try {
+							if (result.type === 'success') {
+								await update();
+								toast.success('近況メモを追加しました');
+							} else await update({ reset: false });
+						} finally {
+							addPending = false;
+						}
+					};
+				}}
+				class="mt-3"
+			>
 				<textarea
 					name="body"
 					rows="3"
 					required
 					aria-label="近況メモ"
 					placeholder="北海道滞在。追い切りの動き良いとのこと。"
-					class={input}></textarea>
+					class={input}>{form && 'body' in form ? form.body : ''}</textarea
+				>
 				<div class="mt-2">
-					<TagPicker name="tags" />
+					<TagPicker name="tags" values={form && 'tags' in form ? form.tags : []} />
 				</div>
 				<div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-600">
 					<label class="flex items-center gap-1.5">
@@ -241,19 +277,24 @@
 						<input
 							type="date"
 							name="occurredAt"
-							value={data.today}
+							value={form && 'occurredAt' in form ? form.occurredAt : data.today}
 							class="rounded border border-gray-300 px-2 py-1"
 						/>
 					</label>
-					<button
-						type="submit"
-						class="rounded-md bg-primary px-3 py-1.5 text-primary-foreground hover:bg-primary/80"
+					<Button type="submit" size="sm" aria-disabled={addPending}
+						>{addPending ? '処理中…' : '追加'}</Button
 					>
-						追加
-					</button>
 				</div>
 			</form>
-		</details>
+		{/snippet}
+		<!-- SSR で開いて返すときは属性の有無を分け、hydration で開閉を上書きしない。 -->
+		{#if startOpen}
+			<details open class="mt-2 rounded-md border border-gray-200 p-3">
+				{@render addEditor()}
+			</details>
+		{:else}
+			<details class="mt-2 rounded-md border border-gray-200 p-3">{@render addEditor()}</details>
+		{/if}
 
 		{#if data.timeline.length === 0}
 			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>
@@ -320,17 +361,44 @@
 											redirectTo="/horses/{data.horse.id}"
 										/>
 										{#if n.kind === 'horse'}
-											<form
-												method="POST"
-												action="?/deleteNote"
-												use:enhance
-												class="mt-2 border-t pt-2"
-											>
-												<input type="hidden" name="noteId" value={n.id} />
-												<button type="submit" class="text-xs text-red-700 hover:underline">
-													この近況メモを削除
-												</button>
-											</form>
+											<details class="mt-2 border-t pt-2">
+												<summary class="cursor-pointer text-xs text-destructive hover:underline"
+													>この近況メモを削除</summary
+												>
+												<p class="mt-2 text-sm">この近況メモを削除すると、元に戻せません。</p>
+												<form
+													method="POST"
+													action="?/deleteNote"
+													class="mt-2"
+													use:enhance={({ cancel }) => {
+														if (deletePending) {
+															cancel();
+															return;
+														}
+														deletePending = true;
+														return async ({ result, update }) => {
+															try {
+																await update({ reset: false });
+																if (result.type === 'success') {
+																	toast.success('近況メモを削除しました');
+																	await tick();
+																	document.getElementById('horse-timeline')?.focus();
+																}
+															} finally {
+																deletePending = false;
+															}
+														};
+													}}
+												>
+													<input type="hidden" name="noteId" value={n.id} />
+													<Button
+														variant="destructive"
+														size="sm"
+														type="submit"
+														aria-disabled={deletePending}>削除する</Button
+													>
+												</form>
+											</details>
 										{/if}
 									</NoteMenu>
 								</div>

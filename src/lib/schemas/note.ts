@@ -96,7 +96,7 @@ export const tagsSchema = v.pipe(
 export const bodySchema = v.pipe(
 	v.string(),
 	// 前後の空白だけのメモは「空」とみなしたいので trim はサービス層でも行う。
-	v.maxLength(10000, 'メモが長すぎます')
+	v.maxLength(10000, '10,000文字以内にしてください')
 );
 
 /** 出走馬1頭分のメモ入力。ふりかえりと予想で共通の形。 */

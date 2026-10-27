@@ -222,6 +222,7 @@
 							>
 								<span class="font-mono text-gray-500">{r.date}</span>
 								<RacePlace course={r.course} raceNumber={r.raceNumber} />
+								<GradeBadge grade={r.grade} />
 								<span class="font-medium">{r.name ?? ''}</span>
 								<span class="ms-auto text-xs text-amber-900">ふりかえりを書く →</span>
 							</a>

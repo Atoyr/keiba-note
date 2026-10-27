@@ -232,7 +232,9 @@ test.describe('JavaScript が無いとき', () => {
 		await page.getByLabel('傾向の本文').fill(tooLong);
 		await page.getByRole('button', { name: '傾向を保存する' }).click();
 
-		await expect(page.getByRole('alert').filter({ hasText: 'メモが長すぎます' })).toBeVisible();
+		await expect(
+			page.getByRole('alert').filter({ hasText: '10,000文字以内にしてください' })
+		).toBeVisible();
 		await expect(details).toHaveJSProperty('open', true);
 		await expect(page.getByLabel('傾向の本文')).toHaveValue(tooLong);
 	});

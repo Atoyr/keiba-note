@@ -24,18 +24,30 @@
 	let details: HTMLDetailsElement;
 	let summary: HTMLElement;
 
+	function closeNested() {
+		// toggle は要素を外したあとにも届くため、bind:this が解除済みなら何もしない。
+		if (details && !details.open)
+			for (const nested of details.querySelectorAll('details[open]')) {
+				(nested as HTMLDetailsElement).open = false;
+			}
+	}
+	function close() {
+		details.open = false;
+		closeNested();
+	}
+
 	// click ではなく pointerdown で見る。iOS Safari は押せない要素（余白・見出し）の
 	// タップで click を window まで届けないことがあり、URL 欄を選ぶドラッグを外で離しても
 	// click は外側に落ちる。
 	function closeOnOutside(e: PointerEvent) {
-		if (details.open && !details.contains(e.target as Node)) details.open = false;
+		if (details.open && !details.contains(e.target as Node)) close();
 	}
 
 	function closeOnEscape(e: KeyboardEvent) {
 		if (!details.open || e.key !== 'Escape') return;
 		// 中にフォーカスがあったときだけ `⋯` に戻す。よそで押した Esc でフォーカスを奪わない。
 		const focusInside = details.contains(document.activeElement);
-		details.open = false;
+		close();
 		if (focusInside) summary.focus();
 	}
 
@@ -43,13 +55,18 @@
 	// 移り先が無い（メニューの中の余白を押した）ときは閉じない。
 	function closeOnFocusOut(e: FocusEvent) {
 		const next = e.relatedTarget as Node | null;
-		if (next && !details.contains(next)) details.open = false;
+		if (next && !details.contains(next)) close();
 	}
 </script>
 
 <svelte:window onpointerdown={closeOnOutside} onkeydown={closeOnEscape} />
 
-<details class="group relative" bind:this={details} onfocusout={closeOnFocusOut}>
+<details
+	class="group relative"
+	bind:this={details}
+	onfocusout={closeOnFocusOut}
+	ontoggle={closeNested}
+>
 	<summary
 		bind:this={summary}
 		class="flex size-6 cursor-pointer list-none items-center justify-center rounded-md text-muted-foreground group-open:bg-accent hover:bg-accent hover:text-foreground [&::-webkit-details-marker]:hidden"

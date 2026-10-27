@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { failNextAction } from './action-failure';
 import { gotoHydrated } from './hydration';
 import { login } from './login';
 import {
@@ -162,4 +163,95 @@ test('admin のプロフィール編集で、所属・性別・生年月日・�
 	await expect(rows.nth(3)).toContainText('母父 E2Eヒメハハチチ');
 	await expect(rows.nth(4)).toContainText('栗東');
 	await expect(rows.nth(4)).toContainText('調教師 E2E栗東調教師');
+});
+
+test('近況メモは削除の確認を開いただけでは消えず、確定すると消える', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByText('＋ 近況メモを追加').click();
+	const body = '削除の確認テスト用の近況メモ';
+	await page.getByLabel('近況メモ', { exact: true }).fill(body);
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	const row = page.locator(TIMELINE, { hasText: body });
+	await row.getByTitle('メモの操作').click();
+	await row.getByText('この近況メモを削除', { exact: true }).click();
+	await expect(row.getByText(body, { exact: true })).toBeVisible();
+	await expect(row.getByText('この近況メモを削除すると、元に戻せません。')).toBeVisible();
+	await row.getByRole('button', { name: '削除する', exact: true }).focus();
+	await page.keyboard.press('Escape');
+	await row.getByTitle('メモの操作').click();
+	await expect(row.getByRole('button', { name: '削除する', exact: true })).not.toBeVisible();
+	await row.getByText('この近況メモを削除', { exact: true }).click();
+	await row.getByRole('button', { name: '削除する', exact: true }).click();
+	await expect(row).toHaveCount(0);
+	await expect(page.getByRole('heading', { name: 'タイムライン', exact: true })).toBeFocused();
+	await expect(page.getByText('近況メモを削除しました', { exact: true })).toBeVisible();
+});
+
+test('近況メモの追加失敗では入力とエラーを残す', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByText('＋ 近況メモを追加').click();
+	await page.getByLabel('近況メモ', { exact: true }).fill('失敗しても残す本文');
+	await failNextAction(page, `/horses/${HORSE_ID}`, { message: '追加できませんでした' });
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	await expect(page.getByRole('alert')).toHaveText('追加できませんでした');
+	await expect(page.getByLabel('近況メモ', { exact: true })).toHaveValue('失敗しても残す本文');
+});
+
+test('近況追加は送信中を示し、二重送信しない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${HORSE_ID}`);
+	await page.getByText('＋ 近況メモを追加').click();
+	await page.getByLabel('近況メモ', { exact: true }).fill('送信中の本文');
+	let requests = 0;
+	let release!: () => void;
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	await page.route(
+		(url) => url.pathname === `/horses/${HORSE_ID}`,
+		async (route) => {
+			if (route.request().method() !== 'POST') return route.continue();
+			requests++;
+			await gate;
+			await route.fulfill({
+				contentType: 'application/json',
+				body: JSON.stringify({
+					type: 'failure',
+					status: 400,
+					data: JSON.stringify([{ message: 1 }, 'テスト用の失敗'])
+				})
+			});
+		}
+	);
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	const pending = page.getByRole('button', { name: '処理中…', exact: true });
+	await expect(pending).toHaveAttribute('aria-disabled', 'true');
+	await pending.evaluate((button: HTMLButtonElement) => button.form!.requestSubmit(button));
+	await expect.poll(() => requests).toBe(1);
+	release();
+	await expect(page.getByRole('button', { name: '追加', exact: true })).toHaveAttribute(
+		'aria-disabled',
+		'false'
+	);
+});
+
+test.describe('JavaScriptなしの近況追加', () => {
+	test.use({ javaScriptEnabled: false });
+	test('追加失敗で欄を開き、本文・札・日付を残す', async ({ page }) => {
+		await login(page);
+		await page.goto(`/horses/${HORSE_ID}`);
+		await page.getByText('＋ 近況メモを追加').click();
+		const body = '長'.repeat(10001);
+		await page.getByLabel('近況メモ', { exact: true }).fill(body);
+		await page.locator('form[action="?/addNote"] input[value="次走買い"]').check({ force: true });
+		await page.locator('input[name="occurredAt"]').fill('2026-10-01');
+		await page.getByRole('button', { name: '追加', exact: true }).click();
+		await expect(page.getByLabel('近況メモ', { exact: true })).toBeVisible();
+		await expect(page.getByLabel('近況メモ', { exact: true })).toHaveValue(body);
+		await expect(page.locator('form[action="?/addNote"] input[value="次走買い"]')).toBeChecked();
+		await expect(page.locator('input[name="occurredAt"]')).toHaveValue('2026-10-01');
+		await expect(page.getByRole('alert')).toContainText('10,000文字以内');
+	});
 });

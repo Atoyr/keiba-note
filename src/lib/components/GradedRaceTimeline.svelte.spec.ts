@@ -16,7 +16,14 @@ const base = {
 	winnerName: null,
 	resultCount: 0
 };
-const empty = { upcoming: false, preview: null, review: null, entryNoteCount: 0, marks: [] };
+const empty = {
+	reviewed: false,
+	upcoming: false,
+	preview: null,
+	review: null,
+	entryNoteCount: 0,
+	marks: []
+};
 
 const timeline: Timeline = [
 	{
@@ -124,4 +131,25 @@ describe('GradedRaceTimeline', () => {
 			.element(screen.getByRole('link', { name: /オールカマー/ }))
 			.toHaveAttribute('href', '/races/noresult/preview');
 	});
+});
+
+it('結果の投入前でもレース全体のふりかえりがあればふりかえりへ向く', async () => {
+	const screen = render(GradedRaceTimeline, {
+		timeline: [
+			{
+				year: '2026',
+				races: [
+					{
+						...empty,
+						race: { ...base, id: 'reviewed', date: '2026-09-27' },
+						reviewed: true
+					}
+				]
+			}
+		],
+		today: '2026-10-14'
+	});
+	await expect
+		.element(screen.getByRole('link', { name: /オールカマー/ }))
+		.toHaveAttribute('href', '/races/reviewed');
 });

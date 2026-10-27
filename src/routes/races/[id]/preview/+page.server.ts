@@ -16,6 +16,7 @@ import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { popularityByNumber } from '$lib/utils/odds';
+import { noteSaveError } from '$lib/utils/note';
 import { ctx, raceFormData } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -114,7 +115,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 							series.notes,
 							series.marks,
 							today,
-							series.entryNoteCounts
+							series.entryNoteCounts,
+							series.entryReviewCounts
 						)
 					}
 				: null,
@@ -188,7 +190,7 @@ export const actions: Actions = {
 		});
 
 		if (!parsed.success) {
-			return fail(400, { message: parsed.issues[0]?.message ?? '入力を確認してください' });
+			return fail(400, { message: noteSaveError(parsed.issues[0], 'preview', entries) });
 		}
 
 		// occurred_at はレース日。タイムラインでそのレースの位置に並ぶ。

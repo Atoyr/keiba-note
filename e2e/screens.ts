@@ -727,7 +727,7 @@ export const SCREENS: Screen[] = [
 	{
 		// 保存に失敗したところ。文は押した保存ボタンの横に出て、ボタンと件数は残る。
 		// 応答だけを差し替える（本当に長すぎる本文を打つと撮るのに時間がかかる）。
-		// data は devalue で `{ message: 'メモが長すぎます' }`（schemas/note.ts の文）。
+		// data は devalue で `{ message: 'レースの見立てが長すぎます。10,000文字以内にしてください。短くしてから、もう一度保存してください。' }`（schemas/note.ts の文）。
 		name: 'race-preview-save-failed',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
@@ -742,7 +742,10 @@ export const SCREENS: Screen[] = [
 								body: JSON.stringify({
 									type: 'failure',
 									status: 400,
-									data: JSON.stringify([{ message: 1 }, 'メモが長すぎます'])
+									data: JSON.stringify([
+										{ message: 1 },
+										'レースの見立てが長すぎます。10,000文字以内にしてください。短くしてから、もう一度保存してください。'
+									])
 								})
 							})
 						: route.fallback()
@@ -816,6 +819,20 @@ export const SCREENS: Screen[] = [
 				.locator('main ol > li', { hasText: '直線で外に出してから一完歩が速い。' })
 				.getByTitle('メモの操作')
 				.click();
+		}
+	},
+	{
+		name: 'horse-timeline-delete-confirm',
+		path: `/horses/${HORSE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page
+				.locator('main ol > li')
+				.filter({ has: page.getByText('この近況メモを削除', { exact: true }) })
+				.first();
+			await row.getByTitle('メモの操作').click();
+			await row.getByText('この近況メモを削除', { exact: true }).click();
 		}
 	},
 	// 騎手の一覧。騎乗の多い順に、自分が付けた札と一緒に並ぶ。上に「札で絞る」。

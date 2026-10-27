@@ -2,7 +2,7 @@ import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { favoriteHorseSchema } from '$lib/schemas/favorite';
 import { horseProfileSchema } from '$lib/schemas/horse';
-import { deleteNoteSchema, horseNoteSchema } from '$lib/schemas/note';
+import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '$lib/schemas/note';
 import { isUniqueViolation } from '$lib/server/db/errors';
 import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
@@ -54,14 +54,19 @@ export const actions: Actions = {
 		if (!horse) error(404, '馬が見つかりません');
 
 		const form = await request.formData();
-		const parsed = v.safeParse(horseNoteSchema, {
+		const input = {
 			body: form.get('body')?.toString() ?? '',
 			tags: form.getAll('tags').map(String),
 			occurredAt: form.get('occurredAt')?.toString() ?? todayJst()
-		});
+		};
+		const parsed = v.safeParse(horseNoteSchema, input);
 
 		if (!parsed.success) {
-			return fail(400, { message: parsed.issues[0]?.message ?? '入力を確認してください' });
+			return fail(400, {
+				...input,
+				tags: NOTE_TAGS.filter((t) => input.tags.includes(t)),
+				message: parsed.issues[0]?.message ?? '入力を確認してください'
+			});
 		}
 
 		await addHorseNote(db, { horseId: params.id, ...parsed.output }, user.id);

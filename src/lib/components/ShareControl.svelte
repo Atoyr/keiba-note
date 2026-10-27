@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -25,30 +26,64 @@
 	const shared = $derived(visibility === 'unlisted');
 
 	let copied = $state(false);
+	let copyTimer: ReturnType<typeof setTimeout> | undefined;
+	let copyMessage = $state('');
+	let pending = $state(false);
 
 	// `page.url` は SSR でも埋まっているので、location を待たずに URL を出せる。
 	// 渡す相手に見せる値なので、描画のたびにちらつかせたくない。
 	const url = $derived(`${page.url.origin}/notes/${noteId}`);
 
 	async function copy() {
+		clearTimeout(copyTimer);
+		copied = false;
+		copyMessage = '';
 		try {
 			await navigator.clipboard.writeText(url);
 			copied = true;
-			setTimeout(() => (copied = false), 1500);
+			copyMessage = 'コピーしました';
+			copyTimer = setTimeout(() => {
+				copied = false;
+				copyMessage = '';
+			}, 1500);
 		} catch {
-			// クリップボードが使えない環境では input を選ばせるだけにする。
+			copyMessage = 'コピーできませんでした。リンクの欄を選んでコピーしてください。';
 			copied = false;
 		}
 	}
 </script>
 
 <div class="flex flex-wrap items-center gap-2">
-	<form method="POST" action="/settings/shares" use:enhance>
+	<form
+		method="POST"
+		action="/settings/shares"
+		use:enhance={({ cancel }) => {
+			if (pending) {
+				cancel();
+				return;
+			}
+			pending = true;
+			const successMessage = shared ? '共有をやめました' : '共有リンクを作りました';
+			return async ({ result, update }) => {
+				try {
+					await update({ reset: false });
+					if (result.type === 'redirect') toast.success(successMessage);
+				} finally {
+					pending = false;
+				}
+			};
+		}}
+	>
 		<input type="hidden" name="noteId" value={noteId} />
 		<input type="hidden" name="redirect" value={redirectTo} />
 		<input type="hidden" name="visibility" value={shared ? 'private' : 'unlisted'} />
-		<Button type="submit" variant={shared ? 'secondary' : 'outline'} size="sm">
-			{shared ? '共有をやめる' : '共有リンクを作る'}
+		<Button
+			type="submit"
+			variant={shared ? 'secondary' : 'outline'}
+			size="sm"
+			aria-disabled={pending}
+		>
+			{pending ? '処理中…' : shared ? '共有をやめる' : '共有リンクを作る'}
 		</Button>
 	</form>
 
@@ -62,6 +97,7 @@
 		     潰れて「http」しか見えないと、何のリンクを渡すのか確かめられない。 -->
 		<input
 			class="min-w-48 flex-1 rounded border border-gray-200 bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700"
+			aria-label="共有リンク"
 			value={url}
 			readonly
 			onfocus={(e) => e.currentTarget.select()}
@@ -69,5 +105,6 @@
 		<Button type="button" variant="ghost" size="sm" onclick={copy}>
 			{copied ? 'コピーしました' : 'コピー'}
 		</Button>
+		<p role="status" class="text-xs">{copyMessage}</p>
 	{/if}
 </div>

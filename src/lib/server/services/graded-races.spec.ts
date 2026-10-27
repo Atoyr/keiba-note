@@ -193,7 +193,8 @@ describe('重賞1本ぶんの読み（1往復）', () => {
 			races: [],
 			notes: [],
 			marks: [],
-			entryNoteCounts: {}
+			entryNoteCounts: {},
+			entryReviewCounts: {}
 		});
 	});
 });
@@ -357,4 +358,32 @@ describe('見出しの格', () => {
 		expect(currentGrade([seriesRace('x', '2026-05-02', 'OP')], '2026')).toBeNull();
 		expect(currentGrade([], '2026')).toBeNull();
 	});
+});
+
+it('各馬のふりかえりだけでも本人のreviewedに含み、他人は含めない', async () => {
+	state.sqlite.exec("DELETE FROM note WHERE id = 'n2'");
+	const series = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
+	expect(series.entryReviewCounts).toEqual({ r25: 1 });
+	const timeline = buildGradedRaceTimeline(
+		series.races,
+		series.notes,
+		series.marks,
+		'2026-10-27',
+		series.entryNoteCounts,
+		series.entryReviewCounts
+	);
+	expect(timeline.flatMap((y) => y.races).find((r) => r.race.id === 'r25')?.reviewed).toBe(true);
+	const none = await readGradedRaceSeries(state.db, 'オールカマー', 'nobody');
+	expect(
+		buildGradedRaceTimeline(
+			none.races,
+			none.notes,
+			none.marks,
+			'2026-10-27',
+			none.entryNoteCounts,
+			none.entryReviewCounts
+		)
+			.flatMap((y) => y.races)
+			.every((r) => !r.reviewed)
+	).toBe(true);
 });
