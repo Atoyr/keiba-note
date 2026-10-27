@@ -643,8 +643,8 @@ sequenceDiagram
     W->>G: workflow_dispatch（日付・場・R・race_id・段か command: result）
     Note over W: ここで終わり。netkeiba へは行かず、D1 にも書かない
     G->>A: 起動
-    A->>N: 出馬表（data:fetch entries）/ 結果（data:fetch result）
-    Note over A: 金曜の枠順の回は枠順が、結果は表が確定していなければ何も書かない
+    A->>N: 出馬表（data:fetch entries）と出走馬の過去5走（data:fetch past）/ 結果（data:fetch result）
+    Note over A: 金曜の枠順の回は枠順が、結果は表が確定していなければ何も書かない（past も流さない）
     A->>A: data:check → PR を作る（同じ中身の PR があれば何もしない）
 ```
 
@@ -654,7 +654,7 @@ sequenceDiagram
 | 手順 | `lib/server/race-data/request.ts` | Cron の対象を1つずつ頼む・止める条件・ログの重さ |
 | 対象 | `lib/server/services/entries-fetch.ts`・`results-fetch.ts` | D1 から対象のレースを選ぶ（読むだけ） |
 | 入口 | `lib/server/race-data/scheduled.ts`・`/settings/admin` の `?/fetchEntries` | 監視の口と D1 クライアントを作って渡す |
-| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR。Worker が頼む `data:fetch entries`（Cron・管理画面）と `data:fetch result`（結果の Cron。`command: result`）。どちらも Actions のタブから手でも起動できる |
+| 取得 | `.github/workflows/race-data-fetch.yml` → `scripts/race-data.ts` | netkeiba への取得・YAML の書き込み・PR。Worker が頼む `data:fetch entries`（Cron・管理画面。続けて `data:fetch past` で過去5走も取る）と `data:fetch result`（結果の Cron。`command: result`）。どちらも Actions のタブから手でも起動できる |
 
 - Cron は JRA の発表に合わせて3段で頼む。段は Cron の式で決まる（`race-data/scheduled.ts` の `ENTRIES_CRONS`。時刻の正は `wrangler.toml` の `crons`）。
   対象はどの段も重賞（G1〜G3）で、レース番号があり、馬番がまだ1頭も無いもの（枠順の PR がマージされると外れる）
@@ -674,7 +674,12 @@ sequenceDiagram
 - 決まった時刻に1回ずつしか頼まない。その回が落ちたら（GitHub に届かない・Actions が落ちる。どちらも Discord に知らせる）、管理画面の「出走馬を取得」で取り直す。
   金曜の回で枠順がまだ確定していなければ、Actions は何も書かずに Discord の「デプロイ」に知らせる（取り直しのきっかけ）。
   祝日で発表の曜日がずれる週も、管理画面から取り直す
-- 起動元（Cron・管理画面）によらず、開いている PR と同じ中身なら何もしない（PR も通知も出ない）。
+- **出馬表の回は、続けて出走馬の過去5走（`data:fetch past`）も取り、同じ PR に入れる。** `past` は空いている項目だけ埋めるので何度流しても同じ結果になり、
+  段を選ばず毎回流す。候補の段から流すのは、週の早いうちに予想を書けるよう日曜から馬柱を出すため（#219）。
+  netkeiba へは1頭1回（1秒あける）で、1レースあたり週に最大4回・候補なら最大40頭ぶんになるが、Cron の時刻に1回ずつなので受け入れる。過去走は各過去走の開催日のファイルを書くので、PR は複数のファイルを触る。
+  過去走だけが落ちても出馬表の PR は作り、Discord の「デプロイ」に黄（警告）で知らせる（`past` は最後にまとめて保存するので、落ちたら過去走は書かれない）。
+  枠順未確定で何も書かない回と結果の回は流さない。馬の基本情報（`horses`）は取らない
+- 起動元（Cron・管理画面）によらず、開いている PR と同じ中身（今回変えたファイルだけを比べる）なら何もしない（PR も通知も出ない）。
   開いている PR が無ければ（PR の作成で落ちてブランチだけ残った・人がマージせずに閉じた、も含む）、作り直して PR を作る。
   PR ができたら Discord の「デプロイ」に知らせる
 - トークン（`GITHUB_DISPATCH_TOKEN`）は、このリポジトリの Actions に書き込めるだけのもの。漏れても
