@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 11
+    winner: レガレイラ
+    runnerUp: ドゥラドーレス
     entries:
       - horseNumber: 1
         bracket: 1
@@ -40,14 +43,15 @@ races:
         horseWeight: 494
         horseWeightDiff: -2
         odds: 14.8
-      - name: レガレイラ
-        ref: nk-2021105898
+      - horseNumber: 4
         bracket: 4
-        horseNumber: 4
+        name: レガレイラ
         jockey: 戸崎圭太
+        ref: nk-2021105898
         finish: 1
         popularity: 1
         time: "2:10.2"
+        timeDiff: -0.2
         passing: "8-8-6-6"
         last3f: 34
         weight: 57

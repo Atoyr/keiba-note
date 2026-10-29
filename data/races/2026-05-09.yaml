@@ -415,6 +415,7 @@ races:
         popularity: 7
         time: "1:45.8"
         margin: "クビ"
+        timeDiff: 0.5
         passing: "12-13-13"
         last3f: 33.2
         weight: 58
@@ -584,6 +585,7 @@ races:
         popularity: 1
         time: "1:45.6"
         margin: "3/4"
+        timeDiff: 0.3
         passing: "2-2-2"
         last3f: 33.9
         weight: 57

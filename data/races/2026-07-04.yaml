@@ -102,3 +102,31 @@ races:
         horseWeight: 420
         horseWeightDiff: 0
         odds: 17.8
+  - course: 小倉
+    raceNumber: 11
+    name: 博多S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    fieldSize: 14
+    winner: ネブラディスク
+    runnerUp: サウンドムーブ
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ネブラディスク
+        jockey: 川田将雅
+        ref: nk-2022105140
+        finish: 1
+        popularity: 2
+        time: "1:46.6"
+        timeDiff: -0.5
+        passing: "4-4-3-4"
+        last3f: 35.7
+        weight: 58
+        horseWeight: 456
+        horseWeightDiff: 4
+        odds: 2.4

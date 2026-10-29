@@ -94,6 +94,21 @@ races:
         horseWeight: 482
         horseWeightDiff: 2
         odds: 23.4
+      - horseNumber: 6
+        bracket: 3
+        name: マスカレードボール
+        jockey: 横山武史
+        ref: nk-2022105519
+        finish: 3
+        popularity: 4
+        time: "1:57.3"
+        timeDiff: 0.3
+        passing: "11-10-14-13"
+        last3f: 33.9
+        weight: 57
+        horseWeight: 460
+        horseWeightDiff: -4
+        odds: 13.7
       - horseNumber: 10
         bracket: 5
         name: クロワデュノール

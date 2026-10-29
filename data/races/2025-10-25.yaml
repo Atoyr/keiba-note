@@ -710,7 +710,25 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 12
+    winner: ネブラディスク
+    runnerUp: リカントロポ
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ネブラディスク
+        jockey: 岩田望来
+        ref: nk-2022105140
+        finish: 1
+        popularity: 1
+        time: "1:45.7"
+        timeDiff: -0.3
+        passing: "10-10"
+        last3f: 33.5
+        weight: 56
+        horseWeight: 448
+        horseWeightDiff: 14
+        odds: 1.9
       - horseNumber: 3
         bracket: 3
         name: メイショウヨゾラ

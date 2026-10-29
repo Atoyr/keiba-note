@@ -653,3 +653,30 @@ races:
         horseWeight: 502
         horseWeightDiff: -18
         odds: 29.2
+  - course: 京都
+    raceNumber: 12
+    name: 3歳以上2勝クラス
+    className: 2勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 15
+    winner: ミッキーゴールド
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ネブラディスク
+        jockey: 岩田望来
+        ref: nk-2022105140
+        finish: 2
+        popularity: 1
+        time: "1:59.4"
+        timeDiff: 0.2
+        passing: "7-9-11-7"
+        last3f: 33.9
+        weight: 56
+        horseWeight: 440
+        horseWeightDiff: -8
+        odds: 2

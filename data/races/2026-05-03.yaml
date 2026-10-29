@@ -103,6 +103,7 @@ races:
     weather: 小雨
     fieldSize: 15
     winner: クロワデュノール
+    runnerUp: ヴェルテンベルク
     entries:
       - horseNumber: 1
         bracket: 1
@@ -231,6 +232,7 @@ races:
         finish: 1
         popularity: 1
         time: "3:13.7"
+        timeDiff: 0
         passing: "6-5-5-3"
         last3f: 34.9
         weight: 58
@@ -307,6 +309,7 @@ races:
         popularity: 5
         time: "3:14.5"
         margin: "2.1/2"
+        timeDiff: 0.8
         passing: "13-13-13-12"
         last3f: 35.2
         weight: 58

@@ -35,6 +35,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: ダノンデサイル
+    runnerUp: マテンロウレオ
     entries:
       - horseNumber: 2
         bracket: 1
@@ -86,6 +89,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:12.1"
+        timeDiff: -0.1
         passing: "7-7-7-5"
         last3f: 36
         weight: 58
