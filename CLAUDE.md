@@ -7,6 +7,8 @@
 - `pnpm run screens <機能名> after` のあと、残った PNG は Read で開いて自分の目で確かめてから PR に進む
 - 出走馬データ（候補・枠順・過去走・馬の基本情報・結果）を入れるときは `/race-data` スキル
   （`.claude/skills/race-data/`）の手順に従う
+- 重賞の紹介（競走条件・優先出走権・ステップレース・コースの特徴）を足す・直すときは `/race-profile` スキル
+  （`.claude/skills/race-profile/`）の手順に従う
 - Issue を Lead として進める・再開するときは `/lead` スキル（`.claude/skills/lead/`）の手順に従う
 - 画面の UI・UX を設計するときは `/ui-ux` スキル（`.claude/skills/ui-ux/`）の手順に従う。設計はメインが行う
 - レビュアーは `.claude/agents/reviewer-*.md` のサブエージェント。`model` の渡し方は [review.md 第3章「起動の仕方」](./docs/review.md#起動の仕方)。
@@ -34,6 +36,6 @@ AGENTS.md「作業の手順」との対応は次のとおり。
   `SendMessage` で同じ implementer に返して続けさせる。続けられないときだけ、指示の原文・設計・前回の「実装の結果」を渡して新しく起動する
 - レビューの `必須`・評価の `✗` の直しも、事実を確かめたうえで implementer に返す。数行で済む明らかな直しはメインが直してよい
 - レビュアーと Evaluator には設計を渡さない。設計は Generator の意図の解説にあたる（review.md 第3章・evaluation.md 第1章）
-- 分けないもの: 文書だけの変更、`/race-data` スキルでのデータ投入、数行で済む直し。メインがそのまま行う
+- 分けないもの: 文書だけの変更、`/race-data` スキルでのデータ投入、`/race-profile` スキルでの紹介の追加、数行で済む直し。メインがそのまま行う
 - implementer の代わりに Orca の Worker（Codex など）へ渡す場面、Issue への記録と再開は [orchestration.md](./docs/orchestration.md)。
   メインはそこでの Lead にあたり、渡すものと返ってくるものは implementer と同じ（同第4章）
