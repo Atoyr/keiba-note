@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { gotoHydrated, waitForHydration } from './hydration';
 import { login } from './login';
 import { raceMenuItem } from './race-menu';
-import { GRADED_RACE, REVIEW_RACE_ID, TREND_RACE } from './seed';
+import { GRADED_RACE, PROFILE_RACE, REVIEW_RACE_ID, TREND_RACE } from './seed';
 import { expectLinkTo } from './link';
 
 const gradedPath = (name: string) => `/graded-races/${encodeURIComponent(name)}`;
@@ -238,4 +238,43 @@ test.describe('JavaScript が無いとき', () => {
 		await expect(details).toHaveJSProperty('open', true);
 		await expect(page.getByLabel('傾向の本文')).toHaveValue(tooLong);
 	});
+});
+
+test('表に紹介のある重賞のレース情報に、条件・優先出走権・前哨戦・コースの特徴が出る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PROFILE_RACE.raceId}/preview`);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+
+	const conditions = page.getByRole('region', { name: 'レースの条件と前哨戦' });
+	await expect(conditions).toContainText('3歳以上オープン 定量');
+	await expect(conditions).toContainText('オールカマー・毎日王冠・京都大賞典の1着馬');
+	// 去年のオールカマー（別名）が窓に入る。勝ち馬と優先出走権の札つきで、ふりかえりへ行ける。
+	const step = conditions
+		.locator('li', { hasText: `${GRADED_RACE.key}` })
+		.filter({ hasText: '勝ち馬' });
+	await expect(step).toContainText(`勝ち馬 ${GRADED_RACE.winner}`);
+	await expect(step).toContainText('優先出走権 1着');
+	await expectLinkTo(
+		step.getByRole('link', { name: GRADED_RACE.key, exact: true }),
+		`/races/${GRADED_RACE.lastYearRaceId}`
+	);
+	// 窓に無いステップは未登録。
+	await expect(conditions.locator('li', { hasText: '札幌記念' })).toContainText('未登録');
+
+	const course = page.getByRole('region', { name: /コースの特徴/ });
+	for (const label of ['スタート', '道中', 'ゴール前', '展開と傾向']) {
+		await expect(course.getByText(label, { exact: true })).toBeVisible();
+	}
+});
+
+test('表に紹介の無い重賞のレース情報には、レースの条件もコースの特徴も出ない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${GRADED_RACE.thisYearRaceId}/preview`);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+
+	await expect(page.getByRole('region', { name: /重賞のタイムライン/ })).toBeVisible();
+	await expect(page.getByText('レースの条件と前哨戦')).toHaveCount(0);
+	await expect(page.getByText('コースの特徴')).toHaveCount(0);
 });

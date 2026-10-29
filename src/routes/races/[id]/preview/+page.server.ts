@@ -7,12 +7,17 @@ import {
 	listSameConditionRaceNotes,
 	savePreviewNotes
 } from '$lib/server/services/notes';
-import { buildGradedRaceTimeline, readGradedRaceSeries } from '$lib/server/services/graded-races';
+import {
+	buildGradedProfileView,
+	buildGradedRaceTimeline,
+	readGradedRaceSeries
+} from '$lib/server/services/graded-races';
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { getRaceOdds } from '$lib/server/services/odds';
 import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
+import { gradedRaceProfile } from '$lib/utils/graded-race-profile';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { popularityByNumber } from '$lib/utils/odds';
@@ -54,6 +59,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 	// 重賞の傾向を引く鍵。別名で走った年のレースでも、重賞の画面と同じ名前になる。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
+	// 表に紹介がある重賞だけ、条件・優先出走権・前哨戦・コースの特徴を出す。
+	const profile = gradedKey ? gradedRaceProfile(gradedKey, race.date) : null;
 
 	const [pastRuns, sameCondition, odds, series, jockeySummaries, memos] = await Promise.all([
 		// 馬柱。このレースより前の出走歴だけを見る。
@@ -76,7 +83,14 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		// GitHub Actions が30分おきに取ってきた最新のオッズ（D1 の値）。ここから取得元へは行かない。
 		getRaceOdds(db, params.id),
 		// 重賞ごとの傾向と、重賞のタイムライン。読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
-		gradedKey ? readGradedRaceSeries(db, gradedKey, user.id) : Promise.resolve(null),
+		gradedKey
+			? readGradedRaceSeries(
+					db,
+					gradedKey,
+					user.id,
+					profile ? { keys: [...profile.steps], before: race.date } : undefined
+				)
+			: Promise.resolve(null),
 		// 行展開や騎手名を押したときに読む、自分のまとめ（このレースの出走馬の騎手だけ）。
 		listRaceJockeySummaries(db, params.id, user.id),
 		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
@@ -117,7 +131,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 							today,
 							series.entryNoteCounts,
 							series.entryReviewCounts
-						)
+						),
+						profile: profile ? buildGradedProfileView(profile, series.stepRaces) : null
 					}
 				: null,
 		today,

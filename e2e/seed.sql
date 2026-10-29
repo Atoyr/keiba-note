@@ -892,7 +892,10 @@ INSERT INTO race (id, date, course, race_number, name, grade, surface, distance,
 VALUES
 	('01JE2ERACEGRADEDTHIS000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days'), '中山', 11, 'オールカマー', 'G2', '芝', 2200, NULL, NULL),
 	('01JE2ERACEGRADEDLAST000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), '中山', 11, '産経賞オールカマー', 'G3', '芝', 2200, '良', 'E2E重賞イチバン'),
-	('01JE2ERACEGRADEDPREV000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-2 years'), '中山', 11, 'オールカマー', 'G3', '芝', 2200, '重', NULL);
+	('01JE2ERACEGRADEDPREV000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-2 years'), '中山', 11, 'オールカマー', 'G3', '芝', 2200, '重', NULL),
+	-- 紹介の表に載っている重賞（今年の天皇賞（秋））。レース情報タブに条件・優先出走権・前哨戦・コースの特徴が出る。
+	-- 去年の産経賞オールカマー（上）が前哨戦の窓に入る。
+	('01JE2ERACEGRADEDPROFILE000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days'), '東京', 11, '天皇賞（秋）', 'G1', '芝', 2000, NULL, NULL);
 INSERT INTO horse (id, name, birth_year) VALUES
 	('01JE2EHORSEGRADED10000000', 'E2E重賞イチバン', 2020),
 	('01JE2EHORSEGRADED20000000', 'E2E重賞ニバン', 2020);

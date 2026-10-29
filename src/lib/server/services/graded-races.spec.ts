@@ -9,6 +9,7 @@ import {
 	listGradedRacesOfYear,
 	listNotedGradedYears,
 	listSeriesRaces,
+	pickStepRaces,
 	readGradedRaceSeries,
 	saveGradedRaceTrend,
 	type SeriesMark,
@@ -191,6 +192,7 @@ describe('重賞1本ぶんの読み（1往復）', () => {
 		expect(await readGradedRaceSeries(state.db, '存在しない重賞', 'a')).toEqual({
 			trend: null,
 			races: [],
+			stepRaces: [],
 			notes: [],
 			marks: [],
 			entryNoteCounts: {},
@@ -386,4 +388,58 @@ it('各馬のふりかえりだけでも本人のreviewedに含み、他人は�
 			.flatMap((y) => y.races)
 			.every((r) => !r.reviewed)
 	).toBe(true);
+});
+
+describe('ステップレース', () => {
+	const at = (extra: string) => {
+		state.sqlite.exec(
+			`INSERT INTO race (id,date,course,race_number,name,grade,surface,distance,winner_name) VALUES ${extra};`
+		);
+	};
+	const steps = { keys: ['オールカマー', '毎日王冠', '札幌記念'], before: '2026-11-01' };
+
+	it('窓（ちょうど1年前以上・開催日より前）の中の、鍵のレースを stepRaces に入れる', async () => {
+		at(`
+			('s1','2025-11-01','東京',11,'毎日王冠','G2','芝',1800,'古い勝ち馬'),
+			('s0','2025-10-31','東京',11,'毎日王冠','G2','芝',1800,'窓の外'),
+			('s2','2026-10-11','東京',11,'毎日王冠','G2','芝',1800,'新しい勝ち馬'),
+			('s3','2026-11-01','東京',11,'札幌記念','G2','芝',2000,'開催日と同じ日は含めない')
+		`);
+		const { stepRaces } = await readGradedRaceSeries(state.db, '天皇賞（秋）', 'a', steps);
+		expect(stepRaces.map((r) => r.id).sort()).toEqual(['r26', 's1', 's2']);
+	});
+
+	it('別名で走った年のレースも入る', async () => {
+		const { stepRaces } = await readGradedRaceSeries(state.db, '天皇賞（秋）', 'a', {
+			keys: ['オールカマー'],
+			before: '2025-12-01'
+		});
+		expect(stepRaces.map((r) => [r.id, r.winnerName])).toEqual([['r25', 'イチバンボシ']]);
+	});
+
+	it('steps が無い・keys が空なら引かず、[] を返す', async () => {
+		expect((await readGradedRaceSeries(state.db, 'オールカマー', 'a')).stepRaces).toEqual([]);
+		expect(
+			(
+				await readGradedRaceSeries(state.db, 'オールカマー', 'a', {
+					keys: [],
+					before: '2026-11-01'
+				})
+			).stepRaces
+		).toEqual([]);
+	});
+
+	it('pickStepRaces: 鍵ごとにいちばん新しい1件（同じ日は R の大きいもの）か null を keys の順で返す', () => {
+		const r = (id: string, date: string, name: string, raceNumber: number) =>
+			({ id, date, name, raceNumber }) as SeriesRace;
+		const rows = [
+			r('a', '2026-09-27', 'オールカマー', 11),
+			r('b', '2026-09-27', 'オールカマー', 10),
+			r('c', '2025-10-01', '産経賞オールカマー', 11),
+			r('d', '2026-10-11', '毎日王冠', 11)
+		];
+		const picked = pickStepRaces(['毎日王冠', 'オールカマー', '札幌記念'], rows);
+		expect(picked.map((p) => p?.id ?? null)).toEqual(['d', 'a', null]);
+		expect(pickStepRaces(['オールカマー'], [rows[2]])[0]?.id).toBe('c');
+	});
 });

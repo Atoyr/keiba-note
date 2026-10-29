@@ -10,6 +10,7 @@ import {
 } from '$lib/schemas/note';
 import type { Pace } from '$lib/schemas/race-flow';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
+import type { GradedRaceProfile } from '$lib/utils/graded-race-profile';
 import { raceResultCount } from './races';
 
 /**
@@ -316,19 +317,94 @@ function pickTrend(
 	return found ? { body: found.body } : null;
 }
 
+/** ステップレースを引く窓の下限。開催日のちょうど1年前（`YYYY-MM-DD`）。 */
+function oneYearBefore(date: string): string {
+	return `${Number(date.slice(0, 4)) - 1}${date.slice(4)}`;
+}
+
+/**
+ * ステップレースの問い合わせ。`keys` のどれかの名前（鍵と別名）で、`before` より前、ちょうど1年前以降のレース。
+ * マスタだけを読む。`keys` は空でない。窓の中の全件を読み、鍵ごとの選別は `pickStepRaces` がする。
+ */
+function stepRacesQuery(db: Db, keys: string[], before: string) {
+	return db
+		.select({
+			id: race.id,
+			date: race.date,
+			course: race.course,
+			raceNumber: race.raceNumber,
+			name: race.name,
+			grade: race.grade,
+			surface: race.surface,
+			distance: race.distance,
+			trackCondition: race.trackCondition,
+			winnerName: race.winnerName,
+			resultCount: raceResultCount()
+		})
+		.from(race)
+		.where(
+			and(
+				inArray(race.name, [...new Set(keys.flatMap((k) => gradedRaceNames(k)))]),
+				sql`${race.date} >= ${oneYearBefore(before)}`,
+				sql`${race.date} < ${before}`
+			)
+		)
+		.orderBy(desc(race.date), desc(race.raceNumber));
+}
+
+/**
+ * 鍵ごとに、`gradedRaceKey(row.name) === key` の行のうちいちばん新しいもの（日付、同じ日なら R の大きいもの）か null を、
+ * `keys` の順で返す。
+ */
+export function pickStepRaces(keys: string[], rows: SeriesRace[]): (SeriesRace | null)[] {
+	return keys.map((key) => {
+		let best: SeriesRace | null = null;
+		for (const r of rows) {
+			if (!r.name || gradedRaceKey(r.name) !== key) continue;
+			if (
+				!best ||
+				r.date > best.date ||
+				(r.date === best.date && (r.raceNumber ?? 0) > (best.raceNumber ?? 0))
+			)
+				best = r;
+		}
+		return best;
+	});
+}
+
 /**
  * 重賞1本ぶんの読み（傾向・シリーズのレース・見立てとふりかえり・印・1頭ごとのメモの件数）。
- * 重賞の画面と、予想・ふりかえり画面のレース情報タブで使う。**5文を1つの `db.batch()` で読む（1往復）。**
+ * 重賞の画面と、予想・ふりかえり画面のレース情報タブで使う。**5文（`steps` があれば6文）を1つの `db.batch()` で読む（1往復）。**
  * 傾向は viewer が書いたもの（鍵の行を優先）、レースは名前（鍵と別名）に当たるもの（日付の降順）、
  * メモと印と件数は viewer が書いたものだけ。
  * メモと傾向は viewerId で絞る（architecture.md 第0章）。
+ *
+ * `steps` はステップレースを引く（レース情報の「前哨戦」）。`before` より前でちょうど1年前以降の、
+ * `keys` の名前のレースを `stepRaces` に入れる（マスタだけ。選別は `pickStepRaces`）。無い・`keys` が空なら引かず `[]`。
  */
 export async function readGradedRaceSeries(
 	db: Db,
 	key: string,
-	viewerId: string
-): Promise<SeriesNotes & { trend: { body: string } | null; races: SeriesRace[] }> {
+	viewerId: string,
+	steps?: { keys: string[]; before: string }
+): Promise<
+	SeriesNotes & { trend: { body: string } | null; races: SeriesRace[]; stepRaces: SeriesRace[] }
+> {
 	const names = gradedRaceNames(key);
+	if (steps && steps.keys.length > 0) {
+		const [trendRows, races, noteRows, markRows, countRows, stepRaces] = await db.batch([
+			trendQuery(db, key, viewerId),
+			seriesRacesQuery(db, names),
+			...seriesNotesQueries(db, names, viewerId),
+			stepRacesQuery(db, steps.keys, steps.before)
+		]);
+		return {
+			trend: pickTrend(trendRows, key),
+			races,
+			stepRaces,
+			...shapeSeriesNotes(noteRows, markRows, countRows)
+		};
+	}
 	const [trendRows, races, noteRows, markRows, countRows] = await db.batch([
 		trendQuery(db, key, viewerId),
 		seriesRacesQuery(db, names),
@@ -337,6 +413,7 @@ export async function readGradedRaceSeries(
 	return {
 		trend: pickTrend(trendRows, key),
 		races,
+		stepRaces: [],
 		...shapeSeriesNotes(noteRows, markRows, countRows)
 	};
 }
@@ -471,6 +548,42 @@ export function currentGrade(races: SeriesRace[], thisYear: string): CurrentGrad
 		isThisYear: !!thisYearRace,
 		thisYearNotGraded: !thisYearRace && races.some((r) => r.date.startsWith(thisYear)),
 		race: picked
+	};
+}
+
+/** レース情報タブの「レースの条件と前哨戦」「コースの特徴」に渡す、画面向けの紹介。 */
+export type GradedProfileView = {
+	conditions: string;
+	priority: { race: string; places: number }[];
+	priorityNote: string | null;
+	since: number;
+	course: GradedRaceProfile['course'];
+	steps: {
+		key: string;
+		/** そのステップが優先出走権を与えるなら、何着までか。 */
+		priority: number | null;
+		/** その年のレース。窓の中に無ければ null（未登録）。 */
+		race: SeriesRace | null;
+	}[];
+};
+
+/** 表の紹介と、`pickStepRaces` で選んだステップレースを、画面に渡す形にする。 */
+export function buildGradedProfileView(
+	profile: GradedRaceProfile,
+	stepRaces: SeriesRace[]
+): GradedProfileView {
+	const picked = pickStepRaces([...profile.steps], stepRaces);
+	return {
+		conditions: profile.conditions,
+		priority: profile.priority.map((p) => ({ race: p.race, places: p.places })),
+		priorityNote: profile.priorityNote ?? null,
+		since: profile.since,
+		course: { ...profile.course },
+		steps: profile.steps.map((key, i) => ({
+			key,
+			priority: profile.priority.find((p) => p.race === key)?.places ?? null,
+			race: picked[i]
+		}))
 	};
 }
 

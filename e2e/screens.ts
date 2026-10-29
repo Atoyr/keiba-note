@@ -30,6 +30,7 @@ import {
 	MCP_CLIENT,
 	MCP_METADATA_CLIENT,
 	TOGGLE_FAVORITE_HORSE_ID,
+	PROFILE_RACE,
 	TREND_RACE
 } from './seed';
 
@@ -891,6 +892,16 @@ export const SCREENS: Screen[] = [
 		// 重賞のレース（去年）のふりかえり画面のレース情報タブ。今年（開催予定）と一昨年が並び、去年の行は出ない。
 		name: 'race-review-information-graded',
 		path: `/races/${GRADED_RACE.lastYearRaceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+		}
+	},
+	{
+		// 紹介の表にある重賞（今年の天皇賞（秋））のレース情報タブ。レースの条件と前哨戦（去年のオールカマーは勝ち馬つき）とコースの特徴が出る。
+		name: 'race-preview-information-profile',
+		path: `/races/${PROFILE_RACE.raceId}/preview`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
