@@ -160,6 +160,7 @@ races:
         popularity: 5
         time: "2:13.1"
         margin: "1"
+        timeDiff: 0.4
         passing: "7-7-7-6"
         last3f: 33.7
         weight: 57
@@ -889,3 +890,31 @@ races:
         horseWeight: 512
         horseWeightDiff: 6
         odds: 14.1
+  - course: 京都
+    raceNumber: 9
+    name: 春日特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 11
+    winner: ネブラディスク
+    runnerUp: ジーティーマン
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: ネブラディスク
+        jockey: 川田将雅
+        ref: nk-2022105140
+        finish: 1
+        popularity: 1
+        time: "1:46.2"
+        timeDiff: -0.5
+        passing: "3-3"
+        last3f: 33.6
+        weight: 57
+        horseWeight: 448
+        horseWeightDiff: 8
+        odds: 1.7

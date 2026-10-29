@@ -28,6 +28,7 @@ races:
         popularity: 3
         time: "2:12.6"
         margin: "2.1/2"
+        timeDiff: 0.5
         passing: "11-12-12-9"
         last3f: 35
         weight: 58
@@ -110,6 +111,7 @@ races:
         popularity: 1
         time: "2:12.2"
         margin: "クビ"
+        timeDiff: 0.1
         passing: "5-5-4-3"
         last3f: 35.2
         weight: 58
@@ -168,6 +170,7 @@ races:
         popularity: 10
         time: "2:13.5"
         margin: "5"
+        timeDiff: 1.4
         passing: "18-18-17-16"
         last3f: 35.2
         weight: 58
@@ -186,6 +189,7 @@ races:
         popularity: 8
         time: "2:12.6"
         margin: "アタマ"
+        timeDiff: 0.5
         passing: "1-1-1-1"
         last3f: 36.1
         weight: 58
@@ -263,6 +267,7 @@ races:
         popularity: 11
         time: "2:14.9"
         margin: "3/4"
+        timeDiff: 2.8
         passing: "15-14-14-11"
         last3f: 36.9
         weight: 58
@@ -336,6 +341,7 @@ races:
         popularity: 5
         time: "2:13.7"
         margin: "1"
+        timeDiff: 1.6
         passing: "11-12-10-9"
         last3f: 35.9
         weight: 56

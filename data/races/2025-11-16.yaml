@@ -13,6 +13,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: レガレイラ
+    runnerUp: パラディレーヌ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -86,14 +87,15 @@ races:
         horseWeight: 462
         horseWeightDiff: 0
         odds: 12.2
-      - name: レガレイラ
-        ref: nk-2021105898
+      - horseNumber: 7
         bracket: 4
-        horseNumber: 7
+        name: レガレイラ
         jockey: 戸崎圭太
+        ref: nk-2021105898
         finish: 1
         popularity: 1
         time: "2:11.0"
+        timeDiff: -0.3
         passing: "9-10-10-8"
         last3f: 34.2
         weight: 56

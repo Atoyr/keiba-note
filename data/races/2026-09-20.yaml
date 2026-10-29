@@ -149,6 +149,7 @@ races:
         popularity: 1
         time: "2:17.4"
         margin: "1.1/4"
+        timeDiff: 0.5
         passing: "3-5-3-3"
         last3f: 37.3
         weight: 56
@@ -188,6 +189,7 @@ races:
         popularity: 2
         time: "2:21.9"
         margin: "大"
+        timeDiff: 5
         passing: "6-6-6-10"
         last3f: 41.6
         weight: 57

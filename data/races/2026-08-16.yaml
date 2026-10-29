@@ -347,6 +347,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: シェイクユアハート
+    runnerUp: サクラファレル
     entries:
       - horseNumber: 1
         bracket: 1
@@ -503,6 +504,7 @@ races:
         popularity: 5
         time: "1:58.6"
         margin: "2.1/2"
+        timeDiff: 0.4
         passing: "6-5-4-2"
         last3f: 35.2
         weight: 58
@@ -643,6 +645,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:58.2"
+        timeDiff: -0.4
         passing: "12-10-8-8"
         last3f: 34.6
         weight: 58

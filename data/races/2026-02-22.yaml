@@ -68,6 +68,7 @@ races:
     weather: 晴
     fieldSize: 14
     winner: サクラファレル
+    runnerUp: レイニング
     entries:
       - horseNumber: 3
         bracket: 3
@@ -106,6 +107,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:58.6"
+        timeDiff: -0.2
         passing: "2-2-2"
         last3f: 34.5
         weight: 56
@@ -449,6 +451,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: タガノデュード
+    runnerUp: ケイアイセナ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -739,6 +742,7 @@ races:
         finish: 1
         popularity: 4
         time: "1:45.2"
+        timeDiff: -0.1
         passing: "14-14-11-7"
         last3f: 34.1
         weight: 55

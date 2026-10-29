@@ -133,6 +133,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 11
+    winner: サクラファレル
+    runnerUp: カテリーナ
     entries:
       - horseNumber: 4
         bracket: 4
@@ -170,6 +173,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:03.1"
+        timeDiff: -0.3
         passing: "1-1-1-1"
         last3f: 34.7
         weight: 55

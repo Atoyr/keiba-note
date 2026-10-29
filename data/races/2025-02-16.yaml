@@ -11,7 +11,25 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 9
+    winner: マスカレードボール
+    runnerUp: カラマティアノス
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: マスカレードボール
+        jockey: 坂井瑠星
+        ref: nk-2022105519
+        finish: 1
+        popularity: 1
+        time: "1:46.0"
+        timeDiff: -0.1
+        passing: "2-3-3"
+        last3f: 33.7
+        weight: 57
+        horseWeight: 464
+        horseWeightDiff: -8
+        odds: 3.8
       - horseNumber: 4
         bracket: 4
         name: カラマティアノス

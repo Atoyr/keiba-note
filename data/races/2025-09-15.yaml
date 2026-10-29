@@ -101,6 +101,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 12
+    winner: ミュージアムマイル
     entries:
       - horseNumber: 1
         bracket: 1
@@ -124,6 +126,7 @@ races:
         finish: 5
         popularity: 6
         time: "2:11.4"
+        timeDiff: 0.6
         passing: "2-2-3-3"
         last3f: 35.2
         weight: 57

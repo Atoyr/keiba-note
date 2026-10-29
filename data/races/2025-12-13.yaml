@@ -13,6 +13,7 @@ races:
     weather: 晴
     fieldSize: 18
     winner: シェイクユアハート
+    runnerUp: レッドバリエンテ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -121,6 +122,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:57.6"
+        timeDiff: -0.2
         passing: "8-9-9-10"
         last3f: 33.2
         weight: 56.5

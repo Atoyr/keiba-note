@@ -65,6 +65,7 @@ races:
     weather: 晴
     fieldSize: 18
     winner: クロワデュノール
+    runnerUp: マスカレードボール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -214,6 +215,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:23.7"
+        timeDiff: -0.1
         passing: "4-3-2-3"
         last3f: 34.2
         weight: 57
@@ -248,6 +250,21 @@ races:
         horseWeight: 456
         horseWeightDiff: 2
         odds: 114.7
+      - horseNumber: 17
+        bracket: 8
+        name: マスカレードボール
+        jockey: 坂井瑠星
+        ref: nk-2022105519
+        finish: 2
+        popularity: 3
+        time: "2:23.8"
+        timeDiff: 0.1
+        passing: "8-8-7-7"
+        last3f: 33.7
+        weight: 57
+        horseWeight: 466
+        horseWeightDiff: 6
+        odds: 6.8
       - horseNumber: 18
         bracket: 8
         name: サトノシャイニング
