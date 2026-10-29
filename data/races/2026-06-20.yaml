@@ -59,6 +59,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 10
+    winner: イモージェン
+    runnerUp: ソニックアイル
     entries:
       - horseNumber: 2
         bracket: 2
@@ -68,6 +71,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:09.0"
+        timeDiff: -0.2
         passing: "4-3"
         last3f: 33.6
         weight: 55
@@ -330,3 +334,30 @@ races:
         horseWeight: 450
         horseWeightDiff: 0
         odds: 3.5
+  - course: 東京
+    raceNumber: 4
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 稍重
+    weather: 小雨
+    fieldSize: 11
+    winner: ルークウォーム
+    entries:
+      - horseNumber: 9
+        bracket: 7
+        name: ニクスルーナ
+        jockey: 松山弘平
+        ref: nk-2024106712
+        finish: 5
+        popularity: 2
+        time: "1:23.5"
+        timeDiff: 1.2
+        passing: "3-3"
+        last3f: 34.7
+        weight: 55
+        horseWeight: 498
+        horseWeightDiff: 0
+        odds: 3.2

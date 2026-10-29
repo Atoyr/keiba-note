@@ -269,6 +269,7 @@ races:
     trackCondition: 良
     weather: 晴
     fieldSize: 9
+    winner: ジーティーマイカ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -404,6 +405,7 @@ races:
         popularity: 2
         time: "1:20.3"
         margin: "1.1/2"
+        timeDiff: 0.6
         passing: "6-6"
         last3f: 33.7
         weight: 55

@@ -368,6 +368,8 @@ races:
     trackCondition: 重
     weather: 晴
     fieldSize: 13
+    winner: フェリチタ
+    runnerUp: イモージェン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -462,6 +464,7 @@ races:
         finish: 1
         popularity: 9
         time: "1:10.4"
+        timeDiff: 0
         passing: "5-4"
         last3f: 35.6
         weight: 55
@@ -542,6 +545,7 @@ races:
         popularity: 2
         time: "1:10.4"
         margin: "クビ"
+        timeDiff: 0
         passing: "2-2"
         last3f: 35.9
         weight: 55

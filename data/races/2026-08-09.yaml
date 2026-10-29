@@ -762,3 +762,58 @@ races:
         horseWeight: 520
         horseWeightDiff: 6
         odds: 1.2
+  - course: 札幌
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: ウィエダンド
+    entries:
+      - horseNumber: 9
+        bracket: 6
+        name: バタフライ
+        jockey: 原田和真
+        ref: nk-2024107318
+        finish: 6
+        popularity: 9
+        time: "1:30.5"
+        timeDiff: 1.3
+        passing: "5-7-7"
+        last3f: 35.9
+        weight: 55
+        horseWeight: 494
+        horseWeightDiff: 0
+        odds: 42.5
+  - course: 中京
+    raceNumber: 2
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 9
+    winner: レニュアージュ
+    runnerUp: リアンフィニ
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: レニュアージュ
+        jockey: 松山弘平
+        ref: nk-2024106355
+        finish: 1
+        popularity: 3
+        time: "1:34.8"
+        timeDiff: -0.1
+        passing: "1-1-1"
+        last3f: 34.8
+        weight: 55
+        horseWeight: 492
+        horseWeightDiff: 0
+        odds: 5.5

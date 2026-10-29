@@ -233,3 +233,30 @@ races:
         horseWeight: 440
         horseWeightDiff: -10
         odds: 16.1
+  - course: 中京
+    raceNumber: 2
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: ラムラベイ
+    entries:
+      - horseNumber: 6
+        bracket: 5
+        name: ベニバナ
+        jockey: 田山旺佑
+        ref: nk-2024104447
+        finish: 3
+        popularity: 4
+        time: "1:20.2"
+        timeDiff: 0.2
+        passing: "4-5"
+        last3f: 33.7
+        weight: 54
+        horseWeight: 464
+        horseWeightDiff: 0
+        odds: 8.4
