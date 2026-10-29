@@ -35,6 +35,8 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 13
+    winner: タプティ
     entries:
       - horseNumber: 2
         bracket: 2
@@ -50,3 +52,18 @@ races:
         horseWeight: 400
         horseWeightDiff: -2
         odds: 193.9
+      - horseNumber: 12
+        bracket: 8
+        name: バタフライ
+        jockey: 原田和真
+        ref: nk-2024107318
+        finish: 2
+        popularity: 7
+        time: "1:30.5"
+        timeDiff: 0.5
+        passing: "1-1-1"
+        last3f: 36.9
+        weight: 55
+        horseWeight: 492
+        horseWeightDiff: -2
+        odds: 18.1

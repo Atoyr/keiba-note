@@ -222,3 +222,31 @@ races:
         horseWeight: 438
         horseWeightDiff: 20
         odds: 8
+  - course: 札幌
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 14
+    winner: ツキミ
+    runnerUp: グリーンアイランド
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: ツキミ
+        jockey: レーン
+        ref: nk-2024106512
+        finish: 1
+        popularity: 1
+        time: "1:29.8"
+        timeDiff: -0.3
+        passing: "3-2-2"
+        last3f: 35.7
+        weight: 55
+        horseWeight: 438
+        horseWeightDiff: 0
+        odds: 3.1

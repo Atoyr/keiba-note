@@ -721,6 +721,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 小雨
+    fieldSize: 10
+    winner: フェリチタ
+    runnerUp: コックニー
     entries:
       - horseNumber: 1
         bracket: 1
@@ -730,6 +733,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:09.5"
+        timeDiff: -0.5
         passing: "1-1"
         last3f: 34.5
         weight: 55
