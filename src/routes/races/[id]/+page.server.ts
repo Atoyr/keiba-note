@@ -7,11 +7,16 @@ import {
 	listSameConditionRaceNotes,
 	listRaceMemoContext
 } from '$lib/server/services/notes';
-import { buildGradedRaceTimeline, readGradedRaceSeries } from '$lib/server/services/graded-races';
+import {
+	buildGradedProfileView,
+	buildGradedRaceTimeline,
+	readGradedRaceSeries
+} from '$lib/server/services/graded-races';
 import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
+import { gradedRaceProfile } from '$lib/utils/graded-race-profile';
 import { sexAgeLabel } from '$lib/utils/horse';
 import { raceJockeyTags } from '$lib/utils/jockey';
 import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
@@ -52,9 +57,18 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	// 重賞ごとの傾向と、重賞のタイムライン。レース情報に読むだけで出す（直すのは重賞の画面）。重賞でなければ引かない。
 	// 開催前のリダイレクトの後に引く（予想画面へ送るだけのときは要らない）。
 	const gradedKey = isGraded(race.grade) && race.name ? gradedRaceKey(race.name) : null;
+	// 表に紹介がある重賞だけ、条件・優先出走権・前哨戦・コースの特徴を出す。
+	const profile = gradedKey ? gradedRaceProfile(gradedKey, race.date) : null;
 	const horseIds = entries.map((entry) => entry.horseId);
 	const [series, pastRuns, sameCondition, memos] = await Promise.all([
-		gradedKey ? readGradedRaceSeries(db, gradedKey, user.id) : Promise.resolve(null),
+		gradedKey
+			? readGradedRaceSeries(
+					db,
+					gradedKey,
+					user.id,
+					profile ? { keys: [...profile.steps], before: race.date } : undefined
+				)
+			: Promise.resolve(null),
 		listPastRuns(db, horseIds, race.date),
 		race.surface && race.distance
 			? listSameConditionRaceNotes(
@@ -114,7 +128,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 							today,
 							series.entryNoteCounts,
 							series.entryReviewCounts
-						)
+						),
+						profile: profile ? buildGradedProfileView(profile, series.stepRaces) : null
 					}
 				: null,
 		today,

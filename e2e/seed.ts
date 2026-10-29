@@ -441,6 +441,15 @@ export const GRADED_RACE = {
 } as const;
 
 /**
+ * 紹介の表（src/lib/utils/graded-race-profile.ts）に載っている重賞（今年の天皇賞（秋）。seed.sql）。
+ * 前哨戦のオールカマーは GRADED_RACE の去年のレース（勝ち馬あり）が窓に入る。
+ */
+export const PROFILE_RACE = {
+	key: '天皇賞（秋）',
+	raceId: '01JE2ERACEGRADEDPROFILE000'
+} as const;
+
+/**
  * 一般ユーザーが傾向を書いた重賞（去年の毎日王冠。seed.sql）。予想画面・ふりかえり画面に傾向が出る。
  * 別のユーザーも同じ重賞に傾向を書いている（出てはいけない）。
  */

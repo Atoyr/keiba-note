@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
 	import { resolve } from '$app/paths';
+	import CourseFeatures from '$lib/components/CourseFeatures.svelte';
 	import CourseMap from '$lib/components/CourseMap.svelte';
 	import GradedRaceTimeline from '$lib/components/GradedRaceTimeline.svelte';
 	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import RaceConditions from '$lib/components/RaceConditions.svelte';
 	import { gradedRaceParam } from '$lib/utils/graded-race';
 	import { conditionLabel, noteHeading } from '$lib/utils/note';
 	import type { RaceHeadingSource } from '$lib/utils/race-heading';
@@ -23,6 +25,12 @@
 			key: string;
 			trend: string | null;
 			timeline: ComponentProps<typeof GradedRaceTimeline>['timeline'];
+			/** 表に紹介がある重賞だけ。無ければ条件・コースの特徴の節は出さない。 */
+			profile:
+				| (ComponentProps<typeof RaceConditions>['profile'] & {
+						course: ComponentProps<typeof CourseFeatures>['course'];
+				  })
+				| null;
 		} | null;
 		/** 今日（`YYYY-MM-DD`）。重賞のタイムラインの行の行き先を決める。 */
 		today: string;
@@ -42,11 +50,12 @@
 	const condition = $derived(conditionLabel(race));
 </script>
 
-<!-- 重賞の傾向 → 重賞のタイムライン → 同じ条件のレースメモ → コースの順。
+<!-- 重賞の傾向 → レースの条件と前哨戦 → 重賞のタイムライン → 同じ条件のレースメモ → コースの特徴 → コース図の順。
      同じ条件のメモからは、重賞のタイムラインに出るレースを load が SQL で除いてある。
      重賞のタイムラインは重賞（G1〜G3 で名前あり）だけ。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
 	{#if graded}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
+	{#if graded?.profile}<RaceConditions profile={graded.profile} {today} />{/if}
 	{#if graded}
 		<section aria-labelledby="{id}-timeline">
 			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -97,5 +106,6 @@
 			</ol>
 		{/if}
 	</section>
+	{#if graded?.profile}<CourseFeatures {race} course={graded.profile.course} />{/if}
 	<CourseMap {race} />
 </div>

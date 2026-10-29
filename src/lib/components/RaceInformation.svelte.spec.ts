@@ -78,7 +78,7 @@ it('重賞の傾向 → 重賞のタイムライン → 同じ条件のレース
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: '逃げ馬が残りやすい', timeline: [lastYear] },
+		graded: { key: '毎日王冠', trend: '逃げ馬が残りやすい', timeline: [lastYear], profile: null },
 		sameCondition: [sameNote('n1', 'other')]
 	});
 	await expect.element(screen.getByText('逃げ馬が残りやすい')).toBeInTheDocument();
@@ -111,7 +111,7 @@ it('傾向が無くても重賞の傾向の枠とタイムラインが出る（�
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [lastYear] }
+		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null }
 	});
 	await expect.element(screen.getByRole('region', { name: /重賞のタイムライン/ })).toBeVisible();
 	const trend = screen.getByRole('region', { name: /重賞の傾向/ });
@@ -124,7 +124,7 @@ it('ほかの年が無いときは、案内の文を出す', async () => {
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [] }
+		graded: { key: '毎日王冠', trend: null, timeline: [], profile: null }
 	});
 	const timeline = screen.getByRole('region', { name: /重賞のタイムライン/ });
 	await expect
@@ -138,7 +138,7 @@ it('重賞の同じ条件の欄には、渡されたメモと条件が出る', a
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [lastYear] },
+		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null },
 		sameCondition: [sameNote('n2', 'other')]
 	});
 	const same = screen.getByRole('region', { name: /同じ条件で書いたレースのメモ/ });
@@ -150,7 +150,7 @@ it('メモが0件のとき、重賞は「ほかに〜」の文言、重賞でな
 	const gradedScreen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [lastYear] },
+		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null },
 		sameCondition: []
 	});
 	await expect
@@ -161,4 +161,32 @@ it('メモが0件のとき、重賞は「ほかに〜」の文言、重賞でな
 	const plain = render(RaceInformation, props);
 	await expect.element(plain.getByText('同じ条件のレースメモはまだありません。')).toBeVisible();
 	expect(plain.container.textContent).not.toContain('ほかに同じ条件');
+});
+
+it('紹介がある重賞は、条件と前哨戦を傾向の次に、コースの特徴をコース図の直前に置く', async () => {
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: {
+			key: '毎日王冠',
+			trend: '逃げ馬が残りやすい',
+			timeline: [lastYear],
+			profile: {
+				conditions: '3歳以上オープン 定量',
+				priority: [],
+				priorityNote: null,
+				since: 2026,
+				steps: [],
+				course: { start: 'S文。', middle: 'M文。', finish: 'F文。', tendency: 'T文。' }
+			}
+		}
+	});
+	await expect.element(screen.getByText('3歳以上オープン 定量')).toBeInTheDocument();
+	const children = [...screen.container.firstElementChild!.children];
+	const indexOf = (text: string) => children.findIndex((el) => el.textContent?.includes(text));
+	expect(indexOf('レースの条件と前哨戦')).toBeGreaterThan(indexOf('逃げ馬が残りやすい'));
+	expect(indexOf('重賞のタイムライン')).toBeGreaterThan(indexOf('レースの条件と前哨戦'));
+	expect(indexOf('コースの特徴')).toBeGreaterThan(indexOf('同じ条件で書いたレースのメモ'));
+	const courseIndex = children.findIndex((el) => el.querySelector('[aria-label="コース"]'));
+	expect(courseIndex).toBe(indexOf('コースの特徴') + 1);
 });
