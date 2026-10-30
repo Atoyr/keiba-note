@@ -13,23 +13,19 @@ races:
     ref: nk-202608041011
     startTime: "15:45"
     entries:
-      - name: イモージェン
-        jockey: C.デムーロ
+      - horseNumber: 1
+        bracket: 1
+        name: レニュアージュ
+        jockey: 西村淳也
         sex: 牝
         age: 2
-        ref: nk-2024106378
-        trainer: 池添学
+        ref: nk-2024106355
+        trainer: 藤原英昭
         trainingCenter: 栗東
         weight: 55
-      - name: シャンデヴァーグ
-        jockey: 鮫島克駿
-        sex: 牝
-        age: 2
-        ref: nk-2024106025
-        trainer: 森一誠
-        trainingCenter: 美浦
-        weight: 55
-      - name: セイウンマイラヴ
+      - horseNumber: 2
+        bracket: 2
+        name: セイウンマイラヴ
         jockey: 田山旺佑
         sex: 牝
         age: 2
@@ -37,31 +33,9 @@ races:
         trainer: 長谷川浩大
         trainingCenter: 栗東
         weight: 55
-      - name: ツキミ
-        jockey: 川田将雅
-        sex: 牝
-        age: 2
-        ref: nk-2024106512
-        trainer: 清水久詞
-        trainingCenter: 栗東
-        weight: 55
-      - name: ニクスルーナ
-        jockey: 岩田望来
-        sex: 牝
-        age: 2
-        ref: nk-2024106712
-        trainer: 高柳大輔
-        trainingCenter: 栗東
-        weight: 55
-      - name: バタフライ
-        jockey: 原田和真
-        sex: 牝
-        age: 2
-        ref: nk-2024107318
-        trainer: 松山将樹
-        trainingCenter: 美浦
-        weight: 55
-      - name: ビスケットサンド
+      - horseNumber: 3
+        bracket: 3
+        name: ビスケットサンド
         jockey: 北村友一
         sex: 牝
         age: 2
@@ -69,15 +43,49 @@ races:
         trainer: 佐藤悠太
         trainingCenter: 栗東
         weight: 55
-      - name: フェリチタ
-        jockey: 松山弘平
+      - horseNumber: 4
+        bracket: 4
+        name: ニクスルーナ
+        jockey: 岩田望来
         sex: 牝
         age: 2
-        ref: nk-2024105568
-        trainer: 鈴木孝志
+        ref: nk-2024106712
+        trainer: 高柳大輔
         trainingCenter: 栗東
         weight: 55
-      - name: ブライトスクリプト
+      - horseNumber: 5
+        bracket: 5
+        name: バタフライ
+        jockey: 原田和真
+        sex: 牝
+        age: 2
+        ref: nk-2024107318
+        trainer: 松山将樹
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 6
+        bracket: 6
+        name: イモージェン
+        jockey: C.デムーロ
+        sex: 牝
+        age: 2
+        ref: nk-2024106378
+        trainer: 池添学
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 7
+        bracket: 6
+        name: シャンデヴァーグ
+        jockey: 鮫島克駿
+        sex: 牝
+        age: 2
+        ref: nk-2024106025
+        trainer: 森一誠
+        trainingCenter: 美浦
+        weight: 55
+      - horseNumber: 8
+        bracket: 7
+        name: ブライトスクリプト
         jockey: 池添謙一
         sex: 牝
         age: 2
@@ -85,7 +93,9 @@ races:
         trainer: 松下武士
         trainingCenter: 栗東
         weight: 55
-      - name: ベニバナ
+      - horseNumber: 9
+        bracket: 7
+        name: ベニバナ
         jockey: 幸英明
         sex: 牝
         age: 2
@@ -93,11 +103,23 @@ races:
         trainer: 渡辺薫彦
         trainingCenter: 栗東
         weight: 55
-      - name: レニュアージュ
-        jockey: 西村淳也
+      - horseNumber: 10
+        bracket: 8
+        name: フェリチタ
+        jockey: 松山弘平
         sex: 牝
         age: 2
-        ref: nk-2024106355
-        trainer: 藤原英昭
+        ref: nk-2024105568
+        trainer: 鈴木孝志
+        trainingCenter: 栗東
+        weight: 55
+      - horseNumber: 11
+        bracket: 8
+        name: ツキミ
+        jockey: 川田将雅
+        sex: 牝
+        age: 2
+        ref: nk-2024106512
+        trainer: 清水久詞
         trainingCenter: 栗東
         weight: 55
