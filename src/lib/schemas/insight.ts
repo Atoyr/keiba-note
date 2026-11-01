@@ -26,13 +26,21 @@ export const insightWordSchema = v.pipe(
 /** 自由入力の気づき。前後の空白を除いて 200 字以内。空は可（空にすると気づきのメモを消す）。 */
 export const insightMemoSchema = v.pipe(
 	v.string('気づきを入力してください'),
+	// multipart で送ると改行が CRLF になり、数える文字が増えて 200 字の検証に落ちる。LF にそろえてから数える。
+	v.transform((s) => s.replace(/\r\n?/g, '\n')),
 	v.trim(),
 	v.maxLength(INSIGHT_MEMO_MAX, `気づきは${INSIGHT_MEMO_MAX}文字以内で入力してください`)
 );
 
+/** 出走馬の id。DB の id（英数字）の形だけを通す。 */
+export const insightEntryIdSchema = v.pipe(
+	v.string('出走馬を確認してください'),
+	v.regex(/^[0-9A-Za-z]{1,40}$/, '出走馬を確認してください')
+);
+
 /** 押した言葉（押す＝付ける、もう一度押す＝外す）を運ぶ JSON。 */
 export const insightToggleSchema = v.object({
-	entryId: v.pipe(v.string(), v.minLength(1)),
+	entryId: insightEntryIdSchema,
 	word: insightWordSchema,
 	on: v.boolean()
 });

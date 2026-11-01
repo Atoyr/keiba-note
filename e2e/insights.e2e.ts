@@ -163,7 +163,7 @@ test('保存に失敗したら文と「もう一度保存する」が出て、�
 	await word(ao(page), '途中で諦めた').click();
 
 	await expect(ao(page).getByRole('alert')).toContainText(
-		'この馬の気づきを保存できませんでした。入力は端末に残っています。'
+		'気づきの保存を確認できませんでした。時間をおいてもう一度試してください。入力は端末に残っています。'
 	);
 	// 押した言葉もメモも残っている。保存済みには見せない。
 	await expect(word(ao(page), '途中で諦めた')).toHaveAttribute('aria-pressed', 'true');
@@ -205,14 +205,24 @@ test('失敗したまま再読み込みしても、入力は端末から戻り�
 	await word(ao(page), '前残り').click();
 	await expect(ao(page).getByRole('alert')).toBeVisible();
 
+	// 再読み込みしたあと、/insights への POST が飛ばないことを数える（復元は明示操作まで送らない）。
+	const posts: string[] = [];
+	page.on('request', (req) => {
+		if (req.method() === 'POST' && req.url().endsWith(`${writePath}/insights`))
+			posts.push(req.url());
+	});
 	await page.reload();
 	await expect(ao(page).getByRole('alert')).toContainText('入力は端末に残っています');
+	// 画面を離れる前の送信（pagehide）や online でも送られない。少し待って数える。
+	await page.waitForTimeout(1500);
+	expect(posts).toHaveLength(0);
 	await expect(ao(page).getByRole('button', { name: /の気づきを開く/ })).toContainText('前残り');
 
 	await ao(page)
 		.getByRole('button', { name: /もう一度保存する/ })
 		.click();
 	await expect(ao(page).getByRole('alert')).toHaveCount(0);
+	expect(posts).toHaveLength(1);
 
 	// 後片付け。
 	await open(ao(page));

@@ -17,16 +17,13 @@
 
 	{#if form && 'message' in form && form.message}
 		<p
-			class="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+			class="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
 			role="alert"
 		>
 			{form.message}
 		</p>
 	{:else if form && 'words' in form}
-		<p
-			class="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
-			role="status"
-		>
+		<p class="mt-4 rounded-lg border bg-muted px-3 py-2 text-sm text-foreground" role="status">
 			保存しました
 		</p>
 	{:else}

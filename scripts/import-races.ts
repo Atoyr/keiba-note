@@ -435,6 +435,7 @@ function withdrawStatements(
     || CASE WHEN body = '' THEN '' ELSE char(10) || char(10) || body END,
   updated_at = unixepoch()
 WHERE race_entry_id = (${entry});`,
+		// id は SQL の中で行ごとに作る（`randomblob`）ので、ほかの id（ULID）と違い時系列には並ばない。気づきは 1 出走に 1 本なので、行の数だけ作られる。
 		// レース直後の気づき（race_entry_insight）も出走馬行の CASCADE で消えるので、同じく近況メモへ移す。
 		// 言葉は「、」でつなぎ、自由入力のメモを続ける。ふりかえりの移し方と違い、気づきは 1 出走に 1 本。
 		`INSERT INTO note (id, author_id, kind, horse_id, body, occurred_at)

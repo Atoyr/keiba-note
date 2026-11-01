@@ -1,5 +1,5 @@
 import { deserialize } from '$app/forms';
-import type { InsightOp, InsightValue } from './insight-saver.svelte';
+import { InsightSendError, type InsightOp, type InsightValue } from './insight-saver.svelte';
 
 /**
  * 気づきの自動保存のための、form action の `fetch` 呼び出し。
@@ -23,6 +23,10 @@ export async function sendInsight(
 		headers: { 'x-sveltekit-action': 'true', accept: 'application/json' },
 		keepalive: opts.keepalive
 	});
+	// セッションが切れていると /login へリダイレクトされ、応答は HTML になる。ネットワークの失敗と区別する。
+	if (res.redirected && new URL(res.url).pathname === '/login') {
+		throw new InsightSendError('', true);
+	}
 	const result = deserialize(await res.text());
 	if (result.type === 'success') {
 		return result.data as unknown as InsightValue & { entryId: string };
@@ -30,8 +34,8 @@ export async function sendInsight(
 	const message =
 		result.type === 'failure' && typeof result.data?.message === 'string'
 			? result.data.message
-			: '保存できませんでした';
-	throw new Error(message);
+			: '';
+	throw new InsightSendError(message);
 }
 
 /** `InsightOp` を action の入力（FormData）にする。 */

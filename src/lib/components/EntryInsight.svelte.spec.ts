@@ -16,6 +16,7 @@ function setup(initial: Record<string, InsightValue> = {}, registered = ['前が
 	const saver = new InsightSaver({
 		storageKey: 'spec:insight',
 		initial,
+		entryIds: ['e1'],
 		send: (op) =>
 			new Promise<InsightValue>((ok, reject) => {
 				calls.push({ op, ok, ng: () => reject(new Error('net')) });

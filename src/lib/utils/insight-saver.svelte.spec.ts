@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	InsightSaver,
+	InsightSendError,
+	LIMIT_NOTICE,
 	MEMO_DEBOUNCE_MS,
 	type InsightOp,
 	type InsightValue
@@ -27,7 +29,12 @@ const flush = () => Promise.resolve().then(() => Promise.resolve());
 
 function make(initial: Record<string, InsightValue> = {}) {
 	const f = fakeSend();
-	const saver = new InsightSaver({ storageKey: KEY, initial, send: f.send });
+	const saver = new InsightSaver({
+		storageKey: KEY,
+		initial,
+		entryIds: ['e1', 'e2', 'e3'],
+		send: f.send
+	});
 	return { saver, ...f };
 }
 
@@ -125,7 +132,8 @@ describe('InsightSaver 言葉', () => {
 			pressed: false,
 			unsaved: false
 		});
-		expect(saver.status('e1')).toBe('saved');
+		// 保存済みとは言わない（上限の知らせを出す）。
+		expect(saver.status('e1')).toBe('idle');
 	});
 
 	it('登録に無い付いた言葉は登録の後ろに並べ、外せる', () => {
@@ -149,11 +157,9 @@ describe('InsightSaver メモ', () => {
 
 		expect(calls).toHaveLength(1);
 		expect(calls[0].op).toEqual({ kind: 'memo', entryId: 'e1', memo: '前が壁' });
-		expect(saver.memoUnsaved('e1')).toBe(true);
 		expect(saver.status('e1')).toBe('saving');
 		calls[0].ok({ words: [], memo: '前が壁' });
 		await flush();
-		expect(saver.memoUnsaved('e1')).toBe(false);
 		expect(saver.status('e1')).toBe('saved');
 	});
 
@@ -208,6 +214,63 @@ describe('InsightSaver 失敗と復元', () => {
 		expect(localStorage.getItem(KEY)).toBeNull();
 	});
 
+	it('失敗の文は、サーバーの文か既定の文に、端末に残せたかの文が続く。セッション切れは別の文', async () => {
+		const { saver, calls } = make();
+		saver.toggle('e1', 'A');
+		calls[0].ng();
+		await flush();
+		expect(saver.message('e1')).toBe(
+			'この馬の気づきを保存できませんでした。入力は端末に残っています。'
+		);
+
+		const send = vi.fn().mockRejectedValue(new InsightSendError('言葉は20文字以内です。'));
+		const saver2 = new InsightSaver({ storageKey: KEY, initial: {}, entryIds: ['e1'], send });
+		saver2.toggle('e1', 'A');
+		await flush();
+		expect(saver2.message('e1')).toBe('言葉は20文字以内です。入力は端末に残っています。');
+
+		const login = new InsightSaver({
+			storageKey: KEY,
+			initial: {},
+			entryIds: ['e1'],
+			send: vi.fn().mockRejectedValue(new InsightSendError('', true))
+		});
+		login.toggle('e1', 'A');
+		await flush();
+		expect(login.loginRequired('e1')).toBe(true);
+		expect(login.message('e1')).toBe(
+			'ログインが切れています。ログインし直してから、もう一度保存してください。'
+		);
+	});
+
+	it('端末に残せないときは、閉じると消えると伝える', async () => {
+		vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+			throw new Error('denied');
+		});
+		const { saver, calls } = make();
+		saver.toggle('e1', 'A');
+		calls[0].ng();
+		await flush();
+		expect(saver.message('e1')).toBe(
+			'この馬の気づきを保存できませんでした。このページを閉じると入力は消えます。'
+		);
+	});
+
+	it('1頭の上限で言葉が付かなかったら、保存済みにせず上限の文を出す。同じ操作は送り直さない', async () => {
+		const { saver, calls } = make({ e1: { words: ['X'], memo: '' } });
+		saver.toggle('e1', 'A');
+		calls[0].ok({ words: ['X'], memo: '' });
+		await flush();
+
+		expect(calls).toHaveLength(1);
+		expect(saver.notice('e1')).toBe(LIMIT_NOTICE);
+		expect(saver.status('e1')).toBe('idle');
+		expect(saver.words('e1', ['A'])[0]).toEqual({ word: 'A', pressed: false, unsaved: false });
+		// 次に押すと文は消える。
+		saver.toggle('e1', 'B');
+		expect(saver.notice('e1')).toBe('');
+	});
+
 	it('retryFailed は失敗している馬だけを送り直す', async () => {
 		const { saver, calls } = make();
 		saver.toggle('e1', 'A');
@@ -219,6 +282,37 @@ describe('InsightSaver 失敗と復元', () => {
 		saver.retryFailed();
 		expect(calls).toHaveLength(3);
 		expect(calls[2].op).toMatchObject({ entryId: 'e1' });
+	});
+
+	it('復元した操作は flushAll・retryFailed では送らず、retry か操作で初めて送る', async () => {
+		localStorage.setItem(KEY, JSON.stringify({ e1: { words: { A: true } }, e2: { memo: 'メモ' } }));
+		const { saver, calls } = make();
+		saver.restore();
+
+		saver.flushAll({ keepalive: true });
+		saver.retryFailed();
+		expect(calls).toHaveLength(0);
+
+		saver.retry('e1');
+		expect(calls).toHaveLength(1);
+		expect(calls[0].op).toMatchObject({ entryId: 'e1', word: 'A' });
+		calls[0].ok({ words: ['A'], memo: '' });
+		await flush();
+
+		// 触っていない e2 は、まだ送られない。メモを打ち直すと復元の印が外れ、flushAll で送られる。
+		saver.flushAll();
+		expect(calls).toHaveLength(1);
+		saver.setMemo('e2', 'メモ2');
+		saver.flushAll();
+		expect(calls).toHaveLength(2);
+	});
+
+	it('このレースの出走馬でない id の控えは捨てる', () => {
+		localStorage.setItem(KEY, JSON.stringify({ other: { words: { A: true } } }));
+		const { saver } = make();
+		saver.restore();
+		expect(saver.status('other')).toBe('idle');
+		expect(localStorage.getItem(KEY)).toBeNull();
 	});
 
 	it('restore は端末の控えを失敗として戻すが、自動では送らない', () => {

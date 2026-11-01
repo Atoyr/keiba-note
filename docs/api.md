@@ -19,6 +19,9 @@ SvelteKit の `load` + form actions で完結させる。
 予想画面の WebMCP tools はブラウザ内の読み取りと未保存フォーム更新だけで、HTTP の口は増やさない。
 保存は既存 action のまま。tool の仕様は [mcp.md 第7章](./mcp.md)。
 
+気づきの自動保存（Issue #236）だけは、画面から `fetch` で form action を呼ぶ。新しいルート `/races/[id]/insights`（`default` action だけ。`/races/[id]` に名前付き action を足せないため）で、
+JS が無いときの form POST と同じ口・同じ検証。JSON を返す REST の口ではなく、`x-sveltekit-action` を付けた POST に SvelteKit が action の結果を返す（呼び方は `utils/insight-send.ts`）。
+
 例外は **MCP の口 `/mcp`**（Claude・ChatGPT から読む。許せば予想とふりかえりを書く）と、その認可の口（`/.well-known/*`・`/oauth/*`）。
 画面の代わりではなく AI のクライアント向けで、読むのが中心。書けるのは本人が `notes:write` を許したときの予想と、`reviews:write` を許したときのふりかえりだけで、
 form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`）を呼ぶ。中身はサービス層を呼ぶだけ（→ [mcp.md](./mcp.md)）。

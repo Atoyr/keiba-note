@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import CheckIcon from '@lucide/svelte/icons/check';
@@ -56,8 +57,14 @@
 	const pressed = $derived(words.filter((w) => w.pressed));
 	const memo = $derived(saver.memo(entryId));
 	const status = $derived(saver.status(entryId));
+	/** 保存は通ったが、1頭の上限で言葉が付かなかったときの文。 */
+	const notice = $derived(saver.notice(entryId));
+	const loginHref = $derived(
+		`${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname + page.url.search)}`
+	);
 	const hasValue = $derived(pressed.length > 0 || memo.trim() !== '');
 
+	/** 開け閉めのボタンにも入力欄にも効くよう、両方を囲む要素に置く。 */
 	function onkeydown(e: KeyboardEvent) {
 		// 変換中の Esc（変換の取り消し）では閉じない。
 		if (e.key !== 'Escape' || !open || e.isComposing || e.keyCode === 229) return;
@@ -65,6 +72,12 @@
 		open = false;
 		// 入力欄の中にあったフォーカスを、開け閉めのボタンへ戻す。
 		void tick().then(() => toggle?.focus());
+	}
+
+	/** 「もう一度保存する」は押すと消えるので、消える前にフォーカスを開け閉めのボタンへ移す。 */
+	function retry() {
+		toggle?.focus();
+		saver.retry(entryId);
 	}
 </script>
 
@@ -84,7 +97,7 @@
 	>
 </svelte:head>
 
-<div class="mt-2">
+<div class="mt-2" {onkeydown} role="presentation">
 	<div class="-mx-2.5">
 		<Button
 			bind:ref={toggle}
@@ -122,13 +135,7 @@
 		</Button>
 	</div>
 
-	<div
-		id={boxId}
-		hidden={!open}
-		class="entry-insight-box grid gap-2"
-		{onkeydown}
-		role="presentation"
-	>
+	<div id={boxId} hidden={!open} class="entry-insight-box grid gap-2">
 		{#if registered.length === 0}
 			<p class="text-sm text-muted-foreground">
 				よく使う言葉を登録すると、押すだけで残せます。
@@ -195,7 +202,7 @@
 
 		<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
 			<p role="status" class="min-h-4 text-xs text-muted-foreground">
-				{#if status === 'saving'}保存中…{:else if status === 'saved'}保存しました{/if}
+				{#if status === 'saving'}保存中…{:else if notice}{notice}{:else if status === 'saved'}保存しました{/if}
 			</p>
 			<a
 				href={resolve('/settings/insight-words')}
@@ -207,16 +214,26 @@
 
 	{#if status === 'failed'}
 		<div role="alert" class="mt-1 grid gap-1.5 text-sm text-destructive">
-			<p>この馬の気づきを保存できませんでした。入力は端末に残っています。</p>
+			<p>{saver.message(entryId)}</p>
 			<div>
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					class="min-h-11 sm:min-h-7"
-					onclick={() => saver.retry(entryId)}
-					><span class="sr-only">{horseName}の気づきを</span>もう一度保存する</Button
-				>
+				{#if saver.loginRequired(entryId)}
+					<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは resolve() で組み、戻り先のクエリだけを足す -->
+					<a
+						href={loginHref}
+						class="inline-flex min-h-11 items-center underline underline-offset-2 sm:min-h-7"
+						>ログインする</a
+					>
+					<!-- eslint-enable svelte/no-navigation-without-resolve -->
+				{:else}
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						class="min-h-11 sm:min-h-7"
+						onclick={retry}
+						><span class="sr-only">{horseName}の気づきを</span>もう一度保存する</Button
+					>
+				{/if}
 			</div>
 		</div>
 	{/if}

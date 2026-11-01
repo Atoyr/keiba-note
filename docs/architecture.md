@@ -342,12 +342,15 @@ sequenceDiagram
     and
         L->>S: isFavoriteHorse(db, horseId, user.id)
         S->>D: favorite_horse 【クエリ5】
+    and
+        L->>S: listHorseInsights(db, horseId, user.id)
+        S->>D: race_entry_insight JOIN race JOIN race_entry 【クエリ6】
     end
-    Note over L: mergeHorseTimeline で出走とメモを1本に並べる
+    Note over L: mergeHorseTimeline で出走とメモと気づきを1本に並べる
     L-->>B: SSR した HTML
 ```
 
-**1ページ＝セッション検証1＋読み4（並行）。** メモのタイムラインが1クエリで済むのは、
+**1ページ＝セッション検証1＋読み5（並行）。** メモのタイムラインが1クエリで済むのは、
 `note` に `horse_id` を非正規化しているため（→ [data-model.md](./data-model.md)）。
 レース紐付きメモと近況メモをマージする処理が要らない。
 

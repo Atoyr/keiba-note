@@ -172,7 +172,8 @@ GitHub Actions が取得元から書く唯一の表で、メモからも馬柱�
   索引は `(user_id, horse_id, occurred_at)` と `(user_id, race_id)`
 - 書くのは 1 回の `batch` で、読んでから書く形にしない（連続して押した 2 つが互いを上書きしない）。1 頭に付く言葉は 40 個まで
 - 出走馬行を消す取り下げ（`scripts/import-races.ts`）では、気づきを近況メモ（`kind='horse'`）へ移してから消す
-- AI 連携（MCP）・共有（予想まとめ・共有ページ）には出さない
+- AI 連携（MCP）・共有（予想まとめ・共有ページ）には出さない。**例外は取り下げで近況メモへ移したもの**で、移したあとは近況メモ（`note`）なので MCP・共有の対象になる
+- **出走馬の入力画面（`/races/[id]/entries` の `saveEntries`）で行を消すと、気づきも CASCADE で消える。** 取り下げと違って移さない（紐づくメモも同じ）。消す前の確認文でそう伝える
 
 ### oauth_client / oauth_grant / oauth_code / oauth_token / mcp_usage
 

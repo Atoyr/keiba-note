@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { insightMemoSchema, insightToggleSchema } from '$lib/schemas/insight';
+import { insightEntryIdSchema, insightMemoSchema, insightToggleSchema } from '$lib/schemas/insight';
 import { getInsightTarget, setInsightMemo, setInsightWord } from '$lib/server/services/insights';
 import { isUpcoming, todayJst } from '$lib/utils/date';
 import { ctx } from '$lib/server/util';
@@ -19,6 +19,8 @@ import type { Actions } from './$types';
  *
  * 出走馬の構成は DB を正とする。フォームの id を鵜呑みにすると、別のレースの出走馬に書き込めてしまう。
  */
+const SAVE_FAILED = '気づきの保存を確認できませんでした。時間をおいてもう一度試してください。';
+
 export const actions: Actions = {
 	default: async ({ locals, platform, params, request }) => {
 		const { db, user } = ctx(locals, platform);
@@ -48,7 +50,10 @@ export const actions: Actions = {
 			entryId = parsed.output.entryId;
 			apply = (target) => setInsightWord(db, user.id, target, word, on);
 		} else if (typeof saveMemo === 'string' && saveMemo !== '') {
-			entryId = saveMemo;
+			// 検証を通っていない id は、失敗の応答にも結果画面のリンクにも入れない。
+			const id = v.safeParse(insightEntryIdSchema, saveMemo);
+			if (!id.success) return fail(400, { message: id.issues[0].message });
+			entryId = id.output;
 			const parsed = v.safeParse(insightMemoSchema, form.get(`insightMemo.${entryId}`) ?? '');
 			if (!parsed.success) {
 				return fail(400, {
@@ -62,7 +67,13 @@ export const actions: Actions = {
 			return fail(400, { message: '保存する内容がありません' });
 		}
 
-		const target = await getInsightTarget(db, params.id, entryId);
+		let target: Awaited<ReturnType<typeof getInsightTarget>>;
+		try {
+			target = await getInsightTarget(db, params.id, entryId);
+		} catch {
+			// 404・400 の error() は try の外（SvelteKit の例外を飲み込まない）。D1 の失敗だけここで受ける。
+			return fail(503, { message: SAVE_FAILED, entryId });
+		}
 		// 無いレース・別のレースの出走馬は同じ 404（在るかどうかを漏らさない）。
 		if (!target) error(404, '出走馬が見つかりません');
 
@@ -76,10 +87,7 @@ export const actions: Actions = {
 			return { entryId, words: saved.words, memo: saved.memo };
 		} catch {
 			// D1 の失敗は createDb の observer が記録する。操作は画面（端末）に残るので、案内して再試行してもらう。
-			return fail(503, {
-				message: '気づきの保存を確認できませんでした。時間をおいてもう一度試してください。',
-				entryId
-			});
+			return fail(503, { message: SAVE_FAILED, entryId });
 		}
 	}
 };

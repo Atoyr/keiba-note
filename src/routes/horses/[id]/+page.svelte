@@ -326,9 +326,9 @@
 					{:else if row.type === 'insight'}
 						{@const i = row.insight}
 						<!-- レース直後の気づき。ふりかえりのメモとは別の行で、共有・削除のメニューは出さない（直すのはふりかえり画面）。 -->
-						<li class="border-l-2 border-gray-200 pl-4">
+						<li class="border-l-2 border-border pl-4">
 							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
-								<span class="font-mono text-gray-500">{row.occurredAt}</span>
+								<span class="font-mono text-muted-foreground">{row.occurredAt}</span>
 								<KindBadge label="気づき" />
 								<a
 									href={opensReview(

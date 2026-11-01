@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
-import { insightMemoSchema, insightToggleSchema, insightWordSchema } from './insight';
+import {
+	insightEntryIdSchema,
+	insightMemoSchema,
+	insightToggleSchema,
+	insightWordSchema
+} from './insight';
 
 describe('insightWordSchema', () => {
 	it('全角の英数字を半角に寄せ、前後の空白を除く', () => {
@@ -26,6 +31,12 @@ describe('insightMemoSchema', () => {
 		expect(v.parse(insightMemoSchema, ' 前が壁 ')).toBe('前が壁');
 	});
 
+	it('CRLF と CR は LF にそろえてから数える（multipart で改行が増えても 200 字に収まる）', () => {
+		const crlf = 'あ\r\n'.repeat(100); // LF なら 200 字ちょうど
+		expect(v.safeParse(insightMemoSchema, crlf).success).toBe(true);
+		expect(v.parse(insightMemoSchema, 'a\r\nb\rc')).toBe('a\nb\nc');
+	});
+
 	it('200字までは通り、201字は落ちる', () => {
 		expect(v.safeParse(insightMemoSchema, 'あ'.repeat(200)).success).toBe(true);
 		expect(v.safeParse(insightMemoSchema, 'あ'.repeat(201)).success).toBe(false);
@@ -40,5 +51,14 @@ describe('insightToggleSchema', () => {
 		expect(
 			v.safeParse(insightToggleSchema, { entryId: 'e1', word: '前が壁', on: true }).success
 		).toBe(true);
+	});
+});
+
+describe('insightEntryIdSchema', () => {
+	it('英数字の id だけを通す', () => {
+		expect(v.safeParse(insightEntryIdSchema, '01JE2EENTRYINSIGHTW1000000').success).toBe(true);
+		expect(v.safeParse(insightEntryIdSchema, '').success).toBe(false);
+		expect(v.safeParse(insightEntryIdSchema, '<script>').success).toBe(false);
+		expect(v.safeParse(insightEntryIdSchema, 'a'.repeat(41)).success).toBe(false);
 	});
 });

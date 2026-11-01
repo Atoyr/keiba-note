@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -9,6 +10,7 @@
 
 	let { data, form }: PageProps = $props();
 	let pending = $state(false);
+	let wordInput = $state<HTMLInputElement | null>(null);
 </script>
 
 <svelte:head><title>気づきの言葉 — uma-memo</title></svelte:head>
@@ -48,6 +50,7 @@
 		<div class="flex flex-wrap items-center gap-2">
 			<Input
 				id="word"
+				bind:ref={wordInput}
 				name="word"
 				maxlength={INSIGHT_WORD_MAX}
 				value={form && 'word' in form && form.word && !('added' in form) ? form.word : ''}
@@ -69,7 +72,7 @@
 	</form>
 
 	<section class="mt-8" aria-labelledby="registered">
-		<h2 id="registered" class="text-sm font-semibold text-gray-500">
+		<h2 id="registered" class="text-sm font-semibold text-muted-foreground">
 			登録した言葉（{data.words.length}/{data.limit}）
 		</h2>
 		{#if data.words.length === 0}
@@ -85,8 +88,12 @@
 							method="POST"
 							action="?/remove"
 							use:enhance={() =>
-								async ({ update }) =>
-									update({ reset: false })}
+								async ({ update }) => {
+									await update({ reset: false });
+									// 押したボタンは消えるので、フォーカスを「新しい言葉」の欄へ移す。
+									await tick();
+									wordInput?.focus();
+								}}
 						>
 							<input type="hidden" name="word" value={word} />
 							<Button type="submit" variant="ghost" size="sm" class="min-h-11 sm:min-h-9">

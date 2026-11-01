@@ -24,6 +24,19 @@ export type InsightOp =
 	| { kind: 'word'; entryId: string; word: string; on: boolean }
 	| { kind: 'memo'; entryId: string; memo: string };
 
+/**
+ * 送信の失敗。`message` はサーバーの `failure` の文（あれば）、`login` はセッション切れ
+ * （`/login` へのリダイレクトで終わった）。ネットワークの失敗はこれではなく、そのままの例外になる。
+ */
+export class InsightSendError extends Error {
+	constructor(
+		message: string,
+		readonly login = false
+	) {
+		super(message);
+	}
+}
+
 export type InsightSend = (op: InsightOp, opts: { keepalive: boolean }) => Promise<InsightValue>;
 
 export type InsightStatus = 'idle' | 'saving' | 'saved' | 'failed';
@@ -41,12 +54,27 @@ type Row = {
 	/** メモのデバウンスが済んで、送ってよいか。 */
 	memoReady: boolean;
 	keepalive: boolean;
+	/** 端末から戻した操作。ユーザーが明示して触る（retry・toggle・setMemo）まで送らない。 */
+	restored: boolean;
+	/** 失敗の文（`failed` のとき行に出す）。 */
+	message: string;
+	/** セッション切れで落ちたか。 */
+	loginRequired: boolean;
+	/** 1頭の上限で言葉が付かなかったか。 */
+	limited: boolean;
 	/** 最後に打った文そのまま（前後の空白を含む）。サーバーは空白を除いて返すので、欄にはこちらを出し続ける（打ちかけの空白が消えない）。 */
 	typed: string | null;
 };
 
 /** メモを打ち止めてから送るまで。打つたびに送ると、1 文字ごとにリクエストが飛ぶ。 */
 export const MEMO_DEBOUNCE_MS = 600;
+
+const DEFAULT_FAILURE = 'この馬の気づきを保存できませんでした。';
+const KEPT = '入力は端末に残っています。';
+const NOT_KEPT = 'このページを閉じると入力は消えます。';
+const LOGIN_EXPIRED = 'ログインが切れています。ログインし直してから、もう一度保存してください。';
+/** 1頭に付けられる言葉の数（`INSIGHT_ATTACHED_LIMIT`）。画面側はサーバーの定義を import できないので写している。 */
+export const LIMIT_NOTICE = 'この馬に付けられる言葉は40個までです。';
 
 const emptyRow = (value?: InsightValue): Row => ({
 	words: value?.words ?? [],
@@ -57,6 +85,10 @@ const emptyRow = (value?: InsightValue): Row => ({
 	saved: false,
 	memoReady: false,
 	keepalive: false,
+	restored: false,
+	message: '',
+	loginRequired: false,
+	limited: false,
 	typed: null
 });
 
@@ -67,14 +99,18 @@ export class InsightSaver {
 
 	readonly #storageKey: string;
 	readonly #send: InsightSend;
+	readonly #entryIds: readonly string[];
 	/** メモのデバウンスのタイマー。表示に関わらないので、リアクティブにしない。 */
 	readonly #timers: Record<string, ReturnType<typeof setTimeout>> = {};
 
 	constructor(opts: {
 		storageKey: string;
 		initial: Record<string, InsightValue>;
+		/** このレースの出走馬の id。端末の控えのうち、これに無い id は捨てる。 */
+		entryIds: readonly string[];
 		send: InsightSend;
 	}) {
+		this.#entryIds = opts.entryIds;
 		this.#storageKey = opts.storageKey;
 		this.#send = opts.send;
 		for (const [id, v] of Object.entries(opts.initial)) this.rows[id] = emptyRow(v);
@@ -94,7 +130,9 @@ export class InsightSaver {
 	/** いま押されている言葉か。未送信の操作があればそれが先、無ければ確定値。 */
 	#pressed(row: Row | undefined, word: string): boolean {
 		if (!row) return false;
-		return word in row.pending.words ? row.pending.words[word] : row.words.includes(word);
+		return Object.hasOwn(row.pending.words, word)
+			? row.pending.words[word]
+			: row.words.includes(word);
 	}
 
 	/**
@@ -110,7 +148,9 @@ export class InsightSaver {
 			seen.push(word);
 			const pressed = this.#pressed(row, word);
 			const unsaved =
-				!!row && word in row.pending.words && row.pending.words[word] !== row.words.includes(word);
+				!!row &&
+				Object.hasOwn(row.pending.words, word) &&
+				row.pending.words[word] !== row.words.includes(word);
 			out.push({ word, pressed, unsaved });
 		};
 		registered.forEach(add);
@@ -127,10 +167,19 @@ export class InsightSaver {
 		return row?.pending.memo ?? row?.typed ?? row?.memo ?? '';
 	}
 
-	/** メモの文がサーバーに届いていないか。 */
-	memoUnsaved(entryId: string): boolean {
-		const row = this.rows[entryId];
-		return row?.pending.memo !== undefined && row.pending.memo.trim() !== row.memo;
+	/** 失敗の文（`failed` のとき）。 */
+	message(entryId: string): string {
+		return this.rows[entryId]?.message ?? '';
+	}
+
+	/** セッション切れで落ちたか。 */
+	loginRequired(entryId: string): boolean {
+		return this.rows[entryId]?.loginRequired ?? false;
+	}
+
+	/** 保存は通ったが、言葉が上限で付かなかったときの文。無ければ空。 */
+	notice(entryId: string): string {
+		return this.rows[entryId]?.limited ? LIMIT_NOTICE : '';
 	}
 
 	status(entryId: string): InsightStatus {
@@ -146,6 +195,7 @@ export class InsightSaver {
 	/** 言葉を押す。付いていれば外し、無ければ付ける。すぐ送る。 */
 	toggle(entryId: string, word: string): void {
 		const row = this.#ensure(entryId);
+		this.#touch(row);
 		row.pending.words[word] = !this.#pressed(row, word);
 		row.saved = false;
 		this.#persist();
@@ -155,6 +205,7 @@ export class InsightSaver {
 	/** メモを書く。打ち止めて 600ms で送る。 */
 	setMemo(entryId: string, memo: string): void {
 		const row = this.#ensure(entryId);
+		this.#touch(row);
 		row.pending.memo = memo;
 		row.typed = memo;
 		row.memoReady = false;
@@ -180,19 +231,22 @@ export class InsightSaver {
 	retry(entryId: string): void {
 		const row = this.rows[entryId];
 		if (!row) return;
+		this.#touch(row);
 		row.memoReady = true;
 		void this.#drain(entryId);
 	}
 
-	/** 失敗している行をすべて送り直す（オンラインに戻ったとき）。 */
+	/** 失敗している行をすべて送り直す（オンラインに戻ったとき）。端末から戻しただけの行は、押されるまで送らない。 */
 	retryFailed(): void {
-		for (const [id, row] of Object.entries(this.rows)) if (row.failed) this.retry(id);
+		for (const [id, row] of Object.entries(this.rows))
+			if (row.failed && !row.restored) this.retry(id);
 	}
 
 	/** 画面を離れる前に、未送信のものをすべて送り始める。 */
 	flushAll(opts: { keepalive?: boolean } = {}): void {
 		for (const [id, row] of Object.entries(this.rows)) {
-			if (!hasPending(row.pending)) continue;
+			// 端末から戻しただけの操作は、押されるまで送らない（復元は明示）。
+			if (!hasPending(row.pending) || row.restored) continue;
 			this.#clearTimer(id);
 			row.memoReady = true;
 			if (opts.keepalive) row.keepalive = true;
@@ -209,6 +263,12 @@ export class InsightSaver {
 	#ensure(entryId: string): Row {
 		if (!this.rows[entryId]) this.rows[entryId] = emptyRow();
 		return this.rows[entryId];
+	}
+
+	/** ユーザーがこの行を明示して触った。復元の印と、前回の知らせを外す。 */
+	#touch(row: Row) {
+		row.restored = false;
+		row.limited = false;
 	}
 
 	#clearTimer(entryId: string) {
@@ -251,13 +311,16 @@ export class InsightSaver {
 				let value: InsightValue;
 				try {
 					value = await this.#send(op, { keepalive: row.keepalive });
-				} catch {
+				} catch (e) {
 					// 操作は消さない。端末に残してあるので、再読み込みしても戻せる。
 					row.failed = true;
+					this.#describe(row, e);
 					return;
 				}
 				row.words = value.words;
 				row.memo = value.memo;
+				// 付けようとした言葉が応答に無ければ、1頭の上限で付かなかった。保存済みとは言わず、文で知らせる。
+				if (op.kind === 'word' && op.on && !value.words.includes(op.word)) row.limited = true;
 				// サーバーの答えが正。上限で付かなかった言葉のように確定値と合わなくても、同じ操作を送り直さない
 				// （送り直すと無限に繰り返す）。応答待ちの間に押し直した・書き足した分は値が違うので残る。
 				if (op.kind === 'word' && row.pending.words[op.word] === op.on) {
@@ -267,16 +330,28 @@ export class InsightSaver {
 				this.#prune(row);
 				this.#persist();
 			}
-			row.saved = true;
+			row.saved = !row.limited;
 			this.#persist();
 		} finally {
 			row.inflight = false;
 		}
 	}
 
+	/** 失敗の文を組む。端末に残せたかで続きの文が変わる。 */
+	#describe(row: Row, e: unknown) {
+		row.loginRequired = e instanceof InsightSendError && e.login;
+		if (row.loginRequired) {
+			row.message = LOGIN_EXPIRED;
+			return;
+		}
+		const server = e instanceof InsightSendError && e.message ? e.message : DEFAULT_FAILURE;
+		row.message = `${server}${this.#persist() ? KEPT : NOT_KEPT}`;
+	}
+
 	// ---- 端末に残す -------------------------------------------------------
 
-	#persist() {
+	/** 端末に残せたか（残すものが無いときも、消せれば true）。 */
+	#persist(): boolean {
 		try {
 			const out: Record<string, InsightPending> = {};
 			for (const [id, row] of Object.entries(this.rows)) {
@@ -288,8 +363,10 @@ export class InsightSaver {
 			}
 			if (Object.keys(out).length === 0) localStorage.removeItem(this.#storageKey);
 			else localStorage.setItem(this.#storageKey, JSON.stringify(out));
+			return true;
 		} catch {
 			// 端末に残せなくても、入力と送信は続けられる。
+			return false;
 		}
 	}
 
@@ -304,7 +381,8 @@ export class InsightSaver {
 		}
 		if (!parsed || typeof parsed !== 'object') return;
 		for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
-			if (!value || typeof value !== 'object') continue;
+			// このレースの出走馬の控えだけを戻す。
+			if (!this.#entryIds.includes(id) || !value || typeof value !== 'object') continue;
 			const v = value as { words?: unknown; memo?: unknown };
 			const pending: InsightPending = { words: {} };
 			if (v.words && typeof v.words === 'object') {
@@ -317,7 +395,11 @@ export class InsightSaver {
 			row.pending = pending;
 			if (pending.memo !== undefined) row.typed = pending.memo;
 			this.#prune(row);
-			if (hasPending(row.pending)) row.failed = true;
+			if (hasPending(row.pending)) {
+				row.failed = true;
+				row.restored = true;
+				row.message = DEFAULT_FAILURE + KEPT;
+			}
 		}
 		this.#persist();
 	}

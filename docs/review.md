@@ -137,7 +137,7 @@ Claude Code では `.claude/agents/reviewer-*.md` のサブエージェントと
 | 観点 | 見ること |
 | --- | --- |
 | ★ 本番に入れてよいか | `data/races/` に架空の馬・テスト用の値・書きかけが無いか（見本は `data/examples/`）。データの PR にコードの変更が混ざっていないか |
-| ★ 取り下げ | `withdrawn` に入った馬が、出馬表に無い馬だけか。出走馬行が消え、メモが近況メモへ移ることを PR 本文に書いているか。`entries` から消えただけで `withdrawn` に入っていない馬が無いか（YAML から消しても DB からは消えない） |
+| ★ 取り下げ | `withdrawn` に入った馬が、出馬表に無い馬だけか。出走馬行が消え、メモ（レース直後の気づきを含む）が近況メモへ移ることを PR 本文に書いているか。`entries` から消えただけで `withdrawn` に入っていない馬が無いか（YAML から消しても DB からは消えない） |
 | ★ 同一性（ref） | 既存の `ref` を書き換えていないか。`ref` と `name` を1回で両方変えていないか（新しい馬ができる。[data/README.md「馬名を直す」](../data/README.md)） |
 | ★ ワークフローの権限 | `permissions` が最小か。`secrets` と外から来る値（PR の本文・タイトル・ブランチ名）を `run:` に `${{ }}` で直に埋め込んでいないか（`env:` で渡す）。`pull_request_target` を使っていないか |
 | ★ 本番に触る job | `--remote`・`deploy`・`wrangler secret` を叩く job が、`main` への push、人の起動、または Worker の Cron が `ref: main` で起動する `workflow_dispatch`（job に `if: github.ref == 'refs/heads/main'` があること）でしか走らないか。PR やほかのブランチから走らないか |

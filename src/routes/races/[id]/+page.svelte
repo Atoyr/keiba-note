@@ -144,18 +144,17 @@
 			initial: Object.fromEntries(
 				data.rows.flatMap((r) => (r.insight ? [[r.entryId, r.insight] as const] : []))
 			),
+			entryIds: data.rows.map((r) => r.entryId),
 			// action の場所は送るときに組む（SSR の相対パスを持ち越さない）。
 			send: (op, opts) =>
 				sendInsight(resolve('/races/[id]/insights', { id: raceId }), insightFormData(op), opts)
 		});
 	}
-	let saver = $state.raw(untrack(() => makeSaver(data.race.id)));
-	let saverFor = untrack(() => data.race.id);
-	$effect.pre(() => {
+	// レースごとに作る。別のレースへ移ると作り直し、下の effect の cleanup が前のものを送り切る。
+	// 追跡するのはレースの id だけ（`data` の再読み込みで作り直すと、送信中の操作を失う）。
+	const saver = $derived.by(() => {
 		const id = data.race.id;
-		if (id === saverFor) return;
-		saverFor = id;
-		saver = untrack(() => makeSaver(id));
+		return untrack(() => makeSaver(id));
 	});
 	$effect(() => {
 		const s = saver;
@@ -163,11 +162,17 @@
 		// untrack: 読み戻しで rows を読むので、追跡すると行が変わるたびにこの effect が回り直す。
 		untrack(() => s.restore());
 		const onHide = () => s.flushAll({ keepalive: true });
+		// LINE などへ切り替えたときは pagehide が来ないので、見えなくなったときにも送り始める。
+		const onVisibility = () => {
+			if (document.visibilityState === 'hidden') onHide();
+		};
 		const onOnline = () => s.retryFailed();
 		window.addEventListener('pagehide', onHide);
+		document.addEventListener('visibilitychange', onVisibility);
 		window.addEventListener('online', onOnline);
 		return () => {
 			window.removeEventListener('pagehide', onHide);
+			document.removeEventListener('visibilitychange', onVisibility);
 			window.removeEventListener('online', onOnline);
 			s.flushAll();
 			s.dispose();

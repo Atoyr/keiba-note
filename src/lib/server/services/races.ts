@@ -386,7 +386,7 @@ export async function saveEntries(
 		}
 	}
 
-	// フォームから消えた出走馬は削除する。紐づく note も CASCADE で消える。
+	// フォームから消えた出走馬は削除する。紐づく note・race_entry_insight（レース直後の気づき）も CASCADE で消える（取り下げと違い、近況メモへは移さない）。
 	const removed = existing.filter((e) => !keptHorseIds.has(e.horseId));
 	for (const e of removed) {
 		statements.push(db.delete(raceEntry).where(eq(raceEntry.id, e.id)));
