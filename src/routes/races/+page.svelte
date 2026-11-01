@@ -66,7 +66,7 @@
 					     結果が出たもの・ふりかえりを書いたものだけふりかえりへ、それ以外は予想画面へ送る
 					     （→ opensReview）。 -->
 					<a
-						href={opensReview(r, data.today, r.reviewCount > 0)
+						href={opensReview(r, data.today, r.reviewCount > 0 || r.insightCount > 0)
 							? resolve('/races/[id]', { id: r.id })
 							: resolve('/races/[id]/preview', { id: r.id })}
 						class="block py-3 hover:bg-gray-50"

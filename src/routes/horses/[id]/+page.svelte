@@ -11,13 +11,14 @@
 	import ShareControl from '$lib/components/ShareControl.svelte';
 	import SharedBadge from '$lib/components/SharedBadge.svelte';
 	import HorseProfileHeader from '$lib/components/HorseProfileHeader.svelte';
+	import InsightView from '$lib/components/InsightView.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
 	import TagPicker from '$lib/components/TagPicker.svelte';
 	import { HORSE_SEXES, TRAINING_CENTERS } from '$lib/schemas/horse';
 	import { isSettled, opensReview } from '$lib/utils/date';
 	import { horseAge } from '$lib/utils/horse';
-	import { isReviewNote, noteHeading, runHeading } from '$lib/utils/note';
+	import { isReviewNote, noteHeading, raceLabel, runHeading } from '$lib/utils/note';
 	import { isAdmin } from '$lib/utils/role';
 	import type { PageProps } from './$types';
 
@@ -321,6 +322,36 @@
 								</a>
 								{@render ageAt(row.occurredAt)}
 							</div>
+						</li>
+					{:else if row.type === 'insight'}
+						{@const i = row.insight}
+						<!-- レース直後の気づき。ふりかえりのメモとは別の行で、共有・削除のメニューは出さない（直すのはふりかえり画面）。 -->
+						<li class="border-l-2 border-gray-200 pl-4">
+							<div class="flex flex-wrap items-baseline gap-x-2 text-sm">
+								<span class="font-mono text-gray-500">{row.occurredAt}</span>
+								<KindBadge label="気づき" />
+								<a
+									href={opensReview(
+										{ date: i.occurredAt, resultCount: i.resultCount },
+										data.today,
+										true
+									)
+										? resolve('/races/[id]', { id: i.raceId })
+										: resolve('/races/[id]/preview', { id: i.raceId })}
+									class="hover:underline"
+								>
+									{[raceLabel(i), i.finishPosition ? `${i.finishPosition}着` : null]
+										.filter(Boolean)
+										.join(' ') || 'レース'}
+								</a>
+								{@render ageAt(i.occurredAt)}
+							</div>
+							<InsightView
+								words={i.words.map((word) => ({ word }))}
+								memo={i.memo}
+								label={false}
+								class="mt-1"
+							/>
 						</li>
 					{:else}
 						{@const n = row.note}

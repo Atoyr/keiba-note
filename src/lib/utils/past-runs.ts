@@ -10,6 +10,8 @@ import type { Mark, NoteTag } from '$lib/schemas/note';
 export type PastRun = {
 	entryId?: string;
 	notes?: { id: string; kind: string; body: string; tags: NoteTag[]; mark: Mark | null }[];
+	/** レース直後の気づき（付けた言葉と短いメモ）。無ければ null。 */
+	insight?: { words: string[]; memo: string } | null;
 	raceId: string;
 	date: string;
 	course: string;

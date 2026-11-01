@@ -96,7 +96,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
 		listRaceMemoContext(db, params.id, horseIds, user.id)
 	]);
-	const { raceNotes: thisRaceNotes, pastRunNotes: runNotes, history } = memos;
+	const { raceNotes: thisRaceNotes, pastRunNotes: runNotes, history, pastRunInsights } = memos;
 
 	// オッズは馬番に付く。馬番が決まっていない馬（枠順確定前）には付かない。
 	const oddsByNumber = new Map(odds?.horses.map((h) => [h.horseNumber, h]) ?? []);
@@ -156,7 +156,9 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				history: history.get(e.horseId) ?? [],
 				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({
 					...run,
-					notes: runNotes.get(run.entryId) ?? []
+					notes: runNotes.get(run.entryId) ?? [],
+					// レース直後の気づき（次走の検討で読む）。ふりかえり本文を書かなくても出る。
+					insight: pastRunInsights.get(run.entryId) ?? null
 				}))
 			};
 		})

@@ -23,6 +23,8 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 | `src/lib/components/ui/` | shadcn-svelte の生成物 | **手で直さない**（→ [design-system.md](./design-system.md)） |
 
 **専用の REST API は作らない。** 読みは `load`、書きは form actions で完結させる（理由は [api.md 第1章](./api.md)）。
+例外は気づきの自動保存だけ（Issue #236）。押すたびに画面全体を描き直さず 1 操作 1 リクエストで送るため、`fetch` で同じ form action（`/races/[id]/insights`）を呼ぶ。
+口は新しく作らず、`x-sveltekit-action` を付けた POST と `deserialize` は `utils/insight-send.ts` に閉じる。JS が無いときの form POST と検証・認可が同じになる（→ [pages.md 3-1](./pages.md)）。
 
 ## 2. ルート（`+page.server.ts`）の書き方
 

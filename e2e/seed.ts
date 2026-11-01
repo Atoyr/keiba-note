@@ -459,3 +459,39 @@ export const TREND_RACE = {
 	trend: 'E2E重賞の傾向。天皇賞の前哨戦で、前走で好走した馬が人気でも崩れにくい。',
 	otherUserTrend: '他人の毎日王冠の傾向。見えてはいけない。'
 } as const;
+
+/**
+ * レース直後の気づき（Issue #236）。
+ * - `view` — 保存済みの気づきが付いた2頭（シロウマ: 言葉2つ+メモ、クロウマ: 言葉1つ）。読む見本で、テストは書き換えない。シロウマの前走（`past`）にも保存済みの気づきがある
+ * - `write` — 気づきを書くレース（出走2頭）。E2E が言葉を押し、メモを書く。見本には使わない
+ * - `noResult` — 結果がまだ入っていない開催済みのレース。気づきを残していれば、一覧の行き先がふりかえりになる
+ * 言葉を登録しているのは一般ユーザーだけ。`NO_WORDS_SESSION_TOKEN` のユーザーは言葉が0件で、`write` の1頭目に自分の気づきを1つ残している（一般ユーザーには見えてはいけない）。
+ */
+export const INSIGHT = {
+	words: ['上がりが強い', '内詰まり', '前が壁', '距離延長○', '前残り', '途中で諦めた'],
+	view: {
+		raceId: '01JE2ERACEINSIGHTVIEW00000',
+		horses: { shiro: '01JE2EHORSEINSIGHTV1000000', kuro: '01JE2EHORSEINSIGHTV2000000' },
+		names: { shiro: 'E2E気づきシロウマ', kuro: 'E2E気づきクロウマ' },
+		memo: '次はもう少し長い距離で。'
+	},
+	past: {
+		raceId: '01JE2ERACEINSIGHTPAST00000',
+		name: 'E2E気づき前走',
+		memo: '直線で前が壁になった。2400 なら。'
+	},
+	write: {
+		raceId: '01JE2ERACEINSIGHTWRITE0000',
+		entries: { aka: '01JE2EENTRYINSIGHTW1000000', ao: '01JE2EENTRYINSIGHTW2000000' },
+		names: { aka: 'E2E気づきアカウマ', ao: 'E2E気づきアオウマ' },
+		/** 言葉無しユーザーが1頭目に残した気づき。一般ユーザーには見えてはいけない。 */
+		otherMemo: '他人の気づき。見えてはいけない。'
+	},
+	noResult: { raceId: '01JE2ERACEINSIGHTNORES0000', name: 'E2E結果前気づき賞' }
+} as const;
+
+/** 言葉を1つも登録していないユーザー（E2E 気づき無しユーザー）のセッショントークン。seed.sql の id はこれの SHA-256。 */
+export const NO_WORDS_SESSION_TOKEN = 'e2enowordssessiontoken000000000';
+
+/** 言葉の登録・削除を押して確かめる専用のユーザー（E2E 言葉登録ユーザー）のセッショントークン。seed.sql の id はこれの SHA-256。 */
+export const WORDS_EDIT_SESSION_TOKEN = 'e2ewordseditsessiontoken000000';

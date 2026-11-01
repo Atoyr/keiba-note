@@ -37,9 +37,9 @@ const route = `/races/${ROW_RACE.id}/preview`;
 test('行・詳細・タブ・並び順を往復し、閉じた馬とレースの入力も一括保存する', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, route);
-	await expect(row(page, 0).locator('textarea')).toBeHidden();
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toBeHidden();
 	await open(page, 0);
-	await row(page, 0).locator('textarea').fill('内で脚をためる。');
+	await row(page, 0).locator('textarea[name^="body."]').fill('内で脚をためる。');
 	await row(page, 0).getByRole('radio', { name: '◎', exact: true }).check({ force: true });
 	await row(page, 0).getByRole('checkbox', { name: '次走買い' }).check({ force: true });
 	await detail(page, 0).click();
@@ -67,7 +67,7 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	await expect(row(page, 1).getByText('過去走の記録がありません。')).toBeHidden();
 	await detail(page, 1).click();
 	await expect(row(page, 1).getByText('過去走の記録がありません。')).toBeVisible();
-	await row(page, 1).locator('textarea').fill('外から進出する。');
+	await row(page, 1).locator('textarea[name^="body."]').fill('外から進出する。');
 	await page.getByLabel('レースの見立て', { exact: true }).fill('先行有利。');
 	await page.getByRole('button', { name: '人気順', exact: true }).click();
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
@@ -82,16 +82,16 @@ test('行・詳細・タブ・並び順を往復し、閉じた馬とレース�
 	await expect(page.getByText('保存しました（3 件）')).toBeVisible();
 	// 保存が通ったら、開いていた入力欄は閉じて、書いたメモの表示に戻る（保存の前に切り替えた「予想」のタブへ戻って見る）。
 	await page.getByRole('tab', { name: '予想', exact: true }).click();
-	await expect(row(page, 0).locator('textarea')).toBeHidden();
-	await expect(row(page, 1).locator('textarea')).toBeHidden();
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toBeHidden();
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toBeHidden();
 	await expect(memos(page, 1)).toContainText('外から進出する。');
 	await gotoHydrated(page, route);
 	await open(page, 0);
-	await expect(row(page, 0).locator('textarea')).toHaveValue('内で脚をためる。');
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toHaveValue('内で脚をためる。');
 	await expect(row(page, 0).getByRole('radio', { name: '◎', exact: true })).toBeChecked();
 	await expect(row(page, 0).getByRole('checkbox', { name: '次走買い' })).toBeChecked();
 	await open(page, 1);
-	await expect(row(page, 1).locator('textarea')).toHaveValue('外から進出する。');
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toHaveValue('外から進出する。');
 });
 
 test('見出しの馬場・天候は、ふりかえりだけが条件の下の段に出す', async ({ page }) => {
@@ -123,7 +123,7 @@ test('行を開かずに選んだ印は、保存前から見出しと「付け�
 	// 印は常に出ているので、行を開かずに選べる。
 	await expect(row(page, 1).getByRole('radiogroup', { name: /予想印/ })).toBeVisible();
 	await row(page, 1).getByRole('radio', { name: '◎', exact: true }).check({ force: true });
-	await expect(row(page, 1).locator('textarea')).toBeHidden();
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toBeHidden();
 	await expect(row(page, 1).getByTitle('予想印 ◎')).toBeVisible();
 	await expect(row(page, 1)).toHaveClass(/ring-red-300/);
 	await expect(marks.getByText(name)).toBeVisible();
@@ -172,7 +172,7 @@ test('保存失敗→リロード→「復元する」で、閉じた行の見�
 	await page.reload();
 	await expect(row(page, 1).getByTitle('予想印 △')).toHaveCount(0);
 	await page.getByRole('button', { name: '復元する' }).click();
-	await expect(row(page, 1).locator('textarea')).toBeHidden();
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toBeHidden();
 	await expect(row(page, 1).getByTitle('予想印 △')).toBeVisible();
 	await expect(
 		page.getByRole('region', { name: '付けた印' }).getByText(ROW_RACE.names[1])
@@ -183,7 +183,7 @@ test('保存失敗後の閉じた入力を端末の下書きから明示復元�
 	await login(page);
 	await gotoHydrated(page, route);
 	await open(page, 0);
-	await row(page, 0).locator('textarea').fill('保存失敗時の下書き');
+	await row(page, 0).locator('textarea[name^="body."]').fill('保存失敗時の下書き');
 	await done(page, 0);
 	await failNextAction(page, route, { message: '行展開テストの保存失敗' });
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
@@ -199,7 +199,7 @@ test('保存失敗後の閉じた入力を端末の下書きから明示復元�
 	await expect(page.getByRole('button', { name: '復元する' })).toBeVisible();
 	await page.getByRole('button', { name: '復元する' }).click();
 	await open(page, 0);
-	await expect(row(page, 0).locator('textarea')).toHaveValue('保存失敗時の下書き');
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toHaveValue('保存失敗時の下書き');
 });
 
 test('ふりかえりの閉じた行も保存し、事前の予想を上書きしない', async ({ page }) => {
@@ -208,7 +208,7 @@ test('ふりかえりの閉じた行も保存し、事前の予想を上書き�
 	await expect(row(page, 0)).toContainText('通過順8-7-5-4');
 	await expect(row(page, 0)).toContainText('内で脚をためる。');
 	await open(page, 0);
-	await row(page, 0).locator('textarea').fill('直線の伸びをふりかえる。');
+	await row(page, 0).locator('textarea[name^="body."]').fill('直線の伸びをふりかえる。');
 	await row(page, 0).getByRole('checkbox', { name: '好上り' }).check({ force: true });
 	await done(page, 0);
 	// 保存する前でも、いま入力しているふりかえりのメモが札付きで行に出る（出走前の下）。
@@ -222,12 +222,14 @@ test('ふりかえりの閉じた行も保存し、事前の予想を上書き�
 	await expect(page.getByText('保存しました（1 件）')).toBeVisible();
 	await gotoHydrated(page, `/races/${ROW_RACE.id}`);
 	await open(page, 0);
-	await expect(row(page, 0).locator('textarea')).toHaveValue('直線の伸びをふりかえる。');
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toHaveValue(
+		'直線の伸びをふりかえる。'
+	);
 	await expect(row(page, 0)).toContainText('内で脚をためる。');
 	await expect(row(page, 0).getByRole('checkbox', { name: '好上り' })).toBeChecked();
 	await gotoHydrated(page, route);
 	await open(page, 0);
-	await expect(row(page, 0).locator('textarea')).toHaveValue('内で脚をためる。');
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toHaveValue('内で脚をためる。');
 });
 
 test('ふりかえりの閉じた行で、通過順・上り・人気と、出走前・ふりかえりのメモを見比べられる', async ({
@@ -235,7 +237,7 @@ test('ふりかえりの閉じた行で、通過順・上り・人気と、出�
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${ROW_RACE.id}`);
-	await expect(row(page, 0).locator('textarea')).toBeHidden();
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toBeHidden();
 	await expect(row(page, 0)).toContainText('4着');
 	await expect(row(page, 0)).toContainText('通過順8-7-5-4');
 	await expect(row(page, 0)).toContainText('上り34.2');
@@ -259,7 +261,9 @@ test('ふりかえりの閉じた行で、通過順・上り・人気と、出�
 	// ふりかえりのメモを押すと入力欄に替わる。同じものが2つ並ばないよう、書いたメモの表示は隠れる（出走前は読むだけで残る）。
 	await open(page, 0);
 	await expect(row(page, 0).getByText('通過順8-7-5-4', { exact: true })).toHaveCount(1);
-	await expect(row(page, 0).locator('textarea')).toHaveValue('直線の伸びをふりかえる。');
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toHaveValue(
+		'直線の伸びをふりかえる。'
+	);
 	await expect(memos(page, 0)).toHaveCount(1);
 	await expect(memos(page, 0)).toContainText('出走前');
 });
@@ -279,13 +283,13 @@ test('JS無効でも入力欄が出ていて一括保存でき、資料と既存
 	await expect(row(page, 1).getByRole('button', { name: /(出走前|ふりかえり)メモ/ })).toHaveCount(
 		0
 	);
-	await row(page, 1).locator('textarea').fill('JSなしで入力');
+	await row(page, 1).locator('textarea[name^="body."]').fill('JSなしで入力');
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
-	await expect(row(page, 1).locator('textarea')).toHaveValue('JSなしで入力');
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toHaveValue('JSなしで入力');
 	await page.goto(`/races/${ROW_RACE.id}`);
-	await row(page, 1).locator('textarea').fill('JSなしでふりかえり');
+	await row(page, 1).locator('textarea[name^="body."]').fill('JSなしでふりかえり');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
-	await expect(row(page, 1).locator('textarea')).toHaveValue('JSなしでふりかえり');
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toHaveValue('JSなしでふりかえり');
 	await page.goto(`/races/${EMPTY_RACE_ID}`);
 	await expect(page).toHaveURL(`/races/${EMPTY_RACE_ID}/preview`);
 	await context.close();
@@ -297,7 +301,7 @@ test('一度も開かない馬の既存メモを保ち、別馬の印だけを�
 	await login(page);
 	await gotoHydrated(page, route);
 	await open(page, 1);
-	await row(page, 1).locator('textarea').fill('');
+	await row(page, 1).locator('textarea[name^="body."]').fill('');
 	await row(page, 1).getByRole('radio', { name: '☆', exact: true }).check({ force: true });
 	await done(page, 1);
 	await page.getByRole('button', { name: '出走前メモを保存' }).click();
@@ -305,7 +309,7 @@ test('一度も開かない馬の既存メモを保ち、別馬の印だけを�
 	await gotoHydrated(page, route);
 	await expect(row(page, 1).locator('[title="予想印 ☆"]')).toBeVisible();
 	await open(page, 0);
-	await expect(row(page, 0).locator('textarea')).toHaveValue('内で脚をためる。');
+	await expect(row(page, 0).locator('textarea[name^="body."]')).toHaveValue('内で脚をためる。');
 	await expect(row(page, 0).getByRole('radio', { name: '◎', exact: true })).toBeChecked();
 	await expect(row(page, 0).getByRole('checkbox', { name: '次走買い' })).toBeChecked();
 	await row(page, 1).getByRole('radio', { name: 'なし', exact: true }).check({ force: true });
@@ -314,7 +318,7 @@ test('一度も開かない馬の既存メモを保ち、別馬の印だけを�
 	await gotoHydrated(page, route);
 	await expect(row(page, 1)).not.toContainText('メモを入力する');
 	await open(page, 1);
-	await expect(row(page, 1).locator('textarea')).toHaveValue('');
+	await expect(row(page, 1).locator('textarea[name^="body."]')).toHaveValue('');
 	await expect(row(page, 1).getByRole('radio', { name: 'なし', exact: true })).toBeChecked();
 	await expect(row(page, 1).locator('[title="予想印 ☆"]')).toHaveCount(0);
 });

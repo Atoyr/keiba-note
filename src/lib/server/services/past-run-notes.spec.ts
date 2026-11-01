@@ -48,7 +48,8 @@ describe('直近5走と本人の各走メモ', () => {
 		const result = await listRaceMemoContext(db, 'current', ids, 'me');
 		expect(result.pastRunNotes.get('e1')?.[0].body).toBe('本人の事前メモ');
 		expect(batch).toHaveBeenCalledTimes(1);
-		expect(boundCounts).toHaveLength(2);
+		// 今回のメモ・履歴・気づきの言葉・今回の気づき・ほかのレースの気づきの 5 本（履歴と気づきの履歴は馬の数だけ変数を使う）。
+		expect(boundCounts).toHaveLength(5);
 		expect(Math.max(...boundCounts)).toBeLessThanOrEqual(100);
 	});
 	it('レースと出馬表を1バッチで返し、出馬表未登録と不存在も区別する', async () => {

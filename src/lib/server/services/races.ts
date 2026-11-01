@@ -32,6 +32,8 @@ export type RaceListItem = Pick<
 	resultCount: number;
 	/** 自分のふりかえり（`race` と `entry`）の数。書いてあれば結果の前でもふりかえりへ向ける。 */
 	reviewCount: number;
+	/** 自分の気づき（レース直後に馬へ付けた言葉・自由入力）を残した馬の数。あれば結果の前でもふりかえりへ向ける。ふりかえり済には数えない。 */
+	insightCount: number;
 };
 
 /**
@@ -44,6 +46,14 @@ export type RaceListItem = Pick<
  */
 export function raceResultCount() {
 	return sql<number>`(SELECT count(*) FROM race_entry AS settled WHERE settled.race_id = "race"."id" AND settled.finish_position IS NOT NULL)`;
+}
+
+/**
+ * 自分が気づきを残した馬の数。`raceResultCount` と同じ理由で相関サブクエリにし、外側の `"race"."id"` を文字で書く。
+ * 他人の分は数えない（`user_id = :viewer`）。
+ */
+export function raceInsightCount(viewerId: string) {
+	return sql<number>`(SELECT count(*) FROM race_entry_insight AS ri WHERE ri.race_id = "race"."id" AND ri.user_id = ${viewerId})`;
 }
 
 /**
@@ -97,7 +107,8 @@ export async function listRaces(
 			entryCount: countDistinct(raceEntry.id),
 			noteCount: countDistinct(note.id),
 			resultCount: raceResultCount(),
-			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
+			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`,
+			insightCount: raceInsightCount(viewerId)
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
@@ -163,7 +174,8 @@ export async function listRacesBetween(
 			resultCount: raceResultCount(),
 			outlookCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'race_preview' THEN ${note.id} END)`,
 			markCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} = 'preview' AND ${note.mark} IS NOT NULL AND ${note.mark} <> ${CANDIDATE_MARK} THEN ${note.id} END)`,
-			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
+			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`,
+			insightCount: raceInsightCount(viewerId)
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))
@@ -447,7 +459,8 @@ export async function listGradedRacesInWeek(
 			entryCount: countDistinct(raceEntry.id),
 			noteCount: countDistinct(note.id),
 			resultCount: raceResultCount(),
-			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`
+			reviewCount: sql<number>`count(DISTINCT CASE WHEN ${note.kind} IN ('race', 'entry') THEN ${note.id} END)`,
+			insightCount: raceInsightCount(viewerId)
 		})
 		.from(race)
 		.leftJoin(raceEntry, eq(raceEntry.raceId, race.id))

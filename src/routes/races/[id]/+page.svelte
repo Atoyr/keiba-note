@@ -38,12 +38,15 @@
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
 	import EntryNoteEditor from '$lib/components/EntryNoteEditor.svelte';
+	import EntryInsight from '$lib/components/EntryInsight.svelte';
+	import { InsightSaver } from '$lib/utils/insight-saver.svelte';
+	import { insightFormData, sendInsight } from '$lib/utils/insight-send';
 	import EntryMemo from '$lib/components/EntryMemo.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
 	import PastRunsStrip from '$lib/components/PastRunsStrip.svelte';
 	import PastRunsToggle from '$lib/components/PastRunsToggle.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { cn } from '$lib/utils';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -127,6 +130,49 @@
 	const shownInActual = $derived(
 		(['corner4', 'finish'] as const).filter((p) => actual?.[p] && data.myRaceFlow?.[p].spots.length)
 	);
+
+	/**
+	 * 気づき（馬に付ける言葉と短いメモ）の自動保存。ふりかえり本文の一括保存（`SaveBar`）とは別で、1 操作ごとに送る。
+	 * レースごとに作る。別のレースへ移るときと unmount で、未送信のものを送り始める。
+	 * 気づきの欄は `form` 属性で下の別のフォーム（`insightFormId`）に属すので、大きいフォームの
+	 * 未保存の件数・下書きには混ざらない。
+	 */
+	const insightFormId = 'entry-insights';
+	function makeSaver(raceId: string) {
+		return new InsightSaver({
+			storageKey: `uma-memo:insight:${page.data.user?.id ?? '-'}:${raceId}`,
+			initial: Object.fromEntries(
+				data.rows.flatMap((r) => (r.insight ? [[r.entryId, r.insight] as const] : []))
+			),
+			// action の場所は送るときに組む（SSR の相対パスを持ち越さない）。
+			send: (op, opts) =>
+				sendInsight(resolve('/races/[id]/insights', { id: raceId }), insightFormData(op), opts)
+		});
+	}
+	let saver = $state.raw(untrack(() => makeSaver(data.race.id)));
+	let saverFor = untrack(() => data.race.id);
+	$effect.pre(() => {
+		const id = data.race.id;
+		if (id === saverFor) return;
+		saverFor = id;
+		saver = untrack(() => makeSaver(id));
+	});
+	$effect(() => {
+		const s = saver;
+		// 前の画面で送り切れなかった操作を端末から戻す。自動では送らず、行に「もう一度保存する」を出す。
+		// untrack: 読み戻しで rows を読むので、追跡すると行が変わるたびにこの effect が回り直す。
+		untrack(() => s.restore());
+		const onHide = () => s.flushAll({ keepalive: true });
+		const onOnline = () => s.retryFailed();
+		window.addEventListener('pagehide', onHide);
+		window.addEventListener('online', onOnline);
+		return () => {
+			window.removeEventListener('pagehide', onHide);
+			window.removeEventListener('online', onOnline);
+			s.flushAll();
+			s.dispose();
+		};
+	});
 
 	const ta = 'mt-1 text-sm';
 
@@ -562,6 +608,16 @@
 												</div>
 											{/if}
 
+											<!-- レース直後の気づき。言葉を押すだけで残せる（押した時点で保存）。ふりかえり本文とは別の入力で、
+									     本文には混ざらない。下のふりかえりメモを書くときに、すぐ上で読み返せる。 -->
+											<EntryInsight
+												horseName={r.horseName}
+												entryId={r.entryId}
+												{saver}
+												registered={data.insightWords}
+												formId={insightFormId}
+											/>
+
 											<!-- いま入力しているふりかえりのメモを、札付きでそのまま出す。押すとその場で入力欄が開く（見出しで折りたためる）。 -->
 											{#snippet memo()}
 												<EntryMemo kind="ふりかえり" body={review.body} tags={review.tags} />
@@ -602,4 +658,11 @@
 			message={form && 'message' in form ? form.message : null}
 		/>
 	</form>
+
+	<!-- 気づきの送り先。大きいフォームの**外**に置く（入れ子のフォームにしない）。行の気づきの欄は `form` 属性でこれに属す。 -->
+	<form
+		id={insightFormId}
+		method="POST"
+		action={resolve('/races/[id]/insights', { id: data.race.id })}
+	></form>
 </main>

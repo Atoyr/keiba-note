@@ -403,7 +403,7 @@ ON CONFLICT (file) DO UPDATE SET hash = excluded.hash, applied_at = unixepoch();
 /**
  * 取り下げ。出走馬行を消す**前に、付いていたメモを近況メモ（kind='horse'）へ移す。**
  *
- * 出走馬行を消すと、紐づくメモ（出走前メモ・ふりかえり）が ON DELETE CASCADE で道連れになる。
+ * 出走馬行を消すと、紐づくメモ（出走前メモ・ふりかえり）と気づき（`race_entry_insight`）が ON DELETE CASCADE で道連れになる。
  * 候補の段階で書いた見立ては、出走しなくてもその馬についての記録として残す価値がある。
  *
  * 移し方は note_kind_shape の CHECK に合わせる: race_id / race_entry_id を外し、
@@ -434,6 +434,16 @@ function withdrawStatements(
     || CASE WHEN mark IS NULL THEN '' ELSE '。印 ' || mark END || '）'
     || CASE WHEN body = '' THEN '' ELSE char(10) || char(10) || body END,
   updated_at = unixepoch()
+WHERE race_entry_id = (${entry});`,
+		// レース直後の気づき（race_entry_insight）も出走馬行の CASCADE で消えるので、同じく近況メモへ移す。
+		// 言葉は「、」でつなぎ、自由入力のメモを続ける。ふりかえりの移し方と違い、気づきは 1 出走に 1 本。
+		`INSERT INTO note (id, author_id, kind, horse_id, body, occurred_at)
+SELECT lower(hex(randomblob(13))), user_id, 'horse', horse_id,
+  '（' || ${lit(where)} || ' に出走しなかったため、気づきから移しました）'
+    || CASE WHEN json_array_length(words) = 0 THEN '' ELSE char(10) || char(10) || (SELECT group_concat(value, '、') FROM json_each(words)) END
+    || CASE WHEN memo = '' THEN '' ELSE char(10) || char(10) || memo END,
+  occurred_at
+FROM race_entry_insight
 WHERE race_entry_id = (${entry});`,
 		`DELETE FROM race_entry WHERE id = (${entry});`
 	];

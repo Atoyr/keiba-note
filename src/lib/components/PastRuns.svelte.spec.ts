@@ -269,6 +269,28 @@ describe('PastRuns', () => {
 				.toHaveAttribute('href', '/races/r1');
 		});
 
+		it('気づきだけの走も出し、出走前 → 気づき → ふりかえりの順に並べる', () => {
+			const screen = render(PastRuns, {
+				runs: [
+					run({
+						raceId: 'r1',
+						notes: [note, { ...note, id: 'n2', kind: 'preview', body: '前に書いた' }],
+						insight: { words: ['内詰まり'], memo: '前が壁' }
+					}),
+					run({ raceId: 'r2', insight: { words: ['前残り'], memo: '' } }),
+					run({ raceId: 'r3', insight: { words: [], memo: ' ' } })
+				]
+			});
+
+			const items = screen.container.querySelectorAll('section ol > li');
+			// 言葉もメモも空の気づきは、メモの無い走と同じ（出さない）。
+			expect(items).toHaveLength(2);
+			const text = items[0].textContent ?? '';
+			expect(text.indexOf('前に書いた')).toBeLessThan(text.indexOf('内詰まり'));
+			expect(text.indexOf('前が壁')).toBeLessThan(text.indexOf('直線で詰まった'));
+			expect(items[1].textContent).toContain('前残り');
+		});
+
 		it('メモのある走が1つも無ければ、かたまりごと出さない', () => {
 			const screen = render(PastRuns, { runs: [run({}), run({ raceId: 'r2', notes: [] })] });
 

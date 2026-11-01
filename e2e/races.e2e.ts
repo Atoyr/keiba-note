@@ -556,7 +556,7 @@ test('各馬の行に、走る前に書いたメモが読み取り専用で出�
 
 	// 入力欄には入っていない（ふりかえりの欄は空のまま）。
 	for (const value of await page
-		.locator('textarea')
+		.locator('textarea[name^="body."]')
 		.evaluateAll((els) => els.map((el) => (el as HTMLTextAreaElement).value))) {
 		expect(value).not.toContain(OUTER_PREVIEW_BODY);
 	}
@@ -585,19 +585,19 @@ test('ふりかえりを保存しても、出走前の印とメモは消えな�
 
 	const row = page.locator('form li[id^="entry-"]', { hasText: 'E2Eソトワク' });
 	await row.getByRole('button', { name: /ふりかえりメモ/, expanded: false }).click();
-	await row.locator('textarea').fill('結局外を回して届かず。');
+	await row.locator('textarea[name^="body."]').fill('結局外を回して届かず。');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
 
 	await page.reload();
-	await expect(row.locator('textarea')).toHaveValue('結局外を回して届かず。');
+	await expect(row.locator('textarea[name^="body."]')).toHaveValue('結局外を回して届かず。');
 	await expect(row).toContainText(OUTER_PREVIEW_BODY);
 	await expect(row.getByTitle('予想印 ◎').first()).toBeVisible();
 
 	// 後片付け。空で保存するとふりかえりのメモは消える。
 	await waitForHydration(page);
 	await row.getByRole('button', { name: /ふりかえりメモ/, expanded: false }).click();
-	await row.locator('textarea').fill('');
+	await row.locator('textarea[name^="body."]').fill('');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
 	await expect(page.getByText('保存しました')).toBeVisible();
 });

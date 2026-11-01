@@ -61,7 +61,7 @@
 				<!-- 今週の枠には開催前・結果待ちのレースが普通に入る。結果が出るまでは予想画面へ送る。
 				     ふりかえりを書いたレースは、札（ふりかえり済）と行き先をそろえてふりかえりへ。 -->
 				<a
-					href={raceHref(r.id, r, r.reviewCount > 0)}
+					href={raceHref(r.id, r, r.reviewCount > 0 || r.insightCount > 0)}
 					class="flex flex-wrap items-baseline gap-x-2 gap-y-1 py-2.5 text-sm hover:bg-gray-50"
 				>
 					<span class="font-mono text-gray-500">{r.date}</span>

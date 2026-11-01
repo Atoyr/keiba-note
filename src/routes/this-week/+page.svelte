@@ -88,7 +88,7 @@
 						<!-- 結果が出たレース（とふりかえりを書いたレース）はふりかえりへ。
 						     当日でも着順が入るまでは予想画面のまま。 -->
 						<a
-							href={opensReview(r, data.today, r.reviewCount > 0)
+							href={opensReview(r, data.today, r.reviewCount > 0 || r.insightCount > 0)
 								? resolve('/races/[id]', { id: r.id })
 								: resolve('/races/[id]/preview', { id: r.id })}
 							class="block rounded-xl border p-3 transition-colors hover:border-foreground/20 hover:bg-accent/40 sm:p-4"

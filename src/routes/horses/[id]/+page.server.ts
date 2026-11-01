@@ -5,6 +5,7 @@ import { horseProfileSchema } from '$lib/schemas/horse';
 import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '$lib/schemas/note';
 import { isUniqueViolation } from '$lib/server/db/errors';
 import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
+import { listHorseInsights } from '$lib/server/services/insights';
 import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
 import {
 	addHorseNote,
@@ -24,25 +25,26 @@ import type { Actions, PageServerLoad } from './$types';
  * 1テーブルにした狙い（product.md 第2章）。
  *
  * **出走はメモが無くても並べる。** 骨は race_entry（誰が見ても同じ走った事実）で、
- * そこに viewer 自身のメモを重ねる。読みは4クエリ（馬・メモ・出走・推しか）で、全部並行に投げる。
+ * そこに viewer 自身のメモと気づきを重ねる。読みは5クエリ（馬・メモ・出走・推しか・気づき）で、全部並行に投げる。
  */
 export const load: PageServerLoad = async ({ locals, platform, params }) => {
 	const { db, user } = ctx(locals, platform);
 
 	const today = todayJst();
 
-	const [horse, notes, runs, favorite] = await Promise.all([
+	const [horse, notes, runs, favorite, insights] = await Promise.all([
 		getHorse(db, params.id),
 		getHorseTimeline(db, params.id, user.id),
 		listRunsForHorse(db, params.id),
-		isFavoriteHorse(db, params.id, user.id)
+		isFavoriteHorse(db, params.id, user.id),
+		listHorseInsights(db, params.id, user.id)
 	]);
 
 	if (!horse) error(404, '馬が見つかりません');
 
 	// viewerId は返さない。タイムラインに並ぶメモは viewer 自身のものだけなので、
 	// 画面側で「自分のメモか」を判定する必要がなくなった。
-	return { horse, timeline: mergeHorseTimeline(notes, runs, today), today, favorite };
+	return { horse, timeline: mergeHorseTimeline(notes, runs, today, insights), today, favorite };
 };
 
 export const actions: Actions = {

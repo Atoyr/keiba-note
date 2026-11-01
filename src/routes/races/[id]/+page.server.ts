@@ -33,7 +33,7 @@ import type { Actions, PageServerLoad } from './$types';
  * ダッシュボードもレース一覧も開催前のレースを普通に並べるので、
  * **入口ごとに塞ぐのではなく、この画面自身が行き先を持つ**。
  *
- * 読みは最大5往復（race+entriesのbatch / 騎手 / 馬柱 / 同条件メモ / 今回・過去メモのbatch）。重賞のときだけ、自分の傾向と重賞のタイムライン（1 batch）で+1。
+ * 読みは最大5往復（race+entriesのbatch / 騎手 / 馬柱 / 同条件メモ / 今回・過去メモと気づきのbatch）。重賞のときだけ、自分の傾向と重賞のタイムライン（1 batch）で+1。
  * GETは更新セッション2回を含め最大8往復。JS無効のPOST→loadは共通マスタをlocalsから再利用し、保存1回を含め最大9往復。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
@@ -87,7 +87,14 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 		// 今回の本人メモ・馬ごとの履歴・各走メモ。過去走の結果を待たずに読む（出走IDは履歴から引く）。
 		listRaceMemoContext(db, params.id, horseIds, user.id)
 	]);
-	const { raceNotes: notes, pastRunNotes: runNotes, history } = memos;
+	const {
+		raceNotes: notes,
+		pastRunNotes: runNotes,
+		history,
+		insightWords,
+		raceInsights,
+		pastRunInsights
+	} = memos;
 
 	// `listRaceMemoContext` が返すのは **viewer 自身のメモだけ**（product.md 第2章 2-2）。
 	// 以前あった「他人のメモを読み取り専用で出す」分岐は、返ってこない行を
@@ -133,6 +140,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 					}
 				: null,
 		today,
+		// 自分が登録した気づきの言葉（登録順）。
+		insightWords,
 		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
 		rows: entries.map((e) => {
 			const p = myPreviews.get(e.entryId);
@@ -142,7 +151,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				history: history.get(e.horseId) ?? [],
 				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({
 					...run,
-					notes: runNotes.get(run.entryId) ?? []
+					notes: runNotes.get(run.entryId) ?? [],
+					insight: pastRunInsights.get(run.entryId) ?? null
 				})),
 				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
 				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
@@ -151,6 +161,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				// 騎手名の下の段に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
 				myNote: myEntryNotes.get(e.entryId) ?? null,
+				// レース直後の気づき（付けた言葉と短いメモ）。ふりかえり本文とは別。
+				insight: raceInsights.get(e.entryId) ?? null,
 				myPreview: p ? { mark: p.mark, body: p.body, tags: p.tags } : null
 			};
 		}),

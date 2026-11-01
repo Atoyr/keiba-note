@@ -47,7 +47,7 @@
 ### 本人のデータ
 
 - **本人のデータを読む関数は `viewerId`（`userId`）を必須引数で受け取り、SQL の WHERE に入れる。**
-  対象は `note`・`race_share`（`author_id`）と、`favorite_horse`・`jockey_note`・`graded_race_note`・`oauth_grant`・`mcp_usage`（`user_id`）。
+  対象は `note`・`race_share`（`author_id`）と、`favorite_horse`・`jockey_note`・`graded_race_note`・`insight_word`・`race_entry_insight`・`oauth_grant`・`mcp_usage`（`user_id`）。
   省略可能にした時点で、絞り忘れが「全ユーザーに見える」に直結する（→ 3-6）。
   表ごとの引数と WHERE は [api.md 第5章「誰のデータか」](./api.md)
 - **他人に見せるかの判定に `visibility` を使うのは `getSharedNote`（共有ページ `/notes/[id]`）だけ。**
