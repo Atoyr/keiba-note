@@ -239,7 +239,7 @@ describe('InsightSaver 失敗と復元', () => {
 		await flush();
 		expect(login.loginRequired('e1')).toBe(true);
 		expect(login.message('e1')).toBe(
-			'ログインが切れています。ログインし直してから、もう一度保存してください。'
+			'ログインが切れています。ログインし直してから、もう一度保存してください。入力は端末に残っています。'
 		);
 	});
 
@@ -305,6 +305,24 @@ describe('InsightSaver 失敗と復元', () => {
 		saver.setMemo('e2', 'メモ2');
 		saver.flushAll();
 		expect(calls).toHaveLength(2);
+	});
+
+	it('復元した言葉とメモの両方がある行で言葉を押すと、メモも送られる。欄を通過しただけでは送らない', async () => {
+		localStorage.setItem(KEY, JSON.stringify({ e1: { words: { A: true }, memo: '前が壁' } }));
+		const { saver, calls } = make();
+		saver.restore();
+
+		saver.flushMemo('e1');
+		expect(calls).toHaveLength(0);
+
+		saver.toggle('e1', 'B');
+		expect(calls[0].op).toMatchObject({ kind: 'word' });
+		calls[0].ok({ words: ['A'], memo: '' });
+		await flush();
+		calls[1].ok({ words: ['A', 'B'], memo: '' });
+		await flush();
+		const memoCall = calls.find((c) => c.op.kind === 'memo');
+		expect(memoCall?.op).toEqual({ kind: 'memo', entryId: 'e1', memo: '前が壁' });
 	});
 
 	it('このレースの出走馬でない id の控えは捨てる', () => {

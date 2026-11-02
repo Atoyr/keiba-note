@@ -30,6 +30,8 @@ export const actions: Actions = {
 		const saveMemo = form.get('saveMemo');
 
 		let entryId: string;
+		/** 付けようとした言葉（付ける操作のときだけ）。応答に無ければ 1 頭の上限で付かなかった。 */
+		let attached: string | null = null;
 		let apply: (target: NonNullable<Awaited<ReturnType<typeof getInsightTarget>>>) => Promise<{
 			words: string[];
 			memo: string;
@@ -48,6 +50,7 @@ export const actions: Actions = {
 			}
 			const { word, on } = parsed.output;
 			entryId = parsed.output.entryId;
+			if (on) attached = word;
 			apply = (target) => setInsightWord(db, user.id, target, word, on);
 		} else if (typeof saveMemo === 'string' && saveMemo !== '') {
 			// 検証を通っていない id は、失敗の応答にも結果画面のリンクにも入れない。
@@ -84,7 +87,13 @@ export const actions: Actions = {
 
 		try {
 			const saved = await apply(target);
-			return { entryId, words: saved.words, memo: saved.memo };
+			// JS が無いときの結果の画面は、上限で付かなかったことを「保存しました」と言わずに伝える。
+			return {
+				entryId,
+				words: saved.words,
+				memo: saved.memo,
+				limited: attached !== null && !saved.words.includes(attached)
+			};
 		} catch {
 			// D1 の失敗は createDb の observer が記録する。操作は画面（端末）に残るので、案内して再試行してもらう。
 			return fail(503, { message: SAVE_FAILED, entryId });

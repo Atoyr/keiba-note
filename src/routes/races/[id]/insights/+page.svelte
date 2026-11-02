@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { LIMIT_NOTICE } from '$lib/utils/insight-saver.svelte';
 	import type { PageProps } from './$types';
 
 	let { form }: PageProps = $props();
@@ -21,6 +22,10 @@
 			role="alert"
 		>
 			{form.message}
+		</p>
+	{:else if form && 'limited' in form && form.limited}
+		<p class="mt-4 rounded-lg border bg-muted px-3 py-2 text-sm text-foreground" role="status">
+			{LIMIT_NOTICE}
 		</p>
 	{:else if form && 'words' in form}
 		<p class="mt-4 rounded-lg border bg-muted px-3 py-2 text-sm text-foreground" role="status">

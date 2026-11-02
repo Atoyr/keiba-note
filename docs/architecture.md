@@ -277,7 +277,7 @@ graded（重賞）も同じくマスタの表を持たず、レース名を別�
 
 - 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
   `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない
-- services のうち `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch` の機能への所属はまだ決めていない（→ [harness.md 第8章](./harness.md)）
+- services のうち `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`insights` の機能への所属はまだ決めていない（→ [harness.md 第8章](./harness.md)）
 - **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない
 - 今ある違反（直す予定）は [harness.md 2-5](./harness.md)
 

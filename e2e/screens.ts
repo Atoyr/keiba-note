@@ -974,6 +974,21 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true
 	},
 	{
+		// 結果がまだ入っていないレース。気づきを残していれば、ふりかえり画面に着いて気づきを開ける。
+		name: 'race-review-insight-no-result',
+		path: `/races/${INSIGHT.noResult.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator('main li[id^="entry-"]')
+				.first()
+				.getByRole('button', { name: /の気づきを開く/ })
+				.click();
+		},
+		stayAtTop: true
+	},
+	{
 		// 詳細情報を開いたところ。前走の気づき（出走前 → 気づき → ふりかえり）が過去メモに出る。
 		name: 'race-review-insight-past-run',
 		path: `/races/${INSIGHT.view.raceId}`,

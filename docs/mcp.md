@@ -294,7 +294,7 @@ Chrome の試験設定・Inspector の案内は公式資料を参照し、確認
 ### 7-1. 取得
 
 `get_prediction_context` の入力は空オブジェクト。`load` の `race`・`rows`・`sameCondition`・`oddsAsOf` を使い、
-レースの条件、各出走馬の ID / 馬 / 騎手、オッズと人気、本人の履歴、過去走を返す。
+レースの条件、各出走馬の ID / 馬 / 騎手、オッズと人気、本人の履歴、過去走を返す（過去走のレース直後の気づきは除く）。
 `oddsAsOf` は ISO 文字列から Unix epoch ミリ秒へ変換し、未取得は null。
 `myCurrentPrediction` と追加の `myCurrentRacePrediction` は `DraftKeeper.snapshot()` から現在の入力も読む。
 `load` の `user` やセッションは渡さない。`readOnlyHint: true` / `consequentialHint: false` / `untrustedContentHint: true` を設定し、

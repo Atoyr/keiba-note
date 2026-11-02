@@ -597,7 +597,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 - **share と dashboard を service で分けるか。** レースの共有は `services/race-shares.ts` に分かれているが、
   メモ単位の共有（`getSharedNote`・`setNoteVisibility`・`listSharedNotes`）とダッシュボードの `listWatchSources` は
   `services/notes.ts` に残っている。分けるのは、機能の向きの規則が効き始めてから、違反の出方を見て決める
-- **機能の並びに入っていない service の所属。** `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`lists` が
+- **機能の並びに入っていない service の所属。** `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`lists`・`insights` が
   architecture.md 第2章のどの機能（または shared）に入るかは未決。boundaries を入れる PR で決め、architecture.md に足す
 - 第3層の lint を ESLint プラグインにするか、自前のスクリプトにするか（3-3 の確認次第）
 - **Evaluator を CI で自動で回すか。** PR ごとに GitHub Actions から回す形（`anthropics/claude-code-action` など）も取れるが、

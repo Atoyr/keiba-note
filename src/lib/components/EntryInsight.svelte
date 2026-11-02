@@ -158,12 +158,14 @@
 						value={JSON.stringify({ entryId, word: w.word, on: !w.pressed })}
 						aria-pressed={w.pressed}
 						class={cn(
-							'h-auto min-h-11 gap-1 px-3 text-sm sm:min-h-9',
+							'h-auto min-h-11 gap-1 px-3 text-sm whitespace-normal sm:min-h-9',
 							w.pressed ? 'border-foreground bg-muted font-semibold' : 'font-normal',
 							w.unsaved && 'border-dashed'
 						)}
 						onclick={(e) => {
 							e.preventDefault();
+							// 登録に無い言葉は外すとボタンごと消える。消える前にフォーカスを開け閉めのボタンへ移す。
+							if (w.pressed && !registered.includes(w.word)) toggle?.focus();
 							saver.toggle(entryId, w.word);
 						}}
 					>

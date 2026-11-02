@@ -162,3 +162,18 @@ it('失敗したら、閉じていても alert と「もう一度保存する」
 	calls[1].ok({ words: ['前が壁'], memo: '' });
 	await expect.element(screen.getByRole('alert')).not.toBeInTheDocument();
 });
+
+it('登録に無い言葉を押して外すときは、ボタンが消える前に開け閉めのボタンへフォーカスを移す', async () => {
+	const { screen, calls } = setup({ e1: { words: ['消した言葉'], memo: '' } });
+	await screen.getByRole('button', { name: /見本馬の気づきを開く/ }).click();
+
+	await screen.getByRole('button', { name: /見本馬の\s*消した言葉/ }).click();
+
+	expect(calls[0].op).toMatchObject({ word: '消した言葉', on: false });
+	expect((document.activeElement as HTMLElement).getAttribute('aria-expanded')).toBe('true');
+	calls[0].ok({ words: [], memo: '' });
+	await expect
+		.element(screen.getByRole('button', { name: /見本馬の\s*消した言葉/ }))
+		.not.toBeInTheDocument();
+	expect((document.activeElement as HTMLElement).getAttribute('aria-expanded')).toBe('true');
+});

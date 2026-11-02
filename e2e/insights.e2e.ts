@@ -259,7 +259,7 @@ test('他人の気づきは見えない', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, writePath);
 	await expect(page.getByText(INSIGHT.write.otherMemo)).toHaveCount(0);
-	await expect(page.getByText('他人の言葉')).toHaveCount(0);
+	await expect(page.getByText('別のユーザーの言葉')).toHaveCount(0);
 	await expect(aka(page).getByRole('button', { name: /＋ 気づき/ })).toBeVisible();
 });
 
@@ -385,5 +385,25 @@ test.describe('JavaScript が無いとき', () => {
 		await page.goto(writePath);
 		await expect(word(ao(page), '内詰まり')).toHaveAttribute('aria-pressed', 'false');
 		await expect(memoBox(ao(page))).toHaveValue('');
+	});
+	test('1頭の上限で言葉が付かなかったら、「保存しました」と言わず上限の文を出す', async ({
+		page
+	}) => {
+		await login(page);
+		await page.goto(writePath);
+		const origin = new URL(page.url()).origin;
+		const entryId = INSIGHT.write.entries.aka;
+		const post = (word: string, on: boolean) =>
+			page.request.post(`${writePath}/insights`, {
+				form: { toggle: JSON.stringify({ entryId, word, on }) },
+				headers: { origin }
+			});
+		for (let i = 0; i < 40; i++) await post(`上限${i}`, true);
+
+		await word(aka(page), '前が壁').click();
+		await expect(page.getByRole('status')).toHaveText('この馬に付けられる言葉は40個までです。');
+
+		// 後片付け。
+		for (let i = 0; i < 40; i++) await post(`上限${i}`, false);
 	});
 });

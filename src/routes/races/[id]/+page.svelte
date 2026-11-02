@@ -426,6 +426,12 @@
 								<PastRunsToggle bind:pressed={strip} />
 							{/if}
 						</div>
+						<!-- 気づきの保存は JS が無いと別の画面（結果の画面）へ移る。行ごとには出さず、ここに1回だけ。 -->
+						<noscript>
+							<p class="mt-1 text-xs text-muted-foreground">
+								気づきを保存すると画面が移ります。書きかけのふりかえりは先に保存してください。
+							</p>
+						</noscript>
 						<!-- 予想画面の人気・オッズは取得時点の値。ここは結果として入った確定の値なので、見分けられるよう添える。 -->
 						{#if oddsColumn}
 							<p class="mt-1 text-xs text-muted-foreground">人気・単勝オッズは確定の値</p>

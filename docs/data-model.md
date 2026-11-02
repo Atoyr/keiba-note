@@ -168,12 +168,12 @@ GitHub Actions が取得元から書く唯一の表で、メモからも馬柱�
 - **付けた言葉は文字列のコピー（`words` の JSON 配列）で持つ。** `insight_word` を消しても過去の記録は残る。画面は、登録に無いが付いている言葉も押せる札として出し、外せるようにする
 - **`note` に kind を足さず、`entry` の行に列も足さなかった。** kind を足すには `note_kind_shape` の CHECK のため中心の表を作り直すことになる（`jockey_note` と同じ理由）。
   `entry` の行に足すと、「本文も札も空なら消す」保存で気づきが消え、`reviewCount`（ふりかえり済）にも数えられてしまう
-- `race_id`・`horse_id`・`occurred_at`（レース日）を非正規化して持つ。馬のタイムラインと、レースごとの件数（一覧の行き先を決める `insightCount`）を JOIN なしで引くため。
+- `race_id`・`horse_id`・`occurred_at`（レース日）を非正規化して持つ。レースごとの件数（一覧の行き先を決める `insightCount`）を `race_entry_insight` だけで数え、馬のタイムライン・ふりかえり画面の読みを `user_id` と `horse_id` / `race_id` の索引で絞るため（馬のタイムラインはレース名などのため `race`・`race_entry` を JOIN する）。
   索引は `(user_id, horse_id, occurred_at)` と `(user_id, race_id)`
 - 書くのは 1 回の `batch` で、読んでから書く形にしない（連続して押した 2 つが互いを上書きしない）。1 頭に付く言葉は 40 個まで
 - 出走馬行を消す取り下げ（`scripts/import-races.ts`）では、気づきを近況メモ（`kind='horse'`）へ移してから消す
 - AI 連携（MCP）・共有（予想まとめ・共有ページ）には出さない。**例外は取り下げで近況メモへ移したもの**で、移したあとは近況メモ（`note`）なので MCP・共有の対象になる
-- **出走馬の入力画面（`/races/[id]/entries` の `saveEntries`）で行を消すと、気づきも CASCADE で消える。** 取り下げと違って移さない（紐づくメモも同じ）。消す前の確認文でそう伝える
+- **出走馬の入力画面（`/races/[id]/entries` の `saveEntries`）で行を消すと、気づきも CASCADE で消える。** 取り下げと違って移さない（紐づくメモも同じ）。出走馬の入力画面の説明文に、紐づくメモと気づきも消えると書いてある
 
 ### oauth_client / oauth_grant / oauth_code / oauth_token / mcp_usage
 

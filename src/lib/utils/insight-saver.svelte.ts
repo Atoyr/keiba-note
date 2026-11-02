@@ -15,6 +15,8 @@
  * 送る処理（`send`）は注入する。ブラウザの `fetch` は `insight-send.ts`。
  */
 
+import { INSIGHT_ATTACHED_LIMIT } from '$lib/schemas/insight';
+
 export type InsightValue = { words: string[]; memo: string };
 
 /** 馬ごとの、未送信の操作。言葉は「付ける（true）・外す（false）」、メモは書いた文。 */
@@ -73,8 +75,7 @@ const DEFAULT_FAILURE = 'この馬の気づきを保存できませんでした�
 const KEPT = '入力は端末に残っています。';
 const NOT_KEPT = 'このページを閉じると入力は消えます。';
 const LOGIN_EXPIRED = 'ログインが切れています。ログインし直してから、もう一度保存してください。';
-/** 1頭に付けられる言葉の数（`INSIGHT_ATTACHED_LIMIT`）。画面側はサーバーの定義を import できないので写している。 */
-export const LIMIT_NOTICE = 'この馬に付けられる言葉は40個までです。';
+export const LIMIT_NOTICE = `この馬に付けられる言葉は${INSIGHT_ATTACHED_LIMIT}個までです。`;
 
 const emptyRow = (value?: InsightValue): Row => ({
 	words: value?.words ?? [],
@@ -195,7 +196,8 @@ export class InsightSaver {
 	/** 言葉を押す。付いていれば外し、無ければ付ける。すぐ送る。 */
 	toggle(entryId: string, word: string): void {
 		const row = this.#ensure(entryId);
-		this.#touch(row);
+		// 復元した行の言葉を押したとき、同じ行の未送信のメモも明示の操作として送る。
+		this.#touch(row, true);
 		row.pending.words[word] = !this.#pressed(row, word);
 		row.saved = false;
 		this.#persist();
@@ -205,7 +207,7 @@ export class InsightSaver {
 	/** メモを書く。打ち止めて 600ms で送る。 */
 	setMemo(entryId: string, memo: string): void {
 		const row = this.#ensure(entryId);
-		this.#touch(row);
+		this.#touch(row, false);
 		row.pending.memo = memo;
 		row.typed = memo;
 		row.memoReady = false;
@@ -221,7 +223,8 @@ export class InsightSaver {
 	/** デバウンスを待たずにメモを送る（欄を離れたとき）。 */
 	flushMemo(entryId: string): void {
 		const row = this.rows[entryId];
-		if (!row || row.pending.memo === undefined) return;
+		// 復元しただけの行は、欄を通過しただけ（blur）では送らない。
+		if (!row || row.restored || row.pending.memo === undefined) return;
 		this.#clearTimer(entryId);
 		row.memoReady = true;
 		void this.#drain(entryId);
@@ -231,7 +234,7 @@ export class InsightSaver {
 	retry(entryId: string): void {
 		const row = this.rows[entryId];
 		if (!row) return;
-		this.#touch(row);
+		this.#touch(row, true);
 		row.memoReady = true;
 		void this.#drain(entryId);
 	}
@@ -266,7 +269,9 @@ export class InsightSaver {
 	}
 
 	/** ユーザーがこの行を明示して触った。復元の印と、前回の知らせを外す。 */
-	#touch(row: Row) {
+	#touch(row: Row, releaseMemo: boolean) {
+		// 未送信のメモを持つ復元の行は、メモもここで送ってよいことにする（`setMemo` 自身はデバウンスに任せる）。
+		if (row.restored && releaseMemo && row.pending.memo !== undefined) row.memoReady = true;
 		row.restored = false;
 		row.limited = false;
 	}
@@ -341,7 +346,7 @@ export class InsightSaver {
 	#describe(row: Row, e: unknown) {
 		row.loginRequired = e instanceof InsightSendError && e.login;
 		if (row.loginRequired) {
-			row.message = LOGIN_EXPIRED;
+			row.message = `${LOGIN_EXPIRED}${this.#persist() ? KEPT : NOT_KEPT}`;
 			return;
 		}
 		const server = e instanceof InsightSendError && e.message ? e.message : DEFAULT_FAILURE;

@@ -485,7 +485,7 @@ export const INSIGHT = {
 		entries: { aka: '01JE2EENTRYINSIGHTW1000000', ao: '01JE2EENTRYINSIGHTW2000000' },
 		names: { aka: 'E2E気づきアカウマ', ao: 'E2E気づきアオウマ' },
 		/** 言葉無しユーザーが1頭目に残した気づき。一般ユーザーには見えてはいけない。 */
-		otherMemo: '他人の気づき。見えてはいけない。'
+		otherMemo: '別のユーザーの気づき（見本）'
 	},
 	noResult: { raceId: '01JE2ERACEINSIGHTNORES0000', name: 'E2E結果前気づき賞' }
 } as const;
