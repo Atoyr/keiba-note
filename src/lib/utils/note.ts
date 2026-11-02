@@ -76,6 +76,8 @@ export type NoteKindLabel =
 	/** 重賞のタイムライン（`/graded-races/[name]`）の年ごとの行。 */
 	| '予想'
 	| 'ふりかえり'
+	/** レース直後に馬へ付けた気づき（言葉と短いメモ）。 */
+	| '気づき'
 	| '開催予定';
 
 export type NoteHeading = {

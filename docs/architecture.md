@@ -47,7 +47,7 @@
 ### 本人のデータ
 
 - **本人のデータを読む関数は `viewerId`（`userId`）を必須引数で受け取り、SQL の WHERE に入れる。**
-  対象は `note`・`race_share`（`author_id`）と、`favorite_horse`・`jockey_note`・`graded_race_note`・`oauth_grant`・`mcp_usage`（`user_id`）。
+  対象は `note`・`race_share`（`author_id`）と、`favorite_horse`・`jockey_note`・`graded_race_note`・`insight_word`・`race_entry_insight`・`oauth_grant`・`mcp_usage`（`user_id`）。
   省略可能にした時点で、絞り忘れが「全ユーザーに見える」に直結する（→ 3-6）。
   表ごとの引数と WHERE は [api.md 第5章「誰のデータか」](./api.md)
 - **他人に見せるかの判定に `visibility` を使うのは `getSharedNote`（共有ページ `/notes/[id]`）だけ。**
@@ -277,7 +277,7 @@ graded（重賞）も同じくマスタの表を持たず、レース名を別�
 
 - 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
   `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない
-- services のうち `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch` の機能への所属はまだ決めていない（→ [harness.md 第8章](./harness.md)）
+- services のうち `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`insights` の機能への所属はまだ決めていない（→ [harness.md 第8章](./harness.md)）
 - **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない
 - 今ある違反（直す予定）は [harness.md 2-5](./harness.md)
 
@@ -342,12 +342,15 @@ sequenceDiagram
     and
         L->>S: isFavoriteHorse(db, horseId, user.id)
         S->>D: favorite_horse 【クエリ5】
+    and
+        L->>S: listHorseInsights(db, horseId, user.id)
+        S->>D: race_entry_insight JOIN race JOIN race_entry 【クエリ6】
     end
-    Note over L: mergeHorseTimeline で出走とメモを1本に並べる
+    Note over L: mergeHorseTimeline で出走とメモと気づきを1本に並べる
     L-->>B: SSR した HTML
 ```
 
-**1ページ＝セッション検証1＋読み4（並行）。** メモのタイムラインが1クエリで済むのは、
+**1ページ＝セッション検証1＋読み5（並行）。** メモのタイムラインが1クエリで済むのは、
 `note` に `horse_id` を非正規化しているため（→ [data-model.md](./data-model.md)）。
 レース紐付きメモと近況メモをマージする処理が要らない。
 

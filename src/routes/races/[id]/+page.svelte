@@ -38,12 +38,15 @@
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
 	import EntryNoteEditor from '$lib/components/EntryNoteEditor.svelte';
+	import EntryInsight from '$lib/components/EntryInsight.svelte';
+	import { InsightSaver } from '$lib/utils/insight-saver.svelte';
+	import { insightFormData, sendInsight } from '$lib/utils/insight-send';
 	import EntryMemo from '$lib/components/EntryMemo.svelte';
 	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
 	import PastRunsStrip from '$lib/components/PastRunsStrip.svelte';
 	import PastRunsToggle from '$lib/components/PastRunsToggle.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { cn } from '$lib/utils';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -127,6 +130,54 @@
 	const shownInActual = $derived(
 		(['corner4', 'finish'] as const).filter((p) => actual?.[p] && data.myRaceFlow?.[p].spots.length)
 	);
+
+	/**
+	 * 気づき（馬に付ける言葉と短いメモ）の自動保存。ふりかえり本文の一括保存（`SaveBar`）とは別で、1 操作ごとに送る。
+	 * レースごとに作る。別のレースへ移るときと unmount で、未送信のものを送り始める。
+	 * 気づきの欄は `form` 属性で下の別のフォーム（`insightFormId`）に属すので、大きいフォームの
+	 * 未保存の件数・下書きには混ざらない。
+	 */
+	const insightFormId = 'entry-insights';
+	function makeSaver(raceId: string) {
+		return new InsightSaver({
+			storageKey: `uma-memo:insight:${page.data.user?.id ?? '-'}:${raceId}`,
+			initial: Object.fromEntries(
+				data.rows.flatMap((r) => (r.insight ? [[r.entryId, r.insight] as const] : []))
+			),
+			entryIds: data.rows.map((r) => r.entryId),
+			// action の場所は送るときに組む（SSR の相対パスを持ち越さない）。
+			send: (op, opts) =>
+				sendInsight(resolve('/races/[id]/insights', { id: raceId }), insightFormData(op), opts)
+		});
+	}
+	// レースごとに作る。別のレースへ移ると作り直し、下の effect の cleanup が前のものを送り切る。
+	// 追跡するのはレースの id だけ（`data` の再読み込みで作り直すと、送信中の操作を失う）。
+	const saver = $derived.by(() => {
+		const id = data.race.id;
+		return untrack(() => makeSaver(id));
+	});
+	$effect(() => {
+		const s = saver;
+		// 前の画面で送り切れなかった操作を端末から戻す。自動では送らず、行に「もう一度保存する」を出す。
+		// untrack: 読み戻しで rows を読むので、追跡すると行が変わるたびにこの effect が回り直す。
+		untrack(() => s.restore());
+		const onHide = () => s.flushAll({ keepalive: true });
+		// LINE などへ切り替えたときは pagehide が来ないので、見えなくなったときにも送り始める。
+		const onVisibility = () => {
+			if (document.visibilityState === 'hidden') onHide();
+		};
+		const onOnline = () => s.retryFailed();
+		window.addEventListener('pagehide', onHide);
+		document.addEventListener('visibilitychange', onVisibility);
+		window.addEventListener('online', onOnline);
+		return () => {
+			window.removeEventListener('pagehide', onHide);
+			document.removeEventListener('visibilitychange', onVisibility);
+			window.removeEventListener('online', onOnline);
+			s.flushAll();
+			s.dispose();
+		};
+	});
 
 	const ta = 'mt-1 text-sm';
 
@@ -375,6 +426,12 @@
 								<PastRunsToggle bind:pressed={strip} />
 							{/if}
 						</div>
+						<!-- 気づきの保存は JS が無いと別の画面（結果の画面）へ移る。行ごとには出さず、ここに1回だけ。 -->
+						<noscript>
+							<p class="mt-1 text-xs text-muted-foreground">
+								気づきを保存すると画面が移ります。書きかけのふりかえりは先に保存してください。
+							</p>
+						</noscript>
 						<!-- 予想画面の人気・オッズは取得時点の値。ここは結果として入った確定の値なので、見分けられるよう添える。 -->
 						{#if oddsColumn}
 							<p class="mt-1 text-xs text-muted-foreground">人気・単勝オッズは確定の値</p>
@@ -562,6 +619,16 @@
 												</div>
 											{/if}
 
+											<!-- レース直後の気づき。言葉を押すだけで残せる（押した時点で保存）。ふりかえり本文とは別の入力で、
+									     本文には混ざらない。下のふりかえりメモを書くときに、すぐ上で読み返せる。 -->
+											<EntryInsight
+												horseName={r.horseName}
+												entryId={r.entryId}
+												{saver}
+												registered={data.insightWords}
+												formId={insightFormId}
+											/>
+
 											<!-- いま入力しているふりかえりのメモを、札付きでそのまま出す。押すとその場で入力欄が開く（見出しで折りたためる）。 -->
 											{#snippet memo()}
 												<EntryMemo kind="ふりかえり" body={review.body} tags={review.tags} />
@@ -602,4 +669,11 @@
 			message={form && 'message' in form ? form.message : null}
 		/>
 	</form>
+
+	<!-- 気づきの送り先。大きいフォームの**外**に置く（入れ子のフォームにしない）。行の気づきの欄は `form` 属性でこれに属す。 -->
+	<form
+		id={insightFormId}
+		method="POST"
+		action={resolve('/races/[id]/insights', { id: data.race.id })}
+	></form>
 </main>

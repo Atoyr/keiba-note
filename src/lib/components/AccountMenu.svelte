@@ -55,6 +55,11 @@
 		</DropdownMenu.Item>
 		<DropdownMenu.Item>
 			{#snippet child({ props })}
+				<a href={resolve('/settings/insight-words')} {...props}>気づきの言葉</a>
+			{/snippet}
+		</DropdownMenu.Item>
+		<DropdownMenu.Item>
+			{#snippet child({ props })}
 				<a href={resolve('/settings/shares')} {...props}>共有中</a>
 			{/snippet}
 		</DropdownMenu.Item>

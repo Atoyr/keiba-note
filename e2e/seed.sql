@@ -954,3 +954,66 @@ INSERT INTO note (id, author_id, kind, horse_id, race_id, race_entry_id, body, t
 
 INSERT INTO note (id, author_id, kind, horse_id, race_id, race_entry_id, body, tags, visibility, occurred_at) VALUES
  ('01JE2ENOTEROWOTHER00000000', '01JE2EOTHERUSER00000000000', 'entry', '01JE2EHORSEROWA00000000000', '01JE2ERACEROWPAST000000000', '01JE2EENTRYROWPAST00000000', '他人の各走メモ', '[]', 'unlisted', '2020-04-10');
+
+-- レース直後の気づき（Issue #236）。
+--
+-- 言葉を登録しているのは一般ユーザー（E2E ユーザー）だけ。言葉の無い第2ユーザー（E2E 気づき無しユーザー）は、
+-- 言葉が0件の案内と、他人の気づきが見えないことを見るためのもの。
+-- 並びは登録順（created_at）。
+INSERT INTO insight_word (user_id, word, created_at) VALUES
+	('01JE2EUSER0000000000000000', '上がりが強い', unixepoch('2026-01-01') + 1),
+	('01JE2EUSER0000000000000000', '内詰まり', unixepoch('2026-01-01') + 2),
+	('01JE2EUSER0000000000000000', '前が壁', unixepoch('2026-01-01') + 3),
+	('01JE2EUSER0000000000000000', '距離延長○', unixepoch('2026-01-01') + 4),
+	('01JE2EUSER0000000000000000', '前残り', unixepoch('2026-01-01') + 5),
+	('01JE2EUSER0000000000000000', '途中で諦めた', unixepoch('2026-01-01') + 6);
+
+INSERT INTO user (id, google_sub, email, display_name, role)
+VALUES ('01JE2EUSERNOWORDS000000000', 'e2e-nowords-google-sub', 'nowords@example.invalid', 'E2E 気づき無しユーザー', 'user');
+-- トークンは e2e/seed.ts の NO_WORDS_SESSION_TOKEN の SHA-256。
+INSERT INTO session (id, user_id, expires_at)
+VALUES ('5cc232e4bec7202aa98f698795df3b0dc22e5e9d41197c4822d4a1514f585b59', '01JE2EUSERNOWORDS000000000', 4102444800);
+
+-- 言葉の登録・削除を押して確かめる専用のユーザー（画面カタログが読む二人と取り合わない）。
+INSERT INTO user (id, google_sub, email, display_name, role)
+VALUES ('01JE2EUSERWORDSEDIT0000000', 'e2e-wordsedit-google-sub', 'wordsedit@example.invalid', 'E2E 言葉登録ユーザー', 'user');
+-- トークンは e2e/seed.ts の WORDS_EDIT_SESSION_TOKEN の SHA-256。
+INSERT INTO session (id, user_id, expires_at)
+VALUES ('3ba15d2a9c70dd016ee815f18246f5bee6ea6407b81ae2985a69905dd5edea12', '01JE2EUSERWORDSEDIT0000000', 4102444800);
+
+INSERT INTO horse (id, name, birth_year, sex) VALUES
+	('01JE2EHORSEINSIGHTV1000000', 'E2E気づきシロウマ', 2021, '牡'),
+	('01JE2EHORSEINSIGHTV2000000', 'E2E気づきクロウマ', 2021, '牝'),
+	('01JE2EHORSEINSIGHTW1000000', 'E2E気づきアカウマ', 2021, '牡'),
+	('01JE2EHORSEINSIGHTW2000000', 'E2E気づきアオウマ', 2021, '牝'),
+	('01JE2EHORSEINSIGHTN0000000', 'E2E気づきミドリ', 2021, '牡');
+
+-- 前走（気づきが保存済み）。ふりかえり・予想の過去走と、馬の画面に出る。
+INSERT INTO race (id, date, course, race_number, name, class_name, surface, distance, direction)
+VALUES ('01JE2ERACEINSIGHTPAST00000', '2026-04-12', '中山', 11, 'E2E気づき前走', '3勝クラス', '芝', 2000, '右');
+-- 読む見本（保存済みの気づきが付いている。テストは書き換えない。画面カタログが読む）。
+INSERT INTO race (id, date, course, race_number, name, class_name, surface, distance, direction, field_size)
+VALUES ('01JE2ERACEINSIGHTVIEW00000', '2026-05-17', '東京', 11, 'E2E気づき見本賞', '3勝クラス', '芝', 1600, '左', 2);
+-- 書く（E2E が言葉を押し、メモを書く。見本には使わない）。
+INSERT INTO race (id, date, course, race_number, name, class_name, surface, distance, direction, field_size)
+VALUES ('01JE2ERACEINSIGHTWRITE0000', '2026-05-10', '東京', 10, 'E2E気づき記録賞', '3勝クラス', '芝', 1600, '左', 2);
+-- 結果がまだ入っていない開催済みのレース（気づきを残していれば、一覧からふりかえりへ向く）。
+INSERT INTO race (id, date, course, race_number, name, class_name, surface, distance, direction)
+VALUES ('01JE2ERACEINSIGHTNORES0000', '2026-05-03', '京都', 9, 'E2E結果前気づき賞', '3勝クラス', '芝', 1800, '右');
+
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position) VALUES
+	('01JE2EENTRYINSIGHTP1000000', '01JE2ERACEINSIGHTPAST00000', '01JE2EHORSEINSIGHTV1000000', 3, 5, 'E2E騎手', 6),
+	('01JE2EENTRYINSIGHTV1000000', '01JE2ERACEINSIGHTVIEW00000', '01JE2EHORSEINSIGHTV1000000', 1, 1, 'E2E騎手', 1),
+	('01JE2EENTRYINSIGHTV2000000', '01JE2ERACEINSIGHTVIEW00000', '01JE2EHORSEINSIGHTV2000000', 2, 2, 'E2E騎手', 2),
+	('01JE2EENTRYINSIGHTW1000000', '01JE2ERACEINSIGHTWRITE0000', '01JE2EHORSEINSIGHTW1000000', 1, 1, 'E2E騎手', 1),
+	('01JE2EENTRYINSIGHTW2000000', '01JE2ERACEINSIGHTWRITE0000', '01JE2EHORSEINSIGHTW2000000', 2, 2, 'E2E騎手', 2);
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
+VALUES ('01JE2EENTRYINSIGHTN1000000', '01JE2ERACEINSIGHTNORES0000', '01JE2EHORSEINSIGHTN0000000', 1, 1, 'E2E騎手');
+
+INSERT INTO race_entry_insight (user_id, race_entry_id, race_id, horse_id, words, memo, occurred_at) VALUES
+	('01JE2EUSER0000000000000000', '01JE2EENTRYINSIGHTP1000000', '01JE2ERACEINSIGHTPAST00000', '01JE2EHORSEINSIGHTV1000000', '["前が壁","内詰まり"]', '直線で前が壁になった。2400 なら。', '2026-04-12'),
+	('01JE2EUSER0000000000000000', '01JE2EENTRYINSIGHTV1000000', '01JE2ERACEINSIGHTVIEW00000', '01JE2EHORSEINSIGHTV1000000', '["上がりが強い","距離延長○"]', '次はもう少し長い距離で。', '2026-05-17'),
+	('01JE2EUSER0000000000000000', '01JE2EENTRYINSIGHTV2000000', '01JE2ERACEINSIGHTVIEW00000', '01JE2EHORSEINSIGHTV2000000', '["前残り"]', '', '2026-05-17'),
+	('01JE2EUSER0000000000000000', '01JE2EENTRYINSIGHTN1000000', '01JE2ERACEINSIGHTNORES0000', '01JE2EHORSEINSIGHTN0000000', '["途中で諦めた"]', '', '2026-05-03'),
+	-- 言葉無しユーザーの気づき。一般ユーザーのどの画面にも出てはいけない。
+	('01JE2EUSERNOWORDS000000000', '01JE2EENTRYINSIGHTW1000000', '01JE2ERACEINSIGHTWRITE0000', '01JE2EHORSEINSIGHTW1000000', '["別のユーザーの言葉"]', '別のユーザーの気づき（見本）', '2026-05-10');

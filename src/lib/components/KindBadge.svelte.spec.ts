@@ -9,8 +9,8 @@ describe('KindBadge', () => {
 		expect(screen.container.querySelector('[data-slot="badge"]')).toBeNull();
 	});
 
-	it('重賞のタイムラインの札（予想・ふりかえり・開催予定）をそのまま出す', () => {
-		for (const label of ['予想', 'ふりかえり', '開催予定'] as const) {
+	it('重賞のタイムラインの札（予想・ふりかえり・気づき・開催予定）をそのまま出す', () => {
+		for (const label of ['予想', 'ふりかえり', '気づき', '開催予定'] as const) {
 			const screen = render(KindBadge, { label });
 
 			expect(screen.container.querySelector('[data-slot="badge"]')?.textContent?.trim()).toBe(

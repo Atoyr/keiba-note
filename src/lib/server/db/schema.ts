@@ -494,6 +494,68 @@ export const gradedRaceNote = sqliteTable(
 );
 
 /**
+ * 気づきの言葉。**本人が登録する、全レース共通の言葉**（「上がりが強い」「内詰まり」など）。
+ * レース直後に特定の馬へ付ける（`race_entry_insight`）ときの押せる札になる。
+ *
+ * メモの札（`note.tags`）は固定の選択肢で、MCP・共有・答え合わせにつながる。ユーザーの言葉を混ぜると
+ * その前提が崩れるので、別の表にした。並びは登録順（`created_at`、同じ秒なら `rowid`）。
+ * 消しても、すでに馬へ付けた記録には触らない（付けた言葉は文字列のコピーで持つ）。
+ */
+export const insightWord = sqliteTable(
+	'insight_word',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		word: text('word').notNull(),
+		createdAt: createdAt()
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.word] })]
+);
+
+/**
+ * レース直後の気づき。1人・1出走につき1本（付けた言葉と、短い自由入力）。**本人だけのもの**で、
+ * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
+ *
+ * `note` に kind を足さず別の表にしたのは、`note_kind_shape` の CHECK を作り直す（中心の表の作り直し）ことになり、
+ * `entry` の行に足すと「本文も札も空なら消す」保存で気づきが消え、ふりかえり済にも数えられてしまうため。
+ * 言葉の空・メモの空が両方なら行ごと消す。`words` は付けた言葉の文字列のコピー（`string[]`）で、
+ * 登録（`insight_word`）を消しても残る。
+ */
+export const raceEntryInsight = sqliteTable(
+	'race_entry_insight',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		raceEntryId: text('race_entry_id')
+			.notNull()
+			.references(() => raceEntry.id, { onDelete: 'cascade' }),
+		raceId: text('race_id')
+			.notNull()
+			.references(() => race.id, { onDelete: 'cascade' }),
+		horseId: text('horse_id')
+			.notNull()
+			.references(() => horse.id, { onDelete: 'cascade' }),
+		words: text('words', { mode: 'json' })
+			.$type<string[]>()
+			.notNull()
+			.default(sql`'[]'`),
+		memo: text('memo').notNull().default(''),
+		/** レース日（`YYYY-MM-DD`）。馬のタイムラインがレース順に並ぶ。 */
+		occurredAt: text('occurred_at').notNull(),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	(t) => [
+		primaryKey({ columns: [t.userId, t.raceEntryId] }),
+		index('insight_user_horse').on(t.userId, t.horseId, t.occurredAt),
+		index('insight_user_race').on(t.userId, t.raceId),
+		check('insight_words_json', sql`json_valid(words)`)
+	]
+);
+
+/**
  * MCP クライアント（Claude・ChatGPT など）。OAuth の動的クライアント登録（`/oauth/register`）で作られる。
  *
  * 登録は誰でもできる（ログイン前のクライアントが自分で登録する仕組み）ので、**これ自体は何の権限も持たない。**

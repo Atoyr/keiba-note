@@ -185,6 +185,42 @@ describe('取り下げ（withdrawn）', () => {
 		expect(notes()).toEqual(once);
 	});
 
+	it('レース直後の気づきも近況メモに移す（言葉は「、」でつなぎ、メモを続ける）。2回流しても増えない', () => {
+		db.prepare(
+			`INSERT INTO race_entry_insight (user_id, race_entry_id, race_id, horse_id, words, memo, occurred_at)
+			 SELECT 'U1', re.id, re.race_id, re.horse_id, ?, ?, '2099-01-04'
+			 FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-b'`
+		).run('["内詰まり","前が壁"]', '2400 なら。');
+		// 出走するほうの馬の気づきは、そのまま残る。
+		db.prepare(
+			`INSERT INTO race_entry_insight (user_id, race_entry_id, race_id, horse_id, words, memo, occurred_at)
+			 SELECT 'U1', re.id, re.race_id, re.horse_id, '["前残り"]', '', '2099-01-04'
+			 FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-a'`
+		).run();
+
+		load(db, confirmed);
+		load(db, confirmed);
+
+		const moved = db
+			.prepare(
+				`SELECT n.author_id, n.kind, n.race_id, n.race_entry_id, n.body, n.occurred_at, h.external_ref AS ref
+				 FROM note n JOIN horse h ON h.id = n.horse_id WHERE n.body LIKE '%気づきから移しました%'`
+			)
+			.all();
+		expect(moved).toEqual([
+			{
+				author_id: 'U1',
+				kind: 'horse',
+				race_id: null,
+				race_entry_id: null,
+				body: '（2099-01-04 中山11R テストS に出走しなかったため、気づきから移しました）\n\n内詰まり、前が壁\n\n2400 なら。',
+				occurred_at: '2099-01-04',
+				ref: 't-b'
+			}
+		]);
+		expect(db.prepare(`SELECT count(*) AS n FROM race_entry_insight`).get()).toEqual({ n: 1 });
+	});
+
 	it('出走馬行に紐づくメモは CASCADE で消えない（移さなかった場合との対照）', () => {
 		load(db, confirmed);
 		expect(db.prepare(`SELECT count(*) AS n FROM note`).get()).toEqual({ n: 4 });

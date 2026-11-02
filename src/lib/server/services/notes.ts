@@ -21,6 +21,13 @@ import type { NoteTag } from '$lib/schemas/note';
 import type { RaceFlow } from '$lib/schemas/race-flow';
 import type { WatchSourceRow } from '$lib/utils/dashboard';
 import { raceResultCount, type HorseRun } from './races';
+import {
+	insightsByEntry,
+	insightWordsQuery,
+	pastInsightsQuery,
+	raceInsightsQuery,
+	type TimelineInsight
+} from './insights';
 
 /**
  * メモ。本アプリの中心。
@@ -317,18 +324,19 @@ export async function getHorseTimeline(
 
 export type TimelineRow =
 	| { key: string; occurredAt: string; type: 'note'; note: TimelineNote }
+	| { key: string; occurredAt: string; type: 'insight'; insight: TimelineInsight }
 	| { key: string; occurredAt: string; type: 'run'; upcoming: boolean; run: HorseRun };
 
-/** 同じ日付に並んだときの順。メモを先に、メモの無い出走を後ろに。 */
+/** 同じ日付に並んだときの順。メモ → 気づき → メモの無い出走。 */
 function rank(row: TimelineRow): number {
-	return row.type === 'note' ? 0 : 1;
+	return row.type === 'note' ? 0 : row.type === 'insight' ? 1 : 2;
 }
 
 /**
  * 馬タイムラインの組み立て。**メモと出走を1本の流れにする。**
  *
- * 骨は出走（`runs`）で、そこにメモ（`notes`）を重ねる。
- * **メモのある出走は出走行を出さない。** メモ行がレース名も着順も持っているので、
+ * 骨は出走（`runs`）で、そこにメモ（`notes`）と気づき（`insights`）を重ねる。
+ * **メモや気づきのある出走は出走行を出さない。** その行がレース名も着順も持っているので、
  * 同じレースが2行になるだけになる。突き合わせは race_entry_id で行う
  * （1つの出走に出走前メモとふりかえりメモの2件が付くことがあるので、
  * 「1件でもあれば出走行は出さない」= 集合で持つ）。
@@ -344,9 +352,13 @@ function rank(row: TimelineRow): number {
 export function mergeHorseTimeline(
 	notes: TimelineNote[],
 	runs: HorseRun[],
-	today: string
+	today: string,
+	insights: TimelineInsight[] = []
 ): TimelineRow[] {
-	const noted = new Set(notes.map((n) => n.raceEntryId).filter((id) => id !== null));
+	const noted = new Set<string | null>([
+		...notes.map((n) => n.raceEntryId),
+		...insights.map((i) => i.raceEntryId)
+	]);
 
 	const rows: TimelineRow[] = [
 		...notes.map((note) => ({
@@ -354,6 +366,12 @@ export function mergeHorseTimeline(
 			occurredAt: note.occurredAt,
 			type: 'note' as const,
 			note
+		})),
+		...insights.map((insight) => ({
+			key: `insight:${insight.raceEntryId}`,
+			occurredAt: insight.occurredAt,
+			type: 'insight' as const,
+			insight
 		})),
 		...runs
 			.filter((run) => !noted.has(run.entryId))
@@ -647,6 +665,9 @@ function groupHistory(
  * - `history`: 馬ごとの、今回以外のメモ。新しい順
  * - `pastRunNotes`: `history` のうち出走前・ふりかえりのメモを出走ID（`race_entry.id`）で束ねたもの。
  *   画面は各走の `entryId` で引く。同日の別レース・同名の別馬は出走IDが違うので混ざらない
+ * - `insightWords`: 自分が登録した気づきの言葉（登録順）
+ * - `raceInsights`: このレースの出走馬に付けた気づき（出走IDで束ねる）
+ * - `pastRunInsights`: ほかのレースの気づき（出走IDで束ねる。新しい順の500件まで）
  *
  * **`history` は新しい順の500件まで。** 直近5走のメモは新しい側にあるので落ちない。
  * 500件を超える古いメモは、馬の画面で読む。
@@ -657,15 +678,40 @@ export async function listRaceMemoContext(
 	horseIds: string[],
 	viewerId: string
 ) {
-	const [raceNotes, history] =
-		horseIds.length === 0
-			? [await raceNotesQuery(db, raceId, viewerId), []]
-			: await db.batch([
-					raceNotesQuery(db, raceId, viewerId),
-					horseHistoryQuery(db, horseIds, raceId, viewerId)
-				]);
-	const { byHorse, byEntry } = groupHistory(history);
-	return { raceNotes, history: byHorse, pastRunNotes: byEntry };
+	// 気づき（`race_entry_insight`）と登録した言葉も同じ batch に載せる。往復は増やさない。
+	if (horseIds.length === 0) {
+		const [raceNotes, words, raceInsights] = await db.batch([
+			raceNotesQuery(db, raceId, viewerId),
+			insightWordsQuery(db, viewerId),
+			raceInsightsQuery(db, raceId, viewerId)
+		]);
+		const { byHorse, byEntry: pastRunNotes } = groupHistory([]);
+		return {
+			raceNotes,
+			history: byHorse,
+			pastRunNotes,
+			insightWords: words.map((w) => w.word),
+			raceInsights: insightsByEntry(raceInsights),
+			pastRunInsights: insightsByEntry([])
+		};
+	}
+	const [raceNotes, history, words, raceInsights, pastInsights] = await db.batch([
+		raceNotesQuery(db, raceId, viewerId),
+		horseHistoryQuery(db, horseIds, raceId, viewerId),
+		insightWordsQuery(db, viewerId),
+		raceInsightsQuery(db, raceId, viewerId),
+		pastInsightsQuery(db, horseIds, raceId, viewerId)
+	]);
+	const { byHorse, byEntry: pastRunNotes } = groupHistory(history);
+	return {
+		raceNotes,
+		history: byHorse,
+		pastRunNotes,
+		// 登録した言葉（登録順）。このレースの気づきは出走ID、ほかのレースの気づきは出走IDで引く。
+		insightWords: words.map((w) => w.word),
+		raceInsights: insightsByEntry(raceInsights),
+		pastRunInsights: insightsByEntry(pastInsights)
+	};
 }
 
 function raceNotesQuery(db: Db, raceId: string, viewerId: string) {

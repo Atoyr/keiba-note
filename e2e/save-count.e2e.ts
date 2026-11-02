@@ -24,7 +24,7 @@ test('予想: 1頭に本文・札・印を付けると未保存は1件で、保�
 
 	const row = page.locator('li[id^="entry-"]', { hasText: 'E2Eコレカラ' });
 	await row.getByRole('button', { name: /＋ 出走前メモ/ }).click();
-	await row.locator('textarea').fill('距離短縮で前に行けそう。');
+	await row.locator('textarea[name^="body."]').fill('距離短縮で前に行けそう。');
 	// 札は見た目だけのラベルで、チェックボックス本体は隠してある。押すのはラベル（下に貼り付く保存ボタンに隠れたら、押せる位置まで待つ）。
 	await row.getByText('次走買い', { exact: true }).click();
 	await row.getByRole('radio', { name: '▲' }).check({ force: true });
@@ -39,7 +39,7 @@ test('予想: 1頭に本文・札・印を付けると未保存は1件で、保�
 	await page.locator('textarea[name="raceNoteBody"]').fill('前に行ける馬から。');
 	// 保存が通ると入力欄は閉じて、書いたメモの表示に戻る。押して開き直す。
 	await row.getByRole('button', { name: /出走前メモを書き直す/ }).click();
-	await row.locator('textarea').fill('');
+	await row.locator('textarea[name^="body."]').fill('');
 	await row.getByText('次走買い', { exact: true }).click();
 	await row.getByRole('radio', { name: 'なし' }).check({ force: true });
 	await expect(page.getByText('未保存の変更が 2 件あります')).toBeVisible();
@@ -66,9 +66,10 @@ test('ふりかえり: 送信中に書き足した分は保存の件数に入ら
 	await gotoHydrated(page, `/races/${COUNT_RACE_ID}`);
 	const toast = (text: string) => page.locator('[data-sonner-toast]', { hasText: text });
 	const row = page.locator('li', { has: page.getByRole('link', { name: 'E2Eコレカラ' }) });
-	const openBody = () => row.getByRole('button', { name: /(＋ |を書き直す)/ }).click();
+	const openBody = () =>
+		row.getByRole('button', { name: /(＋ ふりかえりメモ|ふりかえりメモを書き直す)/ }).click();
 	await openBody();
-	const body = row.locator('textarea');
+	const body = row.locator('textarea[name^="body."]');
 	const raceNote = page.locator('textarea[name="raceNoteBody"]');
 	const save = page.getByRole('button', { name: 'まとめて保存' });
 

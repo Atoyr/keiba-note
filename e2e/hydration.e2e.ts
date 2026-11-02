@@ -73,13 +73,13 @@ test('hydration 前は開くボタンが押せず、hydration 後に押すと書
 	const opener = row.getByRole('button', { name: /(出走前|ふりかえり)メモ/, expanded: false });
 	// 押しても何も起きないボタンは、押せない状態で届く。入力欄は隠れたまま。
 	await expect(opener).toBeDisabled();
-	await expect(row.locator('textarea')).toBeHidden();
+	await expect(row.locator('textarea[name^="body."]')).toBeHidden();
 
 	release();
 	await waitForHydration(page);
 	await expect(opener).toBeEnabled();
 	await opener.click();
-	await expect(row.locator('textarea')).toBeFocused();
+	await expect(row.locator('textarea[name^="body."]')).toBeFocused();
 });
 
 test('hydration 前に付け替えた印は残る', async ({ page }) => {

@@ -86,6 +86,21 @@ describe('予想 WebMCP', () => {
 		expect(buildPredictionContext({ ...data, rows: [] }).entries).toEqual([]);
 	});
 
+	it('過去走の気づき（insight）は AI に渡さない', () => {
+		const withInsight = {
+			...data,
+			rows: [
+				{
+					...data.rows[0],
+					pastRuns: [{ date: '2026-01-01', insight: { words: ['前が壁'], memo: '秘密のメモ' } }]
+				}
+			]
+		};
+		const context = buildPredictionContext(withInsight as typeof data);
+		expect(context.entries[0].pastRuns).toEqual([{ date: '2026-01-01' }]);
+		expect(JSON.stringify(context)).not.toContain('秘密のメモ');
+	});
+
 	it('read-only と未保存変更のヒント、JSON Schema を既存制約で公開する', () => {
 		const { tools } = setup();
 		expect(tools.map((tool) => tool.name)).toEqual([

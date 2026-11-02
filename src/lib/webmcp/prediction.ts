@@ -108,10 +108,19 @@ export function buildPredictionContext(
 						? prediction
 						: null,
 				myHistory: row.history,
-				pastRuns: row.pastRuns
+				// レース直後の気づき（insight）は AI 連携・WebMCP には出さない。
+				pastRuns: row.pastRuns.map((run) => omitInsight(run))
 			};
 		})
 	};
+}
+
+/** 過去走から気づき（`insight`）を除く。 */
+function omitInsight(run: unknown): unknown {
+	if (typeof run !== 'object' || run === null) return run;
+	const copy: Record<string, unknown> = { ...run };
+	delete copy.insight;
+	return copy;
 }
 
 export type PredictionContext = ReturnType<typeof buildPredictionContext>;

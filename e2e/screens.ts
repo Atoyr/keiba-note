@@ -14,6 +14,7 @@ import {
 	GRADED_RACE,
 	FILLY_HORSE_ID,
 	HORSE_ID,
+	INSIGHT,
 	JOCKEYS,
 	MARKS_RACE_ID,
 	PAST_EMPTY_RACE_ID,
@@ -29,6 +30,7 @@ import {
 	SHARED_RACE_ID,
 	MCP_CLIENT,
 	MCP_METADATA_CLIENT,
+	THIS_WEEK_RACES,
 	TOGGLE_FAVORITE_HORSE_ID,
 	PROFILE_RACE,
 	TREND_RACE
@@ -48,7 +50,7 @@ export type Screen = {
 	/** seed のセッションを載せて開くか。 */
 	auth: boolean;
 	/** 誰として開くか。既定は一般のユーザー。管理画面は `admin`。 */
-	as?: 'user' | 'admin';
+	as?: 'user' | 'admin' | 'no-words';
 	/** 撮る前に画面を目的の状態にする（`<details>` を開く、入力する など）。 */
 	prepare?: (page: Page) => Promise<void>;
 	/**
@@ -923,6 +925,109 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
+	// レース直後の気づき（Issue #236）。見本のレース（保存済みの気づきが付いた2頭）。閉じた行に言葉とメモが出る。
+	{ name: 'race-review-insight', path: `/races/${INSIGHT.view.raceId}`, auth: true },
+	{
+		// 気づきを開いたところ。登録した言葉が並び、付いた言葉は ✓ と太字。開いてもメモの欄にフォーカスは移らない。
+		name: 'race-review-insight-open',
+		path: `/races/${INSIGHT.view.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.getByRole('button', { name: new RegExp(`${INSIGHT.view.names.shiro}の気づきを開く`) })
+				.click();
+		},
+		stayAtTop: true
+	},
+	{
+		// 保存に失敗したところ。**本当には送らない**（action の応答だけを差し替える）。行の下に文と「もう一度保存する」が出て、押した言葉は破線のまま残る。
+		name: 'race-review-insight-failed',
+		path: `/races/${INSIGHT.write.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page.locator(`#entry-${INSIGHT.write.entries.ao}`);
+			await row.getByRole('button', { name: /＋ 気づき/ }).click();
+			await failNextAction(page, `/races/${INSIGHT.write.raceId}/insights`, {
+				message: '気づきの保存を確認できませんでした。時間をおいてもう一度試してください。',
+				entryId: INSIGHT.write.entries.ao
+			});
+			await row.getByRole('button', { name: /前が壁/ }).click();
+			await row.getByRole('alert').waitFor();
+		},
+		stayAtTop: true
+	},
+	{
+		// 言葉を1つも登録していないユーザーが気づきを開いたところ。登録の案内が出る（自由入力は使える）。
+		name: 'race-review-insight-empty-words',
+		path: `/races/${INSIGHT.write.raceId}`,
+		auth: true,
+		as: 'no-words',
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator(`#entry-${INSIGHT.write.entries.ao}`)
+				.getByRole('button', { name: /＋ 気づき/ })
+				.click();
+		},
+		stayAtTop: true
+	},
+	{
+		// 結果がまだ入っていないレース。気づきを残していれば、ふりかえり画面に着いて気づきを開ける。
+		name: 'race-review-insight-no-result',
+		path: `/races/${INSIGHT.noResult.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator('main li[id^="entry-"]')
+				.first()
+				.getByRole('button', { name: /の気づきを開く/ })
+				.click();
+		},
+		stayAtTop: true
+	},
+	{
+		// 詳細情報を開いたところ。前走の気づき（出走前 → 気づき → ふりかえり）が過去メモに出る。
+		name: 'race-review-insight-past-run',
+		path: `/races/${INSIGHT.view.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator('main li[id^="entry-"]', { hasText: INSIGHT.view.names.shiro })
+				.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
+				.click();
+		}
+	},
+	{
+		// 次走の検討で読む。予想画面の詳細情報に、前走の気づきが出る（ふりかえり本文を書いていなくても）。
+		name: 'race-preview-insight-past-run',
+		path: `/races/${INSIGHT.view.raceId}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator('main li[id^="entry-"]', { hasText: INSIGHT.view.names.shiro })
+				.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
+				.click();
+		}
+	},
+	// 当日のレース（結果はまだ）。見出しの下に「レースを見終えたら → 気づき・ふりかえりを残す」が出る。
+	{
+		name: 'race-preview-race-day-link',
+		path: `/races/${THIS_WEEK_RACES.upcoming.id}/preview`,
+		auth: true
+	},
+	{ name: 'horse-insight', path: `/horses/${INSIGHT.view.horses.shiro}`, auth: true },
+	{ name: 'settings-insight-words', path: '/settings/insight-words', auth: true },
+	{
+		name: 'settings-insight-words-empty',
+		path: '/settings/insight-words',
+		auth: true,
+		as: 'no-words'
+	},
 	{ name: 'settings-profile', path: '/settings/profile', auth: true },
 	{
 		name: 'settings-profile-save-failed',

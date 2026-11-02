@@ -2,6 +2,7 @@
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { resolve } from '$app/paths';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
+	import InsightView from '$lib/components/InsightView.svelte';
 	import KindBadge from '$lib/components/KindBadge.svelte';
 	import MarkBadge from '$lib/components/MarkBadge.svelte';
 	import TagBadges from '$lib/components/TagBadges.svelte';
@@ -36,9 +37,23 @@
 	 */
 	let { runs }: { runs: PastRun[] } = $props();
 
-	/** メモのある走。runs は新しい順なので、そのまま新しい順になる。 */
-	const withNotes = $derived(runs.filter((r) => r.notes && r.notes.length > 0));
+	/** 気づきに言葉かメモがあるか（空の行は残らないが、念のため）。 */
+	const hasInsight = (r: PastRun) =>
+		!!r.insight && (r.insight.words.length > 0 || r.insight.memo.trim() !== '');
+
+	/** メモか気づきのある走。runs は新しい順なので、そのまま新しい順になる。 */
+	const withNotes = $derived(runs.filter((r) => (r.notes && r.notes.length > 0) || hasInsight(r)));
 </script>
+
+{#snippet noteView(note: NonNullable<PastRun['notes']>[number], label: '出走前' | 'ふりかえり')}
+	<div>
+		<p class="flex items-center gap-1">
+			<KindBadge {label} /><MarkBadge mark={note.mark} />
+		</p>
+		{#if note.body}<p class="mt-1 text-sm break-words whitespace-pre-wrap">{note.body}</p>{/if}
+		<TagBadges tags={note.tags} class="mt-1" />
+	</div>
+{/snippet}
 
 {#if runs.length === 0}
 	<p class="text-xs text-muted-foreground">過去走の記録がありません。</p>
@@ -157,20 +172,20 @@
 							<span class="min-w-0 text-muted-foreground">{title(r)}</span>
 						</p>
 						<div class="mt-1 grid gap-2 border-l-2 pl-3">
-							{#each ['preview', 'entry'] as kind (kind)}
-								{#each (r.notes ?? []).filter((note) => note.kind === kind) as note (note.id)}
-									<div>
-										<p class="flex items-center gap-1">
-											<KindBadge label={kind === 'preview' ? '出走前' : 'ふりかえり'} /><MarkBadge
-												mark={note.mark}
-											/>
-										</p>
-										{#if note.body}<p class="mt-1 text-sm break-words whitespace-pre-wrap">
-												{note.body}
-											</p>{/if}
-										<TagBadges tags={note.tags} class="mt-1" />
-									</div>
-								{/each}
+							{#each (r.notes ?? []).filter((note) => note.kind === 'preview') as note (note.id)}
+								{@render noteView(note, '出走前')}
+							{/each}
+							<!-- レース直後の気づきは、出走前とふりかえりのあいだ（書いた順）。本文には混ぜず、別に出す。 -->
+							{#if hasInsight(r) && r.insight}
+								<div>
+									<InsightView
+										words={r.insight.words.map((word) => ({ word }))}
+										memo={r.insight.memo}
+									/>
+								</div>
+							{/if}
+							{#each (r.notes ?? []).filter((note) => note.kind === 'entry') as note (note.id)}
+								{@render noteView(note, 'ふりかえり')}
 							{/each}
 							<a
 								href={resolve('/races/[id]', { id: r.raceId })}

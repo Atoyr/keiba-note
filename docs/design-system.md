@@ -155,6 +155,8 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `TagBadges` / `TagPicker` | メモの札の表示と選択 |
 | `EntryMemo` | 出走馬の行に出すメモ（種別の札・本文3行まで・メモの札）。`EntryNoteEditor` の `memo` に渡すとそのままボタンになり、押すとその場で書ける。予想画面・ふりかえり画面が使う（→ [pages.md 4-3](./pages.md)） |
 | `EntryNoteEditor` | 出走馬の行でメモを「その場で書く」部分。見出しで開け閉めする折りたたみ。メモの表示（または「＋ 出走前メモ」）を押すと、そのボタンが見出し「{label} ⌃」になって入力欄（`children`）が開き、見出しを押すと折りたたまれる。振る舞いは [pages.md 4-3](./pages.md) |
+| `EntryInsight` | 出走馬の行の「気づき」（レース直後に言葉を押して付け、短いメモを残す）。見出しで開け閉めする折りたたみで、開いてもフォーカスを動かさない。言葉は `Button`（`aria-pressed`。押された言葉は ✓ と太字、未保存は破線）、メモは `Textarea`。`form` 属性で行の外の別のフォームに属し、ふりかえり本文の未保存件数に混ざらない。保存は `InsightSaver`（`utils/insight-saver.svelte.ts`）。振る舞いは [pages.md 3・3-1](./pages.md) |
+| `InsightView` | 気づき（付けた言葉の輪郭の札とメモ）の読むだけの表示。`KindBadge` の「気づき」を頭に付ける。押せるボタンの中にも置けるよう span だけで組む。予想・ふりかえり画面の馬柱の過去メモ、馬の画面のタイムライン、`EntryInsight` の閉じた行で使う |
 | `HorseProfileHeader` | 馬詳細の頭（生年月日・性別の札つきの名前の行・推しの★、その下に `HorseProfileBadges`）。★のほかはすべて左寄せ。色は第7章 |
 | `HorseProfileBadges` | 馬の基本情報の札（父 / 母・母父 / 所属・調教師の3段）。値の無い項目は出さず、全部無ければ何も描かない。`HorseProfileHeader` と `HorseLink` が使う。色は第7章 |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目。`label` は `sexAgeLabel` の結果で、null なら何も描かない。色は第7章 |
