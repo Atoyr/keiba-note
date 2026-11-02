@@ -33,17 +33,19 @@
 		</p>
 	{:else}
 		<p class="mt-4 text-sm text-muted-foreground">
-			気づきは、ふりかえり画面の出走馬の行から残せます。
+			気づきは、ふりかえり画面の「気づき」タブから残せます。
 		</p>
 	{/if}
 
 	<p class="mt-6 text-sm">
-		<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは resolve() で組み、行の位置（#entry-…）だけを足す -->
+		<!-- eslint-disable svelte/no-navigation-without-resolve -- パスは resolve() で組み、「気づき」タブのクエリと行の位置（#insight-…）だけを足す -->
 		<a
-			href="{resolve('/races/[id]', { id: raceId })}{entryId ? `#entry-${entryId}` : ''}"
+			href="{resolve('/races/[id]', { id: raceId })}?tab=insights{entryId
+				? `#insight-${entryId}`
+				: ''}"
 			class="underline underline-offset-2"
 		>
-			ふりかえりに戻る
+			気づきに戻る
 		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	</p>

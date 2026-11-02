@@ -18,7 +18,7 @@
 <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<h1 class="text-xl font-bold tracking-tight">気づきの言葉</h1>
 	<p class="mt-2 text-sm text-muted-foreground">
-		レースを見た直後に、ふりかえり画面の出走馬の行から押して残せる、自分の言葉です。どのレースの
+		レースを見た直後に、ふりかえり画面の「気づき」タブで押して残せる、自分の言葉です。どのレースの
 		どの馬にも使えます（{data.limit}個まで）。
 	</p>
 	<p class="mt-1 text-sm text-muted-foreground">

@@ -69,3 +69,64 @@ it('選んだタブは文字を primary・太字にして下に線を引き、�
 	await expect.element(other).toHaveClass(/border-primary/);
 	await expect.element(selected).toHaveClass(/border-transparent/);
 });
+
+function renderWithExtra(props: { initial?: number; onselect?: (i: number) => void } = {}) {
+	const form = document.createElement('form');
+	document.body.appendChild(form);
+	return render(RacePanels, {
+		target: form,
+		props: {
+			label: 'ふりかえり',
+			extra: {
+				label: '気づき',
+				content: createRawSnippet(() => ({ render: () => '<p>気づきの中身</p>' }))
+			},
+			children: createRawSnippet(() => ({ render: () => '<p>入力</p>' })),
+			information: createRawSnippet(() => ({ render: () => '<p>コース資料</p>' })),
+			...props
+		}
+	});
+}
+
+it('extra があれば3タブ。パネルは順に番号を付け、レース情報が最後になる', async () => {
+	const screen = renderWithExtra();
+	const tabs = screen.getByRole('tab').elements();
+	expect(tabs.map((t) => t.textContent?.trim())).toEqual(['ふりかえり', '気づき', 'レース情報']);
+	expect(document.querySelector('#race-panel-1')?.getAttribute('aria-labelledby')).toBe(
+		'race-tab-1'
+	);
+	expect(document.querySelector('#race-panel-2')?.getAttribute('aria-labelledby')).toBe(
+		'race-tab-2'
+	);
+	await expect.element(screen.getByText('気づきの中身')).not.toBeVisible();
+});
+
+it('矢印キーは3枚を循環し、Home は先頭、End は末尾へ移る', async () => {
+	const screen = renderWithExtra();
+	await screen.getByRole('tab', { name: 'ふりかえり' }).click();
+	await userEvent.keyboard('{ArrowRight}');
+	await expect.element(screen.getByRole('tab', { name: '気づき' })).toHaveFocus();
+	await userEvent.keyboard('{ArrowRight}');
+	await expect.element(screen.getByRole('tab', { name: 'レース情報' })).toHaveFocus();
+	await userEvent.keyboard('{ArrowRight}');
+	await expect.element(screen.getByRole('tab', { name: 'ふりかえり' })).toHaveFocus();
+	await userEvent.keyboard('{ArrowLeft}');
+	await expect.element(screen.getByRole('tab', { name: 'レース情報' })).toHaveFocus();
+	await userEvent.keyboard('{Home}');
+	await expect.element(screen.getByRole('tab', { name: 'ふりかえり' })).toHaveFocus();
+	await userEvent.keyboard('{End}');
+	await expect.element(screen.getByRole('tab', { name: 'レース情報' })).toHaveFocus();
+});
+
+it('initial のタブを最初に開き、タブを切り替えると onselect に番号を渡す', async () => {
+	const selected: number[] = [];
+	const screen = renderWithExtra({ initial: 1, onselect: (i) => selected.push(i) });
+	await expect
+		.element(screen.getByRole('tab', { name: '気づき' }))
+		.toHaveAttribute('aria-selected', 'true');
+	await expect.element(screen.getByText('気づきの中身')).toBeVisible();
+
+	await screen.getByRole('tab', { name: 'ふりかえり' }).click();
+	await screen.getByRole('tab', { name: 'レース情報' }).click();
+	expect(selected).toEqual([0, 2]);
+});

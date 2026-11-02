@@ -925,17 +925,43 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
-	// レース直後の気づき（Issue #236）。見本のレース（保存済みの気づきが付いた2頭）。閉じた行に言葉とメモが出る。
+	// レース直後の気づき（Issue #236）。見本のレース（保存済みの気づきが付いた2頭）。ふりかえりタブの行には、読むだけで言葉とメモが出る。
 	{ name: 'race-review-insight', path: `/races/${INSIGHT.view.raceId}`, auth: true },
 	{
-		// 気づきを開いたところ。登録した言葉が並び、付いた言葉は ✓ と太字。開いてもメモの欄にフォーカスは移らない。
+		// 「気づき」タブを開いただけ。どの馬も閉じた1頭1行で、気づきのある馬は馬名の下に言葉が出る。
+		name: 'race-review-insight-tab',
+		path: `/races/${INSIGHT.view.raceId}?tab=insights`,
+		auth: true
+	},
+	{
+		// 18頭立ての「気づき」タブ。1頭44px の行が18頭で1画面強に収まる。
+		name: 'race-review-insight-tab-full',
+		path: `/races/${ACTUAL_FLOW_18_RACE_ID}?tab=insights`,
+		auth: true
+	},
+	{
+		// 18頭立ての「気づき」タブで、下のほうの馬を開いたところ。開いた中（言葉）が画面の下に収まるよう、スクロールで上げる。
+		name: 'race-review-insight-tab-full-open',
+		path: `/races/${ACTUAL_FLOW_18_RACE_ID}?tab=insights`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page.locator('main li[id^="insight-"]').nth(15);
+			await row.scrollIntoViewIfNeeded();
+			await row.locator('button[aria-controls^="entry-insight-"]').click();
+			await row.locator('button[name="toggle"]').first().waitFor();
+		}
+	},
+	{
+		// 馬を押して開いたところ。登録した言葉が並び、付いた言葉は ✓ と太字。開いてもメモの欄にフォーカスは移らない。
 		name: 'race-review-insight-open',
-		path: `/races/${INSIGHT.view.raceId}`,
+		path: `/races/${INSIGHT.view.raceId}?tab=insights`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
 			await page
-				.getByRole('button', { name: new RegExp(`${INSIGHT.view.names.shiro}の気づきを開く`) })
+				.locator('main li[id^="insight-"]', { hasText: INSIGHT.view.names.shiro })
+				.locator('button[aria-controls^="entry-insight-"]')
 				.click();
 		},
 		stayAtTop: true
@@ -943,12 +969,12 @@ export const SCREENS: Screen[] = [
 	{
 		// 保存に失敗したところ。**本当には送らない**（action の応答だけを差し替える）。行の下に文と「もう一度保存する」が出て、押した言葉は破線のまま残る。
 		name: 'race-review-insight-failed',
-		path: `/races/${INSIGHT.write.raceId}`,
+		path: `/races/${INSIGHT.write.raceId}?tab=insights`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			const row = page.locator(`#entry-${INSIGHT.write.entries.ao}`);
-			await row.getByRole('button', { name: /＋ 気づき/ }).click();
+			const row = page.locator(`#insight-${INSIGHT.write.entries.ao}`);
+			await row.locator('button[aria-controls^="entry-insight-"]').click();
 			await failNextAction(page, `/races/${INSIGHT.write.raceId}/insights`, {
 				message: '気づきの保存を確認できませんでした。時間をおいてもう一度試してください。',
 				entryId: INSIGHT.write.entries.ao
@@ -959,31 +985,31 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true
 	},
 	{
-		// 言葉を1つも登録していないユーザーが気づきを開いたところ。登録の案内が出る（自由入力は使える）。
+		// 言葉を1つも登録していないユーザーの「気づき」タブ。タブの上に登録の案内が1回出る（自由入力は行を開けば使える）。
 		name: 'race-review-insight-empty-words',
-		path: `/races/${INSIGHT.write.raceId}`,
+		path: `/races/${INSIGHT.write.raceId}?tab=insights`,
 		auth: true,
 		as: 'no-words',
 		prepare: async (page) => {
 			await waitForHydration(page);
 			await page
-				.locator(`#entry-${INSIGHT.write.entries.ao}`)
-				.getByRole('button', { name: /＋ 気づき/ })
+				.locator(`#insight-${INSIGHT.write.entries.ao}`)
+				.locator('button[aria-controls^="entry-insight-"]')
 				.click();
 		},
 		stayAtTop: true
 	},
 	{
-		// 結果がまだ入っていないレース。気づきを残していれば、ふりかえり画面に着いて気づきを開ける。
+		// 結果がまだ入っていないレース。気づきを残していれば、「気づき」タブで開ける（着順の列は詰める）。
 		name: 'race-review-insight-no-result',
-		path: `/races/${INSIGHT.noResult.raceId}`,
+		path: `/races/${INSIGHT.noResult.raceId}?tab=insights`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
 			await page
-				.locator('main li[id^="entry-"]')
+				.locator('main li[id^="insight-"]')
 				.first()
-				.getByRole('button', { name: /の気づきを開く/ })
+				.locator('button[aria-controls^="entry-insight-"]')
 				.click();
 		},
 		stayAtTop: true
@@ -1014,7 +1040,7 @@ export const SCREENS: Screen[] = [
 				.click();
 		}
 	},
-	// 当日のレース（結果はまだ）。見出しの下に「レースを見終えたら → 気づき・ふりかえりを残す」が出る。
+	// 当日のレース（結果はまだ）。見出しの下に「レースを見終えたら → 気づきを残す」が出る。
 	{
 		name: 'race-preview-race-day-link',
 		path: `/races/${THIS_WEEK_RACES.upcoming.id}/preview`,

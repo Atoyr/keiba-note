@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
 	import { enhance } from '$app/forms';
+	import { replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import ActualFlow from '$lib/components/ActualFlow.svelte';
@@ -38,7 +39,8 @@
 	import RacePanels from '$lib/components/RacePanels.svelte';
 	import RaceInformation from '$lib/components/RaceInformation.svelte';
 	import EntryNoteEditor from '$lib/components/EntryNoteEditor.svelte';
-	import EntryInsight from '$lib/components/EntryInsight.svelte';
+	import EntryInsightList from '$lib/components/EntryInsightList.svelte';
+	import InsightView from '$lib/components/InsightView.svelte';
 	import { InsightSaver } from '$lib/utils/insight-saver.svelte';
 	import { insightFormData, sendInsight } from '$lib/utils/insight-send';
 	import EntryMemo from '$lib/components/EntryMemo.svelte';
@@ -178,6 +180,40 @@
 			s.dispose();
 		};
 	});
+
+	/** ふりかえりタブの行に読むだけで出す気づき。無ければ null。 */
+	function insightOf(entryId: string) {
+		const words = saver
+			.words(entryId, data.insightWords)
+			.filter((w) => w.pressed)
+			.map((w) => ({ word: w.word, unsaved: w.unsaved }));
+		const memo = saver.memo(entryId);
+		return words.length > 0 || memo.trim() !== '' ? { words, memo } : null;
+	}
+
+	/** SSR で描くタブ。`?tab=insights` なら気づき（再読み込みも同じタブ）。 */
+	const initialTab = $derived(
+		data.rows.length > 0 && page.url.searchParams.get('tab') === 'insights' ? 1 : 0
+	);
+	let panels = $state<RacePanels>();
+	$effect(() => {
+		// 戻るで帰ってきたときは、履歴の state が正（replaceState は読み込み時の URL を書き換えない）。
+		// SSR と食い違わないよう描き終えてから合わせる。同じルートで別のレースから戻る場合も拾うよう、レースの id を追う。
+		void data.race.id;
+		untrack(() => {
+			const wanted = page.state.insightsTab;
+			if (data.rows.length > 0 && wanted !== undefined) panels?.select(wanted ? 1 : 0);
+		});
+	});
+	/** タブを切り替えたら URL のクエリと履歴の state を合わせる。履歴は増やさない。気づきタブが無い（0頭）ときは何もしない。 */
+	function onTab(index: number) {
+		if (data.rows.length === 0) return;
+		const url = new URL(page.url);
+		if (index === 1) url.searchParams.set('tab', 'insights');
+		else url.searchParams.delete('tab');
+		// eslint-disable-next-line svelte/no-navigation-without-resolve -- いまの URL のクエリだけを変える
+		replaceState(url, { ...page.state, insightsTab: index === 1 });
+	}
 
 	const ta = 'mt-1 text-sm';
 
@@ -327,7 +363,21 @@
 	>
 		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
 		{#key data.race.id}
-			<RacePanels label="ふりかえり">
+			{#snippet insights()}
+				<EntryInsightList
+					rows={data.rows}
+					{saver}
+					registered={data.insightWords}
+					formId={insightFormId}
+				/>
+			{/snippet}
+			<RacePanels
+				bind:this={panels}
+				label="ふりかえり"
+				extra={data.rows.length > 0 ? { label: '気づき', content: insights } : undefined}
+				initial={initialTab}
+				onselect={onTab}
+			>
 				{#snippet information()}
 					<RaceInformation
 						race={data.race}
@@ -426,12 +476,6 @@
 								<PastRunsToggle bind:pressed={strip} />
 							{/if}
 						</div>
-						<!-- 気づきの保存は JS が無いと別の画面（結果の画面）へ移る。行ごとには出さず、ここに1回だけ。 -->
-						<noscript>
-							<p class="mt-1 text-xs text-muted-foreground">
-								気づきを保存すると画面が移ります。書きかけのふりかえりは先に保存してください。
-							</p>
-						</noscript>
 						<!-- 予想画面の人気・オッズは取得時点の値。ここは結果として入った確定の値なので、見分けられるよう添える。 -->
 						{#if oddsColumn}
 							<p class="mt-1 text-xs text-muted-foreground">人気・単勝オッズは確定の値</p>
@@ -446,6 +490,7 @@
 									{@const review = currentEntry(liveEntries, r.entryId, r.myNote)}
 									{@const hasPreview = !!preview && hasMemo(preview)}
 									{@const hasReview = hasMemo(review)}
+									{@const insight = insightOf(r.entryId)}
 									<li
 										id="entry-{r.entryId}"
 										class={cn('scroll-mt-4 p-3', showStrip && 'lg:grid lg:grid-cols-12 lg:gap-x-3')}
@@ -619,15 +664,19 @@
 												</div>
 											{/if}
 
-											<!-- レース直後の気づき。言葉を押すだけで残せる（押した時点で保存）。ふりかえり本文とは別の入力で、
-									     本文には混ざらない。下のふりかえりメモを書くときに、すぐ上で読み返せる。 -->
-											<EntryInsight
-												horseName={r.horseName}
-												entryId={r.entryId}
-												{saver}
-												registered={data.insightWords}
-												formId={insightFormId}
-											/>
+											<!-- レース直後の気づき。**読むだけ**（残すのは「気づき」タブ）。下のふりかえりメモを書くときに読み返せる。
+									     気づきを残していない馬には何も出さない（気づきを使わない人の行は変わらない）。 -->
+											{#if insight}
+												<div class="mt-2">
+													<InsightView words={insight.words} memo={insight.memo} clamp />
+												</div>
+											{/if}
+											{#if saver.status(r.entryId) === 'failed'}
+												<!-- 隠れたパネルの alert は読み上げられないので、表示中のタブの1つだけが鳴る。 -->
+												<p role="alert" class="mt-1 text-xs text-destructive">
+													保存できていません。気づきタブからもう一度保存してください。
+												</p>
+											{/if}
 
 											<!-- いま入力しているふりかえりのメモを、札付きでそのまま出す。押すとその場で入力欄が開く（見出しで折りたためる）。 -->
 											{#snippet memo()}

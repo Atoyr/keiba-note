@@ -3,7 +3,13 @@ import { failNextAction } from './action-failure';
 import { gotoHydrated } from './hydration';
 import { expectLinkTo } from './link';
 import { login } from './login';
-import { INSIGHT, PREVIEW_RACE_ID, THIS_WEEK_RACES } from './seed';
+import {
+	ACTUAL_FLOW_18_RACE_ID,
+	INSIGHT,
+	PAST_EMPTY_RACE_ID,
+	PREVIEW_RACE_ID,
+	THIS_WEEK_RACES
+} from './seed';
 
 /*
  * レース直後の気づき（Issue #236）。
@@ -14,13 +20,18 @@ import { INSIGHT, PREVIEW_RACE_ID, THIS_WEEK_RACES } from './seed';
 test.describe.configure({ mode: 'serial' });
 
 const writePath = `/races/${INSIGHT.write.raceId}`;
-const row = (page: Page, entryId: string) => page.locator(`#entry-${entryId}`);
+const tabPath = `${writePath}?tab=insights`;
+/** 「気づき」タブの1行。ふりかえりタブの行は `#entry-…`。 */
+const row = (page: Page, entryId: string) => page.locator(`#insight-${entryId}`);
 const aka = (page: Page) => row(page, INSIGHT.write.entries.aka);
 const ao = (page: Page) => row(page, INSIGHT.write.entries.ao);
 
-/** 閉じている「気づき」の開け閉めのボタン（空なら「＋ 気づき」、あれば付けた言葉）を押して開く。 */
-const open = (r: Locator) => r.getByRole('button', { name: /(＋ 気づき|の気づきを開く)/ }).click();
-const word = (r: Locator, name: string) => r.getByRole('button', { name: new RegExp(name) });
+/** 行の開け閉めのボタン（馬名の行）を押して開く。 */
+const toggle = (r: Locator) => r.locator('button[aria-controls^="entry-insight-"]');
+const open = (r: Locator) => toggle(r).click();
+/** 言葉のボタン（行を開け閉めするボタンは、付いた言葉も名前に含むので除く）。 */
+const word = (r: Locator, name: string) =>
+	r.locator('button[name="toggle"]').filter({ hasText: new RegExp(name) });
 const memoBox = (r: Locator) => r.getByRole('textbox', { name: /の気づき$/ });
 const status = (r: Locator) => r.getByRole('status');
 
@@ -57,7 +68,7 @@ test('言葉を押すと保存され、再読み込みしても付いていて�
 	page
 }) => {
 	await login(page);
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(aka(page));
 
 	const maegakabe = word(aka(page), '前が壁');
@@ -71,8 +82,8 @@ test('言葉を押すと保存され、再読み込みしても付いていて�
 	await expect(page.locator(`textarea[name="body.${INSIGHT.write.entries.aka}"]`)).toHaveValue('');
 
 	await page.reload();
-	await expect(aka(page).getByRole('button', { name: /の気づきを開く/ })).toContainText('前が壁');
-	await gotoHydrated(page, writePath);
+	await expect(toggle(aka(page))).toContainText('前が壁');
+	await gotoHydrated(page, tabPath);
 	await open(aka(page));
 	await expect(word(aka(page), '前が壁')).toHaveAttribute('aria-pressed', 'true');
 
@@ -88,42 +99,176 @@ test('言葉を押すと保存され、再読み込みしても付いていて�
 	await expect(status(aka(page))).toHaveText('保存しました');
 
 	await page.reload();
-	await expect(aka(page).getByRole('button', { name: /＋ 気づき/ })).toBeVisible();
+	await expect(toggle(aka(page))).not.toContainText(/前が壁|内詰まり/);
+});
+
+test('ふりかえりタブの行には言葉のボタンも「＋ 気づき」も出ない。気づきのある馬だけ、読むだけの言葉が出る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${INSIGHT.view.raceId}`);
+	await expect(page.getByRole('tab', { name: 'ふりかえり' })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+
+	const shiro = page.locator('main li[id^="entry-"]', { hasText: INSIGHT.view.names.shiro });
+	await expect(shiro.getByText('距離延長○', { exact: true })).toBeVisible();
+	await expect(shiro.getByText(INSIGHT.view.memo)).toBeVisible();
+	// 押せない（ボタンではない）。入力の入口も無い。
+	await expect(shiro.getByRole('button', { name: /距離延長○/ })).toHaveCount(0);
+	await expect(shiro.locator('button[aria-controls^="entry-insight-"]')).toHaveCount(0);
+	await expect(page.locator('main li[id^="entry-"]').getByText('＋ 気づき')).toHaveCount(0);
+
+	// 気づきの無い馬の行には、何も足さない。
+	await gotoHydrated(page, writePath);
+	await expect(page.locator(`#entry-${INSIGHT.write.entries.aka} .insight-view`)).toHaveCount(0);
+});
+
+test('気づきタブで、馬を押して言葉を押すだけで保存され、再読み込みしても気づきタブのまま付いている', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	await page.getByRole('tab', { name: '気づき' }).click();
+	await expect(page).toHaveURL(/\?tab=insights/);
+
+	await open(aka(page));
+	await word(aka(page), '距離延長○').click();
+	await expect(status(aka(page))).toHaveText('保存しました');
+
+	await page.reload();
+	await expect(page.getByRole('tab', { name: '気づき' })).toHaveAttribute('aria-selected', 'true');
+	await expect(toggle(aka(page))).toContainText('距離延長○');
+
+	// ふりかえりタブへ移ると、読むだけで出る。
+	await page.getByRole('tab', { name: 'ふりかえり' }).click();
+	await expect(page).not.toHaveURL(/tab=insights/);
+	await expect(page.locator(`#entry-${INSIGHT.write.entries.aka}`)).toContainText('距離延長○');
+
+	// 後片付け。
+	await page.getByRole('tab', { name: '気づき' }).click();
+	await open(aka(page));
+	await word(aka(page), '距離延長○').click();
+	await expect(status(aka(page))).toHaveText('保存しました');
+});
+
+test('別の馬を押すと前の馬が閉じ、押した行は画面の中に残る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${ACTUAL_FLOW_18_RACE_ID}?tab=insights`);
+	const rows = page.locator('main li[id^="insight-"]');
+	await expect(rows).toHaveCount(18);
+
+	await open(rows.nth(2));
+	await expect(toggle(rows.nth(2))).toHaveAttribute('aria-expanded', 'true');
+	await rows.nth(11).scrollIntoViewIfNeeded();
+	const top = () => rows.nth(11).evaluate((el) => el.getBoundingClientRect().top);
+	const before = await top();
+	await open(rows.nth(11));
+
+	await expect(toggle(rows.nth(2))).toHaveAttribute('aria-expanded', 'false');
+	await expect(toggle(rows.nth(11))).toHaveAttribute('aria-expanded', 'true');
+	await expect(rows.nth(11)).toBeInViewport();
+	// 上の行が閉じてもスクロールで打ち消し、押した行は画面の同じ位置に残る。
+	await expect.poll(async () => Math.abs((await top()) - before)).toBeLessThanOrEqual(1);
+});
+
+test('言葉の登録から戻ると、開いていたタブに戻る（クエリが無くても、あっても）', async ({
+	page
+}) => {
+	await login(page);
+	// クエリ無しで開く → 気づきタブ → 言葉の登録 → 戻る。
+	await gotoHydrated(page, writePath);
+	await page.getByRole('tab', { name: '気づき' }).click();
+	await page.getByRole('link', { name: '言葉を登録・編集する' }).click();
+	await expect(page).toHaveURL('/settings/insight-words');
+	await page.goBack();
+	await expect(page.getByRole('tab', { name: '気づき' })).toHaveAttribute('aria-selected', 'true');
+
+	// ?tab=insights で開く → ふりかえりタブ → 移動 → 戻る。
+	await gotoHydrated(page, tabPath);
+	await page.getByRole('tab', { name: 'ふりかえり' }).click();
+	await page.goto('/settings/insight-words');
+	await page.goBack();
+	await expect(page.getByRole('tab', { name: 'ふりかえり' })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+});
+
+test('同じルートの別のレースへ移ってから戻ると、開いていたタブに戻る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${INSIGHT.view.raceId}?tab=insights`);
+	await page.getByRole('tab', { name: 'ふりかえり' }).click();
+	const shiro = page.locator('main li[id^="entry-"]', { hasText: INSIGHT.view.names.shiro });
+	await shiro.locator('summary', { hasText: '詳細情報（メモ・直近5走）' }).click();
+	await shiro.getByRole('link', { name: 'この走りの画面でメモを確認・編集する' }).first().click();
+	await expect(page).toHaveURL(new RegExp(`/races/${INSIGHT.past.raceId}`));
+	await page.goBack();
+	await expect(page).toHaveURL(new RegExp(`/races/${INSIGHT.view.raceId}`));
+	await expect(page.getByRole('tab', { name: 'ふりかえり' })).toHaveAttribute(
+		'aria-selected',
+		'true'
+	);
+});
+
+test('18頭のうち下のほうの馬を開くと、最初の言葉のボタンが画面に入る', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await login(page);
+	await gotoHydrated(page, `/races/${ACTUAL_FLOW_18_RACE_ID}?tab=insights`);
+	const rows = page.locator('main li[id^="insight-"]');
+	await rows.nth(16).scrollIntoViewIfNeeded();
+	await open(rows.nth(16));
+	await expect(toggle(rows.nth(16))).toHaveAttribute('aria-expanded', 'true');
+	await expect(rows.nth(16).locator('button[name="toggle"]').first()).toBeInViewport();
+});
+
+test('出走馬が0頭のレースには気づきタブを出さず、タブを切り替えても URL は変わらない', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}`);
+	await expect(page.getByRole('tab', { name: '気づき' })).toHaveCount(0);
+	const url = page.url();
+	await page.getByRole('tab', { name: 'レース情報' }).click();
+	await page.getByRole('tab', { name: 'ふりかえり' }).click();
+	expect(page.url()).toBe(url);
 });
 
 test('自由入力のメモは保存ボタンなしで自動保存され、離れて戻っても残る', async ({ page }) => {
 	await login(page);
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(aka(page));
 
 	await memoBox(aka(page)).fill('前が壁になった。2400 なら。');
 	// 保存ボタンを押さずに、アプリ内のリンクで離れる（離れる前に未送信のものを送り始める）。
-	await aka(page).getByRole('link', { name: '言葉を登録・編集する' }).click();
+	await page.getByRole('link', { name: '言葉を登録・編集する' }).click();
 	await expect(page).toHaveURL('/settings/insight-words');
 	await page.goBack();
 
-	await expect(aka(page).getByRole('button', { name: /の気づきを開く/ })).toContainText(
-		'前が壁になった。2400 なら。'
-	);
+	await expect(toggle(aka(page))).toContainText('前が壁になった。2400 なら。');
 	await expect(page.getByText(/未保存の変更が/)).toHaveCount(0);
 
 	// 後片付け: 空にすると、言葉も無いので気づきごと消える。
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(aka(page));
 	await memoBox(aka(page)).fill('');
 	await memoBox(aka(page)).blur();
 	await expect(status(aka(page))).toHaveText('保存しました');
 	await page.reload();
-	await expect(aka(page).getByRole('button', { name: /＋ 気づき/ })).toBeVisible();
+	await expect(toggle(aka(page))).not.toContainText('前が壁になった');
 });
 
 test('ふりかえりを保存しても、空で保存し直しても、残した気づきは消えない', async ({ page }) => {
 	await login(page);
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(ao(page));
 	await word(ao(page), '前残り').click();
 	await expect(status(ao(page))).toHaveText('保存しました');
 
+	// ふりかえりタブへ移って本文を保存する（タブを移っても、押した言葉は残る）。
+	await page.getByRole('tab', { name: 'ふりかえり' }).click();
+	await expect(page).not.toHaveURL(/tab=insights/);
 	const raceNote = page.locator('textarea[name="raceNoteBody"]');
 	await raceNote.fill('E2E 気づきの確認用。');
 	await page.getByRole('button', { name: 'まとめて保存' }).click();
@@ -139,10 +284,11 @@ test('ふりかえりを保存しても、空で保存し直しても、残し�
 	await page.reload();
 	// 気づきはふりかえり本文に混ざらない（本文の欄は空のまま）。
 	await expect(page.locator(`textarea[name="body.${INSIGHT.write.entries.ao}"]`)).toHaveValue('');
-	await expect(ao(page).getByRole('button', { name: /の気づきを開く/ })).toContainText('前残り');
+	// ふりかえりタブの行には、読むだけで出る。
+	await expect(page.locator(`#entry-${INSIGHT.write.entries.ao}`)).toContainText('前残り');
 
 	// 後片付け。
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(ao(page));
 	await word(ao(page), '前残り').click();
 	await expect(status(ao(page))).toHaveText('保存しました');
@@ -152,7 +298,7 @@ test('保存に失敗したら文と「もう一度保存する」が出て、�
 	page
 }) => {
 	await login(page);
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(ao(page));
 	await memoBox(ao(page)).fill('E2E 失敗のメモ');
 
@@ -176,15 +322,11 @@ test('保存に失敗したら文と「もう一度保存する」が出て、�
 	await expect(ao(page).getByRole('alert')).toHaveCount(0);
 
 	await page.reload();
-	await expect(ao(page).getByRole('button', { name: /の気づきを開く/ })).toContainText(
-		'途中で諦めた'
-	);
-	await expect(ao(page).getByRole('button', { name: /の気づきを開く/ })).toContainText(
-		'E2E 失敗のメモ'
-	);
+	await expect(toggle(ao(page))).toContainText('途中で諦めた');
+	await expect(toggle(ao(page))).toContainText('E2E 失敗のメモ');
 
 	// 後片付け。
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(ao(page));
 	await word(ao(page), '途中で諦めた').click();
 	await memoBox(ao(page)).fill('');
@@ -196,7 +338,7 @@ test('失敗したまま再読み込みしても、入力は端末から戻り�
 	page
 }) => {
 	await login(page);
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(ao(page));
 	await failNextAction(page, `${writePath}/insights`, {
 		message: 'x',
@@ -216,7 +358,17 @@ test('失敗したまま再読み込みしても、入力は端末から戻り�
 	// 画面を離れる前の送信（pagehide）や online でも送られない。少し待って数える。
 	await page.waitForTimeout(1500);
 	expect(posts).toHaveLength(0);
-	await expect(ao(page).getByRole('button', { name: /の気づきを開く/ })).toContainText('前残り');
+	await expect(toggle(ao(page))).toContainText('前残り');
+
+	// ふりかえりタブの行には、気づきタブで保存し直す案内が出る。
+	await page.getByRole('tab', { name: 'ふりかえり' }).click();
+	const reviewRow = page.locator(`#entry-${INSIGHT.write.entries.ao}`);
+	await expect(reviewRow).toContainText(
+		'保存できていません。気づきタブからもう一度保存してください。'
+	);
+	// 表示中のタブの alert はこの1つだけ（隠れた気づきタブの alert は読み上げられない）。
+	await expect(reviewRow.getByRole('alert')).toHaveCount(1);
+	await page.getByRole('tab', { name: '気づき' }).click();
 
 	await ao(page)
 		.getByRole('button', { name: /もう一度保存する/ })
@@ -257,20 +409,20 @@ test('予想まとめには気づきを出さない', async ({ page }) => {
 test('他人の気づきは見えない', async ({ page }) => {
 	// 言葉無しユーザーが1頭目に残した気づきは、一般ユーザーの画面にも馬の画面にも出ない。
 	await login(page);
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await expect(page.getByText(INSIGHT.write.otherMemo)).toHaveCount(0);
 	await expect(page.getByText('別のユーザーの言葉')).toHaveCount(0);
-	await expect(aka(page).getByRole('button', { name: /＋ 気づき/ })).toBeVisible();
+	await expect(toggle(aka(page))).not.toContainText(INSIGHT.write.otherMemo);
 });
 
 test('言葉を1つも登録していないユーザーには、登録の案内が出る。見本のレースの気づきは出ない', async ({
 	page
 }) => {
 	await login(page, 'no-words');
-	await gotoHydrated(page, writePath);
+	await gotoHydrated(page, tabPath);
 	await open(ao(page));
-	await expect(ao(page).getByText('よく使う言葉を登録すると、押すだけで残せます。')).toBeVisible();
-	await expect(ao(page).getByRole('link', { name: '言葉を登録する' })).toBeVisible();
+	await expect(page.getByText('よく使う言葉を登録すると、押すだけで残せます。')).toHaveCount(1);
+	await expect(page.getByRole('link', { name: '言葉を登録する' })).toHaveCount(1);
 	// 自由入力は使える。
 	await expect(memoBox(ao(page))).toBeVisible();
 
@@ -300,14 +452,14 @@ test('結果が入る前でも、気づきを残したレースは一覧から�
 	await other.close();
 });
 
-test('当日のレースの予想画面から、気づき・ふりかえりへ入れる。開催前のレースには出さない', async ({
+test('当日のレースの予想画面から、気づきタブへ入れる。開催前のレースには出さない', async ({
 	page
 }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${THIS_WEEK_RACES.upcoming.id}/preview`);
 	await expectLinkTo(
-		page.getByRole('link', { name: 'レースを見終えたら → 気づき・ふりかえりを残す' }),
-		`/races/${THIS_WEEK_RACES.upcoming.id}`
+		page.getByRole('link', { name: 'レースを見終えたら → 気づきを残す' }),
+		`/races/${THIS_WEEK_RACES.upcoming.id}?tab=insights`
 	);
 
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
@@ -357,32 +509,32 @@ test.describe('JavaScript が無いとき', () => {
 		page
 	}) => {
 		await login(page);
-		await page.goto(writePath);
+		await page.goto(tabPath);
 
 		// 言葉を付ける。
 		await word(ao(page), '内詰まり').click();
 		await expect(page.getByRole('status')).toHaveText('保存しました');
 		await expectLinkTo(
-			page.getByRole('link', { name: 'ふりかえりに戻る' }),
-			`${writePath}#entry-${INSIGHT.write.entries.ao}`
+			page.getByRole('link', { name: '気づきに戻る' }),
+			`${tabPath}#insight-${INSIGHT.write.entries.ao}`
 		);
 
 		// 戻ると付いている。メモを書いて、この馬のメモを保存する。
-		await page.goto(writePath);
+		await page.goto(tabPath);
 		await expect(word(ao(page), '内詰まり')).toHaveAttribute('aria-pressed', 'true');
 		await memoBox(ao(page)).fill('E2E JS 無しのメモ');
 		await ao(page).getByRole('button', { name: 'この馬のメモを保存する' }).click();
 		await expect(page.getByRole('status')).toHaveText('保存しました');
 
-		await page.goto(writePath);
+		await page.goto(tabPath);
 		await expect(memoBox(ao(page))).toHaveValue('E2E JS 無しのメモ');
 
 		// 後片付け（外して、メモを空にする）。
 		await word(ao(page), '内詰まり').click();
-		await page.goto(writePath);
+		await page.goto(tabPath);
 		await memoBox(ao(page)).fill('');
 		await ao(page).getByRole('button', { name: 'この馬のメモを保存する' }).click();
-		await page.goto(writePath);
+		await page.goto(tabPath);
 		await expect(word(ao(page), '内詰まり')).toHaveAttribute('aria-pressed', 'false');
 		await expect(memoBox(ao(page))).toHaveValue('');
 	});
@@ -390,7 +542,7 @@ test.describe('JavaScript が無いとき', () => {
 		page
 	}) => {
 		await login(page);
-		await page.goto(writePath);
+		await page.goto(tabPath);
 		const origin = new URL(page.url()).origin;
 		const entryId = INSIGHT.write.entries.aka;
 		const post = (word: string, on: boolean) =>

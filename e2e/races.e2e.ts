@@ -212,8 +212,10 @@ test('出走馬の枠番が枠の札で出る', async ({ page }) => {
 	await login(page);
 	await page.goto(`/races/${BRACKET_RACE_ID}`);
 
-	await expect(page.getByTitle('1枠')).toHaveText('1');
-	await expect(page.getByTitle('8枠')).toHaveText('8');
+	// 「気づき」タブの行にも同じ札が出るので、ふりかえりタブの中に絞る。
+	const review = page.getByRole('tabpanel', { name: 'ふりかえり' });
+	await expect(review.getByTitle('1枠')).toHaveText('1');
+	await expect(review.getByTitle('8枠')).toHaveText('8');
 
 	// 枠の札は馬番を置き換えるものではない。両方出ていること。
 	// 答え合わせの欄にも同じ馬名が出るので、書く欄（form の中）の行に絞る。
