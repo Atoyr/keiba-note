@@ -925,94 +925,72 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'share-page', path: `/notes/${SHARED_NOTE_ID}`, auth: false },
-	// レース直後の気づき（Issue #236）。見本のレース（保存済みの気づきが付いた2頭）。ふりかえりタブの行には、読むだけで言葉とメモが出る。
+	// 以前に残した気づき（Issue #236。いまは新しく作らない）。見本のレース（保存済みの気づきが付いた2頭）。ふりかえりタブの行には、読むだけで言葉とメモが出る。
 	{ name: 'race-review-insight', path: `/races/${INSIGHT.view.raceId}`, auth: true },
 	{
-		// 「気づき」タブを開いただけ。どの馬も閉じた1頭1行で、気づきのある馬は馬名の下に言葉が出る。
-		name: 'race-review-insight-tab',
-		path: `/races/${INSIGHT.view.raceId}?tab=insights`,
-		auth: true
-	},
-	{
-		// 18頭立ての「気づき」タブ。1頭44px の行が18頭で1画面強に収まる。
-		name: 'race-review-insight-tab-full',
-		path: `/races/${ACTUAL_FLOW_18_RACE_ID}?tab=insights`,
-		auth: true
-	},
-	{
-		// 18頭立ての「気づき」タブで、下のほうの馬を開いたところ。開いた中（言葉）が画面の下に収まるよう、スクロールで上げる。
-		name: 'race-review-insight-tab-full-open',
-		path: `/races/${ACTUAL_FLOW_18_RACE_ID}?tab=insights`,
+		// ふりかえりタブの1画面目。上に「クイック入力」の入口（outline）が出る。
+		name: 'race-review-quick',
+		path: `/races/${INSIGHT.write.raceId}`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			const row = page.locator('main li[id^="insight-"]').nth(15);
-			await row.scrollIntoViewIfNeeded();
-			await row.locator('button[aria-controls^="entry-insight-"]').click();
-			await row.locator('button[name="toggle"]').first().waitFor();
+			await page.getByRole('button', { name: 'クイック入力' }).waitFor();
 		}
 	},
 	{
-		// 馬を押して開いたところ。登録した言葉が並び、付いた言葉は ✓ と太字。開いてもメモの欄にフォーカスは移らない。
-		name: 'race-review-insight-open',
-		path: `/races/${INSIGHT.view.raceId}?tab=insights`,
+		// クイック入力で1頭開き、言葉を2つ押したところ。押した言葉は ✓ と太字。開いてもフォーカスは言葉に移らない。
+		name: 'race-review-quick-open',
+		path: `/races/${INSIGHT.write.raceId}?quick`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page
-				.locator('main li[id^="insight-"]', { hasText: INSIGHT.view.names.shiro })
-				.locator('button[aria-controls^="entry-insight-"]')
-				.click();
-		},
-		stayAtTop: true
-	},
-	{
-		// 保存に失敗したところ。**本当には送らない**（action の応答だけを差し替える）。行の下に文と「もう一度保存する」が出て、押した言葉は破線のまま残る。
-		name: 'race-review-insight-failed',
-		path: `/races/${INSIGHT.write.raceId}?tab=insights`,
-		auth: true,
-		prepare: async (page) => {
-			await waitForHydration(page);
-			const row = page.locator(`#insight-${INSIGHT.write.entries.ao}`);
-			await row.locator('button[aria-controls^="entry-insight-"]').click();
-			await failNextAction(page, `/races/${INSIGHT.write.raceId}/insights`, {
-				message: '気づきの保存を確認できませんでした。時間をおいてもう一度試してください。',
-				entryId: INSIGHT.write.entries.ao
-			});
+			const row = page.locator(`#quick-${INSIGHT.write.entries.ao}`);
+			await row.locator('button[aria-expanded]').click();
 			await row.getByRole('button', { name: /前が壁/ }).click();
-			await row.getByRole('alert').waitFor();
+			await row.getByRole('button', { name: /内詰まり/ }).click();
+			await row.locator('button[aria-pressed="true"]').nth(1).waitFor();
 		},
 		stayAtTop: true
 	},
 	{
-		// 言葉を1つも登録していないユーザーの「気づき」タブ。タブの上に登録の案内が1回出る（自由入力は行を開けば使える）。
-		name: 'race-review-insight-empty-words',
-		path: `/races/${INSIGHT.write.raceId}?tab=insights`,
+		// 18頭立てのクイック入力で、下のほうの馬を開いたところ。開いた中（言葉）が画面の下に収まるよう、スクロールで上げる。
+		name: 'race-review-quick-full-open',
+		path: `/races/${ACTUAL_FLOW_18_RACE_ID}?quick`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			const row = page.locator('main li[id^="quick-"]').nth(15);
+			await row.scrollIntoViewIfNeeded();
+			await row.locator('button[aria-expanded]').click();
+			await row.locator('button[aria-pressed]').first().waitFor();
+		}
+	},
+	{
+		// 言葉を1つも登録していないユーザーのクイック入力。案内・おすすめをまとめて登録するボタン・言葉を登録するリンクが出る。
+		name: 'race-review-quick-empty-words',
+		path: `/races/${INSIGHT.write.raceId}?quick`,
 		auth: true,
 		as: 'no-words',
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page
-				.locator(`#insight-${INSIGHT.write.entries.ao}`)
-				.locator('button[aria-controls^="entry-insight-"]')
-				.click();
+			await page.getByRole('button', { name: 'おすすめの言葉をまとめて登録する' }).waitFor();
 		},
 		stayAtTop: true
 	},
 	{
-		// 結果がまだ入っていないレース。気づきを残していれば、「気づき」タブで開ける（着順の列は詰める）。
-		name: 'race-review-insight-no-result',
-		path: `/races/${INSIGHT.noResult.raceId}?tab=insights`,
+		// クイック入力で言葉を押して「ふりかえりに戻る」を押したあと。行のメモに言葉が入り、保存ボタンが出ている（まだ保存していない）。
+		name: 'race-review-quick-back',
+		path: `/races/${INSIGHT.write.raceId}?quick`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
-			await page
-				.locator('main li[id^="insight-"]')
-				.first()
-				.locator('button[aria-controls^="entry-insight-"]')
-				.click();
-		},
-		stayAtTop: true
+			const row = page.locator(`#quick-${INSIGHT.write.entries.ao}`);
+			await row.locator('button[aria-expanded]').click();
+			await row.getByRole('button', { name: /前が壁/ }).click();
+			await row.getByRole('button', { name: /内詰まり/ }).click();
+			await page.getByRole('button', { name: 'ふりかえりに戻る' }).click();
+			await page.getByRole('button', { name: /まとめて保存/ }).waitFor();
+		}
 	},
 	{
 		// 詳細情報を開いたところ。前走の気づき（出走前 → 気づき → ふりかえり）が過去メモに出る。
@@ -1040,7 +1018,7 @@ export const SCREENS: Screen[] = [
 				.click();
 		}
 	},
-	// 当日のレース（結果はまだ）。見出しの下に「レースを見終えたら → 気づきを残す」が出る。
+	// 当日のレース（結果はまだ）。見出しの下に「レースを見終えたら → クイック入力でふりかえる」が出る。
 	{
 		name: 'race-preview-race-day-link',
 		path: `/races/${THIS_WEEK_RACES.upcoming.id}/preview`,

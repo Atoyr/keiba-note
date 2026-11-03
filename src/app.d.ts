@@ -75,8 +75,8 @@ declare global {
 		// interface Error {}
 		// interface PageData {}
 		interface PageState {
-			/** ふりかえり画面で「気づき」タブを開いているか。履歴に残し、戻ったときにタブを戻す。 */
-			insightsTab?: boolean;
+			/** ふりかえり画面でクイック入力を開いているか。履歴に積み、ブラウザの戻るで閉じる。 */
+			quickReview?: boolean;
 		}
 	}
 }

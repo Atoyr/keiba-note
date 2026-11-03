@@ -93,10 +93,13 @@ export const tagsSchema = v.pipe(
 	v.transform((xs) => NOTE_TAGS.filter((t) => xs.includes(t)))
 );
 
+/** メモ本文の長さの上限（文字数）。 */
+export const NOTE_BODY_MAX = 10000;
+
 export const bodySchema = v.pipe(
 	v.string(),
 	// 前後の空白だけのメモは「空」とみなしたいので trim はサービス層でも行う。
-	v.maxLength(10000, '10,000文字以内にしてください')
+	v.maxLength(NOTE_BODY_MAX, '10,000文字以内にしてください')
 );
 
 /** 出走馬1頭分のメモ入力。ふりかえりと予想で共通の形。 */

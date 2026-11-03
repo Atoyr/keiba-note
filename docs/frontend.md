@@ -23,7 +23,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 | `src/lib/components/ui/` | shadcn-svelte の生成物 | **手で直さない**（→ [design-system.md](./design-system.md)） |
 
 **専用の REST API は作らない。** 読みは `load`、書きは form actions で完結させる（理由は [api.md 第1章](./api.md)）。
-例外は気づきの自動保存だけで、`fetch` で `/races/[id]/insights` の form action を呼ぶ（呼び方は `utils/insight-send.ts`。理由は [api.md 第1章](./api.md)）。
+
 
 ## 2. ルート（`+page.server.ts`）の書き方
 
@@ -50,7 +50,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - 画面が要る型は `PageProps` の `data` から取る。**`$lib/server/**` から型を import しない**
   （SvelteKit は値の import しか止めない。層の規則は [architecture.md 第2章](./architecture.md)）
 - アプリ内のリンクは `$app/paths` の `resolve('/races/[id]', { id })` で組み、`href="/..."` を直に書かない。
-  GET のフォームの `action` も同じ。別のルートへ POST するフォーム（`/auth/logout`・`/settings/shares`・`/dev/mock-user`）は
+  GET のフォームの `action` も同じ。別のルートへ POST するフォーム（`/auth/logout`・`/settings/shares`・`/dev/mock-user`、ふりかえり画面から `/settings/insight-words?/addDefaults` へ送る `#insight-defaults`）は
   今は文字列で書いている
 - クエリ付きのリンク（`/races?year=` など）は、パスを `resolve()` で組んでからクエリを足す。
   `svelte/no-navigation-without-resolve` は足した形を読めないので、その `<a>` だけを

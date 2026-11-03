@@ -55,7 +55,7 @@
 		</DropdownMenu.Item>
 		<DropdownMenu.Item>
 			{#snippet child({ props })}
-				<a href={resolve('/settings/insight-words')} {...props}>気づきの言葉</a>
+				<a href={resolve('/settings/insight-words')} {...props}>クイック入力の言葉</a>
 			{/snippet}
 		</DropdownMenu.Item>
 		<DropdownMenu.Item>

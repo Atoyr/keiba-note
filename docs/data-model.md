@@ -31,7 +31,7 @@ erDiagram
     user ||--o{ jockey_note : "騎手をまとめる"
     user ||--o{ graded_race_note : "重賞の傾向を書く"
     user ||--o{ insight_word : "気づきの言葉を登録する"
-    user ||--o{ race_entry_insight : "直後の気づきを残す"
+    user ||--o{ race_entry_insight : "以前の気づき（読むだけ）"
     race_entry ||--o{ race_entry_insight : "気づかれる"
     user ||--o| mcp_usage : "今週の利用量"
     user ||--o{ oauth_grant : "AI に許す"
@@ -50,7 +50,7 @@ erDiagram
 | 本人だけのもの | `note`・`favorite_horse`・`jockey_note`・`graded_race_note`・`insight_word`・`race_entry_insight`・`mcp_usage`・`oauth_grant` ほか OAuth の表 | 読む関数は `viewerId`（または `userId`）を必須で受け、WHERE に本人の条件を入れる（→ [architecture.md 第0章](./architecture.md)）。他人にも admin にも共有ページにも出さない |
 | 本人が公開したコピー | `race_share` | 本人が明示して作る。公開側は `note` を読まず、このコピーと公開名だけを読む |
 
-騎手と重賞は表を持たない（次の「2. 表」の `jockey_note`・`graded_race_note` を参照）。気づきの言葉も、馬に付けた言葉は文字列のコピーで持つ（`insight_word` を参照）。
+騎手と重賞は表を持たない（次の「2. 表」の `jockey_note`・`graded_race_note` を参照）。クイック入力の言葉も、本文に入れるのは文字列のコピー（以前の気づきも同じ。`insight_word` を参照）。
 
 ID は ULID。時系列に並べられ、乱数部が80ビットあるので共有 URL にそのまま使える。日時は unixepoch の整数で、
 `occurred_at` と `race.date` だけは JST の `YYYY-MM-DD` 文字列（決めた理由は [product.md 第4章](./product.md) #7）。
@@ -154,16 +154,17 @@ GitHub Actions が取得元から書く唯一の表で、メモからも馬柱�
 ### insight_word
 
 気づきの言葉。`PRIMARY KEY (user_id, word)` で、**本人が登録する、全レース共通の言葉**（「上がりが強い」「内詰まり」など）。
-レース直後に馬へ付ける押せる札になる（→ `race_entry_insight`）。並びは登録順（`created_at`、同じ秒なら `rowid`）。
+ふりかえり画面のクイック入力で押す札になり、押すとその馬のふりかえりメモの本文に入る（本文へは文字列のコピーが入る）。並びは登録順（`created_at`、同じ秒なら `rowid`）。
 
 - **メモの札（`note.tags`、3-4）を拡張せず、別の表にした。** 札は固定の選択肢で、MCP・共有・答え合わせにつながる。ユーザーの言葉を混ぜるとその前提と共有のコピーが崩れる
 - 言葉は 1〜20 字（NFKC に寄せて前後の空白を除く）、登録は 30 個まで。上限は DB の制約でなく `schemas/insight.ts` と `services/insights.ts` で守る
-- 名前の変更は作らない（消して足す）。消しても、すでに馬へ付けた記録には触らない
+- 名前の変更は作らない（消して足す）。消しても、すでにメモに入れた文は消えない
 
 ### race_entry_insight
 
-レース直後の気づき。`PRIMARY KEY (user_id, race_entry_id)` で、**1人・1出走につき1本**（付けた言葉 `words` と、短い自由入力 `memo`）。
-言葉もメモも空になったら行ごと消す。ふりかえりの本文（`note` の `entry`）とは別の入力で、本文には自動で混ぜない。
+レース直後の気づき。**新しくは作らない**（クイック入力は言葉をふりかえりメモの本文に入れる）。すでに残した分は読むだけで残る。表を消すかは未定。
+`PRIMARY KEY (user_id, race_entry_id)` で、**1人・1出走につき1本**（付けた言葉 `words` と、短い自由入力 `memo`）。
+言葉もメモも空になったら行ごと消す。以前の入力は、ふりかえりの本文（`note` の `entry`）とは別で、本文には自動で混ぜなかった（いまは新しく作らない）。
 
 - **付けた言葉は文字列のコピー（`words` の JSON 配列）で持つ。** `insight_word` を消しても過去の記録は残る。画面は、登録に無いが付いている言葉も押せる札として出し、外せるようにする
 - **`note` に kind を足さず、`entry` の行に列も足さなかった。** kind を足すには `note_kind_shape` の CHECK のため中心の表を作り直すことになる（`jockey_note` と同じ理由）。
