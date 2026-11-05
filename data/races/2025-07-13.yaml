@@ -49,6 +49,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 15
+    winner: コスモフリーゲン
     entries:
       - horseNumber: 4
         bracket: 3
@@ -142,6 +144,7 @@ races:
         finish: 2
         popularity: 1
         time: "2:00.5"
+        timeDiff: 0
         passing: "7-7-5-4"
         last3f: 35.4
         weight: 57.5

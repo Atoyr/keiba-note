@@ -588,6 +588,21 @@ races:
     fieldSize: 14
     winner: コーチェラバレー
     entries:
+      - horseNumber: 10
+        bracket: 6
+        name: マイネルカンパーナ
+        jockey: 丹内祐次
+        ref: nk-2020105798
+        finish: 6
+        popularity: 8
+        time: "2:42.4"
+        timeDiff: 1.7
+        passing: "10-7-3-3"
+        last3f: 37.5
+        weight: 56
+        horseWeight: 408
+        horseWeightDiff: -10
+        odds: 16.7
       - horseNumber: 11
         bracket: 7
         name: ブレイヴロッカー

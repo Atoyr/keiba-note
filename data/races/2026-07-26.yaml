@@ -663,7 +663,23 @@ races:
     weather: 晴
     fieldSize: 13
     winner: ミラージュナイト
+    runnerUp: ホールネス
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ミラージュナイト
+        jockey: 西村淳也
+        ref: nk-2022105109
+        finish: 1
+        popularity: 1
+        time: "2:40.0"
+        timeDiff: -0.2
+        passing: "7-8-4-2"
+        last3f: 35.2
+        weight: 57
+        horseWeight: 490
+        horseWeightDiff: -8
+        odds: 2.1
       - horseNumber: 7
         bracket: 5
         name: ブレイヴロッカー

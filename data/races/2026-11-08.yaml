@@ -10,4 +10,150 @@ races:
     surface: 芝
     distance: 2500
     direction: 左
-    entries: []
+    ref: nk-202605050211
+    startTime: "15:30"
+    entries:
+      - name: ウエストナウ
+        jockey: 横山典弘
+        sex: 牡
+        age: 5
+        ref: nk-2021106645
+        trainer: 寺島良
+        trainingCenter: 栗東
+        weight: 57.5
+      - name: キングスコール
+        jockey: 吉田豊
+        sex: 牡
+        age: 4
+        ref: nk-2022104207
+        trainer: 矢作芳人
+        trainingCenter: 栗東
+        weight: 55
+      - name: キングズパレス
+        jockey: 松岡正海
+        sex: 牡
+        age: 7
+        ref: nk-2019104828
+        trainer: 戸田博文
+        trainingCenter: 美浦
+        weight: 57
+      - name: ジョイボーイ
+        jockey: 横山武史
+        sex: 牡
+        age: 4
+        ref: nk-2022103787
+        trainer: 四位洋文
+        trainingCenter: 栗東
+        weight: 55
+      - name: ジーティーダーリン
+        jockey: 大野拓弥
+        sex: 牡
+        age: 4
+        ref: nk-2022105710
+        trainer: 田中克典
+        trainingCenter: 栗東
+        weight: 55
+      - name: ドゥラドーレス
+        jockey: ルメール
+        sex: セ
+        age: 7
+        ref: nk-2019105556
+        trainer: 宮田敬介
+        trainingCenter: 美浦
+        weight: 58
+      - name: ビザンチンドリーム
+        jockey: 国分優作
+        sex: 牡
+        age: 5
+        ref: nk-2021105587
+        trainer: 坂口智康
+        trainingCenter: 栗東
+        weight: 59.5
+      - name: ファイアンクランツ
+        jockey: 岩田望来
+        sex: 牡
+        age: 4
+        ref: nk-2022104720
+        trainer: 堀宣行
+        trainingCenter: 美浦
+        weight: 58
+      - name: ファミリータイム
+        jockey: 菅原明良
+        sex: 牡
+        age: 5
+        ref: nk-2021100651
+        trainer: 石坂公一
+        trainingCenter: 栗東
+        weight: 56
+      - name: ホーエリート
+        jockey: 戸崎圭太
+        sex: 牝
+        age: 5
+        ref: nk-2021104855
+        trainer: 田島俊明
+        trainingCenter: 美浦
+        weight: 56.5
+      - name: ボーンディスウェイ
+        jockey: マーカンド
+        sex: 牡
+        age: 7
+        ref: nk-2019104658
+        trainer: 牧光二
+        trainingCenter: 美浦
+        weight: 56
+      - name: マイネルエンペラー
+        jockey: 吉村誠之助
+        sex: 牡
+        age: 6
+        ref: nk-2020105786
+        trainer: 清水久詞
+        trainingCenter: 栗東
+        weight: 58.5
+      - name: マイネルカンパーナ
+        jockey: 津村明秀
+        sex: 牡
+        age: 6
+        ref: nk-2020105798
+        trainer: 青木孝文
+        trainingCenter: 美浦
+        weight: 56
+      - name: ミクニインスパイア
+        jockey: 岩田康誠
+        sex: 牡
+        age: 4
+        ref: nk-2022106120
+        trainer: 林徹
+        trainingCenter: 美浦
+        weight: 56
+      - name: ミステリーウェイ
+        jockey: 松本大輝
+        sex: セ
+        age: 8
+        ref: nk-2018104638
+        trainer: 小林真也
+        trainingCenter: 栗東
+        weight: 58
+      - name: ミラージュナイト
+        jockey: 西村淳也
+        sex: 牡
+        age: 4
+        ref: nk-2022105109
+        trainer: 杉山佳明
+        trainingCenter: 栗東
+        weight: 57
+      - name: メイショウゲキリン
+        jockey: 田辺裕信
+        sex: 牡
+        age: 7
+        ref: nk-2019104092
+        trainer: 笹田和秀
+        trainingCenter: 栗東
+        weight: 58
+      - name: レッドバンデ
+        jockey: 佐々木大輔
+        sex: 牡
+        age: 4
+        ref: nk-2022105466
+        trainer: 大竹正博
+        trainingCenter: 美浦
+        weight: 57

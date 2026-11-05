@@ -35,6 +35,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 13
+    winner: エネルジコ
     entries:
       - horseNumber: 4
         bracket: 4
@@ -72,6 +74,7 @@ races:
         finish: 2
         popularity: 2
         time: "2:24.9"
+        timeDiff: 0.1
         passing: "8-9-9-9"
         last3f: 33.7
         weight: 57

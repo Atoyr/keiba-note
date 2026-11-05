@@ -674,3 +674,31 @@ races:
         horseWeight: 442
         horseWeightDiff: 8
         odds: 4.8
+  - course: 京都
+    raceNumber: 10
+    name: 清滝特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 2200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 9
+    winner: ジョイボーイ
+    runnerUp: シュバルツマサムネ
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ジョイボーイ
+        jockey: 岩田望来
+        ref: nk-2022103787
+        finish: 1
+        popularity: 1
+        time: "2:13.7"
+        timeDiff: -0.1
+        passing: "3-3-3-3"
+        last3f: 33.6
+        weight: 55
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 2

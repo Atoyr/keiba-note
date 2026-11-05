@@ -244,6 +244,7 @@ races:
         finish: 9
         popularity: 14
         time: "2:24.6"
+        timeDiff: 0.9
         passing: "5-5-4-4"
         last3f: 34.9
         weight: 57

@@ -285,3 +285,31 @@ races:
         horseWeight: 448
         horseWeightDiff: 0
         odds: 15.7
+  - course: 小倉
+    raceNumber: 9
+    name: 英彦山特別
+    className: 1勝クラス
+    surface: 芝
+    distance: 2600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: ジョイボーイ
+    runnerUp: ラブカ
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ジョイボーイ
+        jockey: 坂井瑠星
+        ref: nk-2022103787
+        finish: 1
+        popularity: 1
+        time: "2:43.5"
+        timeDiff: -0.2
+        passing: "9-9-7-7"
+        last3f: 35.9
+        weight: 55
+        horseWeight: 474
+        horseWeightDiff: 0
+        odds: 1.9

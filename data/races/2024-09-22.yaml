@@ -52,6 +52,8 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 14
+    winner: メイショウタバル
     entries:
       - horseNumber: 14
         bracket: 8
@@ -61,6 +63,7 @@ races:
         finish: 6
         popularity: 9
         time: "2:12.9"
+        timeDiff: 1.1
         passing: "12-11-12-13"
         last3f: 35.4
         weight: 57

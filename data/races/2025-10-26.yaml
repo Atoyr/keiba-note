@@ -255,6 +255,7 @@ races:
         finish: 6
         popularity: 8
         time: "3:04.5"
+        timeDiff: 0.5
         passing: "18-18-17-14"
         last3f: 35.1
         weight: 57
@@ -339,6 +340,7 @@ races:
         finish: 5
         popularity: 9
         time: "3:04.5"
+        timeDiff: 0.5
         passing: "7-6-6-4"
         last3f: 35.5
         weight: 57

@@ -13,6 +13,7 @@ races:
     weather: 雨
     fieldSize: 13
     winner: メイショウゲキリン
+    runnerUp: キャントウェイト
     entries:
       - horseNumber: 1
         bracket: 1
@@ -169,6 +170,7 @@ races:
         finish: 1
         popularity: 9
         time: "2:16.9"
+        timeDiff: 0
         passing: "1-1-1-1"
         last3f: 37.1
         weight: 57
