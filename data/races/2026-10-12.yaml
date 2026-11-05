@@ -450,6 +450,21 @@ races:
     fieldSize: 18
     winner: アスクセクシーモア
     entries:
+      - horseNumber: 5
+        bracket: 3
+        name: ボーンディスウェイ
+        jockey: 木幡巧也
+        ref: nk-2019104658
+        finish: 9
+        popularity: 6
+        time: "1:59.1"
+        timeDiff: 1
+        passing: "6-8-7"
+        last3f: 35.2
+        weight: 56
+        horseWeight: 496
+        horseWeightDiff: 6
+        odds: 13.8
       - horseNumber: 10
         bracket: 5
         name: ジュンブロッサム
@@ -465,3 +480,31 @@ races:
         horseWeight: 474
         horseWeightDiff: 2
         odds: 15.3
+  - course: 東京
+    raceNumber: 10
+    name: 昇仙峡S
+    className: 3勝クラス
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: レッドバンデ
+    runnerUp: バドリナート
+    entries:
+      - horseNumber: 11
+        bracket: 8
+        name: レッドバンデ
+        jockey: ルメール
+        ref: nk-2022105466
+        finish: 1
+        popularity: 1
+        time: "2:24.8"
+        timeDiff: -0.1
+        passing: "7-6-5-4"
+        last3f: 34
+        weight: 58
+        horseWeight: 496
+        horseWeightDiff: 16
+        odds: 1.5

@@ -35,6 +35,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 11
+    winner: ジーティーダーリン
+    runnerUp: ミュージシャン
     entries:
       - horseNumber: 2
         bracket: 2
@@ -44,6 +47,7 @@ races:
         finish: 1
         popularity: 7
         time: "1:58.7"
+        timeDiff: -0.3
         passing: "1-1-1-1"
         last3f: 34.1
         weight: 58

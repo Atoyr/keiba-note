@@ -168,6 +168,7 @@ races:
         popularity: 3
         time: "3:32.2"
         margin: "1.1/4"
+        timeDiff: 0.2
         passing: "9-10-10-8"
         last3f: 34.4
         weight: 54
@@ -342,6 +343,7 @@ races:
         popularity: 2
         time: "3:32.6"
         margin: "クビ"
+        timeDiff: 0.6
         passing: "5-4-5-6"
         last3f: 35
         weight: 56.5
@@ -377,6 +379,7 @@ races:
         popularity: 5
         time: "3:32.8"
         margin: "クビ"
+        timeDiff: 0.8
         passing: "2-2-3-5"
         last3f: 35.3
         weight: 56.5
@@ -1066,6 +1069,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: レッドプロフェシー
     entries:
       - horseNumber: 14
         bracket: 7
@@ -1075,6 +1080,7 @@ races:
         finish: 14
         popularity: 1
         time: "2:14.4"
+        timeDiff: 3.7
         passing: "6-6-6-6"
         last3f: 40.9
         weight: 57

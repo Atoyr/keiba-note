@@ -10,6 +10,8 @@ races:
     distance: 2880
     trackCondition: 良
     weather: 雨
+    fieldSize: 14
+    winner: ミレニアムヒロイン
     entries:
       - horseNumber: 4
         bracket: 3
@@ -19,6 +21,7 @@ races:
         finish: 8
         popularity: 1
         time: "3:21.9"
+        timeDiff: 3.5
         passing: "10-10-9-9"
         weight: 60
         horseWeight: 524

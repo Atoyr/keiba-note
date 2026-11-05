@@ -132,10 +132,12 @@ races:
         popularity: 7
         time: "2:15.1"
         margin: "1.1/2"
+        timeDiff: 3
         passing: "16-16-12-11"
         last3f: 37.1
         weight: 58
         horseWeight: 466
+        horseWeightDiff: 0
         odds: 29.6
       - horseNumber: 7
         bracket: 4
@@ -710,3 +712,30 @@ races:
         horseWeight: 452
         horseWeightDiff: 10
         odds: 3.9
+  - course: 東京
+    raceNumber: 10
+    name: 江の島S
+    className: 3勝クラス
+    surface: 芝
+    distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 14
+    winner: レッドテリオス
+    entries:
+      - horseNumber: 8
+        bracket: 5
+        name: ジョイボーイ
+        jockey: 石橋脩
+        ref: nk-2022103787
+        finish: 4
+        popularity: 6
+        time: "2:23.8"
+        timeDiff: 0.5
+        passing: "13-11-9-7"
+        last3f: 34.6
+        weight: 58
+        horseWeight: 478
+        horseWeightDiff: -6
+        odds: 11.6

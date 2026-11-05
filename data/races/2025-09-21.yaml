@@ -66,6 +66,7 @@ races:
         finish: 5
         popularity: 3
         time: "2:10.8"
+        timeDiff: 0.6
         passing: "3-3-6-6"
         last3f: 34.6
         weight: 55
@@ -108,6 +109,7 @@ races:
         finish: 2
         popularity: 2
         time: "2:10.4"
+        timeDiff: 0.2
         passing: "9-9-3-3"
         last3f: 34.4
         weight: 57
@@ -193,6 +195,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 10
+    winner: エリキング
     entries:
       - horseNumber: 2
         bracket: 2
@@ -208,6 +212,21 @@ races:
         horseWeight: 476
         horseWeightDiff: -4
         odds: 4.6
+      - horseNumber: 4
+        bracket: 4
+        name: ジョイボーイ
+        jockey: 藤岡佑介
+        ref: nk-2022103787
+        finish: 8
+        popularity: 5
+        time: "2:27.3"
+        timeDiff: 0.9
+        passing: "10-10-9-10"
+        last3f: 32.8
+        weight: 57
+        horseWeight: 484
+        horseWeightDiff: 10
+        odds: 18.9
       - horseNumber: 5
         bracket: 5
         name: ショウヘイ

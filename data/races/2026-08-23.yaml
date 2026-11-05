@@ -10,6 +10,8 @@ races:
     distance: 3000
     trackCondition: 良
     weather: 晴
+    fieldSize: 8
+    winner: アルヴィア
     entries:
       - horseNumber: 3
         bracket: 3
@@ -32,6 +34,7 @@ races:
         finish: 6
         popularity: 2
         time: "3:25.4"
+        timeDiff: 6.6
         passing: "5-5-6-7"
         weight: 60
         horseWeight: 528

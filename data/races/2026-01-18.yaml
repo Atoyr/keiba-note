@@ -555,6 +555,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: フィーリウス
     entries:
       - horseNumber: 5
         bracket: 3
@@ -578,6 +580,7 @@ races:
         finish: 5
         popularity: 1
         time: "2:15.0"
+        timeDiff: 0.5
         passing: "10-8-9-8"
         last3f: 34
         weight: 57

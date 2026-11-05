@@ -27,6 +27,7 @@ races:
         popularity: 2
         time: "1:58.2"
         margin: "アタマ"
+        timeDiff: 0.1
         passing: "9-8-8-7"
         last3f: 33.9
         weight: 57
@@ -215,6 +216,7 @@ races:
         popularity: 11
         time: "1:58.6"
         margin: "1.1/4"
+        timeDiff: 0.5
         passing: "14-14-14-13"
         last3f: 33.7
         weight: 57

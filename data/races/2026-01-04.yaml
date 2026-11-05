@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 9
+    winner: タガノデュード
     entries:
       - horseNumber: 2
         bracket: 2
@@ -26,14 +28,15 @@ races:
         horseWeight: 504
         horseWeightDiff: 2
         odds: 3.1
-      - name: メイショウゲキリン
-        ref: nk-2019104092
+      - horseNumber: 5
         bracket: 5
-        horseNumber: 5
+        name: メイショウゲキリン
         jockey: 西塚洸二
+        ref: nk-2019104092
         finish: 5
         popularity: 7
         time: "2:01.4"
+        timeDiff: 0.3
         passing: "4-3-4-3"
         last3f: 33.9
         weight: 58
