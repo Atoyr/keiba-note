@@ -316,3 +316,31 @@ races:
         horseWeight: 438
         horseWeightDiff: 6
         odds: 5.8
+  - course: 函館
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    fieldSize: 11
+    winner: フレイコン
+    runnerUp: ライフイズアート
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: フレイコン
+        jockey: 横山武史
+        ref: nk-2024100671
+        finish: 1
+        popularity: 1
+        time: "1:09.3"
+        timeDiff: -1.3
+        passing: "1-1"
+        last3f: 34.6
+        weight: 55
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 1.3

@@ -744,3 +744,30 @@ races:
         horseWeight: 444
         horseWeightDiff: -10
         odds: 4.1
+  - course: 新潟
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 小雨
+    fieldSize: 11
+    winner: リリカルフレア
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: アテナブレイブ
+        jockey: 横山典弘
+        ref: nk-2024105671
+        finish: 6
+        popularity: 3
+        time: "1:22.6"
+        timeDiff: 0.6
+        passing: "3-3"
+        last3f: 35.6
+        weight: 55
+        horseWeight: 422
+        horseWeightDiff: 2
+        odds: 10.9

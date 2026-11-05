@@ -250,3 +250,46 @@ races:
         horseWeight: 438
         horseWeightDiff: 0
         odds: 3.1
+  - course: 札幌
+    raceNumber: 9
+    name: クローバー賞
+    grade: OP
+    surface: 芝
+    distance: 1500
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 14
+    winner: ブルージェイ
+    runnerUp: フレイコン
+    entries:
+      - horseNumber: 6
+        bracket: 4
+        name: ブルージェイ
+        jockey: 鮫島克駿
+        ref: nk-2024107032
+        finish: 1
+        popularity: 2
+        time: "1:29.3"
+        timeDiff: -0.1
+        passing: "3-4-4"
+        last3f: 35.3
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: 0
+        odds: 4
+      - horseNumber: 7
+        bracket: 5
+        name: フレイコン
+        jockey: 横山武史
+        ref: nk-2024100671
+        finish: 2
+        popularity: 1
+        time: "1:29.4"
+        timeDiff: 0.1
+        passing: "5-5-4"
+        last3f: 35.3
+        weight: 55
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 1.9

@@ -284,3 +284,31 @@ races:
         horseWeight: 486
         horseWeightDiff: 10
         odds: 8.4
+  - course: 京都
+    raceNumber: 8
+    name: もみじS
+    grade: OP
+    surface: 芝
+    distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 7
+    winner: ロンドンガーズ
+    runnerUp: アンムート
+    entries:
+      - horseNumber: 7
+        bracket: 7
+        name: ロンドンガーズ
+        jockey: 松山弘平
+        ref: nk-2024100445
+        finish: 1
+        popularity: 1
+        time: "1:20.5"
+        timeDiff: 0
+        passing: "1-1"
+        last3f: 33.9
+        weight: 56
+        horseWeight: 450
+        horseWeightDiff: 6
+        odds: 2
