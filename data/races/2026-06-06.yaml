@@ -182,3 +182,18 @@ races:
         horseWeight: 484
         horseWeightDiff: 0
         odds: 1.3
+      - horseNumber: 4
+        bracket: 4
+        name: アテナブレイブ
+        jockey: 横山和生
+        ref: nk-2024105671
+        finish: 4
+        popularity: 5
+        time: "1:35.1"
+        timeDiff: 0.8
+        passing: "6-6"
+        last3f: 33.8
+        weight: 55
+        horseWeight: 420
+        horseWeightDiff: 0
+        odds: 25.8

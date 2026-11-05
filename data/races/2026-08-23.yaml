@@ -688,3 +688,31 @@ races:
         horseWeight: 470
         horseWeightDiff: 6
         odds: 1.4
+  - course: 新潟
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 12
+    winner: ノーセット
+    runnerUp: レオリアライズ
+    entries:
+      - horseNumber: 12
+        bracket: 8
+        name: ノーセット
+        jockey: 津村明秀
+        ref: nk-2024100651
+        finish: 1
+        popularity: 1
+        time: "1:21.7"
+        timeDiff: -1.2
+        passing: "1-1"
+        last3f: 34.8
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: -2
+        odds: 1.1

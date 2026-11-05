@@ -306,3 +306,31 @@ races:
         horseWeight: 446
         horseWeightDiff: 2
         odds: 3.6
+  - course: 中山
+    raceNumber: 2
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 雨
+    fieldSize: 14
+    winner: アテナブレイブ
+    runnerUp: フォンターナドーロ
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: アテナブレイブ
+        jockey: 三浦皇成
+        ref: nk-2024105671
+        finish: 1
+        popularity: 1
+        time: "1:37.2"
+        timeDiff: -0.9
+        passing: "1-1-1"
+        last3f: 36.5
+        weight: 55
+        horseWeight: 416
+        horseWeightDiff: -4
+        odds: 2.4
