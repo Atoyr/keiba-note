@@ -1,0 +1,407 @@
+import { expect, test, type Page } from '@playwright/test';
+import { gotoHydrated } from './hydration';
+import { expectLinkTo } from './link';
+import { login } from './login';
+import {
+	ACTUAL_FLOW_18_RACE_ID,
+	INSIGHT,
+	PAST_EMPTY_RACE_ID,
+	PREVIEW_RACE_ID,
+	THIS_WEEK_RACES
+} from './seed';
+
+/*
+ * ふりかえりのクイック入力（Issue #236 の気づきを作り直したもの）。
+ *
+ * 言葉を押すと、その馬のふりかえりメモの本文に入る。書き換えるのは `INSIGHT.write` のレース（出走2頭）と、
+ * 言葉の登録専用のユーザーだけ。画面カタログが読む見本（`INSIGHT.view`）には書かない。
+ * このファイルのテストは順に走り、保存したメモと登録した言葉は終わりに元へ戻す。
+ */
+test.describe.configure({ mode: 'serial' });
+
+const writePath = `/races/${INSIGHT.write.raceId}`;
+const { aka, ao } = INSIGHT.write.entries;
+/** クイック入力の1行。 */
+const row = (page: Page, entryId: string) => page.locator(`#quick-${entryId}`);
+const toggle = (page: Page, entryId: string) => row(page, entryId).locator('button[aria-expanded]');
+const word = (page: Page, entryId: string, name: string) =>
+	row(page, entryId).getByRole('button', { name: new RegExp(`${name}$`) });
+const body = (page: Page, entryId: string) => page.locator(`textarea[name="body.${entryId}"]`);
+const quickButton = (page: Page) => page.getByRole('button', { name: 'クイック入力' });
+const heading = (page: Page) => page.getByRole('heading', { name: 'クイック入力' });
+const back = (page: Page) => page.getByRole('button', { name: 'ふりかえりに戻る' });
+const reviewTab = (page: Page) => page.getByRole('tab', { name: 'ふりかえり' });
+
+/** 本文の欄に値を入れる（欄は閉じた行の中にあるので、下書きの書き戻しと同じく input を投げる）。 */
+async function setBody(page: Page, entryId: string, value: string) {
+	await body(page, entryId).evaluate((el, v) => {
+		(el as HTMLTextAreaElement).value = v;
+		el.dispatchEvent(new Event('input', { bubbles: true }));
+	}, value);
+}
+
+test('言葉を登録・削除できる。重複と長すぎる言葉は文で断り、消してもメモに入れた文は消えないと案内する', async ({
+	page
+}) => {
+	await login(page, 'words-edit');
+	await gotoHydrated(page, '/settings/insight-words');
+	await expect(page.getByRole('heading', { name: 'クイック入力の言葉' })).toBeVisible();
+	await expect(page.getByText('言葉を削除しても、メモに入れた文は消えません。')).toBeVisible();
+	await expect(page.getByText('まだ登録した言葉がありません')).toBeVisible();
+
+	const input = page.getByLabel('新しい言葉');
+	await input.fill('　Ｅ２Ｅ登録語 ');
+	await page.getByRole('button', { name: '登録する', exact: true }).click();
+	// 全角は半角に寄せ、前後の空白は除く。
+	const list = page.getByRole('region', { name: /登録した言葉/ });
+	await expect(list.getByText('E2E登録語', { exact: true })).toBeVisible();
+
+	await input.fill('E2E登録語');
+	await page.getByRole('button', { name: '登録する', exact: true }).click();
+	await expect(page.getByRole('alert')).toContainText('すでに登録されています');
+
+	await input.evaluate((el) => el.removeAttribute('maxlength'));
+	await input.fill('あ'.repeat(21));
+	await page.getByRole('button', { name: '登録する', exact: true }).click();
+	await expect(page.getByRole('alert')).toContainText('20文字以内');
+
+	await page.getByRole('button', { name: /削除\s*（E2E登録語）/ }).click();
+	await expect(page.getByText('まだ登録した言葉がありません')).toBeVisible();
+});
+
+/** 設定画面で、登録した言葉を全部消す（words-edit の後片付け）。 */
+async function clearWords(page: Page) {
+	await gotoHydrated(page, '/settings/insight-words');
+	const words = await page
+		.getByRole('region', { name: /登録した言葉/ })
+		.locator('li > span')
+		.allTextContents();
+	await page.evaluate(async (ws) => {
+		for (const w of ws) {
+			const body = new FormData();
+			body.set('word', w);
+			await fetch('/settings/insight-words?/remove', { method: 'POST', body });
+		}
+	}, words);
+	await page.reload();
+	await expect(page.getByText('まだ登録した言葉がありません')).toBeVisible();
+}
+
+test('おすすめの言葉を1つずつ・まとめて登録でき、登録したものはおすすめの節から消える', async ({
+	page
+}) => {
+	await login(page, 'words-edit');
+	await gotoHydrated(page, '/settings/insight-words');
+	const defaults = page.getByRole('region', { name: 'おすすめの言葉' });
+	const registered = page.getByRole('region', { name: /登録した言葉/ });
+	await expect(defaults).toBeVisible();
+
+	await defaults.getByRole('button', { name: /^前が壁\s*を登録する$/ }).click();
+	await expect(registered.getByText('前が壁', { exact: true })).toBeVisible();
+	await expect(defaults.getByRole('button', { name: /^前が壁\s*を登録する$/ })).toHaveCount(0);
+	await expect(defaults.getByRole('button', { name: 'まとめて登録する（12個）' })).toBeVisible();
+
+	await defaults.getByRole('button', { name: /まとめて登録する/ }).click();
+	await expect(page.getByText('おすすめの言葉を12個登録しました')).toBeVisible();
+	await expect(registered.getByText('次走注目', { exact: true })).toBeVisible();
+	await expect(page.getByRole('region', { name: 'おすすめの言葉' })).toHaveCount(0);
+	await expect(registered.getByRole('heading')).toContainText('13/30');
+
+	await clearWords(page);
+});
+
+test('上限に近いときは、おすすめのまとめて登録が入る分だけ入り、上限の文を出す', async ({
+	page
+}) => {
+	await login(page, 'words-edit');
+	await gotoHydrated(page, '/settings/insight-words');
+	// 直接送って28個まで詰める（おすすめと重ならない言葉）。
+	await page.evaluate(async () => {
+		for (let i = 1; i <= 28; i++) {
+			const body = new FormData();
+			body.set('word', `詰め${i}`);
+			await fetch('/settings/insight-words?/add', { method: 'POST', body });
+		}
+	});
+	await page.reload();
+	await page.getByRole('button', { name: /まとめて登録する/ }).click();
+	await expect(page.getByText(/上限（30個）に達したため、残りは登録していません/)).toBeVisible();
+	await expect(page.getByRole('heading', { name: /登録した言葉（30\/30）/ })).toBeVisible();
+	await expect(page.getByText('上限（30個）に達しています。')).toBeVisible();
+	await expect(page.getByRole('button', { name: /まとめて登録する/ })).toHaveCount(0);
+
+	await clearWords(page);
+});
+
+test('入口を押すとクイック入力に切り替わり、言葉を押すとメモに入る。戻ると行のメモに入っていて、保存すると再読み込みしても残る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	const url = page.url();
+	await quickButton(page).click();
+	await expect(heading(page)).toBeFocused();
+	await expect(reviewTab(page)).toBeHidden();
+
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+	await word(page, ao, '内詰まり').click();
+	await expect(word(page, ao, '前が壁')).toHaveAttribute('aria-pressed', 'true');
+	await expect(body(page, ao)).toHaveValue('前が壁、内詰まり');
+	// クイック入力のあいだは保存ボタンも未保存の件数も出さない。
+	await expect(page.getByRole('button', { name: 'まとめて保存' })).toHaveCount(0);
+	await expect(page.getByText(/未保存の変更が/)).toHaveCount(0);
+
+	await back(page).click();
+	await expect(heading(page)).toBeHidden();
+	expect(page.url()).toBe(url);
+	await expect(page.locator(`#entry-${ao}`)).toContainText('前が壁、内詰まり');
+	await expect(page.getByText(/未保存の変更が/)).toContainText('1');
+	await expect(page.getByRole('button', { name: 'まとめて保存' })).toBeVisible();
+	await expect(quickButton(page)).toBeFocused();
+
+	await page.getByRole('button', { name: 'まとめて保存' }).click();
+	await expect(page.locator('[data-sonner-toast]', { hasText: '保存しました' })).toBeVisible();
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('前が壁、内詰まり');
+
+	// 後片付け: もう一度押して抜き、保存し直す。
+	await gotoHydrated(page, writePath);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+	await word(page, ao, '内詰まり').click();
+	await expect(body(page, ao)).toHaveValue('');
+	await back(page).click();
+	await page.getByRole('button', { name: 'まとめて保存' }).click();
+	await expect(page.locator('[data-sonner-toast]', { hasText: '保存しました' })).toBeVisible();
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('');
+});
+
+test('本文に「伸びた。」があると「伸びた。前が壁」になり、押し直すと「伸びた。」に戻る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	await setBody(page, aka, '伸びた。');
+	await quickButton(page).click();
+	await toggle(page, aka).click();
+	await word(page, aka, '前が壁').click();
+	await expect(body(page, aka)).toHaveValue('伸びた。前が壁');
+	await word(page, aka, '前が壁').click();
+	await expect(body(page, aka)).toHaveValue('伸びた。');
+});
+
+test('ブラウザの戻るでクイック入力が閉じ、同じページのまま、書いた本文が残る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	await setBody(page, aka, 'E2E 書きかけ');
+	const url = page.url();
+	await quickButton(page).click();
+	await expect(heading(page)).toBeVisible();
+
+	await page.goBack();
+	await expect(heading(page)).toBeHidden();
+	await expect(reviewTab(page)).toBeVisible();
+	expect(page.url()).toBe(url);
+	await expect(body(page, aka)).toHaveValue('E2E 書きかけ');
+});
+
+test('?quick で開くとクイック入力から始まり、戻るとふりかえりへ。URL に quick は残らない', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `${writePath}?quick`);
+	await expect(heading(page)).toBeVisible();
+	await expect(page).not.toHaveURL(/quick/);
+
+	await back(page).click();
+	await expect(heading(page)).toBeHidden();
+	await expect(reviewTab(page)).toBeVisible();
+	await expect(page).not.toHaveURL(/quick/);
+});
+
+test('言葉が0個なら、クイック入力でおすすめをまとめて登録するとその場で言葉が並ぶ。先に打った本文は残る', async ({
+	page
+}) => {
+	await login(page, 'words-edit');
+	await gotoHydrated(page, writePath);
+	await setBody(page, aka, '書きかけのふりかえり');
+	await quickButton(page).click();
+	await expect(
+		page.getByText('よく使う言葉を登録すると、押すだけでメモに入れられます。')
+	).toHaveCount(1);
+
+	await page.getByRole('button', { name: 'おすすめの言葉をまとめて登録する' }).click();
+	await expect(page.getByText('おすすめの言葉を13個登録しました')).toBeVisible();
+	await expect(page.getByRole('button', { name: 'おすすめの言葉をまとめて登録する' })).toHaveCount(
+		0
+	);
+
+	// 再読み込みなしで、言葉のボタンが並ぶ。
+	await toggle(page, aka).click();
+	await expect(word(page, aka, '前が壁')).toBeVisible();
+	await expect(word(page, aka, '次走注目')).toBeVisible();
+	await expect(heading(page)).toBeVisible();
+	await expect(body(page, aka)).toHaveValue('書きかけのふりかえり');
+
+	await clearWords(page);
+});
+
+test('別の馬を押すと前の馬が閉じ、押した行は画面の中に残る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${ACTUAL_FLOW_18_RACE_ID}?quick`);
+	const rows = page.locator('main li[id^="quick-"]');
+	await expect(rows).toHaveCount(18);
+	const t = (i: number) => rows.nth(i).locator('button[aria-expanded]');
+
+	await t(2).click();
+	await expect(t(2)).toHaveAttribute('aria-expanded', 'true');
+	// 画面の真ん中に置く（開いた中が画面の下にはみ出さない位置。はみ出す場合の補正は下のテスト）。
+	await rows.nth(11).evaluate((el) => el.scrollIntoView({ block: 'center' }));
+	const top = () => rows.nth(11).evaluate((el) => el.getBoundingClientRect().top);
+	const before = await top();
+	await t(11).click();
+
+	await expect(t(2)).toHaveAttribute('aria-expanded', 'false');
+	await expect(t(11)).toHaveAttribute('aria-expanded', 'true');
+	await expect(rows.nth(11)).toBeInViewport();
+	await expect.poll(async () => Math.abs((await top()) - before)).toBeLessThanOrEqual(1);
+});
+
+test('18頭のうち下のほうの馬を開くと、最初の言葉のボタンが画面に入る', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await login(page);
+	await gotoHydrated(page, `/races/${ACTUAL_FLOW_18_RACE_ID}?quick`);
+	const rows = page.locator('main li[id^="quick-"]');
+	await rows.nth(16).scrollIntoViewIfNeeded();
+	await rows.nth(16).locator('button[aria-expanded]').click();
+	await expect(rows.nth(16).locator('button[aria-pressed]').first()).toBeInViewport();
+});
+
+test('言葉の登録から戻ると、クイック入力のまま帰ってくる', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	await quickButton(page).click();
+	await page.getByRole('link', { name: '言葉を登録・編集する' }).click();
+	await expect(page).toHaveURL('/settings/insight-words');
+	await page.goBack();
+	await expect(heading(page)).toBeVisible();
+});
+
+test('出走馬が0頭のレースにはクイック入力の入口を出さない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${PAST_EMPTY_RACE_ID}`);
+	await expect(quickButton(page)).toHaveCount(0);
+});
+
+test('ふりかえりタブの行には言葉のボタンが出ない。以前に気づきを残した馬だけ、読むだけの言葉が出る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${INSIGHT.view.raceId}`);
+	await expect(reviewTab(page)).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByRole('tab', { name: '気づき' })).toHaveCount(0);
+
+	const shiro = page.locator('main li[id^="entry-"]', { hasText: INSIGHT.view.names.shiro });
+	await expect(shiro.getByText('距離延長○', { exact: true })).toBeVisible();
+	await expect(shiro.getByText(INSIGHT.view.memo)).toBeVisible();
+	await expect(shiro.getByRole('button', { name: /距離延長○/ })).toHaveCount(0);
+
+	// 気づきの無い馬の行には、何も足さない。
+	await gotoHydrated(page, writePath);
+	await expect(page.locator(`#entry-${aka} .insight-view`)).toHaveCount(0);
+});
+
+test('保存済みの気づきは、次走の検討（予想画面の過去走）と馬の画面で読める', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${INSIGHT.view.raceId}/preview`);
+	const horse = page.locator('main li[id^="entry-"]', { hasText: INSIGHT.view.names.shiro });
+	await horse.locator('summary', { hasText: '詳細情報（メモ・直近5走）' }).click();
+	await expect(horse.getByText(INSIGHT.past.memo)).toBeVisible();
+	await expect(horse.getByText('前が壁', { exact: true })).toBeVisible();
+
+	await gotoHydrated(page, `/horses/${INSIGHT.view.horses.shiro}`);
+	await expect(page.getByText(INSIGHT.past.memo)).toBeVisible();
+	await expect(page.getByText(INSIGHT.view.memo)).toBeVisible();
+	await expectLinkTo(
+		page.getByRole('link', { name: /E2E気づき前走/ }),
+		`/races/${INSIGHT.past.raceId}`
+	);
+});
+
+test('予想まとめには気づきを出さない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${INSIGHT.view.raceId}/summary`);
+	await expect(page.getByText(INSIGHT.view.memo)).toHaveCount(0);
+	await expect(page.getByText('上がりが強い')).toHaveCount(0);
+});
+
+test('他人の気づきは見えない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	await expect(page.getByText(INSIGHT.write.otherMemo)).toHaveCount(0);
+});
+
+test('言葉を1つも登録していないユーザーのクイック入力には、登録の案内が出る。見本のレースの気づきは出ない', async ({
+	page
+}) => {
+	await login(page, 'no-words');
+	await gotoHydrated(page, `${writePath}?quick`);
+	await expect(
+		page.getByText('よく使う言葉を登録すると、押すだけでメモに入れられます。')
+	).toHaveCount(1);
+	await expect(page.getByRole('link', { name: '言葉を登録する' })).toHaveCount(1);
+
+	await gotoHydrated(page, `/horses/${INSIGHT.view.horses.shiro}`);
+	await expect(page.getByText(INSIGHT.view.memo)).toHaveCount(0);
+});
+
+test('結果が入る前でも、気づきを残したレースは一覧からふりかえりへ向く。残していなければ予想画面', async ({
+	page
+}) => {
+	const path = `/races/?year=2026&q=${encodeURIComponent(INSIGHT.noResult.name)}`;
+	await login(page);
+	await gotoHydrated(page, path);
+	await expectLinkTo(
+		page.getByRole('link', { name: new RegExp(INSIGHT.noResult.name) }),
+		`/races/${INSIGHT.noResult.raceId}`
+	);
+
+	const other = await page.context().browser()!.newContext();
+	const otherPage = await other.newPage();
+	await login(otherPage, 'no-words');
+	await gotoHydrated(otherPage, path);
+	await expectLinkTo(
+		otherPage.getByRole('link', { name: new RegExp(INSIGHT.noResult.name) }),
+		`/races/${INSIGHT.noResult.raceId}/preview`
+	);
+	await other.close();
+});
+
+test('当日のレースの予想画面から、クイック入力へ入れる。開催前のレースには出さない', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${THIS_WEEK_RACES.upcoming.id}/preview`);
+	await expectLinkTo(
+		page.getByRole('link', { name: 'レースを見終えたら → クイック入力でふりかえる' }),
+		`/races/${THIS_WEEK_RACES.upcoming.id}?quick`
+	);
+
+	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
+	await expect(page.getByRole('link', { name: /レースを見終えたら/ })).toHaveCount(0);
+});
+
+test.describe('JavaScript が無いとき', () => {
+	test.use({ javaScriptEnabled: false });
+
+	test('入口を出さず、?quick 付きでもふりかえりがそのまま出る', async ({ page }) => {
+		await login(page);
+		await page.goto(`${writePath}?quick`);
+		await expect(quickButton(page)).toHaveCount(0);
+		await expect(page.getByRole('heading', { name: 'クイック入力' })).toHaveCount(0);
+		await expect(page.locator(`#entry-${aka}`)).toBeVisible();
+	});
+});

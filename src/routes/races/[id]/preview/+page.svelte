@@ -222,14 +222,14 @@
 		{links}
 	/>
 
-	<!-- 結果が入る前（当日の観戦中）にも、見終えた直後に気づきを残せる入口。リンク先はふりかえり画面で、
+	<!-- 結果が入る前（当日の観戦中）にも、見終えた直後にふりかえりへ進める入口。リンク先はふりかえり画面のクイック入力（`?quick`）で、
 	     開催前のレースでは開けない（戻されるだけ）ので出さない。 -->
 	{#if !data.upcoming}
 		<p class="mt-2 text-sm">
 			<a
-				href={resolve('/races/[id]', { id: data.race.id })}
+				href="{resolve('/races/[id]', { id: data.race.id })}?quick"
 				class="inline-flex min-h-6 items-center underline underline-offset-2 hover:decoration-2"
-				>レースを見終えたら → 気づき・ふりかえりを残す</a
+				>レースを見終えたら → クイック入力でふりかえる</a
 			>
 		</p>
 	{/if}

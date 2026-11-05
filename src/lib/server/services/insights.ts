@@ -8,15 +8,14 @@ import {
 	raceEntryInsight,
 	type RaceEntry
 } from '$lib/server/db/schema';
-import { INSIGHT_ATTACHED_LIMIT, INSIGHT_WORDS_LIMIT } from '$lib/schemas/insight';
+import { INSIGHT_WORDS_LIMIT } from '$lib/schemas/insight';
 import { raceResultCount } from './races';
 
 /**
- * レース直後の気づき。**本人だけのもの**で、読む・書く関数は viewerId を必須で受け、
- * WHERE に `user_id = :viewer` を入れる（architecture.md 第0章）。
+ * クイック入力の言葉の登録（`insight_word`。全レース共通）と、以前に残した気づき（`race_entry_insight`）を読む関数。
+ * **本人だけのもの**で、読む・書く関数は viewerId を必須で受け、WHERE に `user_id = :viewer` を入れる（architecture.md 第0章）。
  *
- * 言葉の登録（`insight_word`）は全レース共通。馬に付けた言葉は文字列のコピーで持つので、
- * 登録を消しても過去の記録は残る。
+ * 気づきは新しくは作らない（クイック入力は言葉をふりかえりメモの本文に入れる）。すでに残した分は読むだけで残す。
  */
 
 /** 馬に付いた言葉と自由入力。画面・タイムライン共通。 */
@@ -59,155 +58,37 @@ export async function addInsightWord(
 	return { ok: true };
 }
 
+/**
+ * 言葉をまとめて登録する（おすすめのセット用）。渡した順に、まだ登録していない言葉を、上限までの残りの数だけ足す。
+ * 入りきらなかった言葉があれば `limited`。残りが0なら何も足さない。
+ */
+export async function addInsightWords(
+	db: Db,
+	viewerId: string,
+	words: string[]
+): Promise<{ added: string[]; limited: boolean }> {
+	const have = new Set(await listInsightWords(db, viewerId));
+	const fresh = [...new Set(words)].filter((w) => !have.has(w));
+	const room = Math.max(0, INSIGHT_WORDS_LIMIT - have.size);
+	const added = fresh.slice(0, room);
+	if (added.length > 0) {
+		// 実際に入った言葉だけを返す（同時に同じ言葉が入っていて飛んだ分は数えない）。
+		const inserted = await db
+			.insert(insightWord)
+			.values(added.map((word) => ({ userId: viewerId, word })))
+			.onConflictDoNothing()
+			.returning({ word: insightWord.word });
+		const got = new Set(inserted.map((r) => r.word));
+		return { added: added.filter((w) => got.has(w)), limited: fresh.length > added.length };
+	}
+	return { added: [], limited: fresh.length > 0 };
+}
+
 /** 登録を消す。すでに馬へ付けた記録には触らない。 */
 export async function removeInsightWord(db: Db, viewerId: string, word: string): Promise<void> {
 	await db
 		.delete(insightWord)
 		.where(and(eq(insightWord.userId, viewerId), eq(insightWord.word, word)));
-}
-
-// ---------------------------------------------------------------------------
-// 馬に付ける
-// ---------------------------------------------------------------------------
-
-export type InsightTarget = { entryId: string; raceId: string; horseId: string; date: string };
-
-/** この出走馬がこのレースのものか、レース日と馬も 1 クエリで。別のレースの出走馬は null（他のレースへ書き込ませない）。 */
-export async function getInsightTarget(
-	db: Db,
-	raceId: string,
-	entryId: string
-): Promise<InsightTarget | null> {
-	const rows = await db
-		.select({
-			entryId: raceEntry.id,
-			raceId: raceEntry.raceId,
-			horseId: raceEntry.horseId,
-			date: race.date
-		})
-		.from(raceEntry)
-		.innerJoin(race, eq(raceEntry.raceId, race.id))
-		.where(and(eq(raceEntry.id, entryId), eq(raceEntry.raceId, raceId)))
-		.limit(1);
-	return rows[0] ?? null;
-}
-
-const nowSql = sql`(unixepoch())`;
-
-function ownRow(viewerId: string, entryId: string) {
-	return and(eq(raceEntryInsight.userId, viewerId), eq(raceEntryInsight.raceEntryId, entryId));
-}
-
-/** 言葉もメモも空になった行を消す。 */
-function deleteEmpty(db: Db, viewerId: string, entryId: string) {
-	return db
-		.delete(raceEntryInsight)
-		.where(
-			and(
-				ownRow(viewerId, entryId),
-				sql`${raceEntryInsight.words} = '[]'`,
-				eq(raceEntryInsight.memo, '')
-			)
-		);
-}
-
-function currentValue(db: Db, viewerId: string, entryId: string) {
-	return db
-		.select({ words: raceEntryInsight.words, memo: raceEntryInsight.memo })
-		.from(raceEntryInsight)
-		.where(ownRow(viewerId, entryId));
-}
-
-type Batch = Parameters<Db['batch']>[0];
-
-async function runAndRead(
-	db: Db,
-	viewerId: string,
-	entryId: string,
-	statements: unknown[]
-): Promise<InsightValue> {
-	const read = currentValue(db, viewerId, entryId);
-	const results = (await db.batch([
-		...statements,
-		read
-	] as unknown as Batch)) as unknown as unknown[];
-	const rows = results[results.length - 1] as InsightValue[];
-	return rows[0] ?? { words: [], memo: '' };
-}
-
-/**
- * 言葉を付ける（`on`）・外す（`!on`）。**読んでから書く形にしない**：1 回の `batch` で
- * 「無ければ足す」「あれば除く」を SQL の中で済ませ、連続して押した 2 つが互いを上書きしないようにする。
- * 付けようとした言葉がすでにあるか、1 頭の上限（`INSIGHT_ATTACHED_LIMIT`）なら何もしない。
- * 返すのは書いたあとの値（行が無ければ空）。
- */
-export async function setInsightWord(
-	db: Db,
-	viewerId: string,
-	target: InsightTarget,
-	word: string,
-	on: boolean
-): Promise<InsightValue> {
-	if (on) {
-		const add = db
-			.insert(raceEntryInsight)
-			.values({
-				userId: viewerId,
-				raceEntryId: target.entryId,
-				raceId: target.raceId,
-				horseId: target.horseId,
-				words: [word],
-				memo: '',
-				occurredAt: target.date
-			})
-			.onConflictDoUpdate({
-				target: [raceEntryInsight.userId, raceEntryInsight.raceEntryId],
-				set: {
-					words: sql`CASE WHEN EXISTS (SELECT 1 FROM json_each(${raceEntryInsight.words}) WHERE value = ${word}) OR json_array_length(${raceEntryInsight.words}) >= ${INSIGHT_ATTACHED_LIMIT} THEN ${raceEntryInsight.words} ELSE json_insert(${raceEntryInsight.words}, '$[#]', ${word}) END`,
-					updatedAt: nowSql
-				}
-			});
-		return runAndRead(db, viewerId, target.entryId, [add]);
-	}
-	const remove = db
-		.update(raceEntryInsight)
-		.set({
-			words: sql`(SELECT json_group_array(value) FROM json_each(${raceEntryInsight.words}) WHERE value <> ${word})`,
-			updatedAt: nowSql
-		})
-		.where(ownRow(viewerId, target.entryId));
-	return runAndRead(db, viewerId, target.entryId, [
-		remove,
-		deleteEmpty(db, viewerId, target.entryId)
-	]);
-}
-
-/** 自由入力の気づきを置き換える。`words` には触らない。空で言葉も無ければ行ごと消す。 */
-export async function setInsightMemo(
-	db: Db,
-	viewerId: string,
-	target: InsightTarget,
-	memo: string
-): Promise<InsightValue> {
-	const upsert = db
-		.insert(raceEntryInsight)
-		.values({
-			userId: viewerId,
-			raceEntryId: target.entryId,
-			raceId: target.raceId,
-			horseId: target.horseId,
-			words: [],
-			memo,
-			occurredAt: target.date
-		})
-		.onConflictDoUpdate({
-			target: [raceEntryInsight.userId, raceEntryInsight.raceEntryId],
-			set: { memo, updatedAt: nowSql }
-		});
-	return runAndRead(db, viewerId, target.entryId, [
-		upsert,
-		deleteEmpty(db, viewerId, target.entryId)
-	]);
 }
 
 // ---------------------------------------------------------------------------

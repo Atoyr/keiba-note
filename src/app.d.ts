@@ -74,7 +74,10 @@ declare global {
 
 		// interface Error {}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			/** ふりかえり画面でクイック入力を開いているか。履歴に積み、ブラウザの戻るで閉じる。 */
+			quickReview?: boolean;
+		}
 	}
 }
 

@@ -1,26 +1,40 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { INSIGHT_ATTACHED_LIMIT, INSIGHT_WORDS_LIMIT } from '$lib/schemas/insight';
+import { INSIGHT_WORDS_LIMIT } from '$lib/schemas/insight';
 import {
 	addInsightWord,
-	getInsightTarget,
+	addInsightWords,
 	listHorseInsights,
 	listInsightWords,
-	removeInsightWord,
-	setInsightMemo,
-	setInsightWord,
-	type InsightTarget
+	removeInsightWord
 } from './insights';
 import { listRaceMemoContext, mergeHorseTimeline, saveRaceReview } from './notes';
 import { listGradedRacesInWeek, listRaces, listRacesBetween } from './races';
 
 let state: ReturnType<typeof createTestDb>;
-const target = (entryId: string, raceId = 'r1', horseId = 'h1'): InsightTarget => ({
-	entryId,
-	raceId,
-	horseId,
-	date: raceId === 'r1' ? '2026-06-14' : '2026-09-20'
-});
+/** 以前に残した気づきの行を直接入れる（新しくは作らないので、書く関数は無い）。 */
+function seedInsight(
+	userId: string,
+	entryId: string,
+	raceId: string,
+	horseId: string,
+	words: string[],
+	memo = ''
+) {
+	state.sqlite
+		.prepare(
+			'INSERT INTO race_entry_insight (user_id, race_entry_id, race_id, horse_id, words, memo, occurred_at) VALUES (?,?,?,?,?,?,?)'
+		)
+		.run(
+			userId,
+			entryId,
+			raceId,
+			horseId,
+			JSON.stringify(words),
+			memo,
+			raceId === 'r1' ? '2026-06-14' : '2026-09-20'
+		);
+}
 
 beforeEach(() => {
 	state = createTestDb();
@@ -66,10 +80,51 @@ describe('言葉の登録', () => {
 		expect(await addInsightWord(state.db, 'b', '前が壁')).toEqual({ ok: true });
 	});
 
+	it('まとめて登録は、渡した順に、未登録のものだけ足す（全部足せる・一部登録済み）', async () => {
+		expect(await addInsightWords(state.db, 'a', ['前が壁', '内詰まり'])).toEqual({
+			added: ['前が壁', '内詰まり'],
+			limited: false
+		});
+		await addInsightWord(state.db, 'b', '他人の言葉');
+		expect(
+			await addInsightWords(state.db, 'a', ['内詰まり', '出遅れ', '前が壁', '前残り'])
+		).toEqual({
+			added: ['出遅れ', '前残り'],
+			limited: false
+		});
+		expect(await listInsightWords(state.db, 'a')).toEqual([
+			'前が壁',
+			'内詰まり',
+			'出遅れ',
+			'前残り'
+		]);
+		expect(await listInsightWords(state.db, 'b')).toEqual(['他人の言葉']);
+	});
+
+	it('まとめて登録の added は、登録済みの言葉を含めない', async () => {
+		// 読んだあとに別の操作が同じ言葉を足す競合（returning で除く分）は、ここでは再現できない。
+		await addInsightWord(state.db, 'a', '前が壁');
+		const r = await addInsightWords(state.db, 'a', ['前が壁', '出遅れ']);
+		expect(r).toEqual({ added: ['出遅れ'], limited: false });
+		expect(await listInsightWords(state.db, 'a')).toEqual(['前が壁', '出遅れ']);
+	});
+
+	it('まとめて登録は、上限までの残りだけ足し、入りきらなければ limited。上限ちょうどなら何も足さない', async () => {
+		for (let i = 1; i <= INSIGHT_WORDS_LIMIT - 2; i++)
+			await addInsightWord(state.db, 'a', `語${i}`);
+		expect(await addInsightWords(state.db, 'a', ['A', 'B', 'C'])).toEqual({
+			added: ['A', 'B'],
+			limited: true
+		});
+		expect((await listInsightWords(state.db, 'a')).length).toBe(INSIGHT_WORDS_LIMIT);
+		expect(await addInsightWords(state.db, 'a', ['C', 'D'])).toEqual({ added: [], limited: true });
+		expect((await listInsightWords(state.db, 'a')).length).toBe(INSIGHT_WORDS_LIMIT);
+	});
+
 	it('削除は自分の言葉だけで、付けた記録には触らない', async () => {
 		await addInsightWord(state.db, 'a', '前が壁');
 		await addInsightWord(state.db, 'b', '前が壁');
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
+		seedInsight('a', 'e1', 'r1', 'h1', ['前が壁']);
 
 		await removeInsightWord(state.db, 'a', '前が壁');
 
@@ -81,110 +136,9 @@ describe('言葉の登録', () => {
 	});
 });
 
-describe('getInsightTarget', () => {
-	it('このレースの出走馬ならレース日と馬を返し、別のレースの出走馬は null', async () => {
-		expect(await getInsightTarget(state.db, 'r1', 'e1')).toEqual({
-			entryId: 'e1',
-			raceId: 'r1',
-			horseId: 'h1',
-			date: '2026-06-14'
-		});
-		expect(await getInsightTarget(state.db, 'r1', 'e3')).toBeNull();
-		expect(await getInsightTarget(state.db, 'nope', 'e1')).toBeNull();
-	});
-});
-
-describe('言葉を付ける・外す', () => {
-	it('付けた言葉は 2 回押しても重複せず、外すと消える', async () => {
-		expect(await setInsightWord(state.db, 'a', target('e1'), '前が壁', true)).toEqual({
-			words: ['前が壁'],
-			memo: ''
-		});
-		expect((await setInsightWord(state.db, 'a', target('e1'), '前が壁', true)).words).toEqual([
-			'前が壁'
-		]);
-		expect((await setInsightWord(state.db, 'a', target('e1'), '内詰まり', true)).words).toEqual([
-			'前が壁',
-			'内詰まり'
-		]);
-		expect((await setInsightWord(state.db, 'a', target('e1'), '前が壁', false)).words).toEqual([
-			'内詰まり'
-		]);
-	});
-
-	it('言葉もメモも空になった行は消える。メモが残るあいだは消えない', async () => {
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
-		expect(await setInsightWord(state.db, 'a', target('e1'), '前が壁', false)).toEqual({
-			words: [],
-			memo: ''
-		});
-		expect(rows()).toEqual([]);
-
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
-		await setInsightMemo(state.db, 'a', target('e1'), '2400 なら。');
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', false);
-		expect(rows()).toEqual([expect.objectContaining({ words: '[]', memo: '2400 なら。' })]);
-	});
-
-	it('付いていない言葉を外しても、行が無ければ何も作らない', async () => {
-		expect(await setInsightWord(state.db, 'a', target('e1'), '前が壁', false)).toEqual({
-			words: [],
-			memo: ''
-		});
-		expect(rows()).toEqual([]);
-	});
-
-	it('1 頭に付く数には上限があり、41 個目は増えない', async () => {
-		for (let i = 0; i < INSIGHT_ATTACHED_LIMIT; i++) {
-			await setInsightWord(state.db, 'a', target('e1'), `語${i}`, true);
-		}
-		const r = await setInsightWord(state.db, 'a', target('e1'), '41個目', true);
-		expect(r.words).toHaveLength(INSIGHT_ATTACHED_LIMIT);
-		expect(r.words).not.toContain('41個目');
-	});
-
-	it('他人の行は読めず、書いても自分の行にしか入らない', async () => {
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
-		const mine = await setInsightWord(state.db, 'b', target('e1'), '内詰まり', true);
-		expect(mine.words).toEqual(['内詰まり']);
-		// b が外しても a の行は変わらない。
-		await setInsightWord(state.db, 'b', target('e1'), '前が壁', false);
-		expect(rows()).toEqual([
-			expect.objectContaining({ user_id: 'a', words: '["前が壁"]' }),
-			expect.objectContaining({ user_id: 'b', words: '["内詰まり"]' })
-		]);
-	});
-});
-
-describe('自由入力の気づき', () => {
-	it('メモを保存しても言葉は消えず、言葉を付けてもメモは消えない', async () => {
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
-		expect(await setInsightMemo(state.db, 'a', target('e1'), '2400 なら。')).toEqual({
-			words: ['前が壁'],
-			memo: '2400 なら。'
-		});
-		expect((await setInsightWord(state.db, 'a', target('e1'), '内詰まり', true)).memo).toBe(
-			'2400 なら。'
-		);
-	});
-
-	it('空にすると、言葉が無ければ行ごと消え、言葉があれば残る', async () => {
-		await setInsightMemo(state.db, 'a', target('e1'), '前が壁');
-		await setInsightMemo(state.db, 'a', target('e1'), '');
-		expect(rows()).toEqual([]);
-
-		await setInsightWord(state.db, 'a', target('e2', 'r1', 'h2'), '前残り', true);
-		await setInsightMemo(state.db, 'a', target('e2', 'r1', 'h2'), 'x');
-		await setInsightMemo(state.db, 'a', target('e2', 'r1', 'h2'), '');
-		expect(rows()).toEqual([
-			expect.objectContaining({ race_entry_id: 'e2', words: '["前残り"]', memo: '' })
-		]);
-	});
-});
-
 describe('ふりかえりの保存との関係', () => {
 	it('ふりかえりを保存しても空にしても、気づきには触らない', async () => {
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
+		seedInsight('a', 'e1', 'r1', 'h1', ['前が壁']);
 		await saveRaceReview(
 			state.db,
 			{
@@ -213,9 +167,9 @@ describe('画面で読む', () => {
 	it('listRaceMemoContext は言葉・このレースの気づき・ほかのレースの気づきを分け、他人のものを除く', async () => {
 		await addInsightWord(state.db, 'a', '前が壁');
 		await addInsightWord(state.db, 'b', '他人の言葉');
-		await setInsightWord(state.db, 'a', target('e3', 'r2', 'h1'), '前が壁', true);
-		await setInsightMemo(state.db, 'a', target('e1'), 'このレースのメモ');
-		await setInsightWord(state.db, 'b', target('e1'), '他人の言葉', true);
+		seedInsight('a', 'e3', 'r2', 'h1', ['前が壁']);
+		seedInsight('a', 'e1', 'r1', 'h1', [], 'このレースのメモ');
+		seedInsight('b', 'e1', 'r1', 'h1', ['他人の言葉']);
 
 		// ふりかえり画面（r1）から見る: e1 はこのレース、e3 は h1 のほかのレース。
 		const ctx = await listRaceMemoContext(state.db, 'r1', ['h1', 'h2'], 'a');
@@ -230,10 +184,10 @@ describe('画面で読む', () => {
 	});
 
 	it('listHorseInsights はその馬の自分の気づきだけを新しい順に返す', async () => {
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
-		await setInsightWord(state.db, 'a', target('e3', 'r2', 'h1'), '前残り', true);
-		await setInsightWord(state.db, 'b', target('e1'), '他人の言葉', true);
-		await setInsightWord(state.db, 'a', target('e2', 'r1', 'h2'), '別の馬', true);
+		seedInsight('a', 'e1', 'r1', 'h1', ['前が壁']);
+		seedInsight('a', 'e3', 'r2', 'h1', ['前残り']);
+		seedInsight('b', 'e1', 'r1', 'h1', ['他人の言葉']);
+		seedInsight('a', 'e2', 'r1', 'h2', ['別の馬']);
 
 		const list = await listHorseInsights(state.db, 'h1', 'a');
 		expect(
@@ -247,9 +201,9 @@ describe('画面で読む', () => {
 
 describe('一覧の insightCount', () => {
 	it('自分が気づきを残した馬の数だけを数え、他人の分は数えない', async () => {
-		await setInsightWord(state.db, 'a', target('e1'), '前が壁', true);
-		await setInsightWord(state.db, 'a', target('e2', 'r1', 'h2'), '前残り', true);
-		await setInsightWord(state.db, 'b', target('e3', 'r2', 'h1'), '他人', true);
+		seedInsight('a', 'e1', 'r1', 'h1', ['前が壁']);
+		seedInsight('a', 'e2', 'r1', 'h2', ['前残り']);
+		seedInsight('b', 'e3', 'r2', 'h1', ['他人']);
 
 		const byId = (items: { id: string; insightCount: number }[]) =>
 			Object.fromEntries(items.map((r) => [r.id, r.insightCount]));

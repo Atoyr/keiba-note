@@ -4,7 +4,6 @@ import {
 	DASHBOARD_RACES,
 	EMPTY_RACE_ID,
 	HORSE_ID,
-	INSIGHT,
 	JOCKEYS,
 	PREVIEW_RACE_ID
 } from './seed';
@@ -62,8 +61,6 @@ const PROTECTED: { path: string; secret: string | null }[] = [
 	{ path: '/settings/shares', secret: null },
 	{ path: '/settings/profile', secret: null },
 	{ path: '/settings/insight-words', secret: null },
-	// 気づきの保存の口。JS が無いときの結果の画面も、ログインが要る。
-	{ path: `/races/${INSIGHT.write.raceId}/insights`, secret: null },
 	// MCP の連携の一覧と同意画面。同意はログインした本人だけができる（PUBLIC_PATHS に入れない）。
 	{ path: '/settings/connections', secret: 'E2E クライアント' },
 	{ path: '/oauth/authorize', secret: null },
