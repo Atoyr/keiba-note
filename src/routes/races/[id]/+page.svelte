@@ -94,6 +94,9 @@
 			: [])
 	]);
 
+	// クイック入力の行。予想で付けた印を足す（読むだけ）。
+	const quickRows = $derived(data.rows.map((r) => ({ ...r, mark: r.myPreview?.mark ?? null })));
+
 	// 予想で付けた印と着順の突き合わせ。印の順（◎ → ×）に並べ直す。
 	const answers = $derived(
 		answerCheck(
@@ -732,7 +735,7 @@
 				<div bind:this={quickWrap} class="mt-6">
 					<QuickReview
 						bind:this={quickPanel}
-						rows={data.rows}
+						rows={quickRows}
 						bodies={quickBodies}
 						registered={data.insightWords}
 						onchange={setBody}

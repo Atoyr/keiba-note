@@ -966,6 +966,32 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
+		// 印見本のレースのクイック入力。着順の並びで、各行の右端に予想で付けた印が並ぶ。
+		name: 'race-review-quick-marks',
+		path: `/races/${MARKS_RACE_ID}?quick`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByRole('group', { name: '並び順' }).waitFor();
+		},
+		stayAtTop: true
+	},
+	{
+		// 同じレースで「馬番」を押したところ。①〜⑦の順に並ぶ。
+		name: 'race-review-quick-number-order',
+		path: `/races/${MARKS_RACE_ID}?quick`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.getByRole('group', { name: '並び順' })
+				.getByRole('button', { name: '馬番' })
+				.click();
+			await page.locator('main li[id^="quick-"]').nth(6).waitFor();
+		},
+		stayAtTop: true
+	},
+	{
 		// 言葉を1つも登録していないユーザーのクイック入力。案内・おすすめをまとめて登録するボタン・言葉を登録するリンクが出る。
 		name: 'race-review-quick-empty-words',
 		path: `/races/${INSIGHT.write.raceId}?quick`,
