@@ -13,7 +13,9 @@ races:
     ref: nk-202605050111
     startTime: "15:35"
     entries:
-      - name: アテナブレイブ
+      - horseNumber: 1
+        bracket: 1
+        name: アテナブレイブ
         jockey: 田辺裕信
         sex: 牝
         age: 2
@@ -21,63 +23,9 @@ races:
         trainer: 手塚貴徳
         trainingCenter: 美浦
         weight: 55
-      - name: インパルスドライブ
-        jockey: C.デムーロ
-        sex: 牡
-        age: 2
-        ref: nk-2024110012
-        trainer: 高橋亮
-        trainingCenter: 栗東
-        weight: 56
-      - name: グルーヴェンス
-        jockey: 横山武史
-        sex: 牡
-        age: 2
-        ref: nk-2024101344
-        trainer: 高柳瑞樹
-        trainingCenter: 美浦
-        weight: 56
-      - name: ジオパークカツキ
-        jockey: プーシャン
-        sex: 牡
-        age: 2
-        ref: nk-2024102740
-        trainer: 伊藤圭三
-        trainingCenter: 美浦
-        weight: 56
-      - name: シルバーノリダー
-        jockey: 小林美駒
-        sex: 牡
-        age: 2
-        ref: nk-2024100718
-        trainer: 伊藤大士
-        trainingCenter: 美浦
-        weight: 56
-      - name: ニシノトラノスケ
-        jockey: 大野拓弥
-        sex: 牡
-        age: 2
-        ref: nk-2024102993
-        trainer: 千葉直人
-        trainingCenter: 美浦
-        weight: 56
-      - name: ノーセット
-        jockey: 津村明秀
-        sex: 牡
-        age: 2
-        ref: nk-2024100651
-        trainer: 高柳瑞樹
-        trainingCenter: 美浦
-        weight: 56
-      - name: ブルージェイ
-        jockey: ルメール
-        sex: 牡
-        age: 2
-        ref: nk-2024107032
-        trainer: 加藤征弘
-        trainingCenter: 美浦
-        weight: 56
-      - name: フレイコン
+      - horseNumber: 2
+        bracket: 2
+        name: フレイコン
         jockey: マーカンド
         sex: 牡
         age: 2
@@ -85,7 +33,79 @@ races:
         trainer: 伊藤圭三
         trainingCenter: 美浦
         weight: 56
-      - name: ロンドンガーズ
+      - horseNumber: 3
+        bracket: 3
+        name: ニシノトラノスケ
+        jockey: 大野拓弥
+        sex: 牡
+        age: 2
+        ref: nk-2024102993
+        trainer: 千葉直人
+        trainingCenter: 美浦
+        weight: 56
+      - horseNumber: 4
+        bracket: 4
+        name: ノーセット
+        jockey: 津村明秀
+        sex: 牡
+        age: 2
+        ref: nk-2024100651
+        trainer: 高柳瑞樹
+        trainingCenter: 美浦
+        weight: 56
+      - horseNumber: 5
+        bracket: 5
+        name: グルーヴェンス
+        jockey: 横山武史
+        sex: 牡
+        age: 2
+        ref: nk-2024101344
+        trainer: 高柳瑞樹
+        trainingCenter: 美浦
+        weight: 56
+      - horseNumber: 6
+        bracket: 6
+        name: インパルスドライブ
+        jockey: C.デムーロ
+        sex: 牡
+        age: 2
+        ref: nk-2024110012
+        trainer: 高橋亮
+        trainingCenter: 栗東
+        weight: 56
+      - horseNumber: 7
+        bracket: 7
+        name: シルバーノリダー
+        jockey: 小林美駒
+        sex: 牡
+        age: 2
+        ref: nk-2024100718
+        trainer: 伊藤大士
+        trainingCenter: 美浦
+        weight: 56
+      - horseNumber: 8
+        bracket: 7
+        name: ジオパークカツキ
+        jockey: プーシャン
+        sex: 牡
+        age: 2
+        ref: nk-2024102740
+        trainer: 伊藤圭三
+        trainingCenter: 美浦
+        weight: 56
+      - horseNumber: 9
+        bracket: 8
+        name: ブルージェイ
+        jockey: ルメール
+        sex: 牡
+        age: 2
+        ref: nk-2024107032
+        trainer: 加藤征弘
+        trainingCenter: 美浦
+        weight: 56
+      - horseNumber: 10
+        bracket: 8
+        name: ロンドンガーズ
         jockey: 三浦皇成
         sex: 牡
         age: 2
