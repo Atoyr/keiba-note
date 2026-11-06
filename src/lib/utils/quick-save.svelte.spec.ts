@@ -37,7 +37,7 @@ describe('QuickSaver', () => {
 		expect(saver.busy).toBe(false);
 	});
 
-	it('失敗は error になり、retry で最後の本文を送り直して saved になる', async () => {
+	it('失敗は error になり、同じ馬へ save し直して saved になる', async () => {
 		const { saver, sent, saved } = setup();
 		saver.save('a', 'x');
 		sent[0].resolve(false);
@@ -45,7 +45,7 @@ describe('QuickSaver', () => {
 		expect(saver.status.a).toBe('error');
 		expect(saver.failed).toBe(1);
 		expect(saved).toEqual([]);
-		saver.retry();
+		saver.save('a', 'x');
 		expect(saver.status.a).toBe('saving');
 		expect(sent[1]).toMatchObject({ entryId: 'a', body: 'x' });
 		sent[1].resolve(true);

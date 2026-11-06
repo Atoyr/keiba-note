@@ -17,6 +17,9 @@
 	 * **保存の単位は変えない。** 1頭ごとにサーバーへ送る案もあるが、競馬場で電波が
 	 * 悪いと18回のうち何回かが黙って失敗し、どれが落ちたか分からなくなる。
 	 * 一括なら「1回成功したか」だけ見れば済む。オフラインで守れるのは端末内の下書きだけ。
+	 * 例外はクイック入力の自動保存だけ（pages.md 3-1）。馬ごとの状態と失敗した頭数を画面に出して再試行できるので、
+	 * 黙って失敗しない。保存できた欄は `markSaved` で保存済みにし、失敗した欄・送らなかった欄は未保存のまま数え続ける。
+	 * 送信中（`busy`）に離れようとしたときも、未保存と同じく確認を出す。
 	 *
 	 * **復元は明示操作にする。** 自動で流し込むと、このフォームの
 	 * 「空欄＝そのメモを消す」仕様と噛み合って、既存メモが黙って消える事故になる。
@@ -31,7 +34,8 @@
 	let {
 		form,
 		storageKey,
-		dirtyCount = $bindable(0)
+		dirtyCount = $bindable(0),
+		busy = false
 	}: {
 		/** 監視する form 要素。親から bind:this で渡す。 */
 		form: HTMLFormElement | null;
@@ -39,6 +43,8 @@
 		storageKey: string;
 		/** 未保存の変更の件数（メモの数）。親は `bind:dirtyCount` で受ける。 */
 		dirtyCount?: number;
+		/** 別の経路で保存の送信中か（クイック入力の自動保存）。送信中に離れると保存されないことがあるので、確認を出す。 */
+		busy?: boolean;
 	} = $props();
 
 	type Draft = { savedAt: number; fields: FieldValues };
@@ -269,7 +275,7 @@
 
 	/** 未保存のまま閉じようとしたら止める。ブラウザ既定の確認が出る。 */
 	$effect(() => {
-		if (dirtyCount === 0) return;
+		if (dirtyCount === 0 && !busy) return;
 		const onBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
 		addEventListener('beforeunload', onBeforeUnload);
 		return () => removeEventListener('beforeunload', onBeforeUnload);
@@ -287,12 +293,16 @@
 	 * - 行くと決めたら、下書きを待たずにすぐ書く（入力から 400ms 以内だとまだ書いていない）
 	 */
 	beforeNavigate((nav) => {
-		if (dirtyCount === 0 || nav.type === 'leave' || !form) return;
+		if ((dirtyCount === 0 && !busy) || nav.type === 'leave' || !form) return;
 		const from = nav.from?.url;
 		const to = nav.to?.url;
 		if (from && to && from.pathname === to.pathname && from.search === to.search) return;
 
-		if (!confirm('保存していない変更があります。保存せずにこのページを離れますか？')) {
+		const message =
+			dirtyCount > 0
+				? '保存していない変更があります。保存せずにこのページを離れますか？'
+				: '保存中の変更があります。このページを離れると保存されないことがあります。離れますか？';
+		if (!confirm(message)) {
 			nav.cancel();
 			return;
 		}

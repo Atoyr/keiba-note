@@ -1045,7 +1045,7 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true
 	},
 	{
-		// 保存に失敗したとき。開いた行に「保存できませんでした。」と「もう一度保存」、下の帯に「1頭を保存できませんでした」と「再試行」。✓ は残る。
+		// 保存に失敗したとき。開いた行に「保存できませんでした。」と「もう一度保存」、下の帯に「1頭を保存できませんでした」と「もう一度保存」。✓ は残る。
 		name: 'race-review-quick-failed',
 		path: `/races/${INSIGHT.write.raceId}?quick`,
 		auth: true,
@@ -1058,7 +1058,7 @@ export const SCREENS: Screen[] = [
 			await row.locator('button[aria-expanded]').click();
 			await row.getByRole('button', { name: /前が壁/ }).click();
 			await expect(row.getByRole('alert')).toHaveText('保存できませんでした。');
-			await page.getByRole('button', { name: '再試行' }).waitFor();
+			await page.getByRole('button', { name: 'もう一度保存' }).nth(1).waitFor();
 		}
 	},
 	{

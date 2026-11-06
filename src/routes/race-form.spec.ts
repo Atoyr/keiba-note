@@ -123,3 +123,26 @@ describe('予想・ふりかえりの1リクエストのD1往復数', () => {
 		});
 	}
 });
+
+describe('クイック入力の自動保存（?/quick）', () => {
+	const post = async (entryId: string, body: string) => {
+		const form = new FormData();
+		form.set('entryId', entryId);
+		form.set('body', body);
+		return reviewActions.quick!(
+			(await event(form)) as Parameters<NonNullable<typeof reviewActions.quick>>[0]
+		);
+	};
+	const notes = () =>
+		sqlite.prepare("SELECT race_entry_id AS e, body FROM note WHERE kind = 'entry'").all();
+
+	it('このレースの出走馬の本文だけを保存する', async () => {
+		expect(await post('entry', '前が壁')).toEqual({ quickSaved: 'entry' });
+		expect(notes()).toEqual([{ e: 'entry', body: '前が壁' }]);
+	});
+
+	it('別のレースの出走馬の entryId は fail(400) で、何も書かない', async () => {
+		expect(await post('past-entry', '書けてはいけない')).toMatchObject({ status: 400 });
+		expect(notes()).toEqual([]);
+	});
+});

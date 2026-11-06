@@ -37,6 +37,9 @@ const back = (page: Page) => page.getByRole('button', { name: 'ふりかえり�
 const bandBack = (page: Page) => page.getByRole('button', { name: 'ふりかえりに戻る' }).last();
 /** 下に貼り付く帯の状態の文（保存中… / 保存しました / N頭を保存できませんでした）。行の状態の行より後ろにある。 */
 const band = (page: Page) => page.locator('.quick-review').getByRole('status').last();
+/** 下に貼り付く帯の「もう一度保存」（行の同名のボタンより後ろにある）。 */
+const bandRetry = (page: Page) =>
+	page.locator('.quick-review').getByRole('button', { name: 'もう一度保存' }).last();
 const saveBar = (page: Page) => page.getByRole('button', { name: 'まとめて保存' });
 const unsavedCount = (page: Page) => page.getByText(/未保存の変更が/);
 const reviewTab = (page: Page) => page.getByRole('tab', { name: 'ふりかえり' });
@@ -241,7 +244,7 @@ test('同じ馬の言葉を素早く押す・外す・押すと最後の値が�
 	await expect(body(page, aka)).toHaveValue('');
 });
 
-test('保存に失敗しても入力は残り、クイック入力の中で再試行できる。戻ると未保存として数える', async ({
+test('保存に失敗しても入力は残り、クイック入力の中でもう一度保存できる。戻ると未保存として数える', async ({
 	page
 }) => {
 	await login(page);
@@ -262,9 +265,9 @@ test('保存に失敗しても入力は残り、クイック入力の中で再�
 	await expect(toggle(page, ao)).toContainText('未保存');
 	await toggle(page, ao).click();
 
-	await page.getByRole('button', { name: '再試行' }).click();
+	await bandRetry(page).click();
 	await expect(band(page)).toHaveText('保存しました');
-	await expect(page.getByRole('button', { name: '再試行' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'もう一度保存' })).toHaveCount(0);
 	await expect(row(page, ao).getByRole('status')).toHaveText('保存しました');
 
 	await bandBack(page).click();
@@ -287,6 +290,71 @@ test('保存に失敗しても入力は残り、クイック入力の中で再�
 	await clearBodies(page, ao);
 	await page.reload();
 	await expect(body(page, ao)).toHaveValue('');
+});
+
+test('送信中に離れようとすると、未保存が無くても確認が出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	// 送信を遅らせて、押す → 外す（欄は保存済みの値に戻る）あいだに送信中のままにする。
+	await page.route(
+		(url) => url.pathname === writePath,
+		async (route) => {
+			if (route.request().method() === 'POST') await new Promise((r) => setTimeout(r, 1500));
+			await route.fallback();
+		}
+	);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+	await word(page, ao, '前が壁').click();
+	await expect(body(page, ao)).toHaveValue('');
+
+	const messages: string[] = [];
+	page.on('dialog', (d) => {
+		messages.push(d.message());
+		void d.dismiss();
+	});
+	await page.getByRole('link', { name: '言葉を登録・編集する' }).click();
+	await expect.poll(() => messages.length).toBe(1);
+	expect(messages[0]).toContain('保存中の変更があります');
+	await expect(page).toHaveURL(writePath);
+
+	// 送信が終わったあとの後片付け（最後の入力は空なので、行は残らない）。
+	await expect(band(page)).toHaveText('保存しました');
+	await clearBodies(page, ao);
+});
+
+test('ログイン切れで保存できないときは、その文とログインし直すリンクを出す。入力は残る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	// 実際の hooks と同じく、ログインしていない POST は /login?redirect=… へ 302 される。
+	await page.route(
+		(url) => url.pathname === writePath,
+		(route) =>
+			route.request().method() === 'POST'
+				? route.fulfill({
+						status: 302,
+						headers: { location: `/login?redirect=${encodeURIComponent(writePath)}` }
+					})
+				: route.fallback(),
+		{ times: 1 }
+	);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+
+	await expect(band(page)).toHaveText('ログインが切れたため保存できませんでした。');
+	const link = page.locator('.quick-review').getByRole('link', { name: 'ログインし直す' });
+	await expect(link).toHaveAttribute('href', `/login?redirect=${encodeURIComponent(writePath)}`);
+	await expect(word(page, ao, '前が壁')).toHaveAttribute('aria-pressed', 'true');
+	await expect(body(page, ao)).toHaveValue('前が壁');
+
+	// もう一度保存が通ると、通常の表示に戻る（後片付けは直接送る）。
+	await bandRetry(page).click();
+	await expect(band(page)).toHaveText('保存しました');
+	await clearBodies(page, ao);
 });
 
 test('書きかけのレースのメモ・ほかの馬の本文は保存されず、同じ馬の書きかけは言葉と一緒に保存される', async ({

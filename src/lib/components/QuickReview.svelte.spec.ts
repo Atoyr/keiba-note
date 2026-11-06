@@ -78,15 +78,15 @@ it('帯の文は 失敗 > 保存中 > 保存しました > 案内 の順で、�
 		.toHaveTextContent('1頭を保存できませんでした');
 });
 
-it('失敗があれば「再試行」を出し、押すと onretry（馬は指定しない）を呼ぶ。失敗が無ければ出さない', async () => {
+it('失敗があれば「もう一度保存」を出し、押すと onretry（馬は指定しない）を呼ぶ。失敗が無ければ出さない', async () => {
 	const onretry = vi.fn();
 	const { screen } = setup(['前が壁'], { status: { e2: 'error' }, failed: 1, onretry });
-	await screen.getByRole('button', { name: '再試行' }).click();
+	await screen.getByRole('button', { name: 'もう一度保存' }).click();
 	expect(onretry).toHaveBeenCalledWith();
 	screen.unmount();
 
 	const none = setup();
-	expect(none.screen.getByRole('button', { name: '再試行' }).elements()).toHaveLength(0);
+	expect(none.screen.getByRole('button', { name: 'もう一度保存' }).elements()).toHaveLength(0);
 });
 
 it('言葉が0個なら、案内とリンクを1回だけ、おすすめをまとめて登録するボタン（別のフォームに属す）と例を出す', async () => {
@@ -190,4 +190,30 @@ it('印のある一覧では行の名前に「印◎」が入り、印がだれ�
 
 	const none = setupMixed(mixed.map((r) => ({ ...r, mark: null })));
 	expect(none.getByText('印', { exact: true }).elements()).toHaveLength(0);
+});
+
+it('言葉が0個のときは帯の状態の文を出さず、「ふりかえりに戻る」を outline にする', async () => {
+	const { screen, onclose } = setup([]);
+	expect(screen.getByRole('status').elements()).toHaveLength(0);
+	const back = screen.getByRole('button', { name: 'ふりかえりに戻る' }).last();
+	// 塗り（bg-primary）にしない。
+	expect(back.element().className).not.toContain('bg-primary');
+	await back.click();
+	expect(onclose).toHaveBeenCalledOnce();
+});
+
+it('ログイン切れのときは帯の文を差し替え、「もう一度保存」の代わりに「ログインし直す」を出す', async () => {
+	const { screen } = setup(['前が壁'], {
+		status: { e1: 'error' },
+		failed: 1,
+		authExpired: true,
+		loginHref: '/login?redirect=%2Fraces%2Fx'
+	});
+	await expect
+		.element(screen.getByRole('status'))
+		.toHaveTextContent('ログインが切れたため保存できませんでした。');
+	await expect
+		.element(screen.getByRole('link', { name: 'ログインし直す' }))
+		.toHaveAttribute('href', '/login?redirect=%2Fraces%2Fx');
+	expect(screen.getByRole('button', { name: 'もう一度保存' }).elements()).toHaveLength(0);
 });

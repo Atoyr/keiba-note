@@ -18,7 +18,6 @@ export class QuickSaver {
 	#onSaved: (entryId: string, body: string) => void;
 	#inflight = new SvelteSet<string>();
 	#pending = new SvelteMap<string, string>();
-	#last = new SvelteMap<string, string>();
 	#generation = 0;
 
 	/** 出走馬の id → 状態。 */
@@ -39,7 +38,6 @@ export class QuickSaver {
 
 	/** その馬の本文を保存する。送信中なら最新の本文だけを控える。 */
 	save(entryId: string, body: string) {
-		this.#last.set(entryId, body);
 		this.status[entryId] = 'saving';
 		if (this.#inflight.has(entryId)) {
 			this.#pending.set(entryId, body);
@@ -48,24 +46,11 @@ export class QuickSaver {
 		void this.#run(entryId, body);
 	}
 
-	/** 失敗した馬（省略なら全頭）を、持っている最後の本文で送り直す。 */
-	retry(entryId?: string) {
-		const ids = entryId
-			? [entryId]
-			: Object.keys(this.status).filter((id) => this.status[id] === 'error');
-		for (const id of ids) {
-			if (this.status[id] !== 'error') continue;
-			const body = this.#last.get(id);
-			if (body !== undefined) this.save(id, body);
-		}
-	}
-
 	/** 状態の表示を空に戻す（別のレースへ移ったとき・一括保存が通ったとき）。 */
 	reset() {
 		this.#generation++;
 		this.status = {};
 		this.#pending.clear();
-		this.#last.clear();
 	}
 
 	async #run(entryId: string, body: string): Promise<void> {

@@ -29,13 +29,7 @@ const rows = (author: string) =>
 
 describe('saveEntryReviewBody', () => {
 	it('メモが無い馬には、札が空の行を作る', async () => {
-		const result = await saveEntryReviewBody(
-			state.db,
-			input(' 直線で詰まった '),
-			'a',
-			'2000-01-01'
-		);
-		expect(result).toEqual({ saved: true });
+		await saveEntryReviewBody(state.db, input(' 直線で詰まった '), 'a', '2000-01-01');
 		expect(rows('a')).toEqual([{ body: '直線で詰まった', tags: '[]', occurredAt: '2000-01-01' }]);
 	});
 
@@ -49,8 +43,7 @@ describe('saveEntryReviewBody', () => {
 
 	it('空にすると、札の無い行は消える', async () => {
 		await saveEntryReviewBody(state.db, input('本文'), 'a', '2000-01-01');
-		const result = await saveEntryReviewBody(state.db, input('  '), 'a', '2000-01-01');
-		expect(result).toEqual({ saved: false });
+		await saveEntryReviewBody(state.db, input('  '), 'a', '2000-01-01');
 		expect(rows('a')).toEqual([]);
 	});
 

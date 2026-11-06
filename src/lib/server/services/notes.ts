@@ -265,15 +265,13 @@ export type QuickReviewBodyInput = {
  * - 本文が空でなければ upsert。新しい行の札は `[]`、競合したら `body` と日付だけ更新する（札は残す）
  * - 本文が空なら、同じ行の本文を `''` にして、本文も札も空になった行だけ消す（札が残る行は消さない）。
  *   1つの `batch` に入れるので、途中で札の無い空の行が残ることはない
- *
- * 戻り値の `saved` は、保存のあとに行が残るか。
  */
 export async function saveEntryReviewBody(
 	db: Db,
 	input: QuickReviewBodyInput,
 	authorId: string,
 	occurredAt: string
-): Promise<{ saved: boolean }> {
+): Promise<void> {
 	const body = input.body.trim();
 	const mine = and(
 		eq(note.authorId, authorId),
@@ -300,14 +298,13 @@ export async function saveEntryReviewBody(
 				targetWhere: sql`race_entry_id IS NOT NULL`,
 				set: { body, occurredAt, updatedAt: nowSec() }
 			});
-		return { saved: true };
+		return;
 	}
 
 	await db.batch([
 		db.update(note).set({ body: '', updatedAt: nowSec() }).where(mine),
 		db.delete(note).where(and(mine, eq(note.body, ''), sql`json_array_length(${note.tags}) = 0`))
 	]);
-	return { saved: false };
 }
 
 export type TimelineItem = {

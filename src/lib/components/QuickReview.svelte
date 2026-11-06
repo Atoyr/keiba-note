@@ -39,7 +39,9 @@
 		drafts = {},
 		failed = 0,
 		busy = false,
-		onretry = () => {}
+		onretry = () => {},
+		authExpired = false,
+		loginHref = ''
 	}: {
 		rows: {
 			entryId: string;
@@ -68,8 +70,12 @@
 		failed?: number;
 		/** どれかが送信中か。 */
 		busy?: boolean;
-		/** 「再試行」「もう一度保存」。馬を渡せばその馬だけ、省くと失敗した全頭。 */
+		/** 帯と行の「もう一度保存」。馬を渡せばその馬だけ、省くと失敗した全頭。 */
 		onretry?: (entryId?: string) => void;
+		/** 保存の応答がログイン切れだったか。帯の文を差し替え、「もう一度保存」の代わりに「ログインし直す」を出す。 */
+		authExpired?: boolean;
+		/** 「ログインし直す」の行き先（ログイン後にこのレースへ戻る）。 */
+		loginHref?: string;
 	} = $props();
 
 	let heading = $state<HTMLElement | null>(null);
@@ -79,7 +85,7 @@
 
 	function retryAll() {
 		onretry();
-		// 押した「再試行」は消えるので、フォーカスを帯の「ふりかえりに戻る」へ移す。
+		// 押した「もう一度保存」は消えるので、フォーカスを帯の「ふりかえりに戻る」へ移す。
 		void tick().then(() => bandBack?.focus());
 	}
 	/** 開いたときのフォーカス先。 */
@@ -271,30 +277,49 @@
 
 	<div class="sticky bottom-0 mt-6 border-t bg-background/90 py-3 backdrop-blur">
 		<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-			<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-				<p
-					role="status"
-					class={cn(
-						'flex items-center gap-1 text-sm',
-						failed > 0 ? 'text-destructive' : 'text-muted-foreground'
-					)}
-				>
-					{#if failed > 0}
-						{failed}頭を保存できませんでした
-					{:else if busy}
-						保存中…
-					{:else if anySaved}
-						<CheckIcon class="size-4 shrink-0" aria-hidden="true" />保存しました
-					{:else}
-						言葉を選ぶと自動で保存します
-					{/if}
-				</p>
-				{#if failed > 0}
-					<Button type="button" variant="outline" class="min-h-11" onclick={retryAll}>再試行</Button
+			{#if registered.length > 0}
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+					<p
+						role="status"
+						class={cn(
+							'flex items-center gap-1 text-sm',
+							failed > 0 ? 'text-destructive' : 'text-muted-foreground'
+						)}
 					>
-				{/if}
-			</div>
-			<Button bind:ref={bandBack} type="button" class="min-h-11" onclick={onclose}>
+						{#if failed > 0 && authExpired}
+							ログインが切れたため保存できませんでした。
+						{:else if failed > 0}
+							{failed}頭を保存できませんでした
+						{:else if busy}
+							保存中…
+						{:else if anySaved}
+							<CheckIcon class="size-4 shrink-0" aria-hidden="true" />保存しました
+						{:else}
+							言葉を選ぶと自動で保存します
+						{/if}
+					</p>
+					{#if failed > 0 && authExpired}
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- loginHref は親が resolve() で組んだもの（frontend.md 第3章） -->
+						<a
+							href={loginHref}
+							class="inline-flex min-h-11 items-center text-sm underline underline-offset-2 hover:decoration-2"
+							>ログインし直す</a
+						>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+					{:else if failed > 0}
+						<Button type="button" variant="outline" class="min-h-11" onclick={retryAll}
+							>もう一度保存</Button
+						>
+					{/if}
+				</div>
+			{/if}
+			<Button
+				bind:ref={bandBack}
+				type="button"
+				variant={registered.length > 0 ? 'default' : 'outline'}
+				class="min-h-11"
+				onclick={onclose}
+			>
 				<ChevronLeftIcon class="size-4" aria-hidden="true" />ふりかえりに戻る
 			</Button>
 		</div>

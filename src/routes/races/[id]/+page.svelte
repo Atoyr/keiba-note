@@ -215,6 +215,11 @@
 	);
 	/** クイック入力で保存が通った本文（出走馬の id → 送った本文）。再読み込みするまで `data` は古いので、書きかけの判定に使う。 */
 	let savedBodies = $state<Record<string, string>>({});
+	/** 保存の応答がログイン切れ（ログイン画面への転送）だったか。次に保存が通ると false に戻す。 */
+	let quickAuthExpired = $state(false);
+	const loginHref = $derived(
+		`${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname)}`
+	);
 	/** その馬の本文だけを `?/quick` へ送る。成功のときだけ true（失敗・例外・リダイレクトは false）。 */
 	async function sendQuick(entryId: string, body: string): Promise<boolean> {
 		try {
@@ -226,10 +231,26 @@
 				body: fd,
 				headers: { 'x-sveltekit-action': 'true' }
 			});
-			return deserialize(await res.text()).type === 'success';
+			// ログイン切れは hooks が /login へ 302 するので、fetch が追ってログイン画面の HTML を受ける。
+			if (res.redirected) return expired();
+			let result;
+			try {
+				result = deserialize(await res.text());
+			} catch {
+				// JSON でない応答（ログイン画面など）。
+				return expired();
+			}
+			if (result.type === 'redirect') return expired();
+			if (result.type === 'success') quickAuthExpired = false;
+			return result.type === 'success';
 		} catch {
 			return false;
 		}
+	}
+	/** ログイン切れとして失敗を返す。入力は DraftKeeper の下書きに残る。 */
+	function expired() {
+		quickAuthExpired = true;
+		return false;
 	}
 	const saver = new QuickSaver({
 		send: sendQuick,
@@ -433,7 +454,13 @@
 		tabindex="-1"
 		class="mt-8 outline-none"
 	>
-		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
+		<DraftKeeper
+			bind:this={keeper}
+			bind:dirtyCount
+			busy={saver.busy}
+			form={formEl}
+			storageKey={draftKey}
+		/>
 		{#key data.race.id}
 			<div hidden={quick}>
 				<RacePanels label="ふりかえり">
@@ -809,6 +836,8 @@
 						failed={saver.failed}
 						busy={saver.busy}
 						onretry={retryQuick}
+						authExpired={quickAuthExpired}
+						{loginHref}
 					/>
 				</div>
 			{/if}
