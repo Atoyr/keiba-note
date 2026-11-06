@@ -42,8 +42,51 @@ it('「ふりかえりに戻る」で onclose を呼ぶ。見出しがあり、�
 	const { screen, onclose } = setup();
 	await expect.element(screen.getByRole('heading', { name: 'クイック入力' })).toBeVisible();
 	expect(screen.getByRole('link', { name: '言葉を登録・編集する' }).elements()).toHaveLength(1);
-	await screen.getByRole('button', { name: 'ふりかえりに戻る' }).click();
+	// 戻るボタンは上の帯（ghost）と下に貼り付く帯の2つ。どちらも onclose を呼ぶ。
+	const backs = screen.getByRole('button', { name: 'ふりかえりに戻る' });
+	expect(backs.elements()).toHaveLength(2);
+	await backs.first().click();
 	expect(onclose).toHaveBeenCalledOnce();
+});
+
+it('下に貼り付く帯の「ふりかえりに戻る」でも onclose を呼ぶ', async () => {
+	const { screen, onclose } = setup();
+	await screen.getByRole('button', { name: 'ふりかえりに戻る' }).last().click();
+	expect(onclose).toHaveBeenCalledOnce();
+});
+
+it('帯の文は 失敗 > 保存中 > 保存しました > 案内 の順で、成功の前に「保存しました」を出さない', async () => {
+	const { screen } = setup();
+	const band = screen.getByRole('status');
+	await expect.element(band).toHaveTextContent('言葉を選ぶと自動で保存します');
+	await expect.element(band).not.toHaveTextContent('保存しました');
+	screen.unmount();
+
+	const saving = setup(['前が壁'], { status: { e1: 'saving' }, busy: true });
+	await expect.element(saving.screen.getByRole('status')).toHaveTextContent('保存中…');
+	await expect.element(saving.screen.getByRole('status')).not.toHaveTextContent('保存しました');
+	saving.screen.unmount();
+
+	const saved = setup(['前が壁'], { status: { e1: 'saved' } });
+	await expect.element(saved.screen.getByRole('status')).toHaveTextContent('保存しました');
+	saved.screen.unmount();
+
+	// 失敗があれば、ほかが保存済みでも失敗を先に出す。
+	const failed = setup(['前が壁'], { status: { e1: 'saved', e2: 'error' }, failed: 1 });
+	await expect
+		.element(failed.screen.getByRole('status'))
+		.toHaveTextContent('1頭を保存できませんでした');
+});
+
+it('失敗があれば「再試行」を出し、押すと onretry（馬は指定しない）を呼ぶ。失敗が無ければ出さない', async () => {
+	const onretry = vi.fn();
+	const { screen } = setup(['前が壁'], { status: { e2: 'error' }, failed: 1, onretry });
+	await screen.getByRole('button', { name: '再試行' }).click();
+	expect(onretry).toHaveBeenCalledWith();
+	screen.unmount();
+
+	const none = setup();
+	expect(none.screen.getByRole('button', { name: '再試行' }).elements()).toHaveLength(0);
 });
 
 it('言葉が0個なら、案内とリンクを1回だけ、おすすめをまとめて登録するボタン（別のフォームに属す）と例を出す', async () => {

@@ -79,3 +79,47 @@ it('言葉が0個なら行を開けない（ボタンも aria-expanded も出さ
 	await expect.element(screen.getByText('見本馬')).toBeVisible();
 	await expect.element(screen.getByText('前が壁')).toBeVisible();
 });
+
+it('状態の行は 保存中… → 保存しました を出す。状態が無ければ何も出さない', async () => {
+	const screen = render(QuickReviewRow, { ...base });
+	await rowButton(screen).click();
+	await expect.element(screen.getByRole('status')).toHaveTextContent(/^\s*$/);
+	await screen.rerender({ ...base, status: 'saving' });
+	await expect.element(screen.getByRole('status')).toHaveTextContent('保存中…');
+	await screen.rerender({ ...base, status: 'saved' });
+	await expect.element(screen.getByRole('status')).toHaveTextContent('保存しました');
+});
+
+it('失敗は alert の文と「もう一度保存」を出し、押すと onretry を呼んで行のボタンへフォーカスを戻す', async () => {
+	const onretry = vi.fn();
+	const screen = render(QuickReviewRow, { ...base, status: 'error', onretry });
+	await rowButton(screen).click();
+	await expect.element(screen.getByRole('alert')).toHaveTextContent('保存できませんでした。');
+	await screen.getByRole('button', { name: 'もう一度保存' }).click();
+	expect(onretry).toHaveBeenCalledOnce();
+	await expect.poll(() => document.activeElement).toBe(rowButton(screen).element());
+});
+
+it('書きかけの本文があるときだけ、開いた中に案内を出す', async () => {
+	const screen = render(QuickReviewRow, { ...base, draft: true });
+	await rowButton(screen).click();
+	await expect
+		.element(
+			screen.getByText(
+				'ふりかえりで書きかけの本文があります。言葉を選ぶと、書きかけも一緒に保存します。'
+			)
+		)
+		.toBeVisible();
+	screen.unmount();
+
+	const none = render(QuickReviewRow, { ...base });
+	await rowButton(none).click();
+	expect(none.getByText('書きかけの本文があります', { exact: false }).elements()).toHaveLength(0);
+});
+
+it('閉じた行で失敗しているときは、馬名の横に「未保存」を字で出す（開くと出さない）', async () => {
+	const screen = render(QuickReviewRow, { ...base, status: 'error' });
+	await expect.element(rowButton(screen)).toHaveTextContent('未保存');
+	await rowButton(screen).click();
+	await expect.element(rowButton(screen)).not.toHaveTextContent('未保存');
+});

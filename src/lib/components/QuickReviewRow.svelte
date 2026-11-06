@@ -17,7 +17,9 @@
 	 *   ボタンの読み上げ名は「馬名のクイック入力」＋本文（印があれば「印◎」も）で、開閉では変えない（開いているかは `aria-expanded`）。
 	 * - 開いたとき: 登録した言葉のボタン（`aria-pressed` は**本文から決まる**）。押すと `onchange` に入れた（抜いた）本文を渡す。
 	 *   **開いてもフォーカスを動かさない**（スマホのキーボードで言葉が隠れないように）。Esc で閉じて行のボタンへ戻す。
-	 * - 保存はしない（ふりかえりに戻って、ふりかえりの保存ボタンで一括）。本文を持つのは親（ふりかえりのフォームの欄）。
+	 * - 保存もこの行の外（親）がする。この行は保存の状態（`status`）を開いた中の状態の行に出し、失敗したら「もう一度保存」で `onretry` を呼ぶ。
+	 *   閉じた行で失敗しているときは、馬名の横に「未保存」と字で出す。本文を持つのは親（ふりかえりのフォームの欄）。
+	 * - `draft` は、ふりかえりで手で書いた未保存の本文があるとき。言葉を選ぶと書きかけも一緒に保存されるので、開いた中で先に知らせる。
 	 * - 登録した言葉が0個のあいだは開けない（行のボタンを出さず、読むだけの行にする）。
 	 * - 開閉は親が持つ（`open`。1度に開くのは1頭。`QuickReview`）。
 	 */
@@ -34,7 +36,10 @@
 		rankColumn = false,
 		badgeColumn = true,
 		mark = null,
-		markColumn = false
+		markColumn = false,
+		status = null,
+		draft = false,
+		onretry
 	}: {
 		horseName: string;
 		entryId: string;
@@ -58,6 +63,12 @@
 		mark?: Mark | null;
 		/** 印の列を取るか。一覧のだれかに印があれば全行が取る（馬名の幅を行ごとにずらさない）。 */
 		markColumn?: boolean;
+		/** 保存の状態。まだ送っていなければ null。 */
+		status?: 'saving' | 'saved' | 'error' | null;
+		/** ふりかえりで手で書いた未保存の本文があるか（言葉を選ぶと一緒に保存される）。 */
+		draft?: boolean;
+		/** 保存に失敗したとき「もう一度保存」で呼ぶ。 */
+		onretry?: () => void;
 	} = $props();
 
 	const id = $props.id();
@@ -74,6 +85,12 @@
 		if (e.key !== 'Escape' || !open || e.isComposing || e.keyCode === 229) return;
 		e.preventDefault();
 		open = false;
+		void tick().then(() => toggle?.focus());
+	}
+
+	function retry() {
+		onretry?.();
+		// 押したボタンは失敗の表示と一緒に消えるので、フォーカスを行のボタンへ移す。
 		void tick().then(() => toggle?.focus());
 	}
 
@@ -101,7 +118,10 @@
 	{/if}
 	<span class="block min-w-0 flex-1">
 		<span class="block text-sm leading-6 font-medium break-words"
-			>{horseName}{#if !readonly}<span class="sr-only">のクイック入力</span>{/if}</span
+			>{horseName}{#if !readonly}<span class="sr-only">のクイック入力</span
+				>{/if}{#if !open && status === 'error'}<span
+					class="ml-1.5 text-xs font-normal text-destructive">未保存</span
+				>{/if}</span
 		>
 		{#if !open && text !== ''}
 			<span
@@ -146,6 +166,11 @@
 
 	{#if !readonly}
 		<div id={boxId} hidden={!open} class="grid gap-2 px-3 pb-3">
+			{#if draft}
+				<p class="text-xs text-muted-foreground">
+					ふりかえりで書きかけの本文があります。言葉を選ぶと、書きかけも一緒に保存します。
+				</p>
+			{/if}
 			{#if registered.length > 0}
 				<div class="flex flex-wrap gap-1.5">
 					{#each registered as w (w)}
@@ -166,9 +191,22 @@
 					{/each}
 				</div>
 			{/if}
-			<p role="status" class="min-h-4 text-xs text-muted-foreground">
-				{#if tooLong}メモが長すぎるため、これ以上入れられません。{/if}
-			</p>
+			{#if status === 'error' && !tooLong}
+				<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+					<p role="alert" class="text-xs text-destructive">保存できませんでした。</p>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						class="min-h-11 sm:min-h-9"
+						onclick={retry}>もう一度保存</Button
+					>
+				</div>
+			{:else}
+				<p role="status" class="min-h-4 text-xs text-muted-foreground">
+					{#if tooLong}メモが長すぎるため、これ以上入れられません。{:else if status === 'saving'}保存中…{:else if status === 'saved'}保存しました{/if}
+				</p>
+			{/if}
 		</div>
 	{/if}
 </div>

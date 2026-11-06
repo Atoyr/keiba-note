@@ -79,9 +79,7 @@ describe('予想・ふりかえりの1リクエストのD1往復数', () => {
 			'review',
 			(requestEvent: TestEvent) => reviewLoad(requestEvent as Parameters<typeof reviewLoad>[0]),
 			(requestEvent: TestEvent) =>
-				reviewActions.default!(
-					requestEvent as Parameters<NonNullable<typeof reviewActions.default>>[0]
-				)
+				reviewActions.save!(requestEvent as Parameters<NonNullable<typeof reviewActions.save>>[0])
 		]
 	] as const) {
 		it(`${mode}: 更新セッションのGETは10往復以内で本人の近況を返す`, async () => {

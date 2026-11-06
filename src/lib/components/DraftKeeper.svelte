@@ -108,6 +108,20 @@
 		return form ? readValues(form) : null;
 	}
 
+	/**
+	 * 欄の一部だけが保存できたとき（クイック入力の自動保存）に呼ぶ。渡した name の保存済みの値だけを
+	 * 差し替えて、未保存の件数と下書きを数え直す。ほかの欄（書きかけ）には触らない。
+	 * 値は `FormData` と同じ形（本文なら `{ 'body.<entryId>': [本文] }`）。
+	 */
+	export function markSaved(values: FieldValues): void {
+		if (!form) return;
+		initial = { ...initial, ...values };
+		const diff = unsaved(form);
+		dirtyCount = countChangedNotes(diff);
+		if (timer) clearTimeout(timer);
+		writeDraft(diff);
+	}
+
 	/** 外から受けた部分下書きも、復元と同じ経路で未保存に数える。submit はしない。 */
 	export async function apply(values: FieldValues): Promise<void> {
 		if (!form) return;
