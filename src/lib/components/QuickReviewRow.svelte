@@ -4,6 +4,8 @@
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
+	import MarkBadge from '$lib/components/MarkBadge.svelte';
+	import type { Mark } from '$lib/schemas/note';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { hasQuickWord, toggleQuickWord } from '$lib/utils/quick-words';
 	import { cn } from '$lib/utils';
@@ -11,8 +13,8 @@
 	/**
 	 * クイック入力の1行（1頭ぶん）。言葉を押すと、その馬のふりかえりメモの本文に入る（もう一度押すと抜ける）。
 	 *
-	 * - 閉じているとき: `[着順] [枠・馬番] 馬名 ⌄` の1行。本文があれば馬名の下に3行まで出す。
-	 *   ボタンの読み上げ名は「馬名のクイック入力」＋本文で、開閉では変えない（開いているかは `aria-expanded`）。
+	 * - 閉じているとき: `[着順] [枠・馬番] 馬名 [印] ⌄` の1行。本文があれば馬名の下に3行まで出す。
+	 *   ボタンの読み上げ名は「馬名のクイック入力」＋本文（印があれば「印◎」も）で、開閉では変えない（開いているかは `aria-expanded`）。
 	 * - 開いたとき: 登録した言葉のボタン（`aria-pressed` は**本文から決まる**）。押すと `onchange` に入れた（抜いた）本文を渡す。
 	 *   **開いてもフォーカスを動かさない**（スマホのキーボードで言葉が隠れないように）。Esc で閉じて行のボタンへ戻す。
 	 * - 保存はしない（ふりかえりに戻って、ふりかえりの保存ボタンで一括）。本文を持つのは親（ふりかえりのフォームの欄）。
@@ -30,7 +32,9 @@
 		horseNumber = null,
 		finishPosition = null,
 		rankColumn = false,
-		badgeColumn = true
+		badgeColumn = true,
+		mark = null,
+		markColumn = false
 	}: {
 		horseName: string;
 		entryId: string;
@@ -50,6 +54,10 @@
 		rankColumn?: boolean;
 		/** 札（枠・馬番）の列を取るか。一覧のだれかに札があれば全行が取る。 */
 		badgeColumn?: boolean;
+		/** 予想で付けた印（読むだけ）。 */
+		mark?: Mark | null;
+		/** 印の列を取るか。一覧のだれかに印があれば全行が取る（馬名の幅を行ごとにずらさない）。 */
+		markColumn?: boolean;
 	} = $props();
 
 	const id = $props.id();
@@ -102,6 +110,11 @@
 			>
 		{/if}
 	</span>
+	{#if markColumn || mark}
+		<span class="flex w-6 shrink-0 justify-center">
+			{#if mark}<span class="sr-only">印</span><MarkBadge {mark} />{/if}
+		</span>
+	{/if}
 	{#if readonly}
 		<!-- 言葉が無いので開けない（次の一手は一覧の上の案内） -->
 	{:else if open}

@@ -5,6 +5,7 @@ import { login } from './login';
 import {
 	ACTUAL_FLOW_18_RACE_ID,
 	INSIGHT,
+	MARKS_RACE_ID,
 	PAST_EMPTY_RACE_ID,
 	PREVIEW_RACE_ID,
 	THIS_WEEK_RACES
@@ -177,6 +178,34 @@ test('入口を押すとクイック入力に切り替わり、言葉を押す�
 	await expect(page.locator('[data-sonner-toast]', { hasText: '保存しました' })).toBeVisible();
 	await page.reload();
 	await expect(body(page, ao)).toHaveValue('');
+});
+
+test('着順の並びで印が見え、「馬番」を押すと馬番順に並ぶ。読むだけで書かない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}?quick`);
+	const rows = page.locator('main li[id^="quick-"]');
+	await expect(rows).toHaveCount(7);
+	const group = page.getByRole('group', { name: '並び順' });
+	await expect(group.getByRole('button', { name: '着順' })).toHaveAttribute('aria-pressed', 'true');
+
+	// 着順: ①1着 ⑤2着 ③3着 ⑥4着 ②5着 ④6着 ⑦なし。印は ◎○▲△☆× が付き、⑦は無し。
+	const finish = ['1着', '2着', '3着', '4着', '5着', '6着'];
+	for (const [i, f] of finish.entries()) await expect(rows.nth(i)).toContainText(f);
+	await expect(rows.nth(0).getByTitle('予想印 ◎')).toBeVisible();
+	await expect(rows.nth(6).getByTitle(/予想印/)).toHaveCount(0);
+
+	await group.getByRole('button', { name: '馬番' }).click();
+	await expect(group.getByRole('button', { name: '馬番' })).toHaveAttribute('aria-pressed', 'true');
+	// 馬番順: ①1着 ②5着 ③3着 ④6着 ⑤2着 ⑥4着 ⑦なし。
+	const byNumber = ['1着', '5着', '3着', '6着', '2着', '4着'];
+	for (const [i, f] of byNumber.entries()) await expect(rows.nth(i)).toContainText(f);
+	await expect(rows.nth(6)).not.toContainText('着');
+
+	// 選びは次に開いても残る。後片付けとして着順に戻す。
+	await gotoHydrated(page, `/races/${MARKS_RACE_ID}?quick`);
+	await expect(group.getByRole('button', { name: '馬番' })).toHaveAttribute('aria-pressed', 'true');
+	await group.getByRole('button', { name: '着順' }).click();
+	await expect(rows.nth(1)).toContainText('2着');
 });
 
 test('本文に「伸びた。」があると「伸びた。前が壁」になり、押し直すと「伸びた。」に戻る', async ({

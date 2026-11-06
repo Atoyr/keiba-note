@@ -1,5 +1,6 @@
 import '../../routes/layout.css';
-import { expect, it, vi } from 'vitest';
+import type { ComponentProps } from 'svelte';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import QuickReview from './QuickReview.svelte';
 import { DEFAULT_INSIGHT_WORDS } from '$lib/utils/insight-words';
@@ -72,4 +73,78 @@ it('おすすめの登録中は「登録中…」と aria-disabled、失敗の�
 	expect(
 		withWords.getByRole('button', { name: 'おすすめの言葉をまとめて登録する' }).elements()
 	).toHaveLength(0);
+});
+
+const ORDER_KEY = 'uma-memo:quick-review-order';
+beforeEach(() => localStorage.removeItem(ORDER_KEY));
+afterEach(() => localStorage.removeItem(ORDER_KEY));
+
+// 着順の順（1着=3番、2着=1番、3着=2番）と馬番の順が違う。
+const mixed: ComponentProps<typeof QuickReview>['rows'] = [
+	{ entryId: 'a', horseName: '三番馬', bracket: 3, horseNumber: 3, finishPosition: 1, mark: '◎' },
+	{ entryId: 'b', horseName: '一番馬', bracket: 1, horseNumber: 1, finishPosition: 2, mark: null },
+	{ entryId: 'c', horseName: '二番馬', bracket: 2, horseNumber: 2, finishPosition: 3, mark: null }
+];
+function setupMixed(rowsArg = mixed) {
+	return render(QuickReview, {
+		rows: rowsArg,
+		bodies: {},
+		registered: ['前が壁'],
+		onchange: vi.fn(),
+		onclose: vi.fn()
+	});
+}
+const ids = (screen: ReturnType<typeof render>) =>
+	screen
+		.getByRole('listitem')
+		.elements()
+		.map((el) => el.id);
+
+it('着順のある一覧に並び順を出し、「馬番」を押すと馬番順になる', async () => {
+	const screen = setupMixed();
+	const group = screen.getByRole('group', { name: '並び順' });
+	await expect
+		.element(group.getByRole('button', { name: '着順' }))
+		.toHaveAttribute('aria-pressed', 'true');
+	expect(ids(screen)).toEqual(['quick-a', 'quick-b', 'quick-c']);
+
+	await group.getByRole('button', { name: '馬番' }).click();
+	await expect
+		.element(group.getByRole('button', { name: '馬番' }))
+		.toHaveAttribute('aria-pressed', 'true');
+	await expect
+		.element(group.getByRole('button', { name: '着順' }))
+		.toHaveAttribute('aria-pressed', 'false');
+	expect(ids(screen)).toEqual(['quick-b', 'quick-c', 'quick-a']);
+});
+
+it('着順がだれにも無い一覧には並び順を出さない', async () => {
+	const screen = setupMixed(mixed.map((r) => ({ ...r, finishPosition: null })));
+	expect(screen.getByRole('group', { name: '並び順' }).elements()).toHaveLength(0);
+});
+
+it('「馬番」の選びは localStorage に残り、描き直すと馬番順から始まる。着順に戻すと消える', async () => {
+	const first = setupMixed();
+	await first.getByRole('button', { name: '馬番' }).click();
+	expect(localStorage.getItem(ORDER_KEY)).toBe('1');
+	first.unmount();
+
+	const second = setupMixed();
+	await expect
+		.element(second.getByRole('button', { name: '馬番' }))
+		.toHaveAttribute('aria-pressed', 'true');
+	expect(ids(second)).toEqual(['quick-b', 'quick-c', 'quick-a']);
+	await second.getByRole('button', { name: '着順' }).click();
+	expect(localStorage.getItem(ORDER_KEY)).toBeNull();
+});
+
+it('印のある一覧では行の名前に「印◎」が入り、印がだれにも無ければ「印」は出ない', async () => {
+	const screen = setupMixed();
+	await expect
+		.element(screen.getByRole('button', { name: /三番馬\s*のクイック入力.*印\s*◎/ }))
+		.toBeVisible();
+	screen.unmount();
+
+	const none = setupMixed(mixed.map((r) => ({ ...r, mark: null })));
+	expect(none.getByText('印', { exact: true }).elements()).toHaveLength(0);
 });
