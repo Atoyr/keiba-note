@@ -275,10 +275,12 @@
 		</ul>
 	</div>
 
-	<div class="sticky bottom-0 mt-6 border-t bg-background/90 py-3 backdrop-blur">
-		<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+	<div class="sticky bottom-0 mt-6 border-t bg-background py-3">
+		<!-- スマホでは状態の文を1段目、戻るボタンを2段目の全幅に固定する（文の長さで折り返すと、押すたびにボタンが跳ねる）。 -->
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
 			{#if registered.length > 0}
-				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+				<!-- 高さは「もう一度保存」のある失敗のときにそろえる（状態が変わっても帯の高さとボタンの位置を動かさない）。 -->
+				<div class="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2">
 					<p
 						role="status"
 						class={cn(
@@ -317,7 +319,7 @@
 				bind:ref={bandBack}
 				type="button"
 				variant={registered.length > 0 ? 'default' : 'outline'}
-				class="min-h-11"
+				class="min-h-11 w-full sm:ml-auto sm:w-auto"
 				onclick={onclose}
 			>
 				<ChevronLeftIcon class="size-4" aria-hidden="true" />ふりかえりに戻る
