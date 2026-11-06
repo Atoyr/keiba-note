@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 import { waitForHydration } from './hydration';
-import { failNextAction } from './action-failure';
+import { failNextAction, succeedAction } from './action-failure';
 import { mockDeviceShare } from './native-share';
 import { applyPrediction, mockPredictionTools } from './webmcp';
 import {
@@ -944,11 +944,14 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
+			// 自動保存の POST は成功を返して、DB を変えない（撮るたびに seed が変わらないように）。
+			await succeedAction(page, `/races/${INSIGHT.write.raceId}`, { quickSaved: 'x' });
 			const row = page.locator(`#quick-${INSIGHT.write.entries.ao}`);
 			await row.locator('button[aria-expanded]').click();
 			await row.getByRole('button', { name: /前が壁/ }).click();
 			await row.getByRole('button', { name: /内詰まり/ }).click();
 			await row.locator('button[aria-pressed="true"]').nth(1).waitFor();
+			await expect(row.getByRole('status')).toHaveText('保存しました');
 		},
 		stayAtTop: true
 	},
@@ -1004,19 +1007,81 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true
 	},
 	{
-		// クイック入力で言葉を押して「ふりかえりに戻る」を押したあと。行のメモに言葉が入り、保存ボタンが出ている（まだ保存していない）。
+		// クイック入力で言葉を押して「ふりかえりに戻る」を押したあと。行のメモに言葉が入り、保存ボタンは出ていない（自動で保存済み）。
 		name: 'race-review-quick-back',
 		path: `/races/${INSIGHT.write.raceId}?quick`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
+			await succeedAction(page, `/races/${INSIGHT.write.raceId}`, { quickSaved: 'x' });
 			const row = page.locator(`#quick-${INSIGHT.write.entries.ao}`);
 			await row.locator('button[aria-expanded]').click();
 			await row.getByRole('button', { name: /前が壁/ }).click();
 			await row.getByRole('button', { name: /内詰まり/ }).click();
-			await page.getByRole('button', { name: 'ふりかえりに戻る' }).click();
-			await page.getByRole('button', { name: /まとめて保存/ }).waitFor();
+			await expect(row.getByRole('status')).toHaveText('保存しました');
+			await page.getByRole('button', { name: 'ふりかえりに戻る' }).last().click();
+			await expect(page.locator(`#entry-${INSIGHT.write.entries.ao}`)).toContainText(
+				'前が壁、内詰まり'
+			);
+			await expect(page.getByRole('button', { name: /まとめて保存/ })).toHaveCount(0);
 		}
+	},
+	{
+		// 18頭立てのクイック入力で、中ほどの馬に言葉を押して保存が済んだところ。一覧の途中までスクロールしても、下に貼り付く帯に「保存しました」と「ふりかえりに戻る」が見える。
+		name: 'race-review-quick-saved',
+		path: `/races/${ACTUAL_FLOW_18_RACE_ID}?quick`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await succeedAction(page, `/races/${ACTUAL_FLOW_18_RACE_ID}`, { quickSaved: 'x' });
+			const rows = page.locator('main li[id^="quick-"]');
+			const row = rows.nth(8);
+			await row.scrollIntoViewIfNeeded();
+			await row.locator('button[aria-expanded]').click();
+			await row.locator('button[aria-pressed]').first().click();
+			await expect(row.getByRole('status')).toHaveText('保存しました');
+			await rows.nth(11).scrollIntoViewIfNeeded();
+		},
+		stayAtTop: true
+	},
+	{
+		// 保存に失敗したとき。開いた行に「保存できませんでした。」と「もう一度保存」、下の帯に「1頭を保存できませんでした」と「もう一度保存」。✓ は残る。
+		name: 'race-review-quick-failed',
+		path: `/races/${INSIGHT.write.raceId}?quick`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await failNextAction(page, `/races/${INSIGHT.write.raceId}`, {
+				message: '保存を確認できませんでした。'
+			});
+			const row = page.locator(`#quick-${INSIGHT.write.entries.ao}`);
+			await row.locator('button[aria-expanded]').click();
+			await row.getByRole('button', { name: /前が壁/ }).click();
+			await expect(row.getByRole('alert')).toHaveText('保存できませんでした。');
+			await page.getByRole('button', { name: 'もう一度保存' }).nth(1).waitFor();
+		}
+	},
+	{
+		// ふりかえりで書きかけの本文がある馬を開いたところ。言葉の上に「書きかけも一緒に保存します」の案内が出る。
+		name: 'race-review-quick-draft',
+		path: `/races/${INSIGHT.write.raceId}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator(`textarea[name="body.${INSIGHT.write.entries.ao}"]`)
+				.evaluate((el: HTMLTextAreaElement) => {
+					el.value = '直線で外に出して伸びた。';
+					el.dispatchEvent(new Event('input', { bubbles: true }));
+				});
+			await page.getByRole('button', { name: 'クイック入力' }).click();
+			await page
+				.locator(`#quick-${INSIGHT.write.entries.ao}`)
+				.locator('button[aria-expanded]')
+				.click();
+			await page.getByText('ふりかえりで書きかけの本文があります。').waitFor();
+		},
+		stayAtTop: true
 	},
 	{
 		// 詳細情報を開いたところ。前走の気づき（出走前 → 気づき → ふりかえり）が過去メモに出る。

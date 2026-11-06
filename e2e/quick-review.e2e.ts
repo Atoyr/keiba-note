@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { failNextAction, succeedAction } from './action-failure';
 import { gotoHydrated } from './hydration';
 import { expectLinkTo } from './link';
 import { login } from './login';
@@ -30,7 +31,17 @@ const word = (page: Page, entryId: string, name: string) =>
 const body = (page: Page, entryId: string) => page.locator(`textarea[name="body.${entryId}"]`);
 const quickButton = (page: Page) => page.getByRole('button', { name: 'クイック入力' });
 const heading = (page: Page) => page.getByRole('heading', { name: 'クイック入力' });
-const back = (page: Page) => page.getByRole('button', { name: 'ふりかえりに戻る' });
+/** 上に貼り付く帯の「ふりかえりに戻る」（ghost）。 */
+const back = (page: Page) => page.getByRole('button', { name: 'ふりかえりに戻る' }).first();
+/** 下に貼り付く帯の「ふりかえりに戻る」（塗り）。 */
+const bandBack = (page: Page) => page.getByRole('button', { name: 'ふりかえりに戻る' }).last();
+/** 下に貼り付く帯の状態の文（保存中… / 保存しました / N頭を保存できませんでした）。行の状態の行より後ろにある。 */
+const band = (page: Page) => page.locator('.quick-review').getByRole('status').last();
+/** 下に貼り付く帯の「もう一度保存」（行の同名のボタンより後ろにある）。 */
+const bandRetry = (page: Page) =>
+	page.locator('.quick-review').getByRole('button', { name: 'もう一度保存' }).last();
+const saveBar = (page: Page) => page.getByRole('button', { name: 'まとめて保存' });
+const unsavedCount = (page: Page) => page.getByText(/未保存の変更が/);
 const reviewTab = (page: Page) => page.getByRole('tab', { name: 'ふりかえり' });
 
 /** 本文の欄に値を入れる（欄は閉じた行の中にあるので、下書きの書き戻しと同じく input を投げる）。 */
@@ -39,6 +50,25 @@ async function setBody(page: Page, entryId: string, value: string) {
 		(el as HTMLTextAreaElement).value = v;
 		el.dispatchEvent(new Event('input', { bubbles: true }));
 	}, value);
+}
+
+/** 自動保存の送り先へ直接送って、馬の本文を元（空）に戻す。後片付け用。 */
+async function clearBodies(page: Page, ...entryIds: string[]) {
+	await page.evaluate(
+		async ([path, ids]) => {
+			for (const id of ids) {
+				const body = new FormData();
+				body.set('entryId', id);
+				body.set('body', '');
+				await fetch(`${path}?/quick`, {
+					method: 'POST',
+					body,
+					headers: { 'x-sveltekit-action': 'true' }
+				});
+			}
+		},
+		[writePath, entryIds] as const
+	);
 }
 
 test('言葉を登録・削除できる。重複と長すぎる言葉は文で断り、消してもメモに入れた文は消えないと案内する', async ({
@@ -134,7 +164,7 @@ test('上限に近いときは、おすすめのまとめて登録が入る分�
 	await clearWords(page);
 });
 
-test('入口を押すとクイック入力に切り替わり、言葉を押すとメモに入る。戻ると行のメモに入っていて、保存すると再読み込みしても残る', async ({
+test('入口を押すとクイック入力に切り替わり、言葉を押すと自動で保存される。戻ると行のメモに入っていて、保存ボタンを押さなくても再読み込みで残る', async ({
 	page
 }) => {
 	await login(page);
@@ -143,41 +173,286 @@ test('入口を押すとクイック入力に切り替わり、言葉を押す�
 	await quickButton(page).click();
 	await expect(heading(page)).toBeFocused();
 	await expect(reviewTab(page)).toBeHidden();
+	// 何も押していないうちは「保存しました」を出さない。
+	await expect(band(page)).toHaveText('言葉を選ぶと自動で保存します');
 
 	await toggle(page, ao).click();
 	await word(page, ao, '前が壁').click();
 	await word(page, ao, '内詰まり').click();
 	await expect(word(page, ao, '前が壁')).toHaveAttribute('aria-pressed', 'true');
 	await expect(body(page, ao)).toHaveValue('前が壁、内詰まり');
+	await expect(band(page)).toHaveText('保存しました');
+	await expect(row(page, ao).getByRole('status')).toHaveText('保存しました');
 	// クイック入力のあいだは保存ボタンも未保存の件数も出さない。
-	await expect(page.getByRole('button', { name: 'まとめて保存' })).toHaveCount(0);
-	await expect(page.getByText(/未保存の変更が/)).toHaveCount(0);
+	await expect(saveBar(page)).toHaveCount(0);
+	await expect(unsavedCount(page)).toHaveCount(0);
 
-	await back(page).click();
+	await bandBack(page).click();
 	await expect(heading(page)).toBeHidden();
 	expect(page.url()).toBe(url);
 	await expect(page.locator(`#entry-${ao}`)).toContainText('前が壁、内詰まり');
-	await expect(page.getByText(/未保存の変更が/)).toContainText('1');
-	await expect(page.getByRole('button', { name: 'まとめて保存' })).toBeVisible();
+	// 保存済みなので、未保存には数えない。
+	await expect(saveBar(page)).toHaveCount(0);
+	await expect(unsavedCount(page)).toHaveCount(0);
 	await expect(quickButton(page)).toBeFocused();
 
-	await page.getByRole('button', { name: 'まとめて保存' }).click();
-	await expect(page.locator('[data-sonner-toast]', { hasText: '保存しました' })).toBeVisible();
 	await page.reload();
 	await expect(body(page, ao)).toHaveValue('前が壁、内詰まり');
 
-	// 後片付け: もう一度押して抜き、保存し直す。
+	// 外すと、外した結果も自動で保存される。
 	await gotoHydrated(page, writePath);
 	await quickButton(page).click();
 	await toggle(page, ao).click();
 	await word(page, ao, '前が壁').click();
 	await word(page, ao, '内詰まり').click();
 	await expect(body(page, ao)).toHaveValue('');
-	await back(page).click();
-	await page.getByRole('button', { name: 'まとめて保存' }).click();
-	await expect(page.locator('[data-sonner-toast]', { hasText: '保存しました' })).toBeVisible();
+	await expect(band(page)).toHaveText('保存しました');
 	await page.reload();
 	await expect(body(page, ao)).toHaveValue('');
+});
+
+test('同じ馬の言葉を素早く押す・外す・押すと最後の値が保存され、2頭に続けて押しても両方残る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	// 送信を遅らせて、前の送信が終わる前に次を押す状況を作る。
+	await page.route(
+		(url) => url.pathname === writePath,
+		async (route) => {
+			if (route.request().method() === 'POST') await new Promise((r) => setTimeout(r, 300));
+			await route.fallback();
+		}
+	);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+	await word(page, ao, '前が壁').click();
+	await word(page, ao, '前が壁').click();
+	await toggle(page, aka).click();
+	await word(page, aka, '内詰まり').click();
+	await expect(band(page)).toHaveText('保存しました');
+	await expect(body(page, ao)).toHaveValue('前が壁');
+
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('前が壁');
+	await expect(body(page, aka)).toHaveValue('内詰まり');
+
+	await clearBodies(page, ao, aka);
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('');
+	await expect(body(page, aka)).toHaveValue('');
+});
+
+test('保存に失敗しても入力は残り、クイック入力の中でもう一度保存できる。戻ると未保存として数える', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await failNextAction(page, writePath, { message: '保存できません' });
+	await word(page, ao, '前が壁').click();
+
+	await expect(row(page, ao).getByRole('alert')).toHaveText('保存できませんでした。');
+	await expect(band(page)).toHaveText('1頭を保存できませんでした');
+	// 入力（✓・本文）は残る。「保存しました」は出ない。
+	await expect(word(page, ao, '前が壁')).toHaveAttribute('aria-pressed', 'true');
+	await expect(body(page, ao)).toHaveValue('前が壁');
+	await expect(page.getByText('保存しました')).toHaveCount(0);
+	// 閉じた行には「未保存」を字で出す。
+	await toggle(page, ao).click();
+	await expect(toggle(page, ao)).toContainText('未保存');
+	await toggle(page, ao).click();
+
+	await bandRetry(page).click();
+	await expect(band(page)).toHaveText('保存しました');
+	await expect(page.getByRole('button', { name: 'もう一度保存' })).toHaveCount(0);
+	await expect(row(page, ao).getByRole('status')).toHaveText('保存しました');
+
+	await bandBack(page).click();
+	await expect(heading(page)).toBeHidden();
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('前が壁');
+
+	// 失敗のまま戻ると、未保存の件数が出て、一括でも保存できる。
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await failNextAction(page, writePath, { message: '保存できません' });
+	await word(page, ao, '前が壁').click();
+	await expect(band(page)).toHaveText('1頭を保存できませんでした');
+	await bandBack(page).click();
+	await expect(unsavedCount(page)).toContainText('1');
+	await expect(saveBar(page)).toBeVisible();
+	await saveBar(page).click();
+	await expect(page.locator('[data-sonner-toast]', { hasText: '保存しました' })).toBeVisible();
+
+	await clearBodies(page, ao);
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('');
+});
+
+test('送信中に離れようとすると、未保存が無くても確認が出る', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	// 送信を遅らせて、押す → 外す（欄は保存済みの値に戻る）あいだに送信中のままにする。
+	await page.route(
+		(url) => url.pathname === writePath,
+		async (route) => {
+			if (route.request().method() === 'POST') await new Promise((r) => setTimeout(r, 1500));
+			await route.fallback();
+		}
+	);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+	await word(page, ao, '前が壁').click();
+	await expect(body(page, ao)).toHaveValue('');
+
+	const messages: string[] = [];
+	page.on('dialog', (d) => {
+		messages.push(d.message());
+		void d.dismiss();
+	});
+	await page.getByRole('link', { name: '言葉を登録・編集する' }).click();
+	await expect.poll(() => messages.length).toBe(1);
+	expect(messages[0]).toContain('保存中の変更があります');
+	await expect(page).toHaveURL(writePath);
+
+	// 送信が終わったあとの後片付け（最後の入力は空なので、行は残らない）。
+	await expect(band(page)).toHaveText('保存しました');
+	await clearBodies(page, ao);
+});
+
+test('ログイン切れで保存できないときは、その文とログインし直すリンクを出す。入力は残る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	// 実際の hooks と同じく、ログインしていない POST は /login?redirect=… へ 302 される。
+	await page.route(
+		(url) => url.pathname === writePath,
+		(route) =>
+			route.request().method() === 'POST'
+				? route.fulfill({
+						status: 302,
+						headers: { location: `/login?redirect=${encodeURIComponent(writePath)}` }
+					})
+				: route.fallback(),
+		{ times: 1 }
+	);
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+
+	await expect(band(page)).toHaveText('ログインが切れたため保存できませんでした。');
+	const link = page.locator('.quick-review').getByRole('link', { name: 'ログインし直す' });
+	await expect(link).toHaveAttribute('href', `/login?redirect=${encodeURIComponent(writePath)}`);
+	await expect(word(page, ao, '前が壁')).toHaveAttribute('aria-pressed', 'true');
+	await expect(body(page, ao)).toHaveValue('前が壁');
+
+	// もう一度保存が通ると、通常の表示に戻る（後片付けは直接送る）。
+	await bandRetry(page).click();
+	await expect(band(page)).toHaveText('保存しました');
+	await clearBodies(page, ao);
+});
+
+test('書きかけのレースのメモ・ほかの馬の本文は保存されず、同じ馬の書きかけは言葉と一緒に保存される', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	const raceNote = page.locator('textarea[name="raceNoteBody"]');
+	await raceNote.fill('E2E レースの書きかけ');
+	await setBody(page, aka, 'E2E 別の馬の書きかけ');
+	await setBody(page, ao, 'E2E 同じ馬の書きかけ。');
+
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	// 書きかけのある馬には、開いた中に案内が出る（別の馬の書きかけにも、その馬の行の中に出る）。
+	const hint = (entryId: string) =>
+		row(page, entryId).getByText('ふりかえりで書きかけの本文があります。');
+	await expect(hint(ao)).toBeVisible();
+	await word(page, ao, '前が壁').click();
+	await expect(body(page, ao)).toHaveValue('E2E 同じ馬の書きかけ。前が壁');
+	await expect(band(page)).toHaveText('保存しました');
+	// 保存したあとは、その馬の案内は出ない。
+	await expect(hint(ao)).toHaveCount(0);
+
+	await bandBack(page).click();
+	await expect(raceNote).toHaveValue('E2E レースの書きかけ');
+	await expect(body(page, aka)).toHaveValue('E2E 別の馬の書きかけ');
+	await expect(unsavedCount(page)).toContainText('2');
+
+	await page.reload();
+	// 書きかけは localStorage の下書きに残る（復元を持ちかけられる）。サーバーに入ったのは同じ馬の分だけ。
+	await expect(page.getByText('保存されていない下書きがあります')).toBeVisible();
+	await expect(raceNote).toHaveValue('');
+	await expect(body(page, aka)).toHaveValue('');
+	await expect(body(page, ao)).toHaveValue('E2E 同じ馬の書きかけ。前が壁');
+	await page.getByRole('button', { name: '破棄' }).click();
+
+	await clearBodies(page, ao);
+	await page.reload();
+	await expect(body(page, ao)).toHaveValue('');
+});
+
+test('保存のあとも、クイック入力は開いたまま・開いている馬は開いたまま・スクロール位置は動かない', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await login(page);
+	await gotoHydrated(page, `/races/${ACTUAL_FLOW_18_RACE_ID}?quick`);
+	// DB は変えない（18頭のレースは見本）。保存が通った応答を返す。
+	await succeedAction(page, `/races/${ACTUAL_FLOW_18_RACE_ID}`, { quickSaved: 'x' });
+	const rows = page.locator('main li[id^="quick-"]');
+	await rows.nth(12).scrollIntoViewIfNeeded();
+	const t = rows.nth(12).locator('button[aria-expanded]');
+	await t.click();
+	const before = await page.evaluate(() => window.scrollY);
+	const ids = await rows.evaluateAll((els) => els.map((el) => el.id));
+
+	await rows.nth(12).locator('button[aria-pressed]').first().click();
+	await expect(band(page)).toHaveText('保存しました');
+	await expect(heading(page)).toBeVisible();
+	await expect(t).toHaveAttribute('aria-expanded', 'true');
+	expect(await rows.evaluateAll((els) => els.map((el) => el.id))).toEqual(ids);
+	expect(Math.abs((await page.evaluate(() => window.scrollY)) - before)).toBeLessThanOrEqual(1);
+	// 一覧の下まで来ても、下の帯の「ふりかえりに戻る」が画面の中にある。
+	await expect(bandBack(page)).toBeInViewport();
+	await bandBack(page).click();
+	await expect(heading(page)).toBeHidden();
+});
+
+test('戻る操作は1回で効く。ふりかえりから開いたときも、?quick で開いたときも、ブラウザの戻るでも', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, writePath);
+	const url = page.url();
+	await succeedAction(page, writePath, { quickSaved: 'x' });
+
+	await quickButton(page).click();
+	await toggle(page, ao).click();
+	await word(page, ao, '前が壁').click();
+	await expect(band(page)).toHaveText('保存しました');
+	await bandBack(page).click();
+	await expect(heading(page)).toBeHidden();
+	expect(page.url()).toBe(url);
+
+	await quickButton(page).click();
+	await expect(heading(page)).toBeVisible();
+	await page.goBack();
+	await expect(heading(page)).toBeHidden();
+	expect(page.url()).toBe(url);
+	await expect(reviewTab(page)).toBeVisible();
+
+	await gotoHydrated(page, `${writePath}?quick`);
+	await expect(heading(page)).toBeVisible();
+	await bandBack(page).click();
+	await expect(heading(page)).toBeHidden();
+	await expect(reviewTab(page)).toBeVisible();
+	await expect(page).not.toHaveURL(/quick/);
 });
 
 test('着順の並びで印が見え、「馬番」を押すと馬番順に並ぶ。読むだけで書かない', async ({ page }) => {
@@ -220,6 +495,10 @@ test('本文に「伸びた。」があると「伸びた。前が壁」にな�
 	await expect(body(page, aka)).toHaveValue('伸びた。前が壁');
 	await word(page, aka, '前が壁').click();
 	await expect(body(page, aka)).toHaveValue('伸びた。');
+	await expect(band(page)).toHaveText('保存しました');
+
+	// 後片付け: 言葉を押すと書きかけごと保存されるので、本文を空に戻す。
+	await clearBodies(page, aka);
 });
 
 test('ブラウザの戻るでクイック入力が閉じ、同じページのまま、書いた本文が残る', async ({ page }) => {

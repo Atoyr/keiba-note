@@ -1,8 +1,9 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { resolve as resolveRoute } from '$app/paths';
 import * as v from 'valibot';
-import { raceReviewSchema } from '$lib/schemas/note';
+import { quickReviewBodySchema, raceReviewSchema } from '$lib/schemas/note';
 import {
+	saveEntryReviewBody,
 	saveRaceReview,
 	listSameConditionRaceNotes,
 	listRaceMemoContext
@@ -171,7 +172,7 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ locals, platform, params, request }) => {
+	save: async ({ locals, platform, params, request }) => {
 		const { db, user } = ctx(locals, platform);
 
 		const { race, entries } = await raceFormData(db, locals, params.id, 'review');
@@ -210,5 +211,52 @@ export const actions: Actions = {
 		await saveRaceReview(db, { raceId: params.id, ...parsed.output }, user.id, race.date);
 
 		return { savedAt: Date.now() };
+	},
+
+	/**
+	 * クイック入力の自動保存。1頭の本文だけを書く（札・レースのメモ・ほかの馬は触らない）。
+	 * 画面は `fetch` で送り、データを読み直さない（開いている馬・並び順・スクロールを動かさないため）。
+	 */
+	quick: async ({ locals, platform, params, request }) => {
+		const { db, user } = ctx(locals, platform);
+
+		const { race, entries } = await raceFormData(db, locals, params.id, 'review');
+		if (!race) error(404, 'レースが見つかりません');
+		if (isUpcoming(race.date, todayJst())) {
+			error(400, 'まだ開催されていないレースにふりかえりは書けません');
+		}
+
+		const form = await request.formData();
+		const parsed = v.safeParse(quickReviewBodySchema, {
+			entryId: form.get('entryId')?.toString() ?? '',
+			body: form.get('body')?.toString() ?? ''
+		});
+		if (!parsed.success) {
+			const issue = parsed.issues[0];
+			return fail(400, {
+				message:
+					issue?.type === 'max_length'
+						? `メモが長すぎます。${issue.message.replace(/[。]+$/, '')}。`
+						: '入力を確認してください'
+			});
+		}
+
+		// 出走馬の構成はフォームではなく DB を正とする（他のレースの entry に書けないように）。
+		const entry = entries.find((e) => e.entryId === parsed.output.entryId);
+		if (!entry) return fail(400, { message: 'このレースの出走馬ではありません' });
+
+		await saveEntryReviewBody(
+			db,
+			{
+				raceId: params.id,
+				entryId: entry.entryId,
+				horseId: entry.horseId,
+				body: parsed.output.body
+			},
+			user.id,
+			race.date
+		);
+
+		return { quickSaved: entry.entryId };
 	}
 };

@@ -79,9 +79,7 @@ describe('予想・ふりかえりの1リクエストのD1往復数', () => {
 			'review',
 			(requestEvent: TestEvent) => reviewLoad(requestEvent as Parameters<typeof reviewLoad>[0]),
 			(requestEvent: TestEvent) =>
-				reviewActions.default!(
-					requestEvent as Parameters<NonNullable<typeof reviewActions.default>>[0]
-				)
+				reviewActions.save!(requestEvent as Parameters<NonNullable<typeof reviewActions.save>>[0])
 		]
 	] as const) {
 		it(`${mode}: 更新セッションのGETは10往復以内で本人の近況を返す`, async () => {
@@ -124,4 +122,27 @@ describe('予想・ふりかえりの1リクエストのD1往復数', () => {
 			expect(reports.length).toBeLessThanOrEqual(10);
 		});
 	}
+});
+
+describe('クイック入力の自動保存（?/quick）', () => {
+	const post = async (entryId: string, body: string) => {
+		const form = new FormData();
+		form.set('entryId', entryId);
+		form.set('body', body);
+		return reviewActions.quick!(
+			(await event(form)) as Parameters<NonNullable<typeof reviewActions.quick>>[0]
+		);
+	};
+	const notes = () =>
+		sqlite.prepare("SELECT race_entry_id AS e, body FROM note WHERE kind = 'entry'").all();
+
+	it('このレースの出走馬の本文だけを保存する', async () => {
+		expect(await post('entry', '前が壁')).toEqual({ quickSaved: 'entry' });
+		expect(notes()).toEqual([{ e: 'entry', body: '前が壁' }]);
+	});
+
+	it('別のレースの出走馬の entryId は fail(400) で、何も書かない', async () => {
+		expect(await post('past-entry', '書けてはいけない')).toMatchObject({ status: 400 });
+		expect(notes()).toEqual([]);
+	});
 });

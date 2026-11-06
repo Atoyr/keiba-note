@@ -8,7 +8,7 @@
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [pages.md](./pages.md)、確かめ方は [testing.md](./testing.md)
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-07
 
 ---
 
@@ -93,7 +93,8 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
 | `/races` | GET | `year`・`grade`（複数）・`q`・`offset` | レース一覧を `offset` 件目から100件と、条件に当たる総数。画面は下端で `offset` を付けてこの `load` を `preloadData` で呼び、続きを足す | 未知の値は捨てる。`offset` が数字でなければ 0 |
 | `/races/[id]` | GET | — | ふりかえり画面。重賞なら自分の重賞の傾向と、このレースを除いた重賞のタイムラインも返す（`graded: { key, trend, timeline }`。`trend` は傾向が無ければ `null`。重賞でなければ `graded` が `null`）。出走馬の行に自分の騎手のまとめ（`jockeySummary: { body, tags }`。無ければ `null`）。**開催前なら `302 /races/[id]/preview`** | 404 |
-| `/races/[id]` | POST `default` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
+| `/races/[id]` | POST `?/save` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
+| `/races/[id]` | POST `?/quick` | `entryId`・`body` | クイック入力の自動保存。1頭の本文だけを保存し、札は残す（`saveEntryReviewBody`）。`{ quickSaved }` | 開催前 400 / 出走馬でない・検証 `fail(400)` / 404 |
 | `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点）。重賞なら自分の重賞の傾向と重賞のタイムライン（`graded`。形は `/races/[id]` と同じ）。出走馬の行に自分の騎手のまとめ（`jockeySummary`。形は `/races/[id]` と同じ） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`racePace`・`flowSpots.<局面>`（JSON）・`flowMemo.<局面>`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>`（局面は `start`・`corner4`・`finish`） | 見立て（展開の予想を含む）と予想印を一括保存。盤面の馬はこのレースの出走馬に絞る | 検証 `fail(400)` / 404 |
 | `/horses` | GET | `q`・`offset` | 馬一覧を `offset` 件目から100頭（続きの読み方は `/races` と同じ） | `offset` が数字でなければ 0 |

@@ -155,6 +155,15 @@ export const raceReviewSchema = v.object({
 
 export type RaceReviewFormInput = v.InferOutput<typeof raceReviewSchema>;
 
+/**
+ * クイック入力の自動保存。1頭の本文だけを送る（札・レースのメモは送らない）。
+ * 出走馬がこのレースのものかは、ルートが DB で確かめる。
+ */
+export const quickReviewBodySchema = v.object({
+	entryId: v.pipe(v.string(), v.minLength(1)),
+	body: bodySchema
+});
+
 /** 馬の近況メモ（レースに紐づかないメモ）。 */
 export const horseNoteSchema = v.object({
 	body: v.pipe(bodySchema, v.trim(), v.minLength(1, 'メモを入力してください')),

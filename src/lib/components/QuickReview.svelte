@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { resolve } from '$app/paths';
+	import CheckIcon from '@lucide/svelte/icons/check';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import QuickReviewRow from '$lib/components/QuickReviewRow.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -13,13 +14,16 @@
 
 	/**
 	 * ふりかえり画面から切り替えて開く「クイック入力」の1画面。出走馬を1頭1行（`QuickReviewRow`）で、既定はふりかえりと同じ順（着順）に並べ、
-	 * 言葉を押すとその馬のふりかえりメモの本文に入る。直すのと保存は、ふりかえりに戻ってから（クイック入力のあいだは親が保存ボタンを出さない）。
+	 * 言葉を押すとその馬のふりかえりメモの本文に入り、親が自動で保存する。保存の状態は一覧の下に貼り付く帯と、開いた馬の行に出す
+	 * （クイック入力のあいだは親が保存ボタンを出さない）。
 	 *
 	 * - 開くのは1頭だけ（`openId`）。別の馬を押すと前の馬を閉じる。前の馬が上で閉じると押した行が上へずれるので、
 	 *   切り替えの前後で押した行の位置を測り、その差だけスクロールして、押した行を画面の同じ場所に残す。
 	 * - 並び順は 着順（渡された順。既定）/ 馬番。着順と馬番がどちらも出ているときだけ、帯の見出しの右に切り替えを出し、選びを localStorage に残す。
 	 * - 予想で付けた印は、だれかに付いていれば行の右端に出す（読むだけ。直すのは予想画面）。
 	 * - 上に貼り付く帯に「ふりかえりに戻る」と見出し。見出しは開いたときのフォーカス先（親が `focusHeading` で呼ぶ）。
+	 * - 下に貼り付く帯に保存の状態（失敗 > 保存中 > 保存しました > 案内）と、塗りの「ふりかえりに戻る」。
+	 *   一覧の下まで入力しても戻る導線が親指の届く位置にある。「保存しました」は保存が通ったあとにだけ出す。失敗は「再試行」で送り直す。
 	 * - 言葉が0個なら、案内とおすすめをまとめて登録するボタンを出す（フォームは親が**外**に置く）。
 	 */
 	let {
@@ -30,7 +34,14 @@
 		onclose,
 		defaultsFormId = 'insight-defaults',
 		defaultsPending = false,
-		defaultsError = null
+		defaultsError = null,
+		status = {},
+		drafts = {},
+		failed = 0,
+		busy = false,
+		onretry = () => {},
+		authExpired = false,
+		loginHref = ''
 	}: {
 		rows: {
 			entryId: string;
@@ -51,9 +62,32 @@
 		defaultsFormId?: string;
 		defaultsPending?: boolean;
 		defaultsError?: string | null;
+		/** 出走馬の id → 保存の状態。まだ送っていない馬は無い。 */
+		status?: Record<string, 'saving' | 'saved' | 'error'>;
+		/** 出走馬の id → ふりかえりで手で書いた未保存の本文があるか。 */
+		drafts?: Record<string, boolean>;
+		/** 保存できなかった馬の頭数。 */
+		failed?: number;
+		/** どれかが送信中か。 */
+		busy?: boolean;
+		/** 帯と行の「もう一度保存」。馬を渡せばその馬だけ、省くと失敗した全頭。 */
+		onretry?: (entryId?: string) => void;
+		/** 保存の応答がログイン切れだったか。帯の文を差し替え、「もう一度保存」の代わりに「ログインし直す」を出す。 */
+		authExpired?: boolean;
+		/** 「ログインし直す」の行き先（ログイン後にこのレースへ戻る）。 */
+		loginHref?: string;
 	} = $props();
 
 	let heading = $state<HTMLElement | null>(null);
+	let bandBack = $state<HTMLElement | null>(null);
+	/** この画面で1度でも保存が通ったか（成功の前に「保存しました」を出さないため）。 */
+	const anySaved = $derived(Object.values(status).includes('saved'));
+
+	function retryAll() {
+		onretry();
+		// 押した「もう一度保存」は消えるので、フォーカスを帯の「ふりかえりに戻る」へ移す。
+		void tick().then(() => bandBack?.focus());
+	}
 	/** 開いたときのフォーカス先。 */
 	export function focusHeading() {
 		heading?.focus({ preventScroll: true });
@@ -204,7 +238,7 @@
 			</div>
 		{:else}
 			<p class="text-xs text-muted-foreground">
-				馬を押して言葉を選ぶと、その馬のふりかえりメモに入ります。直すのと保存は、ふりかえりに戻ってから。
+				馬を押して言葉を選ぶと、その馬のふりかえりメモに入り、自動で保存します。
 			</p>
 			<a
 				href={resolve('/settings/insight-words')}
@@ -231,10 +265,65 @@
 						{badgeColumn}
 						mark={r.mark ?? null}
 						{markColumn}
+						status={status[r.entryId] ?? null}
+						draft={drafts[r.entryId] === true}
+						onretry={() => onretry(r.entryId)}
 						bind:open={() => openId === r.entryId, (v) => void setOpen(r.entryId, v)}
 					/>
 				</li>
 			{/each}
 		</ul>
+	</div>
+
+	<div class="sticky bottom-0 mt-6 border-t bg-background py-3">
+		<!-- スマホでは状態の文を1段目、戻るボタンを2段目の全幅に固定する（文の長さで折り返すと、押すたびにボタンが跳ねる）。 -->
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+			{#if registered.length > 0}
+				<!-- 高さは「もう一度保存」のある失敗のときにそろえる（状態が変わっても帯の高さとボタンの位置を動かさない）。 -->
+				<div class="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2">
+					<p
+						role="status"
+						class={cn(
+							'flex items-center gap-1 text-sm',
+							failed > 0 ? 'text-destructive' : 'text-muted-foreground'
+						)}
+					>
+						{#if failed > 0 && authExpired}
+							ログインが切れたため保存できませんでした。
+						{:else if failed > 0}
+							{failed}頭を保存できませんでした
+						{:else if busy}
+							保存中…
+						{:else if anySaved}
+							<CheckIcon class="size-4 shrink-0" aria-hidden="true" />保存しました
+						{:else}
+							言葉を選ぶと自動で保存します
+						{/if}
+					</p>
+					{#if failed > 0 && authExpired}
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- loginHref は親が resolve() で組んだもの（frontend.md 第3章） -->
+						<a
+							href={loginHref}
+							class="inline-flex min-h-11 items-center text-sm underline underline-offset-2 hover:decoration-2"
+							>ログインし直す</a
+						>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+					{:else if failed > 0}
+						<Button type="button" variant="outline" class="min-h-11" onclick={retryAll}
+							>もう一度保存</Button
+						>
+					{/if}
+				</div>
+			{/if}
+			<Button
+				bind:ref={bandBack}
+				type="button"
+				variant={registered.length > 0 ? 'default' : 'outline'}
+				class="min-h-11 w-full sm:ml-auto sm:w-auto"
+				onclick={onclose}
+			>
+				<ChevronLeftIcon class="size-4" aria-hidden="true" />ふりかえりに戻る
+			</Button>
+		</div>
 	</div>
 </section>

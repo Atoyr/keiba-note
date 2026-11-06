@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
-	import { enhance } from '$app/forms';
+	import { deserialize, enhance } from '$app/forms';
 	import { afterNavigate, pushState, refreshAll, replaceState } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
@@ -33,6 +33,7 @@
 	import { formatHorseWeight } from '$lib/utils/horse';
 	import { formatWinOdds } from '$lib/utils/odds';
 	import { horseNoteDigest, raceReviewSaveLabel, savedMessage } from '$lib/utils/note';
+	import { QuickSaver } from '$lib/utils/quick-save.svelte';
 	import { raceGoing, raceMeeting, raceSpec } from '$lib/utils/race-heading';
 	import { actualFlow, formatMargin, last3fRanks } from '$lib/utils/run-stats';
 	import { isAdmin } from '$lib/utils/role';
@@ -63,7 +64,7 @@
 	let keeper = $state<DraftKeeper | null>(null);
 	/** 未保存の変更の件数（DraftKeeper が数える）。0 のあいだは保存ボタンを出さない。 */
 	let dirtyCount = $state(0);
-	/** 送信中。保存ボタンを押せなくする。 */
+	/** 一括保存の送信中。保存ボタンを押せなくする。 */
 	let saving = $state(false);
 	const draftKey = $derived(`uma-memo:draft:review:${page.data.user?.id ?? '-'}:${data.race.id}`);
 
@@ -139,7 +140,9 @@
 	/**
 	 * クイック入力（言葉を押すと、各馬のふりかえりメモの本文に入る）。同じページの中で画面を切り替える（浅いルーティング）。
 	 * 履歴を1つ積み、`page.state.quickReview` が true のあいだ、ふりかえりのタブを隠してクイック入力を出す。
-	 * 押した結果はふりかえりのフォームの欄（`body.{entryId}`）に書くので、未保存の件数・下書き・保存の一括送信が今のまま効く。
+	 * 押した結果はふりかえりのフォームの欄（`body.{entryId}`）に書くので、戻った先にも最新が出て、下書きも今のまま効く。
+	 * 保存はその馬の本文だけを自動で送る（`?/quick`。`QuickSaver` が馬ごとに1本にする）。**データは読み直さない**
+	 * （`update`・`invalidateAll` を呼ぶと `page.state` が消えて、クイック入力が閉じ、履歴と食い違うため）。
 	 */
 	const quick = $derived(page.state.quickReview === true && data.rows.length > 0);
 	let quickPanel = $state<QuickReview>();
@@ -151,7 +154,7 @@
 	let scrollBefore = 0;
 
 	function openQuick() {
-		// 保存中は開かない。保存の update() が page.state を消すので、開いた直後に閉じて履歴と食い違う。
+		// 一括保存中は開かない。保存の update() が page.state を消すので、開いた直後に閉じて履歴と食い違う。
 		if (saving) return;
 		scrollBefore = window.scrollY;
 		pushState('', { ...page.state, quickReview: true });
@@ -210,12 +213,86 @@
 			data.rows.map((r) => [r.entryId, currentEntry(liveEntries, r.entryId, r.myNote).body])
 		)
 	);
-	/** 言葉を押した結果の本文を、ふりかえりのフォームの欄へ書く。`input` を投げて、件数・下書き・行のメモを今の経路で更新する。 */
+	/** クイック入力で保存が通った本文（出走馬の id → 送った本文）。再読み込みするまで `data` は古いので、書きかけの判定に使う。 */
+	let savedBodies = $state<Record<string, string>>({});
+	/** 保存の応答がログイン切れ（ログイン画面への転送）だったか。次に保存が通ると false に戻す。 */
+	let quickAuthExpired = $state(false);
+	const loginHref = $derived(
+		`${resolve('/login')}?redirect=${encodeURIComponent(page.url.pathname)}`
+	);
+	/** その馬の本文だけを `?/quick` へ送る。成功のときだけ true（失敗・例外・リダイレクトは false）。 */
+	async function sendQuick(entryId: string, body: string): Promise<boolean> {
+		try {
+			const fd = new FormData();
+			fd.set('entryId', entryId);
+			fd.set('body', body);
+			const res = await fetch(`${resolve('/races/[id]', { id: data.race.id })}?/quick`, {
+				method: 'POST',
+				body: fd,
+				headers: { 'x-sveltekit-action': 'true' }
+			});
+			// ログイン切れは hooks が /login へ 302 するので、fetch が追ってログイン画面の HTML を受ける。
+			if (res.redirected) return expired();
+			let result;
+			try {
+				result = deserialize(await res.text());
+			} catch {
+				// JSON でない応答（ログイン画面など）。
+				return expired();
+			}
+			if (result.type === 'redirect') return expired();
+			if (result.type === 'success') quickAuthExpired = false;
+			return result.type === 'success';
+		} catch {
+			return false;
+		}
+	}
+	/** ログイン切れとして失敗を返す。入力は DraftKeeper の下書きに残る。 */
+	function expired() {
+		quickAuthExpired = true;
+		return false;
+	}
+	const saver = new QuickSaver({
+		send: sendQuick,
+		onSaved: (entryId, body) => {
+			// 送った本文を保存済みにする。送信中に書き足した分・ほかの欄は未保存のまま数える。
+			keeper?.markSaved({ [`body.${entryId}`]: [body] });
+			savedBodies[entryId] = body;
+		}
+	});
+	/**
+	 * ふりかえりで手で書いた未保存の本文がある馬（開いた中で先に知らせる）。言葉を選ぶと、書きかけも一緒に保存される。
+	 * 保存中・失敗の馬は、言葉を選んだ結果なので書きかけとは言わない。
+	 */
+	const quickDrafts = $derived(
+		Object.fromEntries(
+			data.rows.map((r) => [
+				r.entryId,
+				quickBodies[r.entryId] !== (savedBodies[r.entryId] ?? r.myNote?.body ?? '') &&
+					saver.status[r.entryId] !== 'saving' &&
+					saver.status[r.entryId] !== 'error'
+			])
+		)
+	);
+	/**
+	 * 失敗した馬（省けば全頭）を送り直す。送るのは**いまの本文**（失敗のあとにふりかえりで書き足していれば、それも入れる）。
+	 * 最後に押した本文を控えて送り直すと、失敗のあとに書き足した分より古い本文で上書きしてしまうため。
+	 */
+	function retryQuick(entryId?: string) {
+		const ids = entryId
+			? [entryId]
+			: Object.keys(saver.status).filter((id) => saver.status[id] === 'error');
+		for (const id of ids) {
+			if (saver.status[id] === 'error') saver.save(id, quickBodies[id] ?? '');
+		}
+	}
+	/** 言葉を押した結果の本文を、ふりかえりのフォームの欄へ書く。`input` を投げて、件数・下書き・行のメモを今の経路で更新し、その馬の本文を保存する。 */
 	function setBody(entryId: string, body: string) {
 		const el = formEl?.elements.namedItem(`body.${entryId}`);
 		if (!(el instanceof HTMLTextAreaElement)) return;
 		el.value = body;
 		el.dispatchEvent(new Event('input', { bubbles: true }));
+		saver.save(entryId, body);
 	}
 
 	/**
@@ -265,6 +342,8 @@
 		if (liveFor && liveFor !== id) {
 			live = EMPTY_LIVE;
 			editingRows = {};
+			saver.reset();
+			savedBodies = {};
 		}
 		liveFor = id;
 	});
@@ -332,6 +411,7 @@
 	<!-- 1画面・1送信でレース1本分のふりかえりが完結する（pages.md）。 -->
 	<form
 		method="POST"
+		action="?/save"
 		bind:this={formEl}
 		use:enhance={() => {
 			saving = true;
@@ -355,6 +435,8 @@
 					if (result.type === 'success') {
 						live = EMPTY_LIVE;
 						editingRows = {};
+						saver.reset();
+						savedBodies = {};
 					}
 					// 保存が通ったときだけ下書きを捨てる。失敗したら残す
 					// （電波が悪くて落ちた場合、書いたものを失わないため）。
@@ -372,7 +454,13 @@
 		tabindex="-1"
 		class="mt-8 outline-none"
 	>
-		<DraftKeeper bind:this={keeper} bind:dirtyCount form={formEl} storageKey={draftKey} />
+		<DraftKeeper
+			bind:this={keeper}
+			bind:dirtyCount
+			busy={saver.busy}
+			form={formEl}
+			storageKey={draftKey}
+		/>
 		{#key data.race.id}
 			<div hidden={quick}>
 				<RacePanels label="ふりかえり">
@@ -743,16 +831,24 @@
 						{defaultsFormId}
 						{defaultsPending}
 						{defaultsError}
+						status={saver.status}
+						drafts={quickDrafts}
+						failed={saver.failed}
+						busy={saver.busy}
+						onretry={retryQuick}
+						authExpired={quickAuthExpired}
+						{loginHref}
 					/>
 				</div>
 			{/if}
 		{/key}
-		<!-- クイック入力のあいだは出さない。保存の update() が invalidateAll を呼んで page.state だけを消し、履歴と食い違うため。 -->
+		<!-- クイック入力のあいだは出さない。保存はクイック入力の中で済み、状態は下の帯に出るため
+		     （一括保存の update() は invalidateAll で page.state を消し、開いたまま保存すると履歴と食い違う）。 -->
 		{#if !quick}
 			<SaveBar
 				{dirtyCount}
 				label={raceReviewSaveLabel(data.rows.length)}
-				pending={saving}
+				pending={saving || saver.busy}
 				message={form && 'message' in form ? form.message : null}
 			/>
 		{/if}

@@ -7,7 +7,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - **ここに無いもの:** 色・部品の選び方は [design-system.md](./design-system.md)、
   ルートごとの入出力と action の約束は [api.md](./api.md)、どの層からどこを import してよいかは
   [architecture.md 第2章](./architecture.md)、テストの書き方は [testing.md](./testing.md)
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-12
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-07
 
 ---
 
@@ -58,7 +58,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - フォームは **JavaScript が無くても動く** HTML フォームを基本にし、`use:enhance` で上乗せする
 - 出走馬のように行が並ぶ一括フォームは、書きかけを失わないよう `DraftKeeper` を置く
   （未保存の件数・離脱時の確認・`localStorage` の下書き）。離脱時の確認は、読み込み直し・タブを閉じる
-  （`beforeunload`）と、アプリ内のリンク（`beforeNavigate`）の両方で出す
+  （`beforeunload`）と、アプリ内のリンク（`beforeNavigate`）の両方で出す。一部の欄だけ別の経路で保存したとき（クイック入力の自動保存）は、`markSaved(values)` でその欄だけ保存済みにする
 - 一括フォームの保存ボタンは `SaveBar` で出す。`DraftKeeper` の `bind:dirtyCount` を渡し、
   **未保存の変更があるときだけ**件数と一緒に出る。JS が無いときは `<noscript>` で常に出す。
   件数はメモの数で数える。欄の name は `body.<entryId>` のように `.` の後ろをメモの持ち主にそろえる
