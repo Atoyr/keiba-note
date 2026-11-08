@@ -12,6 +12,7 @@ import {
 	isNull,
 	sql
 } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { race, raceEntry } from '$lib/server/db/schema';
 import { COURSES } from '$lib/schemas/race';
