@@ -680,6 +680,49 @@ describe('parseShutubaPast', () => {
 		expect(map).toEqual(new Map());
 	});
 
+	// 実ページ（2026-11-08 東京11R の shutuba_past.html）から、凡例と行を2つ（B あり・なし）だけ切り出した縮め版。
+	// 構造（枠の Waku1〜8 と馬番の Waku、Horse02 の中の Mark、末尾の凡例）は実物のまま。
+	it('実ページの断片から読める（B ありの馬となしの馬）', () => {
+		const html = `<table class="Shutuba_Table Shutuba_Past5_Table table02"><tbody>
+<tr class="HorseList" id="tr_21">
+<td class="Waku1">1</td>
+<td class="Waku">1</td>
+<td class="Horse_Select"><select class="makeMeFancy_21" name="21" id="mark_21" style="display: none"><option value="1_0">--</option></select></td>
+<td class="Horse_Info" data-sort-value="99999999" id="Horse_Info_Data">
+<div class="fc">
+<div class="Horse01 fc">サートゥルナーリア</div>
+<div class="Horse02">
+<a href="https://db.netkeiba.com/horse/2022105710" target="_blank"> ジーティーダーリン</a>
+</div>
+<div class="Horse03">ディアマイダーリン</div>
+</div>
+</td>
+<td class="Past" id="myhorse_202609040311"><div class="Data_Item"></div></td>
+</tr><tr class="HorseList" id="tr_3">
+<td class="Waku5">5</td>
+<td class="Waku">10</td>
+<td class="Horse_Select"><select class="makeMeFancy_3" name="3" id="mark_3" style="display: none"><option value="10_0">--</option></select></td>
+<td class="Horse_Info" data-sort-value="99999999" id="Horse_Info_Data">
+<div class="fc">
+<div class="Horse01 fc">ハーツクライ</div>
+<div class="Horse02">
+<a href="https://db.netkeiba.com/horse/2019104658" target="_blank"> ボーンディスウェイ</a><span class="Mark">B</span>
+</div>
+<div class="Horse03">ウィンドハック</div>
+</div>
+</td>
+<td class="Past" id="myhorse_202609040311"><div class="Data_Item"></div></td>
+</tr>
+</tbody></table>
+<dl><dt class="Horse02">[馬記号] <span class="color_blue">馬名</span> [ブリンカー]</dt></dl>`;
+		expect(parseShutubaPast(html)).toEqual(
+			new Map([
+				['2022105710', false],
+				['2019104658', true]
+			])
+		);
+	});
+
 	it('凡例が無ければ null（B が無いことを着用なしと読まない）', () => {
 		expect(parseShutubaPast(pastRow({ umaban: 1, id: '2019104658', blinker: true }))).toBeNull();
 	});

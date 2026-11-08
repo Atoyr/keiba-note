@@ -30,28 +30,19 @@ const text = (c: CurrentConditions, runs: RunForConditions[]) =>
 	entryConditions(c, runs).map((i) => `${i.lead}${i.rest}`);
 
 describe('previousRun（前走の選び方）', () => {
-	it('着順のある最新の走が前走', () => {
+	it('新しい順の先頭が着順のある走なら、それが前走', () => {
 		const a = run({ jockey: 'A' });
 		expect(previousRun([a, run({ jockey: 'B' })])).toBe(a);
 	});
 
-	it('着順が無くてもレースに結果が入っていれば、取消・除外として飛ばす', () => {
-		const cancelled = run({ finishPosition: null, fieldSize: 14 });
+	it('先頭に着順が無ければ、レースに結果が入っていても前走なし（取消・除外と中止・失格を区別できない）', () => {
 		const prev = run({ jockey: 'C' });
-		expect(previousRun([cancelled, prev])).toBe(prev);
-		expect(
-			previousRun([run({ finishPosition: null, fieldSize: null, winnerName: 'X' }), prev])
-		).toBe(prev);
+		expect(previousRun([run({ finishPosition: null, fieldSize: 14 }), prev])).toBeNull();
+		expect(previousRun([run({ finishPosition: null, fieldSize: null }), prev])).toBeNull();
 	});
 
-	it('着順もレースの結果も無い走は、走ったか分からないので前走なし（古い走へ下りない）', () => {
-		const unknown = run({ finishPosition: null, fieldSize: null });
-		expect(previousRun([unknown, run()])).toBeNull();
-	});
-
-	it('過去走が無い・全部取消なら前走なし', () => {
+	it('過去走が無ければ前走なし', () => {
 		expect(previousRun([])).toBeNull();
-		expect(previousRun([run({ finishPosition: null, fieldSize: 10 })])).toBeNull();
 	});
 });
 
@@ -60,6 +51,15 @@ describe('sameJockey', () => {
 		expect(sameJockey('川田将雅', '川田将雅')).toBe(true);
 		expect(sameJockey('川田将', '川田将雅')).toBe(true);
 		expect(sameJockey('川田将雅', '武豊')).toBe(false);
+	});
+
+	it('全角半角・「.」・空白をそろえ、頭文字の有無も同じとみなす', () => {
+		expect(sameJockey('M.デムーロ', 'Mデムーロ')).toBe(true);
+		expect(sameJockey('Ｃ．ルメール', 'C.ルメール')).toBe(true);
+		expect(sameJockey('C.ルメール', 'ルメール')).toBe(true);
+		expect(sameJockey('Cルメール', 'ルメール')).toBe(true);
+		expect(sameJockey('M.デムーロ', 'C.ルメール')).toBe(false);
+		expect(sameJockey('', '武豊')).toBe(false);
 	});
 });
 
@@ -93,7 +93,13 @@ describe('entryConditions', () => {
 
 	it('一部未取得: 項目ごとに未取得と出し、前走があっても乗り替わりとは言わない', () => {
 		const items = text(now({ jockey: null, weightCarried: null }), [run()]);
-		expect(items).toEqual(['斤量 未取得', 'ブリンカー 未取得']);
+		expect(items).toEqual(['斤量・ブリンカー 未取得']);
+		// 片方だけ未取得なら今までどおり項目ごと
+		expect(text(now({ weightCarried: null, blinker: true }), [])).toEqual([
+			'斤量 未取得',
+			'ブリンカー 着用'
+		]);
+		expect(text(now({ blinker: null }), [])).toEqual(['斤量 56kg', 'ブリンカー 未取得']);
 	});
 
 	it('前走の斤量が無ければ増減は言わない', () => {
@@ -132,19 +138,27 @@ describe('entryConditions', () => {
 		).not.toMatch(/騎手変更|乗り替わり/);
 	});
 
-	it('取消の走は飛ばして、その前の走と比べる', () => {
-		const items = text(now({ jockey: 'B' }), [
-			run({ finishPosition: null, fieldSize: 10, jockey: 'X' }),
-			run({ jockey: 'A' })
-		]);
-		expect(items[0]).toBe('乗り替わり（前走 A）');
+	it('直近の走が着順なしなら、取消・除外でも結果未投入でも比べない（古い走へ下りない）', () => {
+		for (const latest of [
+			run({ finishPosition: null, fieldSize: 10, jockey: 'X', blinker: false }),
+			run({ finishPosition: null, fieldSize: null, jockey: 'X', blinker: false })
+		]) {
+			const items = text(now({ jockey: 'B', blinker: true }), [latest, run({ jockey: 'A' })]);
+			expect(items).toEqual(['斤量 56kg', 'ブリンカー 着用']);
+		}
 	});
 
-	it('直近の走が結果未投入なら比べない', () => {
-		const items = text(now({ jockey: 'B', blinker: true }), [
-			run({ finishPosition: null, fieldSize: null, jockey: 'X', blinker: false }),
-			run({ jockey: 'A' })
-		]);
-		expect(items).toEqual(['斤量 56kg', 'ブリンカー 着用']);
+	it('変化のある項目だけ strong', () => {
+		const strongs = (c: CurrentConditions, runs: RunForConditions[]) =>
+			entryConditions(c, runs)
+				.filter((i) => i.strong)
+				.map((i) => i.lead);
+		expect(
+			strongs(now({ jockey: 'B', weightCarried: 57, blinker: true }), [
+				run({ jockey: 'A', blinker: false })
+			])
+		).toEqual(['乗り替わり', '斤量', 'ブリンカー']);
+		expect(strongs(now({ blinker: true }), [run({ blinker: true })])).toEqual([]);
+		expect(strongs(now({ blinker: false }), [run({ blinker: true })])).toEqual(['ブリンカー']);
 	});
 });

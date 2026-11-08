@@ -26,6 +26,7 @@ import {
 	type ResultRow,
 	type ShutubaRow
 } from './netkeiba.ts';
+import { sameJockey } from '../../src/lib/utils/entry-conditions.ts';
 import type { Fields, RaceFields, RaceFile } from './yaml-file.ts';
 
 /** 騎手・調教師の略称を、略さない名前に引き直す。 */
@@ -74,11 +75,6 @@ function nameWarning(entry: YAMLMap, name: string): string[] {
 function label(e: YAMLMap): string {
 	const no = e.get('horseNumber');
 	return `${no ? `${String(no).padStart(2)} ` : ''}${e.get('name')}`;
-}
-
-/** 騎手名が同じか。略称（片方がもう片方の頭と一致）も同じとみなす。 */
-function sameJockey(a: string, b: string): boolean {
-	return a === b || a.startsWith(b) || b.startsWith(a);
 }
 
 /**
@@ -198,7 +194,15 @@ export async function applyPastRuns(
 
 	for (const [i, run] of picked.entries()) {
 		const file = await openFile(run.date);
-		const blinker = i === 0 && opts.blinkerOf ? await opts.blinkerOf(run) : undefined;
+		// 前走の行にすでに blinker があれば、5走表示を取りに行かない（fill は書き換えないので無駄な取得になる）。
+		const known = file.findRace(run.course, run.raceNumber);
+		const knownEntry = known
+			? file.findEntry(known, { ref: horse.ref, name: horse.name })
+			: undefined;
+		const blinker =
+			i === 0 && opts.blinkerOf && knownEntry?.get('blinker') === undefined
+				? await opts.blinkerOf(run)
+				: undefined;
 		const race = file.ensureRace(run.course, run.raceNumber, {
 			...raceFields(run.race),
 			trackCondition: run.race.trackCondition,

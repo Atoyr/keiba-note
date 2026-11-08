@@ -27,31 +27,40 @@ export type CurrentConditions = {
 /** 1項目。`lead` は先頭の語（変化の語は強めに出す）、`rest` はそのあとの文字。 */
 export type ConditionItem = { lead: string; rest: string; strong: boolean };
 
-/** 騎手名が同じか。略称（片方がもう片方の頭と一致）も同じとみなす。取り込み側（apply.ts）と同じ比べ方。 */
+/** 比べる前の下ごしらえ。全角半角をそろえ、「.」と空白を落とす（`C.ルメール` / `Ｃ．ルメール` / `Cルメール`）。 */
+const normalizeJockey = (s: string) => s.normalize('NFKC').replace(/[.\s]/g, '');
+
+/**
+ * 騎手名が同じか。表記ゆれ（全角半角・「.」・空白）をそろえたうえで、同じか前方一致（略称）なら同じ。
+ * 片方の頭が英大文字1字（頭文字）なら、それを落とした形でも比べる（`M.デムーロ` と `デムーロ`）。
+ * 取り込み側（scripts/race-data/apply.ts）もこの関数を使う。
+ */
 export function sameJockey(a: string, b: string): boolean {
-	return a === b || a.startsWith(b) || b.startsWith(a);
+	const forms = (s: string) => {
+		const n = normalizeJockey(s);
+		const bare = n.replace(/^[A-Z]/, '');
+		return bare !== n && bare !== '' ? [n, bare] : [n];
+	};
+	return forms(a).some((x) =>
+		forms(b).some((y) => x !== '' && y !== '' && (x.startsWith(y) || y.startsWith(x)))
+	);
 }
 
 /**
- * 前走。**取り込まれている過去走（新しい順）のうち、今回より前に実際に出走した最新のレース。**
+ * 前走。**取り込まれている過去走（新しい順）の先頭が、着順のある走ならそれ。** 着順が無ければ null（比べない）。
  *
- * - 着順がある → 前走
- * - 着順が無く、レースに結果が入っている（頭数・勝ち馬・2着馬のどれか）→ 取消・除外（・中止）として飛ばす
- * - 着順が無く、レースに結果も無い → 走ったか分からないので前走なし（比べない）。古い走へは下りない
+ * 着順が無い走は、取消・除外（走っていない）か中止・失格（走った）か、データからは区別できない。
+ * 飛ばして古い走と比べると、走った中止の走を無視してしまうことがあるので、断定せず前走なしにする。
  */
 export function previousRun<T extends RunForConditions>(runs: readonly T[]): T | null {
-	for (const run of runs) {
-		if (run.finishPosition !== null) return run;
-		const settled = run.fieldSize !== null || run.winnerName !== null || run.runnerUpName !== null;
-		if (!settled) return null;
-	}
-	return null;
+	const latest = runs[0];
+	return latest && latest.finishPosition !== null ? latest : null;
 }
 
 /** 57 → `57kg`、57.5 → `57.5kg`。 */
 const kg = (n: number) => `${n}kg`;
 
-/** 前走との差。`+1kg`・`-1kg`・`+0.5kg`。0.1 単位に丸める（浮動小数の端数を出さない）。 */
+/** 前走との差の表記。`+1kg`・`-1kg`・`+0.5kg`。浮動小数の端数は呼ぶ側で 0.1 単位に丸めてから渡す。 */
 function diffLabel(diff: number): string {
 	return `${diff > 0 ? '+' : ''}${kg(diff)}`;
 }
@@ -78,7 +87,7 @@ export function entryConditions(
 
 	// 斤量
 	if (current.weightCarried === null) {
-		items.push({ lead: '斤量', rest: ' 未取得', strong: false });
+		if (current.blinker !== null) items.push({ lead: '斤量', rest: ' 未取得', strong: false });
 	} else {
 		const base = ` ${kg(current.weightCarried)}`;
 		if (prev?.weightCarried == null) {
@@ -88,18 +97,31 @@ export function entryConditions(
 			items.push({
 				lead: '斤量',
 				rest: `${base}（${diff === 0 ? '前走と同じ' : `前走比 ${diffLabel(diff)}`}）`,
-				strong: false
+				strong: diff !== 0
 			});
 		}
 	}
 
 	// ブリンカー: 前走が分かるときだけ、着用開始・外すを言う。
 	const prevBlinker = prev?.blinker ?? null;
-	let blinker: string;
-	if (current.blinker === null) blinker = ' 未取得';
-	else if (current.blinker) blinker = prevBlinker === false ? ' 着用開始' : ' 着用';
-	else blinker = prevBlinker === true ? ' 外す（前走は着用）' : ' なし';
-	items.push({ lead: 'ブリンカー', rest: blinker, strong: false });
+	if (current.blinker === null) {
+		// 斤量もブリンカーも未取得なら、1項目にまとめる（全部未取得の行が2行を使わないように）。
+		items.push(
+			current.weightCarried === null
+				? { lead: '斤量・ブリンカー', rest: ' 未取得', strong: false }
+				: { lead: 'ブリンカー', rest: ' 未取得', strong: false }
+		);
+	} else if (current.blinker) {
+		const start = prevBlinker === false;
+		items.push({ lead: 'ブリンカー', rest: start ? ' 着用開始' : ' 着用', strong: start });
+	} else {
+		const off = prevBlinker === true;
+		items.push({
+			lead: 'ブリンカー',
+			rest: off ? ' 外す（前走は着用）' : ' なし',
+			strong: off
+		});
+	}
 
 	return items;
 }

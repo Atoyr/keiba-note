@@ -293,7 +293,12 @@ async function main() {
 			if (isShutubaConfirmed(parsed.rows)) {
 				const blinkers = await fetchBlinkers(raceId);
 				if (blinkers) {
-					for (const row of parsed.rows) row.blinker = blinkers.get(row.horseId);
+					for (const row of parsed.rows) {
+						row.blinker = blinkers.get(row.horseId);
+						if (row.blinker === undefined) {
+							console.warn(`! ${row.name}: 5走表示に馬が見つからないので、ブリンカーは書きません`);
+						}
+					}
 				}
 			}
 			const file = await RaceFile.load(args.dir, t.date);
@@ -341,7 +346,14 @@ async function main() {
 							if (!pastBlinkers.has(run.raceId)) {
 								pastBlinkers.set(run.raceId, await fetchBlinkers(run.raceId));
 							}
-							return pastBlinkers.get(run.raceId)?.get(horseId);
+							const map = pastBlinkers.get(run.raceId);
+							const hit = map?.get(horseId);
+							if (map && hit === undefined) {
+								console.warn(
+									`! ${name}: 前走（${run.raceId}）の5走表示に馬が見つからないので、ブリンカーは書きません`
+								);
+							}
+							return hit;
 						}
 					},
 					people.resolve

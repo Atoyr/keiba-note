@@ -759,20 +759,24 @@ test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリン�
 	await expect(hajimete).toContainText('斤量 55kg');
 	await expect(hajimete).not.toContainText('前走');
 	await expect(hajimete).toContainText('ブリンカー 未取得');
+	await expect(hajimete).not.toContainText('斤量・ブリンカー');
 
-	// 一部未取得: 騎手・斤量・ブリンカーとも未取得。前走があっても乗り替わりとは言わない。
+	// 一部未取得: 騎手も斤量もブリンカーも未取得（斤量とブリンカーは1項目にまとめる）。前走があっても乗り替わりとは言わない。
 	const fumei = page.locator('main li[id^="entry-"]', { hasText: 'E2Eフメイ' });
 	await expect(fumei).toContainText('騎手 未取得');
-	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText('斤量 未取得');
-	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText('ブリンカー 未取得');
+	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText(
+		'斤量・ブリンカー 未取得'
+	);
 	await expect(fumei.getByRole('list', { name: '今回の条件' })).not.toContainText('乗り替わり');
 
-	// 取消の走は飛ばして、その前の走と比べる。騎手変更（発表時の騎手）は乗り替わりと別に出る。
+	// 直近の走が着順なし（取消・除外か中止・失格か区別できない）なら前走なし。乗り替わり・前走比は出さない。
+	// 騎手変更（発表時の騎手）は前走とは別に出る。
 	const henkou = conditions('E2Eヘンコウ');
-	await expect(henkou).toContainText('乗り替わり（前走 戸崎圭太）');
 	await expect(henkou).toContainText('騎手変更（発表時 戸崎圭太）');
-	await expect(henkou).toContainText('斤量 58kg（前走比 +0.5kg）');
+	await expect(henkou).toContainText('斤量 58kg');
+	await expect(henkou).not.toContainText('前走');
 	await expect(henkou).toContainText('ブリンカー 着用');
+	await expect(henkou).not.toContainText('乗り替わり');
 	await expect(henkou).not.toContainText('着用開始');
 
 	// 直近の走が結果未投入なら、走ったか分からないので比べない。

@@ -69,7 +69,7 @@ const entrySchema = v.object({
 	/**
 	 * 出馬表の公開後に騎手が変わったときの、**発表時の騎手**。`data:fetch entries` / `result` が、
 	 * 取得済みの騎手と違うときに前の騎手を入れる（取得元に変更前の騎手は無いので、差分で持つ）。
-	 * 一度入れたら書き換えない。`jockey` が無い行には書けない。
+	 * 取得が一度入れたら書き換えない（投入は、書けば上書き・書かなければ既存を残す）。`jockey` が無い行には書けない。
 	 */
 	announcedJockey: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 	sex: optional(['牡', '牝', 'セ'] as const),

@@ -669,4 +669,46 @@ describe('ブリンカーと騎手変更', () => {
 		expect(files.get('2026-08-09')!.toString()).toContain('        blinker: true\n');
 		expect(files.get('2026-07-05')!.toString()).not.toContain('blinker');
 	});
+
+	it('前走の行にすでに blinker があれば、5走表示を取りに行かない', async () => {
+		const file = RaceFile.parse(
+			'2026-08-09.yaml',
+			`date: 2026-08-09
+
+races:
+  - course: 中京
+    raceNumber: 7
+    name: CBC賞
+    entries:
+      - name: ホースA
+        ref: nk-1
+        blinker: false
+`
+		);
+		let asked = 0;
+		await applyPastRuns(
+			async () => file,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[
+				{
+					date: '2026-08-09',
+					course: '中京',
+					raceNumber: 7,
+					raceId: 'prev',
+					race: { name: 'CBC賞' },
+					finish: 3
+				}
+			],
+			{
+				before: '2026-09-27',
+				count: 5,
+				blinkerOf: async () => {
+					asked++;
+					return true;
+				}
+			}
+		);
+		expect(asked).toBe(0);
+		expect(file.toString()).toContain('blinker: false');
+	});
 });
