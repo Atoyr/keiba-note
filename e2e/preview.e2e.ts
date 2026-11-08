@@ -4,6 +4,7 @@ import { login } from './login';
 import { openRaceMenu, raceMenuItem } from './race-menu';
 import {
 	BRACKET_RACE_ID,
+	CONDITIONS_RACE_ID,
 	EMPTY_RACE_ID,
 	MARKS_RACE_ID,
 	OTHER_DISTANCE_NOTE_BODY,
@@ -723,4 +724,61 @@ test('ふりかえり画面でも、馬柱の帯をトグルで出せる', async
 	const strip = page.getByRole('list', { name: /の馬柱（直近5走）/ }).first();
 	await expect(strip).toBeVisible();
 	await expect(strip.getByRole('listitem').first()).toContainText('25/11/09');
+});
+
+/**
+ * 出走馬の行に、今回の条件（騎手・斤量・ブリンカー）と前走からの変化が出る。詳細を開かずに読める。
+ * 変化は語で出し（色だけに頼らない）、前走が分からないときは同じとも違うとも言わない。
+ */
+test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリンカーと前走からの変化が出る', async ({
+	page
+}) => {
+	await login(page);
+	await page.goto(`/races/${CONDITIONS_RACE_ID}/preview`);
+
+	const conditions = (name: string) =>
+		page.locator('main li[id^="entry-"]', { hasText: name }).getByRole('list', {
+			name: '今回の条件'
+		});
+
+	// 乗り替わり（前走の騎手）・斤量の増減・ブリンカーの着用開始。
+	const norikae = conditions('E2Eノリカエ');
+	await expect(norikae).toContainText('乗り替わり（前走 武豊）');
+	await expect(norikae).toContainText('斤量 57kg（前走比 +1kg）');
+	await expect(norikae).toContainText('ブリンカー 着用開始');
+	await expect(norikae).not.toContainText('騎手変更');
+
+	// 同じ騎手は乗り替わりと言わない。斤量は同じ・ブリンカーは外す。
+	const onaji = conditions('E2Eオナジ');
+	await expect(onaji).not.toContainText('乗り替わり');
+	await expect(onaji).toContainText('斤量 56kg（前走と同じ）');
+	await expect(onaji).toContainText('ブリンカー 外す（前走は着用）');
+
+	// 過去走なし: 斤量は今回の値だけ。ブリンカーは不明（着用なしと言わない）。
+	const hajimete = conditions('E2Eハジメテ');
+	await expect(hajimete).toContainText('斤量 55kg');
+	await expect(hajimete).not.toContainText('前走');
+	await expect(hajimete).toContainText('ブリンカー 未取得');
+
+	// 一部未取得: 騎手・斤量・ブリンカーとも未取得。前走があっても乗り替わりとは言わない。
+	const fumei = page.locator('main li[id^="entry-"]', { hasText: 'E2Eフメイ' });
+	await expect(fumei).toContainText('騎手 未取得');
+	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText('斤量 未取得');
+	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText('ブリンカー 未取得');
+	await expect(fumei.getByRole('list', { name: '今回の条件' })).not.toContainText('乗り替わり');
+
+	// 取消の走は飛ばして、その前の走と比べる。騎手変更（発表時の騎手）は乗り替わりと別に出る。
+	const henkou = conditions('E2Eヘンコウ');
+	await expect(henkou).toContainText('乗り替わり（前走 戸崎圭太）');
+	await expect(henkou).toContainText('騎手変更（発表時 戸崎圭太）');
+	await expect(henkou).toContainText('斤量 58kg（前走比 +0.5kg）');
+	await expect(henkou).toContainText('ブリンカー 着用');
+	await expect(henkou).not.toContainText('着用開始');
+
+	// 直近の走が結果未投入なら、走ったか分からないので比べない。
+	const miketsu = conditions('E2Eミケッテイ');
+	await expect(miketsu).toContainText('斤量 56kg');
+	await expect(miketsu).not.toContainText('前走');
+	await expect(miketsu).toContainText('ブリンカー なし');
+	await expect(miketsu).not.toContainText('外す');
 });

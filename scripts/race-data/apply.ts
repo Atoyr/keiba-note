@@ -6,10 +6,10 @@
  *
  * | 手順     | 上書きするもの                                   | 残すもの                 |
  * | -------- | ------------------------------------------------ | ------------------------ |
- * | 出馬表   | 枠・馬番（確定後）・騎手・性齢・斤量・調教師・所属・ref | 馬名・結果・血統         |
- * | 過去走   | —（空いている項目だけ埋める。頭数・勝ち馬・タイム差もここで入る） | 既に書いてある値すべて |
+ * | 出馬表   | 枠・馬番（確定後）・騎手・性齢・斤量・ブリンカー（確定後）・調教師・所属・ref。騎手が変わっていれば発表時の騎手（無ければ） | 馬名・結果・血統         |
+ * | 過去走   | —（空いている項目だけ埋める。頭数・勝ち馬・タイム差もここで入る。前走だけブリンカーも） | 既に書いてある値すべて |
  * | 基本情報 | 性・馬齢・生年月日・調教師・所属・父・母・母父・ref  | 馬名・レースの値         |
- * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数・勝ち馬・2着馬 | 馬名・基本情報 |
+ * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数・勝ち馬・2着馬。騎手が変わっていれば発表時の騎手（無ければ） | 馬名・基本情報 |
  *
  * **馬名は書き換えない。** ref が付いた馬の名前を変えると、ほかの開催日のファイルと
  * 食い違って `data:check` が落ちる（data/README.md「馬名を直す」）。食い違いは警告だけ出す。
@@ -76,6 +76,30 @@ function label(e: YAMLMap): string {
 	return `${no ? `${String(no).padStart(2)} ` : ''}${e.get('name')}`;
 }
 
+/** 騎手名が同じか。略称（片方がもう片方の頭と一致）も同じとみなす。 */
+function sameJockey(a: string, b: string): boolean {
+	return a === b || a.startsWith(b) || b.startsWith(a);
+}
+
+/**
+ * 騎手変更の検知。**YAML の行に馬番がすでにある**（＝前回の取得が枠順確定後）のに騎手が違うときだけ、
+ * 前の騎手を「発表時の騎手」として返す。すでに `announcedJockey` があれば返さない（再変更でも最初のまま）。
+ * 取得元に変更前の騎手は無いので、取得済みの騎手との差分で持つ。
+ */
+function jockeyChange(
+	entry: YAMLMap | undefined,
+	next: string | undefined,
+	log: string[]
+): string | undefined {
+	const before = entry?.get('jockey');
+	if (!entry || entry.get('horseNumber') === undefined || typeof before !== 'string')
+		return undefined;
+	if (!next || sameJockey(before, next)) return undefined;
+	if (entry.has('announcedJockey')) return undefined;
+	log.push(`! 騎手変更 ${entry.get('name')}: ${before} → ${next}`);
+	return before;
+}
+
 /**
  * 枠順が確定した出馬表か。**馬番が1頭でも付いていれば確定。** 枠が決まる前の出馬表（登録馬）には馬番が無い。
  * 定期取得（`--require-confirmed`）は、これが偽なら何も書かずに終える。
@@ -108,13 +132,17 @@ export async function applyShutuba(
 		const existing = file.findEntry(race, { ref, name: row.name });
 		if (existing) log.push(...nameWarning(existing, row.name));
 
+		const jockey = row.jockey ? await resolve('jockey', row.jockey) : undefined;
 		const fields: Fields = {
 			name: (existing?.get('name') as string | undefined) ?? row.name,
 			ref,
 			sex: row.sex,
 			age: row.age,
 			weight: row.weight,
-			jockey: row.jockey ? await resolve('jockey', row.jockey) : undefined,
+			jockey,
+			...(confirmed
+				? { announcedJockey: jockeyChange(existing, jockey, log), blinker: row.blinker }
+				: {}),
 			trainer: row.trainer ? await resolve('trainer', row.trainer) : undefined,
 			trainingCenter: row.trainingCenter,
 			...(confirmed ? { bracket: row.bracket, horseNumber: row.horseNumber } : {})
@@ -155,7 +183,12 @@ export async function applyPastRuns(
 	openFile: (date: string) => Promise<RaceFile>,
 	horse: { name: string; ref: string },
 	runs: PastRun[],
-	opts: { before: string; count: number },
+	opts: {
+		before: string;
+		count: number;
+		/** 前走（取消・除外を除いた最新）のブリンカー。取れない・不明なら undefined。前走の1走だけに使う */
+		blinkerOf?: (run: PastRun) => Promise<boolean | undefined>;
+	},
 	resolve?: ResolvePerson
 ): Promise<string[]> {
 	const picked = runs
@@ -163,8 +196,9 @@ export async function applyPastRuns(
 		.slice(0, opts.count);
 	const log: string[] = [];
 
-	for (const run of picked) {
+	for (const [i, run] of picked.entries()) {
 		const file = await openFile(run.date);
+		const blinker = i === 0 && opts.blinkerOf ? await opts.blinkerOf(run) : undefined;
 		const race = file.ensureRace(run.course, run.raceNumber, {
 			...raceFields(run.race),
 			trackCondition: run.race.trackCondition,
@@ -193,6 +227,7 @@ export async function applyPastRuns(
 				passing: run.passing,
 				last3f: run.last3f,
 				weight: run.weight,
+				blinker,
 				horseWeight: run.horseWeight,
 				horseWeightDiff: run.horseWeightDiff,
 				odds: run.odds
@@ -330,6 +365,7 @@ export async function applyResult(
 			continue;
 		}
 		used.add(row);
+		const jockey = row.jockey ? await resolve('jockey', row.jockey) : undefined;
 		file.upsertEntry(
 			race,
 			{
@@ -337,7 +373,8 @@ export async function applyResult(
 				ref: ref ?? toRef(row.horseId),
 				bracket: row.bracket,
 				horseNumber: row.horseNumber,
-				jockey: row.jockey ? await resolve('jockey', row.jockey) : undefined,
+				jockey,
+				announcedJockey: jockeyChange(entry, jockey, log),
 				finish: row.finish,
 				popularity: row.popularity,
 				time: row.time,

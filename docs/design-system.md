@@ -162,6 +162,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `HorseProfileBadges` | 馬の基本情報の札（父 / 母・母父 / 所属・調教師の3段）。値の無い項目は出さず、全部無ければ何も描かない。`HorseProfileHeader` と `HorseLink` が使う。色は第7章 |
 | `SexAgeBadge` | 出走馬の行の性齢の札（`牡4`）。馬詳細の性齢の札と同じ見た目。`label` は `sexAgeLabel` の結果で、null なら何も描かない。色は第7章 |
 | `JockeyTagBadges` / `JockeyTagPicker` | 騎手に付けた札（中山巧者など）の表示と選択。系統ごとの色の意味は無いので、塗らずにテーマカラーの薄い面と枠で出し、選んだ札には ✓ も付ける（色だけに頼らない）。選ぶ側は系統（得意な場・条件・乗り方・狙いどころ）ごとに段に分ける |
+| `EntryConditions` | 予想画面の出走馬の行の名前の列に出す、今回の条件（乗り替わり・騎手変更・斤量・ブリンカー）と前走からの変化。`text-xs` の折り返す一覧（`flex-wrap`）で、変化の語（乗り替わり・騎手変更）だけ `font-medium text-foreground`、ほかは muted。色ではなく語で区別する。組み立ては `utils/entry-conditions.ts`（`entryConditions`）で、部品は並べるだけ |
 | `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分の騎手のメモがあれば notebook-pen のアイコンを添え、クリック・タップで `Popover` にメモの全文と「騎手の画面へ」を開く（hydration 前とメモが無いときはただのリンク）。隣の札は呼ぶ側が `JockeyTagBadges` で置く |
 | `HorseLink` | 出走馬の行の馬名。馬の画面へのリンクで、基本情報が1つでもあれば、クリック・タップで `Popover` に `HorseProfileBadges` と「馬の画面へ」を開く（hydration 前と基本情報が無いときはただのリンク。→ [pages.md 5-1](./pages.md)） |
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |

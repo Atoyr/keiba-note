@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
+	import EntryConditions from '$lib/components/EntryConditions.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
@@ -520,7 +521,14 @@
 																class="min-h-6 self-start"
 															/>
 														{/if}
+													{:else}
+														<span class="min-h-6 self-start text-sm leading-6 text-muted-foreground"
+															>騎手 未取得</span
+														>
 													{/if}
+													<!-- 今回の条件（斤量・ブリンカー）と前走からの変化。詳細を開かずに読めるよう名前の列に置く。
+								     変化の語（乗り替わり・騎手変更）は語で区別し、項目単位で折り返す。 -->
+													<EntryConditions items={r.conditions} class="self-start" />
 													<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
 													{#if conclusion}

@@ -5,8 +5,8 @@
  * （投入は data/README.md の経路のまま）。人でも AI でも、同じコマンドで同じ YAML になる。
  *
  *   pnpm run data:fetch races   2026-09-27              その日のレース一覧（race_id）
- *   pnpm run data:fetch entries 2026-09-27 中山 11      候補（枠順前）/ 枠順（確定後）
- *   pnpm run data:fetch past    2026-09-27 中山 11      出走馬の過去5走
+ *   pnpm run data:fetch entries 2026-09-27 中山 11      候補（枠順前）/ 枠順（確定後。ブリンカーと騎手変更も）
+ *   pnpm run data:fetch past    2026-09-27 中山 11      出走馬の過去5走（前走のブリンカーも）
  *   pnpm run data:fetch horses  2026-09-27 中山 11      馬の基本情報（性齢・調教師・血統）
  *   pnpm run data:fetch result  2026-09-27 中山 11      結果
  *
@@ -43,6 +43,7 @@ import {
 	parseRaceList,
 	parseResult,
 	parseShutuba,
+	parseShutubaPast,
 	raceIdFromRef,
 	setRequestInterval,
 	toHalfWidth,
@@ -222,6 +223,21 @@ function selectEntries(args: Args, file: RaceFile, race: ReturnType<RaceFile['fi
 	return all.filter((e) => args.horses.some((h) => h === e.get('name') || h === e.get('ref')));
 }
 
+/** レースの5走表示からブリンカーの着用を読む。取れない・読めないときは警告だけ出して null（不明のまま）。 */
+async function fetchBlinkers(raceId: string): Promise<Map<string, boolean> | null> {
+	try {
+		const map = parseShutubaPast(await fetchPage(urls.shutubaPast(raceId)));
+		if (!map)
+			console.warn(`! ${raceId}: 5走表示にブリンカーの凡例が無いので、ブリンカーは書きません`);
+		return map;
+	} catch (e) {
+		console.warn(
+			`! ${raceId}: 5走表示を取れませんでした。ブリンカーは書きません: ${(e as Error).message}`
+		);
+		return null;
+	}
+}
+
 function print(title: string, lines: string[]) {
 	console.log(title);
 	for (const l of lines) console.log(`  ${l}`);
@@ -273,6 +289,13 @@ async function main() {
 				);
 				return;
 			}
+			// ブリンカーは5走表示にしか出ない。枠順確定後だけ1回余分に取る。失敗しても出馬表は書く（ブリンカーは不明のまま）
+			if (isShutubaConfirmed(parsed.rows)) {
+				const blinkers = await fetchBlinkers(raceId);
+				if (blinkers) {
+					for (const row of parsed.rows) row.blinker = blinkers.get(row.horseId);
+				}
+			}
 			const file = await RaceFile.load(args.dir, t.date);
 			const people = await peopleResolver();
 			const log = await applyShutuba(file, t.course, t.raceNumber, parsed, people.resolve);
@@ -293,6 +316,8 @@ async function main() {
 				return files.get(date)!;
 			};
 
+			// 前走のブリンカーは、前走のレースの5走表示から読む。同じレースは1回だけ取る
+			const pastBlinkers = new Map<string, Map<string, boolean> | null>();
 			for (const entry of selectEntries(args, file, race)) {
 				const name = entry.get('name') as string;
 				const ref = entry.get('ref') as string | undefined;
@@ -308,7 +333,17 @@ async function main() {
 					openFile,
 					{ name, ref },
 					runs,
-					{ before: t.date, count: args.count },
+					{
+						before: t.date,
+						count: args.count,
+						blinkerOf: async (run) => {
+							if (!run.raceId) return undefined;
+							if (!pastBlinkers.has(run.raceId)) {
+								pastBlinkers.set(run.raceId, await fetchBlinkers(run.raceId));
+							}
+							return pastBlinkers.get(run.raceId)?.get(horseId);
+						}
+					},
 					people.resolve
 				);
 				print(name, log);

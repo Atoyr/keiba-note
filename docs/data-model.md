@@ -100,6 +100,9 @@ Google アカウント1つ。`google_sub` がログイン時の引き当てキ�
 
 - `finish_position` が NULL なら未確定・除外
 - `time_diff` は勝ち馬とのタイム差（秒）。勝ち馬は2着との差を**負**で持つ（`-0.2`）。`margin`（競馬の着差の表記 `クビ`）とは別
+- `blinker` はブリンカーの着用（1 着用 / 0 なし）。**NULL は不明で、「なし」ではない**。5走表示にしか出ないので、`entries`（枠順確定後）と `past`（前走ぶん）だけが書く（→ [data/README.md](../data/README.md)）
+- `announced_jockey` は出馬表の公開後に騎手が変わったときの、発表時の騎手。変わっていなければ NULL。取得元に変更前の騎手は無いので、取得済みの騎手との差分で入れ、一度入れたら書き換えない。`jockey` が現在の騎手
+- `weight_carried` は斤量（kg）。「馬体重」（`horse_weight`）とは別
 - `odds`・`popularity` は YAML で入る**確定**の値。予想画面のオッズは `race_odds`
 - `entry_jockey` の索引は騎手の画面と一覧のため。騎手は表を持たず、この列の名前で束ねる
 

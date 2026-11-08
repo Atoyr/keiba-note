@@ -176,6 +176,13 @@
       "when": 1793539777029,
       "tag": "0024_perfect_doctor_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1794143494607,
+      "tag": "0025_outgoing_carmella_unuscione",
+      "breakpoints": true
     }
   ]
 }

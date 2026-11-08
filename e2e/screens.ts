@@ -7,6 +7,7 @@ import {
 	ACTUAL_FLOW_18_RACE_ID,
 	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
+	CONDITIONS_RACE_ID,
 	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
 	FLOW_CROWD_RACE_ID,
@@ -378,6 +379,12 @@ export const SCREENS: Screen[] = [
 			await page.getByRole('button', { name: 'まとめて保存' }).click();
 			await page.locator('[data-sonner-toast]').waitFor();
 		}
+	},
+	{
+		// 今回の条件（乗り替わり・騎手変更・斤量の増減・ブリンカーの着用開始/外す・未取得・比べない）の6頭。
+		name: 'race-preview-conditions',
+		path: `/races/${CONDITIONS_RACE_ID}/preview`,
+		auth: true
 	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{

@@ -234,6 +234,9 @@ export const WEBMCP_ENTRY_IDS = [
 /** 枠の色を見るレース。出走2頭の枠は1枠（白）と8枠（桃）。 */
 export const BRACKET_RACE_ID = '01JE2ERACEBRACKET000000000';
 
+/** 今回の条件（騎手・斤量・ブリンカーと前走からの変化）を見る6頭のレース。 */
+export const CONDITIONS_RACE_ID = '01JE2ERACECONDNOW000000000';
+
 /**
  * 予想印の見本のレース。出走6頭に ◎ ○ ▲ △ ☆ × を1つずつ付け、着順も入れてある。
  * 7頭目（印なし）も含めてオッズがあり、人気順は ① → ②③（同じ2人気）→ ⑥ → ④ → ⑤ → ⑦（取消・人気なし）。

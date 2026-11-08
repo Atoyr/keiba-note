@@ -11,6 +11,7 @@ import {
 	parseResult,
 	parseSexAge,
 	parseShutuba,
+	parseShutubaPast,
 	parseTrackCondition,
 	raceIdFromRef,
 	setRequestInterval,
@@ -640,5 +641,46 @@ describe('setRequestInterval', () => {
 	it('0.5秒以上なら受け付ける', () => {
 		expect(() => setRequestInterval(500)).not.toThrow();
 		setRequestInterval(1000);
+	});
+});
+
+describe('parseShutubaPast', () => {
+	// 5走表示の一覧の行と凡例。馬番は2つ目の Waku、ブリンカーは馬名の後ろの Mark。
+	const pastRow = (o: { umaban?: number; id: string; blinker?: boolean }) =>
+		`<tr class="HorseList" id="tr_1">
+<td class="Waku1">1</td>
+<td class="Waku">${o.umaban ?? ''}</td>
+<td class="Horse_Info"><div class="fc">
+<div class="Horse01 fc">父</div>
+<div class="Horse02">
+<a href="https://db.netkeiba.com/horse/${o.id}" target="_blank"> 馬${o.id}</a>${o.blinker ? '<span class="Mark">B</span>' : ''}
+</div>
+</div></td>
+<td class="Past"><div class="Data_Item"></div></td>
+</tr>`;
+	const legend = `<table class="Shutuba_Table Shutuba_Past5_Table table02"><tr class="HorseList"><td class="Horse_Info"><dl>
+<dt class="Horse02">[馬記号] <span class="color_blue">馬名</span> [ブリンカー]</dt></dl></td></tr></table>`;
+
+	it('馬名の後ろの B を着用、無ければ着用なしとして馬ごとに返す', () => {
+		const map = parseShutubaPast(
+			pastRow({ umaban: 1, id: '2019104658', blinker: true }) +
+				pastRow({ umaban: 2, id: '2022105710' }) +
+				legend
+		);
+		expect(map).toEqual(
+			new Map([
+				['2019104658', true],
+				['2022105710', false]
+			])
+		);
+	});
+
+	it('馬番の無い行（枠順確定前）は判断材料にしない', () => {
+		const map = parseShutubaPast(pastRow({ id: '2019104658', blinker: true }) + legend);
+		expect(map).toEqual(new Map());
+	});
+
+	it('凡例が無ければ null（B が無いことを着用なしと読まない）', () => {
+		expect(parseShutubaPast(pastRow({ umaban: 1, id: '2019104658', blinker: true }))).toBeNull();
 	});
 });

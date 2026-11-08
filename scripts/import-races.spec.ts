@@ -480,3 +480,55 @@ describe('出走馬の生年月日（birthDate）と母父（damSire）', () => 
 		expect(errors(withProfile('birthDate: 2095-02-30')).length).toBe(1);
 	});
 });
+
+describe('出走馬のブリンカー（blinker）と発表時の騎手（announcedJockey）', () => {
+	const withCond = (extra: string) =>
+		candidates.replace(
+			'{ name: ホースA, ref: t-a }',
+			`{ name: ホースA, ref: t-a, jockey: 川田将雅, ${extra} }`
+		);
+	const rowOf = (db: DatabaseSync) =>
+		db
+			.prepare(
+				`SELECT re.blinker, re.announced_jockey FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-a'`
+			)
+			.get();
+	const sql = (yaml: string) => {
+		const parsed = readRaceFile(yaml, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		return statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n');
+	};
+
+	it('race_entry の列に入り、書かなければ既存の値を残す。書けば上書きする（false は着用なし）', () => {
+		const db = freshDb();
+		load(db, withCond('blinker: true, announcedJockey: 戸崎圭太'));
+		expect(rowOf(db)).toEqual({ blinker: 1, announced_jockey: '戸崎圭太' });
+
+		load(db, candidates);
+		expect(rowOf(db)).toEqual({ blinker: 1, announced_jockey: '戸崎圭太' });
+
+		load(db, withCond('blinker: false'));
+		expect(rowOf(db)).toEqual({ blinker: 0, announced_jockey: '戸崎圭太' });
+	});
+
+	it('書いていない行は NULL（不明）のまま', () => {
+		const db = freshDb();
+		load(db, candidates);
+		expect(rowOf(db)).toEqual({ blinker: null, announced_jockey: null });
+	});
+
+	it('書いた YAML の SQL だけ blinker / announced_jockey を名指しする（マイグレーション 0025 の列）', () => {
+		expect(sql(withCond('blinker: true'))).toMatch(/blinker/);
+		expect(sql(withCond('announcedJockey: 戸崎圭太'))).toMatch(/announced_jockey/);
+		expect(sql(candidates)).not.toMatch(/blinker|announced_jockey/);
+	});
+
+	it('announcedJockey があるのに jockey が無い行は落とす', () => {
+		const yaml = candidates.replace(
+			'{ name: ホースA, ref: t-a }',
+			'{ name: ホースA, ref: t-a, announcedJockey: 戸崎圭太 }'
+		);
+		const r = readRaceFile(yaml, '2099-01-04.yaml');
+		expect(r.ok).toBe(false);
+	});
+});

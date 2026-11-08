@@ -66,6 +66,12 @@ const entrySchema = v.object({
 	bracket: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8))),
 	horseNumber: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
 	jockey: v.optional(v.string()),
+	/**
+	 * 出馬表の公開後に騎手が変わったときの、**発表時の騎手**。`data:fetch entries` / `result` が、
+	 * 取得済みの騎手と違うときに前の騎手を入れる（取得元に変更前の騎手は無いので、差分で持つ）。
+	 * 一度入れたら書き換えない。`jockey` が無い行には書けない。
+	 */
+	announcedJockey: v.optional(v.pipe(v.string(), v.trim(), v.minLength(1))),
 	sex: optional(['牡', '牝', 'セ'] as const),
 	birthYear: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1980), v.maxValue(2100))),
 	/**
@@ -105,6 +111,11 @@ const entrySchema = v.object({
 	last3f: v.optional(v.pipe(v.number(), v.minValue(20), v.maxValue(60))),
 	/** 斤量。 */
 	weight: v.optional(v.pipe(v.number(), v.minValue(40), v.maxValue(70))),
+	/**
+	 * ブリンカーの着用（`true` 着用 / `false` なし）。書かなければ不明（「着用なし」とは違う）。
+	 * `data:fetch entries`（枠順確定後）と `past`（前走ぶん）が書く。
+	 */
+	blinker: v.optional(v.boolean()),
 	/** 馬体重。 */
 	horseWeight: v.optional(v.pipe(v.number(), v.integer(), v.minValue(300), v.maxValue(700))),
 	/** 前走からの増減。`-4` のように負もある。 */
@@ -186,8 +197,9 @@ type RaceFile = v.InferOutput<typeof fileSchema>;
 type Entry = v.InferOutput<typeof entrySchema>;
 
 /** SQL リテラル。ここを通さない値は SQL に入れない。 */
-function lit(value: string | number | null | undefined): string {
+function lit(value: string | number | boolean | null | undefined): string {
 	if (value === null || value === undefined || value === '') return 'NULL';
+	if (typeof value === 'boolean') return value ? '1' : '0';
 	if (typeof value === 'number') {
 		if (!Number.isFinite(value)) throw new Error(`数値が不正です: ${value}`);
 		return String(value);
@@ -252,7 +264,7 @@ function horseRef(e: Pick<Entry, 'name' | 'ref' | 'birthYear'>): string {
  * 本番への投入（data-import.yml）はマイグレーションを流さないので、新しい列を常に名指しすると
  * リリースまでの間の投入がすべて落ちる。
  */
-function writtenCols(cols: [column: string, value: string | number | undefined][]) {
+function writtenCols(cols: [column: string, value: string | number | boolean | undefined][]) {
 	const written = cols.filter(([, value]) => value !== undefined);
 	return {
 		names: written.map(([c]) => `, ${c}`).join(''),
@@ -330,6 +342,12 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 				['dam_sire', e.damSire]
 			]);
 
+			// ブリンカー・発表時の騎手（マイグレーション 0025）も同じ。書いた行のときだけ列に触る。
+			const conditionCol = writtenCols([
+				['blinker', e.blinker],
+				['announced_jockey', e.announcedJockey]
+			]);
+
 			const rename = e.ref
 				? `
   name = ${lit(e.name)},`
@@ -366,14 +384,14 @@ WHERE id = ${ref};`,
 				`INSERT INTO race_entry (
   id, race_id, horse_id, bracket, horse_number, jockey,
   finish_position, popularity, finish_time, margin, passing, last_3f,
-  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}
+  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}${conditionCol.names}
 )
 SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)},
   ${lit(e.finish)}, ${lit(e.popularity)}, ${lit(e.time)}, ${lit(e.margin)}, ${lit(e.passing)}, ${lit(e.last3f)},
-  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}
+  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}${conditionCol.values}
 FROM race r
 WHERE ${raceKey('r.')} AND ${ref} IS NOT NULL
-ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}
+ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}${conditionCol.set}
   bracket = excluded.bracket,
   horse_number = excluded.horse_number,
   jockey = excluded.jockey,
@@ -492,6 +510,12 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 			errors.push(
 				`${label}: ラップが ${race.laps.length} 区間あります（${race.distance}m なら ${expected} 区間）`
 			);
+		}
+	}
+
+	for (const e of race.entries) {
+		if (e.announcedJockey !== undefined && !e.jockey) {
+			errors.push(`${label}: ${e.name} は announcedJockey があるのに jockey がありません`);
 		}
 	}
 
