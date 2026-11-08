@@ -87,4 +87,19 @@ describe('PastRunsStrip', () => {
 		expect(text).not.toContain('上り');
 		expect(text).not.toContain('人');
 	});
+
+	it('ブリンカー着用の走だけ「ブリンカー着用」を出す。騎手が無くても出す', () => {
+		const { container } = render(PastRunsStrip, {
+			runs: [
+				run({ raceId: 'b1', blinker: true }),
+				run({ raceId: 'b2', blinker: false }),
+				run({ raceId: 'b3', blinker: null }),
+				run({ raceId: 'b4', blinker: true, jockey: null })
+			],
+			horseName: 'テスト馬'
+		});
+		const items = [...container.querySelectorAll('ol > li')].slice(0, 4);
+		const has = items.map((li) => li.textContent?.includes('ブリンカー着用'));
+		expect(has).toEqual([true, false, false, true]);
+	});
 });

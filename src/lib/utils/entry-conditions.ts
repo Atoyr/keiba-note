@@ -85,10 +85,8 @@ export function entryConditions(
 		items.push({ lead: '騎手変更', rest: `（発表時 ${current.announcedJockey}）`, strong: true });
 	}
 
-	// 斤量
-	if (current.weightCarried === null) {
-		items.push({ lead: '斤量', rest: ' 未取得', strong: false });
-	} else {
+	// 斤量。今回の斤量が無ければ項目を出さない（未取得とは言わない）。
+	if (current.weightCarried !== null) {
 		const base = ` ${kg(current.weightCarried)}`;
 		if (prev?.weightCarried == null) {
 			items.push({ lead: '斤量', rest: base, strong: false });

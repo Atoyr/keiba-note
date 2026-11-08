@@ -18,6 +18,11 @@ describe('EntryConditions', () => {
 		await expect.element(page.getByText('斤量 56kg（前走と同じ）')).not.toHaveClass(/font-medium/);
 	});
 
+	it('項目が0個なら一覧ごと描かない', async () => {
+		render(EntryConditions, { items: [] });
+		await expect.element(page.getByRole('list', { name: '今回の条件' })).not.toBeInTheDocument();
+	});
+
 	it('狭い幅（200px）でもはみ出さず折り返す', async () => {
 		const { container } = render(EntryConditions, {
 			items: [

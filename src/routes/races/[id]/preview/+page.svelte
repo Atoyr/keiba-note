@@ -500,10 +500,10 @@
 												{/if}
 
 												<div class="flex min-w-0 flex-1 flex-col gap-1">
-													<!-- 馬名の右隣にブリンカー着用の札（B）。馬名は truncate のまま、札は縮めない。 -->
+													<!-- 馬名の右隣にブリンカー着用の札（B）。馬名が切れないよう、入らないときは札を次の行に回す（札は縮めない）。 -->
 													<div
 														data-name-row
-														class="flex max-w-full min-w-0 items-center gap-1.5 self-start"
+														class="flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 self-start"
 													>
 														<HorseLink
 															horseId={r.horseId}
@@ -529,12 +529,8 @@
 																class="min-h-6 self-start"
 															/>
 														{/if}
-													{:else}
-														<span class="min-h-6 self-start text-sm leading-6 text-muted-foreground"
-															>騎手 未取得</span
-														>
 													{/if}
-													<!-- 今回の条件（斤量・ブリンカー）と前走からの変化。詳細を開かずに読めるよう名前の列に置く。
+													<!-- 今回の条件（乗り替わり・騎手変更・斤量）と前走からの変化。ブリンカーは馬名の右の B。詳細を開かずに読めるよう名前の列に置く。
 								     変化の語（乗り替わり・騎手変更）は語で区別し、項目単位で折り返す。 -->
 													<EntryConditions items={r.conditions} class="self-start" />
 													<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、

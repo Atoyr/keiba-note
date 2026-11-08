@@ -606,7 +606,7 @@ UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1, odds 
 UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2, odds = 4.6, horse_weight = 502, horse_weight_diff = -6, margin = '2', finish_time = '1:48.0' WHERE id = '01JE2EENTRYMARK20000000000';
 UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3, odds = 6.7, horse_weight = 470, horse_weight_diff = 0, margin = '1/2', finish_time = '1:47.5' WHERE id = '01JE2EENTRYMARK30000000000';
 UPDATE race_entry SET passing = '4-4-4-4', last_3f = 35.3, popularity = 5, odds = 15.2, horse_weight = 458, horse_weight_diff = NULL, margin = '3.1/2', finish_time = '1:48.4' WHERE id = '01JE2EENTRYMARK40000000000';
-UPDATE race_entry SET passing = '6-6-5-5', last_3f = 33.7, popularity = 6, odds = 28.9, horse_weight = 480, horse_weight_diff = 8, margin = 'クビ', finish_time = '1:47.3' WHERE id = '01JE2EENTRYMARK50000000000';
+UPDATE race_entry SET blinker = 1, passing = '6-6-5-5', last_3f = 33.7, popularity = 6, odds = 28.9, horse_weight = 480, horse_weight_diff = 8, margin = 'クビ', finish_time = '1:47.3' WHERE id = '01JE2EENTRYMARK50000000000';
 UPDATE race_entry SET passing = '3-3-3-3', last_3f = 34.4, popularity = 4, odds = 9.1, horse_weight = NULL, horse_weight_diff = NULL, margin = '1.1/4', finish_time = '1:47.8' WHERE id = '01JE2EENTRYMARK60000000000';
 
 -- 展開の予想の見本。印見本のレースの見立てに、3局面の隊列を置いてある。
@@ -1018,8 +1018,8 @@ INSERT INTO race_entry_insight (user_id, race_entry_id, race_id, horse_id, words
 	-- 言葉無しユーザーの気づき。一般ユーザーのどの画面にも出てはいけない。
 	('01JE2EUSERNOWORDS000000000', '01JE2EENTRYINSIGHTW1000000', '01JE2ERACEINSIGHTWRITE0000', '01JE2EHORSEINSIGHTW1000000', '["別のユーザーの言葉"]', '別のユーザーの気づき（見本）', '2026-05-10');
 
--- 予想画面の「今回の条件」（騎手・斤量・ブリンカーと前走からの変化。entry-conditions）を見る1レース。
--- 6頭で、乗り替わり・斤量の増減/同じ・ブリンカーの着用開始/外す・未取得・騎手変更・取消を飛ばす・結果未投入で止まる、をそろえる。
+-- 予想画面の「今回の条件」（騎手・斤量と前走からの変化。entry-conditions）。ブリンカーは条件の項目ではなく、馬名の右の B と馬柱の各走で見る。
+-- 6頭で、乗り替わり・斤量の増減/同じ・欠け（項目を出さない）・ブリンカーの B（着用の馬だけ）・騎手変更・取消を飛ばす・結果未投入で止まる、をそろえる。
 -- 過去のレースも 2099 年に置く（日付が固定でも「このレースより前」であり続ける）。
 INSERT INTO horse (id, name) VALUES
 	('01JE2EHORSECOND10000000000', 'E2Eノリカエ'),

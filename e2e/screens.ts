@@ -381,10 +381,17 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{
-		// 今回の条件（乗り替わり・騎手変更・斤量の増減・ブリンカーの着用開始/外す・未取得・比べない）の6頭。
+		// 今回の条件（乗り替わり・騎手変更・斤量の増減・欠けは出さない・比べない）と、着用した馬の馬名の右の B の6頭。
 		name: 'race-preview-conditions',
 		path: `/races/${CONDITIONS_RACE_ID}/preview`,
 		auth: true
+	},
+	{
+		// 馬柱の帯を出したところ（PC・タブレット）。前走で着用した馬（E2Eオナジ）のマスに B の札が付く。
+		name: 'race-preview-conditions-strip',
+		path: `/races/${CONDITIONS_RACE_ID}/preview`,
+		auth: true,
+		prepare: pressPastRunsToggle
 	},
 	{
 		// 前走でブリンカーを着けていた馬（E2Eオナジ）の直近5走。着用した走の騎手の隣に B の札が付く。

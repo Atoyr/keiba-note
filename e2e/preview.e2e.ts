@@ -727,10 +727,10 @@ test('ふりかえり画面でも、馬柱の帯をトグルで出せる', async
 });
 
 /**
- * 出走馬の行に、今回の条件（騎手・斤量・ブリンカー）と前走からの変化が出る。詳細を開かずに読める。
+ * 出走馬の行に、今回の条件（乗り替わり・騎手変更・斤量）と前走からの変化が出て、ブリンカー着用の馬は馬名の右に B が出る。詳細を開かずに読める。
  * 変化は語で出し（色だけに頼らない）、前走が分からないときは同じとも違うとも言わない。
  */
-test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリンカーと前走からの変化が出る', async ({
+test('出走馬の行に、乗り替わり・騎手変更・斤量と前走からの変化、馬名の右の B が出る', async ({
 	page
 }) => {
 	await login(page);
@@ -758,11 +758,13 @@ test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリン�
 	await expect(hajimete).toContainText('斤量 55kg');
 	await expect(hajimete).not.toContainText('前走');
 
-	// 一部未取得: 騎手も斤量も未取得。前走があっても乗り替わりとは言わない。
+	// 騎手も斤量も無い馬: 条件の項目は何も出さない（一覧ごと描かない）。前走があっても乗り替わりとは言わない。
 	const fumei = page.locator('main li[id^="entry-"]', { hasText: 'E2Eフメイ' });
-	await expect(fumei).toContainText('騎手 未取得');
-	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText('斤量 未取得');
-	await expect(fumei.getByRole('list', { name: '今回の条件' })).not.toContainText('乗り替わり');
+	await expect(fumei).toBeVisible();
+	await expect(fumei.getByRole('list', { name: '今回の条件' })).toHaveCount(0);
+	await expect(fumei).not.toContainText('乗り替わり');
+	// 「未取得」の文言はどこにも出さない。
+	await expect(page.locator('main')).not.toContainText('未取得');
 
 	// 直近の走が着順なし（取消・除外か中止・失格か区別できない）なら前走なし。乗り替わり・前走比は出さない。
 	// 騎手変更（発表時の騎手）は前走とは別に出る。
@@ -792,8 +794,22 @@ test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリン�
 	const detail = async (name: string) => {
 		const row = page.locator('main li[id^="entry-"]', { hasText: name });
 		await row.locator('summary', { hasText: '詳細情報（メモ・直近5走）' }).click();
-		return row.locator('tbody', { hasText: 'E2E条件前走賞' });
+		const run = row.locator('tbody', { hasText: 'E2E条件前走賞' });
+		await expect(run).toBeVisible();
+		return run;
 	};
 	await expect(await detail('E2Eノリカエ')).not.toContainText('ブリンカー着用');
 	await expect(await detail('E2Eオナジ')).toContainText('ブリンカー着用');
+
+	// 帯（PC）でも同じ。オナジの前走のマスに B、ノリカエの前走のマスには無い。
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await page.getByRole('button', { name: '馬柱を表示' }).click();
+	const latest = (name: string) =>
+		page
+			.getByRole('list', { name: `${name}の馬柱（直近5走）` })
+			.getByRole('listitem')
+			.first();
+	await expect(latest('E2Eノリカエ')).toBeVisible();
+	await expect(latest('E2Eノリカエ')).not.toContainText('ブリンカー着用');
+	await expect(latest('E2Eオナジ')).toContainText('ブリンカー着用');
 });

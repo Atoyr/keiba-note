@@ -91,8 +91,8 @@ describe('entryConditions', () => {
 		expect(text(now(), [])).toEqual(['斤量 56kg']);
 	});
 
-	it('一部未取得: 斤量が無ければ「斤量 未取得」。前走があっても乗り替わりとは言わない', () => {
-		expect(text(now({ jockey: null, weightCarried: null }), [run()])).toEqual(['斤量 未取得']);
+	it('一部欠け: 斤量が無ければ斤量の項目を出さない。前走があっても乗り替わりとは言わない', () => {
+		expect(text(now({ jockey: null, weightCarried: null }), [run()])).toEqual([]);
 	});
 
 	it('前走の斤量が無ければ増減は言わない', () => {

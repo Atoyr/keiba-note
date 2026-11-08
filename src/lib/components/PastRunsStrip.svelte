@@ -65,9 +65,11 @@
 						{/if}
 					</p>
 				{/if}
-				{#if r.jockey}
+				{#if r.jockey || r.blinker}
 					<p class="flex items-center gap-1 text-muted-foreground">
-						<span class="min-w-0 truncate"><span class="sr-only">騎手</span>{r.jockey}</span>
+						{#if r.jockey}
+							<span class="min-w-0 truncate"><span class="sr-only">騎手</span>{r.jockey}</span>
+						{/if}
 						<BlinkerBadge blinker={r.blinker ?? null} />
 					</p>
 				{/if}
