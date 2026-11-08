@@ -70,6 +70,25 @@ export const PASSING_REFETCH_DAYS = 7;
  */
 export async function listPassingRefetchTargets(db: Db, now: Date): Promise<EntriesFetchTarget[]> {
 	const today = todayJst(now);
+	return selectPassingMissing(
+		db,
+		between(race.date, addDays(today, -PASSING_REFETCH_DAYS), addDays(today, -1))
+	);
+}
+
+/**
+ * 通過順の取り直しを7日続けても入らず、今日から対象を外れるレース（開催日がちょうど8日前で、
+ * 取り直しと同じ条件を満たすもの）。黙って外れないよう、Cron が人に知らせる。
+ */
+export async function listPassingGaveUpRaces(db: Db, now: Date): Promise<EntriesFetchTarget[]> {
+	return selectPassingMissing(
+		db,
+		eq(race.date, addDays(todayJst(now), -(PASSING_REFETCH_DAYS + 1)))
+	);
+}
+
+/** 取り直しと諦めで共有する条件。開催日の条件だけ呼び出し側が渡す。 */
+function selectPassingMissing(db: Db, dateCondition: SQL): Promise<EntriesFetchTarget[]> {
 	return db
 		.select({
 			raceId: race.id,
@@ -81,7 +100,7 @@ export async function listPassingRefetchTargets(db: Db, now: Date): Promise<Entr
 		.from(race)
 		.where(
 			and(
-				between(race.date, addDays(today, -PASSING_REFETCH_DAYS), addDays(today, -1)),
+				dateCondition,
 				between(race.raceNumber, 1, 12),
 				inArray(race.course, [...COURSES]),
 				isNotNull(race.externalRef),

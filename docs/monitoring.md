@@ -91,9 +91,10 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `entries.cron` | info | しない | `lib/server/race-data/scheduled.ts` | Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
 | `entries.cron.failed` | error | する | 同上 | 対象のレースを選ぶところで落ちた |
 | `results.dispatch` | info / warn / error | しない | `lib/server/race-data/request.ts` | 結果の Cron が1レースぶんの結果の取得を頼んだ（成否どちらも）。`raceId`・`race`・`success`・`errorType` を載せる。失敗はレースごとには通知せず、下の `results.dispatch.missed` にまとめる |
-| `results.dispatch.missed` | error | する | 同上 | 結果の取得を頼めなかったレースがあった。`races` に頼めなかったレース（落ちたものと、止めたあとに残したもの）を全部並べる。人が Actions を `command: result` で起動し直す |
-| `results.cron` | info | しない | `lib/server/race-data/scheduled.ts` | 結果の Cron の1回ぶんを終えた。対象のレースがあった回だけ出す |
-| `results.cron.failed` | error | する | 同上 | 結果の対象を選ぶところで落ちた。その日のレースは全部、人が Actions から起動し直す |
+| `results.dispatch.missed` | error | する | 同上 | 結果の取得を頼めなかったレースがあった。`races` に頼めなかったレース（落ちたものと、止めたあとに残したもの）を全部並べる。人が Actions を `command: result` で起動し直す。`races` には通過順の取り直しの分も入る（窓の中なら翌日の Cron がもう一度頼むので、起動し直さなくてもよい）。7日取り直しても通過順が入らなかったレースがあれば `gaveUp` にも並べる |
+| `results.passing.gaveup` | warn | する | 同上 | 通過順を7日取り直しても入らなかったレースがあり、`results.dispatch.missed` が出ない回。`races` に並べる。人が netkeiba の結果ページを見て、載っていれば Actions を `command: result` で起動する |
+| `results.cron` | info | しない | `lib/server/race-data/scheduled.ts` | 結果の Cron の1回ぶんを終えた。対象のレースがあった回だけ出す。`refetch`（通過順の取り直しの件数）・`gaveUp`（諦めたレースの数）を載せる |
+| `results.cron.failed` | error | する | 同上 | 結果の対象を選ぶところで落ちた。その日のレースは全部、人が Actions から起動し直す（通過順の取り直しは翌日の回が拾う） |
 | `entries.dispatch.failed` | warn / error | error だけ | `/settings/admin` の `?/fetchEntries` | 管理画面から頼めなかった。届かなかったときは warn。トークン未設定は画面に出すだけでログにしない |
 | `odds.dispatch` | info / warn / error | 下の表 | `lib/server/odds/request.ts` | Cron がオッズの更新を GitHub Actions に頼んだ（成否どちらも）。対象のレースがあった回だけ出す。`raceIds`・`success`・`errorType` を載せる |
 | `odds.dispatch.failed` | error | する | `lib/server/odds/scheduled.ts` | 対象のレースを選ぶところで落ちた |

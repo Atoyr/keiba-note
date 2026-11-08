@@ -126,7 +126,8 @@ export async function runResultsCron(
 			// 実行が遅れて日付をまたいでも、起動するはずだった日の結果を取る
 			now: () => new Date(scheduledTime)
 		};
-		const summary: RequestEntriesSummary & { refetch: number } = await requestResultsFetch(deps);
+		const summary: RequestEntriesSummary & { refetch: number; gaveUp: number } =
+			await requestResultsFetch(deps);
 		if (summary.targets > 0) {
 			monitor.log({
 				level: 'info',

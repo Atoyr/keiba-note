@@ -21,8 +21,10 @@ import {
 	type EntriesStage
 } from '$lib/server/services/entries-fetch';
 import {
+	listPassingGaveUpRaces,
 	listPassingRefetchTargets,
-	listResultsFetchTargets
+	listResultsFetchTargets,
+	PASSING_REFETCH_DAYS
 } from '$lib/server/services/results-fetch';
 import { DispatchError, type DispatchErrorKind, type EntriesFetchRequest } from './dispatch';
 
@@ -89,10 +91,11 @@ export type RequestResultsDeps = Omit<RequestEntriesDeps, 'stage'>;
  */
 export async function requestResultsFetch(
 	deps: RequestResultsDeps
-): Promise<RequestEntriesSummary & { refetch: number }> {
+): Promise<RequestEntriesSummary & { refetch: number; gaveUp: number }> {
 	const now = deps.now ?? (() => new Date());
 	const today = await listResultsFetchTargets(deps.db, now());
 	const refetch = await listPassingRefetchTargets(deps.db, now());
+	const gaveUp = (await listPassingGaveUpRaces(deps.db, now())).map(raceName);
 	const seen = new Set(today.map((t) => t.raceId));
 	const targets = [...today, ...refetch.filter((t) => !seen.has(t.raceId))];
 	const { summary, missed } = await dispatchEach(deps, targets, {
@@ -108,12 +111,31 @@ export async function requestResultsFetch(
 			event: 'results.dispatch.missed',
 			message:
 				`結果の取得を頼めなかったレースがある（${missed.join('・')}）。` +
-				'Actions の「出走馬・結果の取得」を command: result・開催日・場・R で手で起動する',
+				'Actions の「出走馬・結果の取得」を command: result・開催日・場・R で手で起動する' +
+				(gaveUp.length > 0
+					? `。通過順を${PASSING_REFETCH_DAYS}日取り直しても入らなかったレース（${gaveUp.join('・')}）も手で取り直す`
+					: ''),
 			races: missed,
+			...(gaveUp.length > 0 ? { gaveUp } : {}),
+			...summary
+		});
+	} else if (gaveUp.length > 0) {
+		deps.log({
+			level: 'warn',
+			event: 'results.passing.gaveup',
+			message:
+				`通過順を${PASSING_REFETCH_DAYS}日取り直しても入らなかったレースがある（${gaveUp.join('・')}）。` +
+				'netkeiba の結果ページを見て、載っていれば人が Actions を command: result・開催日・場・R で起動する',
+			notify: true,
+			races: gaveUp,
 			...summary
 		});
 	}
-	return { ...summary, refetch: targets.length - today.length };
+	return { ...summary, refetch: targets.length - today.length, gaveUp: gaveUp.length };
+}
+
+function raceName(t: EntriesFetchTarget) {
+	return `${t.date} ${t.course}${t.raceNumber}R`;
 }
 
 function base(t: EntriesFetchTarget) {
@@ -149,7 +171,7 @@ async function dispatchEach(
 		stopped: false
 	};
 	const missed: string[] = [];
-	const name = (t: EntriesFetchTarget) => `${t.date} ${t.course}${t.raceNumber}R`;
+	const name = raceName;
 
 	for (const [i, t] of targets.entries()) {
 		const logBase = { event: opts.event, ...opts.fields, raceId: t.raceId, race: name(t) };
