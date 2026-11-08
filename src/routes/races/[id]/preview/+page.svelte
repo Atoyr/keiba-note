@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
+	import BlinkerBadge from '$lib/components/BlinkerBadge.svelte';
 	import EntryConditions from '$lib/components/EntryConditions.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
@@ -499,12 +500,19 @@
 												{/if}
 
 												<div class="flex min-w-0 flex-1 flex-col gap-1">
-													<HorseLink
-														horseId={r.horseId}
-														name={r.horseName}
-														profile={r}
-														class="flex max-w-full self-start leading-6 font-medium hover:underline"
-													/>
+													<!-- 馬名の右隣にブリンカー着用の札（B）。馬名は truncate のまま、札は縮めない。 -->
+													<div
+														data-name-row
+														class="flex max-w-full min-w-0 items-center gap-1.5 self-start"
+													>
+														<HorseLink
+															horseId={r.horseId}
+															name={r.horseName}
+															profile={r}
+															class="flex max-w-full min-w-0 leading-6 font-medium hover:underline"
+														/>
+														<BlinkerBadge blinker={r.blinker} />
+													</div>
 													<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
 								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
 													{#if r.jockey}

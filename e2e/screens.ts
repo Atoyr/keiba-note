@@ -386,6 +386,19 @@ export const SCREENS: Screen[] = [
 		path: `/races/${CONDITIONS_RACE_ID}/preview`,
 		auth: true
 	},
+	{
+		// 前走でブリンカーを着けていた馬（E2Eオナジ）の直近5走。着用した走の騎手の隣に B の札が付く。
+		name: 'race-preview-conditions-past',
+		path: `/races/${CONDITIONS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator('main li[id^="entry-"]', { hasText: 'E2Eオナジ' })
+				.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
+				.click();
+		}
+	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },
 	{
 		// 4番（保存済みは △）と印の無い7番に ✓（候補）を選んだところ。保存はしない。「付けた印」で ✓ が

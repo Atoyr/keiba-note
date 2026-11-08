@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BlinkerBadge from './BlinkerBadge.svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { resolve } from '$app/paths';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
@@ -144,6 +145,7 @@
 												class="inline-flex min-h-6 items-center underline decoration-dotted underline-offset-2 hover:decoration-solid"
 											/></span
 										>
+										<BlinkerBadge blinker={r.blinker ?? null} />
 									{/if}
 									{#if vs}
 										<span><span class="sr-only">{vs.label}</span>{vs.text}</span>

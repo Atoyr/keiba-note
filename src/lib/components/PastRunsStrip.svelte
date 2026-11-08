@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BlinkerBadge from './BlinkerBadge.svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { cond, finish, title, tone, ymd, type PastRun } from '$lib/utils/past-runs';
 
@@ -65,7 +66,10 @@
 					</p>
 				{/if}
 				{#if r.jockey}
-					<p class="truncate text-muted-foreground"><span class="sr-only">騎手</span>{r.jockey}</p>
+					<p class="flex items-center gap-1 text-muted-foreground">
+						<span class="min-w-0 truncate"><span class="sr-only">騎手</span>{r.jockey}</span>
+						<BlinkerBadge blinker={r.blinker ?? null} />
+					</p>
 				{/if}
 			</li>
 		{/each}

@@ -23,7 +23,7 @@ describe('EntryConditions', () => {
 			items: [
 				{ lead: '乗り替わり', rest: '（前走 とても長い名前の騎手）', strong: true },
 				{ lead: '騎手変更', rest: '（発表時 とても長い名前の騎手）', strong: true },
-				{ lead: 'ブリンカー', rest: ' 外す（前走は着用）', strong: false }
+				{ lead: '斤量', rest: ' 57.5kg（前走比 +0.5kg）', strong: true }
 			],
 			class: 'w-[200px]'
 		});

@@ -1,5 +1,5 @@
 /**
- * 予想画面の出走馬ごとに出す、今回の条件（騎手・斤量・ブリンカー）と前走からの変化の組み立て。純粋関数。
+ * 予想画面の出走馬ごとに出す、今回の条件（騎手・斤量）と前走からの変化の組み立て。純粋関数。
  *
  * 原則: **情報がないことを「変更なし」「着用なし」と扱わない。** 比べる相手（前走）が無い・値が欠けている項目は、
  * 同じとも違うとも言わず、今回の値だけを出す。語で区別し、色だけに頼らない。
@@ -13,7 +13,6 @@ export type RunForConditions = {
 	runnerUpName: string | null;
 	jockey: string | null;
 	weightCarried: number | null;
-	blinker: boolean | null;
 };
 
 export type CurrentConditions = {
@@ -21,7 +20,6 @@ export type CurrentConditions = {
 	/** 出馬表の公開後に騎手が変わったときの、発表時の騎手。 */
 	announcedJockey: string | null;
 	weightCarried: number | null;
-	blinker: boolean | null;
 };
 
 /** 1項目。`lead` は先頭の語（変化の語は強めに出す）、`rest` はそのあとの文字。 */
@@ -89,7 +87,7 @@ export function entryConditions(
 
 	// 斤量
 	if (current.weightCarried === null) {
-		if (current.blinker !== null) items.push({ lead: '斤量', rest: ' 未取得', strong: false });
+		items.push({ lead: '斤量', rest: ' 未取得', strong: false });
 	} else {
 		const base = ` ${kg(current.weightCarried)}`;
 		if (prev?.weightCarried == null) {
@@ -104,26 +102,7 @@ export function entryConditions(
 		}
 	}
 
-	// ブリンカー: 前走が分かるときだけ、着用開始・外すを言う。
-	const prevBlinker = prev?.blinker ?? null;
-	if (current.blinker === null) {
-		// 斤量もブリンカーも未取得なら、1項目にまとめる（全部未取得の行が2行を使わないように）。
-		items.push(
-			current.weightCarried === null
-				? { lead: '斤量・ブリンカー', rest: ' 未取得', strong: false }
-				: { lead: 'ブリンカー', rest: ' 未取得', strong: false }
-		);
-	} else if (current.blinker) {
-		const start = prevBlinker === false;
-		items.push({ lead: 'ブリンカー', rest: start ? ' 着用開始' : ' 着用', strong: start });
-	} else {
-		const off = prevBlinker === true;
-		items.push({
-			lead: 'ブリンカー',
-			rest: off ? ' 外す（前走は着用）' : ' なし',
-			strong: off
-		});
-	}
+	// ブリンカーは項目に出さない。着用は馬名の隣の `BlinkerBadge`（B）に出し、外したかどうかは前走（馬柱）で読む。
 
 	return items;
 }

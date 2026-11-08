@@ -179,7 +179,7 @@ races:
 `blinker`（ブリンカーの着用。`true` 着用 / `false` なし）と `announcedJockey`（出馬表の公開後に騎手が変わったときの、発表時の騎手）は
 マイグレーション 0025 の列。**アプリのリリースで本番に 0025 が入るまで、`blinker` / `announcedJockey` を書いた YAML はマージしない**
 （`data-import.yml` はマイグレーションを流さない）。書いていない YAML は列に触らないので今までどおり入る。
-`blinker` は**書かなければ不明**で、「着用なし」とは違う（画面の文言は [docs/pages.md 4-3](../docs/pages.md)）。`announcedJockey` は書かなければ「騎手変更を検知していない」で、「変更なし」と言い切れるわけではない（画面は何も出さない）。`announcedJockey` は `jockey` が無い行には書けない（`data:check` で落ちる）。
+`blinker` は**書かなければ不明**で、「着用なし」とは違う（画面は着用のときだけ `B` の札を付ける。[docs/pages.md 4-3](../docs/pages.md)）。`announcedJockey` は書かなければ「騎手変更を検知していない」で、「変更なし」と言い切れるわけではない（画面は何も出さない）。`announcedJockey` は `jockey` が無い行には書けない（`data:check` で落ちる）。
 書くのも直すのも「書けば上書き、書かなければ残す」で、NULL（不明）に戻す書き方は無い（`timeDiff` などと同じ。誤って入った値を消すには別の SQL が要る。本番の D1 は人が扱う）。
 
 ```yaml

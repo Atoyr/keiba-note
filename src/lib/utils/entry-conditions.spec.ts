@@ -14,7 +14,6 @@ const run = (over: Partial<RunForConditions> = {}): RunForConditions => ({
 	runnerUpName: null,
 	jockey: '武豊',
 	weightCarried: 56,
-	blinker: null,
 	...over
 });
 
@@ -22,7 +21,6 @@ const now = (over: Partial<CurrentConditions> = {}): CurrentConditions => ({
 	jockey: '武豊',
 	announcedJockey: null,
 	weightCarried: 56,
-	blinker: null,
 	...over
 });
 
@@ -68,42 +66,33 @@ describe('sameJockey', () => {
 });
 
 describe('entryConditions', () => {
-	it('変更あり: 乗り替わり・斤量の増減・ブリンカー着用開始', () => {
-		const items = text(now({ jockey: 'ルメール', weightCarried: 57, blinker: true }), [
-			run({ jockey: '武豊', weightCarried: 56, blinker: false })
+	it('変更あり: 乗り替わり・斤量の増減', () => {
+		const items = text(now({ jockey: 'ルメール', weightCarried: 57 }), [
+			run({ jockey: '武豊', weightCarried: 56 })
 		]);
-		expect(items).toEqual([
-			'乗り替わり（前走 武豊）',
-			'斤量 57kg（前走比 +1kg）',
-			'ブリンカー 着用開始'
-		]);
+		expect(items).toEqual(['乗り替わり（前走 武豊）', '斤量 57kg（前走比 +1kg）']);
 	});
 
-	it('変更なし: 同じ騎手は乗り替わりと言わず、斤量は前走と同じ・ブリンカーは着用のまま', () => {
-		const items = text(now({ blinker: true }), [run({ blinker: true })]);
-		expect(items).toEqual(['斤量 56kg（前走と同じ）', 'ブリンカー 着用']);
+	it('変更なし: 同じ騎手は乗り替わりと言わず、斤量は前走と同じ', () => {
+		expect(text(now(), [run()])).toEqual(['斤量 56kg（前走と同じ）']);
+	});
+
+	it('ブリンカーは項目に出さない（着用は馬名の隣の札）', () => {
+		expect(text(now(), [run()]).join()).not.toMatch(/ブリンカー/);
 	});
 
 	it('略称の前走の騎手は同じとみなす', () => {
-		expect(text(now({ jockey: '川田将雅' }), [run({ jockey: '川田将' })])).not.toContain(
-			expect.stringContaining('乗り替わり')
+		expect(text(now({ jockey: '川田将雅' }), [run({ jockey: '川田将' })]).join()).not.toMatch(
+			/乗り替わり/
 		);
 	});
 
 	it('比較元なし: 過去走が無ければ、同じとも違うとも言わず今回の値だけ', () => {
-		expect(text(now({ blinker: false }), [])).toEqual(['斤量 56kg', 'ブリンカー なし']);
-		expect(text(now({ blinker: true }), [])).toEqual(['斤量 56kg', 'ブリンカー 着用']);
+		expect(text(now(), [])).toEqual(['斤量 56kg']);
 	});
 
-	it('一部未取得: 項目ごとに未取得と出し、前走があっても乗り替わりとは言わない', () => {
-		const items = text(now({ jockey: null, weightCarried: null }), [run()]);
-		expect(items).toEqual(['斤量・ブリンカー 未取得']);
-		// 片方だけ未取得なら今までどおり項目ごと
-		expect(text(now({ weightCarried: null, blinker: true }), [])).toEqual([
-			'斤量 未取得',
-			'ブリンカー 着用'
-		]);
-		expect(text(now({ blinker: null }), [])).toEqual(['斤量 56kg', 'ブリンカー 未取得']);
+	it('一部未取得: 斤量が無ければ「斤量 未取得」。前走があっても乗り替わりとは言わない', () => {
+		expect(text(now({ jockey: null, weightCarried: null }), [run()])).toEqual(['斤量 未取得']);
 	});
 
 	it('前走の斤量が無ければ増減は言わない', () => {
@@ -119,24 +108,14 @@ describe('entryConditions', () => {
 		);
 	});
 
-	it('ブリンカー: 前走は着用で今回なしなら「外す」。前走が不明なら着用でも着用開始とは言わない', () => {
-		expect(text(now({ blinker: false }), [run({ blinker: true })])[1]).toBe(
-			'ブリンカー 外す（前走は着用）'
-		);
-		expect(text(now({ blinker: true }), [run({ blinker: null })])[1]).toBe('ブリンカー 着用');
-		expect(text(now({ blinker: false }), [run({ blinker: null })])[1]).toBe('ブリンカー なし');
-	});
-
 	it('騎手変更: 発表時の騎手と違えば別に出す。再変更でも発表時のまま。戻れば出さない', () => {
 		expect(
 			text(now({ jockey: '坂井瑠星', announcedJockey: '戸崎圭太' }), [run({ jockey: '戸崎圭太' })])
 		).toEqual([
 			'乗り替わり（前走 戸崎圭太）',
 			'騎手変更（発表時 戸崎圭太）',
-			'斤量 56kg（前走と同じ）',
-			'ブリンカー 未取得'
+			'斤量 56kg（前走と同じ）'
 		]);
-		// 前走と同じ騎手に戻る A→B→A では、騎手変更も乗り替わりも出ない
 		expect(
 			text(now({ jockey: '武豊', announcedJockey: '武豊' }), [run({ jockey: '武豊' })]).join()
 		).not.toMatch(/騎手変更|乗り替わり/);
@@ -144,11 +123,10 @@ describe('entryConditions', () => {
 
 	it('直近の走が着順なしなら、取消・除外でも結果未投入でも比べない（古い走へ下りない）', () => {
 		for (const latest of [
-			run({ finishPosition: null, fieldSize: 10, jockey: 'X', blinker: false }),
-			run({ finishPosition: null, fieldSize: null, jockey: 'X', blinker: false })
+			run({ finishPosition: null, fieldSize: 10, jockey: 'X' }),
+			run({ finishPosition: null, fieldSize: null, jockey: 'X' })
 		]) {
-			const items = text(now({ jockey: 'B', blinker: true }), [latest, run({ jockey: 'A' })]);
-			expect(items).toEqual(['斤量 56kg', 'ブリンカー 着用']);
+			expect(text(now({ jockey: 'B' }), [latest, run({ jockey: 'A' })])).toEqual(['斤量 56kg']);
 		}
 	});
 
@@ -157,12 +135,10 @@ describe('entryConditions', () => {
 			entryConditions(c, runs)
 				.filter((i) => i.strong)
 				.map((i) => i.lead);
-		expect(
-			strongs(now({ jockey: 'B', weightCarried: 57, blinker: true }), [
-				run({ jockey: 'A', blinker: false })
-			])
-		).toEqual(['乗り替わり', '斤量', 'ブリンカー']);
-		expect(strongs(now({ blinker: true }), [run({ blinker: true })])).toEqual([]);
-		expect(strongs(now({ blinker: false }), [run({ blinker: true })])).toEqual(['ブリンカー']);
+		expect(strongs(now({ jockey: 'B', weightCarried: 57 }), [run({ jockey: 'A' })])).toEqual([
+			'乗り替わり',
+			'斤量'
+		]);
+		expect(strongs(now(), [run()])).toEqual([]);
 	});
 });

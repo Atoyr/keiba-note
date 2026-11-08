@@ -35,6 +35,8 @@ export type PastRun = {
 	finishTime: string | null;
 	passing: string | null;
 	jockey: string | null;
+	/** ブリンカーの着用。true のときだけ B の札を出す（false・不明は何も出さない）。 */
+	blinker?: boolean | null;
 };
 
 /**

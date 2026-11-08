@@ -741,32 +741,27 @@ test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリン�
 			name: '今回の条件'
 		});
 
-	// 乗り替わり（前走の騎手）・斤量の増減・ブリンカーの着用開始。
+	// 乗り替わり（前走の騎手）・斤量の増減。ブリンカーは項目に出さない（馬名の隣の B で見る）。
 	const norikae = conditions('E2Eノリカエ');
 	await expect(norikae).toContainText('乗り替わり（前走 武豊）');
 	await expect(norikae).toContainText('斤量 57kg（前走比 +1kg）');
-	await expect(norikae).toContainText('ブリンカー 着用開始');
+	await expect(norikae).not.toContainText('ブリンカー');
 	await expect(norikae).not.toContainText('騎手変更');
 
-	// 同じ騎手は乗り替わりと言わない。斤量は同じ・ブリンカーは外す。
+	// 同じ騎手は乗り替わりと言わない。斤量は同じ。
 	const onaji = conditions('E2Eオナジ');
 	await expect(onaji).not.toContainText('乗り替わり');
 	await expect(onaji).toContainText('斤量 56kg（前走と同じ）');
-	await expect(onaji).toContainText('ブリンカー 外す（前走は着用）');
 
-	// 過去走なし: 斤量は今回の値だけ。ブリンカーは不明（着用なしと言わない）。
+	// 過去走なし: 斤量は今回の値だけ。
 	const hajimete = conditions('E2Eハジメテ');
 	await expect(hajimete).toContainText('斤量 55kg');
 	await expect(hajimete).not.toContainText('前走');
-	await expect(hajimete).toContainText('ブリンカー 未取得');
-	await expect(hajimete).not.toContainText('斤量・ブリンカー');
 
-	// 一部未取得: 騎手も斤量もブリンカーも未取得（斤量とブリンカーは1項目にまとめる）。前走があっても乗り替わりとは言わない。
+	// 一部未取得: 騎手も斤量も未取得。前走があっても乗り替わりとは言わない。
 	const fumei = page.locator('main li[id^="entry-"]', { hasText: 'E2Eフメイ' });
 	await expect(fumei).toContainText('騎手 未取得');
-	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText(
-		'斤量・ブリンカー 未取得'
-	);
+	await expect(fumei.getByRole('list', { name: '今回の条件' })).toContainText('斤量 未取得');
 	await expect(fumei.getByRole('list', { name: '今回の条件' })).not.toContainText('乗り替わり');
 
 	// 直近の走が着順なし（取消・除外か中止・失格か区別できない）なら前走なし。乗り替わり・前走比は出さない。
@@ -775,14 +770,30 @@ test('出走馬の行に、乗り替わり・騎手変更・斤量・ブリン�
 	await expect(henkou).toContainText('騎手変更（発表時 戸崎圭太）');
 	await expect(henkou).toContainText('斤量 58kg');
 	await expect(henkou).not.toContainText('前走');
-	await expect(henkou).toContainText('ブリンカー 着用');
 	await expect(henkou).not.toContainText('乗り替わり');
-	await expect(henkou).not.toContainText('着用開始');
 
 	// 直近の走が結果未投入なら、走ったか分からないので比べない。
 	const miketsu = conditions('E2Eミケッテイ');
 	await expect(miketsu).toContainText('斤量 56kg');
 	await expect(miketsu).not.toContainText('前走');
-	await expect(miketsu).toContainText('ブリンカー なし');
-	await expect(miketsu).not.toContainText('外す');
+
+	// ブリンカー着用の札（B）は着用の馬の馬名の隣だけ。着用なし・不明の馬には何も出さない。
+	const nameRow = (name: string) =>
+		page.locator('main li[id^="entry-"]', { hasText: name }).locator('[data-name-row]');
+	for (const name of ['E2Eノリカエ', 'E2Eヘンコウ']) {
+		await expect(nameRow(name).getByTitle('ブリンカー着用')).toBeVisible();
+	}
+	for (const name of ['E2Eオナジ', 'E2Eハジメテ', 'E2Eフメイ', 'E2Eミケッテイ']) {
+		await expect(nameRow(name).getByTitle('ブリンカー着用')).toHaveCount(0);
+	}
+
+	// 馬柱の各走にも、その走で着用していれば B。ノリカエの前走は着用なし、オナジの前走は着用。
+	await waitForHydration(page);
+	const detail = async (name: string) => {
+		const row = page.locator('main li[id^="entry-"]', { hasText: name });
+		await row.locator('summary', { hasText: '詳細情報（メモ・直近5走）' }).click();
+		return row.locator('tbody', { hasText: 'E2E条件前走賞' });
+	};
+	await expect(await detail('E2Eノリカエ')).not.toContainText('ブリンカー着用');
+	await expect(await detail('E2Eオナジ')).toContainText('ブリンカー着用');
 });
