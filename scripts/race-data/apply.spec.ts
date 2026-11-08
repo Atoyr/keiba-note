@@ -531,3 +531,184 @@ describe('applyRaceRef', () => {
 		]);
 	});
 });
+
+describe('ブリンカーと騎手変更', () => {
+	const confirmedYaml = (jockey: string, extra = '') =>
+		placeholder.replace(
+			'    entries: []',
+			`    entries:\n      - horseNumber: 1\n        name: ホースA\n        jockey: ${jockey}\n${extra}        ref: nk-1`
+		);
+	const next = (jockey: string, extra: Partial<ShutubaRow> = {}) =>
+		row('1', 'ホースA', {
+			bracket: 1,
+			horseNumber: 1,
+			...extra,
+			jockey: { id: 'jx', short: jockey }
+		});
+	const identity: ResolvePerson = async (_kind, p) => p.short;
+	const run1 = async (file: RaceFile, r: ShutubaRow) =>
+		applyShutuba(file, '中山', 11, { meta, rows: [r] }, identity);
+
+	it('枠順確定の出馬表だけブリンカーを書く（着用・着用なしとも）。枠順前は書かない', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', placeholder);
+		await applyShutuba(
+			file,
+			'中山',
+			11,
+			{ meta, rows: [row('1', 'ホースA', { blinker: true })] },
+			identity
+		);
+		expect(file.toString()).not.toContain('blinker');
+
+		await run1(file, next('騎1', { blinker: false }));
+		expect(file.toString()).toContain('        blinker: false\n');
+		await run1(file, next('騎1', { blinker: true }));
+		expect(file.toString()).toContain('        blinker: true\n');
+		// 取れなかった（不明）ときは今の値を消さない
+		await run1(file, next('騎1', { blinker: undefined }));
+		expect(file.toString()).toContain('        blinker: true\n');
+	});
+
+	it('馬番のある行の騎手が変わったら、発表時の騎手を残す。再変更でも最初のまま', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', confirmedYaml('川田将雅'));
+		const log = await run1(file, next('戸崎圭太'));
+		expect(log).toContain('! 騎手変更 ホースA: 川田将雅 → 戸崎圭太');
+		expect(file.toString()).toContain(
+			'        jockey: 戸崎圭太\n        announcedJockey: 川田将雅\n'
+		);
+
+		await run1(file, next('坂井瑠星'));
+		expect(file.toString()).toContain(
+			'        jockey: 坂井瑠星\n        announcedJockey: 川田将雅\n'
+		);
+	});
+
+	it('騎手が同じ（略称を含む）・馬番がまだ無い行では検知しない', async () => {
+		const same = RaceFile.parse('2026-09-27.yaml', confirmedYaml('川田将'));
+		await run1(same, next('川田将雅'));
+		expect(same.toString()).not.toContain('announcedJockey');
+
+		const candidate = RaceFile.parse(
+			'2026-09-27.yaml',
+			placeholder.replace(
+				'    entries: []',
+				'    entries:\n      - name: ホースA\n        jockey: 川田将雅\n        ref: nk-1'
+			)
+		);
+		await run1(candidate, next('戸崎圭太'));
+		expect(candidate.toString()).not.toContain('announcedJockey');
+	});
+
+	it('結果でも、馬番のあった行の騎手が違えば発表時の騎手を残す。馬番の無い行は残さない', async () => {
+		const result = (jockey: string): ResultRow => ({
+			name: 'ホースA',
+			horseId: '1',
+			bracket: 1,
+			horseNumber: 1,
+			finish: 1,
+			jockey: { id: 'jx', short: jockey }
+		});
+		const withNumber = RaceFile.parse('2026-09-27.yaml', confirmedYaml('川田将雅'));
+		await applyResult(
+			withNumber,
+			withNumber.findRace('中山', 11)!,
+			{ meta, rows: [result('戸崎圭太')] },
+			identity
+		);
+		expect(withNumber.toString()).toContain('        announcedJockey: 川田将雅\n');
+
+		const noNumber = RaceFile.parse(
+			'2026-09-27.yaml',
+			placeholder.replace(
+				'    entries: []',
+				'    entries:\n      - name: ホースA\n        jockey: 川田将雅\n        ref: nk-1'
+			)
+		);
+		await applyResult(
+			noNumber,
+			noNumber.findRace('中山', 11)!,
+			{ meta, rows: [result('戸崎圭太')] },
+			identity
+		);
+		expect(noNumber.toString()).not.toContain('announcedJockey');
+	});
+
+	it('過去走は前走（取消を除いた最新）だけブリンカーを書き、既にある値は書き換えない', async () => {
+		const files = new Map<string, RaceFile>();
+		const open = async (date: string) => {
+			if (!files.has(date))
+				files.set(date, RaceFile.parse(`${date}.yaml`, `date: ${date}\n\nraces: []\n`));
+			return files.get(date)!;
+		};
+		const base: Omit<PastRun, 'date'> = {
+			course: '中京',
+			raceNumber: 7,
+			raceId: '202607040707',
+			race: { name: 'CBC賞' },
+			finish: 3
+		};
+		const asked: string[] = [];
+		await applyPastRuns(
+			open,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[
+				{ ...base, date: '2026-09-01', finish: undefined, status: '取', raceId: 'cancelled' },
+				{ ...base, date: '2026-08-09', raceId: 'prev' },
+				{ ...base, date: '2026-07-05', raceId: 'older' }
+			],
+			{
+				before: '2026-09-27',
+				count: 5,
+				blinkerOf: async (r) => {
+					asked.push(r.raceId!);
+					return true;
+				}
+			}
+		);
+		expect(asked).toEqual(['prev']);
+		expect(files.get('2026-08-09')!.toString()).toContain('        blinker: true\n');
+		expect(files.get('2026-07-05')!.toString()).not.toContain('blinker');
+	});
+
+	it('前走の行にすでに blinker があれば、5走表示を取りに行かない', async () => {
+		const file = RaceFile.parse(
+			'2026-08-09.yaml',
+			`date: 2026-08-09
+
+races:
+  - course: 中京
+    raceNumber: 7
+    name: CBC賞
+    entries:
+      - name: ホースA
+        ref: nk-1
+        blinker: false
+`
+		);
+		let asked = 0;
+		await applyPastRuns(
+			async () => file,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[
+				{
+					date: '2026-08-09',
+					course: '中京',
+					raceNumber: 7,
+					raceId: 'prev',
+					race: { name: 'CBC賞' },
+					finish: 3
+				}
+			],
+			{
+				before: '2026-09-27',
+				count: 5,
+				blinkerOf: async () => {
+					asked++;
+					return true;
+				}
+			}
+		);
+		expect(asked).toBe(0);
+		expect(file.toString()).toContain('blinker: false');
+	});
+});

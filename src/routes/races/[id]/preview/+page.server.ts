@@ -16,6 +16,7 @@ import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
 import { getRaceOdds } from '$lib/server/services/odds';
 import { listPastRuns } from '$lib/server/services/races';
 import { isUpcoming, todayJst } from '$lib/utils/date';
+import { entryConditions } from '$lib/utils/entry-conditions';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
 import { gradedRaceProfile } from '$lib/utils/graded-race-profile';
 import { sexAgeLabel } from '$lib/utils/horse';
@@ -152,6 +153,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 				jockeySummary,
 				// 騎手名の下の段に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
+				// 今回の騎手・斤量と前走からの変化（乗り替わり・騎手変更・斤量の差）。馬柱の材料（クエリは増やさない）から組む。
+				conditions: entryConditions(e, pastRuns.get(e.horseId) ?? []),
 				myPreview: myPreview.get(e.entryId) ?? null,
 				history: history.get(e.horseId) ?? [],
 				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({

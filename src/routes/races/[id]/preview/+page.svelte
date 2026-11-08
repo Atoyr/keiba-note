@@ -6,6 +6,8 @@
 	import { resolve } from '$app/paths';
 	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
 	import RaceHeading from '$lib/components/RaceHeading.svelte';
+	import BlinkerBadge from '$lib/components/BlinkerBadge.svelte';
+	import EntryConditions from '$lib/components/EntryConditions.svelte';
 	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
 	import SaveBar from '$lib/components/SaveBar.svelte';
 	import PastRuns from '$lib/components/PastRuns.svelte';
@@ -498,12 +500,19 @@
 												{/if}
 
 												<div class="flex min-w-0 flex-1 flex-col gap-1">
-													<HorseLink
-														horseId={r.horseId}
-														name={r.horseName}
-														profile={r}
-														class="flex max-w-full self-start leading-6 font-medium hover:underline"
-													/>
+													<!-- 馬名の右隣にブリンカー着用の札（B）。馬名が切れないよう、入らないときは札を次の行に回す（札は縮めない）。 -->
+													<div
+														data-name-row
+														class="flex max-w-full min-w-0 flex-wrap items-center gap-x-1.5 self-start"
+													>
+														<HorseLink
+															horseId={r.horseId}
+															name={r.horseName}
+															profile={r}
+															class="flex max-w-full min-w-0 leading-6 font-medium hover:underline"
+														/>
+														<BlinkerBadge blinker={r.blinker} />
+													</div>
 													<!-- 騎手の画面へ。予想の最中に「この騎手はどう乗ってきたか」を騎乗とメモから見返す。
 								     hover が無い端末でもリンクと分かるよう、下線（点線）を常に出す。 -->
 													{#if r.jockey}
@@ -521,6 +530,9 @@
 															/>
 														{/if}
 													{/if}
+													<!-- 今回の条件（乗り替わり・騎手変更・斤量）と前走からの変化。ブリンカーは馬名の右の B。詳細を開かずに読めるよう名前の列に置く。
+								     変化の語（乗り替わり・騎手変更）は語で区別し、項目単位で折り返す。 -->
+													<EntryConditions items={r.conditions} class="self-start" />
 													<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、
 								     札だけを見出しに上げる（何を書いたかは下の過去メモにある）。折り返してよい。 -->
 													{#if conclusion}

@@ -7,6 +7,7 @@ import {
 	ACTUAL_FLOW_18_RACE_ID,
 	ACTUAL_FLOW_RACE_ID,
 	BRACKET_RACE_ID,
+	CONDITIONS_RACE_ID,
 	COUNT_RACE_ID,
 	EMPTY_RACE_ID,
 	FLOW_CROWD_RACE_ID,
@@ -377,6 +378,32 @@ export const SCREENS: Screen[] = [
 			await page.locator('textarea[name="raceNoteBody"]').fill('前半緩くて上がり勝負。');
 			await page.getByRole('button', { name: 'まとめて保存' }).click();
 			await page.locator('[data-sonner-toast]').waitFor();
+		}
+	},
+	{
+		// 今回の条件（乗り替わり・騎手変更・斤量の増減・欠けは出さない・比べない）と、着用した馬の馬名の右の B の6頭。
+		name: 'race-preview-conditions',
+		path: `/races/${CONDITIONS_RACE_ID}/preview`,
+		auth: true
+	},
+	{
+		// 馬柱の帯を出したところ（PC・タブレット）。前走で着用した馬（E2Eオナジ）のマスに B の札が付く。
+		name: 'race-preview-conditions-strip',
+		path: `/races/${CONDITIONS_RACE_ID}/preview`,
+		auth: true,
+		prepare: pressPastRunsToggle
+	},
+	{
+		// 前走でブリンカーを着けていた馬（E2Eオナジ）の直近5走。着用した走の騎手の隣に B の札が付く。
+		name: 'race-preview-conditions-past',
+		path: `/races/${CONDITIONS_RACE_ID}/preview`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page
+				.locator('main li[id^="entry-"]', { hasText: 'E2Eオナジ' })
+				.locator('summary', { hasText: '詳細情報（メモ・直近5走）' })
+				.click();
 		}
 	},
 	{ name: 'race-preview-marks', path: `/races/${MARKS_RACE_ID}/preview`, auth: true },

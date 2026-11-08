@@ -15,6 +15,7 @@ export const ENTRY_KEYS = [
 	'bracket',
 	'name',
 	'jockey',
+	'announcedJockey',
 	'sex',
 	'age',
 	'birthYear',
@@ -33,6 +34,7 @@ export const ENTRY_KEYS = [
 	'passing',
 	'last3f',
 	'weight',
+	'blinker',
 	'horseWeight',
 	'horseWeightDiff',
 	'odds'
@@ -62,7 +64,7 @@ export const RACE_KEYS = [
 /** コロンや記号を含むので、既存のファイルと同じく必ずダブルクォートで書く。 */
 const QUOTED = new Set(['time', 'margin', 'passing', 'startTime']);
 
-export type Value = string | number | undefined;
+export type Value = string | number | boolean | undefined;
 export type Fields = Partial<Record<(typeof ENTRY_KEYS)[number], Value>>;
 /** レースの項目。ラップだけは数の並び（1行の `[12.8, 11.8, …]` で書く）。 */
 export type RaceFields = Partial<Record<(typeof RACE_KEYS)[number], Value | number[]>>;

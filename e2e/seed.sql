@@ -606,7 +606,7 @@ UPDATE race_entry SET passing = '2-2-2-2', last_3f = 34.0, popularity = 1, odds 
 UPDATE race_entry SET passing = '5-5-6-6', last_3f = 34.8, popularity = 2, odds = 4.6, horse_weight = 502, horse_weight_diff = -6, margin = '2', finish_time = '1:48.0' WHERE id = '01JE2EENTRYMARK20000000000';
 UPDATE race_entry SET passing = '1-1-1-1', last_3f = 34.6, popularity = 3, odds = 6.7, horse_weight = 470, horse_weight_diff = 0, margin = '1/2', finish_time = '1:47.5' WHERE id = '01JE2EENTRYMARK30000000000';
 UPDATE race_entry SET passing = '4-4-4-4', last_3f = 35.3, popularity = 5, odds = 15.2, horse_weight = 458, horse_weight_diff = NULL, margin = '3.1/2', finish_time = '1:48.4' WHERE id = '01JE2EENTRYMARK40000000000';
-UPDATE race_entry SET passing = '6-6-5-5', last_3f = 33.7, popularity = 6, odds = 28.9, horse_weight = 480, horse_weight_diff = 8, margin = 'クビ', finish_time = '1:47.3' WHERE id = '01JE2EENTRYMARK50000000000';
+UPDATE race_entry SET blinker = 1, passing = '6-6-5-5', last_3f = 33.7, popularity = 6, odds = 28.9, horse_weight = 480, horse_weight_diff = 8, margin = 'クビ', finish_time = '1:47.3' WHERE id = '01JE2EENTRYMARK50000000000';
 UPDATE race_entry SET passing = '3-3-3-3', last_3f = 34.4, popularity = 4, odds = 9.1, horse_weight = NULL, horse_weight_diff = NULL, margin = '1.1/4', finish_time = '1:47.8' WHERE id = '01JE2EENTRYMARK60000000000';
 
 -- 展開の予想の見本。印見本のレースの見立てに、3局面の隊列を置いてある。
@@ -1017,3 +1017,38 @@ INSERT INTO race_entry_insight (user_id, race_entry_id, race_id, horse_id, words
 	('01JE2EUSER0000000000000000', '01JE2EENTRYINSIGHTN1000000', '01JE2ERACEINSIGHTNORES0000', '01JE2EHORSEINSIGHTN0000000', '["途中で諦めた"]', '', '2026-05-03'),
 	-- 言葉無しユーザーの気づき。一般ユーザーのどの画面にも出てはいけない。
 	('01JE2EUSERNOWORDS000000000', '01JE2EENTRYINSIGHTW1000000', '01JE2ERACEINSIGHTWRITE0000', '01JE2EHORSEINSIGHTW1000000', '["別のユーザーの言葉"]', '別のユーザーの気づき（見本）', '2026-05-10');
+
+-- 予想画面の「今回の条件」（騎手・斤量と前走からの変化。entry-conditions）。ブリンカーは条件の項目ではなく、馬名の右の B と馬柱の各走で見る。
+-- 6頭で、乗り替わり・斤量の増減/同じ・欠け（項目を出さない）・ブリンカーの B（着用の馬だけ）・騎手変更・取消を飛ばす・結果未投入で止まる、をそろえる。
+-- 過去のレースも 2099 年に置く（日付が固定でも「このレースより前」であり続ける）。
+INSERT INTO horse (id, name) VALUES
+	('01JE2EHORSECOND10000000000', 'E2Eノリカエ'),
+	('01JE2EHORSECOND20000000000', 'E2Eオナジ'),
+	('01JE2EHORSECOND30000000000', 'E2Eハジメテ'),
+	('01JE2EHORSECOND40000000000', 'E2Eフメイ'),
+	('01JE2EHORSECOND50000000000', 'E2Eヘンコウ'),
+	('01JE2EHORSECOND60000000000', 'E2Eミケッテイ');
+
+INSERT INTO race (id, date, course, race_number, name, surface, distance, direction)
+VALUES ('01JE2ERACECONDNOW000000000', '2099-05-08', '東京', 10, 'E2E条件賞', '芝', 1600, '左');
+-- 前走（結果あり）。5 は取消（着順なし）。
+INSERT INTO race (id, date, course, race_number, name, surface, distance, direction, field_size, winner_name, runner_up_name)
+VALUES ('01JE2ERACECONDPREV00000000', '2099-04-12', '東京', 9, 'E2E条件前走賞', '芝', 1600, '左', 10, 'E2Eカチウマ', 'E2Eニバンテ');
+INSERT INTO race (id, date, course, race_number, name, surface, distance, direction, field_size, winner_name, runner_up_name)
+VALUES ('01JE2ERACECONDOLD000000000', '2099-03-15', '東京', 9, 'E2E条件前々走賞', '芝', 1600, '左', 12, 'E2Eカチウマ', 'E2Eニバンテ');
+-- 結果がまだ入っていないレース（着順も頭数も勝ち馬も無い）。走ったか分からないので、前走として比べない。
+INSERT INTO race (id, date, course, race_number, name, surface, distance, direction)
+VALUES ('01JE2ERACECONDNORES0000000', '2099-04-19', '東京', 9, 'E2E条件結果前賞', '芝', 1600, '左');
+INSERT INTO race_entry (id, race_id, horse_id, horse_number, jockey, announced_jockey, weight_carried, blinker, finish_position) VALUES
+	('01JE2EENTRYCONDN1000000000', '01JE2ERACECONDNOW000000000', '01JE2EHORSECOND10000000000', 1, 'ルメール', NULL, 57, 1, NULL),
+	('01JE2EENTRYCONDN2000000000', '01JE2ERACECONDNOW000000000', '01JE2EHORSECOND20000000000', 2, '川田将雅', NULL, 56, 0, NULL),
+	('01JE2EENTRYCONDN3000000000', '01JE2ERACECONDNOW000000000', '01JE2EHORSECOND30000000000', 3, '横山武史', NULL, 55, NULL, NULL),
+	('01JE2EENTRYCONDN4000000000', '01JE2ERACECONDNOW000000000', '01JE2EHORSECOND40000000000', 4, NULL, NULL, NULL, NULL, NULL),
+	('01JE2EENTRYCONDN5000000000', '01JE2ERACECONDNOW000000000', '01JE2EHORSECOND50000000000', 5, '坂井瑠星', '戸崎圭太', 58, 1, NULL),
+	('01JE2EENTRYCONDN6000000000', '01JE2ERACECONDNOW000000000', '01JE2EHORSECOND60000000000', 6, '岩田望来', NULL, 56, 0, NULL),
+	('01JE2EENTRYCONDP1000000000', '01JE2ERACECONDPREV00000000', '01JE2EHORSECOND10000000000', 1, '武豊', NULL, 56, 0, 3),
+	('01JE2EENTRYCONDP2000000000', '01JE2ERACECONDPREV00000000', '01JE2EHORSECOND20000000000', 2, '川田将雅', NULL, 56, 1, 4),
+	('01JE2EENTRYCONDP4000000000', '01JE2ERACECONDPREV00000000', '01JE2EHORSECOND40000000000', 4, '横山和生', NULL, 57, NULL, 2),
+	('01JE2EENTRYCONDP5000000000', '01JE2ERACECONDPREV00000000', '01JE2EHORSECOND50000000000', 5, '松山弘平', NULL, 57, NULL, NULL),
+	('01JE2EENTRYCONDO5000000000', '01JE2ERACECONDOLD000000000', '01JE2EHORSECOND50000000000', 5, '戸崎圭太', NULL, 57.5, 1, 2),
+	('01JE2EENTRYCONDC6000000000', '01JE2ERACECONDNORES0000000', '01JE2EHORSECOND60000000000', 6, '岩田望来', NULL, 56, NULL, NULL);

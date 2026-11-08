@@ -21,7 +21,20 @@ test('騎手の一覧は騎乗の多い順に並び、名前と自分が付け�
 	await page.goto('/jockeys');
 
 	const names = page.locator('main ul > li .font-medium');
-	await expect(names).toHaveText([JOCKEYS.main, JOCKEYS.rookie]);
+	// 騎乗の多い順（同数は名前順）。seed の「E2E条件賞」（今回の条件を見るレース）の騎手も並ぶ。
+	await expect(names).toHaveText([
+		JOCKEYS.main,
+		'岩田望来',
+		'川田将雅',
+		JOCKEYS.rookie,
+		'ルメール',
+		'坂井瑠星',
+		'戸崎圭太',
+		'松山弘平',
+		'横山和生',
+		'横山武史',
+		'武豊'
+	]);
 	// 札は自分が付けたものだけ（別のユーザーが付けた「東京巧者」は出ない）。
 	const main = page.locator('main ul > li', { hasText: JOCKEYS.main });
 	await expect(main).toContainText('中山巧者');

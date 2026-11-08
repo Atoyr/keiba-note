@@ -392,4 +392,22 @@ describe('PastRuns のレース名', () => {
 			done();
 		}
 	});
+
+	it('ブリンカー着用の走だけ「ブリンカー着用」を出す。騎手が無くても出す', () => {
+		const { container } = render(PastRuns, {
+			runs: [
+				run({ raceId: 'b1', blinker: true, jockey: 'テスト騎手' }),
+				run({ raceId: 'b2', blinker: false, jockey: 'テスト騎手' }),
+				run({ raceId: 'b3', blinker: null, jockey: 'テスト騎手' }),
+				run({ raceId: 'b4', blinker: true, jockey: null })
+			]
+		});
+		const bodies = [...container.querySelectorAll('tbody')];
+		expect(bodies.map((b) => b.textContent?.includes('ブリンカー着用'))).toEqual([
+			true,
+			false,
+			false,
+			true
+		]);
+	});
 });

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BlinkerBadge from './BlinkerBadge.svelte';
 	import GradeBadge from '$lib/components/GradeBadge.svelte';
 	import { resolve } from '$app/paths';
 	import JockeyLink from '$lib/components/JockeyLink.svelte';
@@ -131,7 +132,7 @@
 							>{r.popularity ?? '—'}</td
 						>
 					</tr>
-					{#if r.jockey || vs || r.finishTime}
+					{#if r.jockey || r.blinker || vs || r.finishTime}
 						<tr>
 							<!-- 見出しの語は画面には出さない（`1:58.4` は形で見分けが付き、騎手・勝ち馬は並びで分かる）が、読み上げでは要る。 -->
 							<td colspan="6" class="px-1.5 pb-2 text-muted-foreground">
@@ -145,6 +146,7 @@
 											/></span
 										>
 									{/if}
+									<BlinkerBadge blinker={r.blinker ?? null} />
 									{#if vs}
 										<span><span class="sr-only">{vs.label}</span>{vs.text}</span>
 									{/if}

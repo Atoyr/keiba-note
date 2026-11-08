@@ -190,7 +190,11 @@ export const raceEntry = sqliteTable(
 		bracket: integer('bracket'),
 		horseNumber: integer('horse_number'),
 		jockey: text('jockey'),
+		/** 出馬表の公開後に騎手が変わったときの、発表時の騎手。変わっていなければ NULL。 */
+		announcedJockey: text('announced_jockey'),
 		weightCarried: real('weight_carried'),
+		/** ブリンカーの着用。NULL = 不明（「着用なし」ではない）。 */
+		blinker: integer('blinker', { mode: 'boolean' }),
 		horseWeight: integer('horse_weight'),
 		horseWeightDiff: integer('horse_weight_diff'),
 		odds: real('odds'),

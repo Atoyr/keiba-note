@@ -505,6 +505,11 @@ function previewEntriesQuery(db: Db, raceId: string) {
 			bracket: raceEntry.bracket,
 			horseNumber: raceEntry.horseNumber,
 			jockey: raceEntry.jockey,
+			// 出馬表の公開後に騎手が変わったときの、発表時の騎手。変わっていなければ NULL。
+			announcedJockey: raceEntry.announcedJockey,
+			weightCarried: raceEntry.weightCarried,
+			// NULL = 不明（「着用なし」ではない）。
+			blinker: raceEntry.blinker,
 			finishPosition: raceEntry.finishPosition,
 			finishTime: raceEntry.finishTime,
 			margin: raceEntry.margin,
@@ -555,6 +560,9 @@ export type PastRun = {
 	passing: string | null;
 	margin: string | null;
 	jockey: string | null;
+	/** 前走との比べに使う。斤量（kg）とブリンカー（NULL = 不明）。 */
+	weightCarried: number | null;
+	blinker: boolean | null;
 };
 
 /**
@@ -606,7 +614,9 @@ export async function listPastRuns(
 			finishTime: raceEntry.finishTime,
 			passing: raceEntry.passing,
 			margin: raceEntry.margin,
-			jockey: raceEntry.jockey
+			jockey: raceEntry.jockey,
+			weightCarried: raceEntry.weightCarried,
+			blinker: raceEntry.blinker
 		})
 		.from(raceEntry)
 		.innerJoin(race, eq(raceEntry.raceId, race.id))

@@ -79,6 +79,9 @@ export const urls = {
 	raceList: (date: string) =>
 		`https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${date.replaceAll('-', '')}`,
 	shutuba: (raceId: string) => `https://race.netkeiba.com/race/shutuba.html?race_id=${raceId}`,
+	/** 5走表示。**ブリンカーの着用が読めるのはこのページだけ**（出馬表・結果には無い）。 */
+	shutubaPast: (raceId: string) =>
+		`https://race.netkeiba.com/race/shutuba_past.html?race_id=${raceId}`,
 	result: (raceId: string) => `https://race.netkeiba.com/race/result.html?race_id=${raceId}`,
 	horse: (horseId: string) => `https://db.netkeiba.com/horse/${horseId}/`,
 	horseResults: (horseId: string) => `https://db.netkeiba.com/horse/result/${horseId}/`,
@@ -323,6 +326,8 @@ export type ShutubaRow = {
 	sex?: '牡' | '牝' | 'セ';
 	age?: number;
 	weight?: number;
+	/** ブリンカーの着用。出馬表のページには無く、5走表示（`parseShutubaPast`）から呼び出し側が足す。無ければ不明。 */
+	blinker?: boolean;
 	jockey?: Person;
 	trainer?: Person;
 	/** 調教師のセルの頭のラベル（美浦・栗東・地方・海外）。 */
@@ -419,6 +424,28 @@ export function parseShutuba(html: string): { meta: RaceMeta; rows: ShutubaRow[]
 		});
 	}
 	return { meta: parseRaceMeta(html), rows };
+}
+
+/**
+ * 5走表示（shutuba_past.html）から、馬ごとのブリンカーの着用を読む（horseId → 着用）。
+ *
+ * - 馬名の後ろの `<span class="Mark">B</span>` が着用。ページに凡例 `[ブリンカー]` があるときだけ、
+ *   B が無い馬を「着用なし」とする。**凡例が無ければ null**（ページの構造が変わった・読めない = 不明）
+ * - 馬番のある行だけ（枠順確定前の登録馬は判断材料にしない）
+ */
+export function parseShutubaPast(html: string): Map<string, boolean> | null {
+	if (!/\[ブリンカー\]/.test(html)) return null;
+	const out = new Map<string, boolean>();
+	const starts = [...html.matchAll(/<tr\s+class="HorseList[^"]*"/g)].map((m) => m.index);
+	for (const [i, start] of starts.entries()) {
+		const tr = html.slice(start, starts[i + 1] ?? html.length);
+		const umaban = int(text(/<td\s+class="Waku"[^>]*>([\s\S]*?)<\/td>/.exec(tr)?.[1] ?? ''));
+		const name = /<div\s+class="Horse02"[^>]*>([\s\S]*?)<\/div>/.exec(tr)?.[1];
+		const id = name ? /db\.netkeiba\.com\/horse\/(\d+)/.exec(name)?.[1] : undefined;
+		if (umaban === undefined || !name || !id) continue;
+		out.set(id, /<span\s+class="Mark"[^>]*>\s*B\s*<\/span>/.test(name));
+	}
+	return out;
 }
 
 // ---------------------------------------------------------------------------
