@@ -10,7 +10,7 @@
  *
  * 枠順の PR がマージされて馬番が入ると、対象から外れる。
  *
- * 結果（`requestResultsFetch`）も同じ経路で頼む。開催日の夕方に1回、当日のレースを選んで `command: result` で起動する。
+ * 結果（`requestResultsFetch`）も同じ経路で頼む。開催日の夕方に、当日のレースと、通過順の取り直しのレースを選んで `command: result` で起動する。
  *
  * ログの出し方（通知するかどうか）は呼び出し側に渡す `log` が決める。ここは monitoring を知らない。
  */
@@ -20,7 +20,10 @@ import {
 	type EntriesFetchTarget,
 	type EntriesStage
 } from '$lib/server/services/entries-fetch';
-import { listResultsFetchTargets } from '$lib/server/services/results-fetch';
+import {
+	listPassingRefetchTargets,
+	listResultsFetchTargets
+} from '$lib/server/services/results-fetch';
 import { DispatchError, type DispatchErrorKind, type EntriesFetchRequest } from './dispatch';
 
 export type EntriesLogEntry = {
@@ -77,17 +80,21 @@ export async function requestEntriesFetch(
 export type RequestResultsDeps = Omit<RequestEntriesDeps, 'stage'>;
 
 /**
- * 当日の結果の取得を、GitHub Actions に頼む。Cron（`scheduled.ts`）が開催日の夕方に1回だけ呼ぶ。
+ * 当日の結果の取得を、GitHub Actions に頼む。Cron（`scheduled.ts`）が毎日夕方に呼ぶ。
  *
- * 1日1回きりで、翌日に取り直す回は無い。**頼めなかったレースは、レースごとには通知せず、
+ * 当日のレースに加えて、1〜7日前で通過順が抜けたままのレースも取り直す（`listPassingRefetchTargets`。
+ * 通過順は当日の夕方にはまだ netkeiba に載っていないことがある）。**頼めなかったレースは、レースごとには通知せず、
  * 最後にまとめて1件で知らせる**（monitor は1回の起動で1件しか送らないので、レースごとに送ると
  * 2レース目からが届かない）。知らせを見た人が Actions を `command: result` で手で起動する。
  */
 export async function requestResultsFetch(
 	deps: RequestResultsDeps
-): Promise<RequestEntriesSummary> {
+): Promise<RequestEntriesSummary & { refetch: number }> {
 	const now = deps.now ?? (() => new Date());
-	const targets = await listResultsFetchTargets(deps.db, now());
+	const today = await listResultsFetchTargets(deps.db, now());
+	const refetch = await listPassingRefetchTargets(deps.db, now());
+	const seen = new Set(today.map((t) => t.raceId));
+	const targets = [...today, ...refetch.filter((t) => !seen.has(t.raceId))];
 	const { summary, missed } = await dispatchEach(deps, targets, {
 		event: 'results.dispatch',
 		fields: {},
@@ -106,7 +113,7 @@ export async function requestResultsFetch(
 			...summary
 		});
 	}
-	return summary;
+	return { ...summary, refetch: targets.length - today.length };
 }
 
 function base(t: EntriesFetchTarget) {

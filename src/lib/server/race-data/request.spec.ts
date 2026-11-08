@@ -143,7 +143,13 @@ describe('requestResultsFetch', () => {
 
 	it('当日の出走馬があるレースを、command: result・確定待ちなし・段なしで頼む', async () => {
 		const { summary, logs, spy } = runResults(async () => {});
-		expect(await summary).toEqual({ targets: 2, requested: 2, failed: 0, stopped: false });
+		expect(await summary).toEqual({
+			targets: 2,
+			requested: 2,
+			failed: 0,
+			stopped: false,
+			refetch: 0
+		});
 		expect(spy.mock.calls.map((c) => c[0])).toEqual([
 			{
 				date: '2026-09-27',
@@ -167,6 +173,26 @@ describe('requestResultsFetch', () => {
 		expect(logs).toHaveLength(2);
 		expect(logs[0]).toMatchObject({ level: 'info', event: 'results.dispatch', raceId: 'SPR' });
 		expect(logs[0]).not.toHaveProperty('stage');
+	});
+
+	it('通過順が抜けた1〜7日前のレースも、当日の分のあとに1回ずつ頼む', async () => {
+		sqlite.exec(`INSERT INTO race (id, date, course, race_number, direction, external_ref) VALUES
+			('OLD', '2026-09-26', '東京', 11, '左', 'nk-old');
+		INSERT INTO race_entry (id, race_id, horse_id, finish_position) VALUES ('E9', 'OLD', 'H1', 1);`);
+		const { summary, spy } = runResults(async () => {});
+		expect(await summary).toEqual({
+			targets: 3,
+			requested: 3,
+			failed: 0,
+			stopped: false,
+			refetch: 1
+		});
+		expect(spy.mock.calls.map((c) => c[0].date)).toEqual([
+			'2026-09-27',
+			'2026-09-27',
+			'2026-09-26'
+		]);
+		expect(spy.mock.calls[2][0]).toMatchObject({ raceNumber: 11, command: 'result' });
 	});
 
 	it('頼めなかったレースはレースごとには通知せず、最後にまとめて1件で知らせる', async () => {

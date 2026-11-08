@@ -37,7 +37,8 @@ export const ENTRIES_CRONS: Readonly<Record<EntriesStage, string>> = {
 /**
  * 結果の取得を頼む Cron。毎日 JST 18:10（UTC 09:10）。JRA の最終レースはふだん17時前後に確定する。
  * 分はオッズの Cron（:05・:35。`odds/scheduled.ts`）と同じ時間帯に重ならないようにずらす。
- * 当日に対象のレースが無い日（ほとんどの平日）は Actions を起動しない。
+ * 同じ回で、1〜7日前の通過順が抜けたままのレースも取り直す（通過順は当日夕方にはまだ載らないことがある）。
+ * 当日にも取り直しにも対象が無い日は Actions を起動しない。
  *
  * **wrangler.toml の `[triggers] crons` と同じ文字列にすること。**
  */
@@ -125,7 +126,7 @@ export async function runResultsCron(
 			// 実行が遅れて日付をまたいでも、起動するはずだった日の結果を取る
 			now: () => new Date(scheduledTime)
 		};
-		const summary: RequestEntriesSummary = await requestResultsFetch(deps);
+		const summary: RequestEntriesSummary & { refetch: number } = await requestResultsFetch(deps);
 		if (summary.targets > 0) {
 			monitor.log({
 				level: 'info',
