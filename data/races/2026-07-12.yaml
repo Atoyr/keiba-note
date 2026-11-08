@@ -13,6 +13,7 @@ races:
     weather: 雨
     fieldSize: 14
     winner: ヴーレヴー
+    runnerUp: レディーヴァリュー
     entries:
       - horseNumber: 1
         bracket: 1
@@ -51,6 +52,7 @@ races:
         finish: 1
         popularity: 8
         time: "1:47.1"
+        timeDiff: -0.5
         passing: "2-2-2-2"
         last3f: 35.4
         weight: 55

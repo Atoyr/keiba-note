@@ -49,6 +49,8 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 雨
+    fieldSize: 16
+    winner: キタノズエッジ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -72,6 +74,7 @@ races:
         finish: 16
         popularity: 8
         time: "1:25.4"
+        timeDiff: 3.2
         passing: "4-5"
         last3f: 39.5
         weight: 54
@@ -823,6 +826,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 雨
+    fieldSize: 12
+    winner: マリアイリダータ
+    runnerUp: ベネスピラ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -832,6 +838,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:02.0"
+        timeDiff: -0.4
         passing: "7-7-9-6"
         last3f: 35
         weight: 54

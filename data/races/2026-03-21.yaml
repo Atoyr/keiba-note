@@ -952,6 +952,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: レイクラシック
+    runnerUp: カトマンズゴールド
     entries:
       - horseNumber: 16
         bracket: 8
@@ -961,6 +964,7 @@ races:
         finish: 1
         popularity: 2
         time: "2:00.1"
+        timeDiff: -0.3
         passing: "6-6-5-5"
         last3f: 35
         weight: 55

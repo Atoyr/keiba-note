@@ -48,6 +48,7 @@ races:
         popularity: 5
         time: "1:47.0"
         margin: "1/2"
+        timeDiff: 0.9
         passing: "13-12-12-9"
         last3f: 34.7
         weight: 57
@@ -68,6 +69,7 @@ races:
         popularity: 10
         time: "1:46.6"
         margin: "1.3/4"
+        timeDiff: 0.5
         passing: "9-9-10-9"
         last3f: 34.6
         weight: 55
@@ -227,6 +229,7 @@ races:
         popularity: 3
         time: "1:46.2"
         margin: "3/4"
+        timeDiff: 0.1
         passing: "9-9-8-9"
         last3f: 34.4
         weight: 56
@@ -286,6 +289,7 @@ races:
         popularity: 4
         time: "1:46.2"
         margin: "クビ"
+        timeDiff: 0.1
         passing: "2-2-2-2"
         last3f: 35
         weight: 55

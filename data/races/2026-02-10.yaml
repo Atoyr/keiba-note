@@ -12,6 +12,7 @@ races:
     trackCondition: 良
     weather: 曇
     fieldSize: 9
+    winner: ゾロアストロ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -138,6 +139,7 @@ races:
         popularity: 4
         time: "1:48.0"
         margin: "ハナ"
+        timeDiff: 0
         passing: "8-7"
         last3f: 32.8
         weight: 55

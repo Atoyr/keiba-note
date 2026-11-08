@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: フェアエールング
     entries:
       - horseNumber: 9
         bracket: 5
@@ -48,6 +50,7 @@ races:
         finish: 3
         popularity: 5
         time: "1:58.6"
+        timeDiff: 0.2
         passing: "12-12-12-15"
         last3f: 35.5
         weight: 55

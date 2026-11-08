@@ -92,15 +92,18 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 15
+    winner: コトホドサヨウニ
     entries:
-      - name: ヴーレヴー
-        ref: nk-2022104617
+      - horseNumber: 9
         bracket: 5
-        horseNumber: 9
+        name: ヴーレヴー
         jockey: 浜中俊
+        ref: nk-2022104617
         finish: 11
         popularity: 7
         time: "1:46.2"
+        timeDiff: 1.3
         passing: "4-4-2-3"
         last3f: 38.5
         weight: 54

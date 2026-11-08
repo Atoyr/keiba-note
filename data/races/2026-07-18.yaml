@@ -286,6 +286,21 @@ races:
     winner: ミラビリスマジック
     runnerUp: ホウオウスーペリア
     entries:
+      - horseNumber: 3
+        bracket: 2
+        name: アマイ
+        jockey: 原優介
+        ref: nk-2020100809
+        finish: 11
+        popularity: 12
+        time: "1:47.4"
+        timeDiff: 1.2
+        passing: "3-3-2-2"
+        last3f: 36.8
+        weight: 54
+        horseWeight: 468
+        horseWeightDiff: -2
+        odds: 28.4
       - horseNumber: 13
         bracket: 7
         name: ミラビリスマジック

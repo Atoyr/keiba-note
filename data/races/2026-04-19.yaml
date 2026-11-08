@@ -395,6 +395,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: コガネノソラ
+    runnerUp: ジョイフルニュース
     entries:
       - horseNumber: 1
         bracket: 1
@@ -599,6 +600,7 @@ races:
         popularity: 10
         time: "1:45.9"
         margin: "クビ"
+        timeDiff: 0.3
         passing: "16-16-14-14"
         last3f: 34
         weight: 57
@@ -617,6 +619,7 @@ races:
         popularity: 6
         time: "1:46.0"
         margin: "クビ"
+        timeDiff: 0.4
         passing: "1-1-1-1"
         last3f: 35.8
         weight: 55
@@ -634,6 +637,7 @@ races:
         finish: 1
         popularity: 9
         time: "1:45.6"
+        timeDiff: -0.2
         passing: "10-10-9-7"
         last3f: 34.1
         weight: 55

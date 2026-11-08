@@ -549,6 +549,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 8
+    winner: エストゥペンダ
+    runnerUp: ビーオンザカバー
     entries:
       - horseNumber: 6
         bracket: 6
@@ -558,6 +561,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:58.3"
+        timeDiff: -0.1
         passing: "8-6-6"
         last3f: 33.4
         weight: 54

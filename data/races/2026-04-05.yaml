@@ -341,7 +341,24 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 16
+    winner: ジュタ
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: シャドウメテオ
+        jockey: 丹内祐次
+        ref: nk-2022105454
+        finish: 2
+        popularity: 4
+        time: "2:01.5"
+        timeDiff: 0
+        passing: "11-10-9-7"
+        last3f: 34.5
+        weight: 56
+        horseWeight: 462
+        horseWeightDiff: -4
+        odds: 8.9
       - horseNumber: 6
         bracket: 3
         name: フクノブルーレイク
@@ -370,6 +387,21 @@ races:
         horseWeight: 500
         horseWeightDiff: 0
         odds: 5.1
+      - horseNumber: 15
+        bracket: 8
+        name: アマイ
+        jockey: 原優介
+        ref: nk-2020100809
+        finish: 7
+        popularity: 13
+        time: "2:01.9"
+        timeDiff: 0.4
+        passing: "2-2-2-2"
+        last3f: 35.8
+        weight: 56
+        horseWeight: 468
+        horseWeightDiff: -2
+        odds: 56.3
   - course: 中山
     raceNumber: 10
     name: アリエスS

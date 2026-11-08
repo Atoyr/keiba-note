@@ -90,6 +90,7 @@ races:
         popularity: 3
         time: "2:17.2"
         margin: "1.3/4"
+        timeDiff: 0.3
         passing: "3-3-3-3"
         last3f: 37.1
         weight: 55
@@ -252,6 +253,7 @@ races:
         popularity: 5
         time: "2:19.9"
         margin: "2.1/2"
+        timeDiff: 3
         passing: "2-2-2-2"
         last3f: 40.0
         weight: 55
