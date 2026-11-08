@@ -724,6 +724,21 @@ races:
     fieldSize: 14
     winner: レッドテリオス
     entries:
+      - horseNumber: 3
+        bracket: 3
+        name: シャドウメテオ
+        jockey: 大野拓弥
+        ref: nk-2022105454
+        finish: 3
+        popularity: 8
+        time: "2:23.8"
+        timeDiff: 0.5
+        passing: "13-14-14-14"
+        last3f: 34
+        weight: 56
+        horseWeight: 464
+        horseWeightDiff: 2
+        odds: 15
       - horseNumber: 8
         bracket: 5
         name: ジョイボーイ

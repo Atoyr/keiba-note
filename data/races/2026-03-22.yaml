@@ -722,7 +722,24 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 9
+    winner: フィーリウス
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: アマイ
+        jockey: 原優介
+        ref: nk-2020100809
+        finish: 9
+        popularity: 6
+        time: "1:47.6"
+        timeDiff: 0.9
+        passing: "1-1-1-1"
+        last3f: 35.5
+        weight: 56
+        horseWeight: 470
+        horseWeightDiff: -4
+        odds: 19.9
       - horseNumber: 4
         bracket: 4
         name: ジュタ
@@ -759,6 +776,7 @@ races:
         finish: 5
         popularity: 1
         time: "1:47.1"
+        timeDiff: 0.4
         passing: "8-9-7-7"
         last3f: 34.2
         weight: 56

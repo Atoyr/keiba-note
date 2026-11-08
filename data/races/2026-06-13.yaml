@@ -733,6 +733,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 16
+    winner: カテリーナ
+    runnerUp: マイスターヴェルク
     entries:
       - horseNumber: 4
         bracket: 2
@@ -742,6 +745,7 @@ races:
         finish: 1
         popularity: 5
         time: "1:45.9"
+        timeDiff: -0.6
         passing: "4-4-6-5"
         last3f: 33.8
         weight: 56

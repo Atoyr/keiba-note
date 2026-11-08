@@ -166,6 +166,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 8
+    winner: クールデイトナ
     entries:
       - horseNumber: 2
         bracket: 2
@@ -175,6 +177,7 @@ races:
         finish: 3
         popularity: 1
         time: "1:37.0"
+        timeDiff: 0.2
         passing: "7-7-7"
         last3f: 32.9
         weight: 55

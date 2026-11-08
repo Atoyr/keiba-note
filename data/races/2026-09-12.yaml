@@ -231,6 +231,7 @@ races:
         popularity: 2
         time: "1:57.8"
         margin: "ハナ"
+        timeDiff: 0.2
         passing: "10-12-13-12"
         last3f: 34.1
         weight: 54
@@ -251,6 +252,7 @@ races:
         popularity: 12
         time: "1:58.5"
         margin: "2.1/2"
+        timeDiff: 0.9
         passing: "3-3-2-2"
         last3f: 35.8
         weight: 55.5
@@ -390,3 +392,31 @@ races:
         horseWeight: 454
         horseWeightDiff: 0
         odds: 1.6
+  - course: 中山
+    raceNumber: 10
+    name: レインボーS
+    className: 3勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 重
+    weather: 曇
+    fieldSize: 11
+    winner: アマイ
+    runnerUp: マイネルブリックス
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: アマイ
+        jockey: 江田照男
+        ref: nk-2020100809
+        finish: 1
+        popularity: 9
+        time: "2:01.1"
+        timeDiff: 0
+        passing: "1-1-1-1"
+        last3f: 35.9
+        weight: 53
+        horseWeight: 474
+        horseWeightDiff: 6
+        odds: 19.1

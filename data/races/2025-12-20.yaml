@@ -642,6 +642,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 10
+    winner: ロックターミガン
     entries:
       - horseNumber: 3
         bracket: 3
@@ -665,6 +667,7 @@ races:
         finish: 7
         popularity: 7
         time: "1:55.0"
+        timeDiff: 2.4
         passing: "9-10-10-10"
         last3f: 37.2
         weight: 55

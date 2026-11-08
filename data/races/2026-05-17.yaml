@@ -106,6 +106,7 @@ races:
         popularity: 16
         time: "1:31.9"
         margin: "3/4"
+        timeDiff: 1
         passing: "16-17"
         last3f: 32.8
         weight: 56
@@ -357,6 +358,7 @@ races:
         popularity: 6
         time: "1:32.0"
         margin: "アタマ"
+        timeDiff: 1.1
         passing: "3-3"
         last3f: 34.4
         weight: 56
@@ -374,6 +376,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: エストゥペンダ
+    runnerUp: ガジュノリ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -397,6 +400,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:49.1"
+        timeDiff: -0.1
         passing: "12-12"
         last3f: 32.5
         weight: 56
@@ -659,6 +663,9 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: マリアイリダータ
+    runnerUp: ホウオウシンデレラ
     entries:
       - horseNumber: 14
         bracket: 7
@@ -668,6 +675,7 @@ races:
         finish: 1
         popularity: 1
         time: "2:00.7"
+        timeDiff: -0.3
         passing: "5-5"
         last3f: 33.3
         weight: 56

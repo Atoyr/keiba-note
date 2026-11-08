@@ -153,6 +153,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 13
+    winner: カテリーナ
+    runnerUp: ダンツファイター
     entries:
       - horseNumber: 1
         bracket: 1
@@ -162,6 +165,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:48.3"
+        timeDiff: -0.1
         passing: "3-3-4-4"
         last3f: 34.8
         weight: 56

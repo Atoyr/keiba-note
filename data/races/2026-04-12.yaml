@@ -594,6 +594,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: ジュウリョクピエロ
+    runnerUp: ピカキウイ
     entries:
       - horseNumber: 13
         bracket: 8
@@ -617,6 +620,7 @@ races:
         finish: 1
         popularity: 7
         time: "1:59.1"
+        timeDiff: -0.4
         passing: "14-14-13-9"
         last3f: 35.2
         weight: 55

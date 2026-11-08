@@ -13,6 +13,7 @@ races:
     weather: 曇
     fieldSize: 12
     winner: レーゼドラマ
+    runnerUp: シルトホルン
     entries:
       - name: コスモブッドレア
         ref: nk-2021106782
@@ -93,6 +94,7 @@ races:
         finish: 1
         popularity: 6
         time: "1:59.4"
+        timeDiff: -0.3
         passing: "1-1-1-1"
         last3f: 35.1
         weight: 54

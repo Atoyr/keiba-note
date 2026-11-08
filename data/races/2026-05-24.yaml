@@ -13,6 +13,7 @@ races:
     weather: 曇
     fieldSize: 18
     winner: ジュウリョクピエロ
+    runnerUp: ドリームコア
     entries:
       - horseNumber: 1
         bracket: 1
@@ -46,6 +47,7 @@ races:
         popularity: 12
         time: "2:25.7"
         margin: "クビ"
+        timeDiff: 0.1
         passing: "13-12-12-10"
         last3f: 33.6
         weight: 55
@@ -316,6 +318,7 @@ races:
         finish: 1
         popularity: 5
         time: "2:25.6"
+        timeDiff: 0
         passing: "13-12-14-14"
         last3f: 33.1
         weight: 55
@@ -355,6 +358,7 @@ races:
         popularity: 2
         time: "2:25.6"
         margin: "クビ"
+        timeDiff: 0
         passing: "10-12-12-13"
         last3f: 33.3
         weight: 55

@@ -539,6 +539,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 9
+    winner: ジュウリョクピエロ
+    runnerUp: ロードステラート
     entries:
       - horseNumber: 9
         bracket: 8
@@ -548,6 +551,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:54.8"
+        timeDiff: -0.6
         passing: "3-3-3-3"
         last3f: 36.8
         weight: 53
