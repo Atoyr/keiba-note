@@ -32,18 +32,20 @@ const normalizeJockey = (s: string) => s.normalize('NFKC').replace(/[.\s]/g, '')
 
 /**
  * 騎手名が同じか。表記ゆれ（全角半角・「.」・空白）をそろえたうえで、同じか前方一致（略称）なら同じ。
- * 片方の頭が英大文字1字（頭文字）なら、それを落とした形でも比べる（`M.デムーロ` と `デムーロ`）。
+ * 片方にだけ頭文字（頭の英大文字1字）があるときは、それを落とした形で比べる（`C.ルメール` と `ルメール`）。
+ * **両方に頭文字があって違えば別の騎手**（`C.デムーロ` と `M.デムーロ`）。
  * 取り込み側（scripts/race-data/apply.ts）もこの関数を使う。
  */
 export function sameJockey(a: string, b: string): boolean {
-	const forms = (s: string) => {
-		const n = normalizeJockey(s);
-		const bare = n.replace(/^[A-Z]/, '');
-		return bare !== n && bare !== '' ? [n, bare] : [n];
-	};
-	return forms(a).some((x) =>
-		forms(b).some((y) => x !== '' && y !== '' && (x.startsWith(y) || y.startsWith(x)))
-	);
+	const x = normalizeJockey(a);
+	const y = normalizeJockey(b);
+	if (x === '' || y === '') return false;
+	const initial = (s: string) => /^[A-Z](?=.)/.exec(s)?.[0];
+	const [ix, iy] = [initial(x), initial(y)];
+	if (ix && iy && ix !== iy) return false;
+	// 片方にだけ頭文字があれば落としてそろえる（両方にあって同じなら、そのままで比べられる）。
+	const [p, q] = ix && !iy ? [x.slice(1), y] : iy && !ix ? [x, y.slice(1)] : [x, y];
+	return p.startsWith(q) || q.startsWith(p);
 }
 
 /**

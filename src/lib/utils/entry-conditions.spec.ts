@@ -59,6 +59,10 @@ describe('sameJockey', () => {
 		expect(sameJockey('C.ルメール', 'ルメール')).toBe(true);
 		expect(sameJockey('Cルメール', 'ルメール')).toBe(true);
 		expect(sameJockey('M.デムーロ', 'C.ルメール')).toBe(false);
+		// 頭文字だけ違う別の騎手（兄弟）。両方に頭文字があって違えば別人。
+		expect(sameJockey('C.デムーロ', 'M.デムーロ')).toBe(false);
+		expect(sameJockey('Cデムーロ', 'M.デムーロ')).toBe(false);
+		expect(sameJockey('C.ルメール', 'ルメール')).toBe(true);
 		expect(sameJockey('', '武豊')).toBe(false);
 	});
 });
