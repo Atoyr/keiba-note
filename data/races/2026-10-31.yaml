@@ -31,6 +31,7 @@ races:
         time: "1:22.1"
         margin: "1.1/2"
         timeDiff: 0.8
+        passing: "9-8"
         last3f: 33.8
         weight: 55
         horseWeight: 498
@@ -50,6 +51,7 @@ races:
         time: "1:21.9"
         margin: "クビ"
         timeDiff: 0.6
+        passing: "3-3"
         last3f: 34.2
         weight: 55
         horseWeight: 428
@@ -69,6 +71,7 @@ races:
         time: "1:22.2"
         margin: "クビ"
         timeDiff: 0.9
+        passing: "11-11"
         last3f: 33.4
         weight: 55
         horseWeight: 452
@@ -87,6 +90,7 @@ races:
         popularity: 3
         time: "1:21.3"
         timeDiff: 0
+        passing: "6-7"
         last3f: 33.3
         weight: 55
         horseWeight: 498
@@ -106,6 +110,7 @@ races:
         time: "1:21.5"
         margin: "1.1/4"
         timeDiff: 0.2
+        passing: "1-1"
         last3f: 34.1
         weight: 55
         horseWeight: 484
@@ -125,6 +130,7 @@ races:
         time: "1:21.7"
         margin: "ハナ"
         timeDiff: 0.4
+        passing: "5-5"
         last3f: 33.9
         weight: 55
         horseWeight: 442
@@ -144,6 +150,7 @@ races:
         time: "1:22.2"
         margin: "クビ"
         timeDiff: 0.9
+        passing: "10-10"
         last3f: 33.6
         weight: 55
         horseWeight: 422
@@ -163,6 +170,7 @@ races:
         time: "1:21.7"
         margin: "1"
         timeDiff: 0.4
+        passing: "6-5"
         last3f: 33.8
         weight: 55
         horseWeight: 496
@@ -182,6 +190,7 @@ races:
         time: "1:21.8"
         margin: "3/4"
         timeDiff: 0.5
+        passing: "8-8"
         last3f: 33.7
         weight: 55
         horseWeight: 466
@@ -201,6 +210,7 @@ races:
         time: "1:21.3"
         margin: "クビ"
         timeDiff: 0
+        passing: "2-2"
         last3f: 33.7
         weight: 55
         horseWeight: 446
@@ -220,6 +230,7 @@ races:
         time: "1:23.1"
         margin: "5"
         timeDiff: 1.8
+        passing: "3-3"
         last3f: 35.4
         weight: 55
         horseWeight: 438

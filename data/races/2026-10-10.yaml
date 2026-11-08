@@ -37,6 +37,7 @@ races:
         time: "1:35.0"
         margin: "3/4"
         timeDiff: 0.6
+        passing: "7-7"
         last3f: 34.3
         weight: 56
         horseWeight: 464
@@ -60,6 +61,7 @@ races:
         time: "1:35.2"
         margin: "1.1/4"
         timeDiff: 0.8
+        passing: "10-9"
         last3f: 34.2
         weight: 56
         horseWeight: 486
@@ -83,6 +85,7 @@ races:
         time: "1:34.4"
         margin: "クビ"
         timeDiff: 0
+        passing: "3-4"
         last3f: 34
         weight: 56
         horseWeight: 454
@@ -105,6 +108,7 @@ races:
         popularity: 3
         time: "1:34.4"
         timeDiff: 0
+        passing: "9-9"
         last3f: 33.4
         weight: 56
         horseWeight: 440
@@ -128,6 +132,7 @@ races:
         time: "1:34.6"
         margin: "1"
         timeDiff: 0.2
+        passing: "7-7"
         last3f: 33.9
         weight: 56
         horseWeight: 496
@@ -151,6 +156,7 @@ races:
         time: "1:34.8"
         margin: "1/2"
         timeDiff: 0.4
+        passing: "5-5"
         last3f: 34.3
         weight: 56
         horseWeight: 444
@@ -222,6 +228,7 @@ races:
         time: "1:34.8"
         margin: "クビ"
         timeDiff: 0.4
+        passing: "2-2"
         last3f: 34.6
         weight: 56
         horseWeight: 416
@@ -245,6 +252,7 @@ races:
         time: "1:34.9"
         margin: "3/4"
         timeDiff: 0.5
+        passing: "6-5"
         last3f: 34.4
         weight: 56
         horseWeight: 438
@@ -268,6 +276,7 @@ races:
         time: "1:35.2"
         margin: "クビ"
         timeDiff: 0.8
+        passing: "3-2"
         last3f: 34.9
         weight: 56
         horseWeight: 462
