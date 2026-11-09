@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
 import type { Db } from '$lib/server/db';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { listResultsFetchTargets } from './results-fetch';
+import {
+	listPassingGaveUpRaces,
+	listPassingRefetchTargets,
+	listResultsFetchTargets
+} from './results-fetch';
 
 let db: Db;
 let sqlite: DatabaseSync;
@@ -53,5 +57,63 @@ describe('listResultsFetchTargets', () => {
 	});
 	it('出走馬が無い日には対象が無い', async () => {
 		expect(await listResultsFetchTargets(db, new Date('2026-10-06T09:05:00Z'))).toEqual([]);
+	});
+});
+
+describe('listPassingRefetchTargets', () => {
+	// 2026-10-10（土）の 18:10 JST
+	const NOW = new Date('2026-10-10T09:10:00Z');
+	const ref = (n: string) => `'nk-${n}'`;
+
+	beforeEach(() => {
+		sqlite.exec(`DELETE FROM race_entry; DELETE FROM race;
+		INSERT INTO race (id, date, course, race_number, direction, external_ref) VALUES
+		('D1', '2026-10-09', '東京', 11, '左', ${ref('1')}),
+		('D7', '2026-10-03', '東京', 11, '左', ${ref('2')}),
+		('D0', '2026-10-10', '東京', 11, '左', ${ref('3')}),
+		('D8', '2026-10-02', '東京', 11, '左', ${ref('4')}),
+		('NOREF', '2026-10-09', '中山', 11, '左', NULL),
+		('STRAIGHT', '2026-10-09', '中山', 10, '直線', ${ref('5')}),
+		('NODIR', '2026-10-09', '中山', 9, NULL, ${ref('6')}),
+		('NOFIN', '2026-10-09', '中山', 8, '右', ${ref('7')}),
+		('HASPASS', '2026-10-09', '中山', 7, '右', ${ref('8')}),
+		('EMPTYPASS', '2026-10-09', '中山', 6, '右', ${ref('9')}),
+		('NAR', '2026-10-09', '大井', 11, '右', ${ref('10')}),
+		('R13', '2026-10-09', '東京', 13, '左', ${ref('11')});
+		INSERT INTO race_entry (id, race_id, horse_id, finish_position, passing) VALUES
+		('a1', 'D1', 'H1', 1, NULL), ('a2', 'D7', 'H1', 1, NULL), ('a3', 'D0', 'H1', 1, NULL),
+		('a4', 'D8', 'H1', 1, NULL), ('a5', 'NOREF', 'H1', 1, NULL), ('a6', 'STRAIGHT', 'H1', 1, NULL),
+		('a7', 'NODIR', 'H1', 1, NULL), ('a8', 'NOFIN', 'H1', NULL, NULL),
+		('a9', 'HASPASS', 'H1', 1, NULL), ('a10', 'HASPASS', 'H2', 2, '3-3'),
+		('a11', 'EMPTYPASS', 'H1', 1, ''), ('a12', 'NAR', 'H1', 1, NULL), ('a13', 'R13', 'H1', 1, NULL);`);
+	});
+
+	it('1〜7日前の、着順があって通過順が1頭も無いレースだけを、日付の昇順で選ぶ', async () => {
+		const got = await listPassingRefetchTargets(db, NOW);
+		expect(got.map((r) => r.raceId)).toEqual(['D7', 'EMPTYPASS', 'NODIR', 'D1']);
+	});
+	it('当日・8日前・ref 無し・直線・着順なし・通過順あり・10場の外・R13 は選ばない', async () => {
+		const ids = (await listPassingRefetchTargets(db, NOW)).map((r) => r.raceId);
+		for (const x of ['D0', 'D8', 'NOREF', 'STRAIGHT', 'NOFIN', 'HASPASS', 'NAR', 'R13']) {
+			expect(ids).not.toContain(x);
+		}
+	});
+});
+
+describe('listPassingGaveUpRaces', () => {
+	const NOW = new Date('2026-10-10T09:10:00Z');
+	beforeEach(() => {
+		sqlite.exec(`DELETE FROM race_entry; DELETE FROM race;
+		INSERT INTO race (id, date, course, race_number, direction, external_ref) VALUES
+		('D8', '2026-10-02', '東京', 11, '左', 'nk-8'),
+		('D8P', '2026-10-02', '東京', 10, '左', 'nk-8p'),
+		('D7', '2026-10-03', '東京', 11, '左', 'nk-7'),
+		('D9', '2026-10-01', '東京', 11, '左', 'nk-9');
+		INSERT INTO race_entry (id, race_id, horse_id, finish_position, passing) VALUES
+		('a1', 'D8', 'H1', 1, NULL), ('a2', 'D8P', 'H1', 1, NULL), ('a3', 'D8P', 'H2', 2, '2-2'),
+		('a4', 'D7', 'H1', 1, NULL), ('a5', 'D9', 'H1', 1, NULL);`);
+	});
+	it('ちょうど8日前で、通過順が1頭も無いレースだけ', async () => {
+		expect((await listPassingGaveUpRaces(db, NOW)).map((r) => r.raceId)).toEqual(['D8']);
 	});
 });
