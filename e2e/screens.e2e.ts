@@ -87,8 +87,9 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 					const res = await page.goto(screen.path);
 
 					expect(res?.status(), `${screen.path} の応答`).toBeLessThan(400);
-					// ログインへ飛ばされていないこと。ログイン不要の画面（ログイン画面自体を含む）は除く。
-					if (screen.auth) await expect(page).not.toHaveURL(/\/login\?/);
+					// ログインへ飛ばされていないこと。ログイン不要の画面（紹介・規約など）こそ PUBLIC_PATHS が壊れたときに
+					// 飛ばされるので見る。外すのは ?error= つきのログイン画面そのものを撮る画面だけ。
+					if (!screen.path.startsWith('/login')) await expect(page).not.toHaveURL(/\/login\?/);
 
 					await screen.prepare?.(page);
 					// ハイドレーションとフォント待ち。撮った画像が読み込み途中にならないように。
