@@ -3,7 +3,7 @@
 Claude・ChatGPT（スマホのアプリを含む）が、本人の許した範囲だけを読み書きするための口。
 サーバーの MCP（`/mcp`）とその認可サーバー（OAuth 2.1）と、ブラウザの中で動く WebMCP をまとめる。
 
-作成日: 2026-10-12 / 最終更新日: 2026-10-12
+作成日: 2026-10-12 / 最終更新日: 2026-11-11
 
 - **読む場面:** MCP の tool・スコープ・回数の上限を足す・変えるとき。OAuth の口（`/.well-known/*`・`/oauth/*`）、
   同意画面（`/oauth/authorize`）、連携の一覧（`/settings/connections`）を触るとき。予想画面の WebMCP を触るとき（第7章）
@@ -270,7 +270,7 @@ CIMD は登録の口を通らず、同意画面を開いたときに文書を取
 ## 7. WebMCP — ブラウザの中で予想の下書きを受ける
 
 **読む場面:** 予想画面の AI 連携、下書きの部分更新、WebMCP の仕様を変えるとき。
-保存 action の仕様は [api.md 第3章](./api.md)、DB の責務は [architecture.md 第0章](./architecture.md)、書き方の約束の要約は [frontend.md](./frontend.md)。
+保存 action の仕様は [api.md 第3章](./api.md)、DB の責務は [architecture.md 第0章](./architecture.md)、画面を書くときに守ることは [frontend.md 第8章](./frontend.md)。
 
 WebMCP は試験的な機能として残す。Claude・ChatGPT から読む安定した経路はサーバーの MCP（`/mcp`。第1〜6章）で、
 画面は同意（`/oauth/authorize`）と連携の一覧（`/settings/connections`）だけ。
