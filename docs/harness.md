@@ -326,7 +326,7 @@ PID だけを止めると workerd がポートに残るため（#206 で確か�
 
 | エージェント | 置き場 | 止まり方 | 止まらないもの |
 | --- | --- | --- | --- |
-| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る（パイプを含むと当たり方が変わる。下の箇条）。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`）、`origin` 以外の remote と引数なしの `git push` での `main` への push（下） |
+| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る（パイプを含むと当たり方が変わる。下の箇条）。確認を飛ばすモードでも拒否する。保存すれば効く（少し遅れることがある。下） | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`）、`main` への push のうち下に挙げた形 |
 | Codex | `.codex/rules/uma-memo.rules` の `forbidden` | コマンドの先頭一致。`&&` でつないだものも分解して見る。`--dangerously-bypass-approvals-and-sandbox` を付けた `codex exec` でも、Orca が起動する対話の Codex でも拒否した（#205 の試運転） | 引数の途中に出るもの（`wrangler d1 execute … --remote` など）、`gh api` でのマージ、`git -C <dir> push`、`sh -c '...'` で包んだもの |
 
 - 2つの置き場は書き方が違うだけで、止めたいものは同じ。変えるときは両方を揃える。script は `pnpm run <名前>`・`pnpm <名前>`（pnpm は `run` を省いても実行する）・`npm run <名前>` のどれでも止める
@@ -335,16 +335,18 @@ PID だけを止めると workerd がポートに残るため（#206 で確か�
 
   | コマンド | 結果 |
   | --- | --- |
-  | `git push --dry-run origin <作業ブランチ> 2>&1 \| tail -1 && echo "--base main"` | 規則が `git push * main *` だったときは拒否（作業ブランチへの push なのに、後ろの ` main ` に当たった）。今の規則では通る |
+  | `git push --dry-run origin <作業ブランチ> 2>&1 \| tail -1 && echo "--base main --head x"` | 後ろに語が続く形 `git push * main *` があると拒否される（後ろの ` main ` に当たる） |
   | 同じもので後ろを `echo done` にする／パイプを外して `&& echo "a main b"` にする | 通る |
-  | `true \| cat && gh pr merge --help` | 拒否（パイプの後ろの merge も止まる。止めたいものが抜ける穴は見つかっていない） |
+  | `true \| cat && gh pr merge --help` | 拒否（パイプの後ろの merge も止まる） |
 
-- **`main` への push の規則は `origin` の `main` を名指しする**（`git push *origin main`・`*origin *:main` と、それぞれ後ろに引数が続く形）。
-  `git push * main *` だと、上の当たり方でほかのコマンドの ` main `（`gh pr create --base main` など）にまで当たり、正しい push が止まったため。
-  `--dry-run` で、`git push origin main`・`git push -u origin HEAD:main` は拒否され、上の誤発動の形は通ることを確かめた。
-  狭めたことで止まらなくなったもの: `origin` 以外の remote への push（今は remote が `origin` だけ）。
-  引数なしの `git push`（`main` にいれば `main` へ行く）は前の規則でも止まっていなかった。
-  後ろのコマンドに `origin x:main` のような語があると、まだ誤って当たりうるので、push と PR の作成は単独のコマンドで叩く（CLAUDE.md）
+- **`main` への push は、`main` で終わる形と `origin` を名指しした形で止める**（`git push * main`・`git push *:main`・`git push *origin main *`・`git push *origin *:main *`・`git push *refs/heads/main*`）。
+  ` main` のあとに語が続く形を `origin` に絞るのは、上の当たり方で、つないだほかのコマンドの ` main `（`gh pr create --base main` など）にまで当たり、正しい push が止まるため。
+  `main` のブランチ保護は管理者が素通りでき、手元の認証情報は持ち主のものなので、この規則が最後の止め。
+  - 止まることを `--dry-run` で確かめた形: `git push origin main`・`git push -u origin HEAD:main`・`git push origin <ブランチ> main`・`git push origin --no-verify main`・`git push <URL> main`・`git push origin HEAD:refs/heads/main`
+  - 止まらないもの: `origin` 以外の remote や URL に向けて ` main` のあとに語を続けた形（`git push <URL> main --no-verify`）、
+    `main` にいるときの引数なしの `git push` と `git push -u origin HEAD`。つないだコマンド全体が ` main` で終わると、まだ誤って当たる。
+    だから push と PR の作成は単独のコマンドで叩く（CLAUDE.md）
+  - 規則を保存してから効くまで少し間があることがある。確かめるときは同じものを2回叩く
 
 - **Codex には `git push` を丸ごと禁じている。** 先頭一致では「force だけ」「`main` だけ」を書き分けきれないうえ、Codex は Worker としてだけ使い、push は Lead が行うため（orchestration.md 第4章）
 - `odds:update` は `--local` が無ければ、ほかにどんな引数を付けても、`node … scripts/odds-update.ts` で直接呼んでも本番の D1 を書く。
