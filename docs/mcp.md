@@ -68,7 +68,7 @@ sequenceDiagram
   `DELETE /mcp`（クライアントが連携を終えるときに送る）は Content-Type も Origin も無い。SvelteKit の CSRF の検査はどちらも
   hooks より前に 403 にする（パスごとに外す設定は無い）。どちらも Cookie を見ないので、検査が守るものが無い。
   `hooks.server.ts` に足したもの（レート制限・セキュリティヘッダなど）はこの2つには効かない。`DELETE /mcp` の振る舞いを変えるときは `routes/mcp/+server.ts` ではなく worker.js を直す。
-  `vite dev` では `src/worker.js` を通らないので、トークンの口は 404、`DELETE /mcp` はルートの 405 になる（CSRF の検査は `vite dev` では走らない）（E2E は `wrangler dev` で通る）
+  `vite dev` では `src/worker.js` を通らないので、トークンの口は 404、`DELETE /mcp` は hooks を通る（CSRF の検査は `vite dev` では走らない。トークンが無ければ 401、あれば ルートの 405）（E2E は `wrangler dev` で通る）
 - MCP はステートレスで、応答は JSON（SSE なし）。公式 SDK を使わないのは `nodejs_compat` を付けないため（[architecture.md 第0章](./architecture.md)）
 - 同意画面の GET の `load` は `oauth_client` に書く。取ってきた文書のキャッシュにあたり、本人の権限は何も変えない
   （load は D1 に書かない、の例外。許可は form action の `POST`）

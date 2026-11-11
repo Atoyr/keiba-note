@@ -48,3 +48,19 @@ for (const [name, path] of [
 		await expect(body).toHaveValue('同じ URL を押しても消えない。');
 	});
 }
+
+test('ふりかえりの画面で、各馬のメモの書きかけも同じ URL のリンクで消えない', async ({ page }) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${ACTUAL_FLOW_18_RACE_ID}`);
+	const entryBody = page.locator('textarea[name^="body."]').first();
+	// 欄は閉じた行の中にあるので、quick-review.e2e.ts の setBody と同じく input を投げて書く。
+	await entryBody.evaluate((el, v) => {
+		(el as HTMLTextAreaElement).value = v;
+		el.dispatchEvent(new Event('input', { bubbles: true }));
+	}, '各馬のメモも残る。');
+	await expect(page.getByText(/未保存の変更が/)).toBeVisible();
+
+	await clickSameUrlLink(page);
+
+	await expect(entryBody).toHaveValue('各馬のメモも残る。');
+});
