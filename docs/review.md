@@ -3,7 +3,7 @@
 PR を出す前に、変更したファイルの分野（YAML・SQL・フロント・AI プロンプト）ごとに、
 書いたエージェントとは別のエージェント（レビュアー）にコードを読ませるための基準と手順。
 
-- 作成日: 2026-09-30 / 最終更新日: 2026-11-11
+- 作成日: 2026-09-30 / 最終更新日: 2026-11-12
 - **読む場面:** PR を出す前にレビューを頼むとき。レビュアーとして読むとき。重さの規則を変えるとき
 - **ここに無いもの:** できあがった画面と振る舞いの評価（Evaluator）は [evaluation.md](./evaluation.md)、
   機械で止める検査は [testing.md](./testing.md)、約束そのものは分野の文書（[architecture.md](./architecture.md)・
@@ -232,7 +232,7 @@ Evaluator が画面の上で確かめること（操作できるか・見た目�
 
 計画の表には起動しないレビュアーの名前も並ぶので、名前が含まれるかだけでは見ない。
 見るのは結果か理由があることだけで、中身の良し悪しは人が見る。
-手元では `PR_BODY="…" REVIEW_BASE=origin/main pnpm run pr:check` で同じ検査を回せる（`REVIEW_BASE` が無いと欄が空でないかだけを見る）。
+手元では、本文を一時ファイルに書いて（[AGENTS.md「読み落とすと事故になること」](../AGENTS.md)）`PR_BODY="$(cat <ファイル>)" REVIEW_BASE=origin/main pnpm run pr:check` で同じ検査を回せる。`REVIEW_BASE` が無いと欄が空でないかだけを見る。
 
 GitHub Actions が作る PR（`race-data-fetch.yml`）には、この検査が走らない（`GITHUB_TOKEN` で作った PR には
 ほかのワークフローが走らない）。そちらは人がマージの前に見る。
