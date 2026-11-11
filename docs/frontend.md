@@ -103,7 +103,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 ## 5. コンポーネント
 
-- 置き場は `src/lib/components/`。名前は PascalCase（`GradeBadge.svelte`）
+- 置き場は `src/lib/components/`。名前は PascalCase（`GradeBadge.svelte`）。画面をまたぐ UI の状態（`paged-list.svelte.ts` のような runes のクラス）も同じ場所に置く。名前は kebab-case
 - 表示と操作のテストを隣に置く（`GradeBadge.svelte.spec.ts`。書き方は [testing.md](./testing.md)）
 - 色・部品の選び方・見た目の分岐の書き方は [design-system.md](./design-system.md)
 - 機能ごとのディレクトリ（`components/races/` など）には、まだ分けていない（`components/` は平置き。計画は [harness.md 第2層](./harness.md)）

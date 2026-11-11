@@ -70,7 +70,7 @@ flowchart LR
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
 | 1 目的 | README / product.md / ux.md / `.github/ISSUE_TEMPLATE/` | なし | 仕様・頼み方の型（1-4）・使う人と場面と判断の物差し（ux.md）はある。原則 P1〜P7 は 1-3 の草案のままで、product.md に上がっていない |
-| 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反がある（→ 2-5） |
+| 2 構造 | architecture.md 第2章 | **一部**（パッケージ単位の禁止は `lint` で止まる。ファイル間の向きと横の軸は言葉の約束） | 違反がある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | パレットの生の色指定が数百箇所残る。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」/ README.md「セットアップ」 | `.claude/settings.json` の deny / `.codex/rules/`（4-3） | Dev Container と `pnpm run setup` は稼働中。本番に触るコマンドは権限で止める（すり抜けの穴は 4-3）。hook はまだ無い |
 | 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
@@ -146,7 +146,7 @@ Lead が Issue から作業を始めるときの入力にもなる（[orchestrat
 ### 2-1. 役割
 
 「この処理はどのファイルに書いてよいか」「どこからどこを import してよいか」を
-**CI で止める**。architecture.md 第2章の依存の向きはいま言葉の約束だけで、実際に破られている（→ 2-5）。
+**CI で止める**。architecture.md 第2章の依存の向きのうち、パッケージ単位の禁止は `lint` で止まる。ファイル間の向きと横の軸はいま言葉の約束だけで、実際に破られている（→ 2-5）。
 エージェントは近くにある既存コードを真似て書くので、一度破られた約束はそのまま増える。
 
 依存の向きは **縦（層）と横（機能）の2軸**で決め、どちらも一方向にする。
@@ -160,7 +160,7 @@ boundaries の設定（機能の順序の配列を含む）は architecture.md �
 
 パッケージ単位の禁止（`@sveltejs/kit`・`$app/*`・`drizzle-orm`・`arctic`・`$lib/server` を使ってよい場所）は
 **入っている**（`eslint.config.js`。ESLint 標準の `no-restricted-imports` を `files` ごとに掛けた。表は architecture.md 第2章）。
-flat config は同じルールを持つブロックが複数当たると後ろのもので置き換わるので、各ファイルが1つのブロックだけに当たるよう `files` を分けてある。
+ブロックの分け方の注意は `eslint.config.js` の注釈にある。
 ファイル間の向きと横の軸は次の 2-4 のプラグイン（まだ無い）で見る。
 
 ### 2-3. 機能をディレクトリで表す
@@ -239,9 +239,9 @@ architecture.md 第0章「守ること」のうち、この層の規則で止ま
 | 約束 | 止め方 |
 | --- | --- |
 | サービス層は SvelteKit を import しない | **規則で止まる**（2-2。パッケージの禁止） |
-| 画面側はサーバーのコードを型ですら import しない | **規則で止まる**（2-2。`import type` も止める） |
+| 画面側はサーバーのコードを型ですら import しない | **規則で止まる**（2-2。`import type` も、`../server` のような相対パスも止める） |
 | 認証の判断は `hooks.server.ts` に閉じる | 一部。`auth` を import してよいのを endpoint に限る |
-| `lib/server/mcp` は SvelteKit・auth・`drizzle-orm` を import しない | **規則で止まる**（2-2。パッケージの禁止。ファイル間の向きは boundaries 待ち） |
+| `lib/server/mcp` は SvelteKit・auth・`drizzle-orm` を import しない | **規則で止まる**（2-2。パッケージの禁止。`../auth` の相対パスも止める。ファイル間の向きは boundaries 待ち） |
 | メモを読む関数は `viewerId` を必須で受け、WHERE に入れる | 規則では止まらない。単体テストと E2E（他人の id で開けない）で見る |
 | D1 クライアントはリクエストごとに作る | 規則では止まらない。`createDb` をモジュールスコープで呼ぶのを `no-restricted-syntax` で止めるのが候補 |
 | 1リクエストの D1 クエリは10以内 | 第5層で数える（→ 5-4） |
