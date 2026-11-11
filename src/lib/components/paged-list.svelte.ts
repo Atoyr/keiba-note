@@ -1,7 +1,7 @@
 import type { Snapshot } from '@sveltejs/kit';
 import { tick } from 'svelte';
 import { goto, preloadData } from '$app/navigation';
-import { appendPage, pageHref, type Page } from './paging';
+import { appendPage, pageHref, type Page } from '$lib/utils/paging';
 
 /** あとから読んで足した分。`key`（開いている URL のクエリ）ごとに持つ。 */
 export type PagedExtra<T> = { key: string; items: T[]; next: number | null };

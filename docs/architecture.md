@@ -216,7 +216,7 @@ export async function getHorseTimeline(event: RequestEvent) { ... }
 ### 依存の向き — どこからどこを import してよいか
 
 依存は**縦（層）と横（機能）の2軸**で決め、どちらも一方向にする。
-今は約束で、ESLint の規則として `pnpm run lint` で止めるのは [harness.md 第2層](./harness.md) の PR から（まだ入っていない）。
+パッケージ単位の禁止は `pnpm run lint` で止まる（下の表）。ファイル間の向きと横の軸は今も約束で、止めるのは [harness.md 第2層](./harness.md) の次の PR から（まだ入っていない）。
 ファイル単位の依存図は手で描くとすぐ実物とずれるので置かない。正はこの節と、規則を入れたあとの `eslint.config.js`。
 
 **縦の軸 — 層**（上の図の6層を、import の単位に割ったもの）
@@ -253,13 +253,21 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
   止めるが `import type` は通す
 - **SQL は db と service（と auth）にしか無い。** `drizzle-orm` をルートやコンポーネントから import しない
 
-パッケージ単位の禁止:
+パッケージ単位の禁止は **`pnpm run lint` で止まる**（`eslint.config.js` の `no-restricted-imports`。`import type` も止める。spec とテスト用の `db/test-d1.ts` は対象外）。
+ファイル間の向きと横の軸（機能）は、まだ言葉の約束で、規則では止まらない（→ [harness.md 第2章](./harness.md)）。
 
 | 対象 | import しないもの |
 | --- | --- |
-| services / auth / db / schemas / utils | `@sveltejs/kit`・`$app/*` |
-| routes / components / schemas / utils | `drizzle-orm` |
-| auth 以外 | `arctic`・`@oslojs/*` |
+| services / db | `@sveltejs/kit`・`$app/*`、`arctic`・`@oslojs/*` |
+| auth | `@sveltejs/kit`・`$app/*` |
+| mcp | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server/auth` |
+| schemas / utils | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
+| サーバー側のルート（`*.server.ts`・`+server.ts`・`hooks.server.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*` |
+| 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
+
+ブロックを足す・直すときの注意（flat config は同じルールのブロックが重なると後ろで置き換わる）は `eslint.config.js` の注釈にある。
+
+表に入らない置き場の扱い: `og/`・`odds/`・`race-data/`・`monitoring/` は services と同じ行、Cron の入口（`odds/scheduled.ts`・`race-data/scheduled.ts`）・`util.ts`・`asset-cache.ts` はサーバー側のルートと同じ行で止める。`src/worker.js` は SvelteKit の外なので規則の対象外。相対パスで書いた `../server/…`・`../auth/…` も止まる（`svelte/server` のような npm パッケージには当たらない）。
 
 **横の軸 — 機能**
 
