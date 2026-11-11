@@ -174,7 +174,7 @@ tools とスコープ・入力・返すものは [mcp.md 3-2](./mcp.md) が正�
 - **行の構成は DB を正とする。** `body.<entryId>` の `entryId` はフォームから拾わず、
   DB から引いた出走馬の一覧を回して読む（他のレースの行に書き込ませないため）
 - **書いたあとの遷移は `303`。** 同じ画面に留まるときはリダイレクトせず、値を返して `form` で受ける
-- **外の URL へ `redirect()` するときは、`external` に許す origin を並べる。`{ external: true }` にしない。** SvelteKit 3 は外へのリダイレクトを既定で止め（例外を投げて 500）、
+- **外の URL へ `redirect()` するときは、`external` に許す origin を並べる。`{ external: true }` にしない。** SvelteKit 3 は外へのリダイレクトを既定で止め（`redirect()` が例外を投げる）、
   `true` は `javascript:` 以外のどこへでも飛ばせてしまう。今あるのは Google の認可画面（`external: [GOOGLE_AUTH_ORIGIN]`）と、
   `/oauth/authorize` の戻り先（`external: [登録と照合した redirect_uri]`）の2つ。E2E はモック認証で入るので、Google へのリダイレクトは `e2e/auth.e2e.ts` で別に確かめている
 - **戻り先を入力から受けるときは `safeRedirect` を通す。** URL として解析して判定し（前方一致の継ぎ足しではない）、`//evil.com`・途中のタブや改行（`/\t/evil.com`）・`\`・畳んで `//` になるもの（`/..//evil.com`）を弾く。返すのは正規化後のパスで、日本語は百分率符号化になる

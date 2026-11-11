@@ -160,8 +160,8 @@
 
 ### 3-4. セキュリティ上の押さえどころ
 
-- **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する。これを無効化しない。例外は OAuth のトークンの口 `/oauth/token` だけで、`src/worker.js` が SvelteKit より先に受ける
-  （Cookie を見ない口なので検査が守るものが無い。→ [mcp.md](./mcp.md)）
+- **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する。これを無効化しない。例外は OAuth のトークンの口 `/oauth/token` と `DELETE /mcp`（405 を返すだけ）で、`src/worker.js` が SvelteKit より先に受ける
+  （どちらも Cookie を見ない口なので検査が守るものが無い。→ [mcp.md](./mcp.md)）
 - **state / PKCE** — Arctic が生成するものをそのまま使い、callback で必ず照合する
 - **オープンリダイレクト** — `?redirect=` は `safeRedirect` を通す（→ [api.md 第4章](./api.md)）
 - **共有ページ** — 未ログインで中身を出す画面（`/notes/[id]`・`/shared/races/[id]`）。`noindex`／`no-referrer`／`no-store` と「`private` は 404」を守る（→ [pages.md 第8章](./pages.md)）

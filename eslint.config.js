@@ -28,7 +28,7 @@ const TEST_FILES = ['**/*.spec.ts', '**/*.test.ts', 'src/lib/server/db/test-d1.t
 /** `cloudflare:workers` を import してよい場所。env と waitUntil はここだけが取り出し、ほかは関数を呼ぶ（architecture.md）。 */
 const PLATFORM_FILES = ['src/lib/server/platform.ts', 'src/worker.js'];
 const CF_MSG =
-	'`cloudflare:workers` を import してよいのは src/lib/server/platform.ts だけ（単体テストで差し替えるため）。env は appEnv()、waitUntil は runInBackground() を使う（architecture.md）';
+	'`cloudflare:workers` を import してよいのは src/lib/server/platform.ts（と src/worker.js）だけ（単体テストで差し替えるため）。env は appEnv()、waitUntil は runInBackground() を使う（architecture.md）';
 /** どの `restrict` にも当たらないファイルを、あとの総なめの block が拾うために集める。 */
 const covered = [];
 const restrict = (files, patterns, ignores = []) => {

@@ -266,11 +266,11 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
 | 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
 
 **import は今も `$lib/…` で書く。`#lib` はまだ使えない**（`package.json` に `imports` が無い）。`$lib` は SvelteKit 3 では非推奨の `alias`（`vite.config.ts`）で生かしていて、ビルドに非推奨の警告が1つ出る。
-`#lib` への書き換えは別の PR で行う。そのときは `vite.config.ts`・`package.json` のほか、この表の規則（`eslint.config.js` の `$lib/server` の group と相対パスの regex）と `wrangler.toml` の `[alias]` も同時に直す（直さないと規則が黙って効かなくなる）。
+`#lib` への書き換えは別の PR で行う。そのときは `vite.config.ts`・`package.json` のほか、この表の規則（`eslint.config.js` の `$lib/server` の group と相対パスの regex）、`scripts/review/rules.ts` の `$lib/server` を見る規則（画面側からの import を重にする）と `wrangler.toml` の `[alias]` も同時に直す（直さないと規則が黙って効かなくなる）。
 
 ブロックを足す・直すときの注意（flat config は同じルールのブロックが重なると後ろで置き換わる）は `eslint.config.js` の注釈にある。
 
-表に入らない置き場の扱い: `og/`・`odds/`・`race-data/`・`monitoring/` は services と同じ行、Cron の入口（`odds/scheduled.ts`・`race-data/scheduled.ts`）・`util.ts`・`asset-cache.ts` はサーバー側のルートと同じ行で止める。`src/worker.js` は SvelteKit の外なので規則の対象外。`cloudflare:workers` を import してよい場所は 3-1。`lib/server/platform.ts` は表のどの行にも当たらず、この規則だけを受ける。相対パスで書いた `../server/…`・`../auth/…` も止まる（`svelte/server` のような npm パッケージには当たらない）。
+表に入らない置き場の扱い: `og/`・`odds/`・`race-data/`・`monitoring/` は services と同じ行、Cron の入口（`odds/scheduled.ts`・`race-data/scheduled.ts`）・`util.ts`・`asset-cache.ts` はサーバー側のルートと同じ行で止める。`src/worker.js` は SvelteKit の外なので規則の対象外。`cloudflare:workers` は `src/` の全ファイルで止め、`lib/server/platform.ts` と `src/worker.js` だけが通る（理由は 3-1）。`platform.ts` は表のどの行にも当たらず、import の規則を受けない。相対パスで書いた `../server/…`・`../auth/…` も止まる（`svelte/server` のような npm パッケージには当たらない）。
 
 **横の軸 — 機能**
 

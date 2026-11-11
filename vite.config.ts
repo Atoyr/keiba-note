@@ -53,7 +53,7 @@ export default defineConfig({
 					name: 'server',
 					environment: 'node',
 					// `cloudflare:workers` は workerd の中にしか無い。単体テストでは小さな差し替えに向ける
-					// （import してよい場所は lib/server/platform.ts だけ。testing.md）。
+					// （import してよい場所は architecture.md 3-1。testing.md）。
 					alias: [
 						{
 							find: 'cloudflare:workers',
