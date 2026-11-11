@@ -81,6 +81,8 @@ Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの
 - 本番の D1（`--remote`）・`wrangler secret`・`deploy` は叩かない。人が行う
 - 権限の設定（[harness.md 4-3](./docs/harness.md)）で拒否された操作は、`sh -c` で包むなどの回り道で通さない。要る操作なら人に回すか、未完了として引き継ぐ（[testing.md 1-2](./docs/testing.md#1-2-検証を完了できないとき)）。
   Codex は Worker として使うので `git push` も拒否される。検索語などに文字列として入っていただけなら、ファイルに置くなどしてその操作をせずに続けてよい
+- PR・Issue のコメント・コミットメッセージの本文とスクリプトは、コマンドの中（`"…"`・引用符の無い heredoc）で組まない。中のバッククォート・`$(…)` がコマンドとして走り、
+  本文の `--remote` などの語は権限の設定に当たる。作業ツリーの外の一時ファイルに書き、`--body-file`・`git commit -F` で渡す（一時ファイルは「リポジトリの外を変える」に当たらない）
 - キャプチャに実在のメールアドレスや本番データを写さない。`pnpm run screens` で撮る（[testing.md 5-4](./docs/testing.md)）
 
 ## コマンド
