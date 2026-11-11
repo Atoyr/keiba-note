@@ -3,7 +3,7 @@
 PR を出す前に、変更したファイルの分野（YAML・SQL・フロント・AI プロンプト）ごとに、
 書いたエージェントとは別のエージェント（レビュアー）にコードを読ませるための基準と手順。
 
-- 作成日: 2026-09-30 / 最終更新日: 2026-10-12
+- 作成日: 2026-09-30 / 最終更新日: 2026-11-11
 - **読む場面:** PR を出す前にレビューを頼むとき。レビュアーとして読むとき。重さの規則を変えるとき
 - **ここに無いもの:** できあがった画面と振る舞いの評価（Evaluator）は [evaluation.md](./evaluation.md)、
   機械で止める検査は [testing.md](./testing.md)、約束そのものは分野の文書（[architecture.md](./architecture.md)・
@@ -152,7 +152,7 @@ Claude Code では `.claude/agents/reviewer-*.md` のサブエージェントと
 
 | 観点 | 見ること |
 | --- | --- |
-| ★ 誰のデータか | メモ・推し・騎手のまとめを読む関数が `viewerId` を必須で受け、WHERE に入れているか。件数を数える JOIN で他人のメモを数えていないか。`visibility` を見るのが共有ページだけか（[api.md 第5章](./api.md)） |
+| ★ 誰のデータか | メモ・推し・騎手のまとめを読む関数が `viewerId` を必須で受け、WHERE に入れているか。件数を数える JOIN で他人のメモを数えていないか。他人に見せるかの判定に `visibility` を使うのが共有ページだけか（本人のメモに絞ったあとに共有中かを読むのはよい。[architecture.md 第0章「本人のデータ」](./architecture.md)・[api.md 第5章](./api.md)） |
 | ★ 文字列で組む SQL | 投入・オッズの SQL（`scripts/import-races.ts`・`scripts/odds/store.ts`）と `sql.raw` で、値をエスケープの関数に通しているか。Drizzle の `` sql`...${値}` `` はパラメータになるが、`sql.raw` はならない |
 | ★ マイグレーション | `schema.ts` と `drizzle/*.sql` が一緒に変わっているか（生成物を手で直していないか）。テーブルを作り直す形（`__new_`）で、外部キーの子（`note` など）が `ON DELETE CASCADE` で消えないか。既存の行が新しい NOT NULL・CHECK・UNIQUE に通るか |
 | ★ 消す | `race_entry` やメモを消す経路が増えていないか（メモは `ON DELETE CASCADE` で道連れになる）。投入は冪等で、書かなかった値を `COALESCE` で残しているか |

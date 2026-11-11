@@ -8,7 +8,7 @@
   ステータスコードやリダイレクト先に迷ったとき
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
-  画面ごとの仕様（何を出すか）は [pages.md](./pages.md)、確かめ方は [testing.md](./testing.md)
+  画面ごとの仕様（何を出すか）は [pages.md](./pages.md)、MCP・OAuth の口の詳細と tools は [mcp.md](./mcp.md)、確かめ方は [testing.md](./testing.md)
 
 ---
 
