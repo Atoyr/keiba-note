@@ -1062,6 +1062,6 @@ describe('notes:read の無い連携に、今の値の有無を漏らさない',
 			t.name.startsWith('save_my_')
 		);
 		expect(writes).toHaveLength(3);
-		for (const t of writes) expect(t.description).toContain('updated');
+		for (const t of writes) expect(t.description).toContain('updated と返します');
 	});
 });

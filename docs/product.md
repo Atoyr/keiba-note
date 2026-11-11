@@ -163,7 +163,7 @@
 - **CSRF** — SvelteKit の form actions は既定で Origin ヘッダを検証する。これを無効化しない。例外は OAuth のトークンの口 `/oauth/token` だけで、`src/worker.js` が SvelteKit より先に受ける
   （Cookie を見ない口なので検査が守るものが無い。→ [mcp.md](./mcp.md)）
 - **state / PKCE** — Arctic が生成するものをそのまま使い、callback で必ず照合する
-- **オープンリダイレクト** — `?redirect=` は `/` で始まる相対パスのみ許可する（`//evil.com` を弾く）
+- **オープンリダイレクト** — `?redirect=` は `safeRedirect` を通す（→ [api.md 第4章](./api.md)）
 - **共有ページ** — 未ログインで中身を出す画面（`/notes/[id]`・`/shared/races/[id]`）。`noindex`／`no-referrer`／`no-store` と「`private` は 404」を守る（→ [pages.md 第8章](./pages.md)）
 - **期限切れセッション** — 検証時に見つけたら即削除する遅延クリーンアップ。取りこぼしは放置してもよい（行が増えるだけ）
 
@@ -184,7 +184,7 @@
 | 5 | 馬の重複登録 | `(name, birth_year)` で UNIQUE。入力時にサジェストして衝突を避ける |
 | 6 | ID 形式 | ULID。時系列ソート可能で、乱数80ビットあるので共有 URL にそのまま使える |
 | 7 | 日時の保持 | `occurred_at` は `YYYY-MM-DD` の文字列、その他は unixepoch 整数。JST 固定 |
-| 8 | 退会・ユーザーの凍結 | **論理削除。** `user.deleted_at` を立て、`session` を全削除してログイン不能にする。行自体は消さない（`note.author_id` が NOT NULL のため）。**同時に共有中のメモを `private` に倒す** — 退会した人の共有が残り続けないように |
+| 8 | 退会・ユーザーの凍結 | **論理削除。** `user.deleted_at` を立て、`session` を全削除してログイン不能にする。行自体は消さない（`note.author_id` が NOT NULL のため）。**同時に共有中のメモを `private` に倒す** — 退会した人の共有が残り続けないように。凍結した人が再ログインするとログイン画面に停止の文言を出す（セッションは作らない） |
 | 9 | Google アカウントの変更 | `google_sub` で引くので email 変更には追従する。別の Google アカウントへの移行はまだ対応しない |
 | 10 | マスタ（馬・レース・出走馬）を誰が書けるか | **admin と投入スクリプトだけ。** 登録を誰にでも開く以上、全員共通のマスタを全員に開けない（→ 3-3）。緩めるのは最初の一手として妥当だが、条件を2つ足すこと |
 | 11 | 単体メモの共有の取り消しで URL ごと無効化するか | **しない。** `private` に戻せば即 404 だが、再共有すると同じ URL に戻る。必要になったら `share_token` 列を足して振り直す。予想まとめは取り消すと次は新しい URL（→ [pages.md 8-1](./pages.md)） |

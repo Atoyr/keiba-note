@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { createTestDb } from '$lib/server/db/test-d1';
-import { createUser, findUserByGoogleSub, generateSessionToken, hashSessionToken } from './session';
+import type { DatabaseSync } from 'node:sqlite';
+import {
+	createUser,
+	generateSessionToken,
+	hashSessionToken,
+	resolveGoogleLogin,
+	type CreateUserInput
+} from './session';
 
 describe('セッショントークン', () => {
 	it('32バイト分の長さがある', () => {
@@ -17,24 +24,84 @@ describe('セッショントークン', () => {
 	});
 });
 
-describe('findUserByGoogleSub', () => {
-	it('凍結済みのユーザーも返す（返さないと再ログインが UNIQUE 違反の 500 になる）', async () => {
+describe('resolveGoogleLogin', () => {
+	const input = (over: Partial<CreateUserInput> = {}): CreateUserInput => ({
+		googleSub: 'g1',
+		email: 'one@example.invalid',
+		displayName: 'One',
+		avatarUrl: null,
+		role: 'user',
+		...over
+	});
+	const count = (sqlite: DatabaseSync, table: string) =>
+		(sqlite.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
+
+	it('新規なら行を作り、渡した role で作る', async () => {
 		const { db, sqlite } = createTestDb();
-		const input = {
-			googleSub: 'g-suspended',
-			email: 'suspended@example.invalid',
-			displayName: 'S',
-			avatarUrl: null,
-			role: 'user' as const
+		const out = await resolveGoogleLogin(db, input({ role: 'admin' }));
+		expect(out.kind).toBe('active');
+		expect(sqlite.prepare(`SELECT role FROM user WHERE google_sub = 'g1'`).get()).toEqual({
+			role: 'admin'
+		});
+		// セッションは作らない（callback が作る）。
+		expect(count(sqlite, 'session')).toBe(0);
+	});
+
+	it('既にいる人は作り直さず active で返す', async () => {
+		const { db, sqlite } = createTestDb();
+		const first = await resolveGoogleLogin(db, input());
+		const second = await resolveGoogleLogin(db, input({ role: 'admin' }));
+		expect(second).toMatchObject({
+			kind: 'active',
+			user: { id: (first as { user: { id: string } }).user.id, role: 'user' }
+		});
+		expect(count(sqlite, 'user')).toBe(1);
+	});
+
+	it('凍結済みなら suspended で、行もセッションも増えない', async () => {
+		const { db, sqlite } = createTestDb();
+		await resolveGoogleLogin(db, input());
+		sqlite.exec(`UPDATE user SET deleted_at = 1 WHERE google_sub = 'g1'`);
+		expect(await resolveGoogleLogin(db, input())).toEqual({ kind: 'suspended' });
+		expect(count(sqlite, 'user')).toBe(1);
+		expect(count(sqlite, 'session')).toBe(0);
+	});
+
+	it('作るときに google_sub の UNIQUE に当たったら（同時のコールバック）、引き直して active', async () => {
+		const { db, sqlite } = createTestDb();
+		// 引いた時点では無く、作る直前にもう片方が作った、という順を作る。
+		const racing: typeof createUser = async (d, i) => {
+			await createUser(d, i);
+			return createUser(d, { ...i, email: 'other@example.invalid' });
 		};
-		const created = await createUser(db, input);
-		expect((await findUserByGoogleSub(db, 'g-suspended'))?.deletedAt).toBeNull();
+		const out = await resolveGoogleLogin(db, input(), racing);
+		expect(out.kind).toBe('active');
+		expect(count(sqlite, 'user')).toBe(1);
+	});
 
-		sqlite.exec(`UPDATE user SET deleted_at = 1 WHERE id = '${created.id}'`);
-		const found = await findUserByGoogleSub(db, 'g-suspended');
-		expect(found?.id).toBe(created.id);
-		expect(found?.deletedAt).not.toBeNull();
+	it('UNIQUE に当たった相手が凍結済みなら suspended', async () => {
+		const { db, sqlite } = createTestDb();
+		const racing: typeof createUser = async (d, i) => {
+			await createUser(d, i);
+			sqlite.exec(`UPDATE user SET deleted_at = 1 WHERE google_sub = 'g1'`);
+			return createUser(d, { ...i, email: 'other@example.invalid' });
+		};
+		expect(await resolveGoogleLogin(db, input(), racing)).toEqual({ kind: 'suspended' });
+	});
 
-		expect(await findUserByGoogleSub(db, 'nobody')).toBeNull();
+	it('別の Google アカウントが同じ email なら email_conflict で、行は増えない', async () => {
+		const { db, sqlite } = createTestDb();
+		await resolveGoogleLogin(db, input());
+		const out = await resolveGoogleLogin(db, input({ googleSub: 'g2' }));
+		expect(out).toEqual({ kind: 'email_conflict' });
+		expect(count(sqlite, 'user')).toBe(1);
+	});
+
+	it('UNIQUE 以外の例外は投げる', async () => {
+		const { db } = createTestDb();
+		const broken: typeof createUser = async () => {
+			throw new Error('boom');
+		};
+		await expect(resolveGoogleLogin(db, input(), broken)).rejects.toThrow('boom');
 	});
 });

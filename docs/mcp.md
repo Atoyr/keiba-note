@@ -126,8 +126,8 @@ sequenceDiagram
 | `get_my_race_notes` | `notes:read` | `raceId` | そのレースの自分の見立て・ふりかえり・各馬のメモ・印・札・展開 |
 | `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
 | `list_my_recent_notes` | `notes:read` | `limit`（1〜50） | 自分の最近のメモ |
-| `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`。`notes:read` が無い連携では結果が今の値に依る馬は `updated`）。本文は返さない。`body` は追記でなく置き換え。出走馬でない `entryId`・空の入力・書き換える項目を持たない馬は何も書かずに `isError` |
-| `save_my_race_flow` | `notes:write` | `raceId`・`pace`（スロー・ミドル・ハイ。null で外す）・`start`・`corner4`・`finish`（それぞれ `spots`（`entryId`・`x` 0〜9・`y` 0〜3。〜40）と `memo`（200文字まで）のうち書き換えるもの） | 書いた結果（`flow` は `saved`・`cleared`。`notes:read` が無い連携では結果が今の値に依るなら `updated`）。中身は返さない。`spots` は局面の隊列を丸ごと置き換え（`[]` で空）。省いた局面・項目と、見立ての本文・印・出走前メモはそのまま。重なり・出走馬でない `entryId`・出走馬0頭のレース・空の入力・`spots`・`memo` を持たない局面（`start: {}`）は何も書かずに `isError` |
+| `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`。`notes:read` の無い連携（`get_my_race_notes` が tools/list に無い連携）では結果が今の値に依る馬は `updated`）。本文は返さない。`body` は追記でなく置き換え。出走馬でない `entryId`・空の入力・書き換える項目を持たない馬は何も書かずに `isError` |
+| `save_my_race_flow` | `notes:write` | `raceId`・`pace`（スロー・ミドル・ハイ。null で外す）・`start`・`corner4`・`finish`（それぞれ `spots`（`entryId`・`x` 0〜9・`y` 0〜3。〜40）と `memo`（200文字まで）のうち書き換えるもの） | 書いた結果（`flow` は `saved`・`cleared`。`notes:read` の無い連携（`get_my_race_notes` が tools/list に無い連携）では結果が今の値に依るなら `updated`）。中身は返さない。`spots` は局面の隊列を丸ごと置き換え（`[]` で空）。省いた局面・項目と、見立ての本文・印・出走前メモはそのまま。重なり・出走馬でない `entryId`・出走馬0頭のレース・空の入力・`spots`・`memo` を持たない局面（`start: {}`）は何も書かずに `isError` |
 | `save_my_race_review` | `reviews:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`tags` のうち書き換えるもの。印は運ばない） | 書いた結果（形は `save_my_race_preview` と同じ）。本文は返さない。`body` は追記でなく置き換え。開催前のレース・出走馬でない `entryId`・空の入力・書き換える項目を持たない馬は何も書かずに `isError` |
 
 ### 3-3. 予想を書く tool（`save_my_race_preview`）
@@ -158,7 +158,7 @@ sequenceDiagram
 - 同じ馬が局面内に2回・同じマスに2頭は、画面のスキーマのように黙って落とさず誤りで返す。出走馬でない `entryId` も誤り。誤りならどこにも書かない
 - 見立ての本文は今のまま渡し直す（`savePreviewNotes` の `raceNote.body`）。印・出走前メモ（`entries`）には触れない。
   ペースも隊列もメモも空になれば `flow` は NULL。本文も空なら見立ての行が消える（`raceNoteStatements`）
-- 返すのは `flow: saved | cleared | updated` だけ（`updated` は `notes:read` が無く、入力だけでは決まらないとき。`pace: null` を渡し3局面とも `spots` と `memo` を空で渡したときだけ `cleared`）。開催日の制限は付けない（`save_my_race_preview` と同じ）
+- 返すのは `flow: saved | cleared | updated` だけ（`notes:read` が無いときは、`updated` は入力だけでは決まらないとき。`pace: null` を渡し3局面とも `spots` と `memo` を空で渡したときだけ `cleared`）。開催日の制限は付けない（`save_my_race_preview` と同じ）
 
 ### 3-5. ふりかえりを書く tool（`save_my_race_review`）
 

@@ -82,7 +82,7 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 | `d1.query.constraint` | warn | しない | 同上 | UNIQUE / CHECK 違反。ルートが 409 に振り替える想定で、利用者の操作で普通に起きる |
 | `d1.query.slow` | warn | しない | 同上 | 1クエリ（`batch` は1往復）が `SLOW_QUERY_MS`（500ms）以上かかった |
 | `auth.google.token_exchange.failed` | warn / error | error だけ | `/auth/google/callback` | `invalid_grant`（戻るボタン・二度押し）は warn。それ以外は全員がログインできなくなる類なので error |
-| `auth.google.email_conflict` | warn | しない | `/auth/google/callback` | 別の Google アカウントが同じ email で登録しようとして UNIQUE に当たった（email は出さない）。本人には `oauth_failed` を返す |
+| `auth.google.email_conflict` | warn | しない | `/auth/google/callback` | 別の Google アカウントが同じ email で登録しようとして UNIQUE に当たった（email は出さない）。本人には `account_conflict` を返す |
 | `oauth.token.failed` | error | する | `src/worker.js` の `oauthToken` | `/oauth/token`（MCP の OAuth）の処理中に想定外の例外が起きた。同じ鍵は5分に1件まで |
 | `oauth.refresh.reused` | warn | しない | `lib/server/auth/token-endpoint.ts`（`src/worker.js` が `monitor.log` につなぐ） | リフレッシュトークンが使い回されたので連携を解除した |
 | `oauth.refresh.retried` | info | しない | 同上 | リフレッシュトークンの送り直しを受けた |

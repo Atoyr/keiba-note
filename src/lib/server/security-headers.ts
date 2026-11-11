@@ -8,7 +8,8 @@
  * HSTS は `includeSubDomains`・`preload` を付けない（取り消しにくい）。https のときだけ付ける。
  *
  * 付かない口: `/oauth/token`（src/worker.js が SvelteKit より先に受ける）、静的アセット
- * （Worker が起動しない）、handle の中で `redirect()` を投げた応答（未ログインのリダイレクト。中身が無い）。
+ * （Worker が起動しない）、handle の中で `redirect()` を投げた応答（未ログインのリダイレクト。中身が無い）、
+ * handle の中で投げた例外の 500（SvelteKit が handle の外で組む。try/catch で握ると `redirect()` まで握ってしまうので包まない）。
  */
 export function applySecurityHeaders(headers: Headers, url: URL): void {
 	const defaults: [string, string][] = [
@@ -23,5 +24,10 @@ export function applySecurityHeaders(headers: Headers, url: URL): void {
 	}
 	for (const [name, value] of defaults) {
 		if (!headers.has(name)) headers.set(name, value);
+	}
+	// CSP が既にあっても `frame-ancestors` を含まなければ足す（含んでいれば触らない）。
+	const csp = headers.get('Content-Security-Policy');
+	if (csp !== null && !/(^|;)\s*frame-ancestors\b/i.test(csp)) {
+		headers.set('Content-Security-Policy', `${csp}; frame-ancestors 'none'`);
 	}
 }

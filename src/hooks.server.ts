@@ -84,13 +84,7 @@ function createRequestMonitor(event: RequestEvent): Monitor {
 	});
 }
 
-/**
- * 認証の判断はここに閉じ込める。ルートからは `locals.user` しか見ない。
- * どの認証方式を使っているかを知っているのはこのファイルだけ。
- *
- * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
- * **ここに足したもの（レート制限など）はその口には効かない**（docs/mcp.md）。
- */
+/** 認証のあと、共通のセキュリティヘッダを付ける（`withSecurityHeaders`）。認証の判断は `authenticateAndResolve`。 */
 export const handle: Handle = async ({ event, resolve }) => {
 	const res = await authenticateAndResolve({ event, resolve });
 	return withSecurityHeaders(res, event.url);
@@ -113,6 +107,13 @@ function withSecurityHeaders(res: Response, url: URL): Response {
 	}
 }
 
+/**
+ * 認証の判断はここに閉じ込める。ルートからは `locals.user` しか見ない。
+ * どの認証方式を使っているかを知っているのはこのファイルだけ。
+ *
+ * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
+ * **ここに足したもの（レート制限など）はその口には効かない**（docs/mcp.md）。
+ */
 const authenticateAndResolve: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 	event.locals.oauthScopes = null;

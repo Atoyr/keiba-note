@@ -69,7 +69,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | --- | --- | --- | --- | --- |
 | `/login` | GET | `redirect`・`error` | ログイン済みなら `302` で `redirect` へ | — |
 | `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | `302 /login?error=unavailable` |
-| `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable\|suspended`（`suspended` は凍結したユーザー。セッションは作らない） |
+| `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable\|suspended\|account_conflict`（`suspended` は凍結したユーザー、`account_conflict` は別の Google アカウントが同じ email で登録済み。どちらもセッションは作らない） |
 | `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みなら自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
 | `/terms` | GET | — | 利用規約（同上） | — |

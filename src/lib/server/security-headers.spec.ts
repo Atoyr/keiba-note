@@ -28,6 +28,12 @@ describe('applySecurityHeaders', () => {
 		expect(h.get('x-frame-options')).toBe('SAMEORIGIN');
 	});
 
+	it('CSP が既にあれば、frame-ancestors が無いときだけ足す', () => {
+		const h = new Headers({ 'Content-Security-Policy': "default-src 'self'" });
+		applySecurityHeaders(h, HTTPS);
+		expect(h.get('content-security-policy')).toBe("default-src 'self'; frame-ancestors 'none'");
+	});
+
 	it('http では HSTS を付けない', () => {
 		const h = new Headers();
 		applySecurityHeaders(h, HTTP);
