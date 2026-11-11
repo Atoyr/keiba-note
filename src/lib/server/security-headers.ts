@@ -7,7 +7,8 @@
  * `script-src` は入れない。`app.html` のインライン script に nonce が要るため（別の作業）。
  * HSTS は `includeSubDomains`・`preload` を付けない（取り消しにくい）。https のときだけ付ける。
  *
- * 付かない口: `/oauth/token`（src/worker.js が SvelteKit より先に受ける）、静的アセット
+ * 付かない口: `/oauth/token` と `DELETE /mcp` の 405（src/worker.js が SvelteKit より先に受ける）、
+ * SvelteKit の CSRF の検査の 403（hooks より前に返る）、静的アセット
  * （Worker が起動しない）、handle の中で `redirect()` を投げた応答（未ログインのリダイレクト。中身が無い）、
  * handle の中で投げた例外の 500（SvelteKit が handle の外で組む。try/catch で握ると `redirect()` まで握ってしまうので包まない）。
  */

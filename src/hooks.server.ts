@@ -106,8 +106,8 @@ function withSecurityHeaders(res: Response, url: URL): Response {
  * 認証の判断はここに閉じ込める。ルートからは `locals.user` しか見ない。
  * どの認証方式を使っているかを知っているのはこのファイルだけ。
  *
- * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
- * **ここに足したもの（レート制限など）はその口には効かない**（docs/mcp.md）。
+ * 例外は OAuth のトークンの口（`/oauth/token`）と `DELETE /mcp`（405）。src/worker.js が SvelteKit より先に受けるので、
+ * **ここに足したもの（レート制限など）はその口には効かない**（docs/mcp.md）。SvelteKit の CSRF の検査の 403 も、ここより前に返る。
  */
 const authenticateAndResolve: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;

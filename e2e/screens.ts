@@ -66,9 +66,10 @@ export type Screen = {
 	touch?: boolean;
 	/**
 	 * `prepare` が、`fail(4xx/5xx)` を返す操作を enhance で送る画面。SvelteKit 3 の enhanced form は応答の HTTP status が
-	 * `fail` の値になり、ブラウザは 4xx/5xx の応答を console に「Failed to load resource」と出す。それだけを許す。
+	 * `fail` の値になり、ブラウザは 4xx/5xx の応答を console に「Failed to load resource」と出す。
+	 * その action（URL がこの値を含むもの。例 `?/fetchEntries`）の読み込みの失敗だけを許す。アセットの 404 などは落とす。
 	 */
-	httpError?: boolean;
+	httpError?: string;
 };
 
 /** 下端で続きを読む一覧の「続きを読み込む」。 */
@@ -236,7 +237,7 @@ export const SCREENS: Screen[] = [
 		path: '/settings/admin',
 		auth: true,
 		as: 'admin',
-		httpError: true,
+		httpError: '?/fetchEntries',
 		prepare: async (page) => {
 			// use:enhance の送信にする（素の送信だと 503 のページへ遷移し、console にエラーが出る）
 			await waitForHydration(page);

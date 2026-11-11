@@ -64,10 +64,11 @@ sequenceDiagram
 | 解除 | `/settings/connections` | 本人の連携の一覧と解除（CASCADE でコードとトークンも消える）・今週の利用量（%） |
 | 上限 | `lib/server/services/mcp-usage.ts`・`lib/utils/mcp-quota.ts` | 週ごとの回数の上限（`mcp_usage`。1人1行）。数字と週の区切りは `mcp-quota.ts` だけに置く |
 
-- **トークンの口だけ SvelteKit に通さない。** トークンの要求は Origin の無いフォームの POST で、SvelteKit の CSRF の検査が
-  hooks より前に 403 にする（パスごとに外す設定は無い）。この口は Cookie を見ないので、検査が守るものが無い。
-  `hooks.server.ts` に足したもの（レート制限など）はこの口には効かない。
-  `vite dev` では `src/worker.js` を通らないので、この口は 404 になる（E2E は `wrangler dev` で通る）
+- **トークンの口と `DELETE /mcp` は SvelteKit に通さない**（`src/worker.js` が先に受ける）。トークンの要求は Origin の無いフォームの POST で、
+  `DELETE /mcp`（クライアントが連携を終えるときに送る）は Content-Type も Origin も無い。SvelteKit の CSRF の検査はどちらも
+  hooks より前に 403 にする（パスごとに外す設定は無い）。どちらも Cookie を見ないので、検査が守るものが無い。
+  `hooks.server.ts` に足したもの（レート制限・セキュリティヘッダなど）はこの2つには効かない。`DELETE /mcp` の振る舞いを変えるときは `routes/mcp/+server.ts` ではなく worker.js を直す。
+  `vite dev` では `src/worker.js` を通らないので、トークンの口は 404、`DELETE /mcp` はルートの 405 か CSRF の 403 になる（E2E は `wrangler dev` で通る）
 - MCP はステートレスで、応答は JSON（SSE なし）。公式 SDK を使わないのは `nodejs_compat` を付けないため（[architecture.md 第0章](./architecture.md)）
 - 同意画面の GET の `load` は `oauth_client` に書く。取ってきた文書のキャッシュにあたり、本人の権限は何も変えない
   （load は D1 に書かない、の例外。許可は form action の `POST`）
@@ -83,9 +84,9 @@ sequenceDiagram
 | `POST /oauth/register`（JSON） | `client_name`・`redirect_uris`（1〜5。https かループバックの http）・`token_endpoint_auth_method`（`none` だけ） | `201` と `client_id`。何の権限も持たない | `400 invalid_redirect_uri` / `invalid_client_metadata`・`413` 本文超過・`429 temporarily_unavailable` 登録上限（`Retry-After: 60`。上限と期限は第6章） |
 | `POST /oauth/token`（フォーム） | `grant_type=authorization_code`（`code`・`redirect_uri`・`client_id`・`code_verifier`）か `refresh_token`（`refresh_token`・`client_id`・`scope` で狭められる）。`resource` は自分の `/mcp` だけ | アクセス（1時間）とリフレッシュ（30日・1回きり。送り直しの扱いは第5章）。`no-store` | `400 invalid_grant`（コードの再利用・PKCE・戻り先・期限・別のクライアント）/ `invalid_scope` / `invalid_target` / `unsupported_grant_type`。使い回されたリフレッシュトークンは連携ごと消す。同時更新の競合は連携を保持して `503 temporarily_unavailable`（`Retry-After: 1`） |
 | `GET /oauth/authorize`（ログインが要る） | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge`・`code_challenge_method=S256`・`state`・`scope`・`resource` | 同意画面（アプリの名前・戻り先のホスト・スコープ。Client ID Metadata Document なら提供元のホスト）。`client_id` が HTTPS の URL なら、その文書を取りに行く（24時間は保存した内容を使う）。`X-Frame-Options: DENY`・`no-store` | 要求の誤り（クライアント・戻り先・PKCE・`response_type`・`resource`）は**戻り先へ飛ばさず**画面に出す（第2章） |
-| `POST /oauth/authorize` `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied`。同じクライアントへの前のトークンは消す。SvelteKit 3 は外へのリダイレクトを既定で止めるので、`redirect(…, { external: [登録と照合した戻り先] })` でその戻り先（protocol と host）だけを許す（`true` にしない。`authorize-redirect.spec.ts`） | 要求の誤り `fail(400)`（画面に出す） |
+| `POST /oauth/authorize` `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied`。同じクライアントへの前のトークンは消す。外へのリダイレクトは登録と照合した戻り先（protocol と host）だけを許す（約束は [api.md 第4章](./api.md)。`authorize-redirect.spec.ts`） | 要求の誤り `fail(400)`（画面に出す） |
 | `POST /mcp`（JSON-RPC 1件。Bearer） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401`（`WWW-Authenticate: Bearer resource_metadata=…`）/ Bearer はあるが DB に届かない `503 temporarily_unavailable`（401 にするとクライアントがトークンを捨てる）/ スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / 本文が64 KiBを超える `413` / tool の入力の誤り・見つからない・回数の上限は `200` の `isError: true` |
-| `GET`・`DELETE /mcp` | — | — | `405`（サーバーから流す SSE とセッションは持たない） |
+| `GET`・`DELETE /mcp` | — | — | `405`・`Allow: POST`（サーバーから流す SSE とセッションは持たない）。`GET` は `routes/mcp/+server.ts`、`DELETE` は `src/worker.js` が返す |
 
 - `/oauth/register`・`/oauth/token` の本文は読み取り中に 8 KiB、`/mcp` は 64 KiB（書く tool がレースのメモと出走馬ぶんの本文を運ぶ）で止め、超えたら 413。
   Content-Length が無い場合や小さく偽った場合も同じ上限を使う（`auth/limited-body.ts`）
