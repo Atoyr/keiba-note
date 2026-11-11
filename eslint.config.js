@@ -53,7 +53,9 @@ const importRules = [
 			'src/lib/server/og/**',
 			'src/lib/server/odds/**',
 			'src/lib/server/race-data/**',
-			'src/lib/server/monitoring/**'
+			'src/lib/server/monitoring/**',
+			// 応答に付けるヘッダの純関数（hooks が使う）。SvelteKit を知らない
+			'src/lib/server/security-headers.ts'
 		],
 		[...ban(kit, KIT_MSG), ...ban(oauthLibs, OAUTH_MSG)],
 		CRON_ENTRIES
