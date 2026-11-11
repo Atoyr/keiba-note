@@ -200,6 +200,8 @@ export const SCREENS: Screen[] = [
 		}
 	},
 	{ name: 'login', path: '/login', auth: false },
+	{ name: 'login-suspended', path: '/login?error=suspended', auth: false },
+	{ name: 'login-account-conflict', path: '/login?error=account_conflict', auth: false },
 	{ name: 'privacy', path: '/privacy', auth: false },
 	{ name: 'terms', path: '/terms', auth: false },
 	{ name: 'dashboard', path: '/', auth: true },

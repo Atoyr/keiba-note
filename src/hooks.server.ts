@@ -13,6 +13,7 @@ import { describeError } from '$lib/server/monitoring/log';
 import { createMonitor, type Monitor } from '$lib/server/monitoring/monitor';
 import { SESSION_COOKIE, validateSession } from '$lib/server/auth/session';
 import { MOCK_USER_COOKIE, ensureMockUser, isMockUserKey } from '$lib/server/auth/mock';
+import { applySecurityHeaders } from '$lib/server/security-headers';
 import { safeRedirect } from '$lib/utils/redirect';
 
 /**
@@ -83,6 +84,29 @@ function createRequestMonitor(event: RequestEvent): Monitor {
 	});
 }
 
+/** 認証のあと、共通のセキュリティヘッダを付ける（`withSecurityHeaders`）。認証の判断は `authenticateAndResolve`。 */
+export const handle: Handle = async ({ event, resolve }) => {
+	const res = await authenticateAndResolve({ event, resolve });
+	return withSecurityHeaders(res, event.url);
+};
+
+/**
+ * 共通のセキュリティヘッダを付ける（`applySecurityHeaders`。既にある項目は上書きしない）。
+ * 付かない口は security-headers.ts のコメントのとおり（`/oauth/token`・静的アセット・
+ * `redirect()` を投げた応答）。ヘッダが変更不可の Response は包み直してから付ける。
+ */
+function withSecurityHeaders(res: Response, url: URL): Response {
+	try {
+		applySecurityHeaders(res.headers, url);
+		return res;
+	} catch (e) {
+		if (!(e instanceof TypeError)) throw e;
+		const wrapped = new Response(res.body, res);
+		applySecurityHeaders(wrapped.headers, url);
+		return wrapped;
+	}
+}
+
 /**
  * 認証の判断はここに閉じ込める。ルートからは `locals.user` しか見ない。
  * どの認証方式を使っているかを知っているのはこのファイルだけ。
@@ -90,7 +114,7 @@ function createRequestMonitor(event: RequestEvent): Monitor {
  * 例外は OAuth のトークンの口（`/oauth/token`）。src/worker.js が SvelteKit より先に受けるので、
  * **ここに足したもの（レート制限など）はその口には効かない**（docs/mcp.md）。
  */
-export const handle: Handle = async ({ event, resolve }) => {
+const authenticateAndResolve: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 	event.locals.oauthScopes = null;
 	event.locals.mockAuth = false;

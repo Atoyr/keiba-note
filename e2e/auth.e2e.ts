@@ -5,8 +5,10 @@ import {
 	EMPTY_RACE_ID,
 	HORSE_ID,
 	JOCKEYS,
-	PREVIEW_RACE_ID
+	PREVIEW_RACE_ID,
+	SHARED_NOTE_ID
 } from './seed';
+import { login } from './login';
 
 test('未ログインのトップは紹介ページで、ダッシュボードの中身は出ない', async ({ page }) => {
 	await page.goto('/');
@@ -86,3 +88,31 @@ for (const { path, secret } of PROTECTED) {
 		if (secret) await expect(page.getByText(secret)).toHaveCount(0);
 	});
 }
+
+test('ログイン済みで /login?redirect= に抜け道のパスを渡しても、外のオリジンへは飛ばない', async ({
+	page
+}) => {
+	await login(page);
+	// 符号化したタブ（/%09/evil.com）は復号されて `/<TAB>/evil.com` になり、
+	// ブラウザの URL 解析で `//evil.com` になる。`safeRedirect` が `/` に落とす。
+	for (const redirect of ['/%09/evil.com', '/%0a/evil.com', '/%5Cevil.com', '/..//evil.com']) {
+		const res = await page.request.get(`/login?redirect=${redirect}`, { maxRedirects: 0 });
+		expect(res.status()).toBe(302);
+		expect(res.headers()['location']).toBe('/');
+	}
+});
+
+test('応答に共通のセキュリティヘッダが付き、共有ページの no-referrer は残る', async ({ page }) => {
+	await login(page);
+	const home = await page.request.get('/');
+	expect(home.headers()['x-content-type-options']).toBe('nosniff');
+	expect(home.headers()['x-frame-options']).toBe('DENY');
+	expect(home.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+	expect(home.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+
+	const shared = await page.request.get(`/notes/${SHARED_NOTE_ID}`);
+	expect(shared.status()).toBe(200);
+	expect(shared.headers()['x-content-type-options']).toBe('nosniff');
+	expect(shared.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+	expect(shared.headers()['referrer-policy']).toBe('no-referrer');
+});

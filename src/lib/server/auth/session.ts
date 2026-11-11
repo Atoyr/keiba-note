@@ -1,8 +1,9 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
-import { and, eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
+import { isUniqueViolation } from '$lib/server/db/errors';
 import { session, user, type User } from '$lib/server/db/schema';
 
 /** セッションの有効期限。30日。 */
@@ -124,13 +125,15 @@ export async function invalidateSession(db: Db, token: string): Promise<void> {
 	await db.delete(session).where(eq(session.id, hashSessionToken(token)));
 }
 
-/** google_sub で引く。email は変わりうるので引き当てキーには使わない。 */
-export async function findUserByGoogleSub(db: Db, googleSub: string): Promise<User | null> {
-	const rows = await db
-		.select()
-		.from(user)
-		.where(and(eq(user.googleSub, googleSub), isNull(user.deletedAt)))
-		.limit(1);
+/**
+ * google_sub で引く。email は変わりうるので引き当てキーには使わない。
+ *
+ * **凍結済み（`deletedAt` あり）も返す**（`user.google_sub` は UNIQUE なので、除くと凍結した人の
+ * 再ログインが UNIQUE 違反の 500 になる）。そのまま使うと凍結した人を通してしまうので export しない。
+ * 呼ぶのは `resolveGoogleLogin` だけ。
+ */
+async function findUserByGoogleSub(db: Db, googleSub: string): Promise<User | null> {
+	const rows = await db.select().from(user).where(eq(user.googleSub, googleSub)).limit(1);
 	return rows.at(0) ?? null;
 }
 
@@ -157,4 +160,39 @@ export async function createUser(db: Db, input: CreateUserInput): Promise<User> 
 	};
 	await db.insert(user).values(row);
 	return row;
+}
+
+export type GoogleLogin =
+	| { kind: 'active'; user: User }
+	| { kind: 'suspended' }
+	/** 別の Google アカウントが同じ email で登録済み（email の UNIQUE）。 */
+	| { kind: 'email_conflict' };
+
+/**
+ * Google のログインで、入ってきた人を引く・作る・凍結を判定する。セッションは作らない。
+ *
+ * - google_sub で引き、凍結済みなら `suspended`
+ * - 無ければ作る。UNIQUE 違反なら引き直す（2タブ同時のコールバックなら、もう片方が作った行が引ける。
+ *   生きていれば `active`、凍結なら `suspended`）。それでも無ければ email の UNIQUE なので `email_conflict`
+ * - UNIQUE 以外の例外は投げる
+ *
+ * `create` はテストで UNIQUE の道を作るための差し替え口。
+ */
+export async function resolveGoogleLogin(
+	db: Db,
+	input: CreateUserInput,
+	create: typeof createUser = createUser
+): Promise<GoogleLogin> {
+	const found = await findUserByGoogleSub(db, input.googleSub);
+	if (found)
+		return found.deletedAt === null ? { kind: 'active', user: found } : { kind: 'suspended' };
+
+	try {
+		return { kind: 'active', user: await create(db, input) };
+	} catch (e) {
+		if (!isUniqueViolation(e)) throw e;
+		const again = await findUserByGoogleSub(db, input.googleSub);
+		if (!again) return { kind: 'email_conflict' };
+		return again.deletedAt === null ? { kind: 'active', user: again } : { kind: 'suspended' };
+	}
 }
