@@ -326,14 +326,21 @@ PID だけを止めると workerd がポートに残るため（#206 で確か�
 
 | エージェント | 置き場 | 止まり方 | 止まらないもの |
 | --- | --- | --- | --- |
-| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る（パイプを含むときは除く。下の箇条）。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`） |
+| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る（パイプを含むと当たり方が変わる。下の箇条）。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`） |
 | Codex | `.codex/rules/uma-memo.rules` の `forbidden` | コマンドの先頭一致。`&&` でつないだものも分解して見る。`--dangerously-bypass-approvals-and-sandbox` を付けた `codex exec` でも、Orca が起動する対話の Codex でも拒否した（#205 の試運転） | 引数の途中に出るもの（`wrangler d1 execute … --remote` など）、`gh api` でのマージ、`git -C <dir> push`、`sh -c '...'` で包んだもの |
 
 - 2つの置き場は書き方が違うだけで、止めたいものは同じ。変えるときは両方を揃える。script は `pnpm run <名前>`・`pnpm <名前>`（pnpm は `run` を省いても実行する）・`npm run <名前>` のどれでも止める
 - Claude Code の `*--remote*`・`*db:migrate:remote*` などは、`grep` の検索語のように文字列として入っているだけでも拒否する。そのときの扱いは AGENTS.md「読み落とすと事故になること」
-- **Claude Code はパイプ（`|`）を含むと `&&` でつないだコマンドを1つずつ見ない。** コマンド全体を1つの文字列として当てるので、
-  `git push origin <作業ブランチ> 2>&1 | tail -2 && gh pr create --base main …` は後ろの ` main ` に `git push * main *` が当たって拒否される
-  （同じものをパイプなしでつなぐと通る。`--dry-run` で確かめた）。規則は `main` への push を止めるために残し、push と PR の作成は単独のコマンドで叩く（CLAUDE.md）
+- **Claude Code は、パイプ（`|`）を含むコマンドを `&&` でつなぐと、後ろのコマンドの語にも deny が当たる。** 仕組みは分かっていない。害の無い形で見たこと:
+
+  | コマンド | 結果 |
+  | --- | --- |
+  | `git push --dry-run origin <作業ブランチ> 2>&1 \| tail -1 && echo "--base main"` | 拒否（作業ブランチへの push なのに `git push * main *` に当たる） |
+  | 同じもので後ろを `echo done` にする／パイプを外して `&& echo "a main b"` にする | 通る |
+  | `true \| cat && gh pr merge --help` | 拒否（パイプの後ろの merge も止まる。止めたいものが抜ける穴は見つかっていない） |
+
+  規則は `main` への push を止めるために残し、push と PR の作成は単独のコマンドで叩く（CLAUDE.md）
+
 - **Codex には `git push` を丸ごと禁じている。** 先頭一致では「force だけ」「`main` だけ」を書き分けきれないうえ、Codex は Worker としてだけ使い、push は Lead が行うため（orchestration.md 第4章）
 - `odds:update` は `--local` が無ければ、ほかにどんな引数を付けても、`node … scripts/odds-update.ts` で直接呼んでも本番の D1 を書く。
   Claude Code で止めているのは引数なしの `pnpm run odds:update`・`pnpm odds:update` だけで、Codex では止めない（先頭一致だと `--local` まで止まるため）。手元に認証情報が無いので構造で失敗する

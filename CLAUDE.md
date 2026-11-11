@@ -16,9 +16,10 @@
 - `pnpm run verify` と `pnpm run screens` はビルドを含み数分かかる。バックグラウンドで回し、
   その間に PR 本文の下書きなど並行できることを進めてよい
 - `git push` と `gh pr create` は1回に1つだけ叩き、パイプ（`|`）や `&&` でほかのコマンドとつながない。
-  パイプを含むと deny がコマンド全体に当たり、後ろの `--base main` に `git push * main *` が当たって正しい push まで拒否される（[harness.md 4-3](./docs/harness.md)）
-- PR 本文やスクリプトをシェルの中で組まない。Write でファイルに書いてから `--body-file` やファイルのパスで渡す。
-  引用符の無い heredoc（`<<EOF`）は中のバッククォートをコマンドとして実行する（本文の `` `pnpm run verify` `` が本当に走る）
+  つなぐと deny に誤って当たり、正しい push まで拒否される（何が起きるかは [harness.md 4-3](./docs/harness.md)）
+- PR・Issue のコメント・コミットメッセージの本文とスクリプトは、シェルの中で組まない。Write でスクラッチパッド（作業ツリーの外）に書き、
+  `--body-file`・`git commit -F`・ファイルのパスで渡す。引用符の無い heredoc（`<<EOF`）や `"…"` の中のバッククォートはコマンドとして走り、
+  本文に入った `--remote` などの語は deny に当たる。作業ツリーに置くと `git add` でコミットに混ざる
 
 ## 設計と実装を分ける
 
