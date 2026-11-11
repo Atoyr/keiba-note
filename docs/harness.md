@@ -4,7 +4,7 @@
 何を作るかの伝え方から、どこに書いてよいか、どう見せるか、何を操作してよいか、
 どう確かめるか、良かったかをどう判断して次に活かすかまでを、6つの層に分けて決める。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-26
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-12
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
 - **ここに無いもの:** 作業の手順と完了の条件は [AGENTS.md](../AGENTS.md)、検証の仕組みの使い方は [testing.md](./testing.md)、
@@ -326,11 +326,14 @@ PID だけを止めると workerd がポートに残るため（#206 で確か�
 
 | エージェント | 置き場 | 止まり方 | 止まらないもの |
 | --- | --- | --- | --- |
-| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`） |
+| Claude Code | `.claude/settings.json` の `permissions.deny` | `*` はどこにでも置け、`&&` でつないだコマンドも1つずつ見る（パイプを含むときは除く。下の箇条）。確認を飛ばすモードでも拒否する。保存すれば次のコマンドから効く | `sh -c '...'` などで包んだもの、`gh api graphql` の `mergePullRequest` でのマージ、`node … scripts/odds-update.ts`（下の `odds:update`） |
 | Codex | `.codex/rules/uma-memo.rules` の `forbidden` | コマンドの先頭一致。`&&` でつないだものも分解して見る。`--dangerously-bypass-approvals-and-sandbox` を付けた `codex exec` でも、Orca が起動する対話の Codex でも拒否した（#205 の試運転） | 引数の途中に出るもの（`wrangler d1 execute … --remote` など）、`gh api` でのマージ、`git -C <dir> push`、`sh -c '...'` で包んだもの |
 
 - 2つの置き場は書き方が違うだけで、止めたいものは同じ。変えるときは両方を揃える。script は `pnpm run <名前>`・`pnpm <名前>`（pnpm は `run` を省いても実行する）・`npm run <名前>` のどれでも止める
 - Claude Code の `*--remote*`・`*db:migrate:remote*` などは、`grep` の検索語のように文字列として入っているだけでも拒否する。そのときの扱いは AGENTS.md「読み落とすと事故になること」
+- **Claude Code はパイプ（`|`）を含むと `&&` でつないだコマンドを1つずつ見ない。** コマンド全体を1つの文字列として当てるので、
+  `git push origin <作業ブランチ> 2>&1 | tail -2 && gh pr create --base main …` は後ろの ` main ` に `git push * main *` が当たって拒否される
+  （同じものをパイプなしでつなぐと通る。`--dry-run` で確かめた）。規則は `main` への push を止めるために残し、push と PR の作成は単独のコマンドで叩く（CLAUDE.md）
 - **Codex には `git push` を丸ごと禁じている。** 先頭一致では「force だけ」「`main` だけ」を書き分けきれないうえ、Codex は Worker としてだけ使い、push は Lead が行うため（orchestration.md 第4章）
 - `odds:update` は `--local` が無ければ、ほかにどんな引数を付けても、`node … scripts/odds-update.ts` で直接呼んでも本番の D1 を書く。
   Claude Code で止めているのは引数なしの `pnpm run odds:update`・`pnpm odds:update` だけで、Codex では止めない（先頭一致だと `--local` まで止まるため）。手元に認証情報が無いので構造で失敗する
