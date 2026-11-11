@@ -3,12 +3,12 @@
 このアプリの「外から呼べる口」と「中で呼ぶ口」の一覧と約束。
 外の口は SvelteKit のルート（`load`・form actions・`+server.ts`）、中の口はサービス層の関数。
 
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-11
 - **読む場面:** ルート・action・`+server.ts` を足す・変えるとき。サービス層の関数を足す・変えるとき。
   ステータスコードやリダイレクト先に迷ったとき
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
   層の依存の向きと D1 の使い方は [architecture.md](./architecture.md)、
   画面ごとの仕様（何を出すか）は [pages.md](./pages.md)、確かめ方は [testing.md](./testing.md)
-- 作成日: 2026-09-23 / 最終更新日: 2026-11-07
 
 ---
 
@@ -74,10 +74,10 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
 | `/terms` | GET | — | 利用規約（同上） | — |
 | `/api/health` | GET | — | 死活監視。D1 に `select 1` が通れば `200 {"status":"ok"}`。状態以外は返さない。`Cache-Control: no-store`（→ [monitoring.md 第6章](./monitoring.md)） | `503 {"status":"error"}` |
-| `/.well-known/oauth-protected-resource`（と `/mcp` 付き） | GET | — | 保護されたリソースのメタデータ（RFC 9728）。`resource`・`authorization_servers`・`scopes_supported` | — |
-| `/.well-known/oauth-authorization-server` | GET | — | 認可サーバーのメタデータ（RFC 8414）。PKCE は S256 だけ・公開クライアントだけ。`client_id_metadata_document_supported: true`（動的登録と Client ID Metadata Document の両方を受ける） | — |
-| `/oauth/register` | POST（JSON） | `client_name`・`redirect_uris`（1〜5。https かループバックの http）・`token_endpoint_auth_method`（`none` だけ） | `201` と `client_id`。何の権限も持たない | `400 invalid_redirect_uri` / `invalid_client_metadata`・`413` 本文超過・`429 temporarily_unavailable` 登録上限（`Retry-After: 60`。上限と期限は mcp.md） |
-| `/oauth/token` | POST（フォーム） | `grant_type=authorization_code`（`code`・`redirect_uri`・`client_id`・`code_verifier`）か `refresh_token`（`refresh_token`・`client_id`・`scope` で狭められる）。`resource` は自分の `/mcp` だけ | アクセス（1時間）とリフレッシュ（30日・1回きり。応答が届かずに30分の内に同じものを送り直したとき、出したアクセストークンが使われていなければ、届かなかった1組を止めて出し直す）。`no-store` | `400 invalid_grant`（コードの再利用・PKCE・戻り先・期限・別のクライアント）/ `invalid_scope` / `invalid_target` / `unsupported_grant_type`。使い回されたリフレッシュトークン（出したトークンが使われたあと・猶予を過ぎたあと）は連携ごと消す。同時更新の競合は連携を保持して `503 temporarily_unavailable`（`Retry-After: 1`）。送り直しは最初の更新で確定したスコープを引き継ぎ、`scope` を省略しても縮小前に戻らず、異なる `scope` は `invalid_scope`  |
+| `/.well-known/oauth-protected-resource`（と `/mcp` 付き） | GET | — | 保護されたリソースのメタデータ（RFC 9728）（詳細は [mcp.md 1-1](./mcp.md)） | — |
+| `/.well-known/oauth-authorization-server` | GET | — | 認可サーバーのメタデータ（RFC 8414）（詳細は [mcp.md 1-1](./mcp.md)） | — |
+| `/oauth/register` | POST（JSON） | `client_name`・`redirect_uris`・`token_endpoint_auth_method` | `201` と `client_id`。何の権限も持たない（詳細は [mcp.md 1-1](./mcp.md)） | `400` / `413` / `429`（登録上限） |
+| `/oauth/token` | POST（フォーム） | `grant_type=authorization_code` か `refresh_token` | アクセスとリフレッシュのトークン。`src/worker.js` が SvelteKit より先に受ける（詳細は [mcp.md 1-1](./mcp.md)） | `400 invalid_grant` ほか / `503`（同時更新の競合） |
 | `/notes/[id]` | GET | — | unlisted のメモ1件。`X-Robots-Tag: noindex, nofollow`・`Referrer-Policy: no-referrer`・`Cache-Control: private, no-store` | **404**（private でも存在しなくても同じ） |
 | `/shared/races/[id]` | GET | — | 予想まとめの共有用コピー1件・公開名・ログインしているか（`signedIn`。未ログインの人にだけ末尾の案内を出すため）。`og:title`・`og:description`・`og:image`・`twitter:card` を持つ（組み立ては `utils/share-card.ts`）。`noindex`・`no-referrer`・`no-store`。ルートレイアウトは `user: null` を返し、本人の閲覧でもアカウント情報を送らない | 無い・取り消し済み・著者凍結済みは **404** |
 | `/shared/races/[id]/og.png` | GET（`+server.ts`） | — | SNS のプレビュー用に、同じコピーと公開名から印の表を描いた 1200×630 の PNG。`?v=<更新時刻>-<公開名のハッシュ>` で絶対 URL を組む | 404 は共有ページと同じ。`vite dev` では描けず 503（→ [architecture.md 3-7](./architecture.md)） |
@@ -121,8 +121,8 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/settings/shares` | POST `default` | `noteId`・`visibility`（`private`\|`unlisted`）・`redirect` | 公開範囲を切り替え、`redirect` があれば `303` で戻す | 他人のメモ・無いメモは `fail(404)` |
 | `/settings/shares` | POST `default` | `raceId`（メモの操作とは排他） | 本人の予想まとめの共有を取り消す | 検証 `fail(400)` / 解除の失敗 `fail(503)` |
 | `/auth/logout` | POST | — | セッションを破棄して `303 /login` | — |
-| `/oauth/authorize` | GET | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge`・`code_challenge_method=S256`・`state`・`scope`・`resource` | 同意画面（アプリの名前・戻り先のホスト・スコープ。Client ID Metadata Document なら提供元のホスト）。`client_id` が HTTPS の URL なら、その文書を取りに行く（24時間は保存した内容を使う）。`X-Frame-Options: DENY`・`no-store` | 要求の誤り（クライアント・戻り先・PKCE・`response_type`・`resource`）は**戻り先へ飛ばさず**画面に出す（オープンリダイレクトにしない） |
-| `/oauth/authorize` | POST `default` | GET と同じ項目（hidden）・`decision`（`allow`\|`deny`）・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`。拒否なら `error=access_denied`。同じクライアントへの前のトークンは消す | 要求の誤り `fail(400)`（画面に出す） |
+| `/oauth/authorize` | GET | `response_type=code`・`client_id`・`redirect_uri`・`code_challenge` ほか | 同意画面（詳細は [mcp.md 1-1](./mcp.md)） | 要求の誤りは**戻り先へ飛ばさず**画面に出す（オープンリダイレクトにしない） |
+| `/oauth/authorize` | POST `default` | GET と同じ項目（hidden）・`decision`・`scope_grant`（複数） | `303` 戻り先に `code`・`state`・`iss`（詳細は [mcp.md 1-1](./mcp.md)） | 要求の誤り `fail(400)`（画面に出す） |
 | `/settings/connections` | GET | — | MCP の接続先 URL と、本人が許可したアプリ（名前・Client ID Metadata Document なら提供元のホスト・戻り先のホスト・スコープ・日付）、今週の利用量（読み取り・書き込みの %・次に 0 に戻る時刻） | — |
 | `/settings/connections` | POST `?/revoke` | `grantId` | 本人の連携を解除（コードとトークンも消える） | 検証 `fail(400)` / 他人の連携・無い連携 `fail(404)` |
 
@@ -148,22 +148,10 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
-| `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）。通知は `202`。tools/list はトークンのスコープで呼べる tool だけ | トークンなし・無効 `401` / Bearer はあるが DB に届かない `503` / スコープ不足 `403`（`WWW-Authenticate: … error="insufficient_scope", scope="…"`）/ 別オリジンの `Origin` `403` / 壊れた JSON・バッチ・知らない `MCP-Protocol-Version` `400` / 本文が64 KiBを超える `413` / tool の入力の誤り・見つからないは `200` の `isError: true` |
+| `/mcp` | POST（JSON-RPC 1件） | `initialize`・`ping`・`tools/list`・`tools/call`、通知 | JSON で返す（SSE なし）（詳細は [mcp.md 1-1](./mcp.md)） | `401`（トークンなし・無効）/ `403`（スコープ不足）/ `503` ほか |
 | `/mcp` | GET・DELETE | — | — | `405`（サーバーから流す SSE とセッションは持たない） |
 
-tools（書くのは `save_my_race_preview`・`save_my_race_flow`・`save_my_race_review` だけ。`viewerId` はトークンの持ち主で、入力は余計な項目を受けない `strictObject`）:
-
-| tool | スコープ | 入力 | 返すもの |
-| --- | --- | --- | --- |
-| `search_races` | `races:read` | `q`・`year`・`limit`（1〜50） | レース（新しい順）。`notes:read` もあれば `myNoteCount`（自分のメモの件数） |
-| `get_race` | `races:read` | `raceId` | レースの条件・出走馬（馬番・騎手・着順）・オッズとその時点 |
-| `get_horse` | `races:read` | `horseId`・`limit`（1〜100） | 馬のプロフィール（性・生年・生年月日・調教師・父母・母父）と出走歴 |
-| `get_my_race_notes` | `notes:read` | `raceId` | そのレースの自分の見立て・ふりかえり・各馬のメモ・印・札・展開 |
-| `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
-| `list_my_recent_notes` | `notes:read` | `limit`（1〜50） | 自分の最近のメモ |
-| `save_my_race_preview` | `notes:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`mark`（null で外す）・`tags` のうち書き換えるもの） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`。見立ての `cleared` は本文を空にしたことで、展開があれば行は残る）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目・展開はそのまま。出走馬でない `entryId`・空の入力は何も書かずに `isError` |
-| `save_my_race_flow` | `notes:write` | `raceId`・`pace`（スロー・ミドル・ハイ。null で外す）・`start`・`corner4`・`finish`（それぞれ `spots`（`entryId`・`x` 0〜9・`y` 0〜3。〜40）と `memo`（200文字まで）のうち書き換えるもの） | 書いた結果（`flow` は `saved`・`cleared`）。中身は返さない。渡した局面の渡した項目だけを書き換え、`spots` は局面の隊列を丸ごと置き換え（`[]` で空）。省いた局面・項目と、見立ての本文・印・出走前メモはそのまま。すべて空になると展開は消える。同じ馬・同じマスの重なり、出走馬でない `entryId`、出走馬が0頭のレース、空の入力は何も書かずに `isError` |
-| `save_my_race_review` | `reviews:write` | `raceId`・`raceNote.body`・`entries`（〜40。`entryId` と、`body`・`tags` のうち書き換えるもの。印は運ばない） | 書いた結果（`raceNote` は `saved`・`cleared`・`unchanged`、馬ごとは `saved`・`cleared`）。本文は返さない。`body` は追記でなく置き換え。省いた馬・項目はそのまま。予想には触れない。開催前のレース・出走馬でない `entryId`・空の入力は何も書かずに `isError` |
+tools とスコープ・入力・返すものは [mcp.md 3-2](./mcp.md) が正。書く tool は `save_my_race_preview`・`save_my_race_flow`・`save_my_race_review` だけで、`viewerId` はトークンの持ち主。
 
 ### 3-6. HTTP でない口 — Cron Trigger
 
