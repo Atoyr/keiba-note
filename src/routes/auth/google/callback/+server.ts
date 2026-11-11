@@ -11,8 +11,7 @@ import {
 	SESSION_COOKIE,
 	SESSION_TTL_MS,
 	createSession,
-	createUser,
-	findUserByGoogleSub
+	resolveGoogleLogin
 } from '$lib/server/auth/session';
 import { createDb } from '$lib/server/db';
 import { describeError } from '$lib/server/monitoring/log';
@@ -70,24 +69,32 @@ export const GET: RequestHandler = async ({ cookies, url, platform, locals }) =>
 	}
 
 	const db = createDb(platform.env, locals.monitor.onQuery);
-	const existing = await findUserByGoogleSub(db, identity.googleSub);
+	// **登録に条件は無い。** メモが既定で非公開になった以上、入ってきた人に
+	// 見えるのは自分のメモだけで、守るべき「場」が存在しない（product.md 第3章）。
+	//
+	// ADMIN_EMAIL と一致したときだけ admin。「user テーブルが空なら」という
+	// 条件は付けない — 登録が開いている以上「最初の1人」が成立しないため。
+	const adminEmail = platform.env.ADMIN_EMAIL?.toLowerCase();
+	const role = adminEmail && identity.email.toLowerCase() === adminEmail ? 'admin' : 'user';
 
-	let userId: string;
-
-	if (existing) {
-		userId = existing.id;
-	} else {
-		// **登録に条件は無い。** メモが既定で非公開になった以上、入ってきた人に
-		// 見えるのは自分のメモだけで、守るべき「場」が存在しない（product.md 第3章）。
-		//
-		// ADMIN_EMAIL と一致したときだけ admin。「user テーブルが空なら」という
-		// 条件は付けない — 登録が開いている以上「最初の1人」が成立しないため。
-		const adminEmail = platform.env.ADMIN_EMAIL?.toLowerCase();
-		const role = adminEmail && identity.email.toLowerCase() === adminEmail ? 'admin' : 'user';
-
-		const created = await createUser(db, { ...identity, role });
-		userId = created.id;
+	const login = await resolveGoogleLogin(db, { ...identity, role });
+	if (login.kind === 'suspended') {
+		// 凍結したユーザーは入れない。セッションは作らない。
+		clearTransientCookies(cookies);
+		redirect(302, '/login?error=suspended');
 	}
+	if (login.kind === 'email_conflict') {
+		// 別の Google アカウントが同じ email で登録済み。email はログに出さない。
+		locals.monitor.log({
+			level: 'warn',
+			event: 'auth.google.email_conflict',
+			message: '同じ email の別の Google アカウントでログインされ、登録できなかった'
+		});
+		clearTransientCookies(cookies);
+		redirect(302, '/login?error=account_conflict');
+	}
+
+	const userId = login.user.id;
 
 	const token = await createSession(db, userId);
 

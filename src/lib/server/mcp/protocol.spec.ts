@@ -917,3 +917,151 @@ describe('save_my_race_review', () => {
 		);
 	});
 });
+
+describe('notes:read の無い連携に、今の値の有無を漏らさない', () => {
+	const snapshot = () =>
+		sqlite.prepare(`SELECT id, kind, body, mark, tags, flow FROM note ORDER BY id`).all();
+
+	beforeEach(() => {
+		sqlite.exec(`
+			INSERT INTO horse (id, name, created_by) VALUES ('H2', '二頭目', 'B');
+			INSERT INTO race_entry (id, race_id, horse_id, horse_number) VALUES ('E2', 'R', 'H2', 2);
+		`);
+	});
+
+	/** 今のメモが「ある」状態と「無い」状態に、同じ入力を送って、結果が同じことを見る。 */
+	async function sameWhenPresentAndAbsent(run: () => Promise<McpReply>, clear: () => void) {
+		const present = data(await run());
+		clear();
+		const absent = data(await run());
+		expect(absent).toEqual(present);
+		return present;
+	}
+
+	it('予想: 省いた項目の結果は、今のメモの有無に依らず updated', async () => {
+		const out = await sameWhenPresentAndAbsent(
+			() =>
+				call(
+					'save_my_race_preview',
+					{ raceId: 'R', entries: [{ entryId: 'E', body: '' }] },
+					WRITE_ONLY
+				),
+			() => sqlite.exec(`DELETE FROM note WHERE id = 'NA2'`)
+		);
+		expect(out.entries).toEqual([{ entryId: 'E', result: 'updated' }]);
+	});
+
+	it('予想: 空でない項目を渡せば saved、全項目を空で渡せば cleared', async () => {
+		const saved = data(
+			await call(
+				'save_my_race_preview',
+				{ raceId: 'R', entries: [{ entryId: 'E', mark: '○' }] },
+				WRITE_ONLY
+			)
+		);
+		expect(saved.entries).toEqual([{ entryId: 'E', result: 'saved' }]);
+		const cleared = data(
+			await call(
+				'save_my_race_preview',
+				{ raceId: 'R', entries: [{ entryId: 'E', body: '', mark: null, tags: [] }] },
+				WRITE_ONLY
+			)
+		);
+		expect(cleared.entries).toEqual([{ entryId: 'E', result: 'cleared' }]);
+	});
+
+	it('予想: notes:read もあれば、今の値で埋めた結果（saved）を返す', async () => {
+		const out = data(
+			await call(
+				'save_my_race_preview',
+				{ raceId: 'R', entries: [{ entryId: 'E', body: '' }] },
+				ALL
+			)
+		);
+		// 印 ◎ が残るので消えない。
+		expect(out.entries).toEqual([{ entryId: 'E', result: 'saved' }]);
+	});
+
+	it('ふりかえり: reviews:write だけでも、今のメモの有無に依らず updated', async () => {
+		sqlite.exec(`
+			INSERT INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at, visibility)
+			VALUES ('PA2', 'A', 'entry', 'P', 'H', 'PE', '自分のふりかえり', '[]', '2020-10-04', 'private')`);
+		const out = await sameWhenPresentAndAbsent(
+			() =>
+				call(
+					'save_my_race_review',
+					{ raceId: 'P', entries: [{ entryId: 'PE', tags: [] }] },
+					REVIEW_ONLY
+				),
+			() => sqlite.exec(`DELETE FROM note WHERE id = 'PA2'`)
+		);
+		expect(out.entries).toEqual([{ entryId: 'PE', result: 'updated' }]);
+		const withRead = data(
+			await call(
+				'save_my_race_review',
+				{ raceId: 'P', entries: [{ entryId: 'PE', tags: [] }] },
+				ALL
+			)
+		);
+		expect(withRead.entries).toEqual([{ entryId: 'PE', result: 'cleared' }]);
+	});
+
+	it('展開: pace: null だけ送ると、今の展開の有無に依らず updated', async () => {
+		await call('save_my_race_flow', { raceId: 'R', pace: 'ハイ' }, ALL);
+		const out = await sameWhenPresentAndAbsent(
+			() => call('save_my_race_flow', { raceId: 'R', pace: null }, WRITE_ONLY),
+			() => sqlite.exec(`UPDATE note SET flow = NULL WHERE kind = 'race_preview'`)
+		);
+		expect(out.flow).toBe('updated');
+	});
+
+	it('展開: 空でない項目を渡せば saved、pace と3局面をすべて空で渡せば cleared', async () => {
+		const saved = data(
+			await call('save_my_race_flow', { raceId: 'R', start: { memo: '逃げ争い' } }, WRITE_ONLY)
+		);
+		expect(saved.flow).toBe('saved');
+		const empty = { spots: [], memo: '' };
+		const cleared = data(
+			await call(
+				'save_my_race_flow',
+				{ raceId: 'R', pace: null, start: empty, corner4: empty, finish: empty },
+				WRITE_ONLY
+			)
+		);
+		expect(cleared.flow).toBe('cleared');
+		// 一部の局面だけ空で渡したのでは cleared と言えない。
+		const partial = data(
+			await call('save_my_race_flow', { raceId: 'R', pace: null, start: empty }, WRITE_ONLY)
+		);
+		expect(partial.flow).toBe('updated');
+	});
+
+	it('何も書き換えない入力は、書かずに誤りにする', async () => {
+		const before = snapshot();
+		for (const [scopes, name, args] of [
+			[ALL, 'save_my_race_preview', { raceId: 'R', entries: [{ entryId: 'E' }] }],
+			[ALL, 'save_my_race_review', { raceId: 'P', entries: [{ entryId: 'PE' }] }],
+			[ALL, 'save_my_race_flow', { raceId: 'R', start: {} }],
+			[WRITE_ONLY, 'save_my_race_preview', { raceId: 'R', entries: [{ entryId: 'E' }] }]
+		] as const) {
+			const reply = body(await call(name, args, [...scopes]));
+			expect(reply.result?.isError).toBe(true);
+			expect(reply.result?.content[0].text).toContain('1つ以上');
+		}
+		expect(snapshot()).toEqual(before);
+	});
+
+	it('書く tool の説明に、updated を返すことを書く', async () => {
+		const reply = body(
+			await handleMcpMessage(
+				{ jsonrpc: '2.0', id: 1, method: 'tools/list' },
+				{ db, viewerId: 'A', scopes: ALL }
+			)
+		);
+		const writes = (reply.result!.tools as { name: string; description: string }[]).filter((t) =>
+			t.name.startsWith('save_my_')
+		);
+		expect(writes).toHaveLength(3);
+		for (const t of writes) expect(t.description).toContain('updated と返します');
+	});
+});
