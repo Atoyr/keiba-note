@@ -2,7 +2,7 @@
 
 [product.md](./product.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
-作成日: 2026-09-20 / 最終更新日: 2026-10-12
+作成日: 2026-09-20 / 最終更新日: 2026-11-11
 
 - **読む場面:** コードを変えるなら毎回 第0章。ほかは触る場所に合わせて章だけ読む
   - サーバー側（ルートの `.server.ts`・サービス層・DB）、依存の向き → 第2章・第3章（3-1〜3-6）
@@ -277,7 +277,7 @@ graded（重賞）も同じくマスタの表を持たず、レース名を別�
 
 - 機能を持たないもの（shared）: `lib/schemas/`・`lib/server/db/`・`lib/server/auth/`・`lib/server/monitoring/`・
   `lib/utils/` の `date` / `redirect` / `role`・`components/ui/`。どの機能からも使ってよいが、shared から機能は使わない
-- services のうち `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`insights` の機能への所属はまだ決めていない（→ [harness.md 第8章](./harness.md)）
+- services のうち `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`results-fetch`・`insights` の機能への所属はまだ決めていない（→ [harness.md 第8章](./harness.md)）
 - **ルート（`src/routes/`）は機能を組み合わせる場所**なので、横の軸の制約は受けない
 - 今ある違反（直す予定）は [harness.md 2-5](./harness.md)
 
@@ -361,7 +361,7 @@ D1 は**スキャンした行数**で課金されるので、インデックス�
 
 ### 3-3. 書き込みの経路 — `POST /races/[id]`（ふりかえりの一括保存）
 
-ふりかえり画面の一括保存（`default` の action）。**このアプリで最も文の数が増える経路。**
+ふりかえり画面の一括保存（`?/save` の action）。**このアプリで最も文の数が増える経路。**
 
 ```mermaid
 sequenceDiagram
@@ -372,7 +372,7 @@ sequenceDiagram
     participant S as services/notes.ts
     participant D as D1
 
-    B->>A: POST 出走馬18頭分のメモ
+    B->>A: POST ?/save 出走馬18頭分のメモ
     Note over A: Origin ヘッダ検証<br/>SvelteKit 標準の CSRF 対策
     A->>D: getRace — 開催前なら 400 【クエリ2】
     A->>D: listEntries — 出走馬は DB を正とする 【クエリ3】

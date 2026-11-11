@@ -4,7 +4,7 @@
 何を作るかの伝え方から、どこに書いてよいか、どう見せるか、何を操作してよいか、
 どう確かめるか、良かったかをどう判断して次に活かすかまでを、6つの層に分けて決める。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-10-26
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-11
 - **読む場面:** ハーネスの仕組みそのものを変えるとき。lint の規則・検査を足すとき。
   日々の作業では読まなくてよい（要ることは AGENTS.md の目次から各文書へ）
 - **ここに無いもの:** 作業の手順と完了の条件は [AGENTS.md](../AGENTS.md)、検証の仕組みの使い方は [testing.md](./testing.md)、
@@ -69,7 +69,7 @@ flowchart LR
 
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
-| 1 目的 | README / product.md / `.github/ISSUE_TEMPLATE/` | なし | 仕様と頼み方の型（1-4）はあるが、「誰がどの場面で使うか」と UX の原則が文になっていない（原則は 1-3 の草案だけ） |
+| 1 目的 | README / product.md / ux.md / `.github/ISSUE_TEMPLATE/` | なし | 仕様・頼み方の型（1-4）・使う人と場面と判断の物差し（ux.md）はある。原則 P1〜P7 は 1-3 の草案のままで、product.md に上がっていない |
 | 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反がある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | パレットの生の色指定が数百箇所残る。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」/ README.md「セットアップ」 | `.claude/settings.json` の deny / `.codex/rules/`（4-3） | Dev Container と `pnpm run setup` は稼働中。本番に触るコマンドは権限で止める（すり抜けの穴は 4-3）。hook はまだ無い |
@@ -97,7 +97,8 @@ flowchart LR
 | --- | --- | --- |
 | [README.md](../README.md) | 何のアプリか・いまのフェーズ | ある |
 | [product.md](./product.md)（旧 design.md） | 要件・やらないこと（画面ごとの仕様は pages.md、データモデルは data-model.md） | ある |
-| product.md の冒頭 | 誰が・どの場面で・何のために使うか。UX 原則（1-3） | **まだ無い**（足す） |
+| [ux.md](./ux.md) | 使う人と場面（第1章）、画面の構成・導線・state を決める物差し（第2章） | ある |
+| product.md の冒頭 | UX 原則（1-3） | **まだ無い**（足す） |
 | `.github/ISSUE_TEMPLATE/` | 変更の頼み方の型（1-4） | ある |
 
 product.md は仕様の詳細で長いので、UX 原則は冒頭の1画面に収め、エージェントが最初に読む入口にする。
@@ -597,7 +598,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 - **share と dashboard を service で分けるか。** レースの共有は `services/race-shares.ts` に分かれているが、
   メモ単位の共有（`getSharedNote`・`setNoteVisibility`・`listSharedNotes`）とダッシュボードの `listWatchSources` は
   `services/notes.ts` に残っている。分けるのは、機能の向きの規則が効き始めてから、違反の出方を見て決める
-- **機能の並びに入っていない service の所属。** `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`lists`・`insights` が
+- **機能の並びに入っていない service の所属。** `favorites`・`profile`・`mcp-usage`・`race-shares`・`entries-fetch`・`results-fetch`・`insights` が
   architecture.md 第2章のどの機能（または shared）に入るかは未決。boundaries を入れる PR で決め、architecture.md に足す
 - 第3層の lint を ESLint プラグインにするか、自前のスクリプトにするか（3-3 の確認次第）
 - **Evaluator を CI で自動で回すか。** PR ごとに GitHub Actions から回す形（`anthropics/claude-code-action` など）も取れるが、
@@ -617,7 +618,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、`preview:e2e` と `.claude/launch.json`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook | なし |
 | 3 | トークンと lint（まだ） | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え（まだ） | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |
-| 5 | 目的の型（一部済み） | 1 | **済み:** issue テンプレート。**まだ:** product.md の冒頭に UX 原則、PR テンプレートの「なぜ」に原則の番号 | なし |
+| 5 | 目的の型（一部済み） | 1 | **済み:** issue テンプレート、使う人と場面と判断の物差し（ux.md）。**まだ:** product.md の冒頭に UX 原則、PR テンプレートの「なぜ」に原則の番号 | なし |
 | 6 | 画面カタログの検査（まだ） | 5 | axe、押せる大きさ、D1 クエリ数、カタログに無い admin の画面（`/races/new`・`/races/[id]/entries`。`/settings/admin` はもうある） | なし |
 
 2 を 3 より先にするのは、hook があると置き換え中の違反がその場で分かり、4 以降の PR が速くなるため。

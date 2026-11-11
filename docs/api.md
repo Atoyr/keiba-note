@@ -240,7 +240,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/races.ts` | レースの一覧・件数・年・週の重賞、出走馬（予想用を含む）、過去走・馬の出走歴。レースの作成、出走馬の作成・更新 |
 | `services/odds.ts` | オッズの読み、取得対象のレースの選び。書くのは GitHub Actions（`scripts/odds/store.ts` の SQL。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | 出走馬の取得を頼む対象と、頼めないレースの判定（`entriesFetchBlocker`。D1 を読まない）。出馬表は YAML の PR で入る |
-| `services/results-fetch.ts` | 結果の取得を頼む対象（`listResultsFetchTargets`。当日・JRA の10場・R 1〜12・出走馬あり）。結果は YAML の PR で入る |
+| `services/results-fetch.ts` | 結果の取得を頼む対象（`listResultsFetchTargets`。当日・JRA の10場・R 1〜12・出走馬あり）と、通過順の取り直しの対象・諦めたレース（`listPassingRefetchTargets`・`listPassingGaveUpRaces`。→ [architecture.md 3-9](./architecture.md)）。結果は YAML の PR で入る |
 | `services/notes.ts` | レース・馬のメモ、最近のメモ、同条件のレース、共有ページのメモの読み。ふりかえり・予想・近況メモの保存、削除、公開範囲 |
 | `services/race-shares.ts` | 予想まとめの共有コピーの読み・作成・取り消し |
 | `services/profile.ts` | 公開名の読み書き |
