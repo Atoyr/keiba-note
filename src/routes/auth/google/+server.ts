@@ -1,12 +1,12 @@
 import { redirect } from '@sveltejs/kit';
-import { generateCodeVerifier, generateState } from 'arctic';
 import {
 	GOOGLE_SCOPES,
 	OAUTH_STATE_COOKIE,
 	OAUTH_TTL_SECONDS,
 	OAUTH_VERIFIER_COOKIE,
 	REDIRECT_COOKIE,
-	createGoogleClient
+	createGoogleClient,
+	createLoginRequest
 } from '$lib/server/auth/google';
 import { safeRedirect } from '$lib/utils/redirect';
 import type { RequestHandler } from './$types';
@@ -18,8 +18,7 @@ import type { RequestHandler } from './$types';
 export const GET: RequestHandler = ({ cookies, url, platform }) => {
 	if (!platform?.env) redirect(302, '/login?error=unavailable');
 
-	const state = generateState();
-	const codeVerifier = generateCodeVerifier();
+	const { state, codeVerifier } = createLoginRequest();
 
 	const secure = url.protocol === 'https:';
 	const base = {

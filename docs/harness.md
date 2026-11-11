@@ -70,7 +70,7 @@ flowchart LR
 | 層 | 正（どこに書いてあるか） | 機械の強制 | 現状 |
 | --- | --- | --- | --- |
 | 1 目的 | README / product.md / ux.md / `.github/ISSUE_TEMPLATE/` | なし | 仕様・頼み方の型（1-4）・使う人と場面と判断の物差し（ux.md）はある。原則 P1〜P7 は 1-3 の草案のままで、product.md に上がっていない |
-| 2 構造 | architecture.md 第2章 | **なし**（言葉の約束だけ） | 違反がある（→ 2-5） |
+| 2 構造 | architecture.md 第2章 | **一部**（パッケージ単位の禁止は `lint` で止まる。ファイル間の向きと横の軸は言葉の約束） | 違反がある（→ 2-5） |
 | 3 見せ方 | design-system.md / `layout.css` / `components/ui/` | なし | パレットの生の色指定が数百箇所残る。shadcn のトークンが半分しか使われていない |
 | 4 操作 | AGENTS.md「コマンド」/ README.md「セットアップ」 | `.claude/settings.json` の deny / `.codex/rules/`（4-3） | Dev Container と `pnpm run setup` は稼働中。本番に触るコマンドは権限で止める（すり抜けの穴は 4-3）。hook はまだ無い |
 | 5 検証 | testing.md | `pnpm run verify` / CI | 稼働中 |
@@ -146,7 +146,7 @@ Lead が Issue から作業を始めるときの入力にもなる（[orchestrat
 ### 2-1. 役割
 
 「この処理はどのファイルに書いてよいか」「どこからどこを import してよいか」を
-**CI で止める**。architecture.md 第2章の依存の向きはいま言葉の約束だけで、実際に破られている（→ 2-5）。
+**CI で止める**。architecture.md 第2章の依存の向きのうち、パッケージ単位の禁止は `lint` で止まる。ファイル間の向きと横の軸はいま言葉の約束だけで、実際に破られている（→ 2-5）。
 エージェントは近くにある既存コードを真似て書くので、一度破られた約束はそのまま増える。
 
 依存の向きは **縦（層）と横（機能）の2軸**で決め、どちらも一方向にする。
@@ -158,8 +158,10 @@ Lead が Issue から作業を始めるときの入力にもなる（[orchestrat
 boundaries の設定（機能の順序の配列を含む）は architecture.md の表と並びから作り、両者を揃える。
 ルート（`src/routes/`）は機能を組み合わせる場所なので、横の軸の制約は受けない。
 
-パッケージ単位の禁止（`@sveltejs/kit`・`$app/*`・`drizzle-orm`・`arctic` を使ってよい場所）は ESLint 標準の
-`no-restricted-imports` を `files` ごとに掛ける。ファイル間の向きは次の 2-4 のプラグインで見る。
+パッケージ単位の禁止（`@sveltejs/kit`・`$app/*`・`drizzle-orm`・`arctic`・`$lib/server` を使ってよい場所）は
+**入っている**（`eslint.config.js`。ESLint 標準の `no-restricted-imports` を `files` ごとに掛けた。表は architecture.md 第2章）。
+ブロックの分け方の注意は `eslint.config.js` の注釈にある。
+ファイル間の向きと横の軸は次の 2-4 のプラグイン（まだ無い）で見る。
 
 ### 2-3. 機能をディレクトリで表す
 
@@ -223,13 +225,12 @@ rules: {
 ### 2-5. 今ある違反
 
 **規則を入れる PR で、`pnpm run lint` が出す違反を全部直す**（件数が少ないので、抑制して先送りしない）。
-固定の一覧はコードが動くとすぐずれるので持たない。規則を試しに当てたときに出たのは次の2件で、まだ残っている。
+固定の一覧はコードが動くとすぐずれるので持たない。パッケージ単位の禁止はもう入っていて、当てたときに出た違反（admin ルートの SQL・`PagedList` の置き場・Google ログインのルートの `arctic`）は直した。
+boundaries 待ちで残るのは次の1件。
 
-- `src/routes/settings/admin/+page.server.ts` が `drizzle-orm` で直接 SQL を組む（ユーザー凍結を service に移す）
-- `src/lib/server/services/notes.ts` が `utils/dashboard` の型（`WatchSourceRow`）を使う（notes → dashboard の向き。型を notes 側に置く）
+- `src/lib/server/services/notes.ts` が `utils/dashboard` の型（`WatchSourceRow`）を使う（notes → dashboard の向き。横の軸なので型を notes 側に置く）
 
-ほかに、grep で見つかっていて規則ではまだ確かめていないもの: `src/lib/utils/paged-list.svelte.ts` が `$app/navigation` を import している
-（pure は `$app/*` を使わない）。どの機能にも割り当てていない service（第8章）は、所属を決めるまで機能の規則を当てられない。
+どの機能にも割り当てていない service（第8章）は、所属を決めるまで機能の規則を当てられない。
 
 ### 2-6. ランタイム上の約束との関係
 
@@ -237,10 +238,10 @@ architecture.md 第0章「守ること」のうち、この層の規則で止ま
 
 | 約束 | 止め方 |
 | --- | --- |
-| サービス層は SvelteKit を import しない | **規則で止まる**（2-2） |
-| 画面側はサーバーのコードを型ですら import しない | **規則で止まる**（2-4。`import type` も見える） |
+| サービス層は SvelteKit を import しない | **規則で止まる**（2-2。パッケージの禁止） |
+| 画面側はサーバーのコードを型ですら import しない | **規則で止まる**（2-2。`import type` も、`../server` のような相対パスも止める） |
 | 認証の判断は `hooks.server.ts` に閉じる | 一部。`auth` を import してよいのを endpoint に限る |
-| `lib/server/mcp` は SvelteKit・auth・`drizzle-orm` を import しない | **規則で止まる**（パッケージの禁止と boundaries） |
+| `lib/server/mcp` は SvelteKit・auth・`drizzle-orm` を import しない | **規則で止まる**（2-2。パッケージの禁止。`../auth` の相対パスも止める。ファイル間の向きは boundaries 待ち） |
 | メモを読む関数は `viewerId` を必須で受け、WHERE に入れる | 規則では止まらない。単体テストと E2E（他人の id で開けない）で見る |
 | D1 クライアントはリクエストごとに作る | 規則では止まらない。`createDb` をモジュールスコープで呼ぶのを `no-restricted-syntax` で止めるのが候補 |
 | 1リクエストの D1 クエリは10以内 | 第5層で数える（→ 5-4） |
@@ -631,7 +632,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | # | PR | 層 | 中身 | 画面への影響 |
 | --- | --- | --- | --- | --- |
 | 0 | コンテキストと評価（**済み**） | 5 / 6 / 7 | AGENTS.md を目次にし、分野の文書に分けた。`docs:check`・Evaluator のサブエージェント・`pr-body.yml`。分野ごとのレビュアーと `review:plan` | なし |
-| 1 | 依存の規則（まだ） | 2 | boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 の違反を直す | なし（キャプチャ0枚を確かめる） |
+| 1 | 依存の規則（一部済み） | 2 | **済み:** パッケージ単位の禁止（`no-restricted-imports`）と、そのときの違反の修正。**まだ:** boundaries と resolver を入れる。component / utils を機能のディレクトリへ移す。2-5 に残る違反を直す | なし（キャプチャ0枚を確かめる） |
 | 2 | 操作と即時の手応え（一部済み） | 4 | **済み:** Dev Container と `pnpm run setup`、`preview:e2e` と `.claude/launch.json`、権限の deny（`.claude/settings.json`・`.codex/rules/`）。**まだ:** hook | なし |
 | 3 | トークンと lint（まだ） | 3 | design-system.md 2-2 のトークンを足し、「今使えるもの」に移す。lint 規則と一括抑制 | なし |
 | 4〜 | 画面ごとの置き換え（まだ） | 3 | 生の色と素の操作部品をトークンと shadcn に置き換える。1画面か1機能ずつ | **無いことを確かめる**（残る画像0枚） |

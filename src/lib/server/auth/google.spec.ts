@@ -1,9 +1,40 @@
 import { describe, expect, it, vi } from 'vitest';
 
 const decodeIdToken = vi.hoisted(() => vi.fn());
-vi.mock('arctic', () => ({ Google: class {}, decodeIdToken }));
+vi.mock('arctic', () => ({
+	Google: class {},
+	decodeIdToken,
+	OAuth2RequestError: class extends Error {
+		constructor(public code: string) {
+			super(code);
+		}
+	},
+	generateState: () => 'state-value',
+	generateCodeVerifier: () => 'verifier-value'
+}));
 
-import { parseIdToken } from './google';
+import { OAuth2RequestError } from 'arctic';
+import { createLoginRequest, oauthErrorCode, parseIdToken } from './google';
+
+describe('createLoginRequest', () => {
+	it('state と code_verifier を返す', () => {
+		expect(createLoginRequest()).toEqual({ state: 'state-value', codeVerifier: 'verifier-value' });
+	});
+});
+
+describe('oauthErrorCode', () => {
+	it('OAuth2RequestError なら code を返す', () => {
+		// 実物のコンストラクタの形はモックで置き換えている（code だけ見ることを確かめる）
+		const e = new (OAuth2RequestError as unknown as new (c: string) => Error)('invalid_grant');
+		expect(oauthErrorCode(e)).toBe('invalid_grant');
+	});
+
+	it('それ以外は null', () => {
+		expect(oauthErrorCode(new Error('x'))).toBeNull();
+		expect(oauthErrorCode('invalid_grant')).toBeNull();
+		expect(oauthErrorCode(null)).toBeNull();
+	});
+});
 
 const base = {
 	sub: '1234567890',

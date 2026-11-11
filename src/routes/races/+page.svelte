@@ -7,7 +7,7 @@
 	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
 	import RaceListEmpty from '$lib/components/RaceListEmpty.svelte';
 	import { opensReview } from '$lib/utils/date';
-	import { PagedList } from '$lib/utils/paged-list.svelte';
+	import { PagedList } from '$lib/components/paged-list.svelte';
 	import { pageHref } from '$lib/utils/paging';
 	import { hasRaceFilter } from '$lib/utils/race-filter';
 	import { isAdmin } from '$lib/utils/role';

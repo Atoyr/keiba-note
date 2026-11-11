@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import LoadMore from '$lib/components/LoadMore.svelte';
-	import { PagedList } from '$lib/utils/paged-list.svelte';
+	import { PagedList } from '$lib/components/paged-list.svelte';
 	import { pageHref } from '$lib/utils/paging';
 	import type { PageProps } from './$types';
 
