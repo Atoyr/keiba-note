@@ -1,6 +1,6 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
-import { and, eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '$lib/server/db';
 import { session, user, type User } from '$lib/server/db/schema';
@@ -124,13 +124,14 @@ export async function invalidateSession(db: Db, token: string): Promise<void> {
 	await db.delete(session).where(eq(session.id, hashSessionToken(token)));
 }
 
-/** google_sub で引く。email は変わりうるので引き当てキーには使わない。 */
+/**
+ * google_sub で引く。email は変わりうるので引き当てキーには使わない。
+ *
+ * **凍結済み（`deletedAt` あり）も返す。** `user.google_sub` は UNIQUE なので、除くと凍結した人の
+ * 再ログインが `createUser` の UNIQUE 違反（500）になる。呼ぶ側が `deletedAt` を見て断る。
+ */
 export async function findUserByGoogleSub(db: Db, googleSub: string): Promise<User | null> {
-	const rows = await db
-		.select()
-		.from(user)
-		.where(and(eq(user.googleSub, googleSub), isNull(user.deletedAt)))
-		.limit(1);
+	const rows = await db.select().from(user).where(eq(user.googleSub, googleSub)).limit(1);
 	return rows.at(0) ?? null;
 }
 

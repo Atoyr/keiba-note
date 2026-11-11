@@ -1,0 +1,27 @@
+/**
+ * すべての応答に付ける共通のセキュリティヘッダ（多層防御）。SvelteKit を import しない純関数。
+ *
+ * **既にある項目は上書きしない。** 共有ページの `Referrer-Policy: no-referrer` と、
+ * 同意画面の `same-origin`・`frame-ancestors` はそれぞれの理由で決めた値なので残す。
+ *
+ * `script-src` は入れない。`app.html` のインライン script に nonce が要るため（別の作業）。
+ * HSTS は `includeSubDomains`・`preload` を付けない（取り消しにくい）。https のときだけ付ける。
+ *
+ * 付かない口: `/oauth/token`（src/worker.js が SvelteKit より先に受ける）、静的アセット
+ * （Worker が起動しない）、handle の中で `redirect()` を投げた応答（未ログインのリダイレクト。中身が無い）。
+ */
+export function applySecurityHeaders(headers: Headers, url: URL): void {
+	const defaults: [string, string][] = [
+		['X-Content-Type-Options', 'nosniff'],
+		['X-Frame-Options', 'DENY'],
+		['Content-Security-Policy', "frame-ancestors 'none'"],
+		['Referrer-Policy', 'strict-origin-when-cross-origin'],
+		['Permissions-Policy', 'camera=(), microphone=(), geolocation=()']
+	];
+	if (url.protocol === 'https:') {
+		defaults.push(['Strict-Transport-Security', 'max-age=31536000']);
+	}
+	for (const [name, value] of defaults) {
+		if (!headers.has(name)) headers.set(name, value);
+	}
+}

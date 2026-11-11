@@ -6,6 +6,7 @@ import type { PageServerLoad } from './$types';
 const ERROR_MESSAGES: Record<string, string> = {
 	invalid_request: 'ログインの手続きが中断されました。もう一度お試しください。',
 	oauth_failed: 'Google との連携に失敗しました。もう一度お試しください。',
+	suspended: 'このアカウントは利用を停止しています。',
 	unavailable: '現在ログインを受け付けられません。時間をおいてお試しください。'
 };
 

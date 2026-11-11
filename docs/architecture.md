@@ -2,7 +2,7 @@
 
 [product.md](./product.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
-作成日: 2026-09-20 / 最終更新日: 2026-11-11
+作成日: 2026-09-20 / 最終更新日: 2026-11-12
 
 - **読む場面:** コードを変えるなら毎回 第0章。ほかは触る場所に合わせて章だけ読む
   - サーバー側（ルートの `.server.ts`・サービス層・DB）、依存の向き → 第2章・第3章（3-1〜3-6）
@@ -35,6 +35,8 @@
 - **`/mcp` は Bearer（OAuth のアクセストークン）だけで入り、Bearer は `/mcp` でしか効かない。**
   `/mcp` で Cookie を見ると他サイトから本人として叩かれ（CSRF）、画面で Bearer を見ると漏れたトークンで画面に入られる。
   MCP の tool の `viewerId` はトークンの持ち主で、入力からは受けない（→ [mcp.md](./mcp.md)）
+- **共通のセキュリティヘッダは hooks が付ける**（`lib/server/security-headers.ts`。`/mcp` の 401・503 も含む）。既にある項目は上書きしない（共有ページの `no-referrer`、同意画面の `same-origin`）。
+  `script-src` は入れない（`app.html` のインライン script に nonce が要るため）。付かない口は `/oauth/token`（`src/worker.js` が先に受ける）、静的アセット（Worker が起動しない）、`handle` の中で `redirect()` を投げた応答
 - **依存は一方向。** サービス層（`src/lib/server/services/`）は SvelteKit を import しない。
   画面側はサーバーのコードを型ですら import しない（→ 第2章）
 - 1リクエストの D1 クエリは10以内。超えそうなら JOIN か `batch()` にまとめる（→ 7-1）

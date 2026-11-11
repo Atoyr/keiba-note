@@ -87,7 +87,8 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 					const res = await page.goto(screen.path);
 
 					expect(res?.status(), `${screen.path} の応答`).toBeLessThan(400);
-					await expect(page).not.toHaveURL(/\/login\?/);
+					// ログインへ飛ばされていないこと。ログイン画面自体（?error= つき）を撮る画面は除く。
+					if (!screen.path.startsWith('/login')) await expect(page).not.toHaveURL(/\/login\?/);
 
 					await screen.prepare?.(page);
 					// ハイドレーションとフォント待ち。撮った画像が読み込み途中にならないように。

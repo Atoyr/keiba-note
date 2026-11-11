@@ -3,7 +3,7 @@
 このアプリの「外から呼べる口」と「中で呼ぶ口」の一覧と約束。
 外の口は SvelteKit のルート（`load`・form actions・`+server.ts`）、中の口はサービス層の関数。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-11-11
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-12
 - **読む場面:** ルート・action・`+server.ts` を足す・変えるとき。サービス層の関数を足す・変えるとき。
   ステータスコードやリダイレクト先に迷ったとき
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
@@ -69,7 +69,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | --- | --- | --- | --- | --- |
 | `/login` | GET | `redirect`・`error` | ログイン済みなら `302` で `redirect` へ | — |
 | `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | `302 /login?error=unavailable` |
-| `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable` |
+| `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable\|suspended`（`suspended` は凍結したユーザー。セッションは作らない） |
 | `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みなら自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
 | `/terms` | GET | — | 利用規約（同上） | — |
@@ -174,7 +174,7 @@ tools とスコープ・入力・返すものは [mcp.md 3-2](./mcp.md) が正�
 - **行の構成は DB を正とする。** `body.<entryId>` の `entryId` はフォームから拾わず、
   DB から引いた出走馬の一覧を回して読む（他のレースの行に書き込ませないため）
 - **書いたあとの遷移は `303`。** 同じ画面に留まるときはリダイレクトせず、値を返して `form` で受ける
-- **戻り先を入力から受けるときは `safeRedirect` を通す。** `//evil.com` のような外への飛び先を弾く
+- **戻り先を入力から受けるときは `safeRedirect` を通す。** URL として解析して判定し（前方一致の継ぎ足しではない）、`//evil.com`・途中のタブや改行（`/\t/evil.com`）・`\`・畳んで `//` になるもの（`/..//evil.com`）を弾く。返すのは正規化後のパスで、日本語は百分率符号化になる
 - **他人のものと、無いものを区別して返さない。** 共有ページは 404 に揃え、「その id は在る」を漏らさない
 - **操作の可否はルートで、データの絞り込みはサービス層で。** admin かどうか、開催前かどうかは
   ルートが見る。「誰のメモか」はサービス層の SQL が見る（→ [architecture.md 3-6](./architecture.md)）
