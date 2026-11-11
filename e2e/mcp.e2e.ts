@@ -129,6 +129,14 @@ test.describe('/mcp の認証', () => {
 		);
 	});
 
+	test('連携を終える DELETE（Content-Type・Origin なし）は 405（CSRF の 403 にしない）', async ({
+		request
+	}) => {
+		const res = await request.delete('/mcp');
+		expect(res.status()).toBe(405);
+		expect(res.headers()['allow']).toBe('POST');
+	});
+
 	test('知らないトークン・リフレッシュトークンでは入れない', async ({ request }) => {
 		const res = await mcp(request, 'uma_at_unknown', rpc('tools/list'));
 		expect(res.status()).toBe(401);

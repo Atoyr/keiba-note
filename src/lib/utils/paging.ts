@@ -33,14 +33,21 @@ export function toPage<T>(rows: T[], offset: number, limit = PAGE_SIZE): Page<T>
 		: { items: rows, next: null };
 }
 
+/** 今開いている URL。`page.url`（SvelteKit 3 では読み取り専用）も `URL` も渡せるよう、読むものだけを型にする。 */
+export type PageUrl = {
+	pathname: string;
+	search: string;
+	searchParams: Iterable<[string, string]>;
+};
+
 /**
  * `offset` 件目からのページの URL。絞り込みのクエリ（`year` `grade` `q`）はそのまま残し、
  * `offset` だけを替える。0 なら `offset` を外す（先頭のページ）。
  *
  * `url` は今開いている画面の URL（パスは base 込みで解決済み）。
  */
-export function pageHref(url: URL, offset: number): string {
-	const params = new URLSearchParams(url.searchParams);
+export function pageHref(url: PageUrl, offset: number): string {
+	const params = new URLSearchParams([...url.searchParams]);
 	if (offset > 0) params.set('offset', String(offset));
 	else params.delete('offset');
 	const query = params.toString();

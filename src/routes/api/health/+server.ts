@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { createDb, pingDb } from '$lib/server/db';
+import { appEnv } from '$lib/server/platform';
 import type { RequestHandler } from './$types';
 
 /**
@@ -9,11 +10,10 @@ import type { RequestHandler } from './$types';
  * **ログイン不要（PUBLIC_PATHS）なので、状態以外は何も返さない。** 理由は Workers Logs の
  * `d1.query.failed` に残る。
  */
-export const GET: RequestHandler = async ({ platform, locals }) => {
+export const GET: RequestHandler = async ({ locals }) => {
 	const headers = { 'cache-control': 'no-store' };
-	const ok = platform?.env?.DB
-		? await pingDb(createDb(platform.env, locals.monitor.onQuery))
-		: false;
+	const env = appEnv();
+	const ok = env.DB ? await pingDb(createDb(env, locals.monitor.onQuery)) : false;
 
 	return json({ status: ok ? 'ok' : 'error' }, { status: ok ? 200 : 503, headers });
 };

@@ -28,6 +28,18 @@ test('ログイン画面にもログインの入口がある', async ({ page }) 
 	await expect(page.getByText('メモは既定で非公開')).toBeVisible();
 });
 
+test('ログインの入口は Google の認可画面へ 302 で送り、state などの Cookie を置く', async ({
+	request
+}) => {
+	// SvelteKit 3 は外へのリダイレクトを既定で止める。CI は mock 認証でこの入口を通らないので、ここで確かめる。
+	const res = await request.get('/auth/google', { maxRedirects: 0 });
+
+	expect(res.status()).toBe(302);
+	expect(res.headers()['location']).toMatch(/^https:\/\/accounts\.google\.com\//);
+	const cookies = res.headersArray().filter((h) => h.name.toLowerCase() === 'set-cookie');
+	expect(cookies.length).toBeGreaterThanOrEqual(2);
+});
+
 test('プライバシーポリシーと利用規約は未ログインで読め、紹介ページとログイン画面から辿れる', async ({
 	page
 }) => {

@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import {
+	GOOGLE_AUTH_ORIGIN,
 	GOOGLE_SCOPES,
 	OAUTH_STATE_COOKIE,
 	OAUTH_TTL_SECONDS,
@@ -8,6 +9,7 @@ import {
 	createGoogleClient,
 	createLoginRequest
 } from '$lib/server/auth/google';
+import { appEnv } from '$lib/server/platform';
 import { safeRedirect } from '$lib/utils/redirect';
 import type { RequestHandler } from './$types';
 
@@ -15,9 +17,7 @@ import type { RequestHandler } from './$types';
  * Google の認可画面へ送る。
  * state と PKCE の code_verifier を作り、HttpOnly Cookie に10分だけ置く。
  */
-export const GET: RequestHandler = ({ cookies, url, platform }) => {
-	if (!platform?.env) redirect(302, '/login?error=unavailable');
-
+export const GET: RequestHandler = ({ cookies, url }) => {
 	const { state, codeVerifier } = createLoginRequest();
 
 	const secure = url.protocol === 'https:';
@@ -40,6 +40,9 @@ export const GET: RequestHandler = ({ cookies, url, platform }) => {
 		cookies.delete(REDIRECT_COOKIE, { path: '/' });
 	}
 
-	const google = createGoogleClient(platform.env, url.origin);
-	redirect(302, google.createAuthorizationURL(state, codeVerifier, GOOGLE_SCOPES).toString());
+	const google = createGoogleClient(appEnv(), url.origin);
+	// SvelteKit 3 は外へのリダイレクトを既定で止める。許すのは Google の認可画面の origin だけ（`true` にしない）。
+	redirect(302, google.createAuthorizationURL(state, codeVerifier, GOOGLE_SCOPES).toString(), {
+		external: [GOOGLE_AUTH_ORIGIN]
+	});
 };

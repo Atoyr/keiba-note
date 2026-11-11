@@ -27,12 +27,12 @@ const PAST_WEEKS = 3;
  * 「今週」は `/this-week` と同じ範囲（連休は火曜まで → services/races の `resolveWeek`）。
  * 画面の中で週の切り方が違うと、同じレースが今週に出たり出なかったりする。
  */
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
 	// 未ログインは紹介ページ（hooks が `/` だけを完全一致で通している）。
 	// **DB に触らない。** ここで何か引くと、そのまま誰にでも見える。
 	if (!locals.user) return { landing: true as const };
 
-	const { db, user } = ctx(locals, platform);
+	const { db, user } = ctx(locals);
 
 	// today はレースの行き先と進み具合を決めるのに要る（結果が出るまでは予想画面 → `isSettled`）。
 	const today = todayJst();

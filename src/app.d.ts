@@ -1,53 +1,10 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
+//
+// adapter-cloudflare 8 は `event.platform` を廃した。env・waitUntil は `cloudflare:workers` から取り、
+// 取る場所は src/lib/server/platform.ts に閉じる（そこにシークレットの型もある）。
 declare global {
 	namespace App {
-		interface Platform {
-			/**
-			 * Worker のバインディングとシークレット。
-			 *
-			 * `Env` は wrangler.toml から `wrangler types` が
-			 * worker-configuration.d.ts に生成する（現時点では `DB: D1Database`）。
-			 * シークレットは wrangler.toml に書かない（本番は `wrangler secret put`、
-			 * ローカルは `.dev.vars`）ので生成物には現れない。ここで足しておく。
-			 */
-			env: Env & {
-				GOOGLE_CLIENT_ID: string;
-				GOOGLE_CLIENT_SECRET: string;
-				/** ここと一致した email でログインした人だけ role='admin' になる。 */
-				ADMIN_EMAIL: string;
-				/**
-				 * 開発用のモック認証を有効にする。`.dev.vars` にだけ置く。
-				 * 本番で設定しても `dev` ガードにより無視される（分岐がビルドに残らない）。
-				 */
-				MOCK_AUTH?: string;
-				/**
-				 * 障害を知らせる Discord の Webhook（docs/monitoring.md）。無ければ通知しない。
-				 * URL そのものが書き込みの鍵なので、ログにもコードにも出さない。
-				 */
-				DISCORD_WEBHOOK_URL?: string;
-				/**
-				 * 出走馬の取得を GitHub Actions に頼むトークン（lib/server/race-data/dispatch.ts）。
-				 * このリポジトリの Actions に書き込めるだけの fine-grained token。無ければ頼まない。
-				 */
-				GITHUB_DISPATCH_TOKEN?: string;
-				/**
-				 * E2E だけで 1 にする（playwright.config.ts の --var）。Client ID Metadata Document の
-				 * client_id に http://localhost を許し、テストが手元で立てたサーバーの文書を読めるようにする。
-				 * 本番・ステージングでは設定しない（wrangler.toml に書かない）。
-				 */
-				OAUTH_CIMD_ALLOW_LOOPBACK?: string;
-				/**
-				 * 共有の画像を描く resvg の wasm（lib/server/og/render.ts）。バインディングではなく、
-				 * src/worker.js が env に足して渡す。vite dev では無い。
-				 */
-				RESVG_WASM?: WebAssembly.Module;
-			};
-			ctx: ExecutionContext;
-			caches: CacheStorage;
-			cf?: IncomingRequestCfProperties;
-		}
-
 		interface Locals {
 			/** メモaction→loadで再利用する共通マスタ。リクエストをまたがない。 */
 			raceFormRead?: {

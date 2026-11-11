@@ -13,12 +13,14 @@
 //
 // 共有の画像（/shared/races/[id]/og.png）を描く resvg の wasm もここで import する。wrangler は .wasm を
 // コンパイル済みの WebAssembly.Module にする。Workers は実行中にバイト列から wasm をコンパイルできず、
-// SvelteKit（Vite）の側では .wasm を import できないので、env に足して渡す（src/lib/server/og/render.ts）。
+// SvelteKit（Vite）の側では .wasm を import できない。adapter-cloudflare 8 は env を `cloudflare:workers` から取るので、
+// env に足しても届かない。globalThis の決まった名前に入れて渡す（src/lib/server/og/resvg-wasm.ts）。
 import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 import sveltekit from '../.svelte-kit/cloudflare/_worker.js';
 import { uncacheFailure } from './lib/server/asset-cache.ts';
 import { handleTokenRequest } from './lib/server/auth/token-endpoint.ts';
 import { createDb } from './lib/server/db/index.ts';
+import { provideResvgWasm } from './lib/server/og/resvg-wasm.ts';
 import { describeError } from './lib/server/monitoring/log.ts';
 import { createMonitor } from './lib/server/monitoring/monitor.ts';
 import { ODDS_CRONS, runOddsCron } from './lib/server/odds/scheduled.ts';
@@ -28,6 +30,8 @@ import {
 	runEntriesCron,
 	runResultsCron
 } from './lib/server/race-data/scheduled.ts';
+
+provideResvgWasm(resvgWasm);
 
 /**
  * OAuth のトークンの口（MCP の連携。docs/mcp.md）。SvelteKit の CSRF の検査が、
@@ -70,8 +74,14 @@ export default {
 	 * @param {ExecutionContext} ctx
 	 */
 	async fetch(req, env, ctx) {
-		if (new URL(req.url).pathname === '/oauth/token') return oauthToken(req, env, ctx);
-		return uncacheFailure(await sveltekit.fetch(req, { ...env, RESVG_WASM: resvgWasm }, ctx));
+		const { pathname } = new URL(req.url);
+		if (pathname === '/oauth/token') return oauthToken(req, env, ctx);
+		// MCP の連携を終えるときに来る DELETE（Content-Type も Origin も無い）。SvelteKit 3 の CSRF の検査は
+		// これを hooks より前に 403 にするので、ここで先に 405 を返す（セッションは持たない。docs/mcp.md）。
+		if (pathname === '/mcp' && req.method === 'DELETE') {
+			return new Response(null, { status: 405, headers: { Allow: 'POST' } });
+		}
+		return uncacheFailure(await sveltekit.fetch(req, env, ctx));
 	},
 
 	/**

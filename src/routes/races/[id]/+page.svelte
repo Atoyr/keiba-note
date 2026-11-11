@@ -200,10 +200,9 @@
 			wasQuick = page.state.quickReview === true;
 		}
 		if (!page.url.searchParams.has('quick')) return;
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.delete('quick');
 		openedByPush = false;
-		// eslint-disable-next-line svelte/no-navigation-without-resolve -- いまの URL のクエリだけを外す
 		replaceState(url, { ...page.state, quickReview: true });
 	});
 

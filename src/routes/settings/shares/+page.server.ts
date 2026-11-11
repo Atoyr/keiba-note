@@ -17,8 +17,8 @@ import type { Actions, PageServerLoad } from './$types';
  * **`/notes/` 配下に置かないのが要点。** あちらは PUBLIC_PATHS に入っていて
  * 未ログインでも通るので、書き込みを置く場所として不適切。
  */
-export const load: PageServerLoad = async ({ locals, platform }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals }) => {
+	const { db, user } = ctx(locals);
 	const [notes, races] = await Promise.all([
 		listSharedNotes(db, user.id),
 		listRaceShares(db, user.id)
@@ -27,8 +27,8 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, platform }) => {
-		const { db, user } = ctx(locals, platform);
+	default: async ({ request, locals }) => {
+		const { db, user } = ctx(locals);
 
 		const form = await request.formData();
 		if (form.has('raceId')) {

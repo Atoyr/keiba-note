@@ -21,7 +21,7 @@
 	<link rel="icon" href={staging ? faviconStaging : favicon} />
 	<link
 		rel="apple-touch-icon"
-		href={asset(staging ? '/apple-touch-icon-staging.png' : '/apple-touch-icon.png')}
+		href={asset(staging ? 'apple-touch-icon-staging.png' : 'apple-touch-icon.png')}
 	/>
 	<meta name="theme-color" content="#1e3a5f" />
 </svelte:head>

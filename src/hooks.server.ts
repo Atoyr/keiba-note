@@ -1,16 +1,12 @@
-import { dev } from '$app/environment';
-import {
-	json,
-	redirect,
-	type Handle,
-	type HandleServerError,
-	type RequestEvent
-} from '@sveltejs/kit';
+import { dev } from '$app/env';
+import { json, redirect, type RequestEvent } from '@sveltejs/kit';
+import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { createDb } from '$lib/server/db';
 import { validateAccessToken } from '$lib/server/auth/oauth';
 import { bearerChallenge, MCP_PATH } from '$lib/server/auth/oauth-metadata';
 import { describeError } from '$lib/server/monitoring/log';
 import { createMonitor, type Monitor } from '$lib/server/monitoring/monitor';
+import { appEnv, runInBackground } from '$lib/server/platform';
 import { SESSION_COOKIE, validateSession } from '$lib/server/auth/session';
 import { MOCK_USER_COOKIE, ensureMockUser, isMockUserKey } from '$lib/server/auth/mock';
 import { applySecurityHeaders } from '$lib/server/security-headers';
@@ -66,8 +62,8 @@ function isPublic(pathname: string): boolean {
  * 動いている環境の名前。`wrangler.toml` の `APP_ENV`（本番は production、Workers Preview は staging）。
  * 開発サーバーは local にする。通知の Environment 欄と、画面のステージングの印（AppEnvMark）が見る。
  */
-function appEnv(platform: App.Platform | undefined): string {
-	return dev ? 'local' : (platform?.env?.APP_ENV ?? 'production');
+function environmentName(): string {
+	return dev ? 'local' : (appEnv().APP_ENV ?? 'production');
 }
 
 /**
@@ -75,12 +71,11 @@ function appEnv(platform: App.Platform | undefined): string {
  * Workers Logs の同じリクエストの行と突き合わせられるようにする。ローカルには無いので作る。
  */
 function createRequestMonitor(event: RequestEvent): Monitor {
-	const platform = event.platform;
 	return createMonitor({
 		requestId: event.request.headers.get('cf-ray') ?? crypto.randomUUID(),
-		environment: appEnv(platform),
-		webhookUrl: platform?.env?.DISCORD_WEBHOOK_URL || undefined,
-		waitUntil: platform?.ctx ? (task) => platform.ctx.waitUntil(task) : undefined
+		environment: environmentName(),
+		webhookUrl: appEnv().DISCORD_WEBHOOK_URL || undefined,
+		waitUntil: runInBackground
 	});
 }
 
@@ -118,12 +113,11 @@ const authenticateAndResolve: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 	event.locals.oauthScopes = null;
 	event.locals.mockAuth = false;
-	event.locals.appEnv = appEnv(event.platform);
+	event.locals.appEnv = environmentName();
 	event.locals.monitor = createRequestMonitor(event);
 
-	const db = event.platform?.env?.DB
-		? createDb(event.platform.env, event.locals.monitor.onQuery)
-		: null;
+	const env = appEnv();
+	const db = env.DB ? createDb(env, event.locals.monitor.onQuery) : null;
 
 	// --- MCP（/mcp）は Bearer だけ ---------------------------------------------
 	// Cookie のセッションもモック認証も見ない。逆に、ほかのパスは Authorization を見ない
@@ -164,7 +158,7 @@ const authenticateAndResolve: Handle = async ({ event, resolve }) => {
 	// --- 開発用のモック認証 --------------------------------------------------
 	// `dev` は本番ビルドで静的に false になり、この分岐はバンドルから消える。
 	// したがってデプロイした Worker でモックが有効になることはない。
-	if (dev && event.platform?.env?.MOCK_AUTH && db) {
+	if (dev && env.MOCK_AUTH && db) {
 		const key = event.cookies.get(MOCK_USER_COOKIE);
 		event.locals.user = await ensureMockUser(db, isMockUserKey(key) ? key : 'admin');
 		event.locals.mockAuth = true;
@@ -205,13 +199,16 @@ const authenticateAndResolve: Handle = async ({ event, resolve }) => {
 };
 
 /**
- * 想定外のエラー（`error()` で投げたもの以外）がここに来る。ログに出し、500 以上なら通知する。
+ * 想定外のエラーだけをログに出して通知する。SvelteKit 3 は `error()` で投げたもの（app）・404 など
+ * SvelteKit が作ったもの（framework）・入力の検証（validation）も渡してくるが、これらは想定内なので何もしない。
+ * bot の走査の 404 がいくらでも来るのも framework。コードや呼び先が投げた例外（unknown）は 500 で返る。
  *
- * 404（無いパス）もここを通るが、bot の走査でいくらでも来るので通知しない。
- * 画面に出す文言は SvelteKit の既定のまま（中身を利用者に見せない）。
+ * **何も返さない。** 返すと画面に出す文言や status が変わる。既定のまま（中身を利用者に見せない）にする。
  */
-export const handleError: HandleServerError = ({ error, event, status }) => {
-	if (status < 500) return;
+export const handleError: HandleServerError = (input) => {
+	if (input.kind !== 'unknown') return;
+	const { error, event } = input;
+	const status = 500;
 
 	// handle より前で落ちたときは monitor がまだ無い。
 	const monitor = event.locals.monitor ?? createRequestMonitor(event);

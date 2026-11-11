@@ -1,6 +1,6 @@
 # AGENTS.md
 
-uma-memo（旧名 k-note）は競馬の観戦メモを残してふりかえる Web アプリ。SvelteKit 2 / Svelte 5（runes）を
+uma-memo（旧名 k-note）は競馬の観戦メモを残してふりかえる Web アプリ。SvelteKit 3 / Svelte 5（runes）を
 Cloudflare Workers + D1 で動かしている。Worker・D1・リポジトリの名前は旧名のまま（→ [operations.md](./docs/operations.md#名前について)）。
 
 **このファイルは知識の目次。** コードを変える人と AI エージェントが最初に読み、ここから

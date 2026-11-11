@@ -7,6 +7,9 @@ import {
 } from 'arctic';
 import * as v from 'valibot';
 
+/** 認可画面の origin。ログインの入口が外へリダイレクトするときの許可先（routes/auth/google/+server.ts）。 */
+export const GOOGLE_AUTH_ORIGIN = 'https://accounts.google.com';
+
 /** Google の認可画面へ送るときに要求するスコープ。 */
 export const GOOGLE_SCOPES = ['openid', 'profile', 'email'];
 

@@ -1,6 +1,6 @@
 # uma-memo フロントエンドの書き方
 
-SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束。
+SvelteKit 3 / Svelte 5（runes）で画面とルートを書くときの約束。
 ファイルの役割、画面側の書き方、フォームの受け方、コンポーネントの置き場、コードの書き方。
 
 - 作成日: 2026-09-23 / 最終更新日: 2026-11-11
@@ -27,7 +27,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 ## 2. ルート（`+page.server.ts`）の書き方
 
-- DB とログインユーザーは `ctx(locals, platform)` で取り出す。admin だけの操作は `ctxAdmin`
+- DB とログインユーザーは `ctx(locals)` で取り出す。admin だけの操作は `ctxAdmin`
   （`src/lib/server/util.ts`）。DB が無ければ 503、未ログインは 401、admin でなければ 403 になる
 - D1 クライアントは `ctx` が作って返す。自分でモジュールスコープに置かない（→ [architecture.md 3-1](./architecture.md)）
 - ルートは薄くする。画面に要る形への整形がサービス層で済むなら、そちらに寄せる

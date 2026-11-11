@@ -91,6 +91,9 @@ PR に書く「確認したこと」の形はここで決める。
 - **E2E でリンクの行き先は `expectLinkTo`（`e2e/link.ts`）で見る。href 属性では見ない。** `resolve()` の href 属性は SSR では相対パス（`paths.relative` の既定）で、
   hydration のあとに絶対パスへ書き直される。`toHaveAttribute('href', '/…')` も `a[href^="/…"]` のようなセレクタも、hydration が間に合ったときだけ当たる
   （`toHaveCount(0)` なら中身を見ずに通る）。要素はロールと名前で取る。属性で絞るのは `gotoHydrated` / `waitForHydration` のあとだけ
+- **単体テストで `cloudflare:workers` は使えない。** vitest の server プロジェクトが `src/lib/server/test-cloudflare-workers.ts`（空の `env` と `resetTestEnv()`）に alias で向ける。
+  ルートを import する spec は、`env.DB = …` を差し込み、`afterEach` で `resetTestEnv()` する（例: `src/routes/race-form.spec.ts`）。
+  実物を import してよいのは `lib/server/platform.ts` だけ（ESLint が止める。→ [architecture.md 3-1](./architecture.md)）
 - `expect.requireAssertions` が有効。アサーションの無いテストは落ちる
 - `.only` と `test.skip` は残さない
 - コンポーネントのテストは対象の隣に置く（`GradeBadge.svelte` → `GradeBadge.svelte.spec.ts`）

@@ -13,6 +13,7 @@ import {
 import { resolveClient } from '$lib/server/auth/client-metadata';
 import { createAuthorizationCode } from '$lib/server/auth/oauth';
 import type { Db } from '$lib/server/db';
+import { appEnv } from '$lib/server/platform';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -28,9 +29,8 @@ import type { Actions, PageServerLoad } from './$types';
  * 同意のフォームは load の値を信じず、hidden の値を同じ手順でもう一度確かめる。
  */
 
-/** E2E だけで `OAUTH_CIMD_ALLOW_LOOPBACK=1`（app.d.ts）。本番では常に false。 */
-const allowLoopback = (platform: App.Platform | undefined) =>
-	platform?.env?.OAUTH_CIMD_ALLOW_LOOPBACK === '1';
+/** E2E だけで `OAUTH_CIMD_ALLOW_LOOPBACK=1`（lib/server/platform.ts）。本番では常に false。 */
+const allowLoopback = () => appEnv().OAUTH_CIMD_ALLOW_LOOPBACK === '1';
 
 const FIELDS = [
 	'response_type',
@@ -127,7 +127,7 @@ const pick = (get: (k: string) => string | null) =>
 		})
 	) as Record<string, string>;
 
-export const load: PageServerLoad = async ({ url, locals, platform, setHeaders }) => {
+export const load: PageServerLoad = async ({ url, locals, setHeaders }) => {
 	// 同意のボタンを他サイトの枠に入れて押させない（クリックジャッキング）。
 	// リファラは戻り先（別のサイト）に渡さない。`no-referrer` にはしない。同意のフォームの POST が
 	// `Origin: null` で送られ、SvelteKit の CSRF の検査で 403 になる（E2E で確かめている）。
@@ -137,9 +137,9 @@ export const load: PageServerLoad = async ({ url, locals, platform, setHeaders }
 		'Cache-Control': 'no-store',
 		'Referrer-Policy': 'same-origin'
 	});
-	const { db } = ctx(locals, platform);
+	const { db } = ctx(locals);
 	const raw = pick((k) => url.searchParams.get(k));
-	const checked = await check(db, raw, url.origin, allowLoopback(platform));
+	const checked = await check(db, raw, url.origin, allowLoopback());
 	if (checked.kind === 'invalid') return { invalid: checked.message } as const;
 
 	const scopes = requestedScopes(checked.request.scope);
@@ -153,11 +153,11 @@ export const load: PageServerLoad = async ({ url, locals, platform, setHeaders }
 };
 
 export const actions: Actions = {
-	default: async ({ request, url, locals, platform }) => {
-		const { db, user } = ctx(locals, platform);
+	default: async ({ request, url, locals }) => {
+		const { db, user } = ctx(locals);
 		const form = await request.formData();
 		const raw = pick((k) => form.get(k)?.toString() ?? null);
-		const checked = await check(db, raw, url.origin, allowLoopback(platform));
+		const checked = await check(db, raw, url.origin, allowLoopback());
 		if (checked.kind === 'invalid') return fail(400, { message: checked.message });
 		const { request: req } = checked;
 		const consent = v.safeParse(consentSchema, {
@@ -172,7 +172,10 @@ export const actions: Actions = {
 				callbackUrl(req.redirect_uri, url.origin, req.state, {
 					error: 'access_denied',
 					error_description: '利用者が許可しませんでした'
-				})
+				}),
+				// SvelteKit 3 は外へのリダイレクトを既定で止める。許すのは、登録と照合した戻り先（check が確かめ済み）の
+				// プロトコルとホストだけ。`http://localhost:PORT` や独自スキーム（`cursor://`）も、その戻り先自身なので通る。
+				{ external: [req.redirect_uri] }
 			);
 		}
 
@@ -186,6 +189,8 @@ export const actions: Actions = {
 			codeChallenge: req.code_challenge
 		});
 		if (!code) return fail(400, { message: '戻り先がアプリの登録と一致しません。' });
-		redirect(303, callbackUrl(req.redirect_uri, url.origin, req.state, { code }));
+		redirect(303, callbackUrl(req.redirect_uri, url.origin, req.state, { code }), {
+			external: [req.redirect_uri]
+		});
 	}
 };

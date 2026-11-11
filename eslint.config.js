@@ -25,11 +25,25 @@ const relAuth = '^(\\.{1,2}/)+(.*/)?auth(/|$)';
  * `import type` も止める（画面側は型ですら import しない約束）。
  */
 const TEST_FILES = ['**/*.spec.ts', '**/*.test.ts', 'src/lib/server/db/test-d1.ts'];
-const restrict = (files, patterns, ignores = []) => ({
-	files,
-	ignores: [...TEST_FILES, ...ignores],
-	rules: { 'no-restricted-imports': ['error', { patterns }] }
-});
+/** `cloudflare:workers` を import してよい場所。env と waitUntil はここだけが取り出し、ほかは関数を呼ぶ（architecture.md）。 */
+const PLATFORM_FILES = ['src/lib/server/platform.ts', 'src/worker.js'];
+const CF_MSG =
+	'`cloudflare:workers` を import してよいのは src/lib/server/platform.ts だけ（単体テストで差し替えるため）。env は appEnv()、waitUntil は runInBackground() を使う（architecture.md）';
+/** どの `restrict` にも当たらないファイルを、あとの総なめの block が拾うために集める。 */
+const covered = [];
+const restrict = (files, patterns, ignores = []) => {
+	covered.push(...files);
+	return {
+		files,
+		ignores: [...TEST_FILES, ...PLATFORM_FILES, ...ignores],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{ patterns: [...patterns, { group: ['cloudflare:workers'], message: CF_MSG }] }
+			]
+		}
+	};
+};
 /** group（パッケージ名・`$lib` の別名）と、あれば regex（相対パス）を同じ message で止める。 */
 const ban = (group, message, regex) => [{ group, message }, ...(regex ? [{ regex, message }] : [])];
 
@@ -120,6 +134,18 @@ const importRules = [
 		]
 	)
 ];
+
+// 上のどれにも当たらないファイルにも、`cloudflare:workers` だけは止める。
+importRules.push({
+	files: ['src/**/*.{ts,js,svelte}'],
+	ignores: [...TEST_FILES, ...PLATFORM_FILES, ...covered],
+	rules: {
+		'no-restricted-imports': [
+			'error',
+			{ patterns: [{ group: ['cloudflare:workers'], message: CF_MSG }] }
+		]
+	}
+});
 
 export default defineConfig(
 	includeIgnoreFile(gitignorePath),

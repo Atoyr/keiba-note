@@ -77,7 +77,7 @@ Workers Logs は、こちらが出すログとは別に**呼び出しごとの�
 
 | event | level | 通知 | どこで | いつ |
 | --- | --- | --- | --- | --- |
-| `request.unhandled` | error | する | `hooks.server.ts` の `handleError` | 想定外の例外で 500 以上になった。404（無いパス）は bot の走査で溢れるので送らない |
+| `request.unhandled` | error | する | `hooks.server.ts` の `handleError` | 想定外の例外（SvelteKit 3 の `kind: 'unknown'`）で 500 になった。`error()` で投げたもの（app）・404（無いパス。framework）・入力の検証（validation）は想定内なので送らない |
 | `d1.query.failed` | error | する | `createDb` に渡した observer | D1 のクエリが失敗した |
 | `d1.query.constraint` | warn | しない | 同上 | UNIQUE / CHECK 違反。ルートが 409 に振り替える想定で、利用者の操作で普通に起きる |
 | `d1.query.slow` | warn | しない | 同上 | 1クエリ（`batch` は1往復）が `SLOW_QUERY_MS`（500ms）以上かかった |

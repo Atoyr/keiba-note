@@ -1,7 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import { onMount, tick } from 'svelte';
-	import { dev } from '$app/environment';
+	import { dev } from '$app/env';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import AccountMenu from '$lib/components/AccountMenu.svelte';

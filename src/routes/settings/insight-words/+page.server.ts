@@ -15,14 +15,14 @@ import type { Actions, PageServerLoad } from './$types';
  * クイック入力の言葉（押すと、その馬のふりかえりメモの本文に入る自分の言葉）。全レース共通で、本人だけのもの。
  * 消しても、メモに入れた文は消えない（言葉は本文へ文字列のコピーとして入る）。
  */
-export const load: PageServerLoad = async ({ locals, platform }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals }) => {
+	const { db, user } = ctx(locals);
 	return { words: await listInsightWords(db, user.id), limit: INSIGHT_WORDS_LIMIT };
 };
 
 export const actions: Actions = {
-	add: async ({ locals, platform, request }) => {
-		const { db, user } = ctx(locals, platform);
+	add: async ({ locals, request }) => {
+		const { db, user } = ctx(locals);
 		const form = await request.formData();
 		const raw = form.get('word');
 		// おすすめのボタンから送ったときは、失敗の文をおすすめの節に出す（上の「新しい言葉」の欄に入力を入れない）。
@@ -60,8 +60,8 @@ export const actions: Actions = {
 	},
 
 	/** おすすめの言葉をまとめて登録する。入力は無い（中身はコードの定数）。 */
-	addDefaults: async ({ locals, platform }) => {
-		const { db, user } = ctx(locals, platform);
+	addDefaults: async ({ locals }) => {
+		const { db, user } = ctx(locals);
 		try {
 			const { added, limited } = await addInsightWords(db, user.id, [...DEFAULT_INSIGHT_WORDS]);
 			if (added.length === 0 && limited) {
@@ -79,8 +79,8 @@ export const actions: Actions = {
 		}
 	},
 
-	remove: async ({ locals, platform, request }) => {
-		const { db, user } = ctx(locals, platform);
+	remove: async ({ locals, request }) => {
+		const { db, user } = ctx(locals);
 		const form = await request.formData();
 		const raw = form.get('word');
 		const parsed = v.safeParse(insightWordSchema, typeof raw === 'string' ? raw : '');

@@ -1,3 +1,4 @@
+import type { AppEnv } from '$lib/server/platform';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb } from '$lib/server/db/test-d1';
 import { createDb } from '$lib/server/db';
@@ -17,7 +18,7 @@ const env = {
 	APP_ENV: 'production',
 	GITHUB_DISPATCH_TOKEN: 'test-token',
 	GITHUB_REPOSITORY: 'Atoyr/keiba-note'
-} as App.Platform['env'];
+} as AppEnv;
 const ctx = { waitUntil: vi.fn() } as unknown as ExecutionContext;
 const scheduledTime = Date.parse('2026-10-04T09:10:00Z');
 

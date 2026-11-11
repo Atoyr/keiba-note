@@ -1,5 +1,6 @@
 import { error } from '@sveltejs/kit';
 import { createDb, type Db } from '$lib/server/db';
+import { appEnv } from '$lib/server/platform';
 import { getRaceForPreview, getRaceForReview } from '$lib/server/services/races';
 
 /**
@@ -39,10 +40,11 @@ export async function raceFormData(
  * hooks.server.ts を通っている以上 user は非 null だが、型の上では nullable なので
  * ここで一度だけ潰す。
  */
-export function ctx(locals: App.Locals, platform: App.Platform | undefined) {
-	if (!platform?.env?.DB) error(503, 'データベースに接続できません');
+export function ctx(locals: App.Locals) {
+	const env = appEnv();
+	if (!env.DB) error(503, 'データベースに接続できません');
 	if (!locals.user) error(401, 'ログインが必要です');
-	return { db: createDb(platform.env, locals.monitor.onQuery) as Db, user: locals.user };
+	return { db: createDb(env, locals.monitor.onQuery) as Db, user: locals.user };
 }
 
 /**
@@ -54,8 +56,8 @@ export function ctx(locals: App.Locals, platform: App.Platform | undefined) {
  *
  * 「操作の可否」はルート層で弾く。データの絞り込みはサービス層（architecture.md 3-6）。
  */
-export function ctxAdmin(locals: App.Locals, platform: App.Platform | undefined) {
-	const c = ctx(locals, platform);
+export function ctxAdmin(locals: App.Locals) {
+	const c = ctx(locals);
 	if (c.user.role !== 'admin') error(403, 'この操作は管理者だけが行えます');
 	return c;
 }

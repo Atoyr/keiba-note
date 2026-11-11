@@ -64,6 +64,11 @@ export type Screen = {
 	 * hover できない端末だけのふるまい（タップで開く Popover など）を撮るとき。
 	 */
 	touch?: boolean;
+	/**
+	 * `prepare` が、`fail(4xx/5xx)` を返す操作を enhance で送る画面。SvelteKit 3 の enhanced form は応答の HTTP status が
+	 * `fail` の値になり、ブラウザは 4xx/5xx の応答を console に「Failed to load resource」と出す。それだけを許す。
+	 */
+	httpError?: boolean;
 };
 
 /** 下端で続きを読む一覧の「続きを読み込む」。 */
@@ -231,6 +236,7 @@ export const SCREENS: Screen[] = [
 		path: '/settings/admin',
 		auth: true,
 		as: 'admin',
+		httpError: true,
 		prepare: async (page) => {
 			// use:enhance の送信にする（素の送信だと 503 のページへ遷移し、console にエラーが出る）
 			await waitForHydration(page);

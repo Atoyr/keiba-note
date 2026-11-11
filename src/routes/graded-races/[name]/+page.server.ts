@@ -20,8 +20,8 @@ import type { Actions, PageServerLoad } from './$types';
  * レース全体のメモと印を重ねる。1頭ごとのメモの本文は出さない。読みは1往復（傾向・レース・メモを1つの batch で）。
  * 見出しの格は今年のレースの格（無ければいちばん新しい年の格）。G1〜G3 のレースが1つも無い名前は 404。
  */
-export const load: PageServerLoad = async ({ locals, platform, params }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, params }) => {
+	const { db, user } = ctx(locals);
 	const key = gradedRaceKey(params.name);
 	const today = todayJst();
 
@@ -55,8 +55,8 @@ export const actions: Actions = {
 	 * 傾向のメモを書く・書き直す。本文が空なら消える。
 	 * 傾向は本人だけのもので、マスタには何も書かないので、admin でなくても書ける。
 	 */
-	saveTrend: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	saveTrend: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 		const key = gradedRaceKey(params.name);
 		const races = await listSeriesRaces(db, gradedRaceNames(key));
 		if (!currentGrade(races, todayJst().slice(0, 4))) error(404, '重賞が見つかりません');
