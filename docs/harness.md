@@ -335,14 +335,14 @@ PID だけを止めると workerd がポートに残るため（#206 で確か�
 
   | コマンド | 結果 |
   | --- | --- |
-  | `git push --dry-run origin <作業ブランチ> 2>&1 \| tail -1 && echo "--base main --head x"` | 後ろに語が続く形 `git push * main *` があると拒否される（後ろの ` main ` に当たる） |
+  | `git push --dry-run origin <作業ブランチ> 2>&1 \| tail -1 && echo "--base main --head x"` | 規則に `git push * main *`（` main` のあとに語が続く形を宛先に依らず止める）を置くと拒否される（後ろの ` main ` に当たる）。今の規則には置いていない |
   | 同じもので後ろを `echo done` にする／パイプを外して `&& echo "a main b"` にする | 通る |
   | `true \| cat && gh pr merge --help` | 拒否（パイプの後ろの merge も止まる） |
 
 - **`main` への push は、`main` で終わる形と `origin` を名指しした形で止める**（`git push * main`・`git push *:main`・`git push *origin main *`・`git push *origin *:main *`・`git push *refs/heads/main*`）。
   ` main` のあとに語が続く形を `origin` に絞るのは、上の当たり方で、つないだほかのコマンドの ` main `（`gh pr create --base main` など）にまで当たり、正しい push が止まるため。
   `main` のブランチ保護は管理者が素通りでき、手元の認証情報は持ち主のものなので、この規則が最後の止め。
-  - 止まることを `--dry-run` で確かめた形: `git push origin main`・`git push -u origin HEAD:main`・`git push origin <ブランチ> main`・`git push origin --no-verify main`・`git push <URL> main`・`git push origin HEAD:refs/heads/main`
+  - 止まることを `--dry-run` で確かめた形: `git push origin main`・`git push -u origin HEAD:main`・`git push origin <ブランチ> main`・`git push origin --no-verify main`・`git push <URL> main`・`git push origin HEAD:refs/heads/main`・`git push origin main --no-verify`・`git push -u origin HEAD:main --no-verify`
   - 止まらないもの: `origin` 以外の remote や URL に向けて ` main` のあとに語を続けた形（`git push <URL> main --no-verify`）、
     `main` にいるときの引数なしの `git push` と `git push -u origin HEAD`。つないだコマンド全体が ` main` で終わると、まだ誤って当たる。
     だから push と PR の作成は単独のコマンドで叩く（CLAUDE.md）
