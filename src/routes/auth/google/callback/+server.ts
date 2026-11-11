@@ -1,10 +1,10 @@
 import { redirect } from '@sveltejs/kit';
-import { OAuth2RequestError } from 'arctic';
 import {
 	OAUTH_STATE_COOKIE,
 	OAUTH_VERIFIER_COOKIE,
 	REDIRECT_COOKIE,
 	createGoogleClient,
+	oauthErrorCode,
 	parseIdToken
 } from '$lib/server/auth/google';
 import {
@@ -53,7 +53,7 @@ export const GET: RequestHandler = async ({ cookies, url, platform, locals }) =>
 		// 中身はログにだけ出す。認可コードの使い回し・期限切れ（invalid_grant）は戻るボタンや
 		// 二度押しで普通に起きるので warn に留める。それ以外（クライアントの設定の誤り・
 		// Google に届かない）は全員がログインできなくなる類なので error にして通知する。
-		const oauthError = e instanceof OAuth2RequestError ? e.code : null;
+		const oauthError = oauthErrorCode(e);
 		locals.monitor.log({
 			level: oauthError === 'invalid_grant' ? 'warn' : 'error',
 			event: 'auth.google.token_exchange.failed',

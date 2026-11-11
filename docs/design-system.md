@@ -181,7 +181,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `ActualFlow` | ふりかえり画面の実際の展開。既定は畳み、開くと4コーナーとゴール前の盤面を出す。結果には内外が無いので、盤面は「内外を持たない並び」として描く |
 | `RaceLaps` | ふりかえり画面のラップ。既定は畳み、閉じた行に前半3F・後半3F、開くと区間タイムの折れ線 |
 | `Last3fBadge` | 上りのタイム。上位3頭だけ「上り1位」と順位を添えた札にする（色は第7章） |
-| `LoadMore` | 100件ずつ読む一覧の下端。近づくと続きを読み、ボタンでも読める。行を足すのは `utils/paged-list.svelte.ts` の `PagedList`（書き方は [frontend.md 第3章](./frontend.md)） |
+| `LoadMore` | 100件ずつ読む一覧の下端。近づくと続きを読み、ボタンでも読める。行を足すのは `components/paged-list.svelte.ts` の `PagedList`（書き方は [frontend.md 第3章](./frontend.md)） |
 | `NoteMenu` / `AnswerCheck` / `DraftKeeper` / `SaveBar` | メモの `⋯` メニュー・的中の確認・書きかけの保持・未保存のときだけ出る保存ボタン |
 | `AccountMenu` | ヘッダのアバター |
 | `McpUrl` | MCP の接続先の URL とコピーのボタン。ヘルプ（`/help/mcp`）と「AIとの連携」で使う |

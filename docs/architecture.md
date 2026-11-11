@@ -2,7 +2,7 @@
 
 [product.md](./product.md) が「何を作るか」なのに対し、こちらは「どう動き、いくらかかり、なぜその技術か」をまとめたもの。
 
-作成日: 2026-09-20 / 最終更新日: 2026-11-11
+作成日: 2026-09-20 / 最終更新日: 2026-11-12
 
 - **読む場面:** コードを変えるなら毎回 第0章。ほかは触る場所に合わせて章だけ読む
   - サーバー側（ルートの `.server.ts`・サービス層・DB）、依存の向き → 第2章・第3章（3-1〜3-6）
@@ -251,13 +251,19 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
   止めるが `import type` は通す
 - **SQL は db と service（と auth）にしか無い。** `drizzle-orm` をルートやコンポーネントから import しない
 
-パッケージ単位の禁止:
+パッケージ単位の禁止は **`pnpm run lint` で止まる**（`eslint.config.js` の `no-restricted-imports`。`import type` も止める。spec とテスト用の `db/test-d1.ts` は対象外）。
+ファイル間の向きと横の軸（機能）は、まだ言葉の約束で、規則では止まらない（→ [harness.md 第2章](./harness.md)）。
 
 | 対象 | import しないもの |
 | --- | --- |
-| services / auth / db / schemas / utils | `@sveltejs/kit`・`$app/*` |
-| routes / components / schemas / utils | `drizzle-orm` |
-| auth 以外 | `arctic`・`@oslojs/*` |
+| services / db | `@sveltejs/kit`・`$app/*`、`arctic`・`@oslojs/*` |
+| auth | `@sveltejs/kit`・`$app/*` |
+| mcp | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server/auth` |
+| schemas / utils | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
+| サーバー側のルート（`*.server.ts`・`+server.ts`・`hooks.server.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*` |
+| 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
+
+ESLint の flat config は、同じルールを持つブロックが複数当たると後ろのもので丸ごと置き換わる。ブロックを足すときは `files` が重ならないようにする。
 
 **横の軸 — 機能**
 

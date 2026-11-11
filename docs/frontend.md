@@ -72,7 +72,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
   `reset()` するが、Svelte は欄を `.value` で更新するので `defaultValue` は空のまま。リセットで全欄が空になり、
   保存した直後に中身が消えたように見える。「空欄＝そのメモを消す」フォームでは、そこで保存し直すと本当に消える
 - 長い一覧は100件ずつ読む。サービス層は `offset` を受けて `Page<T>`（`items` と `next`）を返し、
-  画面は `PagedList`（`utils/paged-list.svelte.ts`）で1ページ目に続きを足して、下端に `LoadMore` を置く。
+  画面は `PagedList`（`components/paged-list.svelte.ts`）で1ページ目に続きを足して、下端に `LoadMore` を置く。
   続きは `?offset=` を付けた同じ URL の `load` を `preloadData` で読む（専用の API は作らない）。
   戻ったときに読んだ分を残すため、`export const snapshot = list.snapshot` を置く
 - 「保存しました」のような一時的な知らせはトースト（`svelte-sonner` の `toast`）で出す。

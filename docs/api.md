@@ -3,7 +3,7 @@
 このアプリの「外から呼べる口」と「中で呼ぶ口」の一覧と約束。
 外の口は SvelteKit のルート（`load`・form actions・`+server.ts`）、中の口はサービス層の関数。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-11-11
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-12
 - **読む場面:** ルート・action・`+server.ts` を足す・変えるとき。サービス層の関数を足す・変えるとき。
   ステータスコードやリダイレクト先に迷ったとき
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
@@ -236,6 +236,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/insights.ts` | 気づきの言葉の登録・まとめて登録（`addInsightWords`）・削除、以前に残した気づきを読む関数（ふりかえり画面・予想画面・馬の画面。`viewerId` 必須。気づきは新しくは作らない） |
 | `services/jockeys.ts` | 騎手の一覧・騎乗・まとめ、レースの出走馬の騎手のまとめ。まとめの保存 |
 | `services/graded-races.ts` | 重賞の一覧・年ごとのタイムライン、傾向のメモの読み書き（マスタの読みは `viewerId` を取らない） |
+| `services/users.ts` | admin 画面が使うユーザーの一覧（`listUsersForAdmin`）と凍結（`freezeUser`。セッション・連携の削除と共有メモの private 化を1つの batch で）。権限は見ない（呼ぶルートが `ctxAdmin` と「自分自身は不可」を見る） |
 | `services/mcp-usage.ts` | MCP の週ごとの利用量の数え・上限・リセット |
 | `auth/session.ts` | セッションの発行・検証・破棄、ユーザーの作成と検索 |
 | `auth/oauth.ts` | OAuth のクライアント・コード・トークン・連携。`listGrants`・`revokeGrant` は `userId` を WHERE に入れる（他人の連携は `false`） |

@@ -1,4 +1,10 @@
-import { Google, decodeIdToken } from 'arctic';
+import {
+	Google,
+	OAuth2RequestError,
+	decodeIdToken,
+	generateCodeVerifier,
+	generateState
+} from 'arctic';
 import * as v from 'valibot';
 
 /** Google の認可画面へ送るときに要求するスコープ。 */
@@ -28,6 +34,16 @@ export function createGoogleClient(env: GoogleEnv, origin: string): Google {
 		env.GOOGLE_CLIENT_SECRET,
 		`${origin}/auth/google/callback`
 	);
+}
+
+/** 認可画面へ送る前に作る state と PKCE の code_verifier。ルートが arctic を直接 import しないための窓口。 */
+export function createLoginRequest(): { state: string; codeVerifier: string } {
+	return { state: generateState(), codeVerifier: generateCodeVerifier() };
+}
+
+/** トークン交換の失敗が Google の OAuth エラーならそのコード（`invalid_grant` など）、それ以外は null。 */
+export function oauthErrorCode(e: unknown): string | null {
+	return e instanceof OAuth2RequestError ? e.code : null;
 }
 
 /**
