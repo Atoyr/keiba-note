@@ -2,7 +2,7 @@
  * PR 本文の欄が埋まっているかを確かめる（docs/review.md 第6章。検査の一覧は docs/testing.md 第1章）。
  *
  *   PR_BODY="$(gh pr view 41 --json body --jq .body)" pnpm run pr:check
- *   PR_BODY="…" REVIEW_BASE=origin/main pnpm run pr:check   # レビュアーの検査も（CI と同じ）
+ *   PR_BODY="$(cat <本文のファイル>)" REVIEW_BASE=origin/main pnpm run pr:check   # レビュアーの検査も（CI と同じ）
  *
  * CI では `.github/workflows/pr-body.yml` が本文を環境変数で渡して回す。
  * 「画面」と「評価」は、人がキャプチャと評価だけを見て判断するための欄なので、
