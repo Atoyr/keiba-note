@@ -566,6 +566,7 @@ races:
         passing: "3-2"
         last3f: 36.1
         weight: 55
+        blinker: false
         horseWeight: 498
         horseWeightDiff: -6
         odds: 24.4

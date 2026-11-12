@@ -21,13 +21,6 @@ races:
         trainer: 四位洋文
         trainingCenter: 栗東
         weight: 56
-      - name: アマイ
-        sex: 牝
-        age: 6
-        ref: nk-2020100809
-        trainer: 伊藤大士
-        trainingCenter: 美浦
-        weight: 56
       - name: ヴーレヴー
         jockey: 吉田隼人
         sex: 牝
@@ -43,20 +36,6 @@ races:
         ref: nk-2022101192
         trainer: 高柳瑞樹
         trainingCenter: 美浦
-        weight: 56
-      - name: エセルフリーダ
-        sex: 牝
-        age: 5
-        ref: nk-2021105138
-        trainer: 武藤善則
-        trainingCenter: 美浦
-        weight: 56
-      - name: カテリーナ
-        sex: 牝
-        age: 5
-        ref: nk-2021101485
-        trainer: 田中克典
-        trainingCenter: 栗東
         weight: 56
       - name: カムニャック
         jockey: 川田将雅
@@ -89,14 +68,6 @@ races:
         ref: nk-2021106823
         trainer: 菊沢隆徳
         trainingCenter: 美浦
-        weight: 56
-      - name: サフィラ
-        jockey: 北村友一
-        sex: 牝
-        age: 5
-        ref: nk-2021105541
-        trainer: 池添学
-        trainingCenter: 栗東
         weight: 56
       - name: シャドウメテオ
         jockey: 三浦皇成
@@ -154,14 +125,6 @@ races:
         trainer: 上原佑紀
         trainingCenter: 美浦
         weight: 56
-      - name: マリアイリダータ
-        jockey: 坂井瑠星
-        sex: 牝
-        age: 4
-        ref: nk-2022105064
-        trainer: 田中博康
-        trainingCenter: 美浦
-        weight: 56
       - name: ラヴァンダ
         jockey: 岩田望来
         sex: 牝
@@ -194,3 +157,14 @@ races:
         trainer: 辻野泰之
         trainingCenter: 栗東
         weight: 56
+    withdrawn:
+      - name: アマイ
+        ref: nk-2020100809
+      - name: エセルフリーダ
+        ref: nk-2021105138
+      - name: カテリーナ
+        ref: nk-2021101485
+      - name: サフィラ
+        ref: nk-2021105541
+      - name: マリアイリダータ
+        ref: nk-2022105064
