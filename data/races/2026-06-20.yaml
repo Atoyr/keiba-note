@@ -319,6 +319,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 雨
+    fieldSize: 9
+    winner: リュウトウコヤク
+    runnerUp: ブラックミューズ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -334,6 +337,36 @@ races:
         horseWeight: 450
         horseWeightDiff: 0
         odds: 3.5
+      - horseNumber: 2
+        bracket: 2
+        name: ルースソラール
+        jockey: 吉村誠之助
+        ref: nk-2024107063
+        finish: 3
+        popularity: 9
+        time: "1:22.6"
+        timeDiff: 0.2
+        passing: "7-6"
+        last3f: 35.7
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: 0
+        odds: 32.8
+      - horseNumber: 9
+        bracket: 8
+        name: リュウトウコヤク
+        jockey: 田山旺佑
+        ref: nk-2024107248
+        finish: 1
+        popularity: 7
+        time: "1:22.4"
+        timeDiff: -0.2
+        passing: "2-2"
+        last3f: 36.6
+        weight: 53
+        horseWeight: 456
+        horseWeightDiff: 0
+        odds: 17.9
   - course: 東京
     raceNumber: 4
     name: 2歳新馬

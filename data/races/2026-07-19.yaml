@@ -668,6 +668,8 @@ races:
     direction: 右
     trackCondition: 重
     weather: 曇
+    fieldSize: 14
+    winner: テンカタイヘイ
     entries:
       - horseNumber: 4
         bracket: 3
@@ -683,6 +685,21 @@ races:
         horseWeight: 432
         horseWeightDiff: 0
         odds: 19.4
+      - horseNumber: 14
+        bracket: 8
+        name: ヒアカムズザサン
+        jockey: 武豊
+        ref: nk-2024106020
+        finish: 12
+        popularity: 7
+        time: "1:52.6"
+        timeDiff: 1.5
+        passing: "13-13-11-10"
+        last3f: 37.9
+        weight: 55
+        horseWeight: 450
+        horseWeightDiff: 0
+        odds: 16.9
   - course: 函館
     raceNumber: 9
     name: かもめ島特別

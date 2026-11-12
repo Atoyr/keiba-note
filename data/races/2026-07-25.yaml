@@ -210,3 +210,59 @@ races:
         horseWeight: 444
         horseWeightDiff: -6
         odds: 24.7
+  - course: 新潟
+    raceNumber: 1
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 10
+    winner: レゾルーティオ
+    entries:
+      - horseNumber: 4
+        bracket: 4
+        name: コルサロ
+        jockey: 杉原誠人
+        ref: nk-2024104709
+        finish: 4
+        popularity: 7
+        time: "1:48.4"
+        timeDiff: 0.5
+        passing: "10-10"
+        last3f: 32.8
+        weight: 55
+        horseWeight: 440
+        horseWeightDiff: 2
+        odds: 28.5
+  - course: 中京
+    raceNumber: 2
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: ブレイクアウェイ
+    runnerUp: ラインエレガント
+    entries:
+      - horseNumber: 11
+        bracket: 7
+        name: ブレイクアウェイ
+        jockey: 岩田望来
+        ref: nk-2024105872
+        finish: 1
+        popularity: 1
+        time: "1:22.5"
+        timeDiff: -0.1
+        passing: "3-3"
+        last3f: 34
+        weight: 55
+        blinker: false
+        horseWeight: 452
+        horseWeightDiff: 0
+        odds: 1.9

@@ -86,3 +86,31 @@ races:
         horseWeight: 500
         horseWeightDiff: 0
         odds: 3.5
+  - course: 中山
+    raceNumber: 9
+    name: 芙蓉S
+    grade: OP
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 重
+    weather: 曇
+    fieldSize: 8
+    winner: スタースポット
+    entries:
+      - horseNumber: 6
+        bracket: 6
+        name: レオンティウス
+        jockey: 丸山元気
+        ref: nk-2024104668
+        finish: 5
+        popularity: 3
+        time: "2:06.2"
+        timeDiff: 1
+        passing: "2-2-2-3"
+        last3f: 38.2
+        weight: 55
+        blinker: false
+        horseWeight: 480
+        horseWeightDiff: 2
+        odds: 5.8

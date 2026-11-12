@@ -797,6 +797,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 9
+    winner: トップチェッカー
+    runnerUp: マーゴットマシェリ
     entries:
       - horseNumber: 5
         bracket: 5
@@ -806,6 +809,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:37.1"
+        timeDiff: -0.2
         passing: "5-3"
         last3f: 34.3
         weight: 55

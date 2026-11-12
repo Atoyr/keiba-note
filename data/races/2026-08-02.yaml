@@ -736,3 +736,32 @@ races:
         horseWeight: 416
         horseWeightDiff: 0
         odds: 39.9
+  - course: 中京
+    raceNumber: 3
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 10
+    winner: スーサンコルティナ
+    runnerUp: トゥーレジット
+    entries:
+      - horseNumber: 8
+        bracket: 7
+        name: スーサンコルティナ
+        jockey: 田口貫太
+        ref: nk-2024102040
+        finish: 1
+        popularity: 9
+        time: "1:34.2"
+        timeDiff: 0
+        passing: "4-4-5"
+        last3f: 33.8
+        weight: 55
+        blinker: false
+        horseWeight: 450
+        horseWeightDiff: 0
+        odds: 63.5

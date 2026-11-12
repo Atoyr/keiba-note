@@ -311,6 +311,22 @@ races:
     winner: ロンドンガーズ
     runnerUp: アンムート
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: リュウトウコヤク
+        jockey: 田山旺佑
+        ref: nk-2024107248
+        finish: 5
+        popularity: 5
+        time: "1:21.3"
+        timeDiff: 0.8
+        passing: "7-7"
+        last3f: 33.5
+        weight: 56
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: 16
+        odds: 12.1
       - horseNumber: 7
         bracket: 7
         name: ロンドンガーズ

@@ -711,7 +711,23 @@ races:
     weather: 曇
     fieldSize: 10
     winner: ルースソラール
+    runnerUp: ニクスルーナ
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ルースソラール
+        jockey: 松山弘平
+        ref: nk-2024107063
+        finish: 1
+        popularity: 1
+        time: "1:21.3"
+        timeDiff: -0.1
+        passing: "10-10"
+        last3f: 33.8
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 12
+        odds: 2.4
       - horseNumber: 3
         bracket: 3
         name: ニクスルーナ
