@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1400
+    direction: 左
+    weather: 曇
     fieldSize: 16
     winner: テイエムサウスダン
     runnerUp: ヘリオス
@@ -339,6 +341,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 左
+    trackCondition: 良
+    weather: 曇
     fieldSize: 18
     winner: メイケイエール
     runnerUp: シャインガーネット

@@ -46,6 +46,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
     fieldSize: 11
     winner: トータルクラリティ
     runnerUp: コートアリシアン

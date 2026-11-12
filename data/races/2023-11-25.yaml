@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: シンエンペラー
     runnerUp: プレリュードシチー

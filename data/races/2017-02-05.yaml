@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 小雨
     fieldSize: 10
     winner: ブラックスピネル
     runnerUp: プロディガルサン
@@ -220,6 +223,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 重
+    weather: 曇
     fieldSize: 8
     winner: アメリカズカップ
     runnerUp: サトノアーサー

@@ -32,6 +32,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2400
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
     fieldSize: 14
     winner: ヴェラアズール
     runnerUp: ボッケリーニ

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
     fieldSize: 18
     winner: マルターズディオサ
     runnerUp: パラスアテナ

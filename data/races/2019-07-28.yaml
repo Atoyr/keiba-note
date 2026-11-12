@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1000
+    direction: 直線
+    trackCondition: 良
+    weather: 曇
     fieldSize: 18
     winner: ライオンボス
     runnerUp: カッパツハッチ
@@ -380,6 +383,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: ミッキーチャーム
     runnerUp: スカーレットカラー

@@ -56,6 +56,9 @@ races:
     grade: G2
     surface: 芝
     distance: 3600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: アイアンバローズ
     runnerUp: テーオーロイヤル

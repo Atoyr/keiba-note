@@ -32,6 +32,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1400
+    direction: 左
+    weather: 曇
     fieldSize: 15
     winner: ドンフランキー
     runnerUp: リメイク

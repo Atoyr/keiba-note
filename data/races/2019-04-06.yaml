@@ -8,6 +8,9 @@ races:
     grade: G2
     surface: 芝
     distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: ワイドファラオ
     runnerUp: メイショウショウブ
@@ -310,6 +313,9 @@ races:
     grade: G2
     surface: 芝
     distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: ミッキーチャーム
     runnerUp: アマルフィコースト

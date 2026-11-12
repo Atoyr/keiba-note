@@ -30,6 +30,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 12
     winner: ミアネーロ
     runnerUp: ホーエリート
@@ -282,6 +285,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 17
     winner: ダノンマッキンリー
     runnerUp: オーキッドロマンス

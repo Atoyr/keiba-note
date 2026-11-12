@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1800
+    direction: 右
+    weather: 小雨
     fieldSize: 16
     winner: インカンテーション
     runnerUp: ディアデルレイ
@@ -340,6 +342,9 @@ races:
     grade: G1
     surface: 芝
     distance: 1200
+    direction: 左
+    trackCondition: 稍重
+    weather: 小雨
     fieldSize: 18
     winner: セイウンコウセイ
     runnerUp: レッツゴードンキ

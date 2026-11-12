@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 3000
+    direction: 右
+    trackCondition: 不良
+    weather: 雨
     fieldSize: 18
     winner: キセキ
     runnerUp: クリンチャー

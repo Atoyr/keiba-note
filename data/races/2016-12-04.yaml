@@ -8,6 +8,8 @@ races:
     grade: G1
     surface: ダート
     distance: 1800
+    direction: 左
+    weather: 曇
     fieldSize: 15
     winner: サウンドトゥルー
     runnerUp: アウォーディー

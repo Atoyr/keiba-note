@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 16
     winner: ホウオウイクセル
     runnerUp: エンスージアズム
@@ -340,6 +343,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
     fieldSize: 15
     winner: ルークズネスト
     runnerUp: グレナディアガーズ

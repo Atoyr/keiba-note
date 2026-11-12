@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1000
+    direction: 直線
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: ラインミーティア
     runnerUp: フィドゥーシア
@@ -340,6 +343,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 13
     winner: アエロリット
     runnerUp: トーセンビクトリー

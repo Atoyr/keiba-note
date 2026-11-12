@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1600
+    direction: 左
+    weather: 晴
     fieldSize: 13
     winner: ワイドファラオ
     runnerUp: デュープロセス
@@ -296,6 +298,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 稍重
+    weather: 小雨
     fieldSize: 7
     winner: カイザーメランジェ
     runnerUp: アスターペガサス

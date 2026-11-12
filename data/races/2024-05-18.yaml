@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1900
+    direction: 右
+    weather: 晴
     fieldSize: 16
     winner: ミトノオー
     runnerUp: ハピ

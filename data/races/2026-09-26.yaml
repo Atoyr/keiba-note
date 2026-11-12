@@ -120,6 +120,8 @@ races:
     grade: G3
     surface: ダート
     distance: 2000
+    direction: 右
+    weather: 雨
     fieldSize: 16
     winner: ヴァルツァーシャル
     runnerUp: ルシュヴァルドール

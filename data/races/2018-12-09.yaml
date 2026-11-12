@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1200
+    direction: 右
+    weather: 曇
     fieldSize: 16
     winner: コパノキッキング
     runnerUp: サイタスリーレッド
@@ -340,6 +342,9 @@ races:
     grade: G1
     surface: 芝
     distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 18
     winner: ダノンファンタジー
     runnerUp: クロノジェネシス

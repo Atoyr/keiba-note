@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1000
+    direction: 直線
+    trackCondition: 良
+    weather: 晴
     fieldSize: 17
     winner: ダイメイプリンセス
     runnerUp: ラブカンプー
@@ -360,6 +363,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 11
     winner: ディアドラ
     runnerUp: フロンテアクイーン

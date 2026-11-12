@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 13
     winner: フェーングロッテン
     runnerUp: ショウナンマグマ
@@ -278,6 +281,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 17
     winner: テイエムスパーダ
     runnerUp: タイセイビジョン

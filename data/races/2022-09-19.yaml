@@ -8,6 +8,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2200
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
     fieldSize: 13
     winner: ガイアフォース
     runnerUp: アスクビクターモア

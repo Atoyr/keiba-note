@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1400
+    direction: 左
+    weather: 晴
     fieldSize: 13
     winner: ノンコノユメ
     runnerUp: サンライズノヴァ
@@ -288,6 +290,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 18
     winner: ファインニードル
     runnerUp: セイウンコウセイ

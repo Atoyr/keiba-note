@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 18
     winner: ワグネリアン
     runnerUp: エポカドーロ
@@ -380,6 +383,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2500
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: ウインテンダネス
     runnerUp: ノーブルマーズ

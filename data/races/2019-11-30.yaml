@@ -8,6 +8,9 @@ races:
     grade: G2
     surface: 芝
     distance: 3600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 13
     winner: モンドインテロ
     runnerUp: アルバート
@@ -280,6 +283,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 12
     winner: ロードマイウェイ
     runnerUp: トリオンフ

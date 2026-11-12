@@ -70,6 +70,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 11
     winner: シンリョクカ
     runnerUp: セレシオン
@@ -312,6 +315,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 左
+    trackCondition: 重
+    weather: 曇
     fieldSize: 13
     winner: エイシンワンド
     runnerUp: クラスペディア

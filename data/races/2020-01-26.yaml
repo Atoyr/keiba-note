@@ -8,6 +8,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2200
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
     fieldSize: 12
     winner: ブラストワンピース
     runnerUp: ステイフーリッシュ
@@ -254,6 +257,8 @@ races:
     grade: G2
     surface: ダート
     distance: 1800
+    direction: 右
+    weather: 晴
     fieldSize: 16
     winner: エアアルマス
     runnerUp: ヴェンジェンス

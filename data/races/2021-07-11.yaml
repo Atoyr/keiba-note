@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
     fieldSize: 16
     winner: トーラスジェミニ
     runnerUp: ロザムール
@@ -340,6 +343,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1700
+    direction: 右
+    weather: 雨
     fieldSize: 16
     winner: メイショウカズサ
     runnerUp: トップウイナー

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 18
     winner: ジャスパークローネ
     runnerUp: ママコチャ
@@ -380,6 +383,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
     fieldSize: 15
     winner: プログノーシス
     runnerUp: トップナイフ

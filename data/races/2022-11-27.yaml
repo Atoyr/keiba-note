@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 18
     winner: ヴェラアズール
     runnerUp: シャフリヤール
@@ -376,6 +379,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: トウシンマカオ
     runnerUp: キルロード

@@ -12,6 +12,7 @@ import {
 	parseSexAge,
 	parseShutuba,
 	parseShutubaPast,
+	parseRaceMeta,
 	parseTrackCondition,
 	raceIdFromRef,
 	setRequestInterval,
@@ -83,6 +84,24 @@ describe('文字列の下ごしらえ', () => {
 		expect(directionOf('中山', 'ダート', 1800)).toBe('右');
 		expect(directionOf('新潟', '芝', 1000)).toBe('直線');
 		expect(directionOf('東京', '障害', 3000)).toBeUndefined();
+	});
+});
+
+describe('parseRaceMeta', () => {
+	it('回り・天候・馬場が、括弧や文字でなく書かれた版も読む', () => {
+		// 天候はアイコンの aria-label、馬場は Item03、回りは括弧なし。
+		const html = `<title>日経新春杯(G2) 結果・払戻 | 2017年1月17日 京都11R レース情報(JRA) - netkeiba</title>
+${raceData(
+	'15:45発走 /<!-- <span class="Turf"> --><span> 芝2400m</span> 右 外&nbsp;A / <span class="Icon_Weather Weather01" role="img" aria-label="晴" title="晴"></span><span class="Item03"> 稍</span>',
+	'1回 京都 5日目 サラ系４歳以上 オープン'
+)}`;
+		expect(parseRaceMeta(html)).toMatchObject({
+			surface: '芝',
+			distance: 2400,
+			direction: '右',
+			weather: '晴',
+			trackCondition: '稍重'
+		});
 	});
 });
 

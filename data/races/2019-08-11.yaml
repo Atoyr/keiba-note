@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 17
     winner: ミッキーグローリー
     runnerUp: ミエノサクシード
@@ -368,6 +371,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1700
+    direction: 右
+    weather: 晴
     fieldSize: 14
     winner: モズアトラクション
     runnerUp: ハイランドピーク

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 左
+    trackCondition: 稍重
+    weather: 雨
     fieldSize: 13
     winner: レイエンダ
     runnerUp: サラキア
@@ -288,6 +291,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 16
     winner: サラス
     runnerUp: レッドランディーニ

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
     fieldSize: 15
     winner: イルーシヴパンサー
     runnerUp: ファインルージュ
@@ -320,6 +323,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 左
+    trackCondition: 稍重
+    weather: 晴
     fieldSize: 11
     winner: マテンロウレオ
     runnerUp: ダンテスヴュー

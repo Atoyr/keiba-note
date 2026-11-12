@@ -32,6 +32,9 @@ races:
     grade: G2
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 重
+    weather: 晴
     fieldSize: 16
     winner: ベラジオオペラ
     runnerUp: ホウオウビスケッツ
@@ -364,6 +367,9 @@ races:
     grade: G2
     surface: 芝
     distance: 3000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: ジャスティンパレス
     runnerUp: ボルドグフーシュ

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 雨
     fieldSize: 16
     winner: ライジングリーズン
     runnerUp: アエロリット
@@ -340,6 +343,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 雨
     fieldSize: 15
     winner: キョウヘイ
     runnerUp: タイセイスターリー

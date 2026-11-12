@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: レガレイラ
     runnerUp: シンエンペラー
@@ -23,7 +26,6 @@ races:
         trainer: 堀宣行
         trainingCenter: 美浦
         weight: 56
-        blinker: false
       - horseNumber: 2
         bracket: 1
         name: ヴェロキラプトル
@@ -41,7 +43,6 @@ races:
         passing: "1-1-1-1"
         last3f: 37.2
         weight: 56
-        blinker: false
         horseWeight: 468
         horseWeightDiff: 14
         odds: 14.3
@@ -62,7 +63,6 @@ races:
         passing: "2-2-2-2"
         last3f: 38
         weight: 55
-        blinker: false
         horseWeight: 488
         horseWeightDiff: 0
         odds: 129.2
@@ -83,7 +83,6 @@ races:
         passing: "12-12-13-12"
         last3f: 35.4
         weight: 56
-        blinker: false
         horseWeight: 460
         horseWeightDiff: 2
         odds: 69.2
@@ -104,7 +103,6 @@ races:
         passing: "3-4-5-5"
         last3f: 35.9
         weight: 56
-        blinker: false
         horseWeight: 512
         horseWeightDiff: -2
         odds: 128.7
@@ -125,7 +123,6 @@ races:
         passing: "3-4-3-2"
         last3f: 35.7
         weight: 56
-        blinker: false
         horseWeight: 482
         horseWeightDiff: 2
         odds: 3.1
@@ -146,7 +143,6 @@ races:
         passing: "15-14-15-15"
         last3f: 36.4
         weight: 56
-        blinker: false
         horseWeight: 478
         horseWeightDiff: -2
         odds: 236.6
@@ -167,7 +163,6 @@ races:
         passing: "6-7-5-5"
         last3f: 36.3
         weight: 56
-        blinker: false
         horseWeight: 486
         horseWeightDiff: 6
         odds: 92.5
@@ -183,7 +178,6 @@ races:
         popularity: 8
         passing: "6-7-5-10"
         weight: 56
-        blinker: false
         horseWeight: 470
         horseWeightDiff: 8
         odds: 27.6
@@ -204,7 +198,6 @@ races:
         passing: "9-10-10-8"
         last3f: 35.8
         weight: 56
-        blinker: false
         horseWeight: 480
         horseWeightDiff: 14
         odds: 29.7
@@ -225,7 +218,6 @@ races:
         passing: "3-2-3-2"
         last3f: 36.5
         weight: 56
-        blinker: false
         horseWeight: 528
         horseWeightDiff: 8
         odds: 9
@@ -246,7 +238,6 @@ races:
         passing: "11-10-8-8"
         last3f: 36.2
         weight: 56
-        blinker: false
         horseWeight: 516
         horseWeightDiff: -6
         odds: 37.5
@@ -266,7 +257,6 @@ races:
         passing: "14-14-11-10"
         last3f: 35
         weight: 55
-        blinker: false
         horseWeight: 454
         horseWeightDiff: -2
         odds: 3.1
@@ -287,7 +277,6 @@ races:
         passing: "16-16-15-15"
         last3f: 36.3
         weight: 56
-        blinker: false
         horseWeight: 470
         horseWeightDiff: 4
         odds: 322.7
@@ -308,7 +297,6 @@ races:
         passing: "6-6-8-5"
         last3f: 37.1
         weight: 56
-        blinker: false
         horseWeight: 472
         horseWeightDiff: -2
         odds: 14.5
@@ -329,7 +317,6 @@ races:
         passing: "9-9-11-12"
         last3f: 37
         weight: 56
-        blinker: false
         horseWeight: 476
         horseWeightDiff: 2
         odds: 10.2
@@ -341,7 +328,6 @@ races:
         trainer: 石坂公一
         trainingCenter: 栗東
         weight: 56
-        blinker: false
       - horseNumber: 18
         bracket: 8
         name: ミスタージーティー
@@ -359,7 +345,6 @@ races:
         passing: "12-13-13-12"
         last3f: 35.4
         weight: 56
-        blinker: false
         horseWeight: 474
         horseWeightDiff: 2
         odds: 15.1

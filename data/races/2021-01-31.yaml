@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1400
+    direction: 左
+    weather: 晴
     fieldSize: 16
     winner: レッドルゼル
     runnerUp: ワンダーリーデル
@@ -340,6 +342,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 18
     winner: シヴァージ
     runnerUp: ライトオンキュー

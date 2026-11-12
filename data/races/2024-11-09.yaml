@@ -130,6 +130,9 @@ races:
     grade: G2
     surface: 芝
     distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 7
     winner: ランフォーヴァウ
     runnerUp: ドラゴンブースト

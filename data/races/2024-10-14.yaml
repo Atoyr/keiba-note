@@ -32,6 +32,9 @@ races:
     grade: G2
     surface: 芝
     distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 15
     winner: ブレイディヴェーグ
     runnerUp: シンティレーション

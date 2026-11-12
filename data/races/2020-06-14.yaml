@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 左
+    trackCondition: 不良
+    weather: 曇
     fieldSize: 18
     winner: ダイワキャグニー
     runnerUp: ソーグリッタリング
@@ -380,6 +383,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
     fieldSize: 16
     winner: サマーセント
     runnerUp: センテリュオ

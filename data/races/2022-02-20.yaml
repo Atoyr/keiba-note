@@ -32,6 +32,8 @@ races:
     grade: G1
     surface: ダート
     distance: 1600
+    direction: 左
+    weather: 小雨
     fieldSize: 16
     winner: カフェファラオ
     runnerUp: テイエムサウスダン
@@ -364,6 +366,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
     fieldSize: 16
     winner: アリーヴォ
     runnerUp: ランブリングアレー

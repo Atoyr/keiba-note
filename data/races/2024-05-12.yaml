@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 曇
     fieldSize: 15
     winner: テンハッピーローズ
     runnerUp: フィアスプライド

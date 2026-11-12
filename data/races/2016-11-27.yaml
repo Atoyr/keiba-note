@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 2400
+    direction: 左
+    trackCondition: 良
+    weather: 小雨
     fieldSize: 17
     winner: キタサンブラック
     runnerUp: サウンズオブアース
@@ -357,6 +360,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 重
+    weather: 雨
     fieldSize: 18
     winner: ネロ
     runnerUp: エイシンスパルタン

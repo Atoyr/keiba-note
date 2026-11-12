@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1600
+    direction: 左
+    weather: 曇
     fieldSize: 16
     winner: カフェファラオ
     runnerUp: デュードヴァン
@@ -339,6 +341,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: ダイアトニック
     runnerUp: ダイメイフジ

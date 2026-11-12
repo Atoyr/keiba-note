@@ -8,6 +8,8 @@ races:
     grade: G1
     surface: ダート
     distance: 1800
+    direction: 左
+    weather: 晴
     fieldSize: 15
     winner: ゴールドドリーム
     runnerUp: テイエムジンソク

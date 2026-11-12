@@ -70,6 +70,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1400
+    direction: 右
+    trackCondition: 不良
+    weather: 雨
     fieldSize: 15
     winner: ダンツエラン
     runnerUp: モズナナスター

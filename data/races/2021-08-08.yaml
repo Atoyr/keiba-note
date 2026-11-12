@@ -8,6 +8,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1800
+    direction: 左
+    weather: 曇
     fieldSize: 15
     winner: メイショウムラクモ
     runnerUp: スウィープザボード
@@ -320,6 +322,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1700
+    direction: 右
+    weather: 曇
     fieldSize: 14
     winner: スワーヴアラミス
     runnerUp: オメガレインボー

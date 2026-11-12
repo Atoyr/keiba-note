@@ -70,6 +70,9 @@ races:
     grade: G2
     surface: 芝
     distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: エトヴプレ
     runnerUp: コラソンビート

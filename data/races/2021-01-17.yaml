@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 12
     winner: グラティアス
     runnerUp: タイムトゥヘヴン
@@ -260,6 +263,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: ショウリュウイクゾ
     runnerUp: ミスマンマミーア

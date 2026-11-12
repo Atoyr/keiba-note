@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1000
+    direction: 直線
+    trackCondition: 良
+    weather: 曇
     fieldSize: 18
     winner: ジョーカナチャン
     runnerUp: ライオンボス

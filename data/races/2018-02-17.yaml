@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 3400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: フェイムゲーム
     runnerUp: リッジマン
@@ -300,6 +303,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 12
     winner: ミスパンテール
     runnerUp: デアレガーロ

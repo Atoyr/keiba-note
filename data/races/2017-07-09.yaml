@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 12
     winner: ゼーヴィント
     runnerUp: マイネルフロスト
@@ -260,6 +263,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1400
+    direction: 左
+    weather: 曇
     fieldSize: 15
     winner: キングズガード
     runnerUp: カフジテイク

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 12
     winner: メドウラーク
     runnerUp: マイネルサージュ
@@ -255,6 +258,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1400
+    direction: 左
+    weather: 晴
     fieldSize: 14
     winner: マテラスカイ
     runnerUp: インカンテーション

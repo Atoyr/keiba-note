@@ -32,6 +32,8 @@ races:
     grade: G3
     surface: ダート
     distance: 1800
+    direction: 右
+    weather: 晴
     fieldSize: 15
     winner: プロミストウォリア
     runnerUp: ヴァンヤール

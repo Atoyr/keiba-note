@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 12
     winner: セダブリランテス
     runnerUp: ウインガナドル
@@ -260,6 +263,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1200
+    direction: 左
+    trackCondition: 良
+    weather: 雨
     fieldSize: 18
     winner: シャイニングレイ
     runnerUp: セカンドテーブル

@@ -8,6 +8,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 13
     winner: ジェラルディーナ
     runnerUp: ロバートソンキー
@@ -280,6 +283,9 @@ races:
     grade: G2
     surface: 芝
     distance: 2200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 17
     winner: ジャスティンパレス
     runnerUp: ヤマニンゼスト

@@ -8,6 +8,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 14
     winner: アブレイズ
     runnerUp: レッドルレーヴ
@@ -32,7 +35,6 @@ races:
         passing: "8-9-9-14"
         last3f: 39.8
         weight: 54
-        blinker: false
         horseWeight: 446
         horseWeightDiff: -6
         odds: 216.1
@@ -53,7 +55,6 @@ races:
         passing: "5-3-4-12"
         last3f: 41.8
         weight: 54
-        blinker: false
         horseWeight: 430
         horseWeightDiff: 2
         odds: 17.8
@@ -74,7 +75,6 @@ races:
         passing: "10-10-12-11"
         last3f: 36.1
         weight: 54
-        blinker: false
         horseWeight: 458
         horseWeightDiff: -4
         odds: 39.6
@@ -95,7 +95,6 @@ races:
         passing: "11-10-9-6"
         last3f: 37.1
         weight: 54
-        blinker: false
         horseWeight: 450
         horseWeightDiff: 0
         odds: 79.5
@@ -116,7 +115,6 @@ races:
         passing: "1-1-1-1"
         last3f: 38.1
         weight: 54
-        blinker: false
         horseWeight: 436
         horseWeightDiff: -4
         odds: 13.2
@@ -137,7 +135,6 @@ races:
         passing: "14-13-14-12"
         last3f: 36.2
         weight: 54
-        blinker: false
         horseWeight: 400
         horseWeightDiff: -2
         odds: 48.7
@@ -158,7 +155,6 @@ races:
         passing: "6-5-4-4"
         last3f: 38.2
         weight: 54
-        blinker: false
         horseWeight: 450
         horseWeightDiff: -6
         odds: 8.9
@@ -179,7 +175,6 @@ races:
         passing: "13-13-12-6"
         last3f: 36.6
         weight: 54
-        blinker: false
         horseWeight: 432
         horseWeightDiff: 2
         odds: 20.5
@@ -200,7 +195,6 @@ races:
         passing: "12-12-11-10"
         last3f: 36.4
         weight: 54
-        blinker: false
         horseWeight: 422
         horseWeightDiff: 0
         odds: 8.1
@@ -221,7 +215,6 @@ races:
         passing: "6-5-7-6"
         last3f: 37.2
         weight: 54
-        blinker: false
         horseWeight: 488
         horseWeightDiff: -4
         odds: 9
@@ -242,7 +235,6 @@ races:
         passing: "3-3-3-2"
         last3f: 37.2
         weight: 54
-        blinker: false
         horseWeight: 482
         horseWeightDiff: 2
         odds: 3.9
@@ -263,7 +255,6 @@ races:
         passing: "3-5-4-4"
         last3f: 36.9
         weight: 54
-        blinker: false
         horseWeight: 474
         horseWeightDiff: -4
         odds: 3.5
@@ -283,7 +274,6 @@ races:
         passing: "2-2-2-2"
         last3f: 36.7
         weight: 54
-        blinker: false
         horseWeight: 480
         horseWeightDiff: 4
         odds: 79.3
@@ -304,7 +294,6 @@ races:
         passing: "8-8-8-6"
         last3f: 36.3
         weight: 54
-        blinker: false
         horseWeight: 446
         horseWeightDiff: 4
         odds: 8.6

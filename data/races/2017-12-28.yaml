@@ -8,6 +8,9 @@ races:
     grade: G1
     surface: 芝
     distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
     fieldSize: 17
     winner: タイムフライヤー
     runnerUp: ジャンダルム
@@ -32,7 +35,6 @@ races:
         passing: "8-7-11-12"
         last3f: 37.6
         weight: 54
-        blinker: false
         horseWeight: 442
         horseWeightDiff: -4
         odds: 175.9
@@ -53,7 +55,6 @@ races:
         passing: "4-4-7-9"
         last3f: 39.5
         weight: 55
-        blinker: false
         horseWeight: 492
         horseWeightDiff: 12
         odds: 168.3
@@ -74,7 +75,6 @@ races:
         passing: "4-4-3-2"
         last3f: 38.1
         weight: 55
-        blinker: false
         horseWeight: 476
         horseWeightDiff: 2
         odds: 99.5
@@ -95,7 +95,6 @@ races:
         passing: "8-8-4-4"
         last3f: 38.1
         weight: 55
-        blinker: false
         horseWeight: 452
         horseWeightDiff: 0
         odds: 161.1
@@ -111,7 +110,6 @@ races:
         popularity: 6
         passing: "1-1-4-17"
         weight: 55
-        blinker: false
         horseWeight: 460
         horseWeightDiff: -4
         odds: 12.7
@@ -132,7 +130,6 @@ races:
         passing: "11-10-14-15"
         last3f: 36.9
         weight: 55
-        blinker: false
         horseWeight: 448
         horseWeightDiff: -2
         odds: 89.6
@@ -152,7 +149,6 @@ races:
         passing: "15-16-16-9"
         last3f: 35.5
         weight: 55
-        blinker: false
         horseWeight: 456
         horseWeightDiff: -4
         odds: 4.2
@@ -173,7 +169,6 @@ races:
         passing: "6-6-4-4"
         last3f: 38.4
         weight: 55
-        blinker: false
         horseWeight: 478
         horseWeightDiff: -2
         odds: 27.9
@@ -194,7 +189,6 @@ races:
         passing: "2-2-2-1"
         last3f: 37.4
         weight: 55
-        blinker: false
         horseWeight: 490
         horseWeightDiff: 8
         odds: 7.1
@@ -215,7 +209,6 @@ races:
         passing: "6-7-4-3"
         last3f: 37.1
         weight: 55
-        blinker: false
         horseWeight: 490
         horseWeightDiff: 2
         odds: 5.3
@@ -236,7 +229,6 @@ races:
         passing: "11-10-10-9"
         last3f: 39
         weight: 55
-        blinker: false
         horseWeight: 484
         horseWeightDiff: 6
         odds: 5.3
@@ -257,7 +249,6 @@ races:
         passing: "2-2-1-2"
         last3f: 40.3
         weight: 55
-        blinker: false
         horseWeight: 484
         horseWeightDiff: 2
         odds: 21.9
@@ -278,7 +269,6 @@ races:
         passing: "13-13-11-8"
         last3f: 35.9
         weight: 55
-        blinker: false
         horseWeight: 450
         horseWeightDiff: 0
         odds: 22.9
@@ -299,7 +289,6 @@ races:
         passing: "17-17-17-16"
         last3f: 37.6
         weight: 55
-        blinker: true
         horseWeight: 462
         horseWeightDiff: -8
         odds: 218.8
@@ -320,7 +309,6 @@ races:
         passing: "10-10-9-4"
         last3f: 36.2
         weight: 55
-        blinker: false
         horseWeight: 494
         horseWeightDiff: 10
         odds: 6.2
@@ -341,7 +329,6 @@ races:
         passing: "13-13-11-12"
         last3f: 37.6
         weight: 55
-        blinker: false
         horseWeight: 452
         horseWeightDiff: -6
         odds: 226.2
@@ -362,7 +349,6 @@ races:
         passing: "16-15-14-12"
         last3f: 36.2
         weight: 54
-        blinker: false
         horseWeight: 456
         horseWeightDiff: -4
         odds: 40.9

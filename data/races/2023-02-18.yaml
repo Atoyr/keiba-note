@@ -35,6 +35,9 @@ races:
     grade: G3
     surface: 芝
     distance: 3400
+    direction: 左
+    trackCondition: 良
+    weather: 晴
     fieldSize: 16
     winner: ミクソロジー
     runnerUp: ヒュミドール
@@ -365,6 +368,9 @@ races:
     grade: G3
     surface: 芝
     distance: 1400
+    direction: 右
+    trackCondition: 良
+    weather: 曇
     fieldSize: 18
     winner: ララクリスティーヌ
     runnerUp: ウインシャーロット
