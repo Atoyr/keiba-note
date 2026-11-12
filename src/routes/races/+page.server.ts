@@ -17,8 +17,8 @@ import type { PageServerLoad } from './$types';
  * この load を `?offset=` 付きで呼び直して行を足す。`offset` は絞り込みのキーではないので、
  * `?offset=100` だけなら既定の絞り込みのまま2ページ目になる。
  */
-export const load: PageServerLoad = async ({ locals, platform, url }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const { db, user } = ctx(locals);
 	// today はレースの行き先を決めるのにも要る（結果が出るまでは予想画面 → `isSettled`）。
 	const today = todayJst();
 	const filter = parseRaceFilter(url.searchParams, today);

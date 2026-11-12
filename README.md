@@ -27,7 +27,7 @@ Cloudflare Workers + D1 の上で動く SvelteKit アプリケーション。URL
 
 | レイヤ         | 採用                                         |
 | -------------- | -------------------------------------------- |
-| フレームワーク | SvelteKit 2 / Svelte 5 (runes)               |
+| フレームワーク | SvelteKit 3 / Svelte 5 (runes)               |
 | アダプタ       | `@sveltejs/adapter-cloudflare`               |
 | 実行環境       | Cloudflare Workers                           |
 | DB             | Cloudflare D1 (SQLite) — プライマリは `apac` |
@@ -84,7 +84,7 @@ pnpm run db:migrate:local        # ローカル D1 にマイグレーション�
 pnpm run dev
 ```
 
-`vite dev` は platformProxy 経由で `.wrangler/state` のローカル D1 に接続する。
+`vite dev` は adapter-cloudflare が `cloudflare:workers` を模して、`wrangler.toml` のバインディング（`.wrangler/state` のローカル D1）を env として渡す。初回は `pnpm run db:migrate:local` で表を作る。
 E2E は別の `.wrangler/e2e` を毎回空にして使うので、ここに入れたデータは E2E に混ざらない。
 
 ### Google OAuth の設定
@@ -108,7 +108,7 @@ Google Cloud Console でのクライアントの作り方と、承認済みの�
 そこで2人を切り替えられる。**「他人のメモが1件も出てこない」ことの確認**に使う。
 
 **この経路は `dev` ガードの中にあり、本番ビルドには存在しない。**
-`$app/environment` の `dev` はサーバー側では静的に false になるため、
+`$app/env` の `dev` はサーバー側では静的に false になるため、
 分岐ごとバンドルから消える。本番で `MOCK_AUTH` を設定しても無視される。
 
 ### アカウントとサイト管理者
@@ -186,7 +186,7 @@ Cloudflare の構築手順・API トークンの権限・ワークフローの�
 
 ```
 src/
-├── app.d.ts                   # App.Platform['env'] の型（Env は wrangler types が生成）
+├── app.d.ts                   # App.Locals などの型（env の型は lib/server/platform.ts、Env は wrangler types が生成）
 ├── hooks.server.ts            # 認証。ここだけが認証方式を知っている
 ├── worker.js                  # Worker の入口。adapter の Worker を包む（docs/architecture.md 3-5）
 ├── lib/

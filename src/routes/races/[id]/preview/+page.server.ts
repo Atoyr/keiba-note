@@ -47,8 +47,8 @@ import type { Actions, PageServerLoad } from './$types';
  * 16頭いても N+1 にしない。過去メモも馬柱も horse_id の IN で一度に引く
  * （設計上の上限は1リクエスト10往復。architecture.md 7-1）。
  */
-export const load: PageServerLoad = async ({ locals, platform, params }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, params }) => {
+	const { db, user } = ctx(locals);
 
 	const { race, entries } = await raceFormData(db, locals, params.id, 'preview');
 	if (!race) error(404, 'レースが見つかりません');
@@ -169,8 +169,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	default: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 
 		const { race, entries } = await raceFormData(db, locals, params.id, 'preview');
 		if (!race) error(404, 'レースが見つかりません');

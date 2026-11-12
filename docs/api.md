@@ -45,15 +45,15 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | 誰でも | `src/hooks.server.ts` の `PUBLIC_PATHS` にあるパスと、その下。**`/` だけは完全一致** | — |
 | ログインした人 | hooks がセッション Cookie を検証して `locals.user` を載せる | `302 /login?redirect=<元のパス>` |
 | MCP クライアント（`/mcp` だけ） | hooks が `Authorization: Bearer` のアクセストークンを検証し、`locals.user`（許した本人）と `locals.oauthScopes` を載せる。**Cookie は見ない** | `401` と `WWW-Authenticate: Bearer resource_metadata=…`（ログインへ飛ばさない）。Bearer はあるが DB に届かないときは `503 temporarily_unavailable`（401 にするとクライアントがトークンを捨てる） |
-| ルートの中で念のため | `ctx(locals, platform)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
-| admin | `ctxAdmin(locals, platform)` | 403 |
+| ルートの中で念のため | `ctx(locals)`（`src/lib/server/util.ts`） | DB が無い 503 / `user` が無い 401 |
+| admin | `ctxAdmin(locals)` | 403 |
 
 - **ログイン不要のパスを増やすのは `PUBLIC_PATHS` だけ。** ルートの中で個別に通さない
 - `/` は未ログインでも開き、紹介ページを出す。`load` は `locals.user` が無ければ DB に触らず
   `{ landing: true }` だけを返す。**ここで何か引くと、そのまま誰にでも見える**
 - **Bearer が効くのは `/mcp` だけ。** ほかのパスは `Authorization` を読まない。`/mcp` は Cookie を読まない
-- `/oauth/token` は SvelteKit に来る前に `src/worker.js` が受ける（SvelteKit の CSRF の検査が Origin の無いフォームの
-  POST を落とすため。→ [mcp.md](./mcp.md)）。だから `PUBLIC_PATHS` に無い
+- `/oauth/token` と `DELETE /mcp` は SvelteKit に来る前に `src/worker.js` が受ける（SvelteKit の CSRF の検査が Origin の無いフォームの
+  POST と、Content-Type も Origin も無い DELETE を落とすため。→ [mcp.md](./mcp.md)）。だから `PUBLIC_PATHS` に無い
 - `/notes/` は共有ページのための公開パス。**ログインが要る画面を `/notes/` の下に作らない**
   （共有の取り消しが `/settings/shares` にあるのはこのため）
 - 本番ビルドでは SvelteKit が POST の `Origin` を検証する（CSRF）。`vite dev` では効かないので、
@@ -68,7 +68,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | パス | メソッド | 入力 | 成功 | 失敗 |
 | --- | --- | --- | --- | --- |
 | `/login` | GET | `redirect`・`error` | ログイン済みなら `302` で `redirect` へ | — |
-| `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | `302 /login?error=unavailable` |
+| `/auth/google` | GET | `redirect` | `302` Google の認可画面（state と PKCE を Cookie に10分） | — |
 | `/auth/google/callback` | GET | `code`・`state` | ユーザーを作るか引き、セッションを発行して `302` 元の画面へ | `302 /login?error=invalid_request\|oauth_failed\|unavailable\|suspended\|account_conflict`（`suspended` は凍結したユーザー、`account_conflict` は別の Google アカウントが同じ email で登録済み。どちらもセッションは作らない） |
 | `/` | GET | — | 未ログインなら紹介ページ（DB に触らない）。ログイン済みなら自分の最近のメモ・今週と過去のレース・推しの出走予定 | — |
 | `/privacy` | GET | — | プライバシーポリシー（Google の同意画面に登録する） | — |
@@ -174,6 +174,9 @@ tools とスコープ・入力・返すものは [mcp.md 3-2](./mcp.md) が正�
 - **行の構成は DB を正とする。** `body.<entryId>` の `entryId` はフォームから拾わず、
   DB から引いた出走馬の一覧を回して読む（他のレースの行に書き込ませないため）
 - **書いたあとの遷移は `303`。** 同じ画面に留まるときはリダイレクトせず、値を返して `form` で受ける
+- **外の URL へ `redirect()` するときは、`external` に許す origin を並べる。`{ external: true }` にしない。** SvelteKit 3 は外へのリダイレクトを既定で止め（`redirect()` が例外を投げる）、
+  `true` は `javascript:` 以外のどこへでも飛ばせてしまう。今あるのは Google の認可画面（`external: [GOOGLE_AUTH_ORIGIN]`）と、
+  `/oauth/authorize` の戻り先（`external: [登録と照合した redirect_uri]`）の2つ。E2E はモック認証で入るので、Google へのリダイレクトは `e2e/auth.e2e.ts` で別に確かめている
 - **戻り先を入力から受けるときは `safeRedirect` を通す。** URL として解析して判定し（前方一致の継ぎ足しではない）、`//evil.com`・途中のタブや改行（`/\t/evil.com`）・`\`・畳んで `//` になるもの（`/..//evil.com`）を弾く。返すのは正規化後のパスで、日本語は百分率符号化になる
 - **他人のものと、無いものを区別して返さない。** 共有ページは 404 に揃え、「その id は在る」を漏らさない
 - **操作の可否はルートで、データの絞り込みはサービス層で。** admin かどうか、開催前かどうかは

@@ -8,6 +8,7 @@ import {
 	registerClient
 } from '$lib/server/auth/oauth';
 import { createDb } from '$lib/server/db';
+import { appEnv } from '$lib/server/platform';
 import type { RequestHandler } from './$types';
 
 /**
@@ -16,8 +17,9 @@ import type { RequestHandler } from './$types';
  * Claude・ChatGPT はプラグインを足すときにここで自分を登録する。登録だけでは何も読めない
  * （本人が同意画面で許可して初めて grant ができる）。受けるのは公開クライアントだけで、秘密鍵は出さない。
  */
-export const POST: RequestHandler = async ({ request, platform, locals }) => {
-	if (!platform?.env?.DB) {
+export const POST: RequestHandler = async ({ request, locals }) => {
+	const env = appEnv();
+	if (!env.DB) {
 		return json({ error: 'temporarily_unavailable' }, { status: 503 });
 	}
 	const text = await readLimitedText(request);
@@ -47,7 +49,7 @@ export const POST: RequestHandler = async ({ request, platform, locals }) => {
 			{ status: 400 }
 		);
 	}
-	const db = createDb(platform.env, locals.monitor.onQuery);
+	const db = createDb(env, locals.monitor.onQuery);
 	const client = await registerClient(db, {
 		name: parsed.output.client_name,
 		redirectUris: parsed.output.redirect_uris

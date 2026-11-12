@@ -8,6 +8,7 @@
 import { createDb } from '$lib/server/db';
 import { describeError } from '$lib/server/monitoring/log';
 import { createMonitor } from '$lib/server/monitoring/monitor';
+import type { AppEnv } from '$lib/server/platform';
 import type { EntriesStage } from '$lib/server/services/entries-fetch';
 import { dispatchEntriesFetch } from './dispatch';
 import {
@@ -53,7 +54,7 @@ export function entriesStageOf(cron: string): EntriesStage | null {
 }
 
 export async function runEntriesCron(
-	env: App.Platform['env'],
+	env: AppEnv,
 	ctx: ExecutionContext,
 	scheduledTime: number,
 	stage: EntriesStage
@@ -101,7 +102,7 @@ export async function runEntriesCron(
 }
 
 export async function runResultsCron(
-	env: App.Platform['env'],
+	env: AppEnv,
 	ctx: ExecutionContext,
 	scheduledTime: number
 ): Promise<void> {

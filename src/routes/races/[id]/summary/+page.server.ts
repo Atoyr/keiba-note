@@ -9,8 +9,8 @@ import {
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, platform, params, setHeaders }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, params, setHeaders }) => {
+	const { db, user } = ctx(locals);
 	setHeaders({ 'cache-control': 'private, no-store' });
 	const [summary, share, publicName] = await Promise.all([
 		getRaceSummary(db, params.id, user.id),
@@ -28,8 +28,8 @@ export const load: PageServerLoad = async ({ locals, platform, params, setHeader
 };
 
 export const actions: Actions = {
-	share: async ({ locals, platform, params }) => {
-		const { db, user } = ctx(locals, platform);
+	share: async ({ locals, params }) => {
+		const { db, user } = ctx(locals);
 		let share;
 		try {
 			share = await publishRaceSummary(db, params.id, user.id);
@@ -47,8 +47,8 @@ export const actions: Actions = {
 			});
 		return { shareId: share.id, message: '共有内容を保存しました。下のリンクを共有できます。' };
 	},
-	revoke: async ({ locals, platform, params }) => {
-		const { db, user } = ctx(locals, platform);
+	revoke: async ({ locals, params }) => {
+		const { db, user } = ctx(locals);
 		try {
 			await revokeRaceShare(db, params.id, user.id);
 		} catch {

@@ -25,8 +25,8 @@ import type { Actions, PageServerLoad } from './$types';
  * `?notes=1` でメモのある騎乗だけにする。騎乗は数百になるので、メモを読み返したいときに
  * メモの無い行を送らなくて済むように。URL に残るのは、予想の最中に開き直しても同じ絞りで見られるように。
  */
-export const load: PageServerLoad = async ({ locals, platform, params, url }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, params, url }) => {
+	const { db, user } = ctx(locals);
 	const name = params.name;
 	const today = todayJst();
 
@@ -66,8 +66,8 @@ export const actions: Actions = {
 	 * まとめを書く・書き直す。本文も札も空なら消える。
 	 * まとめは本人だけのもので、マスタには何も書かないので、admin でなくても書ける。
 	 */
-	saveSummary: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	saveSummary: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 		if (!(await jockeyExists(db, params.name))) error(404, '騎手が見つかりません');
 
 		const form = await request.formData();

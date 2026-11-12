@@ -6,6 +6,7 @@ import {
 	dispatchEntriesFetch,
 	isDispatchConfigured
 } from '$lib/server/race-data/dispatch';
+import { appEnv } from '$lib/server/platform';
 import { entriesFetchBlocker, listUpcomingRaces } from '$lib/server/services/entries-fetch';
 import { listWeeklyMcpUsage, resetMcpUsage } from '$lib/server/services/mcp-usage';
 import { getRace } from '$lib/server/services/races';
@@ -27,13 +28,13 @@ const fetchEntriesSchema = v.object({ raceId: v.pipe(v.string(), v.minLength(1))
 /** 出走馬を取りに行かせるレースを並べる期間（今日から）。登録は開催の約2週間前から出る。 */
 const UPCOMING_DAYS = 14;
 
-const dispatchConfig = (platform: App.Platform | undefined) => ({
-	token: platform?.env.GITHUB_DISPATCH_TOKEN,
-	repository: platform?.env.GITHUB_REPOSITORY
+const dispatchConfig = () => ({
+	token: appEnv().GITHUB_DISPATCH_TOKEN,
+	repository: appEnv().GITHUB_REPOSITORY
 });
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
-	const { db } = ctxAdmin(locals, platform);
+export const load: PageServerLoad = async ({ locals }) => {
+	const { db } = ctxAdmin(locals);
 	const today = todayJst();
 
 	// 出すのはアカウントの素性と、AI の連携（MCP）の今週の利用量（%）だけ。メモの件数すら出さない
@@ -59,7 +60,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 			/** 押せない理由。null なら押せる。 */
 			blocker: entriesFetchBlocker({ ...r, externalRef }, weekEnd)
 		})),
-		entriesFetch: { configured: isDispatchConfigured(dispatchConfig(platform)) }
+		entriesFetch: { configured: isDispatchConfigured(dispatchConfig()) }
 	};
 };
 
@@ -68,8 +69,8 @@ export const actions: Actions = {
 	 * 1人分の AI の利用量（今週の読み取り・書き込み）を 0 に戻す。行を消すだけなので、対象が無くても成功（冪等）。
 	 * 自分自身も戻せる。他人のメモには触れない。
 	 */
-	resetMcpUsage: async ({ request, locals, platform }) => {
-		const { db } = ctxAdmin(locals, platform);
+	resetMcpUsage: async ({ request, locals }) => {
+		const { db } = ctxAdmin(locals);
 
 		const form = await request.formData();
 		const parsed = v.safeParse(resetMcpUsageSchema, {
@@ -86,8 +87,8 @@ export const actions: Actions = {
 	 * （lib/server/race-data/dispatch.ts）。Actions が出馬表を YAML に書いて PR を作り、
 	 * 人がマージしたら本番に入る。枠順の前なら候補を、後なら枠順を書く。
 	 */
-	fetchEntries: async ({ request, locals, platform }) => {
-		const { db } = ctxAdmin(locals, platform);
+	fetchEntries: async ({ request, locals }) => {
+		const { db } = ctxAdmin(locals);
 
 		const form = await request.formData();
 		const parsed = v.safeParse(fetchEntriesSchema, {
@@ -106,7 +107,7 @@ export const actions: Actions = {
 		const label = `${race.date} ${race.course}${race.raceNumber}R ${race.name ?? ''}`.trim();
 
 		try {
-			await dispatchEntriesFetch(dispatchConfig(platform), {
+			await dispatchEntriesFetch(dispatchConfig(), {
 				date: race.date,
 				course: race.course,
 				raceNumber: race.raceNumber,
@@ -140,8 +141,8 @@ export const actions: Actions = {
 	},
 
 	/** 凍結（中身と理由は services/users.ts）。自分自身は凍結できない。 */
-	freeze: async ({ request, locals, platform }) => {
-		const { db, user: admin } = ctxAdmin(locals, platform);
+	freeze: async ({ request, locals }) => {
+		const { db, user: admin } = ctxAdmin(locals);
 
 		const form = await request.formData();
 		const parsed = v.safeParse(freezeSchema, { userId: form.get('userId')?.toString() ?? '' });

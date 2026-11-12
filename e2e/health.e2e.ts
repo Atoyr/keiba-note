@@ -23,7 +23,8 @@ test('/api/health のほかの /api/ は公開していない', async ({ request
 test('開発用の通知テスト（/dev/notify-test）は本番ビルドでは 404', async ({ page }) => {
 	// 外から Discord への通知を起こせないこと。ログインしていても dev ガードで 404 になる。
 	await login(page);
-	const res = await page.request.post('/dev/notify-test', { maxRedirects: 0 });
+	// SvelteKit 3 は Content-Type の無い POST を CSRF として 403 にするので、JSON として送る（dev ガードまで届かせる）。
+	const res = await page.request.post('/dev/notify-test', { maxRedirects: 0, data: {} });
 
 	expect(res.status()).toBe(404);
 });

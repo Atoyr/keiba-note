@@ -1,7 +1,7 @@
 import type { Snapshot } from '@sveltejs/kit';
 import { tick } from 'svelte';
 import { goto, preloadData } from '$app/navigation';
-import { appendPage, pageHref, type Page } from '$lib/utils/paging';
+import { appendPage, pageHref, type Page, type PageUrl } from '$lib/utils/paging';
 
 /** あとから読んで足した分。`key`（開いている URL のクエリ）ごとに持つ。 */
 export type PagedExtra<T> = { key: string; items: T[]; next: number | null };
@@ -13,8 +13,7 @@ export type PagedSnapshot<T> = { extra: PagedExtra<T> | null; scrollY: number };
  * `load` が返した1ページ目に、あとから読んだページを足していく一覧（下端の `LoadMore` が読む）。
  *
  * 次のページは `?offset=` を付けた同じ URL の `load` を `preloadData` で呼んで読む。
- * 専用の API は作らない（→ api.md 第1章）。**その `load` は読んだ位置を `offset` で返すこと**
- * （読めたかどうかの見分けに使う → `loadNext`）。
+ * 専用の API は作らない（→ api.md 第1章）。読めたかどうかは `preloadData` の `type` で分かる（→ `loadNext`）。
  *
  * **足した分は URL のクエリ（`key`）に紐づける。** 絞り込みを変えて開き直すと `load` の
  * 1ページ目が替わるので、`key` が変わった時点で足した分は捨てて、新しい1ページ目から出し直す。
@@ -24,7 +23,7 @@ export type PagedSnapshot<T> = { extra: PagedExtra<T> | null; scrollY: number };
  * `export const snapshot` に渡す。
  */
 export class PagedList<T extends { id: string }> {
-	#source: () => { url: URL; page: Page<T> };
+	#source: () => { url: PageUrl; page: Page<T> };
 	#pick: (data: Record<string, unknown>) => Page<T>;
 	#extra = $state<PagedExtra<T> | null>(null);
 
@@ -57,7 +56,7 @@ export class PagedList<T extends { id: string }> {
 	 * @param pick 次のページの `load` の戻り値から、ページを取り出す
 	 */
 	constructor(
-		source: () => { url: URL; page: Page<T> },
+		source: () => { url: PageUrl; page: Page<T> },
 		pick: (data: Record<string, unknown>) => Page<T>
 	) {
 		this.#source = source;
@@ -82,10 +81,8 @@ export class PagedList<T extends { id: string }> {
 			await goto(result.location);
 			return;
 		}
-		// **読めなかったことは status では分からない。** `preloadData` は load が落ちても通信が切れても
-		// 投げず、いま開いているページのデータを status 200 で返す（SvelteKit の preload_error）。
-		// load は読んだ位置（`offset`）を返すので、頼んだ位置と違えば読めなかったとみなす。
-		if (result.status >= 400 || result.data.offset !== offset) {
+		// load が落ちたときや通信が切れたときは、SvelteKit 3 が `type: 'error'` で返す。
+		if (result.type === 'error') {
 			throw new Error(`続きを読めなかった（${href}）`);
 		}
 		if (key !== this.#key) return;

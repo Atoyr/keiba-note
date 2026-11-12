@@ -1,9 +1,9 @@
 # uma-memo フロントエンドの書き方
 
-SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束。
+SvelteKit 3 / Svelte 5（runes）で画面とルートを書くときの約束。
 ファイルの役割、画面側の書き方、フォームの受け方、コンポーネントの置き場、コードの書き方。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-11-11
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-12
 - **読む場面:** `src/routes/` の画面・ルートや `src/lib/components/` を足す・変えるとき
 - **ここに無いもの:** 色・部品の選び方は [design-system.md](./design-system.md)、
   ルートごとの入出力と action の約束は [api.md](./api.md)、どの層からどこを import してよいかは
@@ -27,7 +27,7 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 
 ## 2. ルート（`+page.server.ts`）の書き方
 
-- DB とログインユーザーは `ctx(locals, platform)` で取り出す。admin だけの操作は `ctxAdmin`
+- DB とログインユーザーは `ctx(locals)` で取り出す。admin だけの操作は `ctxAdmin`
   （`src/lib/server/util.ts`）。DB が無ければ 503、未ログインは 401、admin でなければ 403 になる
 - D1 クライアントは `ctx` が作って返す。自分でモジュールスコープに置かない（→ [architecture.md 3-1](./architecture.md)）
 - ルートは薄くする。画面に要る形への整形がサービス層で済むなら、そちらに寄せる
@@ -71,6 +71,9 @@ SvelteKit 2 / Svelte 5（runes）で画面とルートを書くときの約束�
 - `use:enhance` で値を残すフォームは **`update({ reset: false })`** を呼ぶ。既定の `update()` はフォームを
   `reset()` するが、Svelte は欄を `.value` で更新するので `defaultValue` は空のまま。リセットで全欄が空になり、
   保存した直後に中身が消えたように見える。「空欄＝そのメモを消す」フォームでは、そこで保存し直すと本当に消える
+- **別のページ宛て（`action="/settings/shares"` など）の `use:enhance` で `update()` を呼ぶなら `navigate: false` を付ける。**
+  SvelteKit 3 は、別ページ宛ての enhance を成功でも失敗でも宛先のページへ遷移させる（素のフォームに合わせた）。
+  付けないと、失敗したとき今の画面ではなく宛先へ飛ばされる（例: `ShareControl.svelte`）。`update()` を呼ばず `result` を自分で扱うなら要らない
 - 長い一覧は100件ずつ読む。サービス層は `offset` を受けて `Page<T>`（`items` と `next`）を返し、
   画面は `PagedList`（`components/paged-list.svelte.ts`）で1ページ目に続きを足して、下端に `LoadMore` を置く。
   続きは `?offset=` を付けた同じ URL の `load` を `preloadData` で読む（専用の API は作らない）。

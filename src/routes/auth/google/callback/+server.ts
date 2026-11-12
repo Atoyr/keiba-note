@@ -16,6 +16,7 @@ import {
 import { createDb } from '$lib/server/db';
 import { describeError } from '$lib/server/monitoring/log';
 import { safeRedirect } from '$lib/utils/redirect';
+import { appEnv } from '$lib/server/platform';
 import type { RequestHandler } from './$types';
 
 /** 一時 Cookie をまとめて捨てる。 */
@@ -27,8 +28,9 @@ function clearTransientCookies(cookies: {
 	}
 }
 
-export const GET: RequestHandler = async ({ cookies, url, platform, locals }) => {
-	if (!platform?.env?.DB) redirect(302, '/login?error=unavailable');
+export const GET: RequestHandler = async ({ cookies, url, locals }) => {
+	const env = appEnv();
+	if (!env.DB) redirect(302, '/login?error=unavailable');
 
 	const code = url.searchParams.get('code');
 	const state = url.searchParams.get('state');
@@ -42,7 +44,7 @@ export const GET: RequestHandler = async ({ cookies, url, platform, locals }) =>
 		redirect(302, '/login?error=invalid_request');
 	}
 
-	const google = createGoogleClient(platform.env, url.origin);
+	const google = createGoogleClient(env, url.origin);
 
 	let identity: ReturnType<typeof parseIdToken>;
 	try {
@@ -68,13 +70,13 @@ export const GET: RequestHandler = async ({ cookies, url, platform, locals }) =>
 		redirect(302, '/login?error=oauth_failed');
 	}
 
-	const db = createDb(platform.env, locals.monitor.onQuery);
+	const db = createDb(env, locals.monitor.onQuery);
 	// **登録に条件は無い。** メモが既定で非公開になった以上、入ってきた人に
 	// 見えるのは自分のメモだけで、守るべき「場」が存在しない（product.md 第3章）。
 	//
 	// ADMIN_EMAIL と一致したときだけ admin。「user テーブルが空なら」という
 	// 条件は付けない — 登録が開いている以上「最初の1人」が成立しないため。
-	const adminEmail = platform.env.ADMIN_EMAIL?.toLowerCase();
+	const adminEmail = env.ADMIN_EMAIL?.toLowerCase();
 	const role = adminEmail && identity.email.toLowerCase() === adminEmail ? 'admin' : 'user';
 
 	const login = await resolveGoogleLogin(db, { ...identity, role });

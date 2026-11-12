@@ -9,8 +9,8 @@ import type { Actions, PageServerLoad } from './$types';
 /** 空行を含めて常にこの数だけ入力欄を出す。 */
 const MIN_ROWS = 10;
 
-export const load: PageServerLoad = async ({ locals, platform, params }) => {
-	const { db } = ctxAdmin(locals, platform);
+export const load: PageServerLoad = async ({ locals, params }) => {
+	const { db } = ctxAdmin(locals);
 
 	const [race, entries] = await Promise.all([getRace(db, params.id), listEntries(db, params.id)]);
 	if (!race) error(404, 'レースが見つかりません');
@@ -19,8 +19,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctxAdmin(locals, platform);
+	default: async ({ locals, params, request }) => {
+		const { db, user } = ctxAdmin(locals);
 
 		const race = await getRace(db, params.id);
 		if (!race) error(404, 'レースが見つかりません');

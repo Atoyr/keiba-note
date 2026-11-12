@@ -80,7 +80,14 @@ for (const [viewportName, viewport] of Object.entries(VIEWPORTS) as [
 					const errors: string[] = [];
 					page.on('pageerror', (e) => errors.push(e.message));
 					page.on('console', (m) => {
-						if (m.type() === 'error') errors.push(m.text());
+						if (m.type() !== 'error') return;
+						if (
+							screen.httpError &&
+							m.text().startsWith('Failed to load resource') &&
+							m.location().url.includes(screen.httpError)
+						)
+							return;
+						errors.push(m.text());
 					});
 
 					if (screen.auth) await login(page, screen.as);

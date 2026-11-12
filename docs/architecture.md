@@ -26,17 +26,17 @@
 
 ### ランタイムと入口
 
-- **D1 クライアントはリクエストごとに `createDb(platform.env, locals.monitor.onQuery)` で作る**（ルートは `ctx()` を通せば済む）。
+- **D1 クライアントはリクエストごとに `createDb(appEnv(), locals.monitor.onQuery)` で作る**（ルートは `ctx()` を通せば済む）。
   モジュールスコープに接続やユーザー情報を持たせない。Workers の実行環境は複数のリクエストで使い回される（→ 3-1）
 - **認証の判断は `src/hooks.server.ts` に閉じる。** ルートは `locals.user` だけを見る。
   ログイン不要のパスは `PUBLIC_PATHS` にあるものだけ（→ [api.md 第2章](./api.md)）。
-  例外は OAuth のトークンの口 `/oauth/token` だけで、`src/worker.js` が SvelteKit より先に受け、コード・PKCE・
-  リフレッシュトークンで判断する（Cookie を見ない。`PUBLIC_PATHS` には足さない。→ [mcp.md 第1章](./mcp.md)）
+  例外は `src/worker.js` が SvelteKit より先に受ける2つの口だけ。OAuth のトークンの口 `/oauth/token` はコード・PKCE・
+  リフレッシュトークンで判断する（Cookie を見ない。`PUBLIC_PATHS` には足さない）。`DELETE /mcp` は誰にでも 405 を返すだけ（→ [mcp.md 第1章](./mcp.md)）
 - **`/mcp` は Bearer（OAuth のアクセストークン）だけで入り、Bearer は `/mcp` でしか効かない。**
   `/mcp` で Cookie を見ると他サイトから本人として叩かれ（CSRF）、画面で Bearer を見ると漏れたトークンで画面に入られる。
   MCP の tool の `viewerId` はトークンの持ち主で、入力からは受けない（→ [mcp.md](./mcp.md)）
 - **共通のセキュリティヘッダは hooks が付ける**（`lib/server/security-headers.ts`。`/mcp` の 401・503 も含む）。既にある項目は上書きしない（共有ページの `no-referrer`、同意画面の `same-origin`）。
-  `script-src` は入れない（`app.html` のインライン script に nonce が要るため）。付かない口は `/oauth/token`（`src/worker.js` が先に受ける）、静的アセット（Worker が起動しない）、`handle` の中で `redirect()` を投げた応答、`handle` の中で投げた例外の 500（SvelteKit が `handle` の外で組む）
+  `script-src` は入れない（`app.html` のインライン script に nonce が要るため）。付かない口は `/oauth/token` と `DELETE /mcp` の 405（`src/worker.js` が先に受ける）、SvelteKit の CSRF の検査の 403（hooks より前に返る）、静的アセット（Worker が起動しない）、`handle` の中で `redirect()` を投げた応答、`handle` の中で投げた例外の 500（SvelteKit が `handle` の外で組む）
 - **依存は一方向。** サービス層（`src/lib/server/services/`）は SvelteKit を import しない。
   画面側はサーバーのコードを型ですら import しない（→ 第2章）
 - 1リクエストの D1 クエリは10以内。超えそうなら JOIN か `batch()` にまとめる（→ 7-1）
@@ -244,7 +244,7 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
 | オッズの型と検査（`lib/server/odds/odds.ts`） | pure と同じ | 何も import しない | 予想画面の読み出し（`services/odds.ts`）と、Actions が動かす `scripts/odds/` の両方から使う |
 | Cron の入口（`lib/server/odds/scheduled.ts`・`lib/server/race-data/scheduled.ts`） | endpoint と同じ | endpoint と同じ | 監視の口と D1 クライアントを1回ごとに作る |
 | 起動の依頼（`lib/server/odds/request.ts`・`lib/server/race-data/request.ts`・`dispatch.ts`） | service と同じ（monitoring を知らない）。機能の軸では odds・races | service と同じ | odds は races の右なので、`race-data/dispatch.ts` を使ってよい |
-| Worker の入口（`src/worker.js`。SvelteKit の外） | — | adapter の成果物、`lib/server/asset-cache.ts`、Cron の入口、resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）、トークンの口（`lib/server/auth/token-endpoint.ts` と、それに渡す `createDb`・monitoring） | adapter の Worker を包むだけ（→ 3-5・3-7・3-8・3-9・[mcp.md 第1章](./mcp.md)） |
+| Worker の入口（`src/worker.js`。SvelteKit の外） | — | adapter の成果物、`lib/server/asset-cache.ts`、Cron の入口、resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）と、それを SvelteKit 側へ渡す `lib/server/og/resvg-wasm.ts`、トークンの口（`lib/server/auth/token-endpoint.ts` と、それに渡す `createDb`・monitoring） | adapter の Worker を包むだけ（→ 3-5・3-7・3-8・3-9・[mcp.md 第1章](./mcp.md)） |
 | WebMCP（`lib/webmcp/`） | UI 側 | pure（schemas / utils）だけ | API と型の変動をこの境界に閉じ、`load` が本人に渡した材料を再利用する。新しい問い合わせ経路や保存責務は持たない（→ [mcp.md 第7章](./mcp.md)） |
 | `scripts/`（Node で直接動く。Worker に束ねない） | — | `src/` の pure と `lib/server/odds/odds.ts` | `src/` のファイルは相対パスに `.ts` まで書いて読む。取得元に固有の処理は `scripts/odds/netkeiba/` の中に閉じ、`odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない |
 
@@ -265,9 +265,12 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
 | サーバー側のルート（`*.server.ts`・`+server.ts`・`hooks.server.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*` |
 | 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
 
+**import は今も `$lib/…` で書く。`#lib` はまだ使えない**（`package.json` に `imports` が無い）。`$lib` は SvelteKit 3 では非推奨の `alias`（`vite.config.ts`）で生かしていて、ビルドに非推奨の警告が1つ出る。
+`#lib` への書き換えは別の PR で行う。そのときは `vite.config.ts`・`package.json` のほか、この表の規則（`eslint.config.js` の `$lib/server` の group と相対パスの regex）、`scripts/review/rules.ts` の `$lib/server` を見る規則（画面側からの import を重にする）と `wrangler.toml` の `[alias]` も同時に直す（直さないと規則が黙って効かなくなる）。
+
 ブロックを足す・直すときの注意（flat config は同じルールのブロックが重なると後ろで置き換わる）は `eslint.config.js` の注釈にある。
 
-表に入らない置き場の扱い: `og/`・`odds/`・`race-data/`・`monitoring/` は services と同じ行、Cron の入口（`odds/scheduled.ts`・`race-data/scheduled.ts`）・`util.ts`・`asset-cache.ts` はサーバー側のルートと同じ行で止める。`src/worker.js` は SvelteKit の外なので規則の対象外。相対パスで書いた `../server/…`・`../auth/…` も止まる（`svelte/server` のような npm パッケージには当たらない）。
+表に入らない置き場の扱い: `og/`・`odds/`・`race-data/`・`monitoring/` は services と同じ行、Cron の入口（`odds/scheduled.ts`・`race-data/scheduled.ts`）・`util.ts`・`asset-cache.ts` はサーバー側のルートと同じ行で止める。`src/worker.js` は SvelteKit の外なので規則の対象外。`cloudflare:workers` は `src/` の全ファイルで止め、`lib/server/platform.ts` と `src/worker.js` だけが通る（理由は 3-1）。`platform.ts` は表のどの行にも当たらず、import の規則を受けない。相対パスで書いた `../server/…`・`../auth/…` も止まる（`svelte/server` のような npm パッケージには当たらない）。
 
 **横の軸 — 機能**
 
@@ -297,7 +300,10 @@ graded（重賞）も同じくマスタの表を持たず、レース名を別�
 
 ### 3-1. D1 クライアントの生成とライフサイクル
 
-D1 への入口は `event.platform.env.DB` というバインディング1つ。
+D1 への入口は `appEnv().DB`（`lib/server/platform.ts`）というバインディング1つ。
+adapter-cloudflare 8 は `event.platform` を廃したので、env は `cloudflare:workers` から取る。**`cloudflare:workers` を import してよいのは `lib/server/platform.ts`（と `src/worker.js`）だけ**で、
+ESLint が `src/` の全ファイル（spec と `test-d1.ts` を除く）で止める。リクエストを処理するコードは `appEnv()`（env）・`runInBackground()`（`waitUntil`）を呼ぶ。
+Cron の入口と worker.js のトークンの口は、Worker の引数の `env`・`ctx` をそのまま受け渡す（`appEnv()` に書き換えない）。単体テストでは vitest の alias で `lib/server/test-cloudflare-workers.ts`（空の `env` に spec が `env.DB` などを差し込む）に向く。
 **Worker にはグローバル状態を置かず、リクエストごとに Drizzle クライアントを作る。**
 
 ```ts
@@ -306,13 +312,13 @@ import { drizzle } from 'drizzle-orm/d1';
 import { instrumentD1, type QueryObserver } from './instrument';
 import * as schema from './schema';
 
-export function createDb(env: App.Platform['env'], observe: QueryObserver) {
+export function createDb(env: AppEnv, observe: QueryObserver) {
   return drizzle(instrumentD1(env.DB, observe), { schema });
 }
 export type Db = ReturnType<typeof createDb>;
 ```
 
-ルートは `ctx(locals, platform)`（`lib/server/util.ts`）から `db` を受け取る。中で `createDb` を呼んでいる。
+ルートは `ctx(locals)`（`lib/server/util.ts`）から `db` を受け取る。中で `createDb` を呼んでいる。
 `instrumentD1` は D1 の binding を包み、クエリごとの時間と失敗を `observe` に渡す
 （D1 の失敗と遅いクエリの監視。→ [monitoring.md 第3章](./monitoring.md)）。
 
@@ -534,7 +540,7 @@ SNS に貼ったときのプレビューも、`race_share` のコピーと公開
 `/shared/races/[id]/og.png` は Worker が描く。SVG を `utils/share-card.ts` で組み、`lib/server/og/render.ts` が resvg（wasm）で PNG にする。
 
 - Workers は実行中にバイト列から wasm をコンパイルできず、SvelteKit（Vite）の側では `.wasm` を import できない。
-  そこで wrangler が束ねる `src/worker.js` が import し（コンパイル済みの `WebAssembly.Module` になる）、`env.RESVG_WASM` に足して渡す。
+  そこで wrangler が束ねる `src/worker.js` が import し（コンパイル済みの `WebAssembly.Module` になる）、`globalThis` の決まった名前に入れて渡す（`lib/server/og/resvg-wasm.ts`。adapter 8 は env を `cloudflare:workers` から取るので、worker.js が env に足しても SvelteKit には届かない）。
   `vite dev` はこの入口を通らないので描けない（503）。確かめるのは E2E（`wrangler dev`）
 - フォントは Noto Sans JP の太字を ASCII・Latin-1 と JIS X 0208 に絞ったもの（約 2.7MB。`pnpm run og-font` で書き出してコミット）。
   Worker の本体には束ねず、`static/og/` に置いて `ASSETS` のバインディングから読む。それ以外の字（第3水準以上の漢字・絵文字）は画像では空白になる
@@ -726,7 +732,7 @@ sequenceDiagram
 ### 3-10. MCP と OAuth 2.1 — AI のクライアントは本人が許した範囲だけを読み書きする
 
 Claude・ChatGPT から読める（許せば予想・展開の予想・ふりかえりを書ける）ように、同じ Worker に MCP の口（`/mcp`）と、その認可サーバー（`/.well-known/*`・`/oauth/*`）を置く。
-tool はサービス層を呼ぶだけで、`viewerId` はトークンの持ち主。トークンの口だけ `src/worker.js` が SvelteKit より先に受ける。
+tool はサービス層を呼ぶだけで、`viewerId` はトークンの持ち主。トークンの口と `DELETE /mcp`（405）だけ `src/worker.js` が SvelteKit より先に受ける。
 経路・書くときの決まり・スコープ・回数の上限・リフレッシュ・クライアントの識別と、ブラウザ内の WebMCP は [mcp.md](./mcp.md)。
 
 ---
@@ -828,8 +834,8 @@ flowchart LR
 
 | 領域 | 採用 | バージョン想定 |
 | --- | --- | --- |
-| フレームワーク | SvelteKit（Svelte 5 runes） | 2.x / 5.x |
-| アダプタ | `@sveltejs/adapter-cloudflare` | 最新 |
+| フレームワーク | SvelteKit（Svelte 5 runes） | 3.x / 5.x |
+| アダプタ | `@sveltejs/adapter-cloudflare` | 8.x |
 | ランタイム | Cloudflare Workers | `compatibility_date` は作成時の日付で固定 |
 | DB | Cloudflare D1（SQLite） | — |
 | ORM | Drizzle ORM + drizzle-kit | 0.4x |

@@ -38,8 +38,8 @@ import type { Actions, PageServerLoad } from './$types';
  * GETは更新セッション2回を含め最大8往復。JS無効のPOST→loadは共通マスタをlocalsから再利用し、保存1回を含め最大9往復。
  * 18頭いても N+1 にしない、が設計ルール（architecture.md 7-1）。
  */
-export const load: PageServerLoad = async ({ locals, platform, params }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, params }) => {
+	const { db, user } = ctx(locals);
 
 	const [{ race, entries }, jockeySummaries] = await Promise.all([
 		raceFormData(db, locals, params.id, 'review'),
@@ -172,8 +172,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 };
 
 export const actions: Actions = {
-	save: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	save: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 
 		const { race, entries } = await raceFormData(db, locals, params.id, 'review');
 		if (!race) error(404, 'レースが見つかりません');
@@ -217,8 +217,8 @@ export const actions: Actions = {
 	 * クイック入力の自動保存。1頭の本文だけを書く（札・レースのメモ・ほかの馬は触らない）。
 	 * 画面は `fetch` で送り、データを読み直さない（開いている馬・並び順・スクロールを動かさないため）。
 	 */
-	quick: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	quick: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 
 		const { race, entries } = await raceFormData(db, locals, params.id, 'review');
 		if (!race) error(404, 'レースが見つかりません');

@@ -5,14 +5,14 @@ import { getPublicName, setPublicName } from '$lib/server/services/profile';
 import { ctx } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals }) => {
+	const { db, user } = ctx(locals);
 	return { publicName: await getPublicName(db, user.id) };
 };
 
 export const actions: Actions = {
-	default: async ({ locals, platform, request }) => {
-		const { db, user } = ctx(locals, platform);
+	default: async ({ locals, request }) => {
+		const { db, user } = ctx(locals);
 		const form = await request.formData();
 		const publicName = form.get('publicName');
 		const parsed = v.safeParse(publicNameSchema, { publicName });

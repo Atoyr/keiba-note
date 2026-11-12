@@ -12,8 +12,8 @@ import type { PageServerLoad } from './$types';
  *
  * 行き先は予想画面。**結果が出たレースだけふりかえりへ**向ける（→ `isSettled`）。
  */
-export const load: PageServerLoad = async ({ locals, platform, url }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const { db, user } = ctx(locals);
 
 	const requested = Number(url.searchParams.get('w') ?? 0);
 	const offset = Number.isInteger(requested) ? requested : 0;

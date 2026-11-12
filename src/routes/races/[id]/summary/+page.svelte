@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { tick } from 'svelte';
-	import type { SubmitFunction } from '@sveltejs/kit';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import Share2 from '@lucide/svelte/icons/share-2';

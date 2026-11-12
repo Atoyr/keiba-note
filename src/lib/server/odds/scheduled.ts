@@ -8,6 +8,7 @@
 import { createDb } from '$lib/server/db';
 import { describeError } from '$lib/server/monitoring/log';
 import { createMonitor } from '$lib/server/monitoring/monitor';
+import type { AppEnv } from '$lib/server/platform';
 import { dispatchWorkflow } from '$lib/server/race-data/dispatch';
 import { ODDS_WORKFLOW, requestOddsUpdate, type OddsLogEntry } from './request';
 
@@ -24,7 +25,7 @@ import { ODDS_WORKFLOW, requestOddsUpdate, type OddsLogEntry } from './request';
 export const ODDS_CRONS: readonly string[] = ['5,35 22-23,0-15 * * *', '5 16 * * *'];
 
 export async function runOddsCron(
-	env: App.Platform['env'],
+	env: AppEnv,
 	ctx: ExecutionContext,
 	scheduledTime: number
 ): Promise<void> {

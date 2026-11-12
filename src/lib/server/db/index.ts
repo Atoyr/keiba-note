@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
+import type { AppEnv } from '$lib/server/platform';
 import { instrumentD1, type QueryObserver } from './instrument';
 import * as schema from './schema';
 
@@ -13,7 +14,7 @@ import * as schema from './schema';
  * `observe` はクエリの時間と失敗を受け取る（`locals.monitor.onQuery`）。
  * 省略可能にしないのは、渡し忘れた経路だけ D1 の失敗が監視から漏れるのを防ぐため。
  */
-export function createDb(env: App.Platform['env'], observe: QueryObserver) {
+export function createDb(env: AppEnv, observe: QueryObserver) {
 	return drizzle(instrumentD1(env.DB, observe), { schema });
 }
 

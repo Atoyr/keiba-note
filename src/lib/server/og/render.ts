@@ -6,7 +6,7 @@ import { CARD_FONT } from '$lib/utils/share-card';
  *
  * 描くのは resvg（Rust 製の SVG 描画を wasm にしたもの）。Workers は実行中に wasm をバイト列から
  * コンパイルできないので、wasm は `src/worker.js` が import して（wrangler がコンパイル済みの
- * `WebAssembly.Module` にする）、ルートが `platform.env.RESVG_WASM` から渡す。
+ * `WebAssembly.Module` にする）、ルートが `resvgWasm()`（./resvg-wasm.ts）から受け取って渡す。
  * フォントは Worker の本体に束ねず、Static Assets（`static/og/`）から読む（scripts/og-font.ts）。
  *
  * **wasm の初期化とフォントは isolate ごとに1度だけ**にし、モジュールスコープに置く。

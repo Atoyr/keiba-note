@@ -3,12 +3,13 @@ import type { DatabaseSync } from 'node:sqlite';
 import { createTestDb } from '$lib/server/db/test-d1';
 import { createDb, type Db } from '$lib/server/db';
 import { hashSessionToken, validateSession } from '$lib/server/auth/session';
+import type { AppEnv } from '$lib/server/platform';
 import type { QueryReport } from '$lib/server/db/instrument';
+import { env, resetTestEnv } from '$lib/server/test-cloudflare-workers';
 import { load as previewLoad, actions as previewActions } from './races/[id]/preview/+page.server';
 import { load as reviewLoad, actions as reviewActions } from './races/[id]/+page.server';
 
 let sqlite: DatabaseSync;
-let platform: App.Platform;
 let db: Db;
 let reports: QueryReport[];
 const token = 'request-budget-session';
@@ -17,9 +18,10 @@ beforeEach(() => {
 	const test = createTestDb();
 	sqlite = test.sqlite;
 	const binding = (test.db as Db & { $client: D1Database }).$client;
-	platform = { env: { DB: binding } } as App.Platform;
+	// `cloudflare:workers` の env は単体テストでは小さな差し替え（vite.config.ts）。ルートの ctx() が読む。
+	env.DB = binding;
 	reports = [];
-	db = createDb(platform.env, (report) => reports.push(report));
+	db = createDb(env as unknown as AppEnv, (report) => reports.push(report));
 	sqlite.exec(`INSERT INTO user (id, google_sub, email, display_name) VALUES
 		('me', 'me', 'me@example.test', '本人'), ('other', 'other', 'other@example.test', '他人');
 		INSERT INTO horse (id, name) VALUES ('horse', '架空馬');
@@ -36,7 +38,10 @@ beforeEach(() => {
 		.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
 		.run(hashSessionToken(token), 'me', Math.floor(Date.now() / 1000) + 86400);
 });
-afterEach(() => sqlite.close());
+afterEach(() => {
+	sqlite.close();
+	resetTestEnv();
+});
 
 async function event(form?: FormData) {
 	const validated = await validateSession(db, token);
@@ -55,7 +60,6 @@ async function event(form?: FormData) {
 	};
 	return {
 		locals,
-		platform,
 		params: { id: 'current' },
 		request: new Request(
 			'https://example.test/races/current',

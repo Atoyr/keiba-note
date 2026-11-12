@@ -7,14 +7,14 @@ import { todayJst } from '$lib/utils/date';
 import { ctxAdmin } from '$lib/server/util';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals, platform }) => {
-	ctxAdmin(locals, platform);
+export const load: PageServerLoad = ({ locals }) => {
+	ctxAdmin(locals);
 	return { today: todayJst() };
 };
 
 export const actions: Actions = {
-	default: async ({ locals, platform, request }) => {
-		const { db, user } = ctxAdmin(locals, platform);
+	default: async ({ locals, request }) => {
+		const { db, user } = ctxAdmin(locals);
 
 		const form = await request.formData();
 		const raw = Object.fromEntries(

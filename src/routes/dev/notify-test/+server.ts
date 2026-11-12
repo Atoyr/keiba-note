@@ -1,5 +1,6 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { error, json } from '@sveltejs/kit';
+import { appEnv } from '$lib/server/platform';
 import type { RequestHandler } from './$types';
 
 /**
@@ -9,7 +10,7 @@ import type { RequestHandler } from './$types';
  * `.dev.vars` に `DISCORD_WEBHOOK_URL` を入れて `pnpm run dev` し、POST すると
  * 本番と同じ経路（monitor → 連投抑制 → Discord）で ERROR を1件送る。
  */
-export const POST: RequestHandler = async ({ locals, platform }) => {
+export const POST: RequestHandler = async ({ locals }) => {
 	if (!dev) error(404, 'Not found');
 
 	locals.monitor.log({
@@ -23,6 +24,6 @@ export const POST: RequestHandler = async ({ locals, platform }) => {
 
 	return json({
 		requestId: locals.monitor.requestId,
-		webhook: platform?.env?.DISCORD_WEBHOOK_URL ? 'set' : 'missing'
+		webhook: appEnv().DISCORD_WEBHOOK_URL ? 'set' : 'missing'
 	});
 };

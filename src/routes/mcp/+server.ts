@@ -9,7 +9,7 @@ import type { RequestHandler } from './$types';
  * MCP の口（Streamable HTTP・ステートレス）。認証は hooks.server.ts が Bearer で済ませてある。
  * ここは HTTP の出入りだけで、中身は `lib/server/mcp/protocol.ts`。
  */
-export const POST: RequestHandler = async ({ request, locals, platform, url }) => {
+export const POST: RequestHandler = async ({ request, locals, url }) => {
 	// ブラウザから来た要求は自分のオリジンだけ（MCP の仕様の DNS rebinding 対策）。
 	// Claude・ChatGPT はサーバーから呼ぶので Origin を付けない。
 	const origin = request.headers.get('origin');
@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request, locals, platform, url }) =
 		);
 	}
 
-	const { db, user } = ctx(locals, platform);
+	const { db, user } = ctx(locals);
 	// hooks を通った /mcp なら必ずある。無ければ Cookie で来た要求で、ここに来るのは誤り。
 	const scopes = locals.oauthScopes;
 	if (!scopes) error(401, 'アクセストークンが必要です');

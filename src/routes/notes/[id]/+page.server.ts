@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { getSharedNote } from '$lib/server/services/notes';
 import { createDb } from '$lib/server/db';
+import { appEnv } from '$lib/server/platform';
 import type { PageServerLoad } from './$types';
 
 /**
@@ -9,8 +10,9 @@ import type { PageServerLoad } from './$types';
  * ここだけが `visibility` を見る。他のすべての読みは author_id で自分のメモに
  * 閉じている（product.md 第2章 2-2）。
  */
-export const load: PageServerLoad = async ({ params, platform, locals, setHeaders }) => {
-	if (!platform?.env?.DB) error(503, 'データベースに接続できません');
+export const load: PageServerLoad = async ({ params, locals, setHeaders }) => {
+	const env = appEnv();
+	if (!env.DB) error(503, 'データベースに接続できません');
 
 	// 要件「検索することはできない」のサイト外ぶん。
 	//
@@ -25,7 +27,7 @@ export const load: PageServerLoad = async ({ params, platform, locals, setHeader
 		'cache-control': 'private, no-store'
 	});
 
-	const note = await getSharedNote(createDb(platform.env, locals.monitor.onQuery), params.id);
+	const note = await getSharedNote(createDb(env, locals.monitor.onQuery), params.id);
 
 	// **404 にするのが要点。** 403 を返すと「その ID のメモは在る」ことを教えてしまう。
 	// private でも存在しなくても同じ応答になる。

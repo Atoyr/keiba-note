@@ -66,7 +66,8 @@
 			const successMessage = shared ? '共有をやめました' : '共有リンクを作りました';
 			return async ({ result, update }) => {
 				try {
-					await update({ reset: false });
+					// 失敗は、この画面（共有の操作が置かれた画面）に出す。別ページ宛ての enhance は SvelteKit 3 で宛先へ遷移するので止める。
+					await update({ reset: false, navigate: false });
 					if (result.type === 'redirect') toast.success(successMessage);
 				} finally {
 					pending = false;

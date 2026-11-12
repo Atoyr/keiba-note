@@ -1,3 +1,4 @@
+import type { AppEnv } from '$lib/server/platform';
 import { describe, expect, it } from 'vitest';
 import { createDb, pingDb } from './index';
 import { instrumentD1, type QueryReport } from './instrument';
@@ -116,7 +117,7 @@ describe('instrumentD1', () => {
 });
 
 describe('createDb / pingDb', () => {
-	const env = (d1: D1Database) => ({ DB: d1 }) as unknown as App.Platform['env'];
+	const env = (d1: D1Database) => ({ DB: d1 }) as unknown as AppEnv;
 
 	it('Drizzle のクエリも observer に届き、通れば true', async () => {
 		const reports: QueryReport[] = [];

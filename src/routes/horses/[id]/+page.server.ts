@@ -27,8 +27,8 @@ import type { Actions, PageServerLoad } from './$types';
  * **出走はメモが無くても並べる。** 骨は race_entry（誰が見ても同じ走った事実）で、
  * そこに viewer 自身のメモと気づきを重ねる。読みは5クエリ（馬・メモ・出走・推しか・気づき）で、全部並行に投げる。
  */
-export const load: PageServerLoad = async ({ locals, platform, params }) => {
-	const { db, user } = ctx(locals, platform);
+export const load: PageServerLoad = async ({ locals, params }) => {
+	const { db, user } = ctx(locals);
 
 	const today = todayJst();
 
@@ -49,8 +49,8 @@ export const load: PageServerLoad = async ({ locals, platform, params }) => {
 
 export const actions: Actions = {
 	/** 近況メモを追加する。 */
-	addNote: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	addNote: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 
 		const horse = await getHorse(db, params.id);
 		if (!horse) error(404, '馬が見つかりません');
@@ -79,8 +79,8 @@ export const actions: Actions = {
 	 * 推しにする・外す。推しは本人だけのものなので、誰でも自分の分を切り替えられる
 	 * （マスタの馬には何も書かない）。推しの出走予定はダッシュボードに出る。
 	 */
-	favorite: async ({ locals, platform, params, request }) => {
-		const { db, user } = ctx(locals, platform);
+	favorite: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
 
 		const horse = await getHorse(db, params.id);
 		if (!horse) error(404, '馬が見つかりません');
@@ -96,8 +96,8 @@ export const actions: Actions = {
 	},
 
 	/** 自分のメモを消す。他人のメモはサービス層で弾かれる。 */
-	deleteNote: async ({ locals, platform, request }) => {
-		const { db, user } = ctx(locals, platform);
+	deleteNote: async ({ locals, request }) => {
+		const { db, user } = ctx(locals);
 
 		const form = await request.formData();
 		const parsed = v.safeParse(deleteNoteSchema, {
@@ -117,8 +117,8 @@ export const actions: Actions = {
 	 * 全ユーザー共通のマスタを書き換えるので admin だけ（product.md 第3章 / 第4章 #10）。
 	 * 一般ユーザーが馬について書けるのはタイムラインの近況メモ（`addNote`）の方。
 	 */
-	saveProfile: async ({ locals, platform, params, request }) => {
-		const { db } = ctxAdmin(locals, platform);
+	saveProfile: async ({ locals, params, request }) => {
+		const { db } = ctxAdmin(locals);
 
 		const form = await request.formData();
 		const field = (k: string) => form.get(k)?.toString() ?? '';
