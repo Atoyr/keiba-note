@@ -8,9 +8,9 @@ import {
 	REDIRECT_COOKIE,
 	createGoogleClient,
 	createLoginRequest
-} from '$lib/server/auth/google';
-import { appEnv } from '$lib/server/platform';
-import { safeRedirect } from '$lib/utils/redirect';
+} from '#lib/server/auth/google.ts';
+import { appEnv } from '#lib/server/platform.ts';
+import { safeRedirect } from '#lib/utils/redirect.ts';
 import type { RequestHandler } from './$types';
 
 /**

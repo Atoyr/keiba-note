@@ -1,14 +1,23 @@
 <script lang="ts">
 	import BlinkerBadge from './BlinkerBadge.svelte';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
 	import { resolve } from '$app/paths';
-	import JockeyLink from '$lib/components/JockeyLink.svelte';
-	import InsightView from '$lib/components/InsightView.svelte';
-	import KindBadge from '$lib/components/KindBadge.svelte';
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
-	import { cond, finish, post, rival, title, tone, ymd, type PastRun } from '$lib/utils/past-runs';
+	import JockeyLink from '#lib/components/JockeyLink.svelte';
+	import InsightView from '#lib/components/InsightView.svelte';
+	import KindBadge from '#lib/components/KindBadge.svelte';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import { gradedRaceKey, gradedRaceParam, isGraded } from '#lib/utils/graded-race.ts';
+	import {
+		cond,
+		finish,
+		post,
+		rival,
+		title,
+		tone,
+		ymd,
+		type PastRun
+	} from '#lib/utils/past-runs.ts';
 
 	/**
 	 * 馬柱（簡略版）。1走を表の3段（名前・数字・補足）で出す。

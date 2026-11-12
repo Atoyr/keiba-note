@@ -2,8 +2,8 @@
 	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import ShareControl from '$lib/components/ShareControl.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import ShareControl from '#lib/components/ShareControl.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

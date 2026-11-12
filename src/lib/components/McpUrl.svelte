@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	/**
 	 * MCP の接続先の URL と、コピーのボタン。ヘルプ（/help/mcp）と「AIとの連携」で同じものを出す。

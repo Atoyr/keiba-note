@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	/**
 	 * 一括保存フォームの末尾に貼り付く保存ボタン。**未保存の変更があるときだけ出す。**

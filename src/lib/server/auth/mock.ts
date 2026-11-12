@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { user } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { user } from '#lib/server/db/schema.ts';
 import type { SessionUser } from './session';
 
 /**

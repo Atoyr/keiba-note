@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createDb } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { CLIENT_REGISTRATION_LIMIT } from '$lib/server/auth/oauth';
-import { env, resetTestEnv } from '$lib/server/test-cloudflare-workers';
+import { createDb } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { CLIENT_REGISTRATION_LIMIT } from '#lib/server/auth/oauth.ts';
+import { env, resetTestEnv } from '#lib/server/test-cloudflare-workers.ts';
 import { POST } from './+server';
 
-vi.mock('$lib/server/db', () => ({ createDb: vi.fn() }));
+vi.mock('#lib/server/db/index.ts', () => ({ createDb: vi.fn() }));
 
 beforeEach(() => {
 	resetTestEnv();

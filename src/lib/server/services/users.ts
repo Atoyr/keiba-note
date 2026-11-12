@@ -1,6 +1,6 @@
 import { and, desc, eq } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { note, oauthGrant, session, user } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { note, oauthGrant, session, user } from '#lib/server/db/schema.ts';
 
 /**
  * サイト管理者の画面が使うユーザーの一覧と凍結。

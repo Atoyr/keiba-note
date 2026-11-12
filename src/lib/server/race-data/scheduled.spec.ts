@@ -1,17 +1,17 @@
-import type { AppEnv } from '$lib/server/platform';
+import type { AppEnv } from '#lib/server/platform.ts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { createDb } from '$lib/server/db';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { createDb } from '#lib/server/db/index.ts';
 import { dispatchEntriesFetch } from './dispatch';
-import { createMonitor } from '$lib/server/monitoring/monitor';
+import { createMonitor } from '#lib/server/monitoring/monitor.ts';
 import { runResultsCron } from './scheduled';
 
-vi.mock('$lib/server/db', () => ({ createDb: vi.fn() }));
+vi.mock('#lib/server/db/index.ts', () => ({ createDb: vi.fn() }));
 vi.mock('./dispatch', async (original) => ({
 	...(await original<typeof import('./dispatch')>()),
 	dispatchEntriesFetch: vi.fn()
 }));
-vi.mock('$lib/server/monitoring/monitor', () => ({ createMonitor: vi.fn() }));
+vi.mock('#lib/server/monitoring/monitor.ts', () => ({ createMonitor: vi.fn() }));
 
 const log = vi.fn();
 const env = {

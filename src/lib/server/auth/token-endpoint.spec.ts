@@ -1,8 +1,8 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase64urlNoPadding } from '@oslojs/encoding';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
 import { createAuthorizationCode, listGrants, registerClient, validateAccessToken } from './oauth';
 import { handleTokenRequest } from './token-endpoint';
 

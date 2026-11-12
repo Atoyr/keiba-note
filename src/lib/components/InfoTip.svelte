@@ -1,7 +1,7 @@
 <script lang="ts">
 	import InfoIcon from '@lucide/svelte/icons/info';
-	import * as Popover from '$lib/components/ui/popover/index.js';
-	import { cn } from '$lib/utils';
+	import * as Popover from '#lib/components/ui/popover/index.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * 見出しの右に置く、補足の説明。info アイコンのボタンで、マウスは hover、タッチはタップ（クリック）で開く。

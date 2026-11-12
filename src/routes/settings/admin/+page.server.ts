@@ -1,18 +1,18 @@
 import { fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { describeError } from '$lib/server/monitoring/log';
+import { describeError } from '#lib/server/monitoring/log.ts';
 import {
 	DispatchError,
 	dispatchEntriesFetch,
 	isDispatchConfigured
-} from '$lib/server/race-data/dispatch';
-import { appEnv } from '$lib/server/platform';
-import { entriesFetchBlocker, listUpcomingRaces } from '$lib/server/services/entries-fetch';
-import { listWeeklyMcpUsage, resetMcpUsage } from '$lib/server/services/mcp-usage';
-import { getRace } from '$lib/server/services/races';
-import { freezeUser, listUsersForAdmin } from '$lib/server/services/users';
-import { ctxAdmin } from '$lib/server/util';
-import { addDays, currentWeek, todayJst } from '$lib/utils/date';
+} from '#lib/server/race-data/dispatch.ts';
+import { appEnv } from '#lib/server/platform.ts';
+import { entriesFetchBlocker, listUpcomingRaces } from '#lib/server/services/entries-fetch.ts';
+import { listWeeklyMcpUsage, resetMcpUsage } from '#lib/server/services/mcp-usage.ts';
+import { getRace } from '#lib/server/services/races.ts';
+import { freezeUser, listUsersForAdmin } from '#lib/server/services/users.ts';
+import { ctxAdmin } from '#lib/server/util.ts';
+import { addDays, currentWeek, todayJst } from '#lib/utils/date.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

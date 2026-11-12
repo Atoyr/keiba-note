@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { isOwnResource, tokenRequestSchema } from '$lib/schemas/oauth';
-import type { Db } from '$lib/server/db';
+import { isOwnResource, tokenRequestSchema } from '#lib/schemas/oauth.ts';
+import type { Db } from '#lib/server/db/index.ts';
 import { readLimitedText } from './limited-body';
 import { exchangeAuthorizationCode, refreshTokens, type TokenError } from './oauth';
 

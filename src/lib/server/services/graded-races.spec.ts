@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { gradedRaceNames } from '$lib/utils/graded-race';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { gradedRaceNames } from '#lib/utils/graded-race.ts';
 import {
 	buildGradedRaceList,
 	buildGradedRaceTimeline,

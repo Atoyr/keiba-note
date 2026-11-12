@@ -3,8 +3,8 @@
 </script>
 
 <script lang="ts">
-	import type { TrainingCenter } from '$lib/schemas/horse';
-	import { chip, type Tone } from '$lib/utils/horse-chip';
+	import type { TrainingCenter } from '#lib/schemas/horse.ts';
+	import { chip, type Tone } from '#lib/utils/horse-chip.ts';
 
 	/**
 	 * 馬の血統と所属の札。馬詳細の頭（`HorseProfileHeader`）と、出走馬の行の馬名を押して開く枠（`HorseLink`）が同じ並びで使う。

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import type { ConditionItem } from '$lib/utils/entry-conditions';
+	import { cn } from '#lib/utils.ts';
+	import type { ConditionItem } from '#lib/utils/entry-conditions.ts';
 
 	/**
 	 * 予想画面の出走馬の行に出す、今回の条件（乗り替わり・騎手変更・斤量）と前走からの変化。

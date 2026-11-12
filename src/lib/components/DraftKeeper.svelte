@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { beforeNavigate } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { changedFields, countChangedNotes, sameValue, type FieldValues } from '$lib/utils/draft';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import {
+		changedFields,
+		countChangedNotes,
+		sameValue,
+		type FieldValues
+	} from '#lib/utils/draft.ts';
 
 	/**
 	 * 一括保存フォームの「書き忘れ」と「書いたものが消える」を防ぐ。

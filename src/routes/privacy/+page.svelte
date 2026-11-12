@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import LegalDocument from '$lib/components/LegalDocument.svelte';
-	import { LEGAL } from '$lib/utils/legal';
+	import LegalDocument from '#lib/components/LegalDocument.svelte';
+	import { LEGAL } from '#lib/utils/legal.ts';
 
 	/*
 	 * 書いてあることは実装と一致させる。取る情報・Cookie・外部サービスを足したり変えたりしたら、

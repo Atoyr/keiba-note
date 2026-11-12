@@ -1,13 +1,13 @@
 import { eq, lt, ne, or, sql } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { mcpUsage } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { mcpUsage } from '#lib/server/db/schema.ts';
 import {
 	MCP_WEEKLY_LIMITS,
 	mcpNextReset,
 	mcpWeekStart,
 	quotaPercent,
 	type McpQuotaKind
-} from '$lib/utils/mcp-quota';
+} from '#lib/utils/mcp-quota.ts';
 
 /**
  * MCP の tool の呼び出しの週ごとの回数（1人1行。上限と週の区切りは `utils/mcp-quota.ts`）。

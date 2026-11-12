@@ -1,28 +1,28 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { resolve as resolveRoute } from '$app/paths';
 import * as v from 'valibot';
-import { quickReviewBodySchema, raceReviewSchema } from '$lib/schemas/note';
+import { quickReviewBodySchema, raceReviewSchema } from '#lib/schemas/note.ts';
 import {
 	saveEntryReviewBody,
 	saveRaceReview,
 	listSameConditionRaceNotes,
 	listRaceMemoContext
-} from '$lib/server/services/notes';
+} from '#lib/server/services/notes.ts';
 import {
 	buildGradedProfileView,
 	buildGradedRaceTimeline,
 	readGradedRaceSeries
-} from '$lib/server/services/graded-races';
-import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
-import { listPastRuns } from '$lib/server/services/races';
-import { isUpcoming, todayJst } from '$lib/utils/date';
-import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
-import { gradedRaceProfile } from '$lib/utils/graded-race-profile';
-import { sexAgeLabel } from '$lib/utils/horse';
-import { raceJockeyTags } from '$lib/utils/jockey';
-import { hasResolvedFlow, resolveFlow } from '$lib/utils/race-flow';
-import { noteSaveError } from '$lib/utils/note';
-import { ctx, raceFormData } from '$lib/server/util';
+} from '#lib/server/services/graded-races.ts';
+import { listRaceJockeySummaries } from '#lib/server/services/jockeys.ts';
+import { listPastRuns } from '#lib/server/services/races.ts';
+import { isUpcoming, todayJst } from '#lib/utils/date.ts';
+import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
+import { gradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
+import { sexAgeLabel } from '#lib/utils/horse.ts';
+import { raceJockeyTags } from '#lib/utils/jockey.ts';
+import { hasResolvedFlow, resolveFlow } from '#lib/utils/race-flow.ts';
+import { noteSaveError } from '#lib/utils/note.ts';
+import { ctx, raceFormData } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

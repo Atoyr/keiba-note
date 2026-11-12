@@ -246,10 +246,10 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
 | 起動の依頼（`lib/server/odds/request.ts`・`lib/server/race-data/request.ts`・`dispatch.ts`） | service と同じ（monitoring を知らない）。機能の軸では odds・races | service と同じ | odds は races の右なので、`race-data/dispatch.ts` を使ってよい |
 | Worker の入口（`src/worker.js`。SvelteKit の外） | — | adapter の成果物、`lib/server/asset-cache.ts`、Cron の入口、resvg の wasm（`@resvg/resvg-wasm/index_bg.wasm`）と、それを SvelteKit 側へ渡す `lib/server/og/resvg-wasm.ts`、トークンの口（`lib/server/auth/token-endpoint.ts` と、それに渡す `createDb`・monitoring） | adapter の Worker を包むだけ（→ 3-5・3-7・3-8・3-9・[mcp.md 第1章](./mcp.md)） |
 | WebMCP（`lib/webmcp/`） | UI 側 | pure（schemas / utils）だけ | API と型の変動をこの境界に閉じ、`load` が本人に渡した材料を再利用する。新しい問い合わせ経路や保存責務は持たない（→ [mcp.md 第7章](./mcp.md)） |
-| `scripts/`（Node で直接動く。Worker に束ねない） | — | `src/` の pure と `lib/server/odds/odds.ts` | `src/` のファイルは相対パスに `.ts` まで書いて読む。取得元に固有の処理は `scripts/odds/netkeiba/` の中に閉じ、`odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない |
+| `scripts/`（Node で直接動く。Worker に束ねない） | — | `src/` の pure と `lib/server/odds/odds.ts` | 本体（Node で直接動くもの）は `src/` のファイルを相対パスに `.ts` まで書いて読む（`src/` の中の連鎖も含めて解けることを、直接動かす道具ごとに確かめていないため）。vitest で回す spec（`scripts/**/*.spec.ts`）は `#lib/…` を使ってよい。取得元に固有の処理は `scripts/odds/netkeiba/` の中に閉じ、`odds.ts` の型（`RaceOdds`・`OddsProvider`）より外に出さない |
 
 - **画面側（page / component）はサーバーのコードを型ですら import しない。** 画面が要る型は
-  `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `$lib/server` の値の import は
+  `./$types` の `PageData` から取るか、pure に置く。SvelteKit は `#lib/server` の値の import は
   止めるが `import type` は通す
 - **SQL は db と service（と auth）にしか無い。** `drizzle-orm` をルートやコンポーネントから import しない
 
@@ -260,13 +260,13 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
 | --- | --- |
 | services / db | `@sveltejs/kit`・`$app/*`、`arctic`・`@oslojs/*` |
 | auth | `@sveltejs/kit`・`$app/*` |
-| mcp | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server/auth` |
-| schemas / utils | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
+| mcp | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`#lib/server/auth` |
+| schemas / utils | `@sveltejs/kit`・`$app/*`、`drizzle-orm`、`arctic`・`@oslojs/*`、`#lib/server` |
 | サーバー側のルート（`*.server.ts`・`+server.ts`・`hooks.server.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*` |
-| 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`$lib/server` |
+| 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`#lib/server` |
 
-**import は今も `$lib/…` で書く。`#lib` はまだ使えない**（`package.json` に `imports` が無い）。`$lib` は SvelteKit 3 では非推奨の `alias`（`vite.config.ts`）で生かしていて、ビルドに非推奨の警告が1つ出る。
-`#lib` への書き換えは別の PR で行う。そのときは `vite.config.ts`・`package.json` のほか、この表の規則（`eslint.config.js` の `$lib/server` の group と相対パスの regex）、`scripts/review/rules.ts` の `$lib/server` を見る規則（画面側からの import を重にする）と `wrangler.toml` の `[alias]` も同時に直す（直さないと規則が黙って効かなくなる）。
+**import は `#lib/…` に拡張子まで書く**（`#lib/server/db/index.ts`・`#lib/utils/date.ts`・`#lib/components/Foo.svelte`。ディレクトリは `/index.ts`。`$lib` は無い）。`package.json` の `imports`（`"#lib/*": "./src/lib/*"`）が Vite・wrangler（esbuild）・Node・TypeScript で同じように解ける。この約束は `src/lib/import-specifiers.spec.ts` が src・scripts・e2e を総なめにして見る（`#lib/…` が `src/lib` の実ファイルを指さなければ落ちる）。
+`eslint.config.js` の `#lib/server` を見る規則は group ではなく regex（`^#lib/server(/|$)`）で書く。group は gitignore の書式で、`#` で始まる行は注釈として無視され、黙って効かなくなる。`scripts/review/rules.ts` の `#lib/server` を見る規則（画面側からの import を重にする）も同じ形を見ている。
 
 ブロックを足す・直すときの注意（flat config は同じルールのブロックが重なると後ろで置き換わる）は `eslint.config.js` の注釈にある。
 

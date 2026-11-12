@@ -1,4 +1,4 @@
-import { GRADED, GRADES } from '$lib/schemas/race';
+import { GRADED, GRADES } from '#lib/schemas/race.ts';
 
 /**
  * レース一覧の絞り込み条件。クエリ文字列と DB の条件の間に挟む。

@@ -1,4 +1,4 @@
-import type { Mark, NoteTag } from '$lib/schemas/note';
+import type { Mark, NoteTag } from '#lib/schemas/note.ts';
 
 /**
  * 馬柱（`PastRuns` の縦の表と `PastRunsStrip` の横の帯）が共有する、1走ぶんの型と書式。

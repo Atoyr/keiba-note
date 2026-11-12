@@ -1,7 +1,7 @@
 /** メモの見出しと札の見せ方。タイムライン・ダッシュボード・予想画面で共通。 */
 
-import { FLOW_PHASES, FLOW_PHASE_LABEL } from '$lib/schemas/race-flow';
-import type { NoteTag } from '$lib/schemas/note';
+import { FLOW_PHASES, FLOW_PHASE_LABEL } from '#lib/schemas/race-flow.ts';
+import type { NoteTag } from '#lib/schemas/note.ts';
 
 /**
  * 札の系統。色分けの根拠をここ1か所に置く。

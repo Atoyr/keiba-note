@@ -1,10 +1,10 @@
 <script lang="ts">
-	import FlowDigest from '$lib/components/FlowDigest.svelte';
-	import FlowOrder from '$lib/components/FlowOrder.svelte';
-	import RaceFlowBoard from '$lib/components/RaceFlowBoard.svelte';
-	import { FLOW_PHASE_LABEL, FLOW_PHASE_SHORT } from '$lib/schemas/race-flow';
-	import { flowColumns, type ResolvedFlow } from '$lib/utils/race-flow';
-	import type { actualFlow } from '$lib/utils/run-stats';
+	import FlowDigest from '#lib/components/FlowDigest.svelte';
+	import FlowOrder from '#lib/components/FlowOrder.svelte';
+	import RaceFlowBoard from '#lib/components/RaceFlowBoard.svelte';
+	import { FLOW_PHASE_LABEL, FLOW_PHASE_SHORT } from '#lib/schemas/race-flow.ts';
+	import { flowColumns, type ResolvedFlow } from '#lib/utils/race-flow.ts';
+	import type { actualFlow } from '#lib/utils/run-stats.ts';
 
 	/**
 	 * ふりかえり画面の「実際の展開」。4コーナーとゴール前の隊列を、予想と同じ盤面で出す。

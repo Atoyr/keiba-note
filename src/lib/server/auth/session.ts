@@ -2,9 +2,9 @@ import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import { eq } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { isUniqueViolation } from '$lib/server/db/errors';
-import { session, user, type User } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { isUniqueViolation } from '#lib/server/db/errors.ts';
+import { session, user, type User } from '#lib/server/db/schema.ts';
 
 /** セッションの有効期限。30日。 */
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;

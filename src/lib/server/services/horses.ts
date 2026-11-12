@@ -1,8 +1,8 @@
 import { and, asc, countDistinct, eq, like, or } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { horse, note, raceEntry, type Horse } from '$lib/server/db/schema';
-import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
+import type { Db } from '#lib/server/db/index.ts';
+import { horse, note, raceEntry, type Horse } from '#lib/server/db/schema.ts';
+import { PAGE_SIZE, toPage, type Page } from '#lib/utils/paging.ts';
 
 /**
  * 馬。
@@ -27,7 +27,7 @@ export type HorseListItem = Pick<Horse, 'id' | 'name' | 'sex' | 'birthYear' | 't
  * メモ件数は **viewer 自身のメモだけ**を数える。他人の分を含めると、
  * 本文を出していなくても「誰かが何か書いている」ことが漏れる。
  *
- * `offset` 件目から `PAGE_SIZE` 件ずつ返す（画面は下端で続きを読む → `$lib/utils/paging`）。
+ * `offset` 件目から `PAGE_SIZE` 件ずつ返す（画面は下端で続きを読む → `#lib/utils/paging`）。
  * 馬名は生年違いの同名馬がいて一意でないので、並びの最後に id を足して
  * ページの切れ目で重なったり抜けたりしないようにする。
  */

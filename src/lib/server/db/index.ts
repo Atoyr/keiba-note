@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import type { AppEnv } from '$lib/server/platform';
+import type { AppEnv } from '#lib/server/platform.ts';
 import { instrumentD1, type QueryObserver } from './instrument';
 import * as schema from './schema';
 

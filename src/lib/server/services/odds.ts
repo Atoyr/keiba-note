@@ -1,9 +1,9 @@
 import { and, asc, between, eq, inArray, isNotNull } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { race, raceOdds } from '$lib/server/db/schema';
-import type { HorseOdds } from '$lib/server/odds/odds';
-import { addDays, todayJst } from '$lib/utils/date';
-import { inOddsWindow, ODDS_GRADES } from '$lib/utils/odds';
+import type { Db } from '#lib/server/db/index.ts';
+import { race, raceOdds } from '#lib/server/db/schema.ts';
+import type { HorseOdds } from '#lib/server/odds/odds.ts';
+import { addDays, todayJst } from '#lib/utils/date.ts';
+import { inOddsWindow, ODDS_GRADES } from '#lib/utils/odds.ts';
 
 /**
  * オッズの読み出し（予想画面）と、Cron が Actions を起動するかどうかの判断。

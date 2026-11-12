@@ -1,6 +1,6 @@
 import * as v from 'valibot';
-import { predictionDraftSchema, type PredictionDraft } from '$lib/schemas/prediction-draft';
-import { emptyFlow, FLOW_PHASES, sortSpots } from '$lib/schemas/race-flow';
+import { predictionDraftSchema, type PredictionDraft } from '#lib/schemas/prediction-draft.ts';
+import { emptyFlow, FLOW_PHASES, sortSpots } from '#lib/schemas/race-flow.ts';
 import type { FieldValues } from './draft';
 
 /** AI 入力から指定された欄だけを返す。DOM と保存処理には触らない。 */

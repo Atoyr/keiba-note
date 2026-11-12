@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import LoadMore from '$lib/components/LoadMore.svelte';
-	import RacePlace from '$lib/components/RacePlace.svelte';
-	import RaceFilterForm from '$lib/components/RaceFilterForm.svelte';
-	import RaceListEmpty from '$lib/components/RaceListEmpty.svelte';
-	import { opensReview } from '$lib/utils/date';
-	import { PagedList } from '$lib/components/paged-list.svelte';
-	import { pageHref } from '$lib/utils/paging';
-	import { hasRaceFilter } from '$lib/utils/race-filter';
-	import { isAdmin } from '$lib/utils/role';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import LoadMore from '#lib/components/LoadMore.svelte';
+	import RacePlace from '#lib/components/RacePlace.svelte';
+	import RaceFilterForm from '#lib/components/RaceFilterForm.svelte';
+	import RaceListEmpty from '#lib/components/RaceListEmpty.svelte';
+	import { opensReview } from '#lib/utils/date.ts';
+	import { PagedList } from '#lib/components/paged-list.svelte.ts';
+	import { pageHref } from '#lib/utils/paging.ts';
+	import { hasRaceFilter } from '#lib/utils/race-filter.ts';
+	import { isAdmin } from '#lib/utils/role.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

@@ -9,7 +9,7 @@
 // JS にしているのは、ビルド前（svelte-check）には .svelte-kit/cloudflare/_worker.js が
 // 無いため。tsconfig は checkJs を切っているので、ここは型検査されない。
 //
-// ここから import する TS は wrangler（esbuild）が束ねる。`$lib` は wrangler.toml の alias で解く。
+// ここから import する TS は wrangler（esbuild）が束ねる。`#lib` は package.json の imports で解く（esbuild も読む）。
 //
 // 共有の画像（/shared/races/[id]/og.png）を描く resvg の wasm もここで import する。wrangler は .wasm を
 // コンパイル済みの WebAssembly.Module にする。Workers は実行中にバイト列から wasm をコンパイルできず、

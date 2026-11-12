@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import * as v from 'valibot';
-import { INSIGHT_WORDS_LIMIT, insightWordSchema } from '$lib/schemas/insight';
+import { INSIGHT_WORDS_LIMIT, insightWordSchema } from '#lib/schemas/insight.ts';
 import { DEFAULT_INSIGHT_WORDS } from './insight-words';
 
 it('おすすめの言葉は全件が言葉の検証を変えずに通り、重複が無く、登録の上限以下', () => {

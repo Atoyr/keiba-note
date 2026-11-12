@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { ALL_RACES_QUERY } from '$lib/utils/race-filter';
+	import { ALL_RACES_QUERY } from '#lib/utils/race-filter.ts';
 
 	/**
 	 * レース一覧が0件のときの文。

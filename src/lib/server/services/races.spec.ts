@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
 import { getRaceForPreview, getRaceForReview, listRacesBetween, resolveWeek } from './races';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */

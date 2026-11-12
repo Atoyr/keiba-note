@@ -1,7 +1,7 @@
 <script lang="ts">
-	import KindBadge from '$lib/components/KindBadge.svelte';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { cn } from '$lib/utils';
+	import KindBadge from '#lib/components/KindBadge.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * レース直後の気づき（付けた言葉と短いメモ）を読む形で出す。以前に残した気づきを読むだけの表示（いまは新しく作らない。ふりかえりの言葉の入力は `QuickReview`）。

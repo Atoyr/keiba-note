@@ -3,7 +3,6 @@
 	"include": ["src", "vite.config.ts"],
 	"exclude": ["src/service-worker"],
 	"compilerOptions": {
-		"rewriteRelativeImportExtensions": true,
 		"allowJs": true,
 		// 生成物は型検査しない。wrangler.toml の main（src/worker.js）はビルド成果物の
 		// .svelte-kit/cloudflare/_worker.js を import するため、checkJs を有効に

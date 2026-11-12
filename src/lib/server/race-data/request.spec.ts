@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
 import { DispatchError, type EntriesFetchRequest } from './dispatch';
 import { requestEntriesFetch, requestResultsFetch, type EntriesLogEntry } from './request';
-import { ODDS_CRONS } from '$lib/server/odds/scheduled';
-import type { EntriesStage } from '$lib/server/services/entries-fetch';
+import { ODDS_CRONS } from '#lib/server/odds/scheduled.ts';
+import type { EntriesStage } from '#lib/server/services/entries-fetch.ts';
 import { ENTRIES_CRONS, RESULTS_CRON, entriesStageOf } from './scheduled';
 
 let db: Db;

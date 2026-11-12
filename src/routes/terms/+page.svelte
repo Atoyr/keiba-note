@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import LegalDocument from '$lib/components/LegalDocument.svelte';
-	import { LEGAL } from '$lib/utils/legal';
+	import LegalDocument from '#lib/components/LegalDocument.svelte';
+	import { LEGAL } from '#lib/utils/legal.ts';
 </script>
 
 <LegalDocument title="利用規約" enactedOn="2026年9月23日" updatedOn="2026年9月23日">

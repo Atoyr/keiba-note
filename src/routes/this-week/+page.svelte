@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import RacePlace from '$lib/components/RacePlace.svelte';
-	import { formatDateShort, isSettled, opensReview } from '$lib/utils/date';
-	import { isAdmin } from '$lib/utils/role';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Card from '#lib/components/ui/card/index.ts';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import RacePlace from '#lib/components/RacePlace.svelte';
+	import { formatDateShort, isSettled, opensReview } from '#lib/utils/date.ts';
+	import { isAdmin } from '#lib/utils/role.ts';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import type { PageProps } from './$types';

@@ -1,6 +1,10 @@
-import { parseJockeyTag } from '$lib/schemas/jockey';
-import { JOCKEY_LIST_LIMIT, listJockeys, listJockeyTagsInUse } from '$lib/server/services/jockeys';
-import { ctx } from '$lib/server/util';
+import { parseJockeyTag } from '#lib/schemas/jockey.ts';
+import {
+	JOCKEY_LIST_LIMIT,
+	listJockeys,
+	listJockeyTagsInUse
+} from '#lib/server/services/jockeys.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { PageServerLoad } from './$types';
 
 /**

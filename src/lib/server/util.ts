@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
-import { createDb, type Db } from '$lib/server/db';
-import { appEnv } from '$lib/server/platform';
-import { getRaceForPreview, getRaceForReview } from '$lib/server/services/races';
+import { createDb, type Db } from '#lib/server/db/index.ts';
+import { appEnv } from '#lib/server/platform.ts';
+import { getRaceForPreview, getRaceForReview } from '#lib/server/services/races.ts';
 
 /**
  * メモのactionと、その直後のloadで共通マスタを再利用する。

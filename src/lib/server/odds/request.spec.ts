@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { DispatchError } from '$lib/server/race-data/dispatch';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { DispatchError } from '#lib/server/race-data/dispatch.ts';
 import { requestOddsUpdate, type OddsLogEntry } from './request';
 import { ODDS_CRONS } from './scheduled';
 

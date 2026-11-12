@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { user } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { user } from '#lib/server/db/schema.ts';
 
 export async function getPublicName(db: Db, viewerId: string): Promise<string | null> {
 	const [row] = await db

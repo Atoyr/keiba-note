@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import JockeyTagPicker from './JockeyTagPicker.svelte';
-import { JOCKEY_TAG_GROUPS, JOCKEY_TAGS } from '$lib/schemas/jockey';
+import { JOCKEY_TAG_GROUPS, JOCKEY_TAGS } from '#lib/schemas/jockey.ts';
 
 const boxes = (root: HTMLElement) => [
 	...root.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')

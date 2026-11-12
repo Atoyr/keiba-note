@@ -1,5 +1,5 @@
-import { MCP_PATH } from '$lib/server/auth/oauth-metadata';
-import { TOOLS } from '$lib/server/mcp/tools';
+import { MCP_PATH } from '#lib/server/auth/oauth-metadata.ts';
+import { TOOLS } from '#lib/server/mcp/tools.ts';
 import type { PageServerLoad } from './$types';
 
 /**

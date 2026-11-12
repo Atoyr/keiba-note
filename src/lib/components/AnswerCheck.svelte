@@ -1,6 +1,11 @@
 <script lang="ts">
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import { inTheMoneyCount, type Answer, type AnswerSource, type Placing } from '$lib/utils/answer';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import {
+		inTheMoneyCount,
+		type Answer,
+		type AnswerSource,
+		type Placing
+	} from '#lib/utils/answer.ts';
 
 	/**
 	 * ふりかえり画面の答え合わせ。印を付けた馬を印の順に並べ、着順と馬券内／着外を出す。

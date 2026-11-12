@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import { emptyFlow } from '$lib/schemas/race-flow';
+import { emptyFlow } from '#lib/schemas/race-flow.ts';
 import Harness from './DraftKeeper.test.svelte';
 
 vi.mock('$app/navigation', () => ({ beforeNavigate: vi.fn() }));

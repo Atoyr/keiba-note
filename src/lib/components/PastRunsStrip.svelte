@@ -1,7 +1,7 @@
 <script lang="ts">
 	import BlinkerBadge from './BlinkerBadge.svelte';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import { cond, finish, title, tone, ymd, type PastRun } from '$lib/utils/past-runs';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import { cond, finish, title, tone, ymd, type PastRun } from '#lib/utils/past-runs.ts';
 
 	/**
 	 * 馬柱の帯（新聞型の横並び）。直近5走を1走1マスで、前走 → 5走前の順に横へ並べる。

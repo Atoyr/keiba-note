@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { emptyFlow } from '$lib/schemas/race-flow';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { emptyFlow } from '#lib/schemas/race-flow.ts';
 import { listRaceNotes, savePreviewNotes } from './notes';
 
 /**

@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
-import { SESSION_COOKIE, invalidateSession } from '$lib/server/auth/session';
-import { createDb } from '$lib/server/db';
-import { appEnv } from '$lib/server/platform';
+import { SESSION_COOKIE, invalidateSession } from '#lib/server/auth/session.ts';
+import { createDb } from '#lib/server/db/index.ts';
+import { appEnv } from '#lib/server/platform.ts';
 import type { RequestHandler } from './$types';
 
 /**

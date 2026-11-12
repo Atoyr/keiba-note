@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { COURSES, DIRECTIONS, GRADES, SURFACES, TRACK_CONDITIONS } from '$lib/schemas/race';
+	import { COURSES, DIRECTIONS, GRADES, SURFACES, TRACK_CONDITIONS } from '#lib/schemas/race.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

@@ -1,9 +1,9 @@
 import { fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { listGrants, revokeGrant } from '$lib/server/auth/oauth';
-import { MCP_PATH } from '$lib/server/auth/oauth-metadata';
-import { getMcpUsage } from '$lib/server/services/mcp-usage';
-import { ctx } from '$lib/server/util';
+import { listGrants, revokeGrant } from '#lib/server/auth/oauth.ts';
+import { MCP_PATH } from '#lib/server/auth/oauth-metadata.ts';
+import { getMcpUsage } from '#lib/server/services/mcp-usage.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

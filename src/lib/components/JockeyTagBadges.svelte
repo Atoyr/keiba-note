@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { JOCKEY_TAGS, type JockeyTag } from '$lib/schemas/jockey';
+	import { JOCKEY_TAGS, type JockeyTag } from '#lib/schemas/jockey.ts';
 
 	/**
 	 * 騎手に付けた札の表示。並びは `JOCKEY_TAGS` の順に直す（一覧で騎手ごとに位置が動かないように）。

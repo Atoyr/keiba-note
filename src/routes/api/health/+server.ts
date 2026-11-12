@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
-import { createDb, pingDb } from '$lib/server/db';
-import { appEnv } from '$lib/server/platform';
+import { createDb, pingDb } from '#lib/server/db/index.ts';
+import { appEnv } from '#lib/server/platform.ts';
 import type { RequestHandler } from './$types';
 
 /**

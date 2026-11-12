@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import type { Attachment } from 'svelte/attachments';
-	import RaceFlowBoard, { type BoardSpot } from '$lib/components/RaceFlowBoard.svelte';
-	import { BRACKET_CLASS } from '$lib/components/BracketBadge.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
+	import RaceFlowBoard, { type BoardSpot } from '#lib/components/RaceFlowBoard.svelte';
+	import { BRACKET_CLASS } from '#lib/components/BracketBadge.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
 	import {
 		FLOW_MEMO_MAX,
 		FLOW_PHASES,
@@ -16,10 +16,10 @@
 		type FlowSpot,
 		type Pace,
 		type RaceFlow
-	} from '$lib/schemas/race-flow';
-	import FlowDigest from '$lib/components/FlowDigest.svelte';
-	import { flowDigest, horseToken, type FlowHorse } from '$lib/utils/race-flow';
-	import { cn } from '$lib/utils';
+	} from '#lib/schemas/race-flow.ts';
+	import FlowDigest from '#lib/components/FlowDigest.svelte';
+	import { flowDigest, horseToken, type FlowHorse } from '#lib/utils/race-flow.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * 展開の予想の入力欄。予想画面の「レースの見立て」の下に畳んで置く。

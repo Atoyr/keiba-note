@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { raceSchema } from '$lib/schemas/race';
-import { isUniqueViolation } from '$lib/server/db/errors';
-import { createRace } from '$lib/server/services/races';
-import { todayJst } from '$lib/utils/date';
-import { ctxAdmin } from '$lib/server/util';
+import { raceSchema } from '#lib/schemas/race.ts';
+import { isUniqueViolation } from '#lib/server/db/errors.ts';
+import { createRace } from '#lib/server/services/races.ts';
+import { todayJst } from '#lib/utils/date.ts';
+import { ctxAdmin } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {

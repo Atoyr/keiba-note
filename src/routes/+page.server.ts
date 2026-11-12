@@ -1,9 +1,9 @@
-import { listFavoriteHorses, listFavoriteRuns } from '$lib/server/services/favorites';
-import { listRecentNotes, listWatchSources } from '$lib/server/services/notes';
-import { listRacesBetween, resolveWeek } from '$lib/server/services/races';
-import { awaitingReview, favoriteSchedule, pickWatchlist } from '$lib/utils/dashboard';
-import { todayJst, weeksBefore } from '$lib/utils/date';
-import { ctx } from '$lib/server/util';
+import { listFavoriteHorses, listFavoriteRuns } from '#lib/server/services/favorites.ts';
+import { listRecentNotes, listWatchSources } from '#lib/server/services/notes.ts';
+import { listRacesBetween, resolveWeek } from '#lib/server/services/races.ts';
+import { awaitingReview, favoriteSchedule, pickWatchlist } from '#lib/utils/dashboard.ts';
+import { todayJst, weeksBefore } from '#lib/utils/date.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { PageServerLoad } from './$types';
 
 /** 「過去のレース」をどこまで遡るか。3週間。 */
@@ -16,7 +16,7 @@ const PAST_WEEKS = 3;
  * 目的は「次のレースで勝つための積み上げ」なので、開いた瞬間に
  * 「今週どの馬を狙うか」「どのレースの答え合わせが残っているか」が見えることを優先する。
  * 注目馬は自分が付けた「次走買い／次走消し」の札から、ふりかえり待ちは
- * 予想したのにふりかえっていないレースから組む（→ `$lib/utils/dashboard`）。
+ * 予想したのにふりかえっていないレースから組む（→ `#lib/utils/dashboard`）。
  * 推しの出走予定は今週に限らない。推しを追う理由は「次どこに出るか」なので、先の登録まで出す。
  *
  * レースを「今週」と「過去」に割るのは、**この画面で知りたいことが2つある**から。

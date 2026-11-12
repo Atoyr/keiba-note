@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { NOTE_TAGS, type NoteTag } from '$lib/schemas/note';
-	import { NOTE_TAG_GROUP, noteTagLabel, type NoteTagGroup } from '$lib/utils/note';
+	import { NOTE_TAGS, type NoteTag } from '#lib/schemas/note.ts';
+	import { NOTE_TAG_GROUP, noteTagLabel, type NoteTagGroup } from '#lib/utils/note.ts';
 
 	/**
 	 * 札を選ぶ。チェックボックスを札の見た目にしたもの。

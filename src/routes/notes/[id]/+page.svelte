@@ -1,7 +1,7 @@
 <script lang="ts">
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

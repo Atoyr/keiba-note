@@ -1,21 +1,21 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { favoriteHorseSchema } from '$lib/schemas/favorite';
-import { horseProfileSchema } from '$lib/schemas/horse';
-import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '$lib/schemas/note';
-import { isUniqueViolation } from '$lib/server/db/errors';
-import { isFavoriteHorse, setFavoriteHorse } from '$lib/server/services/favorites';
-import { listHorseInsights } from '$lib/server/services/insights';
-import { getHorse, updateHorseProfile } from '$lib/server/services/horses';
+import { favoriteHorseSchema } from '#lib/schemas/favorite.ts';
+import { horseProfileSchema } from '#lib/schemas/horse.ts';
+import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '#lib/schemas/note.ts';
+import { isUniqueViolation } from '#lib/server/db/errors.ts';
+import { isFavoriteHorse, setFavoriteHorse } from '#lib/server/services/favorites.ts';
+import { listHorseInsights } from '#lib/server/services/insights.ts';
+import { getHorse, updateHorseProfile } from '#lib/server/services/horses.ts';
 import {
 	addHorseNote,
 	deleteNote,
 	getHorseTimeline,
 	mergeHorseTimeline
-} from '$lib/server/services/notes';
-import { listRunsForHorse } from '$lib/server/services/races';
-import { todayJst } from '$lib/utils/date';
-import { ctx, ctxAdmin } from '$lib/server/util';
+} from '#lib/server/services/notes.ts';
+import { listRunsForHorse } from '#lib/server/services/races.ts';
+import { todayJst } from '#lib/utils/date.ts';
+import { ctx, ctxAdmin } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

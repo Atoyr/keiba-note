@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
-	import { sexAgeLabel } from '$lib/utils/horse';
-	import { SEX_TONE, chip, type Tone } from '$lib/utils/horse-chip';
+	import type { HorseSex, TrainingCenter } from '#lib/schemas/horse.ts';
+	import { sexAgeLabel } from '#lib/utils/horse.ts';
+	import { SEX_TONE, chip, type Tone } from '#lib/utils/horse-chip.ts';
 	import HorseProfileBadges from './HorseProfileBadges.svelte';
 
 	/**

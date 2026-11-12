@@ -11,10 +11,12 @@ const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 const kit = ['@sveltejs/kit', '@sveltejs/kit/*', '$app/*'];
 const drizzle = ['drizzle-orm', 'drizzle-orm/*'];
 const oauthLibs = ['arctic', '@oslojs/*'];
-const serverLib = ['$lib/server', '$lib/server/*'];
-// `$lib/server` を相対パスで書いても通さない。`svelte/server` のような npm パッケージには当たらないよう、`./` `../` で始まるものだけ見る。
+// `#lib/...` は group（gitignore の書式）に書けない。`#` で始まる行は注釈として無視されるので、regex で止める。
+// 拡張子付き（`#lib/server/db/index.ts`）も止まるよう、`/` か末尾までを見る。
+const serverLib = '^#lib/server(/|$)';
+// `#lib/server` を相対パスで書いても通さない。`svelte/server` のような npm パッケージには当たらないよう、`./` `../` で始まるものだけ見る。
 const relServer = '^(\\.{1,2}/)+(.*/)?server(/|$)';
-const authLib = ['$lib/server/auth', '$lib/server/auth/*'];
+const authLib = '^#lib/server/auth(/|$)';
 const relAuth = '^(\\.{1,2}/)+(.*/)?auth(/|$)';
 
 /**
@@ -44,8 +46,11 @@ const restrict = (files, patterns, ignores = []) => {
 		}
 	};
 };
-/** group（パッケージ名・`$lib` の別名）と、あれば regex（相対パス）を同じ message で止める。 */
-const ban = (group, message, regex) => [{ group, message }, ...(regex ? [{ regex, message }] : [])];
+/** group（パッケージ名）か regex（`#lib/...`・相対パス）を、同じ message で止める。regex は配列か文字列。 */
+const ban = (group, message, regex) => [
+	...(group.length ? [{ group, message }] : []),
+	...[regex ?? []].flat().map((r) => ({ regex: r, message }))
+];
 
 const KIT_MSG =
 	'SvelteKit に依存するのはルート・フック・画面側（components）だけ。ここは SvelteKit を import しない。必要な値は引数で受け取る（architecture.md 第2章）';
@@ -85,9 +90,9 @@ const importRules = [
 			),
 			...ban(oauthLibs, OAUTH_MSG),
 			...ban(
-				authLib,
+				[],
 				'MCP は認証を自分では扱わない。viewerId は hooks が確かめたトークンの持ち主から受け取る（architecture.md 第0章）',
-				relAuth
+				[authLib, relAuth]
 			)
 		]
 	),
@@ -101,9 +106,9 @@ const importRules = [
 			...ban(drizzle, DRIZZLE_MSG),
 			...ban(oauthLibs, OAUTH_MSG),
 			...ban(
-				serverLib,
+				[],
 				'schemas と utils はサーバーのコードを import しない。共有したいものはこちら側に置く（architecture.md 第2章）',
-				relServer
+				[serverLib, relServer]
 			)
 		]
 	),
@@ -130,7 +135,7 @@ const importRules = [
 		[
 			...ban(drizzle, DRIZZLE_MSG),
 			...ban(oauthLibs, OAUTH_MSG),
-			...ban(serverLib, SERVER_MSG, relServer)
+			...ban([], SERVER_MSG, [serverLib, relServer])
 		]
 	)
 ];

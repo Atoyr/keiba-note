@@ -1,5 +1,5 @@
 <script lang="ts">
-	import GoogleLogin from '$lib/components/GoogleLogin.svelte';
+	import GoogleLogin from '#lib/components/GoogleLogin.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

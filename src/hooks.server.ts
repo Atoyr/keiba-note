@@ -1,16 +1,16 @@
 import { dev } from '$app/env';
 import { json, redirect, type RequestEvent } from '@sveltejs/kit';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
-import { createDb } from '$lib/server/db';
-import { validateAccessToken } from '$lib/server/auth/oauth';
-import { bearerChallenge, MCP_PATH } from '$lib/server/auth/oauth-metadata';
-import { describeError } from '$lib/server/monitoring/log';
-import { createMonitor, type Monitor } from '$lib/server/monitoring/monitor';
-import { appEnv, runInBackground } from '$lib/server/platform';
-import { SESSION_COOKIE, validateSession } from '$lib/server/auth/session';
-import { MOCK_USER_COOKIE, ensureMockUser, isMockUserKey } from '$lib/server/auth/mock';
-import { applySecurityHeaders } from '$lib/server/security-headers';
-import { safeRedirect } from '$lib/utils/redirect';
+import { createDb } from '#lib/server/db/index.ts';
+import { validateAccessToken } from '#lib/server/auth/oauth.ts';
+import { bearerChallenge, MCP_PATH } from '#lib/server/auth/oauth-metadata.ts';
+import { describeError } from '#lib/server/monitoring/log.ts';
+import { createMonitor, type Monitor } from '#lib/server/monitoring/monitor.ts';
+import { appEnv, runInBackground } from '#lib/server/platform.ts';
+import { SESSION_COOKIE, validateSession } from '#lib/server/auth/session.ts';
+import { MOCK_USER_COOKIE, ensureMockUser, isMockUserKey } from '#lib/server/auth/mock.ts';
+import { applySecurityHeaders } from '#lib/server/security-headers.ts';
+import { safeRedirect } from '#lib/utils/redirect.ts';
 
 /**
  * ログイン不要で触れるパス。これ以外は全部弾く。

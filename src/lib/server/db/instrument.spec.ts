@@ -1,4 +1,4 @@
-import type { AppEnv } from '$lib/server/platform';
+import type { AppEnv } from '#lib/server/platform.ts';
 import { describe, expect, it } from 'vitest';
 import { createDb, pingDb } from './index';
 import { instrumentD1, type QueryReport } from './instrument';

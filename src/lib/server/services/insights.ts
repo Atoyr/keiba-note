@@ -1,14 +1,14 @@
 import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { isUniqueViolation } from '$lib/server/db/errors';
+import type { Db } from '#lib/server/db/index.ts';
+import { isUniqueViolation } from '#lib/server/db/errors.ts';
 import {
 	insightWord,
 	race,
 	raceEntry,
 	raceEntryInsight,
 	type RaceEntry
-} from '$lib/server/db/schema';
-import { INSIGHT_WORDS_LIMIT } from '$lib/schemas/insight';
+} from '#lib/server/db/schema.ts';
+import { INSIGHT_WORDS_LIMIT } from '#lib/schemas/insight.ts';
 import { raceResultCount } from './races';
 
 /**

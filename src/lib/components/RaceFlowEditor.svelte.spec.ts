@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import { emptyFlow, type RaceFlow } from '$lib/schemas/race-flow';
+import { emptyFlow, type RaceFlow } from '#lib/schemas/race-flow.ts';
 import { BRACKET_MARK_FILL } from './BracketBadge.svelte';
 import RaceFlowEditor from './RaceFlowEditor.svelte';
 

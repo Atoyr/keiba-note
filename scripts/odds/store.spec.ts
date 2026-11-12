@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
-import type { RaceOdds } from '$lib/server/odds/odds';
-import { getRaceOdds } from '$lib/server/services/odds';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import type { RaceOdds } from '#lib/server/odds/odds.ts';
+import { getRaceOdds } from '#lib/server/services/odds.ts';
 import { pickTargets, saveOddsSql, targetsSql, type TargetRow } from './store';
 
 /**

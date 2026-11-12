@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	/**
 	 * 一覧の下端。近づいたら続きを読み、押しても読める（読んだ行を足すのは `PagedList`）。

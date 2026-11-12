@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { isUpcoming, opensReview } from '$lib/utils/date';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { isUpcoming, opensReview } from '#lib/utils/date.ts';
 
 	/**
 	 * 重賞の競走条件・優先出走権・主要なステップレースとその勝ち馬（レース情報タブ）。

@@ -1,11 +1,11 @@
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { horse, note, raceEntry, raceShare, user } from '$lib/server/db/schema';
-import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
-import { resolveFlow, hasResolvedFlow } from '$lib/utils/race-flow';
-import { CANDIDATE_MARK } from '$lib/schemas/note';
-import { hasSummary, type RaceSummary } from '$lib/utils/race-summary';
+import type { Db } from '#lib/server/db/index.ts';
+import { horse, note, raceEntry, raceShare, user } from '#lib/server/db/schema.ts';
+import { raceMeeting, raceSpec } from '#lib/utils/race-heading.ts';
+import { resolveFlow, hasResolvedFlow } from '#lib/utils/race-flow.ts';
+import { CANDIDATE_MARK } from '#lib/schemas/note.ts';
+import { hasSummary, type RaceSummary } from '#lib/utils/race-summary.ts';
 import { getRace, listEntriesForPreview } from './races';
 
 /** 本人用のまとめ。メモは必ず viewerId で絞り、共有用の項目だけを組み立てる。 */

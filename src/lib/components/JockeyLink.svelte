@@ -3,9 +3,9 @@
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import NotebookPenIcon from '@lucide/svelte/icons/notebook-pen';
 	import { onMount } from 'svelte';
-	import * as Popover from '$lib/components/ui/popover/index.js';
-	import type { JockeyTag } from '$lib/schemas/jockey';
-	import { jockeyParam } from '$lib/utils/jockey';
+	import * as Popover from '#lib/components/ui/popover/index.ts';
+	import type { JockeyTag } from '#lib/schemas/jockey.ts';
+	import { jockeyParam } from '#lib/utils/jockey.ts';
 	import JockeyTagBadges from './JockeyTagBadges.svelte';
 
 	/**

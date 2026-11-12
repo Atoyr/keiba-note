@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import RaceSummary from '$lib/components/RaceSummary.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import RaceSummary from '#lib/components/RaceSummary.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import {
 		CARD_HEIGHT,
 		CARD_WIDTH,
 		cardDescription,
 		cardTitle,
 		cardVersion
-	} from '$lib/utils/share-card';
+	} from '#lib/utils/share-card.ts';
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 

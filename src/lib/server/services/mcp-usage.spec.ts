@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { MCP_WEEKLY_LIMITS, mcpNextReset, mcpWeekStart } from '$lib/utils/mcp-quota';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { MCP_WEEKLY_LIMITS, mcpNextReset, mcpWeekStart } from '#lib/utils/mcp-quota.ts';
 import { consumeMcpQuota, getMcpUsage, listWeeklyMcpUsage, resetMcpUsage } from './mcp-usage';
 
 let db: Db;

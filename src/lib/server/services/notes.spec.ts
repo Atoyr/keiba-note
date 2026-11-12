@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Db } from '$lib/server/db';
-import type { NoteTag } from '$lib/schemas/note';
-import { emptyFlow, type RaceFlow } from '$lib/schemas/race-flow';
+import type { Db } from '#lib/server/db/index.ts';
+import type { NoteTag } from '#lib/schemas/note.ts';
+import { emptyFlow, type RaceFlow } from '#lib/schemas/race-flow.ts';
 import type { HorseRun } from './races';
 import { mergeHorseTimeline, saveRaceReview, savePreviewNotes, type TimelineNote } from './notes';
 

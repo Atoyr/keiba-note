@@ -3,9 +3,9 @@
 	import RaceFlowEditor from './RaceFlowEditor.svelte';
 	import MarkPicker from './MarkPicker.svelte';
 	import TagPicker from './TagPicker.svelte';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { predictionDraftToFields } from '$lib/utils/prediction-draft';
-	import type { PredictionDraft } from '$lib/schemas/prediction-draft';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
+	import { predictionDraftToFields } from '#lib/utils/prediction-draft.ts';
+	import type { PredictionDraft } from '#lib/schemas/prediction-draft.ts';
 
 	let { storageKey }: { storageKey: string } = $props();
 	let form = $state<HTMLFormElement | null>(null);

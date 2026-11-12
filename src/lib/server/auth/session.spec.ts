@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
 import type { DatabaseSync } from 'node:sqlite';
 import {
 	createUser,

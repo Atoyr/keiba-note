@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import McpUrl from '$lib/components/McpUrl.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import { SCOPE_LABELS } from '$lib/schemas/oauth';
+	import McpUrl from '#lib/components/McpUrl.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import * as Card from '#lib/components/ui/card/index.ts';
+	import { SCOPE_LABELS } from '#lib/schemas/oauth.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

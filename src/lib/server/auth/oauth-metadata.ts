@@ -1,4 +1,4 @@
-import { OAUTH_SCOPES } from '$lib/schemas/oauth';
+import { OAUTH_SCOPES } from '#lib/schemas/oauth.ts';
 
 /**
  * MCP クライアントが最初に読む、認可の案内（メタデータ）。クライアントはこれを見て

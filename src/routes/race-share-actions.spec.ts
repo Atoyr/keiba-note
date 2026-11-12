@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RequestEvent } from '@sveltejs/kit';
-import { setPublicName } from '$lib/server/services/profile';
-import { publishRaceSummary, revokeRaceShare } from '$lib/server/services/race-shares';
+import { setPublicName } from '#lib/server/services/profile.ts';
+import { publishRaceSummary, revokeRaceShare } from '#lib/server/services/race-shares.ts';
 import { actions as profile } from './settings/profile/+page.server';
 import { actions as summary } from './races/[id]/summary/+page.server';
 import { actions as shares } from './settings/shares/+page.server';
 
-vi.mock('$lib/server/util', () => ({ ctx: () => ({ db: {}, user: { id: 'me' } }) }));
-vi.mock('$lib/server/services/profile');
-vi.mock('$lib/server/services/race-shares');
+vi.mock('#lib/server/util.ts', () => ({ ctx: () => ({ db: {}, user: { id: 'me' } }) }));
+vi.mock('#lib/server/services/profile.ts');
+vi.mock('#lib/server/services/race-shares.ts');
 
 const event = <Route extends '/settings/profile' | '/settings/shares' | '/races/[id]/summary'>(
 	route: Route,

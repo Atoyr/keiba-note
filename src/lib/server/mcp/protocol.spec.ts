@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import type { OAuthScope } from '$lib/schemas/oauth';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { MCP_WEEKLY_LIMITS, mcpWeekStart } from '$lib/utils/mcp-quota';
+import type { OAuthScope } from '#lib/schemas/oauth.ts';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { MCP_WEEKLY_LIMITS, mcpWeekStart } from '#lib/utils/mcp-quota.ts';
 import { handleMcpMessage, type McpReply } from './protocol';
 import { TOOLS } from './tools';
 

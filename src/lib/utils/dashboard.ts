@@ -6,7 +6,7 @@
  * 材料（出走・メモ・件数）はサービス層が引き、並べ方と言い方はここで決める。
  */
 
-import type { NoteTag } from '$lib/schemas/note';
+import type { NoteTag } from '#lib/schemas/note.ts';
 import { isSettled, isUpcoming } from './date';
 
 // ---------------------------------------------------------------------------

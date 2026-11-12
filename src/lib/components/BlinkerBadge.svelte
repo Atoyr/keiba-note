@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-	import { cn } from '$lib/utils';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * ブリンカー着用の札（`B`）。**着用（true）のときだけ描く。** 着用なし・不明（null）は何も描かない

@@ -1,9 +1,9 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { entriesSchema } from '$lib/schemas/race';
-import { isUniqueViolation, violatedIndex } from '$lib/server/db/errors';
-import { getRace, listEntries, saveEntries } from '$lib/server/services/races';
-import { ctxAdmin } from '$lib/server/util';
+import { entriesSchema } from '#lib/schemas/race.ts';
+import { isUniqueViolation, violatedIndex } from '#lib/server/db/errors.ts';
+import { getRace, listEntries, saveEntries } from '#lib/server/services/races.ts';
+import { ctxAdmin } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /** 空行を含めて常にこの数だけ入力欄を出す。 */

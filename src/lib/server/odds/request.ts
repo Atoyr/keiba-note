@@ -9,9 +9,9 @@
  *
  * ログの出し方（通知するかどうか）は呼び出し側に渡す `log` が決める。ここは monitoring を知らない。
  */
-import type { Db } from '$lib/server/db';
-import { DispatchError, type DispatchErrorKind } from '$lib/server/race-data/dispatch';
-import { listOddsTargetIds } from '$lib/server/services/odds';
+import type { Db } from '#lib/server/db/index.ts';
+import { DispatchError, type DispatchErrorKind } from '#lib/server/race-data/dispatch.ts';
+import { listOddsTargetIds } from '#lib/server/services/odds.ts';
 
 export const ODDS_WORKFLOW = 'odds-update.yml';
 

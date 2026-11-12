@@ -1,29 +1,29 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { previewNotesSchema } from '$lib/schemas/note';
-import { FLOW_PHASES, restrictFlowTo } from '$lib/schemas/race-flow';
+import { previewNotesSchema } from '#lib/schemas/note.ts';
+import { FLOW_PHASES, restrictFlowTo } from '#lib/schemas/race-flow.ts';
 import {
 	listRaceMemoContext,
 	listSameConditionRaceNotes,
 	savePreviewNotes
-} from '$lib/server/services/notes';
+} from '#lib/server/services/notes.ts';
 import {
 	buildGradedProfileView,
 	buildGradedRaceTimeline,
 	readGradedRaceSeries
-} from '$lib/server/services/graded-races';
-import { listRaceJockeySummaries } from '$lib/server/services/jockeys';
-import { getRaceOdds } from '$lib/server/services/odds';
-import { listPastRuns } from '$lib/server/services/races';
-import { isUpcoming, todayJst } from '$lib/utils/date';
-import { entryConditions } from '$lib/utils/entry-conditions';
-import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
-import { gradedRaceProfile } from '$lib/utils/graded-race-profile';
-import { sexAgeLabel } from '$lib/utils/horse';
-import { raceJockeyTags } from '$lib/utils/jockey';
-import { popularityByNumber } from '$lib/utils/odds';
-import { noteSaveError } from '$lib/utils/note';
-import { ctx, raceFormData } from '$lib/server/util';
+} from '#lib/server/services/graded-races.ts';
+import { listRaceJockeySummaries } from '#lib/server/services/jockeys.ts';
+import { getRaceOdds } from '#lib/server/services/odds.ts';
+import { listPastRuns } from '#lib/server/services/races.ts';
+import { isUpcoming, todayJst } from '#lib/utils/date.ts';
+import { entryConditions } from '#lib/utils/entry-conditions.ts';
+import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
+import { gradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
+import { sexAgeLabel } from '#lib/utils/horse.ts';
+import { raceJockeyTags } from '#lib/utils/jockey.ts';
+import { popularityByNumber } from '#lib/utils/odds.ts';
+import { noteSaveError } from '#lib/utils/note.ts';
+import { ctx, raceFormData } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

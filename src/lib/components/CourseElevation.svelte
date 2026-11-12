@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { SURFACE_COLOR } from '$lib/utils/course';
-	import { elevationChart, type ElevationProfile } from '$lib/utils/course-elevation';
+	import { SURFACE_COLOR } from '#lib/utils/course.ts';
+	import { elevationChart, type ElevationProfile } from '#lib/utils/course-elevation.ts';
 
 	/**
 	 * スタートからゴールまでの高低断面。ゴールの向きはスタンドから見た向き

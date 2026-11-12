@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import * as Avatar from '$lib/components/ui/avatar/index.js';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import { isAdmin } from '$lib/utils/role';
+	import * as Avatar from '#lib/components/ui/avatar/index.ts';
+	import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.ts';
+	import { isAdmin } from '#lib/utils/role.ts';
 
 	/**
 	 * ヘッダ右端のアカウントメニュー。
@@ -15,7 +15,7 @@
 		user,
 		canLogout
 	}: {
-		// $lib/server/auth/session の SessionUser は server 限定なので型は使えない。
+		// #lib/server/auth/session の SessionUser は server 限定なので型は使えない。
 		// 要るのは表示に使う3つだけなので構造だけ受ける（isAdmin と同じ考え）。
 		user: { displayName: string; avatarUrl: string | null; role: string };
 		/** モック認証中はセッションが無いのでログアウトできない。項目ごと隠す。 */

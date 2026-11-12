@@ -1,7 +1,7 @@
 import { and, asc, eq, gte } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { favoriteHorse, horse, race, raceEntry } from '$lib/server/db/schema';
-import type { FavoriteHorse, FavoriteRun } from '$lib/utils/dashboard';
+import type { Db } from '#lib/server/db/index.ts';
+import { favoriteHorse, horse, race, raceEntry } from '#lib/server/db/schema.ts';
+import type { FavoriteHorse, FavoriteRun } from '#lib/utils/dashboard.ts';
 import { raceResultCount } from './races';
 
 /**
@@ -60,7 +60,7 @@ export async function listFavoriteHorses(db: Db, viewerId: string): Promise<Favo
  * viewer の推しの馬の、`from`（JST の今日）以降の出走。1クエリ。
  *
  * 当日のレースを走り終えたかは結果の有無で決めるので、ここでは日付で粗く切るだけにして、
- * 最後の線引きは `$lib/utils/dashboard` の `favoriteSchedule` に任せる。
+ * 最後の線引きは `#lib/utils/dashboard` の `favoriteSchedule` に任せる。
  */
 export async function listFavoriteRuns(
 	db: Db,

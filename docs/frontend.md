@@ -45,9 +45,10 @@ SvelteKit 3 / Svelte 5（runes）で画面とルートを書くときの約束�
 </script>
 ```
 
+- import は `#lib/…` に拡張子まで書く（`#lib/utils/date.ts`・`#lib/components/Foo.svelte`。`$lib` は無い。→ [architecture.md 第2章](./architecture.md)）
 - props は `$props()`、計算で出る値は `$derived()`。`$effect()` はブラウザの API
   （`localStorage`、`beforeunload`、`IntersectionObserver`、WebMCP の登録）に触るときだけ使う
-- 画面が要る型は `PageProps` の `data` から取る。**`$lib/server/**` から型を import しない**
+- 画面が要る型は `PageProps` の `data` から取る。**`#lib/server/**` から型を import しない**
   （SvelteKit は値の import しか止めない。層の規則は [architecture.md 第2章](./architecture.md)）
 - アプリ内のリンクは `$app/paths` の `resolve('/races/[id]', { id })` で組み、`href="/..."` を直に書かない。
   GET のフォームの `action` も同じ。別のルートへ POST するフォーム（`/auth/logout`・`/settings/shares`・`/dev/mock-user`、ふりかえり画面から `/settings/insight-words?/addDefaults` へ送る `#insight-defaults`）は

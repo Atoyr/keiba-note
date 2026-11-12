@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Mark, PredictionMark } from '$lib/schemas/note';
+import type { Mark, PredictionMark } from '#lib/schemas/note.ts';
 import { answerCheck, asMarked, byMark, markedInOrder, inTheMoneyCount, placing } from './answer';
 
 describe('byMark', () => {

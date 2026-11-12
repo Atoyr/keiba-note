@@ -3,7 +3,7 @@ import type { ComponentProps } from 'svelte';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import QuickReview from './QuickReview.svelte';
-import { DEFAULT_INSIGHT_WORDS } from '$lib/utils/insight-words';
+import { DEFAULT_INSIGHT_WORDS } from '#lib/utils/insight-words.ts';
 
 const rows = [
 	{ entryId: 'e1', horseName: '一番馬', bracket: 1, horseNumber: 1, finishPosition: 1 },

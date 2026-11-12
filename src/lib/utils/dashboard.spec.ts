@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NoteTag } from '$lib/schemas/note';
+import type { NoteTag } from '#lib/schemas/note.ts';
 import {
 	awaitingReview,
 	favoriteSchedule,

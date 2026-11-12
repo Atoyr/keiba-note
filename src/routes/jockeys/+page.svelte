@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import Check from '@lucide/svelte/icons/check';
-	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { jockeyListQuery, jockeyParam } from '$lib/utils/jockey';
+	import JockeyTagBadges from '#lib/components/JockeyTagBadges.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { jockeyListQuery, jockeyParam } from '#lib/utils/jockey.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

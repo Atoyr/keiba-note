@@ -15,11 +15,11 @@ import {
 	sql
 } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { horse, note, race, raceEntry, user, type Note, type Race } from '$lib/server/db/schema';
-import type { NoteTag } from '$lib/schemas/note';
-import type { RaceFlow } from '$lib/schemas/race-flow';
-import type { WatchSourceRow } from '$lib/utils/dashboard';
+import type { Db } from '#lib/server/db/index.ts';
+import { horse, note, race, raceEntry, user, type Note, type Race } from '#lib/server/db/schema.ts';
+import type { NoteTag } from '#lib/schemas/note.ts';
+import type { RaceFlow } from '#lib/schemas/race-flow.ts';
+import type { WatchSourceRow } from '#lib/utils/dashboard.ts';
 import { raceResultCount, type HorseRun } from './races';
 import {
 	insightsByEntry,
@@ -517,7 +517,7 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
  *
  * **期間内の出走 × その馬に自分が付けた結論の札（次走買い／次走消し）付きのメモ**を、
  * 新しいメモが先の順で返す。出走ごとに一番新しい結論だけを採るのは
- * `$lib/utils/dashboard` の `pickWatchlist`（SQL で頭ごとに絞るには窓関数が要るので、
+ * `#lib/utils/dashboard` の `pickWatchlist`（SQL で頭ごとに絞るには窓関数が要るので、
  * 予想画面の馬柱と同じく取ってから JS で切る）。1クエリ。
  *
  * 拾うメモの条件:

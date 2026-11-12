@@ -1,5 +1,5 @@
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
-import { CARD_FONT } from '$lib/utils/share-card';
+import { CARD_FONT } from '#lib/utils/share-card.ts';
 
 /**
  * SVG を PNG にする（共有の画像。`/shared/races/[id]/og.png`）。

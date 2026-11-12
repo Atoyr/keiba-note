@@ -3,10 +3,10 @@ import {
 	listGradedRaceTrendKeys,
 	listGradedRacesOfYear,
 	listNotedGradedYears
-} from '$lib/server/services/graded-races';
-import { ctx } from '$lib/server/util';
-import { todayJst } from '$lib/utils/date';
-import { gradedRaceKey } from '$lib/utils/graded-race';
+} from '#lib/server/services/graded-races.ts';
+import { ctx } from '#lib/server/util.ts';
+import { todayJst } from '#lib/utils/date.ts';
+import { gradedRaceKey } from '#lib/utils/graded-race.ts';
 import type { PageServerLoad } from './$types';
 
 /**

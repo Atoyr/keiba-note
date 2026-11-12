@@ -19,7 +19,7 @@
 </script>
 
 <script lang="ts">
-	import { BRACKET_CLASS } from '$lib/components/BracketBadge.svelte';
+	import { BRACKET_CLASS } from '#lib/components/BracketBadge.svelte';
 
 	/**
 	 * 枠番と馬番の札。左に枠番（帽子の色そのまま）、右に馬番（枠の色を薄くした面）を

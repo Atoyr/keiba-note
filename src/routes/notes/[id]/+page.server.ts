@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
-import { getSharedNote } from '$lib/server/services/notes';
-import { createDb } from '$lib/server/db';
-import { appEnv } from '$lib/server/platform';
+import { getSharedNote } from '#lib/server/services/notes.ts';
+import { createDb } from '#lib/server/db/index.ts';
+import { appEnv } from '#lib/server/platform.ts';
 import type { PageServerLoad } from './$types';
 
 /**

@@ -169,7 +169,7 @@ Evaluator が画面の上で確かめること（操作できるか・見た目�
 
 | 観点 | 見ること |
 | --- | --- |
-| ★ 層の向き | `.svelte` や画面側の `.ts` が `$lib/server/**` を import していないか（型も）（[architecture.md 第2章](./architecture.md)） |
+| ★ 層の向き | `.svelte` や画面側の `.ts` が `#lib/server/**` を import していないか（型も）（[architecture.md 第2章](./architecture.md)） |
 | ★ 認証と飛び先 | `PUBLIC_PATHS` を広げていないか。入力から受けた戻り先を `safeRedirect` に通しているか。他人のものと無いものを同じ応答（404）にしているか |
 | ★ 生の HTML | `{@html}` にメモの本文など利用者の入力が流れていないか |
 | ★ action の入力 | Valibot を通してから使い、失敗を `fail(400, { message })` で返しているか。行の構成（`entryId`）を DB から引いているか（[api.md 第4章](./api.md)） |

@@ -1,6 +1,6 @@
 import { dev } from '$app/env';
 import { error, json } from '@sveltejs/kit';
-import { appEnv } from '$lib/server/platform';
+import { appEnv } from '#lib/server/platform.ts';
 import type { RequestHandler } from './$types';
 
 /**

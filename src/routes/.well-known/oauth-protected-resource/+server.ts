@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { protectedResourceMetadata } from '$lib/server/auth/oauth-metadata';
+import { protectedResourceMetadata } from '#lib/server/auth/oauth-metadata.ts';
 import type { RequestHandler } from './$types';
 
 /**

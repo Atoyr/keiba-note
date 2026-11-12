@@ -4,10 +4,10 @@
 	import { dev } from '$app/env';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import AccountMenu from '$lib/components/AccountMenu.svelte';
-	import AppEnvMark from '$lib/components/AppEnvMark.svelte';
-	import { Toaster } from '$lib/components/ui/sonner/index.js';
-	import { replayEarlyInput, resetEarlyInput, takeEarlyInput } from '$lib/utils/early-input';
+	import AccountMenu from '#lib/components/AccountMenu.svelte';
+	import AppEnvMark from '#lib/components/AppEnvMark.svelte';
+	import { Toaster } from '#lib/components/ui/sonner/index.ts';
+	import { replayEarlyInput, resetEarlyInput, takeEarlyInput } from '#lib/utils/early-input.ts';
 	import type { LayoutProps } from './$types';
 
 	let { data, children }: LayoutProps = $props();
@@ -17,7 +17,7 @@
 	 *
 	 * **済む前に入力欄へ書いた値は、hydration が SSR の値で上書きする**
 	 * （Svelte 5 は `<textarea>{値}</textarea>` を `.value` の代入で合わせにいく）。
-	 * `src/app.html` が覚えておいた入力を、ここで書き戻す（→ `$lib/utils/early-input`）。
+	 * `src/app.html` が覚えておいた入力を、ここで書き戻す（→ `#lib/utils/early-input`）。
 	 *
 	 * 先に触った欄を SSR の値に揃え、`tick()` を待ってから書き戻す。`DraftKeeper` が
 	 * 「保存済みの値」を DOM から読むのがその間（フォームを `bind:this` で受けてから読むので、

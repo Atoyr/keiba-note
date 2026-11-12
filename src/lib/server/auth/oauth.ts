@@ -16,15 +16,15 @@ import {
 	sql
 } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { oauthClient, oauthCode, oauthGrant, oauthToken, user } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { oauthClient, oauthCode, oauthGrant, oauthToken, user } from '#lib/server/db/schema.ts';
 import {
 	knownScopes,
 	redirectUriMatches,
 	REQUIRED_SCOPES,
 	sortScopes,
 	type OAuthScope
-} from '$lib/schemas/oauth';
+} from '#lib/schemas/oauth.ts';
 import { hashSessionToken, type SessionUser } from './session';
 
 /**

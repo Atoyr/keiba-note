@@ -1,14 +1,14 @@
 import { json } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { clientRegistrationSchema } from '$lib/schemas/oauth';
-import { readLimitedText } from '$lib/server/auth/limited-body';
+import { clientRegistrationSchema } from '#lib/schemas/oauth.ts';
+import { readLimitedText } from '#lib/server/auth/limited-body.ts';
 import {
 	ClientRegistrationLimitError,
 	CLIENT_REGISTRATION_WINDOW_SEC,
 	registerClient
-} from '$lib/server/auth/oauth';
-import { createDb } from '$lib/server/db';
-import { appEnv } from '$lib/server/platform';
+} from '#lib/server/auth/oauth.ts';
+import { createDb } from '#lib/server/db/index.ts';
+import { appEnv } from '#lib/server/platform.ts';
 import type { RequestHandler } from './$types';
 
 /**

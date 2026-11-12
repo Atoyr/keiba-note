@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, it, vi } from 'vitest';
-import { raceSummaryCardSvg } from '$lib/utils/share-card';
+import { raceSummaryCardSvg } from '#lib/utils/share-card.ts';
 import { OG_FONT_PATH, renderPng } from './render';
 
 const assets = async () => ({

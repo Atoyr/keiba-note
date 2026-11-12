@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { NOTE_TAGS, type NoteTag } from '$lib/schemas/note';
-	import { NOTE_TAG_GROUP, noteTagLabel, type NoteTagGroup } from '$lib/utils/note';
+	import { NOTE_TAGS, type NoteTag } from '#lib/schemas/note.ts';
+	import { NOTE_TAG_GROUP, noteTagLabel, type NoteTagGroup } from '#lib/utils/note.ts';
 
 	/**
 	 * メモに付いた札の表示。`TagPicker` と同じ色づけで、読むときと書くときを揃える。

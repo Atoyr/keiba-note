@@ -3,11 +3,11 @@
 	import { resolve } from '$app/paths';
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
-	import QuickReviewRow from '$lib/components/QuickReviewRow.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { DEFAULT_INSIGHT_WORDS } from '$lib/utils/insight-words';
-	import type { Mark } from '$lib/schemas/note';
-	import { cn } from '$lib/utils';
+	import QuickReviewRow from '#lib/components/QuickReviewRow.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { DEFAULT_INSIGHT_WORDS } from '#lib/utils/insight-words.ts';
+	import type { Mark } from '#lib/schemas/note.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/** 選んだ並び順を残す localStorage のキー。'number' のときだけ '1' を書く。 */
 	const ORDER_KEY = 'uma-memo:quick-review-order';

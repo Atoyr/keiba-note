@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { INSIGHT_WORDS_LIMIT } from '$lib/schemas/insight';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { INSIGHT_WORDS_LIMIT } from '#lib/schemas/insight.ts';
 import {
 	addInsightWord,
 	addInsightWords,
