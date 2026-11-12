@@ -342,13 +342,15 @@ export function parseRaceMeta(html: string): RaceMeta {
 	const ymd = /(\d{4})年(\d{1,2})月(\d{1,2})日/.exec(title);
 	const date = ymd ? `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}` : undefined;
 
-	const data01 = text(/class="RaceData01"[^>]*>([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '');
+	const data01Html = /class="RaceData01"[^>]*>([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '';
+	const data01 = text(data01Html);
 	const data02 = toHalfWidth(
 		text(/class="RaceData02"[^>]*>([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '')
 	);
 
 	const { surface, distance } = parseSurfaceDistance(data01);
-	const dir = /\((右|左|直線|直)/.exec(data01)?.[1];
+	// 回りは「(右 外)」と括弧つきで載る版と、「芝2400m 右 外」と括弧なしの版がある。
+	const dir = (/\((右|左|直線|直)/.exec(data01) ?? /\d{3,4}m\s*(右|左|直線|直)/.exec(data01))?.[1];
 	const start = /(\d{1,2}):(\d{2})発走/.exec(data01);
 	const direction: Direction | undefined = dir === '直' ? '直線' : (dir as Direction | undefined);
 
@@ -368,8 +370,16 @@ export function parseRaceMeta(html: string): RaceMeta {
 		surface,
 		distance,
 		direction,
-		trackCondition: parseTrackCondition(/馬場:\s*(\S+)/.exec(data01)?.[1] ?? ''),
-		weather: /天候:\s*(\S+)/.exec(data01)?.[1],
+		// 馬場・天候は「馬場:良」「天候:晴」と文字で載る版と、天候はアイコンの aria-label、
+		// 馬場は Item03 のスパンに載る版がある。
+		trackCondition: parseTrackCondition(
+			/馬場:\s*(\S+)/.exec(data01)?.[1] ??
+				/class="Item03"[^>]*>\s*([^<\s]+)/.exec(data01Html)?.[1] ??
+				''
+		),
+		weather:
+			/天候:\s*(\S+)/.exec(data01)?.[1] ??
+			/class="Icon_Weather[^"]*"[^>]*aria-label="([^"]+)"/.exec(data01Html)?.[1],
 		startTime: start ? `${start[1].padStart(2, '0')}:${start[2]}` : undefined
 	};
 }
