@@ -21,7 +21,7 @@
 ```mermaid
 flowchart TB
     T["① トークン — src/routes/layout.css<br/>shadcn の意味の色 + アプリ固有の色（枠・グレード・状態）"]
-    P["② 部品 — src/lib/components/ui/<br/>shadcn-svelte の生成物。手を入れない"]
+    P["② 部品 — src/lib/components/ui/<br/>shadcn-svelte の生成物。手を入れない（import の拡張子だけ直す）"]
     D["③ ドメイン部品 — src/lib/components/<br/>① と ② を組み合わせた、競馬の語彙を持つ部品"]
     S["画面 — src/routes/**/+page.svelte<br/>③ と ② を並べるだけ"]
     T --> P --> D --> S
@@ -116,9 +116,10 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 - 部品は `pnpm exec shadcn-svelte add <名前>` で入れる。バージョンは devDependencies の
   `shadcn-svelte` に揃える（`pnpm dlx` で最新を引くと、既存の部品と書き方がずれる）。
   設定は `components.json`（style `nova`・アイコン `lucide`）
-- **入れたあと、生成された import を直す。** CLI は `$lib/…` を `#lib/…` にしただけで、拡張子は `.js` のまま書く（`#lib/utils.js`。実体は `utils.ts`）。
-  `#lib/utils.js` → `#lib/utils.ts` のように実ファイルの拡張子に直す（`.ts` を alias に書くと `.ts.js` になる）
-- **`src/lib/components/ui/` は手で直さない。** 見た目を変えたいときは、トークンを変えるか、
+- **入れた直後に、CLI が書いた import の拡張子だけは直す**（下の「手で直さない」の唯一の例外）。CLI は `components.json` の `aliases` の値（`#lib/utils` など）に
+  `.js` を付けて書く（`#lib/utils.js`。実体は `utils.ts`）。この repo は実ファイルの拡張子を書く約束なので、`#lib/utils.js` → `#lib/utils.ts` のように直す。
+  `components.json` の `aliases` に `.ts` まで書くと `#lib/utils.ts.js` になるので書かない。中身（見た目・振る舞い）は直さない
+- **`src/lib/components/ui/` は手で直さない**（上の import の拡張子を除く）。 見た目を変えたいときは、トークンを変えるか、
   呼ぶ側で `class` を足すか、③ のドメイン部品で包む
 - 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / popover / progress / select / separator / sonner / textarea / tooltip（tooltip は今は使っていない）
 - **素の `<button>` `<select>` `<textarea>` を新しく書かない。** 押せる大きさやフォーカスの見え方が

@@ -194,7 +194,7 @@ service はもともと1機能1ファイルなのでそのまま。どのファ�
 
 ```js
 settings: {
-  'import/resolver': { typescript: { project: './tsconfig.json' } }, // $lib を解決する
+  'import/resolver': { typescript: { project: './tsconfig.json' } }, // #lib（package.json の imports）を解決する
   'boundaries/elements': [
     // capture は pattern の * を順に拾う
     { type: 'component', pattern: 'src/lib/components/*/*.svelte', capture: ['feature'] },
