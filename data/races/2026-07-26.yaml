@@ -613,7 +613,24 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 9
+    winner: サンタンジェロ
     entries:
+      - horseNumber: 6
+        bracket: 6
+        name: ルースソラール
+        jockey: 松山弘平
+        ref: nk-2024107063
+        finish: 2
+        popularity: 2
+        time: "1:21.0"
+        timeDiff: 0.3
+        passing: "9-9"
+        last3f: 33.6
+        weight: 55
+        horseWeight: 452
+        horseWeightDiff: -8
+        odds: 4.3
       - horseNumber: 8
         bracket: 8
         name: サンタンジェロ

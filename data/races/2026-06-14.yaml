@@ -566,6 +566,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 8
+    winner: インカルナータ
+    runnerUp: オスカーレイア
     entries:
       - horseNumber: 6
         bracket: 6
@@ -575,6 +578,7 @@ races:
         finish: 1
         popularity: 4
         time: "1:48.3"
+        timeDiff: -0.2
         passing: "1-1"
         last3f: 33.2
         weight: 55

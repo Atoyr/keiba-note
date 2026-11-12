@@ -130,9 +130,11 @@ races:
         popularity: 5
         time: "1:35.4"
         margin: "3"
+        timeDiff: 0.7
         passing: "5-6"
         last3f: 33.3
         weight: 55
+        blinker: false
         horseWeight: 492
         horseWeightDiff: 2
         odds: 8.2
@@ -270,9 +272,11 @@ races:
         popularity: 4
         time: "1:37.4"
         margin: "2.1/2"
+        timeDiff: 2.7
         passing: "1-1"
         last3f: 34.1
         weight: 55
+        blinker: false
         horseWeight: 488
         horseWeightDiff: 10
         odds: 5

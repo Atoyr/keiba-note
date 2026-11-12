@@ -385,3 +385,32 @@ races:
         ref: nk-2023105248
       - name: ミッキーファルコン
         ref: nk-2023107259
+  - course: 京都
+    raceNumber: 3
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 重
+    weather: 曇
+    fieldSize: 8
+    winner: コルサロ
+    runnerUp: ドンクラッシュ
+    entries:
+      - horseNumber: 1
+        bracket: 1
+        name: コルサロ
+        jockey: 戸崎圭太
+        ref: nk-2024104709
+        finish: 1
+        popularity: 4
+        time: "1:33.7"
+        timeDiff: 0
+        passing: "5-4"
+        last3f: 35.4
+        weight: 56
+        blinker: false
+        horseWeight: 436
+        horseWeightDiff: 0
+        odds: 12.7
