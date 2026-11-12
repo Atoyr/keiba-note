@@ -322,6 +322,7 @@ races:
         passing: "13-12-14-14"
         last3f: 33.1
         weight: 55
+        blinker: false
         horseWeight: 464
         horseWeightDiff: -2
         odds: 10.9
@@ -362,6 +363,7 @@ races:
         passing: "10-12-12-13"
         last3f: 33.3
         weight: 55
+        blinker: false
         horseWeight: 462
         horseWeightDiff: 2
         odds: 3.2
