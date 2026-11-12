@@ -265,7 +265,7 @@ route-helper は `lib/server/util.ts`（`ctx` / `ctxAdmin` / `raceFormData`）�
 | サーバー側のルート（`*.server.ts`・`+server.ts`・`hooks.server.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*` |
 | 画面側（components / webmcp / `*.svelte` / `+page.ts` / `+layout.ts`） | `drizzle-orm`、`arctic`・`@oslojs/*`、`#lib/server` |
 
-**import は `#lib/…` に拡張子まで書く**（`#lib/server/db/index.ts`・`#lib/utils/date.ts`・`#lib/components/Foo.svelte`。ディレクトリは `/index.ts`。`$lib` は無い）。`package.json` の `imports`（`"#lib/*": "./src/lib/*"`）が Vite・wrangler（esbuild）・Node・TypeScript で同じように解ける。
+**import は `#lib/…` に拡張子まで書く**（`#lib/server/db/index.ts`・`#lib/utils/date.ts`・`#lib/components/Foo.svelte`。ディレクトリは `/index.ts`。`$lib` は無い）。`package.json` の `imports`（`"#lib/*": "./src/lib/*"`）が Vite・wrangler（esbuild）・Node・TypeScript で同じように解ける。この約束は `src/lib/import-specifiers.spec.ts` が src・scripts・e2e を総なめにして見る（`#lib/…` が `src/lib` の実ファイルを指さなければ落ちる）。
 `eslint.config.js` の `#lib/server` を見る規則は group ではなく regex（`^#lib/server(/|$)`）で書く。group は gitignore の書式で、`#` で始まる行は注釈として無視され、黙って効かなくなる。`scripts/review/rules.ts` の `#lib/server` を見る規則（画面側からの import を重にする）も同じ形を見ている。
 
 ブロックを足す・直すときの注意（flat config は同じルールのブロックが重なると後ろで置き換わる）は `eslint.config.js` の注釈にある。

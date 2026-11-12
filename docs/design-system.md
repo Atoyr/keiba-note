@@ -119,6 +119,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 - **入れた直後に、CLI が書いた import の拡張子だけは直す**（下の「手で直さない」の唯一の例外）。CLI は `components.json` の `aliases` の値（`#lib/utils` など）に
   `.js` を付けて書く（`#lib/utils.js`。実体は `utils.ts`）。この repo は実ファイルの拡張子を書く約束なので、`#lib/utils.js` → `#lib/utils.ts` のように直す。
   `components.json` の `aliases` に `.ts` まで書くと `#lib/utils.ts.js` になるので書かない。中身（見た目・振る舞い）は直さない
+  直し忘れは単体テスト（`src/lib/import-specifiers.spec.ts`。ESLint は `ui/` を見ないので、こちらで見る）が落とす
 - **`src/lib/components/ui/` は手で直さない**（上の import の拡張子を除く）。 見た目を変えたいときは、トークンを変えるか、
   呼ぶ側で `class` を足すか、③ のドメイン部品で包む
 - 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / popover / progress / select / separator / sonner / textarea / tooltip（tooltip は今は使っていない）
