@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import { page } from 'vitest/browser';
 import CourseElevation from './CourseElevation.svelte';
-import { courseMap } from '$lib/utils/course';
+import { courseMap } from '#lib/utils/course.ts';
 import '../../routes/layout.css';
 
 const SPRINT = { course: '中山', surface: '芝', distance: 1200, direction: '右' };

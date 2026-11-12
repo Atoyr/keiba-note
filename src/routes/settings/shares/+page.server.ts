@@ -1,10 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { shareNoteSchema } from '$lib/schemas/note';
-import { listSharedNotes, setNoteVisibility } from '$lib/server/services/notes';
-import { listRaceShares, revokeRaceShare } from '$lib/server/services/race-shares';
-import { ctx } from '$lib/server/util';
-import { safeRedirect } from '$lib/utils/redirect';
+import { shareNoteSchema } from '#lib/schemas/note.ts';
+import { listSharedNotes, setNoteVisibility } from '#lib/server/services/notes.ts';
+import { listRaceShares, revokeRaceShare } from '#lib/server/services/race-shares.ts';
+import { ctx } from '#lib/server/util.ts';
+import { safeRedirect } from '#lib/utils/redirect.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

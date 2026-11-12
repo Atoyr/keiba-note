@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NOTE_BODY_MAX } from '$lib/schemas/note';
+import { NOTE_BODY_MAX } from '#lib/schemas/note.ts';
 import { hasQuickWord, toggleQuickWord } from './quick-words';
 
 describe('hasQuickWord', () => {

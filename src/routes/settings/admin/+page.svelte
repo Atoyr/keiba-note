@@ -2,10 +2,10 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { tick } from 'svelte';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import RacePlace from '$lib/components/RacePlace.svelte';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import RacePlace from '#lib/components/RacePlace.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
 import { getSharedNote } from './notes';
 import { getPublicName, setPublicName } from './profile';
 import {

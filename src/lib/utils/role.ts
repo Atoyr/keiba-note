@@ -5,7 +5,7 @@
  * **操作を弾くのはサーバー側の `ctxAdmin` の仕事**で、ここはその手前の
  * 「見せない」ための判定。一般ユーザーに残す導線はメモを書くものだけにする。
  *
- * `$lib/server/auth/session` の `SessionUser` は server 限定なので型は使えない。
+ * `#lib/server/auth/session` の `SessionUser` は server 限定なので型は使えない。
  * 必要なのは role だけなので構造だけ受ける。
  */
 export function isAdmin(user: { role: string } | null | undefined): boolean {

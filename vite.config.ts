@@ -20,11 +20,7 @@ export default defineConfig({
 			adapter: adapter({
 				config: 'wrangler.adapter.toml',
 				platformProxy: { configPath: 'wrangler.toml' }
-			}),
-			// SvelteKit 3 は `$lib` を自動では作らず、`package.json` の `imports`（`#lib`）に替えた。
-			// この PR では 824 か所の書き換えをせず、非推奨の `alias` で `$lib` を生かしている（ビルドで警告が出る）。
-			// `#lib` への移行は別の PR（docs/architecture.md）。wrangler.toml の `[alias]` も同じ向き。
-			alias: { $lib: 'src/lib', '$lib/*': 'src/lib/*' }
+			})
 		})
 	],
 	// @lucide/svelte は生の .svelte を配布しているため、SSR 時に Node が

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import { createTestDb } from '$lib/server/db/test-d1';
-import type { Db } from '$lib/server/db';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import type { Db } from '#lib/server/db/index.ts';
 import { getRaceForPreview, listPastRuns } from './races';
 import { listRaceMemoContext } from './notes';
 

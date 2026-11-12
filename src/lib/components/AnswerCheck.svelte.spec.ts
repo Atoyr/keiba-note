@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import { answerCheck } from '$lib/utils/answer';
-import type { Mark } from '$lib/schemas/note';
+import { answerCheck } from '#lib/utils/answer.ts';
+import type { Mark } from '#lib/schemas/note.ts';
 import AnswerCheck from './AnswerCheck.svelte';
 
 const answers = (rows: [Mark | null, number, number | null][]) =>

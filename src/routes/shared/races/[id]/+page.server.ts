@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
-import { createDb } from '$lib/server/db';
-import { getSharedRaceSummary } from '$lib/server/services/race-shares';
-import { appEnv } from '$lib/server/platform';
+import { createDb } from '#lib/server/db/index.ts';
+import { getSharedRaceSummary } from '#lib/server/services/race-shares.ts';
+import { appEnv } from '#lib/server/platform.ts';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals, setHeaders }) => {

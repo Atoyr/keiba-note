@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { gradedRaceParam } from '$lib/utils/graded-race';
-	import { cn } from '$lib/utils';
+	import { gradedRaceParam } from '#lib/utils/graded-race.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * 重賞ごとの傾向のメモ（`/graded-races/[name]` で書くもの）を、予想画面とふりかえり画面に**読むだけで**出す。

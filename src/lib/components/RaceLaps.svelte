@@ -1,8 +1,8 @@
 <script lang="ts">
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import FlowOrder from '$lib/components/FlowOrder.svelte';
-	import type { Pace } from '$lib/schemas/race-flow';
-	import { firstLapLength, lapChart, lapDiffLabel, lapSummary } from '$lib/utils/laps';
+	import FlowOrder from '#lib/components/FlowOrder.svelte';
+	import type { Pace } from '#lib/schemas/race-flow.ts';
+	import { firstLapLength, lapChart, lapDiffLabel, lapSummary } from '#lib/utils/laps.ts';
 
 	/**
 	 * ふりかえり画面の「ラップ」。前半3F・後半3Fと、区間タイムの折れ線。

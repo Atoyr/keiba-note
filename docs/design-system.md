@@ -116,6 +116,8 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 - 部品は `pnpm exec shadcn-svelte add <名前>` で入れる。バージョンは devDependencies の
   `shadcn-svelte` に揃える（`pnpm dlx` で最新を引くと、既存の部品と書き方がずれる）。
   設定は `components.json`（style `nova`・アイコン `lucide`）
+- **入れたあと、生成された import を直す。** CLI は `$lib/…` を `#lib/…` にしただけで、拡張子は `.js` のまま書く（`#lib/utils.js`。実体は `utils.ts`）。
+  `#lib/utils.js` → `#lib/utils.ts` のように実ファイルの拡張子に直す（`.ts` を alias に書くと `.ts.js` になる）
 - **`src/lib/components/ui/` は手で直さない。** 見た目を変えたいときは、トークンを変えるか、
   呼ぶ側で `class` を足すか、③ のドメイン部品で包む
 - 今あるもの: avatar / badge / button / card / dropdown-menu / input / label / popover / progress / select / separator / sonner / textarea / tooltip（tooltip は今は使っていない）

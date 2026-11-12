@@ -1,10 +1,10 @@
 import { toJsonSchema } from '@valibot/to-json-schema';
 import * as v from 'valibot';
-import { markSchema, tagsSchema, type Mark, type NoteTag } from '$lib/schemas/note';
-import { predictionDraftSchema } from '$lib/schemas/prediction-draft';
-import { FLOW_PHASES, raceFlowFormSchema, type RaceFlow } from '$lib/schemas/race-flow';
-import type { FieldValues } from '$lib/utils/draft';
-import { preparePredictionDraft } from '$lib/utils/prediction-draft';
+import { markSchema, tagsSchema, type Mark, type NoteTag } from '#lib/schemas/note.ts';
+import { predictionDraftSchema } from '#lib/schemas/prediction-draft.ts';
+import { FLOW_PHASES, raceFlowFormSchema, type RaceFlow } from '#lib/schemas/race-flow.ts';
+import type { FieldValues } from '#lib/utils/draft.ts';
+import { preparePredictionDraft } from '#lib/utils/prediction-draft.ts';
 import { getModelContext, type ModelContextTool } from './support';
 
 type CurrentPrediction = { mark: Mark | null; body: string; tags: NoteTag[] };

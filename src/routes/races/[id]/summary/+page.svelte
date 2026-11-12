@@ -5,12 +5,12 @@
 	import { resolve } from '$app/paths';
 	import Share2 from '@lucide/svelte/icons/share-2';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
-	import RaceSummary from '$lib/components/RaceSummary.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import { hasSummary } from '$lib/utils/race-summary';
-	import { shareLink, type ShareOutcome } from '$lib/utils/share-link';
+	import RaceSummary from '#lib/components/RaceSummary.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { hasSummary } from '#lib/utils/race-summary.ts';
+	import { shareLink, type ShareOutcome } from '#lib/utils/share-link.ts';
 	import type { PageProps } from './$types';
 	let { data, form }: PageProps = $props();
 	let pending = $state(false);

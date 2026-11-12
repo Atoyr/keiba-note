@@ -1,33 +1,33 @@
 <script lang="ts">
-	import { gradedRaceKey, gradedRaceParam, isGraded } from '$lib/utils/graded-race';
+	import { gradedRaceKey, gradedRaceParam, isGraded } from '#lib/utils/graded-race.ts';
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
-	import RaceHeading from '$lib/components/RaceHeading.svelte';
-	import BlinkerBadge from '$lib/components/BlinkerBadge.svelte';
-	import EntryConditions from '$lib/components/EntryConditions.svelte';
-	import DraftKeeper from '$lib/components/DraftKeeper.svelte';
-	import SaveBar from '$lib/components/SaveBar.svelte';
-	import PastRuns from '$lib/components/PastRuns.svelte';
-	import PastRunsStrip from '$lib/components/PastRunsStrip.svelte';
-	import PastRunsToggle from '$lib/components/PastRunsToggle.svelte';
-	import RaceFlowEditor from '$lib/components/RaceFlowEditor.svelte';
-	import SexAgeBadge from '$lib/components/SexAgeBadge.svelte';
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import MarkPicker from '$lib/components/MarkPicker.svelte';
-	import InfoTip from '$lib/components/InfoTip.svelte';
-	import HorseLink from '$lib/components/HorseLink.svelte';
-	import JockeyLink from '$lib/components/JockeyLink.svelte';
-	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import TagPicker from '$lib/components/TagPicker.svelte';
+	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
+	import RaceHeading from '#lib/components/RaceHeading.svelte';
+	import BlinkerBadge from '#lib/components/BlinkerBadge.svelte';
+	import EntryConditions from '#lib/components/EntryConditions.svelte';
+	import DraftKeeper from '#lib/components/DraftKeeper.svelte';
+	import SaveBar from '#lib/components/SaveBar.svelte';
+	import PastRuns from '#lib/components/PastRuns.svelte';
+	import PastRunsStrip from '#lib/components/PastRunsStrip.svelte';
+	import PastRunsToggle from '#lib/components/PastRunsToggle.svelte';
+	import RaceFlowEditor from '#lib/components/RaceFlowEditor.svelte';
+	import SexAgeBadge from '#lib/components/SexAgeBadge.svelte';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import MarkPicker from '#lib/components/MarkPicker.svelte';
+	import InfoTip from '#lib/components/InfoTip.svelte';
+	import HorseLink from '#lib/components/HorseLink.svelte';
+	import JockeyLink from '#lib/components/JockeyLink.svelte';
+	import JockeyTagBadges from '#lib/components/JockeyTagBadges.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import TagPicker from '#lib/components/TagPicker.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
 	import { toast } from 'svelte-sonner';
-	import { markedInOrder } from '$lib/utils/answer';
+	import { markedInOrder } from '#lib/utils/answer.ts';
 	import {
 		currentEntry,
 		EMPTY_LIVE,
@@ -36,30 +36,30 @@
 		withEntry,
 		withField,
 		type LiveEntries
-	} from '$lib/utils/entry-fields';
-	import { raceMeeting, raceSpec } from '$lib/utils/race-heading';
+	} from '#lib/utils/entry-fields.ts';
+	import { raceMeeting, raceSpec } from '#lib/utils/race-heading.ts';
 	import {
 		horseNoteDigest,
 		latestConclusion,
 		previewSaveLabel,
 		savedMessage
-	} from '$lib/utils/note';
-	import type { Mark } from '$lib/schemas/note';
+	} from '#lib/utils/note.ts';
+	import type { Mark } from '#lib/schemas/note.ts';
 	import {
 		formatOddsAsOf,
 		formatPlaceOdds,
 		formatWinOdds,
 		sortByPopularity
-	} from '$lib/utils/odds';
-	import { flowLeadsRight } from '$lib/utils/race-flow';
-	import { isAdmin } from '$lib/utils/role';
-	import { cn } from '$lib/utils';
-	import { registerPredictionTools } from '$lib/webmcp/prediction';
-	import RacePanels from '$lib/components/RacePanels.svelte';
-	import RaceInformation from '$lib/components/RaceInformation.svelte';
-	import EntryNoteEditor from '$lib/components/EntryNoteEditor.svelte';
-	import EntryMemo from '$lib/components/EntryMemo.svelte';
-	import HorseNoteContext from '$lib/components/HorseNoteContext.svelte';
+	} from '#lib/utils/odds.ts';
+	import { flowLeadsRight } from '#lib/utils/race-flow.ts';
+	import { isAdmin } from '#lib/utils/role.ts';
+	import { cn } from '#lib/utils.ts';
+	import { registerPredictionTools } from '#lib/webmcp/prediction.ts';
+	import RacePanels from '#lib/components/RacePanels.svelte';
+	import RaceInformation from '#lib/components/RaceInformation.svelte';
+	import EntryNoteEditor from '#lib/components/EntryNoteEditor.svelte';
+	import EntryMemo from '#lib/components/EntryMemo.svelte';
+	import HorseNoteContext from '#lib/components/HorseNoteContext.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

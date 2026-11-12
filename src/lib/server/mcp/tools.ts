@@ -1,8 +1,8 @@
 import { toJsonSchema } from '@valibot/to-json-schema';
 import * as v from 'valibot';
-import { bodySchema, MARKS, NOTE_TAGS } from '$lib/schemas/note';
-import type { OAuthScope } from '$lib/schemas/oauth';
-import { MAX_ENTRIES } from '$lib/schemas/race';
+import { bodySchema, MARKS, NOTE_TAGS } from '#lib/schemas/note.ts';
+import type { OAuthScope } from '#lib/schemas/oauth.ts';
+import { MAX_ENTRIES } from '#lib/schemas/race.ts';
 import {
 	emptyFlow,
 	FLOW_COLS,
@@ -17,25 +17,25 @@ import {
 	type FlowPhase,
 	type FlowSpot,
 	type RaceFlow
-} from '$lib/schemas/race-flow';
-import type { Db } from '$lib/server/db';
-import { getHorse } from '$lib/server/services/horses';
+} from '#lib/schemas/race-flow.ts';
+import type { Db } from '#lib/server/db/index.ts';
+import { getHorse } from '#lib/server/services/horses.ts';
 import {
 	getHorseTimeline,
 	listRaceNotes,
 	listRecentNotes,
 	savePreviewNotes,
 	saveRaceReview
-} from '$lib/server/services/notes';
-import { getRaceOdds } from '$lib/server/services/odds';
+} from '#lib/server/services/notes.ts';
+import { getRaceOdds } from '#lib/server/services/odds.ts';
 import {
 	getRace,
 	listEntriesForPreview,
 	listRaces,
 	listRunsForHorse
-} from '$lib/server/services/races';
-import { isUpcoming, todayJst } from '$lib/utils/date';
-import { popularityByNumber } from '$lib/utils/odds';
+} from '#lib/server/services/races.ts';
+import { isUpcoming, todayJst } from '#lib/utils/date.ts';
+import { popularityByNumber } from '#lib/utils/odds.ts';
 
 /**
  * MCP の tools。**サービス層を呼ぶだけ。** SQL も認可の判断もここには無い。

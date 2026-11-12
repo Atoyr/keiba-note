@@ -1,16 +1,16 @@
 import { and, asc, count, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { gradedRaceNote, horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
+import type { Db } from '#lib/server/db/index.ts';
+import { gradedRaceNote, horse, note, race, raceEntry, type Race } from '#lib/server/db/schema.ts';
 import {
 	CANDIDATE_MARK,
 	isPredictionMark,
 	MARKS,
 	type NoteTag,
 	type PredictionMark
-} from '$lib/schemas/note';
-import type { Pace } from '$lib/schemas/race-flow';
-import { gradedRaceKey, gradedRaceNames, isGraded } from '$lib/utils/graded-race';
-import type { GradedRaceProfile } from '$lib/utils/graded-race-profile';
+} from '#lib/schemas/note.ts';
+import type { Pace } from '#lib/schemas/race-flow.ts';
+import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
+import type { GradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
 import { raceResultCount } from './races';
 
 /**

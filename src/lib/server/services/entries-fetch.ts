@@ -1,7 +1,7 @@
 import { and, asc, between, count, eq, inArray, isNotNull, notExists, or, sql } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { race, raceEntry } from '$lib/server/db/schema';
-import { addDays, todayJst } from '$lib/utils/date';
+import type { Db } from '#lib/server/db/index.ts';
+import { race, raceEntry } from '#lib/server/db/schema.ts';
+import { addDays, todayJst } from '#lib/utils/date.ts';
 
 /**
  * 出走馬の取得（GitHub Actions に頼む。`lib/server/race-data/`）の対象を D1 から選ぶ。

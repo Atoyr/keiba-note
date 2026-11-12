@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Check from '@lucide/svelte/icons/check';
-	import { JOCKEY_TAG_GROUPS, type JockeyTag } from '$lib/schemas/jockey';
+	import { JOCKEY_TAG_GROUPS, type JockeyTag } from '#lib/schemas/jockey.ts';
 
 	/**
 	 * 騎手に付ける札を選ぶ。チェックボックスを札の見た目にしたもの（`TagPicker` と同じ作り）。

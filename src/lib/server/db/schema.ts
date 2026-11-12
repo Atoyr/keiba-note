@@ -9,7 +9,7 @@ import {
 	text,
 	uniqueIndex
 } from 'drizzle-orm/sqlite-core';
-// 印の選択肢（MARKS）と札の型。$lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
+// 印の選択肢（MARKS）と札の型。#lib エイリアスを解決しない drizzle-kit から読めるよう相対パスにする。
 import { MARKS, type NoteTag } from '../../schemas/note';
 import { HORSE_SEXES, TRAINING_CENTERS } from '../../schemas/horse';
 import type { JockeyTag } from '../../schemas/jockey';
@@ -254,7 +254,7 @@ export const note = sqliteTable(
 		body: text('body').notNull(),
 		/**
 		 * 付けた札。`次走買い` `不利` など**固定の選択肢**から複数。JSON の配列で持つ。
-		 * 選択肢の正は `$lib/schemas/note` の `NOTE_TAGS`。
+		 * 選択肢の正は `#lib/schemas/note` の `NOTE_TAGS`。
 		 *
 		 * 別テーブルに正規化していないのは、**札で検索する画面が無い**ため。
 		 * 読むのはいつも「このメモに何が付いているか」で、note を引けば一緒に来る形が要る。
@@ -271,7 +271,7 @@ export const note = sqliteTable(
 		mark: text('mark', { enum: MARKS }),
 		/**
 		 * 展開の予想（ペースと、スタート・4コーナー・ゴール前の隊列）。
-		 * `race_preview`（レースの見立て）にだけ付く。形の正は `$lib/schemas/race-flow`。
+		 * `race_preview`（レースの見立て）にだけ付く。形の正は `#lib/schemas/race-flow`。
 		 *
 		 * **「`race_preview` にだけ付く」を CHECK にしていない。** SQLite で表の CHECK を
 		 * 足すには note 表を作り直すことになり、メモ全部を載せた本番の表を1列のために
@@ -459,7 +459,7 @@ export const jockeyNote = sqliteTable(
 		jockey: text('jockey').notNull(),
 		/** 空でもよい（札だけ付けておける）。本文も札も空なら行ごと消す。 */
 		body: text('body').notNull().default(''),
-		/** 付けた札。選択肢の正は `$lib/schemas/jockey` の `JOCKEY_TAGS`。 */
+		/** 付けた札。選択肢の正は `#lib/schemas/jockey` の `JOCKEY_TAGS`。 */
 		tags: text('tags', { mode: 'json' })
 			.$type<JockeyTag[]>()
 			.notNull()
@@ -478,7 +478,7 @@ export const jockeyNote = sqliteTable(
  * 重賞の傾向のメモ。1人・1重賞につき1本（本文だけ。札は無い）。**本人だけのもの**で、
  * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
  *
- * 重賞はマスタの表を持たない。レース名（`race.name`）を `gradedRaceKey`（`$lib/utils/graded-race`）で
+ * 重賞はマスタの表を持たない。レース名（`race.name`）を `gradedRaceKey`（`#lib/utils/graded-race`）で
  * 寄せた名前が鍵になる。年ごとにレース名が揺れるので、別名の表で同じ重賞に束ねる。
  * 本文が空なら行ごと消す（`jockey_note` と同じ形）。
  */

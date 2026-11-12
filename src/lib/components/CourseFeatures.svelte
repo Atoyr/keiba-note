@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { conditionLabel } from '$lib/utils/note';
+	import { conditionLabel } from '#lib/utils/note.ts';
 
 	/**
 	 * コースの特徴（スタート・道中・ゴール前・展開と傾向）。コース図の直前に置いて並べて読む。

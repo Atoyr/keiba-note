@@ -5,11 +5,11 @@
  * SvelteKit の外で動くので、`hooks.server.ts` がリクエストごとにしていること
  * （監視の口と D1 クライアントを作る）をここで同じようにする。
  */
-import { createDb } from '$lib/server/db';
-import { describeError } from '$lib/server/monitoring/log';
-import { createMonitor } from '$lib/server/monitoring/monitor';
-import type { AppEnv } from '$lib/server/platform';
-import type { EntriesStage } from '$lib/server/services/entries-fetch';
+import { createDb } from '#lib/server/db/index.ts';
+import { describeError } from '#lib/server/monitoring/log.ts';
+import { createMonitor } from '#lib/server/monitoring/monitor.ts';
+import type { AppEnv } from '#lib/server/platform.ts';
+import type { EntriesStage } from '#lib/server/services/entries-fetch.ts';
 import { dispatchEntriesFetch } from './dispatch';
 import {
 	requestEntriesFetch,

@@ -2,8 +2,8 @@
 	import { resolve } from '$app/paths';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { onMount } from 'svelte';
-	import * as Popover from '$lib/components/ui/popover/index.js';
-	import type { TrainingCenter } from '$lib/schemas/horse';
+	import * as Popover from '#lib/components/ui/popover/index.ts';
+	import type { TrainingCenter } from '#lib/schemas/horse.ts';
 	import HorseProfileBadges from './HorseProfileBadges.svelte';
 
 	/**

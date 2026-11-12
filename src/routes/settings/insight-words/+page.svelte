@@ -2,11 +2,11 @@
 	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
-	import { INSIGHT_WORD_MAX } from '$lib/schemas/insight';
-	import { DEFAULT_INSIGHT_WORDS } from '$lib/utils/insight-words';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Input } from '#lib/components/ui/input/index.ts';
+	import { Label } from '#lib/components/ui/label/index.ts';
+	import { INSIGHT_WORD_MAX } from '#lib/schemas/insight.ts';
+	import { DEFAULT_INSIGHT_WORDS } from '#lib/utils/insight-words.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

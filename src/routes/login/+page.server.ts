@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { safeRedirect } from '$lib/utils/redirect';
+import { safeRedirect } from '#lib/utils/redirect.ts';
 import type { PageServerLoad } from './$types';
 
 /** `?error=` で出し分けるメッセージ。状態を漏らさない粒度にとどめる。 */

@@ -1,14 +1,14 @@
 import { fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { INSIGHT_WORDS_LIMIT, insightWordSchema } from '$lib/schemas/insight';
+import { INSIGHT_WORDS_LIMIT, insightWordSchema } from '#lib/schemas/insight.ts';
 import {
 	addInsightWord,
 	addInsightWords,
 	listInsightWords,
 	removeInsightWord
-} from '$lib/server/services/insights';
-import { DEFAULT_INSIGHT_WORDS } from '$lib/utils/insight-words';
-import { ctx } from '$lib/server/util';
+} from '#lib/server/services/insights.ts';
+import { DEFAULT_INSIGHT_WORDS } from '#lib/utils/insight-words.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

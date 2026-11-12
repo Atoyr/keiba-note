@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import InfoTip from '$lib/components/InfoTip.svelte';
-	import LandingPage from '$lib/components/LandingPage.svelte';
-	import NoteMenu from '$lib/components/NoteMenu.svelte';
-	import RacePlace from '$lib/components/RacePlace.svelte';
-	import ShareControl from '$lib/components/ShareControl.svelte';
-	import SharedBadge from '$lib/components/SharedBadge.svelte';
-	import KindBadge from '$lib/components/KindBadge.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import { isReviewNote, noteHeading, noteHeadingParts } from '$lib/utils/note';
-	import { raceProgress, type ProgressTone } from '$lib/utils/dashboard';
-	import { formatDateShort, opensReview } from '$lib/utils/date';
-	import { ALL_RACES_QUERY } from '$lib/utils/race-filter';
-	import { isAdmin } from '$lib/utils/role';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import InfoTip from '#lib/components/InfoTip.svelte';
+	import LandingPage from '#lib/components/LandingPage.svelte';
+	import NoteMenu from '#lib/components/NoteMenu.svelte';
+	import RacePlace from '#lib/components/RacePlace.svelte';
+	import ShareControl from '#lib/components/ShareControl.svelte';
+	import SharedBadge from '#lib/components/SharedBadge.svelte';
+	import KindBadge from '#lib/components/KindBadge.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import { isReviewNote, noteHeading, noteHeadingParts } from '#lib/utils/note.ts';
+	import { raceProgress, type ProgressTone } from '#lib/utils/dashboard.ts';
+	import { formatDateShort, opensReview } from '#lib/utils/date.ts';
+	import { ALL_RACES_QUERY } from '#lib/utils/race-filter.ts';
+	import { isAdmin } from '#lib/utils/role.ts';
 	import type { PageData, PageProps } from './$types';
 
 	let { data }: PageProps = $props();

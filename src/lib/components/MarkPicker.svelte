@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Attachment } from 'svelte/attachments';
-	import { CANDIDATE_MARK, MARKS, type Mark } from '$lib/schemas/note';
+	import { CANDIDATE_MARK, MARKS, type Mark } from '#lib/schemas/note.ts';
 
 	/**
 	 * 予想印。ラジオボタンを札の見た目にしたもの。

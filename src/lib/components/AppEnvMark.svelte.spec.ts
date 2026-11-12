@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import favicon from '$lib/assets/favicon.svg';
-import faviconStaging from '$lib/assets/favicon-staging.svg';
+import favicon from '#lib/assets/favicon.svg';
+import faviconStaging from '#lib/assets/favicon-staging.svg';
 import AppEnvMark from './AppEnvMark.svelte';
 
 /** テストの実行ページにも vitest 自身のアイコンがあるので、あとから足された最後のものを見る。 */

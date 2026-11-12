@@ -1,6 +1,6 @@
-import { listGradedRacesInWeek, resolveWeek } from '$lib/server/services/races';
-import { todayJst } from '$lib/utils/date';
-import { ctx } from '$lib/server/util';
+import { listGradedRacesInWeek, resolveWeek } from '#lib/server/services/races.ts';
+import { todayJst } from '#lib/utils/date.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { PageServerLoad } from './$types';
 
 /**

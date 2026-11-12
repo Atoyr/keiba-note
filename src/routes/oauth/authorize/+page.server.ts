@@ -9,12 +9,12 @@ import {
 	requestedScopes,
 	REQUIRED_SCOPES,
 	type AuthorizeRequest
-} from '$lib/schemas/oauth';
-import { resolveClient } from '$lib/server/auth/client-metadata';
-import { createAuthorizationCode } from '$lib/server/auth/oauth';
-import type { Db } from '$lib/server/db';
-import { appEnv } from '$lib/server/platform';
-import { ctx } from '$lib/server/util';
+} from '#lib/schemas/oauth.ts';
+import { resolveClient } from '#lib/server/auth/client-metadata.ts';
+import { createAuthorizationCode } from '#lib/server/auth/oauth.ts';
+import type { Db } from '#lib/server/db/index.ts';
+import { appEnv } from '#lib/server/platform.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

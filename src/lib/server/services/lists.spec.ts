@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { EMPTY_RACE_FILTER } from '$lib/utils/race-filter';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { EMPTY_RACE_FILTER } from '#lib/utils/race-filter.ts';
 import { listHorses } from './horses';
 import { countRaces, listRaces } from './races';
 

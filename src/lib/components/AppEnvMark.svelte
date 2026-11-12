@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { asset } from '$app/paths';
-	import favicon from '$lib/assets/favicon.svg';
-	import faviconStaging from '$lib/assets/favicon-staging.svg';
+	import favicon from '#lib/assets/favicon.svg';
+	import faviconStaging from '#lib/assets/favicon-staging.svg';
 
 	/**
 	 * いま開いているのが本番かステージングかを見分ける印。
@@ -12,7 +12,7 @@
 	 * 帯は共有ページにも出す。著者も第三者も同じ帯を見るので、同じ見え方という要件は崩れない。
 	 *
 	 * ホーム画面のアイコン（apple-touch-icon）は `static/` に置いてパスで指す。
-	 * `$lib/assets` から import すると小さい画像は data URL に埋め込まれ、iOS が拾わないことがある。
+	 * `#lib/assets` から import すると小さい画像は data URL に埋め込まれ、iOS が拾わないことがある。
 	 */
 	let { staging }: { staging: boolean } = $props();
 </script>

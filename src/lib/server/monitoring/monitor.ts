@@ -7,8 +7,8 @@
  * 通知の対象は、既定で `error` だけ。`warn` は `notify: true` を付けたものだけ送る
  * （対応が要る WARN に限る。→ docs/monitoring.md）。送信は `waitUntil` に載せ、応答を待たせない。
  */
-import { isCheckViolation, isUniqueViolation } from '$lib/server/db/errors';
-import type { QueryObserver, QueryReport } from '$lib/server/db';
+import { isCheckViolation, isUniqueViolation } from '#lib/server/db/errors.ts';
+import type { QueryObserver, QueryReport } from '#lib/server/db/index.ts';
 import { postDiscord, toDiscordPayload } from './discord';
 import { describeError, writeLog, type LogEntry } from './log';
 import { AlertThrottle } from './throttle';

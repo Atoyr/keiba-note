@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emptyFlow } from '$lib/schemas/race-flow';
+import { emptyFlow } from '#lib/schemas/race-flow.ts';
 import { predictionDraftToFields, preparePredictionDraft } from './prediction-draft';
 
 describe('predictionDraftToFields', () => {

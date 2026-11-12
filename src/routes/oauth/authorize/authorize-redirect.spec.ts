@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { isRedirect, redirect } from '@sveltejs/kit';
-import { resolveClient } from '$lib/server/auth/client-metadata';
+import { resolveClient } from '#lib/server/auth/client-metadata.ts';
 import { actions } from './+page.server';
 
-vi.mock('$lib/server/util', () => ({ ctx: () => ({ db: {}, user: { id: 'me' } }) }));
-vi.mock('$lib/server/auth/oauth', () => ({ createAuthorizationCode: async () => 'CODE' }));
-vi.mock('$lib/server/auth/client-metadata', () => ({ resolveClient: vi.fn() }));
+vi.mock('#lib/server/util.ts', () => ({ ctx: () => ({ db: {}, user: { id: 'me' } }) }));
+vi.mock('#lib/server/auth/oauth.ts', () => ({ createAuthorizationCode: async () => 'CODE' }));
+vi.mock('#lib/server/auth/client-metadata.ts', () => ({ resolveClient: vi.fn() }));
 
 const ORIGIN = 'https://uma-memo.test';
 

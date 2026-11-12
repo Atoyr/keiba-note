@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MCP_BODY_LIMIT } from '$lib/server/auth/limited-body';
+import { MCP_BODY_LIMIT } from '#lib/server/auth/limited-body.ts';
 import { POST } from './+server';
 
-vi.mock('$lib/server/util', () => ({ ctx: () => ({ db: {}, user: { id: 'A' } }) }));
+vi.mock('#lib/server/util.ts', () => ({ ctx: () => ({ db: {}, user: { id: 'A' } }) }));
 
 const post = (request: Request) =>
 	POST({

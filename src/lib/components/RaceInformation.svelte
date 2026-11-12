@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
 	import { resolve } from '$app/paths';
-	import CourseFeatures from '$lib/components/CourseFeatures.svelte';
-	import CourseMap from '$lib/components/CourseMap.svelte';
-	import GradedRaceTimeline from '$lib/components/GradedRaceTimeline.svelte';
-	import GradedRaceTrend from '$lib/components/GradedRaceTrend.svelte';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import RaceConditions from '$lib/components/RaceConditions.svelte';
-	import { gradedRaceParam } from '$lib/utils/graded-race';
-	import { conditionLabel, noteHeading } from '$lib/utils/note';
-	import type { RaceHeadingSource } from '$lib/utils/race-heading';
+	import CourseFeatures from '#lib/components/CourseFeatures.svelte';
+	import CourseMap from '#lib/components/CourseMap.svelte';
+	import GradedRaceTimeline from '#lib/components/GradedRaceTimeline.svelte';
+	import GradedRaceTrend from '#lib/components/GradedRaceTrend.svelte';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import RaceConditions from '#lib/components/RaceConditions.svelte';
+	import { gradedRaceParam } from '#lib/utils/graded-race.ts';
+	import { conditionLabel, noteHeading } from '#lib/utils/note.ts';
+	import type { RaceHeadingSource } from '#lib/utils/race-heading.ts';
 	let {
 		race,
 		graded,

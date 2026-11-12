@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	import { tv } from 'tailwind-variants';
-	import type { ResolvedSpot } from '$lib/utils/race-flow';
+	import type { ResolvedSpot } from '#lib/utils/race-flow.ts';
 
 	/**
 	 * 盤面のコマ。`key` は操作するときに馬を指す値（予想画面では出走馬の id）。
@@ -27,11 +27,11 @@
 </script>
 
 <script lang="ts">
-	import { BRACKET_CLASS, BRACKET_MARK_FILL } from '$lib/components/BracketBadge.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { FLOW_COLS, FLOW_LANES } from '$lib/schemas/race-flow';
-	import { horseToken } from '$lib/utils/race-flow';
-	import { cn } from '$lib/utils';
+	import { BRACKET_CLASS, BRACKET_MARK_FILL } from '#lib/components/BracketBadge.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { FLOW_COLS, FLOW_LANES } from '#lib/schemas/race-flow.ts';
+	import { horseToken } from '#lib/utils/race-flow.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * 展開の盤面。前後 × 内外のマス目に、枠の色のコマ（馬番）を置く。

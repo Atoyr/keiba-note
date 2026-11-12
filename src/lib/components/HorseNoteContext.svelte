@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import JockeyTagBadges from '$lib/components/JockeyTagBadges.svelte';
-	import type { NoteTag } from '$lib/schemas/note';
-	import type { JockeyTag } from '$lib/schemas/jockey';
-	import { jockeyParam } from '$lib/utils/jockey';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import JockeyTagBadges from '#lib/components/JockeyTagBadges.svelte';
+	import type { NoteTag } from '#lib/schemas/note.ts';
+	import type { JockeyTag } from '#lib/schemas/jockey.ts';
+	import { jockeyParam } from '#lib/utils/jockey.ts';
 	let {
 		horseId,
 		notes,

@@ -10,7 +10,7 @@
  * fine-grained token（docs/operations.md）。
  */
 
-import type { EntriesStage } from '$lib/server/services/entries-fetch';
+import type { EntriesStage } from '#lib/server/services/entries-fetch.ts';
 
 export const ENTRIES_WORKFLOW = 'race-data-fetch.yml';
 

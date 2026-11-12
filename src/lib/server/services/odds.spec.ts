@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import type { Db } from '$lib/server/db';
-import { createTestDb } from '$lib/server/db/test-d1';
+import type { Db } from '#lib/server/db/index.ts';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
 import { getRaceOdds, listOddsTargetIds } from './odds';
 
 // 書き込み（取得した値の保存）は GitHub Actions 側（scripts/odds/store.spec.ts）で見る。ここは読むだけ。

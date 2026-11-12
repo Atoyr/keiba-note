@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import TagPicker from './TagPicker.svelte';
-import { NOTE_TAGS } from '$lib/schemas/note';
+import { NOTE_TAGS } from '#lib/schemas/note.ts';
 
 const boxes = (root: HTMLElement) => [
 	...root.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')

@@ -2,12 +2,12 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { tick } from 'svelte';
-	import McpUrl from '$lib/components/McpUrl.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Progress } from '$lib/components/ui/progress/index.js';
-	import { SCOPE_LABELS } from '$lib/schemas/oauth';
-	import { todayJst } from '$lib/utils/date';
-	import { formatMcpReset } from '$lib/utils/mcp-quota';
+	import McpUrl from '#lib/components/McpUrl.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Progress } from '#lib/components/ui/progress/index.ts';
+	import { SCOPE_LABELS } from '#lib/schemas/oauth.ts';
+	import { todayJst } from '#lib/utils/date.ts';
+	import { formatMcpReset } from '#lib/utils/mcp-quota.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

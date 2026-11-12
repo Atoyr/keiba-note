@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { courseMap, ROUTE_STYLE, type CourseMapSource } from '$lib/utils/course';
+	import { courseMap, ROUTE_STYLE, type CourseMapSource } from '#lib/utils/course.ts';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import CourseElevation from './CourseElevation.svelte';
 
@@ -23,7 +23,7 @@
 	// ファイル名（`tokyo-turf.svg`）→ URL。
 	const urls = Object.fromEntries(
 		Object.entries(
-			import.meta.glob<string>('$lib/assets/courses/*.svg', {
+			import.meta.glob<string>('#lib/assets/courses/*.svg', {
 				eager: true,
 				query: '?no-inline',
 				import: 'default'

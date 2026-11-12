@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import RaceHeading from '$lib/components/RaceHeading.svelte';
-	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import RaceFlowDetails from '$lib/components/RaceFlowDetails.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import { hasResolvedFlow } from '$lib/utils/race-flow';
-	import { orderedSummaryRows, type RaceSummary } from '$lib/utils/race-summary';
+	import RaceHeading from '#lib/components/RaceHeading.svelte';
+	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import RaceFlowDetails from '#lib/components/RaceFlowDetails.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import { hasResolvedFlow } from '#lib/utils/race-flow.ts';
+	import { orderedSummaryRows, type RaceSummary } from '#lib/utils/race-summary.ts';
 	let {
 		summary,
 		authorName,

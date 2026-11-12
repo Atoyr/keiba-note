@@ -1,8 +1,8 @@
 <script lang="ts">
-	import RaceFlowBoard from '$lib/components/RaceFlowBoard.svelte';
-	import { FLOW_PHASES, FLOW_PHASE_LABEL } from '$lib/schemas/race-flow';
-	import FlowOrder from '$lib/components/FlowOrder.svelte';
-	import { flowColumns, type ResolvedFlow } from '$lib/utils/race-flow';
+	import RaceFlowBoard from '#lib/components/RaceFlowBoard.svelte';
+	import { FLOW_PHASES, FLOW_PHASE_LABEL } from '#lib/schemas/race-flow.ts';
+	import FlowOrder from '#lib/components/FlowOrder.svelte';
+	import { flowColumns, type ResolvedFlow } from '#lib/utils/race-flow.ts';
 
 	/**
 	 * 展開の予想を読むだけの形。予想まとめ・共有ページ・ふりかえりで使う。

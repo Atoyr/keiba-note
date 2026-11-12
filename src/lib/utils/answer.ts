@@ -6,7 +6,7 @@
  * 両方を持っているのはふりかえり画面だけ。ここで並べないと、どこでも並ばない。
  */
 
-import { isPredictionMark, MARKS, type Mark, type PredictionMark } from '$lib/schemas/note';
+import { isPredictionMark, MARKS, type Mark, type PredictionMark } from '#lib/schemas/note.ts';
 
 /**
  * 1頭の結果を競馬の言い方で。

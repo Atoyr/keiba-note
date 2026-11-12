@@ -158,7 +158,7 @@ Lead が Issue から作業を始めるときの入力にもなる（[orchestrat
 boundaries の設定（機能の順序の配列を含む）は architecture.md の表と並びから作り、両者を揃える。
 ルート（`src/routes/`）は機能を組み合わせる場所なので、横の軸の制約は受けない。
 
-パッケージ単位の禁止（`@sveltejs/kit`・`$app/*`・`drizzle-orm`・`arctic`・`$lib/server` を使ってよい場所）は
+パッケージ単位の禁止（`@sveltejs/kit`・`$app/*`・`drizzle-orm`・`arctic`・`#lib/server` を使ってよい場所）は
 **入っている**（`eslint.config.js`。ESLint 標準の `no-restricted-imports` を `files` ごとに掛けた。表は architecture.md 第2章）。
 ブロックの分け方の注意は `eslint.config.js` の注釈にある。
 ファイル間の向きと横の軸は次の 2-4 のプラグイン（まだ無い）で見る。
@@ -602,7 +602,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 | 論点 | 決めたこと | 理由 |
 | --- | --- | --- |
 | 依存の検査ツール | eslint-plugin-boundaries | `.svelte` の `import type` を見逃さない（2-4） |
-| 機能の表し方 | 層の下に機能のディレクトリ | SvelteKit の `$lib/server` の保護を保ったまま、規則を glob で書ける |
+| 機能の表し方 | 層の下に機能のディレクトリ | SvelteKit の `#lib/server` の保護を保ったまま、規則を glob で書ける |
 | 既存違反の扱い（第2層） | 規則を入れる PR で全部直す | 数件しかない（2-5） |
 | 既存違反の扱い（第3層） | 一括抑制で凍結して、画面ごとに減らす | 数百箇所あり、1つの PR で見比べられない |
 | 見た目の回帰テスト | 入れない | [testing.md 第7章](./testing.md) |
@@ -611,7 +611,7 @@ Opus 5.5 の使い方の手引き（[Getting the most out of Opus 5.5](https://c
 決めていないこと（実装の PR で決める）:
 
 - **機能を最上位のディレクトリにするか。** `src/lib/features/<機能>/` に層を入れる形も
-  取れる。機能の境界はこちらのほうが強く見えるが、サーバーのコードが `$lib/server` の外に出るので
+  取れる。機能の境界はこちらのほうが強く見えるが、サーバーのコードが `#lib/server` の外に出るので
   `*.server.ts` の命名で守ることになる。今は移動の少ない「層の下に機能」を選んでいる
 - **share と dashboard を service で分けるか。** レースの共有は `services/race-shares.ts` に分かれているが、
   メモ単位の共有（`getSharedNote`・`setNoteVisibility`・`listSharedNotes`）とダッシュボードの `listWatchSources` は

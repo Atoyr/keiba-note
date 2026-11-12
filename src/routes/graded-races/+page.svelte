@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import { resolve } from '$app/paths';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import { formatDateShort } from '$lib/utils/date';
-	import { gradedRaceParam } from '$lib/utils/graded-race';
-	import { conditionLabel } from '$lib/utils/note';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import { formatDateShort } from '#lib/utils/date.ts';
+	import { gradedRaceParam } from '#lib/utils/graded-race.ts';
+	import { conditionLabel } from '#lib/utils/note.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

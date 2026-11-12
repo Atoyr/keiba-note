@@ -249,7 +249,7 @@ export const RULES: Rule[] = [
 	{
 		reviewer: 'frontend',
 		path: /^src\/(routes|lib\/components|lib\/utils)\/(?!.*\.server\.ts$)/,
-		content: /\$lib\/server/,
+		content: /#lib\/server/,
 		side: 'added',
 		weight: 3,
 		reason: '画面側からサーバーのコードを import している'

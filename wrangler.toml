@@ -46,11 +46,6 @@ cpu_ms = 1000
 # 1呼び出しの fetch などの数。D1 クエリの約束は10以内（architecture.md 7-1）だが、それは上限で縛らない。
 subrequests = 1000
 
-# src/worker.js から import する TS（Cron の入口）は SvelteKit ではなく wrangler が束ねる。
-# そこで使う `$lib` を SvelteKit と同じ場所に向ける。
-[alias]
-"$lib" = "./src/lib"
-
 # Cron は2つの用途で動く。どちらも GitHub Actions を起動するだけで、Worker から netkeiba へは行かない。
 #
 # オッズの更新の依頼（src/lib/server/odds/scheduled.ts の ODDS_CRONS と同じ文字列にする）。

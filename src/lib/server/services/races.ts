@@ -12,14 +12,14 @@ import {
 	sql
 } from 'drizzle-orm';
 import { ulid } from 'ulidx';
-import type { Db } from '$lib/server/db';
-import { horse, note, race, raceEntry, type Race } from '$lib/server/db/schema';
-import { CANDIDATE_MARK } from '$lib/schemas/note';
-import { GRADED } from '$lib/schemas/race';
-import type { HorseSex, TrainingCenter } from '$lib/schemas/horse';
-import { currentWeek, shiftWeek, weekLookupRange, type Week } from '$lib/utils/date';
-import { PAGE_SIZE, toPage, type Page } from '$lib/utils/paging';
-import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '$lib/utils/race-filter';
+import type { Db } from '#lib/server/db/index.ts';
+import { horse, note, race, raceEntry, type Race } from '#lib/server/db/schema.ts';
+import { CANDIDATE_MARK } from '#lib/schemas/note.ts';
+import { GRADED } from '#lib/schemas/race.ts';
+import type { HorseSex, TrainingCenter } from '#lib/schemas/horse.ts';
+import { currentWeek, shiftWeek, weekLookupRange, type Week } from '#lib/utils/date.ts';
+import { PAGE_SIZE, toPage, type Page } from '#lib/utils/paging.ts';
+import { EMPTY_RACE_FILTER, yearRange, type RaceFilter } from '#lib/utils/race-filter.ts';
 import { findOrCreateHorse } from './horses';
 
 export type RaceListItem = Pick<
@@ -80,10 +80,10 @@ function raceFilterWhere(filter: RaceFilter) {
  * Drizzle が列をテーブル修飾なしで展開し、内側のテーブルの同名列に
  * 束縛されて壊れる（horses.ts の listHorses に同じ注記あり）。
  *
- * `filter` は年度・格付け・レース名の絞り込み（→ `$lib/utils/race-filter`）。
+ * `filter` は年度・格付け・レース名の絞り込み（→ `#lib/utils/race-filter`）。
  * **メモ件数は viewer 自身のぶんだけ**を数えるのは絞り込みの有無によらない。
  *
- * `offset` 件目から `PAGE_SIZE` 件ずつ返す（画面は下端で続きを読む → `$lib/utils/paging`）。
+ * `offset` 件目から `PAGE_SIZE` 件ずつ返す（画面は下端で続きを読む → `#lib/utils/paging`）。
  * 並びの最後に id を足してあるのは、同じ日・同じ R の別の場が offset の切れ目をまたいでも
  * 毎回同じ順に並べ、ページの間で重なったり抜けたりしないようにするため。
  */
@@ -129,7 +129,7 @@ export async function countRaces(db: Db, filter: RaceFilter = EMPTY_RACE_FILTER)
 
 /**
  * 期間内のレースに添える、自分のメモの種類別の件数。ダッシュボードの進み具合
- * （見立て済・印 N頭・ふりかえり済 → `$lib/utils/dashboard` の `raceProgress`）の材料。
+ * （見立て済・印 N頭・ふりかえり済 → `#lib/utils/dashboard` の `raceProgress`）の材料。
  */
 export type RaceProgressItem = RaceListItem & {
 	/** 見立て（`race_preview`）。 */
@@ -420,7 +420,7 @@ async function listGradedRaceDates(db: Db, from: string, to: string): Promise<st
  * 表示する週を決める。`offset` は一覧の「前の週 / 次の週」ぶん。
  *
  * 連休は月曜・火曜まで開催があるので、週の終わりは登録済みの開催日を見て決まる
- * （→ `$lib/utils/date` の `currentWeek`）。判定に要る日付は今週と移動先の前後に限られるので、
+ * （→ `#lib/utils/date` の `currentWeek`）。判定に要る日付は今週と移動先の前後に限られるので、
  * まとめて1回で引いてから週を解決する。
  */
 export async function resolveWeek(db: Db, offset: number, now: Date = new Date()): Promise<Week> {

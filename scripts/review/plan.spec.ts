@@ -114,21 +114,23 @@ describe('planReview — SQL', () => {
 });
 
 describe('planReview — フロント', () => {
-	it('画面は中。画面側から $lib/server を import したら重', () => {
+	it('画面は中。画面側から #lib/server を import したら重', () => {
 		expect(weights([file('src/routes/races/+page.svelte', ['<p>{data.name}</p>'])]).frontend).toBe(
 			2
 		);
 		expect(
 			weights([
-				file('src/lib/components/NoteCard.svelte', ["import type { Db } from '$lib/server/db';"])
+				file('src/lib/components/NoteCard.svelte', [
+					"import type { Db } from '#lib/server/db/index.ts';"
+				])
 			]).frontend
 		).toBe(3);
 	});
 
-	it('+page.server.ts が $lib/server を読むのは当然なので重くしない', () => {
+	it('+page.server.ts が #lib/server を読むのは当然なので重くしない', () => {
 		expect(
 			weights([
-				file('src/routes/races/+page.server.ts', ["import { ctx } from '$lib/server/util';"])
+				file('src/routes/races/+page.server.ts', ["import { ctx } from '#lib/server/util.ts';"])
 			]).frontend
 		).toBe(2);
 	});

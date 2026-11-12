@@ -1,4 +1,4 @@
-import type { HorseSex } from '$lib/schemas/horse';
+import type { HorseSex } from '#lib/schemas/horse.ts';
 
 /**
  * 馬齢。JRA は毎年1月1日に一斉に加齢する数え方（2001年以降）なので、レースの日付の年 − 生年。

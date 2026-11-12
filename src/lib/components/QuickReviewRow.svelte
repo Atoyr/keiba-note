@@ -3,12 +3,12 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import CheckIcon from '@lucide/svelte/icons/check';
-	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import type { Mark } from '$lib/schemas/note';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { hasQuickWord, toggleQuickWord } from '$lib/utils/quick-words';
-	import { cn } from '$lib/utils';
+	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import type { Mark } from '#lib/schemas/note.ts';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { hasQuickWord, toggleQuickWord } from '#lib/utils/quick-words.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * クイック入力の1行（1頭ぶん）。言葉を押すと、その馬のふりかえりメモの本文に入る（もう一度押すと抜ける）。

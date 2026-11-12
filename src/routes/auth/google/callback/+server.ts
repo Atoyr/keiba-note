@@ -6,17 +6,17 @@ import {
 	createGoogleClient,
 	oauthErrorCode,
 	parseIdToken
-} from '$lib/server/auth/google';
+} from '#lib/server/auth/google.ts';
 import {
 	SESSION_COOKIE,
 	SESSION_TTL_MS,
 	createSession,
 	resolveGoogleLogin
-} from '$lib/server/auth/session';
-import { createDb } from '$lib/server/db';
-import { describeError } from '$lib/server/monitoring/log';
-import { safeRedirect } from '$lib/utils/redirect';
-import { appEnv } from '$lib/server/platform';
+} from '#lib/server/auth/session.ts';
+import { createDb } from '#lib/server/db/index.ts';
+import { describeError } from '#lib/server/monitoring/log.ts';
+import { safeRedirect } from '#lib/utils/redirect.ts';
+import { appEnv } from '#lib/server/platform.ts';
 import type { RequestHandler } from './$types';
 
 /** 一時 Cookie をまとめて捨てる。 */

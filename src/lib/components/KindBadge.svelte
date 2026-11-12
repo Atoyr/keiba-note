@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { NoteKindLabel } from '$lib/utils/note';
+	import type { NoteKindLabel } from '#lib/utils/note.ts';
 
 	/**
 	 * 色。塗るのは「これから走る」と「レース前に書いた」の2つだけにする。
@@ -25,7 +25,7 @@
 </script>
 
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 
 	/**
 	 * タイムラインの行種別の札。**アプリが決めるもの**で、ユーザーは選べない。

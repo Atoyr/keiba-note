@@ -1,9 +1,9 @@
 <script lang="ts">
-	import FlowDigest from '$lib/components/FlowDigest.svelte';
-	import RaceFlowView from '$lib/components/RaceFlowView.svelte';
-	import type { FlowPhase } from '$lib/schemas/race-flow';
-	import { flowDigest, type ResolvedFlow } from '$lib/utils/race-flow';
-	import { cn } from '$lib/utils';
+	import FlowDigest from '#lib/components/FlowDigest.svelte';
+	import RaceFlowView from '#lib/components/RaceFlowView.svelte';
+	import type { FlowPhase } from '#lib/schemas/race-flow.ts';
+	import { flowDigest, type ResolvedFlow } from '#lib/utils/race-flow.ts';
+	import { cn } from '#lib/utils.ts';
 
 	/**
 	 * 読むだけの展開の予想を畳んだ形。予想まとめ・共有ページ・ふりかえりで同じ見せ方にする。

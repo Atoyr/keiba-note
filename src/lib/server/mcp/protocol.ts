@@ -1,8 +1,8 @@
 import * as v from 'valibot';
-import type { OAuthScope } from '$lib/schemas/oauth';
-import type { Db } from '$lib/server/db';
-import { consumeMcpQuota } from '$lib/server/services/mcp-usage';
-import { formatMcpReset } from '$lib/utils/mcp-quota';
+import type { OAuthScope } from '#lib/schemas/oauth.ts';
+import type { Db } from '#lib/server/db/index.ts';
+import { consumeMcpQuota } from '#lib/server/services/mcp-usage.ts';
+import { formatMcpReset } from '#lib/utils/mcp-quota.ts';
 import { describeTool, TOOLS, type ToolResult } from './tools';
 
 /**

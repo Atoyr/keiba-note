@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import ActualFlow from './ActualFlow.svelte';
-import type { ResolvedFlow } from '$lib/utils/race-flow';
+import type { ResolvedFlow } from '#lib/utils/race-flow.ts';
 
 const spot = (horseNumber: number, x: number, y = 0) => ({
 	horseNumber,

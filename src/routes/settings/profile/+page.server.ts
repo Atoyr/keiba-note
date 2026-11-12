@@ -1,8 +1,8 @@
 import { fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { publicNameSchema } from '$lib/schemas/profile';
-import { getPublicName, setPublicName } from '$lib/server/services/profile';
-import { ctx } from '$lib/server/util';
+import { publicNameSchema } from '#lib/schemas/profile.ts';
+import { getPublicName, setPublicName } from '#lib/server/services/profile.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {

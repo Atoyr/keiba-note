@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { GRADES } from '$lib/schemas/race';
-	import { ALL_RACES_QUERY, hasRaceFilter, type RaceFilter } from '$lib/utils/race-filter';
+	import { GRADES } from '#lib/schemas/race.ts';
+	import { ALL_RACES_QUERY, hasRaceFilter, type RaceFilter } from '#lib/utils/race-filter.ts';
 
 	/**
 	 * レース一覧の絞り込み。年度・ランク（OR）・レース名（部分一致）。

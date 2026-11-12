@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { JOCKEY_TAGS, jockeySummarySchema } from '$lib/schemas/jockey';
+import { JOCKEY_TAGS, jockeySummarySchema } from '#lib/schemas/jockey.ts';
 import {
 	countJockeyRides,
 	getJockeySummary,
@@ -11,9 +11,9 @@ import {
 	listJockeyRides,
 	mergeJockeyTimeline,
 	saveJockeySummary
-} from '$lib/server/services/jockeys';
-import { ctx } from '$lib/server/util';
-import { todayJst } from '$lib/utils/date';
+} from '#lib/server/services/jockeys.ts';
+import { ctx } from '#lib/server/util.ts';
+import { todayJst } from '#lib/utils/date.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

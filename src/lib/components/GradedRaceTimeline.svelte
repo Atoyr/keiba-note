@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import HorseNumberBadge from '$lib/components/HorseNumberBadge.svelte';
-	import KindBadge from '$lib/components/KindBadge.svelte';
-	import MarkBadge from '$lib/components/MarkBadge.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import type { NoteTag, PredictionMark } from '$lib/schemas/note';
-	import { opensReview } from '$lib/utils/date';
+	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
+	import KindBadge from '#lib/components/KindBadge.svelte';
+	import MarkBadge from '#lib/components/MarkBadge.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import type { NoteTag, PredictionMark } from '#lib/schemas/note.ts';
+	import { opensReview } from '#lib/utils/date.ts';
 
 	/**
 	 * 重賞の年ごとのメモ（その年のレースの下に、見立て・ペース・印・ふりかえり・勝ち馬を重ねたもの）。

@@ -14,18 +14,18 @@
  *
  * ログの出し方（通知するかどうか）は呼び出し側に渡す `log` が決める。ここは monitoring を知らない。
  */
-import type { Db } from '$lib/server/db';
+import type { Db } from '#lib/server/db/index.ts';
 import {
 	listEntriesFetchTargets,
 	type EntriesFetchTarget,
 	type EntriesStage
-} from '$lib/server/services/entries-fetch';
+} from '#lib/server/services/entries-fetch.ts';
 import {
 	listPassingGaveUpRaces,
 	listPassingRefetchTargets,
 	listResultsFetchTargets,
 	PASSING_REFETCH_DAYS
-} from '$lib/server/services/results-fetch';
+} from '#lib/server/services/results-fetch.ts';
 import { DispatchError, type DispatchErrorKind, type EntriesFetchRequest } from './dispatch';
 
 export type EntriesLogEntry = {

@@ -1,10 +1,10 @@
 import { error } from '@sveltejs/kit';
-import { createDb } from '$lib/server/db';
-import { loadFontFromAssets, renderPng } from '$lib/server/og/render';
-import { resvgWasm } from '$lib/server/og/resvg-wasm';
-import { appEnv } from '$lib/server/platform';
-import { getSharedRaceSummary } from '$lib/server/services/race-shares';
-import { raceSummaryCardSvg } from '$lib/utils/share-card';
+import { createDb } from '#lib/server/db/index.ts';
+import { loadFontFromAssets, renderPng } from '#lib/server/og/render.ts';
+import { resvgWasm } from '#lib/server/og/resvg-wasm.ts';
+import { appEnv } from '#lib/server/platform.ts';
+import { getSharedRaceSummary } from '#lib/server/services/race-shares.ts';
+import { raceSummaryCardSvg } from '#lib/utils/share-card.ts';
 import type { RequestHandler } from './$types';
 
 /**

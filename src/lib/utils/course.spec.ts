@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COURSES } from '$lib/schemas/race';
+import { COURSES } from '#lib/schemas/race.ts';
 import { COURSE_SPECS, courseMap, courseMapSvg, courseRoute, type CourseMapSource } from './course';
 
 const race = (course: string, surface: string | null, distance: number | null = null) => ({

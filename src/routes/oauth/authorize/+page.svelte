@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { SCOPE_LABELS } from '$lib/schemas/oauth';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { SCOPE_LABELS } from '#lib/schemas/oauth.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

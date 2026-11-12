@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HorseSex } from '$lib/schemas/horse';
-	import { SEX_TONE, chip } from '$lib/utils/horse-chip';
+	import type { HorseSex } from '#lib/schemas/horse.ts';
+	import { SEX_TONE, chip } from '#lib/utils/horse-chip.ts';
 
 	/**
 	 * 性齢の札（`牡4`）。馬詳細の頭（`HorseProfileHeader`）の性齢の札と同じ見た目で、

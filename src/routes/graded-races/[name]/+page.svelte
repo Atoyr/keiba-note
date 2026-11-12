@@ -2,12 +2,12 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
-	import GradeBadge from '$lib/components/GradeBadge.svelte';
-	import GradedRaceTimeline from '$lib/components/GradedRaceTimeline.svelte';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import { Textarea } from '$lib/components/ui/textarea/index.js';
-	import { formatDateShort } from '$lib/utils/date';
-	import { conditionLabel } from '$lib/utils/note';
+	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import GradedRaceTimeline from '#lib/components/GradedRaceTimeline.svelte';
+	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
+	import { formatDateShort } from '#lib/utils/date.ts';
+	import { conditionLabel } from '#lib/utils/note.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();

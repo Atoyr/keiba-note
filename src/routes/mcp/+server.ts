@@ -1,8 +1,8 @@
 import { error, json } from '@sveltejs/kit';
-import { MCP_BODY_LIMIT, readLimitedText } from '$lib/server/auth/limited-body';
-import { bearerChallenge } from '$lib/server/auth/oauth-metadata';
-import { handleMcpMessage, PROTOCOL_VERSIONS } from '$lib/server/mcp/protocol';
-import { ctx } from '$lib/server/util';
+import { MCP_BODY_LIMIT, readLimitedText } from '#lib/server/auth/limited-body.ts';
+import { bearerChallenge } from '#lib/server/auth/oauth-metadata.ts';
+import { handleMcpMessage, PROTOCOL_VERSIONS } from '#lib/server/mcp/protocol.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { RequestHandler } from './$types';
 
 /**

@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DatabaseSync } from 'node:sqlite';
-import { createTestDb } from '$lib/server/db/test-d1';
-import { createDb, type Db } from '$lib/server/db';
-import { hashSessionToken, validateSession } from '$lib/server/auth/session';
-import type { AppEnv } from '$lib/server/platform';
-import type { QueryReport } from '$lib/server/db/instrument';
-import { env, resetTestEnv } from '$lib/server/test-cloudflare-workers';
+import { createTestDb } from '#lib/server/db/test-d1.ts';
+import { createDb, type Db } from '#lib/server/db/index.ts';
+import { hashSessionToken, validateSession } from '#lib/server/auth/session.ts';
+import type { AppEnv } from '#lib/server/platform.ts';
+import type { QueryReport } from '#lib/server/db/instrument.ts';
+import { env, resetTestEnv } from '#lib/server/test-cloudflare-workers.ts';
 import { load as previewLoad, actions as previewActions } from './races/[id]/preview/+page.server';
 import { load as reviewLoad, actions as reviewActions } from './races/[id]/+page.server';
 

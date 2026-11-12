@@ -2,7 +2,7 @@
 	import { toast } from 'svelte-sonner';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button/index.js';
+	import { Button } from '#lib/components/ui/button/index.ts';
 
 	/**
 	 * 1メモぶんの共有スイッチ。

@@ -1,4 +1,4 @@
-import { NOTE_TAGS, type Mark, type NoteTag } from '$lib/schemas/note';
+import { NOTE_TAGS, type Mark, type NoteTag } from '#lib/schemas/note.ts';
 
 /**
  * 出走馬ごとの入力欄（`mark.{entryId}` / `body.{entryId}` / `tags.{entryId}`）の、いま入力している値。

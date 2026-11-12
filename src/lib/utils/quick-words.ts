@@ -1,4 +1,4 @@
-import { NOTE_BODY_MAX } from '$lib/schemas/note';
+import { NOTE_BODY_MAX } from '#lib/schemas/note.ts';
 
 /**
  * クイック入力の言葉を、ふりかえりメモの本文に出し入れする（純粋な関数）。

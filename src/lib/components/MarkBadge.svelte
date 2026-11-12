@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CANDIDATE_MARK, type Mark } from '$lib/schemas/note';
+	import { CANDIDATE_MARK, type Mark } from '#lib/schemas/note.ts';
 
 	/** 付けた印の表示。MarkPicker と同じ色づけで、読むときと書くときを揃える。 */
 	let { mark }: { mark: Mark | null } = $props();

@@ -1,12 +1,12 @@
 import { error, fail } from '@sveltejs/kit';
-import { getPublicName } from '$lib/server/services/profile';
+import { getPublicName } from '#lib/server/services/profile.ts';
 import {
 	getOwnRaceShare,
 	getRaceSummary,
 	publishRaceSummary,
 	revokeRaceShare
-} from '$lib/server/services/race-shares';
-import { ctx } from '$lib/server/util';
+} from '#lib/server/services/race-shares.ts';
+import { ctx } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params, setHeaders }) => {

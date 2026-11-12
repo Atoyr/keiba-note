@@ -1,8 +1,8 @@
 import { and, eq, inArray, isNull, lte, ne, sql } from 'drizzle-orm';
 import * as v from 'valibot';
-import { clientMetadataDocumentSchema, isClientIdMetadataUrl } from '$lib/schemas/oauth';
-import type { Db } from '$lib/server/db';
-import { oauthClient } from '$lib/server/db/schema';
+import { clientMetadataDocumentSchema, isClientIdMetadataUrl } from '#lib/schemas/oauth.ts';
+import type { Db } from '#lib/server/db/index.ts';
+import { oauthClient } from '#lib/server/db/schema.ts';
 import { readLimitedText } from './limited-body';
 import { getClient, UNUSED_CLIENT_TTL_SEC, type OAuthClientView } from './oauth';
 

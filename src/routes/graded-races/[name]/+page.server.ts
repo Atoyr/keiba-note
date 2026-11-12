@@ -1,16 +1,16 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { gradedRaceTrendSchema } from '$lib/schemas/graded-race';
+import { gradedRaceTrendSchema } from '#lib/schemas/graded-race.ts';
 import {
 	buildGradedRaceTimeline,
 	currentGrade,
 	listSeriesRaces,
 	readGradedRaceSeries,
 	saveGradedRaceTrend
-} from '$lib/server/services/graded-races';
-import { ctx } from '$lib/server/util';
-import { todayJst } from '$lib/utils/date';
-import { gradedRaceKey, gradedRaceNames } from '$lib/utils/graded-race';
+} from '#lib/server/services/graded-races.ts';
+import { ctx } from '#lib/server/util.ts';
+import { todayJst } from '#lib/utils/date.ts';
+import { gradedRaceKey, gradedRaceNames } from '#lib/utils/graded-race.ts';
 import type { Actions, PageServerLoad } from './$types';
 
 /**

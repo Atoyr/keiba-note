@@ -1,7 +1,7 @@
 import { dev } from '$app/env';
 import { error, redirect } from '@sveltejs/kit';
-import { MOCK_USER_COOKIE, isMockUserKey } from '$lib/server/auth/mock';
-import { safeRedirect } from '$lib/utils/redirect';
+import { MOCK_USER_COOKIE, isMockUserKey } from '#lib/server/auth/mock.ts';
+import { safeRedirect } from '#lib/utils/redirect.ts';
 import type { RequestHandler } from './$types';
 
 /**

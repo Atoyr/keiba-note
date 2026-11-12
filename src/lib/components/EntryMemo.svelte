@@ -1,7 +1,7 @@
 <script lang="ts">
-	import KindBadge from '$lib/components/KindBadge.svelte';
-	import TagBadges from '$lib/components/TagBadges.svelte';
-	import type { NoteTag } from '$lib/schemas/note';
+	import KindBadge from '#lib/components/KindBadge.svelte';
+	import TagBadges from '#lib/components/TagBadges.svelte';
+	import type { NoteTag } from '#lib/schemas/note.ts';
 
 	/**
 	 * 出走馬の行に、メモ（本文と札）をそのまま出す。入力欄を開かなくても書いたものが読めるように。

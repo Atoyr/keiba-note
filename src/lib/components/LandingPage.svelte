@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import GoogleLogin from '$lib/components/GoogleLogin.svelte';
-	import dashboard from '$lib/assets/landing/dashboard.png';
-	import flow from '$lib/assets/landing/flow.png';
-	import horse from '$lib/assets/landing/horse.png';
-	import previewEntry from '$lib/assets/landing/preview-entry.png';
-	import preview from '$lib/assets/landing/preview.png';
-	import review from '$lib/assets/landing/review.png';
-	import sizes from '$lib/assets/landing/sizes.json';
-	import summary from '$lib/assets/landing/summary.png';
+	import GoogleLogin from '#lib/components/GoogleLogin.svelte';
+	import dashboard from '#lib/assets/landing/dashboard.png';
+	import flow from '#lib/assets/landing/flow.png';
+	import horse from '#lib/assets/landing/horse.png';
+	import previewEntry from '#lib/assets/landing/preview-entry.png';
+	import preview from '#lib/assets/landing/preview.png';
+	import review from '#lib/assets/landing/review.png';
+	import sizes from '#lib/assets/landing/sizes.json';
+	import summary from '#lib/assets/landing/summary.png';
 
 	/**
 	 * 未ログインで `/` を開いた人に出す紹介ページ。Google の同意画面の「ホームページ」でもある

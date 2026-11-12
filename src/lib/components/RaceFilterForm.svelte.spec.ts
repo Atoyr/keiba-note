@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import RaceFilterForm from './RaceFilterForm.svelte';
-import { EMPTY_RACE_FILTER, type RaceFilter } from '$lib/utils/race-filter';
+import { EMPTY_RACE_FILTER, type RaceFilter } from '#lib/utils/race-filter.ts';
 
 const years = [2026, 2025];
 

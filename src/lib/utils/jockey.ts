@@ -1,4 +1,4 @@
-import { JOCKEY_TAGS, type JockeyTag } from '$lib/schemas/jockey';
+import { JOCKEY_TAGS, type JockeyTag } from '#lib/schemas/jockey.ts';
 
 /** 騎手の画面のリンクの組み立て。 */
 

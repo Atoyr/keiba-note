@@ -13,10 +13,10 @@ import {
 	sql
 } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
-import type { Db } from '$lib/server/db';
-import { race, raceEntry } from '$lib/server/db/schema';
-import { COURSES } from '$lib/schemas/race';
-import { addDays, todayJst } from '$lib/utils/date';
+import type { Db } from '#lib/server/db/index.ts';
+import { race, raceEntry } from '#lib/server/db/schema.ts';
+import { COURSES } from '#lib/schemas/race.ts';
+import { addDays, todayJst } from '#lib/utils/date.ts';
 import type { EntriesFetchTarget } from './entries-fetch';
 
 /**
