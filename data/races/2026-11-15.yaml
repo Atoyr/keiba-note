@@ -13,119 +13,9 @@ races:
     ref: nk-202608050411
     startTime: "15:40"
     entries:
-      - name: アクアヴァーナル
-        jockey: 松山弘平
-        sex: 牝
-        age: 5
-        ref: nk-2021105433
-        trainer: 四位洋文
-        trainingCenter: 栗東
-        weight: 56
-      - name: ヴーレヴー
-        jockey: 吉田隼人
-        sex: 牝
-        age: 4
-        ref: nk-2022104617
-        trainer: 武幸四郎
-        trainingCenter: 栗東
-        weight: 56
-      - name: エストゥペンダ
-        jockey: 荻野極
-        sex: 牝
-        age: 4
-        ref: nk-2022101192
-        trainer: 高柳瑞樹
-        trainingCenter: 美浦
-        weight: 56
-      - name: カムニャック
-        jockey: 川田将雅
-        sex: 牝
-        age: 4
-        ref: nk-2022105402
-        trainer: 友道康夫
-        trainingCenter: 栗東
-        weight: 56
-      - name: クイーンズウォーク
-        jockey: C.デムーロ
-        sex: 牝
-        age: 5
-        ref: nk-2021105414
-        trainer: 中内田充正
-        trainingCenter: 栗東
-        weight: 56
-      - name: ケリフレッドアスク
-        jockey: 北村友一
-        sex: 牝
-        age: 4
-        ref: nk-2022102296
-        trainer: 藤原英昭
-        trainingCenter: 栗東
-        weight: 56
-      - name: コガネノソラ
-        jockey: 丹内祐次
-        sex: 牝
-        age: 5
-        ref: nk-2021106823
-        trainer: 菊沢隆徳
-        trainingCenter: 美浦
-        weight: 56
-      - name: シャドウメテオ
-        jockey: 三浦皇成
-        sex: 牝
-        age: 4
-        ref: nk-2022105454
-        trainer: 金成貴史
-        trainingCenter: 美浦
-        weight: 56
-      - name: ジュウリョクピエロ
-        jockey: 今村聖奈
-        sex: 牝
-        age: 3
-        ref: nk-2023102979
-        trainer: 寺島良
-        trainingCenter: 栗東
-        weight: 54
-      - name: ジョスラン
-        jockey: ルメール
-        sex: 牝
-        age: 4
-        ref: nk-2022104767
-        trainer: 鹿戸雄一
-        trainingCenter: 美浦
-        weight: 56
-      - name: ステレンボッシュ
-        jockey: 池添謙一
-        sex: 牝
-        age: 5
-        ref: nk-2021105743
-        trainer: 宮田敬介
-        trainingCenter: 美浦
-        weight: 56
-      - name: セキトバイースト
-        jockey: 浜中俊
-        sex: 牝
-        age: 5
-        ref: nk-2021103975
-        trainer: 四位洋文
-        trainingCenter: 栗東
-        weight: 56
-      - name: チェルヴィニア
-        jockey: マーカンド
-        sex: 牝
-        age: 5
-        ref: nk-2021105643
-        trainer: 木村哲也
-        trainingCenter: 美浦
-        weight: 56
-      - name: ニシノティアモ
-        jockey: 津村明秀
-        sex: 牝
-        age: 5
-        ref: nk-2021100244
-        trainer: 上原佑紀
-        trainingCenter: 美浦
-        weight: 56
-      - name: ラヴァンダ
+      - horseNumber: 1
+        bracket: 1
+        name: ラヴァンダ
         jockey: 岩田望来
         sex: 牝
         age: 5
@@ -133,15 +23,10 @@ races:
         trainer: 中村直也
         trainingCenter: 栗東
         weight: 56
-      - name: ラフターラインズ
-        jockey: 武豊
-        sex: 牝
-        age: 3
-        ref: nk-2023107154
-        trainer: 小笠倫弘
-        trainingCenter: 美浦
-        weight: 54
-      - name: レイクラシック
+        blinker: false
+      - horseNumber: 2
+        bracket: 1
+        name: レイクラシック
         jockey: 西村淳也
         sex: 牝
         age: 3
@@ -149,7 +34,65 @@ races:
         trainer: 新谷功一
         trainingCenter: 栗東
         weight: 54
-      - name: レーゼドラマ
+        blinker: false
+      - horseNumber: 3
+        bracket: 2
+        name: ステレンボッシュ
+        jockey: 池添謙一
+        sex: 牝
+        age: 5
+        ref: nk-2021105743
+        trainer: 宮田敬介
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 4
+        bracket: 2
+        name: エストゥペンダ
+        jockey: 荻野極
+        sex: 牝
+        age: 4
+        ref: nk-2022101192
+        trainer: 高柳瑞樹
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 5
+        bracket: 3
+        name: ニシノティアモ
+        jockey: 津村明秀
+        sex: 牝
+        age: 5
+        ref: nk-2021100244
+        trainer: 上原佑紀
+        trainingCenter: 美浦
+        weight: 56
+        blinker: true
+      - horseNumber: 6
+        bracket: 3
+        name: ヴーレヴー
+        jockey: 吉田隼人
+        sex: 牝
+        age: 4
+        ref: nk-2022104617
+        trainer: 武幸四郎
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 7
+        bracket: 4
+        name: カムニャック
+        jockey: 川田将雅
+        sex: 牝
+        age: 4
+        ref: nk-2022105402
+        trainer: 友道康夫
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 8
+        bracket: 4
+        name: レーゼドラマ
         jockey: 松若風馬
         sex: 牝
         age: 4
@@ -157,6 +100,117 @@ races:
         trainer: 辻野泰之
         trainingCenter: 栗東
         weight: 56
+        blinker: true
+      - horseNumber: 9
+        bracket: 5
+        name: クイーンズウォーク
+        jockey: C.デムーロ
+        sex: 牝
+        age: 5
+        ref: nk-2021105414
+        trainer: 中内田充正
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 10
+        bracket: 5
+        name: セキトバイースト
+        jockey: 浜中俊
+        sex: 牝
+        age: 5
+        ref: nk-2021103975
+        trainer: 四位洋文
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 11
+        bracket: 6
+        name: ジュウリョクピエロ
+        jockey: 今村聖奈
+        sex: 牝
+        age: 3
+        ref: nk-2023102979
+        trainer: 寺島良
+        trainingCenter: 栗東
+        weight: 54
+        blinker: false
+      - horseNumber: 12
+        bracket: 6
+        name: シャドウメテオ
+        jockey: 三浦皇成
+        sex: 牝
+        age: 4
+        ref: nk-2022105454
+        trainer: 金成貴史
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 13
+        bracket: 7
+        name: ジョスラン
+        jockey: ルメール
+        sex: 牝
+        age: 4
+        ref: nk-2022104767
+        trainer: 鹿戸雄一
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 14
+        bracket: 7
+        name: チェルヴィニア
+        jockey: マーカンド
+        sex: 牝
+        age: 5
+        ref: nk-2021105643
+        trainer: 木村哲也
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 15
+        bracket: 7
+        name: ラフターラインズ
+        jockey: 武豊
+        sex: 牝
+        age: 3
+        ref: nk-2023107154
+        trainer: 小笠倫弘
+        trainingCenter: 美浦
+        weight: 54
+        blinker: false
+      - horseNumber: 16
+        bracket: 8
+        name: アクアヴァーナル
+        jockey: 松山弘平
+        sex: 牝
+        age: 5
+        ref: nk-2021105433
+        trainer: 四位洋文
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 17
+        bracket: 8
+        name: ケリフレッドアスク
+        jockey: 北村友一
+        sex: 牝
+        age: 4
+        ref: nk-2022102296
+        trainer: 藤原英昭
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 18
+        bracket: 8
+        name: コガネノソラ
+        jockey: 丹内祐次
+        sex: 牝
+        age: 5
+        ref: nk-2021106823
+        trainer: 菊沢隆徳
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
     withdrawn:
       - name: アマイ
         ref: nk-2020100809
