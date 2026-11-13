@@ -53,6 +53,25 @@ describe('markedRows', () => {
 	});
 });
 
+describe('候補のチェック（✓）', () => {
+	const rows = [row('✓', 1), row('◎', 2), row(null, 3)];
+	it('画像にも説明文にも出ない（ほかの印は出る）', () => {
+		expect(markedRows(summary({ rows })).map((r) => r.mark)).toEqual(['◎']);
+		expect(cardDescription(summary({ rows }), 'テスター')).toBe('テスター の予想｜◎2 馬2');
+		const svg = raceSummaryCardSvg(summary({ rows }), 'テスター');
+		expect(texts(svg)).toContain('◎');
+		expect(svg).not.toContain('✓');
+	});
+	it('✓ だけ（＋見立て）のまとめでも描け、見立て側になる', () => {
+		const only = summary({ rows: [row('✓', 1)], body: '前が速い' });
+		expect(markedRows(only)).toEqual([]);
+		expect(cardDescription(only, 'テスター')).toBe('テスター の予想｜前が速い');
+		const svg = raceSummaryCardSvg(only, 'テスター');
+		expect(texts(svg)).toContain('レースの見立て');
+		expect(svg).not.toContain('✓');
+	});
+});
+
 describe('cardTitle', () => {
 	it('開催とレース名。レース名が無ければ開催だけ', () => {
 		expect(cardTitle(summary())).toBe('東京11R 天皇賞（秋） 予想まとめ');
@@ -191,5 +210,14 @@ describe('raceSummaryCardSvg', () => {
 			raceSummaryCardSvg(summary({ rows: [row(null, 1), row(null, 2)] }), '匿名')
 		);
 		expect(drawn).toContain('各馬のメモ 2 頭（印なし）');
+	});
+	it('見立ても無ければ、候補の ✓ はメモと別に「候補 n 頭」と数える', () => {
+		const onlyChecks = texts(
+			raceSummaryCardSvg(summary({ rows: [row('✓', 1), row('✓', 2)] }), '匿名')
+		);
+		expect(onlyChecks).toContain('候補 2 頭（印なし）');
+		expect(onlyChecks).not.toContain('各馬のメモ');
+		const mixed = texts(raceSummaryCardSvg(summary({ rows: [row(null, 1), row('✓', 2)] }), '匿名'));
+		expect(mixed).toContain('各馬のメモ 1 頭・候補 1 頭（印なし）');
 	});
 });

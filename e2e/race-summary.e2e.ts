@@ -45,9 +45,12 @@ test('印なしのメモも表示し、見出し右側の予想リンクとシ�
 		'E2Eタンアナ',
 		'E2Eレンシタ',
 		'アナウマスペシャル',
+		'E2Eコウホ',
 		'E2Eケシウマ',
 		'E2Eメモノミ'
 	]);
+	// ✓ の馬は ☆ と × の間に候補の札で出る。
+	await expect(page.locator('li', { hasText: 'E2Eコウホ' }).getByTitle('候補')).toBeVisible();
 });
 
 test('未ログインの人にだけ、共有ページの一番下に紹介ページとログインへの案内を出す', async ({
@@ -173,9 +176,9 @@ test('予想をまとめ、公開名で共有・更新・解除できる。本�
 	await guest.dispose();
 });
 
-// ✓ は候補のチェックで、予想の印ではない。付けて保存すると「付けた印」には候補として出て、まとめには出ない。
+// ✓ は候補のチェック。付けて保存すると「付けた印」にも、まとめにも候補として出る。
 // SUMMARY_RACE_ID はこのファイルの操作テスト専用。最後に ◎ に戻す。
-test('候補のチェック（✓）を付けて保存すると、「付けた印」には候補として出て、まとめには出ない', async ({
+test('候補のチェック（✓）を付けて保存すると、「付けた印」にもまとめにも候補として出る', async ({
 	page
 }) => {
 	await login(page);
@@ -201,13 +204,12 @@ test('候補のチェック（✓）を付けて保存すると、「付けた�
 		const marks = page.getByRole('region', { name: '付けた印' });
 		await expect(marks.getByTitle('候補')).toBeVisible();
 		await expect(marks.getByText('E2Eまとめホース')).toBeVisible();
-		// まとめでは印なしの行（本文は残る）。✓ も候補の札も出ない。
+		// まとめにも候補の札が出る（予想の印の札は出ない）。
 		await gotoHydrated(page, `/races/${SUMMARY_RACE_ID}/summary`);
 		const row = page.locator('li', { hasText: 'E2Eまとめホース' });
 		await expect(row).toContainText('まとめ用のメモ。内枠を評価。');
-		await expect(page.getByTitle('候補')).toHaveCount(0);
+		await expect(row.getByTitle('候補')).toBeVisible();
 		await expect(page.locator('[title^="予想印"]')).toHaveCount(0);
-		await expect(page.locator('main')).not.toContainText('✓');
 	} finally {
 		await pick('◎');
 	}
@@ -227,7 +229,7 @@ test('共有ページは SNS のプレビュー（OGP）に印の並びと、印
 		page.locator(`meta[property="${key}"], meta[name="${key}"]`).getAttribute('content');
 	expect(await meta('twitter:card')).toBe('summary_large_image');
 	expect(await meta('og:title')).toBe('東京11R E2E印見本賞 予想まとめ');
-	// 印順、同じ印は馬番順。印の無い馬（E2Eメモノミ）は並べない。
+	// 印順、同じ印は馬番順。印の無い馬（E2Eメモノミ）と候補の ✓（E2Eコウホ）は並べない。
 	expect(await meta('og:description')).toMatch(
 		/ の予想｜◎1 E2Eホンメイ ◎9 E2Eモウイットウ ○2 E2Eタイコウ ▲3 E2Eタンアナ △4 E2Eレンシタ ☆5 アナウマスペシャル ×6 E2Eケシウマ$/
 	);

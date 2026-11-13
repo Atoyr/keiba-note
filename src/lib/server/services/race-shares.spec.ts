@@ -68,8 +68,8 @@ describe('予想まとめの共有', () => {
 		expect(share).not.toBeNull();
 		expect((await getSharedRaceSummary(state.db, share!.id))?.content).toEqual(summary);
 	});
-	// ✓ は候補のチェックで予想の印ではない。まとめ・共有のコピーには印として入れない。
-	it('候補のチェック（✓）は印なしとして載せ、本文も札も無い馬は行ごと外す', async () => {
+	// ✓ は候補のチェック。予想の印ではないが、まとめ・共有のコピーには印と同じ形で入れる。
+	it('候補のチェック（✓）も印として載せ、✓ だけの馬も行に残す。共有のコピーにも入る', async () => {
 		state.sqlite.exec(`
 			INSERT INTO horse (id,name) VALUES ('h2','ホース2'), ('h3','ホース3'), ('h4','ホース4');
 			INSERT INTO race_entry (id,race_id,horse_id,horse_number) VALUES ('e2','r','h2',2), ('e3','r','h3',3), ('e4','r','h4',4);
@@ -81,21 +81,23 @@ describe('予想まとめの共有', () => {
 		const summary = await getRaceSummary(state.db, 'r', 'a');
 		expect(summary?.rows.map((r) => [r.horseName, r.mark, r.body, r.tags])).toEqual([
 			['テストホース', '◎', '内枠を評価', []],
-			['ホース3', null, '気になる', []],
-			['ホース4', null, '', ['次走買い']]
+			['ホース2', '✓', '', []],
+			['ホース3', '✓', '気になる', []],
+			['ホース4', '✓', '', ['次走買い']]
 		]);
-		expect(JSON.stringify(summary)).not.toContain('✓');
 		const share = await publishRaceSummary(state.db, 'r', 'a');
-		expect(
-			JSON.stringify((await getSharedRaceSummary(state.db, share!.id))?.content)
-		).not.toContain('✓');
+		expect((await getSharedRaceSummary(state.db, share!.id))?.content).toEqual(summary);
 	});
-	it('✓ だけの予想は、見立ても無ければ共有できない', async () => {
+	it('✓ だけの予想も共有できる', async () => {
 		state.sqlite.exec(
 			"DELETE FROM note WHERE id='outlook'; UPDATE note SET mark='✓', body='' WHERE id='preview'"
 		);
-		expect((await getRaceSummary(state.db, 'r', 'a'))?.rows).toEqual([]);
-		expect(await publishRaceSummary(state.db, 'r', 'a')).toBeNull();
+		expect((await getRaceSummary(state.db, 'r', 'a'))?.rows).toEqual([
+			expect.objectContaining({ horseName: 'テストホース', mark: '✓', body: '' })
+		]);
+		const share = await publishRaceSummary(state.db, 'r', 'a');
+		expect(share).not.toBeNull();
+		expect((await getSharedRaceSummary(state.db, share!.id))?.content.rows[0].mark).toBe('✓');
 	});
 	it('共有はコピー。予想の編集や削除が自動で反映されず、明示更新だけが反映される', async () => {
 		const share = await publishRaceSummary(state.db, 'r', 'a');
