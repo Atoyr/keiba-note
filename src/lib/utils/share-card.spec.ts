@@ -211,4 +211,13 @@ describe('raceSummaryCardSvg', () => {
 		);
 		expect(drawn).toContain('各馬のメモ 2 頭（印なし）');
 	});
+	it('見立ても無ければ、候補の ✓ はメモと別に「候補 n 頭」と数える', () => {
+		const onlyChecks = texts(
+			raceSummaryCardSvg(summary({ rows: [row('✓', 1), row('✓', 2)] }), '匿名')
+		);
+		expect(onlyChecks).toContain('候補 2 頭（印なし）');
+		expect(onlyChecks).not.toContain('各馬のメモ');
+		const mixed = texts(raceSummaryCardSvg(summary({ rows: [row(null, 1), row('✓', 2)] }), '匿名'));
+		expect(mixed).toContain('各馬のメモ 1 頭・候補 1 頭（印なし）');
+	});
 });

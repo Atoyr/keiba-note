@@ -1,4 +1,4 @@
-import { isPredictionMark, type PredictionMark } from '../schemas/note';
+import { CANDIDATE_MARK, isPredictionMark, type PredictionMark } from '../schemas/note';
 import { orderedSummaryRows, type RaceSummary } from './race-summary';
 
 /**
@@ -261,12 +261,19 @@ function markTable(rows: (Row & { mark: PredictionMark })[]): string {
 	return parts.join('');
 }
 
-/** 印が1つも無いときは、レースの見立ての頭を出す。見立ても無ければ、メモの頭数だけ。 */
+/**
+ * 印が1つも無いときは、レースの見立ての頭を出す。見立ても無ければ、メモと候補（✓）の頭数だけ。
+ * ✓ の馬は本文が無いこともあるので「メモ」に数えず、候補として別に数える。
+ */
 function outlookBlock(summary: RaceSummary): string {
 	if (!summary.body.trim()) {
-		const message = summary.rows.length
-			? `各馬のメモ ${summary.rows.length} 頭（印なし）`
-			: 'レースの展開を予想しました';
+		const candidates = summary.rows.filter((r) => r.mark === CANDIDATE_MARK).length;
+		const notes = summary.rows.length - candidates;
+		const counts = [
+			...(notes ? [`各馬のメモ ${notes} 頭`] : []),
+			...(candidates ? [`候補 ${candidates} 頭`] : [])
+		];
+		const message = counts.length ? `${counts.join('・')}（印なし）` : 'レースの展開を予想しました';
 		return text(PAD, ROWS_TOP + BADGE / 2, message, 34, MUTED);
 	}
 	const lines = wrapText(summary.body.trim(), 34, CARD_WIDTH - PAD * 2, 5);
