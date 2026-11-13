@@ -1,4 +1,4 @@
-import type { PredictionMark } from '../schemas/note';
+import { isPredictionMark, type PredictionMark } from '../schemas/note';
 import { orderedSummaryRows, type RaceSummary } from './race-summary';
 
 /**
@@ -52,10 +52,10 @@ const PAD = 64;
 
 type Row = RaceSummary['rows'][number];
 
-/** 画像に並べる馬。印を付けた馬だけを、まとめと同じ順（印順、同じ印は馬番順）に。 */
+/** 画像に並べる馬。予想の印を付けた馬だけ（候補の ✓ は描かない）を、まとめと同じ順（印順、同じ印は馬番順）に。 */
 export function markedRows(summary: RaceSummary): (Row & { mark: PredictionMark })[] {
-	return orderedSummaryRows(summary.rows).filter(
-		(r): r is Row & { mark: PredictionMark } => !!r.mark
+	return orderedSummaryRows(summary.rows).flatMap((r) =>
+		isPredictionMark(r.mark) ? [{ ...r, mark: r.mark }] : []
 	);
 }
 

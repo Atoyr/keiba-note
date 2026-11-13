@@ -25,6 +25,7 @@ import {
 	SPRINT_RACE_ID,
 	TOKYO_DIRT_RACE_ID,
 	TOKYO_MILE_RACE_ID,
+	CANDIDATE_RACE_ID,
 	SHARED_NOTE_ID,
 	SHARED_MANY_MARKS_ID,
 	SHARED_OUTLOOK_ID,
@@ -1257,6 +1258,8 @@ export const SCREENS: Screen[] = [
 	})),
 	// 全印と、印を付けず本文だけ保存した馬を同じまとめに表示する。
 	{ name: 'race-summary-marks', path: `/races/${MARKS_RACE_ID}/summary`, auth: true },
+	// 候補のチェック（✓）も印と並べて出す。✓ だけで本文も札も無い馬も行に残る。
+	{ name: 'race-summary-candidate', path: `/races/${CANDIDATE_RACE_ID}/summary`, auth: true },
 	{ name: 'race-summary-empty', path: `/races/${EMPTY_RACE_ID}/summary`, auth: true },
 	// 未ログインなら一番下に紹介ページとログインへの案内が出る。ログイン中は出ない。
 	{ name: 'race-summary-shared', path: `/shared/races/${SHARED_RACE_ID}`, auth: false },

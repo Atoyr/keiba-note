@@ -41,3 +41,14 @@ it('印順、同じ印は馬番順。印なし本文も最後に馬番順で残�
 	]);
 	expect(rows).toEqual(original);
 });
+
+it('候補のチェック（✓）は ☆ と × の間に並ぶ', () => {
+	const rows = [row('×', 1), row('✓', 5), row(null, 2), row('☆', 4), row('✓', 3)];
+	expect(orderedSummaryRows(rows).map(({ mark, horseNumber }) => [mark, horseNumber])).toEqual([
+		['☆', 4],
+		['✓', 3],
+		['✓', 5],
+		['×', 1],
+		[null, 2]
+	]);
+});

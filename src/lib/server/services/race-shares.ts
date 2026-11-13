@@ -4,7 +4,6 @@ import type { Db } from '#lib/server/db/index.ts';
 import { horse, note, raceEntry, raceShare, user } from '#lib/server/db/schema.ts';
 import { raceMeeting, raceSpec } from '#lib/utils/race-heading.ts';
 import { resolveFlow, hasResolvedFlow } from '#lib/utils/race-flow.ts';
-import { CANDIDATE_MARK } from '#lib/schemas/note.ts';
 import { hasSummary, type RaceSummary } from '#lib/utils/race-summary.ts';
 import { getRace, listEntriesForPreview } from './races';
 
@@ -62,18 +61,15 @@ export async function getRaceSummary(
 					(a.horseName ?? '').localeCompare(b.horseName ?? '', 'ja')
 			)
 			.flatMap((n) => {
-				// 候補のチェック（✓）は予想の印ではないので印なしにする。本文も札も空なら、中身の無い行になるので出さない。
-				const mark = n.mark === CANDIDATE_MARK ? null : n.mark;
-				if (!n.horseName || (n.mark === CANDIDATE_MARK && !n.body.trim() && n.tags.length === 0)) {
-					return [];
-				}
+				// 候補のチェック（✓）も印として持つ。✓ だけで本文も札も無い馬も、行としては出す。
+				if (!n.horseName) return [];
 				return [
 					{
 						horseName: n.horseName,
 						horseNumber: n.horseNumber,
 						bracket: n.bracket,
 						body: n.body,
-						mark,
+						mark: n.mark,
 						tags: n.tags
 					}
 				];
