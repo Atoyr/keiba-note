@@ -13,95 +13,9 @@ races:
     ref: nk-202608050311
     startTime: "15:45"
     entries:
-      - name: インカルナータ
-        jockey: 北村友一
-        sex: 牡
-        age: 2
-        ref: nk-2024106282
-        trainer: 西園翔太
-        trainingCenter: 栗東
-        weight: 56
-      - name: キューティボンド
-        jockey: 川田将雅
-        sex: 牝
-        age: 2
-        ref: nk-2024106316
-        trainer: 福永祐一
-        trainingCenter: 栗東
-        weight: 55
-      - name: コルサロ
-        jockey: 幸英明
-        sex: 牡
-        age: 2
-        ref: nk-2024104709
-        trainer: 中竹和也
-        trainingCenter: 栗東
-        weight: 56
-      - name: シェフザーデ
-        jockey: 吉村誠之助
-        sex: 牡
-        age: 2
-        ref: nk-2024103911
-        trainer: 野中賢二
-        trainingCenter: 栗東
-        weight: 56
-      - name: スマートピナクル
-        jockey: 武豊
-        sex: 牝
-        age: 2
-        ref: nk-2024102251
-        trainer: 石橋守
-        trainingCenter: 栗東
-        weight: 55
-      - name: スーサンコルティナ
-        jockey: 田口貫太
-        sex: 牡
-        age: 2
-        ref: nk-2024102040
-        trainer: 鈴木孝志
-        trainingCenter: 栗東
-        weight: 56
-      - name: トップチェッカー
-        jockey: C.デムーロ
-        sex: 牡
-        age: 2
-        ref: nk-2024100521
-        trainer: 武英智
-        trainingCenter: 栗東
-        weight: 56
-      - name: ヒアカムズザサン
-        jockey: 坂井瑠星
-        sex: 牡
-        age: 2
-        ref: nk-2024106020
-        trainer: 中竹和也
-        trainingCenter: 栗東
-        weight: 56
-      - name: ブラッドバローズ
-        jockey: 松山弘平
-        sex: 牡
-        age: 2
-        ref: nk-2024101722
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
-        weight: 56
-      - name: ブレイクアウェイ
-        jockey: 岩田望来
-        sex: 牡
-        age: 2
-        ref: nk-2024105872
-        trainer: 上村洋行
-        trainingCenter: 栗東
-        weight: 56
-      - name: リュウトウコヤク
-        jockey: 浜中俊
-        sex: 牡
-        age: 2
-        ref: nk-2024107248
-        trainer: 鈴木孝志
-        trainingCenter: 栗東
-        weight: 56
-      - name: ルースソラール
+      - horseNumber: 1
+        bracket: 1
+        name: ルースソラール
         jockey: M.デムーロ
         sex: 牡
         age: 2
@@ -109,7 +23,21 @@ races:
         trainer: 吉岡辰弥
         trainingCenter: 栗東
         weight: 56
-      - name: レオンティウス
+        blinker: false
+      - horseNumber: 2
+        bracket: 2
+        name: スマートピナクル
+        jockey: 武豊
+        sex: 牝
+        age: 2
+        ref: nk-2024102251
+        trainer: 石橋守
+        trainingCenter: 栗東
+        weight: 55
+        blinker: false
+      - horseNumber: 3
+        bracket: 3
+        name: レオンティウス
         jockey: 丸山元気
         sex: 牡
         age: 2
@@ -117,3 +45,114 @@ races:
         trainer: 田中勝春
         trainingCenter: 美浦
         weight: 56
+        blinker: false
+      - horseNumber: 4
+        bracket: 4
+        name: インカルナータ
+        jockey: 北村友一
+        sex: 牡
+        age: 2
+        ref: nk-2024106282
+        trainer: 西園翔太
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 5
+        bracket: 4
+        name: ブラッドバローズ
+        jockey: 松山弘平
+        sex: 牡
+        age: 2
+        ref: nk-2024101722
+        trainer: 杉山晴紀
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 6
+        bracket: 5
+        name: トップチェッカー
+        jockey: C.デムーロ
+        sex: 牡
+        age: 2
+        ref: nk-2024100521
+        trainer: 武英智
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 7
+        bracket: 5
+        name: リュウトウコヤク
+        jockey: 浜中俊
+        sex: 牡
+        age: 2
+        ref: nk-2024107248
+        trainer: 鈴木孝志
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 8
+        bracket: 6
+        name: キューティボンド
+        jockey: 川田将雅
+        sex: 牝
+        age: 2
+        ref: nk-2024106316
+        trainer: 福永祐一
+        trainingCenter: 栗東
+        weight: 55
+        blinker: false
+      - horseNumber: 9
+        bracket: 6
+        name: コルサロ
+        jockey: 幸英明
+        sex: 牡
+        age: 2
+        ref: nk-2024104709
+        trainer: 中竹和也
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 10
+        bracket: 7
+        name: スーサンコルティナ
+        jockey: 田口貫太
+        sex: 牡
+        age: 2
+        ref: nk-2024102040
+        trainer: 鈴木孝志
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 11
+        bracket: 7
+        name: シェフザーデ
+        jockey: 吉村誠之助
+        sex: 牡
+        age: 2
+        ref: nk-2024103911
+        trainer: 野中賢二
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 12
+        bracket: 8
+        name: ヒアカムズザサン
+        jockey: 坂井瑠星
+        sex: 牡
+        age: 2
+        ref: nk-2024106020
+        trainer: 中竹和也
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 13
+        bracket: 8
+        name: ブレイクアウェイ
+        jockey: 岩田望来
+        sex: 牡
+        age: 2
+        ref: nk-2024105872
+        trainer: 上村洋行
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
