@@ -18,7 +18,7 @@ import { listPastRuns } from '#lib/server/services/races.ts';
 import { isUpcoming, todayJst } from '#lib/utils/date.ts';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
 import { gradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
-import { sexAgeLabel } from '#lib/utils/horse.ts';
+import { raceHorseTraitTags, sexAgeLabel } from '#lib/utils/horse.ts';
 import { raceJockeyTags } from '#lib/utils/jockey.ts';
 import { hasResolvedFlow, resolveFlow } from '#lib/utils/race-flow.ts';
 import { noteSaveError } from '#lib/utils/note.ts';
@@ -145,6 +145,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		insightWords,
 		myRaceFlow: hasResolvedFlow(racePreviewFlow) ? racePreviewFlow : null,
 		rows: entries.map((e) => {
+			const horseTrait = memos.horseTraits.get(e.horseId) ?? null;
 			const p = myPreviews.get(e.entryId);
 			const jockeySummary = e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null;
 			return {
@@ -161,8 +162,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				jockeySummary,
 				// 騎手名の下の段に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
-				// 馬名を押したときに開く、自分の特徴メモ。無ければ null。
-				horseTrait: memos.horseTraits.get(e.horseId) ?? null,
+				// 馬名の下の行のアイコンを押したときに開く、自分のメモ（本文と札）。無ければ null。
+				horseTrait,
+				// このレースの場・回り・距離に合う札（馬名の下の行に、メモを開かずに出す）。
+				horseTraitMatches: horseTrait ? raceHorseTraitTags(horseTrait.tags, race) : [],
 				myNote: myEntryNotes.get(e.entryId) ?? null,
 				// レース直後の気づき（付けた言葉と短いメモ）。ふりかえり本文とは別。
 				insight: raceInsights.get(e.entryId) ?? null,

@@ -140,13 +140,13 @@ describe('直近5走と本人の各走メモ', () => {
 		expect(missing.history.size).toBe(0);
 	});
 	it('特徴メモは自分の分だけを、同じ1バッチで馬IDごとに返す', async () => {
-		sqlite.exec(`INSERT INTO horse_trait (user_id, horse_id, body) VALUES
-			('me', 'h1', '自分のh1'), ('other', 'h1', '他人のh1'), ('other', 'h2', '他人のh2')`);
+		sqlite.exec(`INSERT INTO horse_trait (user_id, horse_id, body, tags) VALUES
+			('me', 'h1', '自分のh1', '["東京巧者"]'), ('other', 'h1', '他人のh1', '[]'), ('other', 'h2', '他人のh2', '[]')`);
 		const binding = (db as Db & { $client: D1Database }).$client;
 		const batch = vi.spyOn(binding, 'batch');
 		const { horseTraits } = await listRaceMemoContext(db, 'current', ['h1', 'h2'], 'me');
 		expect(batch).toHaveBeenCalledTimes(1);
-		expect([...horseTraits]).toEqual([['h1', '自分のh1']]);
+		expect([...horseTraits]).toEqual([['h1', { body: '自分のh1', tags: ['東京巧者'] }]]);
 		expect((await listRaceMemoContext(db, 'current', [], 'me')).horseTraits.size).toBe(0);
 	});
 });

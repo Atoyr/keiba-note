@@ -49,15 +49,13 @@ test('ふりかえり画面の馬名を押すと基本情報が開き、馬の�
 	await expect(page.getByRole('heading', { name: 'E2Eテストホース', level: 1 })).toBeVisible();
 });
 
-test('予想画面の馬名を押すと基本情報が開く（性も生年も無い馬でも。特徴メモがあれば先に出る）', async ({
-	page
-}) => {
+test('予想画面の馬名を押すと基本情報が開く（性も生年も無い馬でも）', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${PREVIEW_RACE_ID}/preview`);
 
-	await page.getByRole('button', { name: /^E2Eプレビューホース\s*（特徴メモあり）$/ }).click();
+	await page.getByRole('button', { name: 'E2Eプレビューホース', exact: true }).click();
 
-	const dialog = page.getByRole('dialog', { name: 'E2Eプレビューホースの特徴メモと基本情報' });
+	const dialog = page.getByRole('dialog', { name: 'E2Eプレビューホースの基本情報' });
 	await expect(dialog).toContainText('父 E2Eプレビューチチ');
 	await expect(dialog).toContainText('母 E2Eプレビューハハ');
 	await expect(dialog).toContainText('母父 E2Eプレビューハハチチ');

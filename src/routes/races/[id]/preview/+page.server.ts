@@ -19,7 +19,7 @@ import { isUpcoming, todayJst } from '#lib/utils/date.ts';
 import { entryConditions } from '#lib/utils/entry-conditions.ts';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
 import { gradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
-import { sexAgeLabel } from '#lib/utils/horse.ts';
+import { raceHorseTraitTags, sexAgeLabel } from '#lib/utils/horse.ts';
 import { raceJockeyTags } from '#lib/utils/jockey.ts';
 import { popularityByNumber } from '#lib/utils/odds.ts';
 import { noteSaveError } from '#lib/utils/note.ts';
@@ -142,6 +142,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		// 取れた時点。1度も取れていなければ null で、オッズの欄ごと出さない。
 		oddsAsOf: odds?.asOf ?? null,
 		rows: entries.map((e) => {
+			const horseTrait = memos.horseTraits.get(e.horseId) ?? null;
 			const jockeySummary = e.jockey ? (jockeySummaries.get(e.jockey) ?? null) : null;
 			return {
 				...e,
@@ -156,8 +157,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				// 今回の騎手・斤量と前走からの変化（乗り替わり・騎手変更・斤量の差）。馬柱の材料（クエリは増やさない）から組む。
 				conditions: entryConditions(e, pastRuns.get(e.horseId) ?? []),
 				myPreview: myPreview.get(e.entryId) ?? null,
-				// 馬名を押したときに開く、自分の特徴メモ。無ければ null。
-				horseTrait: memos.horseTraits.get(e.horseId) ?? null,
+				// 馬名の下の行のアイコンを押したときに開く、自分のメモ（本文と札）。無ければ null。
+				horseTrait,
+				// このレースの場・回り・距離に合う札（馬名の下の行に、メモを開かずに出す）。
+				horseTraitMatches: horseTrait ? raceHorseTraitTags(horseTrait.tags, race) : [],
 				history: history.get(e.horseId) ?? [],
 				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({
 					...run,

@@ -10,6 +10,7 @@
 	import DraftKeeper from '#lib/components/DraftKeeper.svelte';
 	import InfoTip from '#lib/components/InfoTip.svelte';
 	import HorseLink from '#lib/components/HorseLink.svelte';
+	import HorseMemoRow from '#lib/components/HorseMemoRow.svelte';
 	import JockeyLink from '#lib/components/JockeyLink.svelte';
 	import JockeyTagBadges from '#lib/components/JockeyTagBadges.svelte';
 	import RaceLaps from '#lib/components/RaceLaps.svelte';
@@ -654,8 +655,7 @@
 																	horseId={r.horseId}
 																	name={r.horseName}
 																	profile={r}
-																	trait={r.horseTrait}
-																	class="flex max-w-full items-center leading-6 font-medium hover:underline"
+																	class="flex max-w-full leading-6 font-medium hover:underline"
 																/>
 															</div>
 
@@ -682,6 +682,14 @@
 																<MarkBadge mark={r.myPreview?.mark ?? null} />
 															</span>
 														</div>
+
+														<!-- 馬名の下の1行。自分のメモのアイコンと、このレースに合う札（前回の札はふりかえりには出さない）。どちらも無い馬は行ごと出さない。 -->
+														<HorseMemoRow
+															horseId={r.horseId}
+															name={r.horseName}
+															trait={r.horseTrait}
+															matches={r.horseTraitMatches}
+														/>
 
 														<!-- 2段目。騎手と馬体重。騎手の画面へのリンクは、予想画面と同じく下線（点線）を常に出してリンクと分かるようにする。
 									     幅が足りなければ折り返す。 -->

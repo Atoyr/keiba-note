@@ -84,5 +84,49 @@ export const horseProfileSchema = v.pipe(
 	}))
 );
 
-/** 馬の特徴メモ（1人・1頭につき1本）。空なら「消す」。馬は URL から取るので、ここでは運ばない。 */
-export const horseTraitSchema = v.object({ body: bodySchema });
+/**
+ * 馬に付ける札（特徴メモの札）。**選択肢は固定で、ユーザーは増やせない**（騎手の札 `JOCKEY_TAG_GROUPS` と同じ考え方）。
+ *
+ * 予想・ふりかえりでは、そのレースの場・回り・距離に合う札を馬名の下に出す（`raceHorseTraitTags`）。
+ * 合わせるには名前が揃っている必要があるので、自由に書ける札にしない。
+ *
+ * 距離は4区分（境目は `distanceTraitTag`）: 短距離（〜1400m）・マイル（1401〜1800m）・中距離（1801〜2200m）・長距離（2201m〜）。
+ * 並びは画面の並びでもある。足すときは末尾ではなく入る系統の中に置く。
+ */
+export const HORSE_TRAIT_TAG_GROUPS = [
+	{
+		label: '得意な場',
+		tags: [
+			'札幌巧者',
+			'函館巧者',
+			'福島巧者',
+			'新潟巧者',
+			'東京巧者',
+			'中山巧者',
+			'中京巧者',
+			'京都巧者',
+			'阪神巧者',
+			'小倉巧者'
+		]
+	},
+	{ label: '回り', tags: ['右回り巧者', '左回り巧者'] },
+	{ label: '距離', tags: ['短距離巧者', 'マイル巧者', '中距離巧者', '長距離巧者'] }
+] as const;
+
+export type HorseTraitTag = (typeof HORSE_TRAIT_TAG_GROUPS)[number]['tags'][number];
+
+export const HORSE_TRAIT_TAGS: readonly HorseTraitTag[] = HORSE_TRAIT_TAG_GROUPS.flatMap(
+	(g) => g.tags
+);
+
+/** 馬に付けた札。選択肢に無い値は落とし、重複も落とし、並びは `HORSE_TRAIT_TAGS` の順に揃える。 */
+export const horseTraitTagsSchema = v.pipe(
+	v.optional(v.array(v.string()), () => []),
+	v.transform((xs) => HORSE_TRAIT_TAGS.filter((t) => xs.includes(t)))
+);
+
+/** 馬の特徴メモ（画面の言葉は「メモ」。1人・1頭につき1本）。本文も札も空なら「消す」。馬は URL から取るので、ここでは運ばない。 */
+export const horseTraitSchema = v.object({ body: bodySchema, tags: horseTraitTagsSchema });
+
+/** 馬の特徴メモ。予想・ふりかえりの行と馬の画面が受け取る形。 */
+export type HorseTraitValue = { body: string; tags: HorseTraitTag[] };

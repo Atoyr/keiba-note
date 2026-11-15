@@ -119,13 +119,26 @@ const openHorseProfile =
 		const { width } = page.viewportSize()!;
 		const height = await page.evaluate(() => document.documentElement.scrollHeight);
 		await page.setViewportSize({ width, height });
-		// 特徴メモのある馬の名前は、読み上げ名に「（特徴メモあり）」が付く。
-		const button = page.getByRole('button', {
-			name: new RegExp(`^${name}\\s*(（特徴メモあり）)?$`)
-		});
+		const button = page.getByRole('button', { name, exact: true });
 		if (how === 'tap') await button.tap();
 		else await button.click();
 		await expect(page.getByRole('dialog')).toContainText(father);
+	};
+
+/**
+ * 馬名の下の行のメモのアイコン（名前は「{馬名}のメモ」）を押して、メモ（本文）の Popover を開く。
+ * `openHorseProfile` と同じく、全体が見えるよう表示域を伸ばしてから押す。`tap` は `touch` の画面で使う。
+ */
+const openHorseMemo =
+	(name: string, bodyHead: string, how: 'click' | 'tap') => async (page: Page) => {
+		await waitForHydration(page);
+		const { width } = page.viewportSize()!;
+		const height = await page.evaluate(() => document.documentElement.scrollHeight);
+		await page.setViewportSize({ width, height });
+		const button = page.getByRole('button', { name: `${name}のメモ`, exact: true });
+		if (how === 'tap') await button.tap();
+		else await button.click();
+		await expect(page.getByRole('dialog', { name: `${name}のメモ` })).toContainText(bodyHead);
 	};
 
 /** 幅が md（768px）以上のときだけ「馬柱を表示」を押す（スマホは押せない＝帯が出ないことを撮る）。 */
@@ -286,11 +299,11 @@ export const SCREENS: Screen[] = [
 		stayAtTop: true
 	},
 	{
-		// ふりかえりで、特徴メモのある馬（基本情報なし）の名前を押して、本文が開いたところ。
+		// ふりかえりで、馬名の下の行（メモのアイコンと、このレースに合う札）。アイコンを押してメモを開いたところ。
 		name: 'race-review-horse-trait',
 		path: `/races/${MARKS_RACE_ID}`,
 		auth: true,
-		prepare: openHorseProfile('アナウマスペシャル', TRAIT_ONLY_BODY_HEAD, 'click'),
+		prepare: openHorseMemo('アナウマスペシャル', TRAIT_ONLY_BODY_HEAD, 'click'),
 		stayAtTop: true
 	},
 	{
@@ -618,24 +631,31 @@ export const SCREENS: Screen[] = [
 		touch: true
 	},
 	{
-		// 特徴メモのある馬（基本情報もある）の名前を押したところ。メモ → 基本情報の札 → 馬の画面へ。馬名の右にメモのアイコン。
+		// 馬名の下の行のメモのアイコンを押して、メモ（本文と札）が開いたところ。基本情報は馬名を押したときの別の枠。
 		name: 'race-preview-horse-trait',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
 		auth: true,
-		prepare: openHorseProfile('E2Eプレビューホース', 'E2Eプレビューチチ', 'click'),
+		prepare: openHorseMemo('E2Eプレビューホース', '東京の長い直線向き。', 'click'),
 		stayAtTop: true
 	},
 	{
-		// 基本情報の無い馬でも、特徴メモがあれば名前を押して開く。長い本文は枠の中でスクロール。スマホではタップで開く。
+		// 基本情報の無い馬でも、メモがあればアイコンが出る。長い本文は枠の中でスクロール。スマホではタップで開く。
 		name: 'race-preview-horse-trait-only',
 		path: `/races/${MARKS_RACE_ID}/preview`,
 		auth: true,
-		prepare: openHorseProfile('アナウマスペシャル', TRAIT_ONLY_BODY_HEAD, 'tap'),
+		prepare: openHorseMemo('アナウマスペシャル', TRAIT_ONLY_BODY_HEAD, 'tap'),
 		stayAtTop: true,
 		touch: true
 	},
 	{
-		// 18頭の一覧に、特徴メモのある行（名前の右にアイコン）が混ざる。アイコンの有無で行の高さが変わらないこと。
+		// 馬名の下の1行（メモのアイコン・このレースに合う札・前回の札）が見える一覧。閉じたまま撮る。
+		name: 'race-preview-horse-memo-row',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		stayAtTop: true
+	},
+	{
+		// 18頭の一覧に、メモのある行（アイコン・合う札だけの行・メモだけの行）が混ざる。無い行は高さが変わらないこと。
 		name: 'race-preview-horse-trait-crowd',
 		path: `/races/${FLOW_CROWD_RACE_ID}/preview`,
 		auth: true
@@ -883,19 +903,19 @@ export const SCREENS: Screen[] = [
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
 	// 牝馬・栗東。札の色がピンクと橙。
 	{ name: 'horse-profile-filly', path: `/horses/${FILLY_HORSE_ID}`, auth: true },
-	// 特徴メモを書いた馬。頭の下に本文が読む形で出て、下に「書き直す」。
+	// 書いたメモ。頭の下に本文と札が読む形で出て、下に「書き直す」。
 	{ name: 'horse-trait', path: `/horses/${TRAIT_HORSE_ID}`, auth: true },
-	// 特徴メモの無い馬。「＋ 特徴メモを書く」の1行だけ（空の枠も説明も出さない）。
+	// メモの無い馬。「＋ メモを書く」の1行だけ（空の枠も説明も出さない）。
 	{ name: 'horse-trait-empty', path: `/horses/${FILLY_HORSE_ID}`, auth: true },
 	{
-		// 特徴メモの「書き直す」を開いたところ（本文の入力欄・空にすると消える旨・保存ボタン）。
+		// メモの「書き直す」を開いたところ（本文の入力欄・札の選択・空にすると消える旨・保存ボタン）。
 		name: 'horse-trait-editing',
 		path: `/horses/${TRAIT_HORSE_ID}`,
 		auth: true,
 		prepare: async (page) => {
 			await waitForHydration(page);
 			await page.getByText('書き直す', { exact: true }).click();
-			await expect(page.getByLabel('特徴メモの本文', { exact: true })).toBeVisible();
+			await expect(page.getByLabel('メモの本文', { exact: true })).toBeVisible();
 		}
 	},
 	// 推しでない馬。黄色の輪郭だけの☆（押すと推しにする）。

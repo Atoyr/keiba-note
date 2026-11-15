@@ -180,28 +180,17 @@ test('スマホの幅でも、全角9文字の馬名が切れずに出る', asyn
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto(`/races/${MARKS_RACE_ID}/preview`);
 
-	// 切り詰めは中の span が受け持つので、測るのは span。
-	const measure = async (trigger: Locator) => {
-		const name = trigger.locator('span.truncate');
-		await expect(name).toHaveText('アナウマスペシャル');
-		const { scrollWidth, clientWidth } = await name.evaluate((el) => ({
-			scrollWidth: el.scrollWidth,
-			clientWidth: el.clientWidth
-		}));
-		expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
-	};
-	const row = page.locator('main li[id^="entry-"]', { hasText: 'アナウマスペシャル' });
-
-	// hydration 前のリンク（特徴メモのアイコン付き）。
-	await measure(row.getByRole('link', { name: /^アナウマスペシャル\s*（特徴メモあり）$/ }));
-
-	// hydration 後は、特徴メモのある馬の名前が Popover を開くボタンになる。アイコンを付けても切れない。
-	await waitForHydration(page);
-	const button = row.getByRole('button', {
-		name: /^アナウマスペシャル\s*（特徴メモあり）$/
-	});
-	await expect(button.locator('svg')).toHaveCount(1);
-	await measure(button);
+	const name = page
+		.locator('main li[id^="entry-"]', { hasText: 'アナウマスペシャル' })
+		.getByRole('link', { name: 'アナウマスペシャル', exact: true })
+		// 切り詰めは中の span が受け持つので、測るのは span。
+		.locator('span');
+	await expect(name).toHaveText('アナウマスペシャル');
+	const { scrollWidth, clientWidth } = await name.evaluate((el) => ({
+		scrollWidth: el.scrollWidth,
+		clientWidth: el.clientWidth
+	}));
+	expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
 });
 
 /**
@@ -211,11 +200,7 @@ test('スマホの幅でも、全角9文字の馬名が切れずに出る', asyn
 test('出走馬を人気順に並べ替えられ、書きかけのメモはそのまま残る', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/races/${MARKS_RACE_ID}/preview`);
-	// 馬名はリンク、特徴メモのある馬は hydration 後にボタンになる。どちらも名前の行の先頭の要素。
-	const names = page.locator('main li[id^="entry-"] [data-name-row] > :first-child');
-	// 特徴メモのある馬（アナウマ）は、読み上げ名に「（特徴メモあり）」が付く。
-	const named = (list: string[]) =>
-		list.map((n) => (n === 'アナウマスペシャル' ? /^アナウマスペシャル\s*（特徴メモあり）$/ : n));
+	const names = page.locator('main li[id^="entry-"] a[href^="/horses/"]');
 	const byNumber = [
 		'E2Eホンメイ',
 		'E2Eタイコウ',
@@ -225,7 +210,7 @@ test('出走馬を人気順に並べ替えられ、書きかけのメモはそ�
 		'E2Eケシウマ',
 		'E2Eメモノミ'
 	];
-	await expect(names).toHaveText(named(byNumber));
+	await expect(names).toHaveText(byNumber);
 
 	const body = page.locator('textarea[name="raceNoteBody"]');
 	await body.fill('外差しが決まる馬場。');
@@ -242,23 +227,21 @@ test('出走馬を人気順に並べ替えられ、書きかけのメモはそ�
 		'true'
 	);
 	// 同じ2人気は馬番の順、取消（人気なし）は最後。
-	await expect(names).toHaveText(
-		named([
-			'E2Eホンメイ',
-			'E2Eタイコウ',
-			'E2Eタンアナ',
-			'E2Eケシウマ',
-			'E2Eレンシタ',
-			'アナウマスペシャル',
-			'E2Eメモノミ'
-		])
-	);
+	await expect(names).toHaveText([
+		'E2Eホンメイ',
+		'E2Eタイコウ',
+		'E2Eタンアナ',
+		'E2Eケシウマ',
+		'E2Eレンシタ',
+		'アナウマスペシャル',
+		'E2Eメモノミ'
+	]);
 	await expect(page).toHaveURL(`/races/${MARKS_RACE_ID}/preview`);
 	await expect(body).toHaveValue('外差しが決まる馬場。');
 	expect(asked).toBe(false);
 
 	await order.getByRole('button', { name: '馬番順' }).click();
-	await expect(names).toHaveText(named(byNumber));
+	await expect(names).toHaveText(byNumber);
 });
 
 /**

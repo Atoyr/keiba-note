@@ -150,11 +150,13 @@ GitHub Actions が取得元から書く唯一の表で、メモからも馬柱�
 
 ### horse_trait
 
-馬の特徴メモ。`PRIMARY KEY (user_id, horse_id)` で、**1人・1頭につき1本**（本文だけで札は無い）。書き直すと上書きし、本文が空で保存すると行ごと消す。
+馬の特徴メモ（画面の言葉は「メモ」）。`PRIMARY KEY (user_id, horse_id)` で、**1人・1頭につき1本**（本文 `body` と札 `tags`）。書き直すと上書きし、**本文も札も空で保存すると行ごと消す**（札だけでも残す。`jockey_note` と同じ）。
 
 - **`horse.profile_memo` とは別物。** あちらは全ユーザー共通のマスタで admin だけが書く。こちらは本人だけが読み書きする自分の見立てで、他人にも admin にも見せない
 - `note` に kind を足さず別の表にしたのは、`jockey_note` と同じ理由（`note_kind_shape` の CHECK を作り直すことになる）
-- 予想・ふりかえりの出走馬の馬名の Popover と馬の画面にだけ出す。予想まとめ・共有ページ・MCP・WebMCP には出さない。馬（`horse`）を消すと CASCADE で消える
+- `tags` は JSON の配列（`json_valid` の CHECK）。札は固定の選択肢で、ユーザーは増やせない。正は `src/lib/schemas/horse.ts` の `HORSE_TRAIT_TAG_GROUPS`（得意な場・回り・距離の3系統）。
+  予想・ふりかえりで、そのレースの場・回り・距離の区分に合う札を馬名の下に出すため、名前を揃えてある（距離の区分は pages.md 5-2）
+- 予想・ふりかえりの出走馬の馬名の下の行と馬の画面にだけ出す。予想まとめ・共有ページ・MCP・WebMCP には出さない。馬（`horse`）を消すと CASCADE で消える
 
 ### graded_race_note
 

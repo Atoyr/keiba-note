@@ -12,13 +12,15 @@
 	import ShareControl from '#lib/components/ShareControl.svelte';
 	import SharedBadge from '#lib/components/SharedBadge.svelte';
 	import DraftKeeper from '#lib/components/DraftKeeper.svelte';
+	import HorseTraitTagBadges from '#lib/components/HorseTraitTagBadges.svelte';
+	import HorseTraitTagPicker from '#lib/components/HorseTraitTagPicker.svelte';
 	import InfoTip from '#lib/components/InfoTip.svelte';
 	import HorseProfileHeader from '#lib/components/HorseProfileHeader.svelte';
 	import InsightView from '#lib/components/InsightView.svelte';
 	import KindBadge from '#lib/components/KindBadge.svelte';
 	import TagBadges from '#lib/components/TagBadges.svelte';
 	import TagPicker from '#lib/components/TagPicker.svelte';
-	import { HORSE_SEXES, TRAINING_CENTERS } from '#lib/schemas/horse.ts';
+	import { HORSE_SEXES, TRAINING_CENTERS, type HorseTraitTag } from '#lib/schemas/horse.ts';
 	import { isSettled, opensReview } from '#lib/utils/date.ts';
 	import { horseAge } from '#lib/utils/horse.ts';
 	import { isReviewNote, noteHeading, raceLabel, runHeading } from '#lib/utils/note.ts';
@@ -57,7 +59,13 @@
 	 * 初期値は、失敗で返ってきた入力（JS 無し）があればそれ、無ければ保存済みの本文。
 	 */
 	let traitValue = $derived.by(
-		forHorse(() => (form && 'traitBody' in form ? form.traitBody : (data.trait ?? '')))
+		forHorse(() => (form && 'traitBody' in form ? form.traitBody : (data.trait?.body ?? '')))
+	);
+	/** 札の欄の初期値（チェックボックスは欄のほうが正で、これは最初に付ける印）。失敗で返ってきた札（JS 無し）があればそれ。 */
+	let traitTags = $derived.by(
+		forHorse((): HorseTraitTag[] =>
+			form && 'traitTags' in form && form.traitTags ? form.traitTags : (data.trait?.tags ?? [])
+		)
 	);
 	let traitToggle = $state<HTMLElement>();
 	let traitDetails = $state<HTMLDetailsElement>();
@@ -268,17 +276,18 @@
 		</form>
 	{/if}
 
-	<!-- 特徴メモ。自分だけが読める、この馬についての見立て（1人・1頭に1本）。`horse.profileMemo`（上の共通マスタのメモ）とは別。
-	     書いたものは畳まず、畳むのは書く側だけ。無いときは「＋ 特徴メモを書く」の1行だけを出す（空の枠や説明は出さない）。
+	<!-- メモ（コードと文書では特徴メモ `horse_trait`。近況メモ・各レースのメモと取り違えないため）。自分だけが読める、この馬についての見立て（1人・1頭に1本。本文と札）。
+	     `horse.profileMemo`（上の共通マスタのメモ）とは別。
+	     書いたものは畳まず、畳むのは書く側だけ。無いときは「＋ メモを書く」の1行だけを出す（空の枠や説明は出さない）。
 	     `<details>` なので JS が無くても開ける。
 	     **本文は `<summary>` の外に置く。** 中に入れると、開閉のボタンの読み上げ名が本文全文になる。 -->
 	{#key data.horse.id}
 		<section class="mt-6" aria-labelledby="horse-trait">
 			<div class="flex items-center gap-x-1">
-				<h2 id="horse-trait" class="text-sm font-semibold text-muted-foreground">特徴メモ</h2>
+				<h2 id="horse-trait" class="text-sm font-semibold text-muted-foreground">メモ</h2>
 				<InfoTip
-					label="特徴メモ"
-					text="自分だけが読めます。予想とふりかえりの画面で馬名を押すと開きます"
+					label="メモ"
+					text="自分だけが読めます。予想とふりかえりの画面で、馬名の下のメモのアイコンを押すと開きます"
 				/>
 			</div>
 
@@ -294,7 +303,10 @@
 			<div class="mt-2 {data.trait ? 'rounded-md border p-3' : ''}">
 				{#if data.trait && !traitEditing}
 					<!-- 改行を保つので、テンプレート側の字下げを入れないよう1行で書く。 -->
-					<p class="text-sm leading-relaxed whitespace-pre-wrap">{data.trait}</p>
+					{#if data.trait.body}<p class="text-sm leading-relaxed whitespace-pre-wrap">
+							{data.trait.body}
+						</p>{/if}
+					<HorseTraitTagBadges tags={data.trait.tags} class="mt-1" />
 				{/if}
 				{#snippet traitEditor()}
 					<summary
@@ -303,7 +315,7 @@
 							? 'mt-1'
 							: ''}"
 					>
-						<span class="group-open:hidden">{data.trait ? '書き直す' : '＋ 特徴メモを書く'}</span>
+						<span class="group-open:hidden">{data.trait ? '書き直す' : '＋ メモを書く'}</span>
 						<span class="hidden group-open:inline">閉じる</span>
 					</summary>
 
@@ -341,13 +353,19 @@
 									// （frontend.md 第3章「update({ reset: false })」）。
 									await update({ reset: false });
 									if (result.type === 'success') {
-										traitValue = data.trait ?? '';
+										traitValue = data.trait?.body ?? '';
+										traitTags = data.trait?.tags ?? [];
 										// 保存済みにするのは送った値ではなく、サーバーが保存した値（前後の空白を除いたもの）。
 										// 送った値のままだと、末尾の改行だけの違いで「未保存」が残り、離脱の確認と下書きが出る。
 										// 送信中に書き足した分（送った値と違うとき）だけを書き戻す。
-										const saved = { body: [traitValue] };
+										const saved: Record<string, string[]> = { body: [traitValue] };
+										if (traitTags.length > 0) saved.tags = [...traitTags];
 										const typedDuringSave =
-											late && late.body?.[0] !== sent?.body?.[0] ? late : null;
+											late &&
+											(late.body?.[0] !== sent?.body?.[0] ||
+												(late.tags ?? []).join() !== (sent?.tags ?? []).join())
+												? late
+												: null;
 										await traitKeeper?.clear(saved, typedDuringSave);
 										// toggle イベントは後から来るので、traitEditing もここで揃える。
 										traitDetails!.open = false;
@@ -356,9 +374,7 @@
 										await tick();
 										traitToggle?.focus();
 										toast.success(
-											result.data?.trait === 'cleared'
-												? '特徴メモを消しました'
-												: '特徴メモを保存しました'
+											result.data?.trait === 'cleared' ? 'メモを消しました' : 'メモを保存しました'
 										);
 									}
 								} finally {
@@ -370,15 +386,18 @@
 						<Textarea
 							name="body"
 							rows={4}
-							aria-label="特徴メモの本文"
+							aria-label="メモの本文"
 							placeholder="東京の長い直線向き。右回りでは外に張るので割引。"
 							class="text-sm"
 							bind:value={traitValue}
 						/>
-						<p class="text-xs text-muted-foreground">空にして保存すると、特徴メモは消えます。</p>
+						<HorseTraitTagPicker name="tags" values={traitTags} />
+						<p class="text-xs text-muted-foreground">
+							本文も札も空にして保存すると、メモは消えます。
+						</p>
 						<div class="flex flex-wrap items-center gap-3">
 							<Button type="submit" aria-disabled={traitPending} class="aria-disabled:opacity-50">
-								{traitPending ? '保存中…' : '特徴メモを保存する'}
+								{traitPending ? '保存中…' : 'メモを保存する'}
 							</Button>
 							{#if traitSaveError}
 								<p class="text-sm text-destructive" role="alert">{traitSaveError}</p>
@@ -411,7 +430,7 @@
 			</div>
 			{#if form && 'trait' in form}<noscript
 					><p class="mt-1 text-sm">
-						{form.trait === 'cleared' ? '特徴メモを消しました。' : '特徴メモを保存しました。'}
+						{form.trait === 'cleared' ? 'メモを消しました。' : 'メモを保存しました。'}
 					</p></noscript
 				>{/if}
 		</section>

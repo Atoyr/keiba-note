@@ -1,7 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { favoriteHorseSchema } from '#lib/schemas/favorite.ts';
-import { horseProfileSchema, horseTraitSchema } from '#lib/schemas/horse.ts';
+import { HORSE_TRAIT_TAGS, horseProfileSchema, horseTraitSchema } from '#lib/schemas/horse.ts';
 import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '#lib/schemas/note.ts';
 import { isUniqueViolation } from '#lib/server/db/errors.ts';
 import { isFavoriteHorse, setFavoriteHorse } from '#lib/server/services/favorites.ts';
@@ -118,16 +118,20 @@ export const actions: Actions = {
 		if (!horse) error(404, '馬が見つかりません');
 
 		const form = await request.formData();
-		const body = form.get('body')?.toString() ?? '';
-		const parsed = v.safeParse(horseTraitSchema, { body });
+		const input = {
+			body: form.get('body')?.toString() ?? '',
+			tags: form.getAll('tags').map(String)
+		};
+		const parsed = v.safeParse(horseTraitSchema, input);
 		if (!parsed.success) {
 			return fail(400, {
-				traitBody: body,
+				traitBody: input.body,
+				traitTags: HORSE_TRAIT_TAGS.filter((t) => input.tags.includes(t)),
 				traitMessage: parsed.issues[0]?.message ?? '入力を確認してください'
 			});
 		}
 
-		const result = await saveHorseTrait(db, params.id, parsed.output.body, user.id);
+		const result = await saveHorseTrait(db, params.id, parsed.output, user.id);
 		return { trait: result };
 	},
 
