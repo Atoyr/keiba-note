@@ -48,8 +48,8 @@ describe('直近5走と本人の各走メモ', () => {
 		const result = await listRaceMemoContext(db, 'current', ids, 'me');
 		expect(result.pastRunNotes.get('e1')?.[0].body).toBe('本人の事前メモ');
 		expect(batch).toHaveBeenCalledTimes(1);
-		// 今回のメモ・履歴・気づきの言葉・今回の気づき・ほかのレースの気づきの 5 本（履歴と気づきの履歴は馬の数だけ変数を使う）。
-		expect(boundCounts).toHaveLength(5);
+		// 今回のメモ・履歴・気づきの言葉・今回の気づき・ほかのレースの気づき・特徴メモの 6 本（履歴・気づきの履歴・特徴メモは馬の数だけ変数を使う）。
+		expect(boundCounts).toHaveLength(6);
 		expect(Math.max(...boundCounts)).toBeLessThanOrEqual(100);
 	});
 	it('レースと出馬表を1バッチで返し、出馬表未登録と不存在も区別する', async () => {
@@ -138,5 +138,15 @@ describe('直近5走と本人の各走メモ', () => {
 		const missing = await listRaceMemoContext(db, 'missing', [], 'me');
 		expect(missing.pastRunNotes.size).toBe(0);
 		expect(missing.history.size).toBe(0);
+	});
+	it('特徴メモは自分の分だけを、同じ1バッチで馬IDごとに返す', async () => {
+		sqlite.exec(`INSERT INTO horse_trait (user_id, horse_id, body) VALUES
+			('me', 'h1', '自分のh1'), ('other', 'h1', '他人のh1'), ('other', 'h2', '他人のh2')`);
+		const binding = (db as Db & { $client: D1Database }).$client;
+		const batch = vi.spyOn(binding, 'batch');
+		const { horseTraits } = await listRaceMemoContext(db, 'current', ['h1', 'h2'], 'me');
+		expect(batch).toHaveBeenCalledTimes(1);
+		expect([...horseTraits]).toEqual([['h1', '自分のh1']]);
+		expect((await listRaceMemoContext(db, 'current', [], 'me')).horseTraits.size).toBe(0);
 	});
 });

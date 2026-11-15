@@ -509,7 +509,8 @@
 															horseId={r.horseId}
 															name={r.horseName}
 															profile={r}
-															class="flex max-w-full min-w-0 leading-6 font-medium hover:underline"
+															trait={r.horseTrait}
+															class="flex max-w-full min-w-0 items-center leading-6 font-medium hover:underline"
 														/>
 														<BlinkerBadge blinker={r.blinker} />
 													</div>

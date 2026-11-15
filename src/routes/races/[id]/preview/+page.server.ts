@@ -156,6 +156,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				// 今回の騎手・斤量と前走からの変化（乗り替わり・騎手変更・斤量の差）。馬柱の材料（クエリは増やさない）から組む。
 				conditions: entryConditions(e, pastRuns.get(e.horseId) ?? []),
 				myPreview: myPreview.get(e.entryId) ?? null,
+				// 馬名を押したときに開く、自分の特徴メモ。無ければ null。
+				horseTrait: memos.horseTraits.get(e.horseId) ?? null,
 				history: history.get(e.horseId) ?? [],
 				pastRuns: (pastRuns.get(e.horseId) ?? []).map((run) => ({
 					...run,

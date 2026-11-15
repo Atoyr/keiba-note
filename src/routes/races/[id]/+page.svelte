@@ -654,7 +654,8 @@
 																	horseId={r.horseId}
 																	name={r.horseName}
 																	profile={r}
-																	class="flex max-w-full leading-6 font-medium hover:underline"
+																	trait={r.horseTrait}
+																	class="flex max-w-full items-center leading-6 font-medium hover:underline"
 																/>
 															</div>
 

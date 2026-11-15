@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { bodySchema } from './note';
 
 /** 馬の性。画面の選択肢と DB の enum（`db/schema.ts`）の元。 */
 export const HORSE_SEXES = ['牡', '牝', 'セ'] as const;
@@ -82,3 +83,6 @@ export const horseProfileSchema = v.pipe(
 		birthYear: p.birthYear ?? (p.birthDate ? Number(p.birthDate.slice(0, 4)) : null)
 	}))
 );
+
+/** 馬の特徴メモ（1人・1頭につき1本）。空なら「消す」。馬は URL から取るので、ここでは運ばない。 */
+export const horseTraitSchema = v.object({ body: bodySchema });

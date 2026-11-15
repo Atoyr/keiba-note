@@ -1,15 +1,18 @@
 <script lang="ts">
-	import { tick, untrack } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Star from '@lucide/svelte/icons/star';
 	import { toast } from 'svelte-sonner';
 	import { Button } from '#lib/components/ui/button/index.ts';
+	import { Textarea } from '#lib/components/ui/textarea/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import * as Select from '#lib/components/ui/select/index.ts';
 	import NoteMenu from '#lib/components/NoteMenu.svelte';
 	import ShareControl from '#lib/components/ShareControl.svelte';
 	import SharedBadge from '#lib/components/SharedBadge.svelte';
+	import DraftKeeper from '#lib/components/DraftKeeper.svelte';
+	import InfoTip from '#lib/components/InfoTip.svelte';
 	import HorseProfileHeader from '#lib/components/HorseProfileHeader.svelte';
 	import InsightView from '#lib/components/InsightView.svelte';
 	import KindBadge from '#lib/components/KindBadge.svelte';
@@ -26,6 +29,56 @@
 
 	const startOpen = untrack(() => !!form && 'body' in form);
 	const admin = $derived(isAdmin(data.user));
+
+	/**
+	 * 特徴メモの入力欄が開いているか。保存が通ったら閉じる（書いたものが読む形で出る）。
+	 * 正は `<details>` の `open` で、これはその写し。`bind:open` にしないのは、hydration が
+	 * この状態の値（閉）を要素に書き込み、JS が届く前に開いた欄が閉じてしまうため（騎手の画面と同じ）。
+	 * キーは `traitBody`（近況メモの `body`・上部の `message` と混ぜない）。
+	 */
+	const traitStartOpen = untrack(() => !!form && 'traitBody' in form);
+	/**
+	 * 特徴メモの節の状態は、**馬が変わったときだけ**初期値に戻す（同じルートで別の馬へ移ると、
+	 * 節は `{#key}` で作り直すが、script の状態は残るため）。中身は untrack で読み、`form` や `data.trait` が
+	 * 変わっただけでは作り直さない。どれも書き換えてよい（Svelte 5.25 以降の書き換えられる `$derived`）。
+	 */
+	function forHorse<T>(init: () => T): () => T {
+		return () => {
+			void data.horse.id; // 依存にするのは馬の id だけ。
+			return untrack(init);
+		};
+	}
+	let traitEditing = $derived.by(forHorse(() => !!form && 'traitBody' in form));
+	let traitPending = $state(false);
+	/** 通信・サーバーの失敗の文（無ければ null）。 */
+	let traitSaveError = $derived.by(forHorse((): string | null => null));
+	/**
+	 * 入力欄の値。この画面のローカルな状態にする（推しなど別の action の成功で `form` が置き換わっても、書きかけが `data.trait` に戻らない）。
+	 * 初期値は、失敗で返ってきた入力（JS 無し）があればそれ、無ければ保存済みの本文。
+	 */
+	let traitValue = $derived.by(
+		forHorse(() => (form && 'traitBody' in form ? form.traitBody : (data.trait ?? '')))
+	);
+	let traitToggle = $state<HTMLElement>();
+	let traitDetails = $state<HTMLDetailsElement>();
+	let traitFormEl = $state<HTMLFormElement | null>(null);
+	let traitKeeper = $state<DraftKeeper | null>(null);
+	let traitDirty = $state(0);
+	const traitDraftKey = $derived(
+		`uma-memo:draft:horse-trait:${data.user?.id ?? '-'}:${data.horse.id}`
+	);
+
+	// hydration の前に開かれていたら、ここで拾う。
+	onMount(() => {
+		traitEditing = traitDetails!.open;
+	});
+
+	// 下書きを復元したら、閉じていれば開いて、復元した値が見えるようにする。
+	function openForRestore() {
+		if (!traitDetails || traitDetails.open) return;
+		traitDetails.open = true;
+		traitEditing = true;
+	}
 
 	let profileOpen = $state(false);
 	let favoritePending = $state(false);
@@ -214,6 +267,149 @@
 			</div>
 		</form>
 	{/if}
+
+	<!-- 特徴メモ。自分だけが読める、この馬についての見立て（1人・1頭に1本）。`horse.profileMemo`（上の共通マスタのメモ）とは別。
+	     書いたものは畳まず、畳むのは書く側だけ。無いときは「＋ 特徴メモを書く」の1行だけを出す（空の枠や説明は出さない）。
+	     `<details>` なので JS が無くても開ける。
+	     **本文は `<summary>` の外に置く。** 中に入れると、開閉のボタンの読み上げ名が本文全文になる。 -->
+	{#key data.horse.id}
+		<section class="mt-6" aria-labelledby="horse-trait">
+			<div class="flex items-center gap-x-1">
+				<h2 id="horse-trait" class="text-sm font-semibold text-muted-foreground">特徴メモ</h2>
+				<InfoTip
+					label="特徴メモ"
+					text="自分だけが読めます。予想とふりかえりの画面で馬名を押すと開きます"
+				/>
+			</div>
+
+			<!-- 復元の帯が閉じた `<details>` の中に隠れないよう、`<details>` の外に置く。閉じていてもフォームの欄は DOM にあるので読める。 -->
+			<DraftKeeper
+				bind:this={traitKeeper}
+				bind:dirtyCount={traitDirty}
+				onrestore={openForRestore}
+				form={traitFormEl}
+				storageKey={traitDraftKey}
+			/>
+
+			<div class="mt-2 {data.trait ? 'rounded-md border p-3' : ''}">
+				{#if data.trait && !traitEditing}
+					<!-- 改行を保つので、テンプレート側の字下げを入れないよう1行で書く。 -->
+					<p class="text-sm leading-relaxed whitespace-pre-wrap">{data.trait}</p>
+				{/if}
+				{#snippet traitEditor()}
+					<summary
+						bind:this={traitToggle}
+						class="inline-flex min-h-6 cursor-pointer list-none items-center text-xs text-muted-foreground underline-offset-2 hover:underline [&::-webkit-details-marker]:hidden {data.trait
+							? 'mt-1'
+							: ''}"
+					>
+						<span class="group-open:hidden">{data.trait ? '書き直す' : '＋ 特徴メモを書く'}</span>
+						<span class="hidden group-open:inline">閉じる</span>
+					</summary>
+
+					<form
+						bind:this={traitFormEl}
+						method="POST"
+						action="?/saveTrait"
+						class="mt-2 grid gap-3"
+						use:enhance={({ cancel }) => {
+							if (traitPending) {
+								cancel();
+								return;
+							}
+							traitPending = true;
+							traitSaveError = null;
+							// 送った値。送信中に書き足した分を「保存済み」に数えないため（DraftKeeper.clear）。
+							const sent = traitKeeper?.snapshot();
+							return async ({ result, update }) => {
+								try {
+									if (result.type === 'error') {
+										// update() を呼ぶとエラー画面に移って入力が消える。入力は残し、もう一度押せるようにする。
+										traitSaveError =
+											result.status === 404
+												? 'この馬が見つかりませんでした。'
+												: '保存できませんでした。通信の状態を確かめて、もう一度保存してください。';
+										return;
+									}
+									if (result.type === 'redirect') {
+										// セッション切れ。DraftKeeper の確認と下書きが働く。
+										await update();
+										return;
+									}
+									const late = traitKeeper?.snapshot();
+									// 表示の正はサーバーの data。フォームを初期値に戻すと、描き直されない欄が空に見える
+									// （frontend.md 第3章「update({ reset: false })」）。
+									await update({ reset: false });
+									if (result.type === 'success') {
+										traitValue = data.trait ?? '';
+										await traitKeeper?.clear(sent, late);
+										// toggle イベントは後から来るので、traitEditing もここで揃える。
+										traitDetails!.open = false;
+										traitEditing = false;
+										// 押した保存ボタンは閉じた中に消えるので、フォーカスを開閉のボタンへ戻す。
+										await tick();
+										traitToggle?.focus();
+										toast.success(
+											result.data?.trait === 'cleared'
+												? '特徴メモを消しました'
+												: '特徴メモを保存しました'
+										);
+									}
+								} finally {
+									traitPending = false;
+								}
+							};
+						}}
+					>
+						<Textarea
+							name="body"
+							rows={4}
+							aria-label="特徴メモの本文"
+							placeholder="東京の長い直線向き。右回りでは外に張るので割引。"
+							class="text-sm"
+							bind:value={traitValue}
+						/>
+						<p class="text-xs text-muted-foreground">空にして保存すると、特徴メモは消えます。</p>
+						<div class="flex flex-wrap items-center gap-3">
+							<Button type="submit" aria-disabled={traitPending} class="aria-disabled:opacity-50">
+								{traitPending ? '保存中…' : '特徴メモを保存する'}
+							</Button>
+							{#if traitSaveError}
+								<p class="text-sm text-destructive" role="alert">{traitSaveError}</p>
+							{:else if form && 'traitMessage' in form && form.traitMessage}
+								<p class="text-sm text-destructive" role="alert">{form.traitMessage}</p>
+							{/if}
+						</div>
+					</form>
+				{/snippet}
+				<!-- `open={traitStartOpen}` とは書かない。式の `open` は hydration が要素に書き込み、JS が届く前に
+			     開いた欄が閉じてしまう。直に書いた属性は hydration で触られないので、属性の有無で2つに分ける。 -->
+				{#if traitStartOpen}
+					<details
+						class="group"
+						open
+						bind:this={traitDetails}
+						ontoggle={() => (traitEditing = traitDetails!.open)}
+					>
+						{@render traitEditor()}
+					</details>
+				{:else}
+					<details
+						class="group"
+						bind:this={traitDetails}
+						ontoggle={() => (traitEditing = traitDetails!.open)}
+					>
+						{@render traitEditor()}
+					</details>
+				{/if}
+			</div>
+			{#if form && 'trait' in form}<noscript
+					><p class="mt-1 text-sm">
+						{form.trait === 'cleared' ? '特徴メモを消しました。' : '特徴メモを保存しました。'}
+					</p></noscript
+				>{/if}
+		</section>
+	{/key}
 
 	<!-- 失敗の文は1か所にまとめる。推し・プロフィール欄・近況メモの追加と削除のどれが失敗しても、
 	     タイムラインの上のここに残る（近況メモの削除はメニューの中なので、閉じても見えるように外に置く）。 -->

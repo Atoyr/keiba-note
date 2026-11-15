@@ -20,6 +20,7 @@ import { horse, note, race, raceEntry, user, type Note, type Race } from '#lib/s
 import type { NoteTag } from '#lib/schemas/note.ts';
 import type { RaceFlow } from '#lib/schemas/race-flow.ts';
 import type { WatchSourceRow } from '#lib/utils/dashboard.ts';
+import { horseTraitsQuery } from './horse-traits';
 import { raceResultCount, type HorseRun } from './races';
 import {
 	insightsByEntry,
@@ -723,6 +724,7 @@ function groupHistory(
  * - `insightWords`: 自分が登録した気づきの言葉（登録順）
  * - `raceInsights`: このレースの出走馬に付けた気づき（出走IDで束ねる）
  * - `pastRunInsights`: ほかのレースの気づき（出走IDで束ねる。新しい順の500件まで）
+ * - `horseTraits`: 出走馬に viewer が書いた特徴メモ（馬ID → 本文。無い馬は入らない）
  *
  * **`history` は新しい順の500件まで。** 直近5走のメモは新しい側にあるので落ちない。
  * 500件を超える古いメモは、馬の画面で読む。
@@ -747,15 +749,17 @@ export async function listRaceMemoContext(
 			pastRunNotes,
 			insightWords: words.map((w) => w.word),
 			raceInsights: insightsByEntry(raceInsights),
-			pastRunInsights: insightsByEntry([])
+			pastRunInsights: insightsByEntry([]),
+			horseTraits: new Map<string, string>()
 		};
 	}
-	const [raceNotes, history, words, raceInsights, pastInsights] = await db.batch([
+	const [raceNotes, history, words, raceInsights, pastInsights, traits] = await db.batch([
 		raceNotesQuery(db, raceId, viewerId),
 		horseHistoryQuery(db, horseIds, raceId, viewerId),
 		insightWordsQuery(db, viewerId),
 		raceInsightsQuery(db, raceId, viewerId),
-		pastInsightsQuery(db, horseIds, raceId, viewerId)
+		pastInsightsQuery(db, horseIds, raceId, viewerId),
+		horseTraitsQuery(db, horseIds, viewerId)
 	]);
 	const { byHorse, byEntry: pastRunNotes } = groupHistory(history);
 	return {
@@ -765,7 +769,8 @@ export async function listRaceMemoContext(
 		// 登録した言葉（登録順）。このレースの気づきは出走ID、ほかのレースの気づきは出走IDで引く。
 		insightWords: words.map((w) => w.word),
 		raceInsights: insightsByEntry(raceInsights),
-		pastRunInsights: insightsByEntry(pastInsights)
+		pastRunInsights: insightsByEntry(pastInsights),
+		horseTraits: new Map(traits.map((t) => [t.horseId, t.body]))
 	};
 }
 

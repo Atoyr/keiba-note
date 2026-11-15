@@ -475,6 +475,33 @@ export const jockeyNote = sqliteTable(
 );
 
 /**
+ * 馬の特徴メモ。1人・1頭につき1本（本文だけ。札は無い）。**本人だけのもの**で、メモと同じく
+ * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
+ *
+ * 本文が空なら行ごと消す（`jockey_note` と同じ。空の行は持たない）。
+ * **`horse.profile_memo` とは別物。** あちらは全ユーザー共通のマスタ（admin だけが書く）で、
+ * こちらは本人だけが読み書きする自分の見立て。予想・ふりかえりの馬名の Popover と馬の画面で出す。
+ *
+ * `note` に kind を足さずに別の表にしたのは `jockey_note` と同じ理由（`note_kind_shape` の CHECK を作り直すことになる）。
+ */
+export const horseTrait = sqliteTable(
+	'horse_trait',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		horseId: text('horse_id')
+			.notNull()
+			.references(() => horse.id, { onDelete: 'cascade' }),
+		body: text('body').notNull(),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	// user_id が先頭なので、自分の分を引くのに別の索引は要らない。馬を消すとき（horse_id 側）は行が少ないので全走査でよい。
+	(t) => [primaryKey({ columns: [t.userId, t.horseId] })]
+);
+
+/**
  * 重賞の傾向のメモ。1人・1重賞につき1本（本文だけ。札は無い）。**本人だけのもの**で、
  * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
  *

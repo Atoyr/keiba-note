@@ -1,12 +1,13 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { favoriteHorseSchema } from '#lib/schemas/favorite.ts';
-import { horseProfileSchema } from '#lib/schemas/horse.ts';
+import { horseProfileSchema, horseTraitSchema } from '#lib/schemas/horse.ts';
 import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '#lib/schemas/note.ts';
 import { isUniqueViolation } from '#lib/server/db/errors.ts';
 import { isFavoriteHorse, setFavoriteHorse } from '#lib/server/services/favorites.ts';
 import { listHorseInsights } from '#lib/server/services/insights.ts';
 import { getHorse, updateHorseProfile } from '#lib/server/services/horses.ts';
+import { getHorseTrait, saveHorseTrait } from '#lib/server/services/horse-traits.ts';
 import {
 	addHorseNote,
 	deleteNote,
@@ -25,26 +26,34 @@ import type { Actions, PageServerLoad } from './$types';
  * 1テーブルにした狙い（product.md 第2章）。
  *
  * **出走はメモが無くても並べる。** 骨は race_entry（誰が見ても同じ走った事実）で、
- * そこに viewer 自身のメモと気づきを重ねる。読みは5クエリ（馬・メモ・出走・推しか・気づき）で、全部並行に投げる。
+ * そこに viewer 自身のメモと気づきを重ねる。読みは6クエリ（馬・メモ・出走・推しか・気づき・特徴メモ）で、全部並行に投げる。
  */
 export const load: PageServerLoad = async ({ locals, params }) => {
 	const { db, user } = ctx(locals);
 
 	const today = todayJst();
 
-	const [horse, notes, runs, favorite, insights] = await Promise.all([
+	const [horse, notes, runs, favorite, insights, trait] = await Promise.all([
 		getHorse(db, params.id),
 		getHorseTimeline(db, params.id, user.id),
 		listRunsForHorse(db, params.id),
 		isFavoriteHorse(db, params.id, user.id),
-		listHorseInsights(db, params.id, user.id)
+		listHorseInsights(db, params.id, user.id),
+		// 自分の特徴メモ（本人だけ。horse.profileMemo とは別物）。
+		getHorseTrait(db, params.id, user.id)
 	]);
 
 	if (!horse) error(404, '馬が見つかりません');
 
 	// viewerId は返さない。タイムラインに並ぶメモは viewer 自身のものだけなので、
 	// 画面側で「自分のメモか」を判定する必要がなくなった。
-	return { horse, timeline: mergeHorseTimeline(notes, runs, today, insights), today, favorite };
+	return {
+		horse,
+		timeline: mergeHorseTimeline(notes, runs, today, insights),
+		today,
+		favorite,
+		trait
+	};
 };
 
 export const actions: Actions = {
@@ -93,6 +102,33 @@ export const actions: Actions = {
 
 		await setFavoriteHorse(db, params.id, user.id, parsed.output.favorite);
 		return { favorite: parsed.output.favorite };
+	},
+
+	/**
+	 * 特徴メモを書く・書き直す（1人・1頭につき1本）。空で保存すると消える。
+	 * 本人だけのもので、マスタ（`horse.profileMemo`）には何も書かないので、admin でなくても書ける。
+	 *
+	 * 失敗の返し方: キーは `traitBody` / `traitMessage`。`body` / `message` にすると、
+	 * 近況メモの `startOpen`（`'body' in form`）と、ページ上部の失敗の帯（`form.message`）に混ざる。
+	 */
+	saveTrait: async ({ locals, params, request }) => {
+		const { db, user } = ctx(locals);
+
+		const horse = await getHorse(db, params.id);
+		if (!horse) error(404, '馬が見つかりません');
+
+		const form = await request.formData();
+		const body = form.get('body')?.toString() ?? '';
+		const parsed = v.safeParse(horseTraitSchema, { body });
+		if (!parsed.success) {
+			return fail(400, {
+				traitBody: body,
+				traitMessage: parsed.issues[0]?.message ?? '入力を確認してください'
+			});
+		}
+
+		const result = await saveHorseTrait(db, params.id, parsed.output.body, user.id);
+		return { trait: result };
 	},
 
 	/** 自分のメモを消す。他人のメモはサービス層で弾かれる。 */

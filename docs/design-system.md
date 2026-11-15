@@ -172,7 +172,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `EntryConditions` | 予想画面の出走馬の行の名前の列に出す、今回の条件（乗り替わり・騎手変更・斤量）と前走からの変化。`text-xs` の折り返す一覧（`flex-wrap`）で、変化のある項目（乗り替わり・騎手変更・斤量の増減）だけ `font-medium text-foreground`、ほかは muted。色ではなく語で区別する。組み立ては `utils/entry-conditions.ts`（`entryConditions`）で、部品は並べるだけ |
 | `BlinkerBadge` | ブリンカーを着用した出走・走に付ける `B` の札（outline）。着用なし・不明は何も描かない。読み上げは「ブリンカー着用」。予想画面の馬名の右と、馬柱（`PastRuns`・`PastRunsStrip`）の騎手の隣に置く |
 | `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分の騎手のメモがあれば notebook-pen のアイコンを添え、クリック・タップで `Popover` にメモの全文と「騎手の画面へ」を開く（hydration 前とメモが無いときはただのリンク）。隣の札は呼ぶ側が `JockeyTagBadges` で置く |
-| `HorseLink` | 出走馬の行の馬名。馬の画面へのリンクで、基本情報が1つでもあれば、クリック・タップで `Popover` に `HorseProfileBadges` と「馬の画面へ」を開く（hydration 前と基本情報が無いときはただのリンク。→ [pages.md 5-1](./pages.md)） |
+| `HorseLink` | 出走馬の行の馬名。馬の画面へのリンクで、自分の特徴メモか基本情報が1つでもあれば、クリック・タップで `Popover` に特徴メモ・`HorseProfileBadges`・「馬の画面へ」を開き、特徴メモがあれば馬名の右に notebook-pen のアイコンを出す（hydration 前とどちらも無いときはただのリンク。→ [pages.md 5-1](./pages.md)） |
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |
 | `KindBadge` | メモの種類 |
 | `SharedBadge` / `ShareControl` | 共有中の印と、共有の切り替え |

@@ -40,7 +40,8 @@
 		form,
 		storageKey,
 		dirtyCount = $bindable(0),
-		busy = false
+		busy = false,
+		onrestore
 	}: {
 		/** 監視する form 要素。親から bind:this で渡す。 */
 		form: HTMLFormElement | null;
@@ -50,6 +51,8 @@
 		dirtyCount?: number;
 		/** 別の経路で保存の送信中か（クイック入力の自動保存）。送信中に離れると保存されないことがあるので、確認を出す。 */
 		busy?: boolean;
+		/** 「復元する」で下書きを欄へ入れ終えたときに呼ぶ（閉じている欄を開くなど）。 */
+		onrestore?: () => void;
 	} = $props();
 
 	type Draft = { savedAt: number; fields: FieldValues };
@@ -246,6 +249,7 @@
 		applyFields(restorable.fields);
 		restorable = null;
 		onInput();
+		onrestore?.();
 	}
 
 	function discard() {

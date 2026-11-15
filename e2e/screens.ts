@@ -34,6 +34,8 @@ import {
 	MCP_METADATA_CLIENT,
 	THIS_WEEK_RACES,
 	TOGGLE_FAVORITE_HORSE_ID,
+	TRAIT_HORSE_ID,
+	TRAIT_ONLY_BODY_HEAD,
 	PROFILE_RACE,
 	TREND_RACE
 } from './seed';
@@ -117,7 +119,10 @@ const openHorseProfile =
 		const { width } = page.viewportSize()!;
 		const height = await page.evaluate(() => document.documentElement.scrollHeight);
 		await page.setViewportSize({ width, height });
-		const button = page.getByRole('button', { name, exact: true });
+		// 特徴メモのある馬の名前は、読み上げ名に「（特徴メモあり）」が付く。
+		const button = page.getByRole('button', {
+			name: new RegExp(`^${name}\\s*(（特徴メモあり）)?$`)
+		});
 		if (how === 'tap') await button.tap();
 		else await button.click();
 		await expect(page.getByRole('dialog')).toContainText(father);
@@ -278,6 +283,14 @@ export const SCREENS: Screen[] = [
 		path: `/races/${REVIEW_RACE_ID}`,
 		auth: true,
 		prepare: openHorseProfile('E2Eテストホース', 'E2Eチチウマ', 'click'),
+		stayAtTop: true
+	},
+	{
+		// ふりかえりで、特徴メモのある馬（基本情報なし）の名前を押して、本文が開いたところ。
+		name: 'race-review-horse-trait',
+		path: `/races/${MARKS_RACE_ID}`,
+		auth: true,
+		prepare: openHorseProfile('アナウマスペシャル', TRAIT_ONLY_BODY_HEAD, 'click'),
 		stayAtTop: true
 	},
 	{
@@ -605,6 +618,29 @@ export const SCREENS: Screen[] = [
 		touch: true
 	},
 	{
+		// 特徴メモのある馬（基本情報もある）の名前を押したところ。メモ → 基本情報の札 → 馬の画面へ。馬名の右にメモのアイコン。
+		name: 'race-preview-horse-trait',
+		path: `/races/${PREVIEW_RACE_ID}/preview`,
+		auth: true,
+		prepare: openHorseProfile('E2Eプレビューホース', 'E2Eプレビューチチ', 'click'),
+		stayAtTop: true
+	},
+	{
+		// 基本情報の無い馬でも、特徴メモがあれば名前を押して開く。長い本文は枠の中でスクロール。スマホではタップで開く。
+		name: 'race-preview-horse-trait-only',
+		path: `/races/${MARKS_RACE_ID}/preview`,
+		auth: true,
+		prepare: openHorseProfile('アナウマスペシャル', TRAIT_ONLY_BODY_HEAD, 'tap'),
+		stayAtTop: true,
+		touch: true
+	},
+	{
+		// 18頭の一覧に、特徴メモのある行（名前の右にアイコン）が混ざる。アイコンの有無で行の高さが変わらないこと。
+		name: 'race-preview-horse-trait-crowd',
+		path: `/races/${FLOW_CROWD_RACE_ID}/preview`,
+		auth: true
+	},
+	{
 		// 騎手名をクリックして、自分のまとめ（本文と札）が開いたところ。
 		name: 'race-preview-jockey-summary',
 		path: `/races/${PREVIEW_RACE_ID}/preview`,
@@ -847,6 +883,21 @@ export const SCREENS: Screen[] = [
 	{ name: 'horse-timeline', path: `/horses/${HORSE_ID}`, auth: true },
 	// 牝馬・栗東。札の色がピンクと橙。
 	{ name: 'horse-profile-filly', path: `/horses/${FILLY_HORSE_ID}`, auth: true },
+	// 特徴メモを書いた馬。頭の下に本文が読む形で出て、下に「書き直す」。
+	{ name: 'horse-trait', path: `/horses/${TRAIT_HORSE_ID}`, auth: true },
+	// 特徴メモの無い馬。「＋ 特徴メモを書く」の1行だけ（空の枠も説明も出さない）。
+	{ name: 'horse-trait-empty', path: `/horses/${FILLY_HORSE_ID}`, auth: true },
+	{
+		// 特徴メモの「書き直す」を開いたところ（本文の入力欄・空にすると消える旨・保存ボタン）。
+		name: 'horse-trait-editing',
+		path: `/horses/${TRAIT_HORSE_ID}`,
+		auth: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await page.getByText('書き直す', { exact: true }).click();
+			await expect(page.getByLabel('特徴メモの本文', { exact: true })).toBeVisible();
+		}
+	},
 	// 推しでない馬。黄色の輪郭だけの☆（押すと推しにする）。
 	{ name: 'horse-not-favorite', path: `/horses/${TOGGLE_FAVORITE_HORSE_ID}`, auth: true },
 	{

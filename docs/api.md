@@ -92,14 +92,15 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/help/webmcp` | GET | — | WebMCPの使い方。ブラウザの対応確認・準備・予想画面での下書き反映と保存。toolsは登録しない | — |
 | `/this-week` | GET | `w`（週のずれ。整数） | その週の重賞 | 整数でなければ今週 |
 | `/races` | GET | `year`・`grade`（複数）・`q`・`offset` | レース一覧を `offset` 件目から100件と、条件に当たる総数。画面は下端で `offset` を付けてこの `load` を `preloadData` で呼び、続きを足す | 未知の値は捨てる。`offset` が数字でなければ 0 |
-| `/races/[id]` | GET | — | ふりかえり画面。重賞なら自分の重賞の傾向と、このレースを除いた重賞のタイムラインも返す（`graded: { key, trend, timeline }`。`trend` は傾向が無ければ `null`。重賞でなければ `graded` が `null`）。出走馬の行に自分の騎手のまとめ（`jockeySummary: { body, tags }`。無ければ `null`）。**開催前なら `302 /races/[id]/preview`** | 404 |
+| `/races/[id]` | GET | — | ふりかえり画面。出走馬の行に自分の特徴メモ（`horseTrait`。無ければ null）も返す。重賞なら自分の重賞の傾向と、このレースを除いた重賞のタイムラインも返す（`graded: { key, trend, timeline }`。`trend` は傾向が無ければ `null`。重賞でなければ `graded` が `null`）。出走馬の行に自分の騎手のまとめ（`jockeySummary: { body, tags }`。無ければ `null`）。**開催前なら `302 /races/[id]/preview`** | 404 |
 | `/races/[id]` | POST `?/save` | `raceNoteBody`・`body.<entryId>`・`tags.<entryId>`（複数） | ふりかえりを一括保存。`{ savedAt }` | 開催前 400 / 検証 `fail(400)` / 404 |
 | `/races/[id]` | POST `?/quick` | `entryId`・`body` | クイック入力の自動保存。1頭の本文だけを保存し、札は残す（`saveEntryReviewBody`）。`{ quickSaved }` | 開催前 400 / 出走馬でない・検証 `fail(400)` / 404 |
-| `/races/[id]/preview` | GET | — | 出馬表・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点）。重賞なら自分の重賞の傾向と重賞のタイムライン（`graded`。形は `/races/[id]` と同じ）。出走馬の行に自分の騎手のまとめ（`jockeySummary`。形は `/races/[id]` と同じ） | 404 |
+| `/races/[id]/preview` | GET | — | 出馬表（行に自分の特徴メモ `horseTrait`。無ければ null）・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点）。重賞なら自分の重賞の傾向と重賞のタイムライン（`graded`。形は `/races/[id]` と同じ）。出走馬の行に自分の騎手のまとめ（`jockeySummary`。形は `/races/[id]` と同じ） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`racePace`・`flowSpots.<局面>`（JSON）・`flowMemo.<局面>`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>`（局面は `start`・`corner4`・`finish`） | 見立て（展開の予想を含む）と予想印を一括保存。盤面の馬はこのレースの出走馬に絞る | 検証 `fail(400)` / 404 |
 | `/horses` | GET | `q`・`offset` | 馬一覧を `offset` 件目から100頭（続きの読み方は `/races` と同じ） | `offset` が数字でなければ 0 |
-| `/horses/[id]` | GET | — | プロフィールとタイムライン・自分の推しか | 404 |
+| `/horses/[id]` | GET | — | プロフィールとタイムライン・自分の推しか・自分の特徴メモ（`trait`。無ければ null） | 404 |
 | `/horses/[id]` | POST `?/favorite` | `favorite`（`1` で推しにする・`0` で外す） | 自分の推しを切り替え、`{ favorite }` を返す。何度送っても同じ状態になる | 検証 `fail(400)` / 無い馬 404 |
+| `/horses/[id]` | POST `?/saveTrait` | `body`（特徴メモの本文。空で保存すると消える。10,000字まで） | 自分の特徴メモを書く・書き直す・消す（1人・1頭に1本）。`{ trait: 'saved' \| 'cleared' }` を返す。マスタ（`horse.profileMemo`）には何も書かないので admin でなくても書ける | 検証 `fail(400, { traitBody, traitMessage })`（`body`・`message` のキーは近況メモ・上部の失敗の帯と混ざるので使わない）/ 無い馬 404 |
 | `/horses/[id]` | POST `?/addNote` | `body`・`tags`（複数）・`occurredAt` | 近況メモを足す | 検証 `fail(400)` / 404 |
 | `/horses/[id]` | POST `?/deleteNote` | `noteId` | 自分のメモを消す | 他人のメモ・無いメモは `fail(403)` |
 | `/graded-races` | GET | — | 今年の重賞（G1〜G3）の一覧。月ごとに、メモのある年の数と傾向の有無 | — |
@@ -170,7 +171,7 @@ tools とスコープ・入力・返すものは [mcp.md 3-2](./mcp.md) が正�
 ## 4. action を書くときの約束
 
 - **入力は Valibot で型を付けてから使う。** スキーマは `src/lib/schemas/`。失敗は
-  `fail(400, { message })` で返す。`message` は画面にそのまま出る日本語にする
+  `fail(400, { message })` で返す。`message` は画面にそのまま出る日本語にする。1画面に別のフォームがあり `message`・`body` が別の用途に使われているときは、キーを分けてよい（例: 馬の画面の `saveTrait` は `traitBody`・`traitMessage`）
 - **行の構成は DB を正とする。** `body.<entryId>` の `entryId` はフォームから拾わず、
   DB から引いた出走馬の一覧を回して読む（他のレースの行に書き込ませないため）
 - **書いたあとの遷移は `303`。** 同じ画面に留まるときはリダイレクトせず、値を返して `form` で受ける
@@ -213,7 +214,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | メモ | **`viewerId` を必須で受ける**（省略可能にしない・既定値を与えない） | `author_id = :viewer` |
 | 共有ページのメモ（`getSharedNote` だけ） | `noteId` | `id = :id AND visibility = 'unlisted'` |
 | 馬・レース・出走馬（マスタ）・オッズ | 絞らない | 全員に共通 |
-| 本人だけのもの（推しの馬・騎手のまとめ `jockey_note`・重賞の傾向のメモ `graded_race_note`・気づきの言葉 `insight_word`・レース直後の気づき `race_entry_insight`） | **`viewerId` を必須で受ける** | `user_id = :viewer`（誰が何を推しているか・書いているかを他人に見せない） |
+| 本人だけのもの（推しの馬・騎手のまとめ `jockey_note`・馬の特徴メモ `horse_trait`・重賞の傾向のメモ `graded_race_note`・気づきの言葉 `insight_word`・レース直後の気づき `race_entry_insight`） | **`viewerId` を必須で受ける** | `user_id = :viewer`（誰が何を推しているか・書いているかを他人に見せない） |
 | マスタの一覧にメモの件数を添えるもの（`listHorses`・`listRacesBetween` など） | `viewerId` を必須で受ける | 件数は viewer のメモだけで数える（他人が何か書いていることを漏らさない） |
 
 - メモを書く・消す関数は `authorId` を受け、WHERE に入れる。他人のメモに当たったときは
@@ -232,11 +233,12 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/odds.ts` | オッズの読み、取得対象のレースの選び。書くのは GitHub Actions（`scripts/odds/store.ts` の SQL。→ [architecture.md 3-8](./architecture.md)） |
 | `services/entries-fetch.ts` | 出走馬の取得を頼む対象と、頼めないレースの判定（`entriesFetchBlocker`。D1 を読まない）。出馬表は YAML の PR で入る |
 | `services/results-fetch.ts` | 結果の取得を頼む対象（`listResultsFetchTargets`。当日・JRA の10場・R 1〜12・出走馬あり）と、通過順の取り直しの対象・諦めたレース（`listPassingRefetchTargets`・`listPassingGaveUpRaces`。→ [architecture.md 3-9](./architecture.md)）。結果は YAML の PR で入る |
-| `services/notes.ts` | レース・馬のメモ、最近のメモ、同条件のレース、共有ページのメモの読み。ふりかえり・予想・近況メモの保存、削除、公開範囲 |
+| `services/notes.ts` | レース・馬のメモ、最近のメモ、同条件のレース、共有ページのメモの読み。`listRaceMemoContext` は出走馬の特徴メモも同じ batch で返す。ふりかえり・予想・近況メモの保存、削除、公開範囲 |
 | `services/race-shares.ts` | 予想まとめの共有コピーの読み・作成・取り消し |
 | `services/profile.ts` | 公開名の読み書き |
 | `services/favorites.ts` | 推しの馬の読み書きと、推しの出走予定 |
 | `services/insights.ts` | 気づきの言葉の登録・まとめて登録（`addInsightWords`）・削除、以前に残した気づきを読む関数（ふりかえり画面・予想画面・馬の画面。`viewerId` 必須。気づきは新しくは作らない） |
+| `services/horse-traits.ts` | 馬の特徴メモ（本人だけ）の読み（1頭・出走馬まとめて）と保存。`viewerId` を必須で受ける |
 | `services/jockeys.ts` | 騎手の一覧・騎乗・まとめ、レースの出走馬の騎手のまとめ。まとめの保存 |
 | `services/graded-races.ts` | 重賞の一覧・年ごとのタイムライン、傾向のメモの読み書き（マスタの読みは `viewerId` を取らない） |
 | `services/users.ts` | admin 画面が使うユーザーの一覧（`listUsersForAdmin`）と凍結（`freezeUser`。セッション・連携の削除と共有メモの private 化を1つの batch で）。権限は見ない（呼ぶルートが `ctxAdmin` と「自分自身は不可」を見る） |

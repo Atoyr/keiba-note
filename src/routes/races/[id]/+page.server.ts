@@ -161,6 +161,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				jockeySummary,
 				// 騎手名の下の段に出す、このレースに合う札だけ（東京のレースなら東京巧者）。
 				jockeyCourseTags: jockeySummary ? raceJockeyTags(jockeySummary.tags, race) : [],
+				// 馬名を押したときに開く、自分の特徴メモ。無ければ null。
+				horseTrait: memos.horseTraits.get(e.horseId) ?? null,
 				myNote: myEntryNotes.get(e.entryId) ?? null,
 				// レース直後の気づき（付けた言葉と短いメモ）。ふりかえり本文とは別。
 				insight: raceInsights.get(e.entryId) ?? null,
