@@ -57,8 +57,11 @@ describe('HorseMemoRow', () => {
 		expect(screen.getByRole('button').elements()).toHaveLength(0);
 		const row = screen.container.querySelector('[data-memo-row]')!;
 		expect(row.textContent).toContain('このレースに合う札');
-		expect(row.textContent).toContain('京都巧者');
-		expect(row.textContent).toContain('中距離巧者');
+		// 行の中の合う札は「巧者」を落とした短い表記（元の名前は title）。
+		expect(row.textContent).toContain('京都');
+		expect(row.textContent).toContain('中距離');
+		expect(row.textContent).not.toContain('巧者');
+		expect(row.querySelector('[title="京都巧者"]')).not.toBeNull();
 	});
 
 	it('前回の札だけでも出る（予想画面。title は付けた日）', () => {

@@ -117,10 +117,11 @@ test('予想画面で、馬名の下の行に メモのアイコン・このレ�
 		memoRow.getByRole('button', { name: 'E2Eプレビューホースのメモ', exact: true })
 	).toBeVisible();
 	await expect(memoRow.getByText('このレースに合う札')).toBeAttached();
+	// 行の中の合う札は「巧者」を落とした短い表記で出し、元の札の名前は title に持つ。
 	for (const tag of ['京都巧者', '右回り巧者', '中距離巧者']) {
-		await expect(memoRow.getByText(tag, { exact: true })).toBeVisible();
+		await expect(memoRow.getByTitle(tag, { exact: true })).toHaveText(tag.replace(/巧者$/, ''));
 	}
-	await expect(memoRow.getByText('東京巧者')).toHaveCount(0);
+	await expect(memoRow.getByTitle('東京巧者', { exact: true })).toHaveCount(0);
 
 	// 前回の札は、名前の列の最後の段ではなく、この行に出る。
 	const conclusion = memoRow.getByTitle('2026-04-26 に付けた札');
@@ -175,9 +176,9 @@ test('基本情報の無い馬でも、メモがあればアイコンが出て�
 
 	// 印見本特別は東京・芝1800m（回り未設定）。東京巧者・マイル巧者が合い、左回り巧者は回りが未設定なので出ない。
 	const memoRow = previewRow(page, 'アナウマスペシャル').locator('[data-memo-row]');
-	await expect(memoRow.getByText('東京巧者', { exact: true })).toBeVisible();
-	await expect(memoRow.getByText('マイル巧者', { exact: true })).toBeVisible();
-	await expect(memoRow.getByText('左回り巧者')).toHaveCount(0);
+	await expect(memoRow.getByTitle('東京巧者', { exact: true })).toBeVisible();
+	await expect(memoRow.getByTitle('マイル巧者', { exact: true })).toBeVisible();
+	await expect(memoRow.getByTitle('左回り巧者', { exact: true })).toHaveCount(0);
 
 	const icon = page.getByRole('button', { name: 'アナウマスペシャルのメモ', exact: true });
 	await icon.click();
@@ -208,7 +209,7 @@ test('ふりかえり画面でも、馬名の下にメモのアイコンと合�
 	const memoRow = page
 		.locator('main li[id^="entry-"]', { hasText: 'アナウマスペシャル' })
 		.locator('[data-memo-row]');
-	await expect(memoRow.getByText('東京巧者', { exact: true })).toBeVisible();
+	await expect(memoRow.getByTitle('東京巧者', { exact: true })).toBeVisible();
 	await expect(memoRow).not.toContainText('前回');
 
 	const icon = page.getByRole('button', { name: 'アナウマスペシャルのメモ', exact: true });
@@ -227,8 +228,8 @@ test('札だけのメモ・合わない札だけのメモ・メモも札も前�
 	// 多頭数賞は阪神・芝2400m（回り未設定）。イナズマは札だけ（阪神巧者・長距離巧者が合う）。
 	const tagsOnly = previewRow(page, 'イナズマ').locator('[data-memo-row]');
 	await expect(tagsOnly.getByRole('button', { name: 'イナズマのメモ', exact: true })).toBeVisible();
-	await expect(tagsOnly.getByText('阪神巧者', { exact: true })).toBeVisible();
-	await expect(tagsOnly.getByText('長距離巧者', { exact: true })).toBeVisible();
+	await expect(tagsOnly.getByTitle('阪神巧者', { exact: true })).toBeVisible();
+	await expect(tagsOnly.getByTitle('長距離巧者', { exact: true })).toBeVisible();
 	await tagsOnly.getByRole('button', { name: 'イナズマのメモ', exact: true }).click();
 	const dialog = page.getByRole('dialog', { name: 'イナズマのメモ' });
 	await expect(dialog.locator('p[tabindex="0"]')).toHaveCount(0);

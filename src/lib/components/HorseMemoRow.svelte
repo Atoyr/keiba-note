@@ -16,6 +16,7 @@
 	 * 1. **メモのアイコン**（自分のメモ＝本文か札があるときだけ）。押すと Popover で本文 → 札 → 「馬の画面へ」を開く。
 	 *    馬名を押したときの Popover（`HorseLink`）は基本情報だけで、メモはここ。
 	 * 2. **このレースに合う札**（場・回り・距離。`raceHorseTraitTags`）。開かずに見えるようにする。
+	 *    狭い名前の列に収めるため「巧者」を落とした短い表記（「京都」「右回り」「中距離」）で出す。
 	 * 3. **前回の札**（予想画面だけ。`conclusion`）。以前は名前の列の最後の段にあったものを、この行に移した。
 	 *
 	 * 3つとも無ければ**行ごと出さない**（行の高さを増やさない）。折り返してよい。
@@ -108,10 +109,10 @@
 				<span class="inline-flex items-center gap-1">
 					<CircleCheckIcon class="size-3.5 shrink-0 text-primary" aria-hidden="true" />
 					<span class="sr-only">このレースに合う札</span>
-					<HorseTraitTagBadges tags={[t]} />
+					<HorseTraitTagBadges tags={[t]} short />
 				</span>
 			{:else}
-				<HorseTraitTagBadges tags={[t]} />
+				<HorseTraitTagBadges tags={[t]} short />
 			{/if}
 		{/each}
 

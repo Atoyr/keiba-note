@@ -173,7 +173,7 @@ shadcn に無いので、`layout.css` の `:root` と `@theme inline` に shadcn
 | `BlinkerBadge` | ブリンカーを着用した出走・走に付ける `B` の札（outline）。着用なし・不明は何も描かない。読み上げは「ブリンカー着用」。予想画面の馬名の右と、馬柱（`PastRuns`・`PastRunsStrip`）の騎手の隣に置く |
 | `JockeyLink` | 出走馬の行の騎手名。騎手の画面へのリンクで、自分の騎手のメモがあれば notebook-pen のアイコンを添え、クリック・タップで `Popover` にメモの全文と「騎手の画面へ」を開く（hydration 前とメモが無いときはただのリンク）。隣の札は呼ぶ側が `JockeyTagBadges` で置く |
 | `HorseLink` | 出走馬の行の馬名。馬の画面へのリンクで、基本情報が1つでもあれば、クリック・タップで `Popover` に `HorseProfileBadges` と「馬の画面へ」を開く（hydration 前と基本情報が無いときはただのリンク。→ [pages.md 5-1](./pages.md)） |
-| `HorseMemoRow` | 出走馬の行の馬名の下の1行。自分のメモのアイコン（押すと本文・札・「馬の画面へ」の `Popover`。24px 四方）・このレースに合う札（チェックのアイコン付き）・前回の札（予想画面だけ）。どれも無ければ行ごと出さない（→ [pages.md 5-2](./pages.md)） |
+| `HorseMemoRow` | 出走馬の行の馬名の下の1行。自分のメモのアイコン（押すと本文・札・「馬の画面へ」の `Popover`。24px 四方）・このレースに合う札（チェックのアイコン付き。「巧者」を落とした短い表記）・前回の札（予想画面だけ）。どれも無ければ行ごと出さない（→ [pages.md 5-2](./pages.md)） |
 | `HorseTraitTagPicker` / `HorseTraitTagBadges` | 馬の札（得意な場・回り・距離）の選択と表示。`JockeyTagPicker` / `JockeyTagBadges` と同じ作り |
 | `InfoTip` | 見出しの右の info アイコン。`label`（見出しの名前）と `text`（説明）を渡す。ボタンの名前は「{label}の説明」。`Popover` の `openOnHover` で、マウスは hover、タッチはタップで開く。中は読むだけで、操作は入れない |
 | `KindBadge` | メモの種類 |
