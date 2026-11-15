@@ -480,7 +480,7 @@ export const jockeyNote = sqliteTable(
  *
  * 本文も札も空なら行ごと消す（`jockey_note` と同じ。空の行は持たない）。
  * **`horse.profile_memo` とは別物。** あちらは全ユーザー共通のマスタ（admin だけが書く）で、
- * こちらは本人だけが読み書きする自分の見立て。予想・ふりかえりの馬名の Popover と馬の画面で出す。
+ * こちらは本人だけが読み書きする自分の見立て。予想・ふりかえりの馬名の下の行のメモのアイコン（押すと Popover）と馬の画面で出す。馬名の Popover は基本情報だけ。
  *
  * `note` に kind を足さずに別の表にしたのは `jockey_note` と同じ理由（`note_kind_shape` の CHECK を作り直すことになる）。
  */

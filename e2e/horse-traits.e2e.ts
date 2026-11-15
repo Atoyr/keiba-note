@@ -254,6 +254,33 @@ test('予想まとめにはメモの本文を出さない', async ({ page }) => 
 	expect(await page.content()).not.toContain(TRAIT_ONLY_BODY_HEAD);
 });
 
+test('書きかけのメモは、近況メモの追加（本物の action で load を読み直す）のあとも欄に残る', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/horses/${FILLY_HORSE_ID}`);
+
+	await section(page).getByText('＋ メモを書く').click();
+	await field(page).fill('保存していない書きかけ');
+
+	// 近況メモの追加が成功すると load が読み直され、`form` も置き換わる。メモの欄は保存済みの値に戻らない。
+	await page.getByText('＋ 近況メモを追加').click();
+	const note = '書きかけ確認用の近況メモ';
+	await page.getByLabel('近況メモ', { exact: true }).fill(note);
+	await page.getByRole('button', { name: '追加', exact: true }).click();
+	const row = page.locator('main ol > li', { hasText: note });
+	await expect(row).toBeVisible();
+	await expect(field(page)).toBeVisible();
+	await expect(field(page)).toHaveValue('保存していない書きかけ');
+
+	// 後始末: 近況メモを消し、下書きも捨てる。
+	await row.getByTitle('メモの操作').click();
+	await row.getByText('この近況メモを削除', { exact: true }).click();
+	await row.getByRole('button', { name: '削除する', exact: true }).click();
+	await expect(row).toHaveCount(0);
+	await page.evaluate(() => localStorage.clear());
+});
+
 test('書きかけのメモは、再読み込みのあと「復元する」で開いて戻る', async ({ page }) => {
 	await login(page);
 	await gotoHydrated(page, `/horses/${OUTER_HORSE_ID}`);

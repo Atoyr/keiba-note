@@ -155,7 +155,7 @@ export const actions: Actions = {
 	 * プロフィール欄。馬の属性と常設メモ。
 	 *
 	 * 全ユーザー共通のマスタを書き換えるので admin だけ（product.md 第3章 / 第4章 #10）。
-	 * 一般ユーザーが馬について書けるのはタイムラインの近況メモ（`addNote`）の方。
+	 * 一般ユーザーが馬について書けるのは、自分だけのメモ（`saveTrait`）とタイムラインの近況メモ（`addNote`）の方。
 	 */
 	saveProfile: async ({ locals, params, request }) => {
 		const { db } = ctxAdmin(locals);

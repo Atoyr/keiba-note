@@ -38,18 +38,24 @@
 	 * この状態の値（閉）を要素に書き込み、JS が届く前に開いた欄が閉じてしまうため（騎手の画面と同じ）。
 	 * キーは `traitBody`（近況メモの `body`・上部の `message` と混ぜない）。
 	 */
-	const traitStartOpen = untrack(() => !!form && 'traitBody' in form);
+	const traitHorseId = $derived(data.horse.id);
 	/**
 	 * 特徴メモの節の状態は、**馬が変わったときだけ**初期値に戻す（同じルートで別の馬へ移ると、
 	 * 節は `{#key}` で作り直すが、script の状態は残るため）。中身は untrack で読み、`form` や `data.trait` が
 	 * 変わっただけでは作り直さない。どれも書き換えてよい（Svelte 5.25 以降の書き換えられる `$derived`）。
+	 *
+	 * **`data` を直に読まない。** `data` は load のたびに新しいオブジェクトになるので、`data.horse.id` を読むと
+	 * 推しや近況メモの追加で load が読み直されたときに、書き換えた値が初期値へ戻る。プリミティブの `$derived`
+	 * （`traitHorseId`）は値が変わったときだけ下流に伝わるので、これを読む。
 	 */
 	function forHorse<T>(init: () => T): () => T {
 		return () => {
-			void data.horse.id; // 依存にするのは馬の id だけ。
+			void traitHorseId; // 依存にするのは馬の id だけ。
 			return untrack(init);
 		};
 	}
+	/** 失敗で返ってきた画面（JS 無し）では最初から開く。`{#if}` の分岐に使うので書き換えない。 */
+	const traitStartOpen = $derived.by(forHorse(() => !!form && 'traitBody' in form));
 	let traitEditing = $derived.by(forHorse(() => !!form && 'traitBody' in form));
 	let traitPending = $state(false);
 	/** 通信・サーバーの失敗の文（無ければ null）。 */
@@ -190,7 +196,7 @@
 	{/if}
 
 	<!-- プロフィールは全ユーザー共通のマスタなので、書き換えられるのは admin だけ
-	     （product.md 第3章）。一般ユーザーにはタイムラインの近況メモだけを残す。 -->
+	     （product.md 第3章）。一般ユーザーは、自分のメモ（下の節）とタイムラインの近況メモを書ける。 -->
 	{#if admin}
 		<button
 			type="button"

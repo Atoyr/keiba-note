@@ -60,7 +60,7 @@
 
 {#if show}
 	<div
-		class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 self-start {className}"
+		class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 self-start {className}"
 		data-memo-row
 	>
 		{#if hasMemo}
@@ -101,13 +101,19 @@
 			{/if}
 		{/if}
 
-		{#if matches.length > 0}
-			<span class="inline-flex items-center gap-1">
-				<CircleCheckIcon class="size-3.5 shrink-0 text-primary" aria-hidden="true" />
-				<span class="sr-only">このレースに合う札</span>
-				<HorseTraitTagBadges tags={matches} />
-			</span>
-		{/if}
+		<!-- 合う札は1つずつ行の要素にして、1つずつ折り返す（まとめて1つにすると、狭い幅でまとまりごと次の行へ回り、
+		     アイコンだけの行ができる）。チェックのアイコンは先頭の札と離れないよう一緒に包む。 -->
+		{#each matches as t, i (t)}
+			{#if i === 0}
+				<span class="inline-flex items-center gap-1">
+					<CircleCheckIcon class="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+					<span class="sr-only">このレースに合う札</span>
+					<HorseTraitTagBadges tags={[t]} />
+				</span>
+			{:else}
+				<HorseTraitTagBadges tags={[t]} />
+			{/if}
+		{/each}
 
 		<!-- この馬について最後に下した結論。16頭を見比べるときは本文まで読めないので、札だけを見出しに上げる
 		     （何を書いたかは下の過去メモにある）。 -->
