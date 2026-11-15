@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 16
+    winner: トップナイフ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -160,6 +162,7 @@ races:
         finish: 2
         popularity: 2
         time: "2:01.7"
+        timeDiff: 0.2
         passing: "11-11-12-10"
         last3f: 35.5
         weight: 56

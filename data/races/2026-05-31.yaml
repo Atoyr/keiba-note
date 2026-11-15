@@ -657,6 +657,7 @@ races:
     weather: 晴
     fieldSize: 17
     winner: エコロブルーム
+    runnerUp: タガノエルピーダ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -810,6 +811,7 @@ races:
         finish: 1
         popularity: 7
         time: "1:19.9"
+        timeDiff: 0
         passing: "2-2"
         last3f: 33
         weight: 57.5

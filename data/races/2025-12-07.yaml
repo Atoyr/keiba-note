@@ -11,6 +11,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ダブルハートボンド
     entries:
       - horseNumber: 2
         bracket: 1
@@ -90,6 +92,7 @@ races:
         finish: 11
         popularity: 5
         time: "1:51.5"
+        timeDiff: 1.3
         passing: "2-1-2-2"
         last3f: 38.6
         weight: 58

@@ -140,6 +140,7 @@ races:
     weather: 晴
     fieldSize: 18
     winner: ロデオドライブ
+    runnerUp: アスクイキゴミ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -465,6 +466,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:31.5"
+        timeDiff: 0
         passing: "14-14"
         last3f: 33.3
         weight: 57

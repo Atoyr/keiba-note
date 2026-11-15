@@ -11,6 +11,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 18
+    winner: ノーブルロジャー
     entries:
       - horseNumber: 13
         bracket: 7
@@ -20,6 +22,7 @@ races:
         finish: 2
         popularity: 1
         time: "1:34.7"
+        timeDiff: 0.2
         passing: "4-4"
         last3f: 36.1
         weight: 57

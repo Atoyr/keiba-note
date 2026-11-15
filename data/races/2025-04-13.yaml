@@ -119,6 +119,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 雨
+    fieldSize: 18
+    winner: エンブロイダリー
+    runnerUp: アルマヴェローチェ
     entries:
       - horseNumber: 2
         bracket: 1
@@ -156,6 +159,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:33.1"
+        timeDiff: 0
         passing: "9-8"
         last3f: 34
         weight: 55

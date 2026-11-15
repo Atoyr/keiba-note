@@ -135,6 +135,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: コスタノヴァ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -186,6 +188,7 @@ races:
         finish: 7
         popularity: 6
         time: "1:36.5"
+        timeDiff: 1
         passing: "11-12"
         last3f: 35.9
         weight: 58
