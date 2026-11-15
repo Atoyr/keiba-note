@@ -248,6 +248,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: メタルスピード
     entries:
       - horseNumber: 5
         bracket: 3
@@ -257,6 +259,7 @@ races:
         finish: 6
         popularity: 5
         time: "1:32.6"
+        timeDiff: 0.3
         passing: "9-9-10"
         last3f: 34.2
         weight: 54

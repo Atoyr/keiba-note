@@ -98,6 +98,21 @@ races:
         horseWeight: 502
         horseWeightDiff: 0
         odds: 12.4
+      - horseNumber: 10
+        bracket: 5
+        name: レッドシュヴェルト
+        jockey: 菊沢一樹
+        ref: nk-2020103517
+        finish: 10
+        popularity: 12
+        time: "1:20.6"
+        timeDiff: 0.4
+        passing: "15-13"
+        last3f: 34
+        weight: 57
+        horseWeight: 478
+        horseWeightDiff: 4
+        odds: 47
       - horseNumber: 14
         bracket: 7
         name: ランフォーヴァウ

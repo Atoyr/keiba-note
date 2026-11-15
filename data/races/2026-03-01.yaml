@@ -605,6 +605,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 12
+    winner: ロデオドライブ
+    runnerUp: スペルーチェ
     entries:
       - horseNumber: 4
         bracket: 4
@@ -628,6 +631,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:32.1"
+        timeDiff: -0.5
         passing: "3-5-4"
         last3f: 33.5
         weight: 57

@@ -143,6 +143,7 @@ races:
         popularity: 1
         time: "1:33.3"
         margin: "クビ"
+        timeDiff: 0
         passing: "3-3-3"
         last3f: 33.9
         weight: 57
@@ -312,6 +313,7 @@ races:
     weather: 晴
     fieldSize: 10
     winner: エンブロイダリー
+    runnerUp: カムニャック
     entries:
       - horseNumber: 1
         bracket: 1
@@ -324,6 +326,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:31.6"
+        timeDiff: 0
         passing: "1-1"
         last3f: 33.5
         weight: 57

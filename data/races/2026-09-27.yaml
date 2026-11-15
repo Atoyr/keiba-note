@@ -142,6 +142,7 @@ races:
         passing: "3-3"
         last3f: 35.3
         weight: 58
+        blinker: false
         horseWeight: 472
         horseWeightDiff: 2
         odds: 10.7
@@ -205,6 +206,7 @@ races:
         passing: "10-10"
         last3f: 35.1
         weight: 54
+        blinker: false
         horseWeight: 484
         horseWeightDiff: 4
         odds: 3.7
@@ -391,3 +393,31 @@ races:
         horseWeight: 462
         horseWeightDiff: 10
         odds: 3.3
+  - course: 阪神
+    raceNumber: 11
+    name: ポートアイランドS
+    grade: L
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 稍重
+    weather: 雨
+    fieldSize: 16
+    winner: ダノンセンチュリー
+    entries:
+      - horseNumber: 8
+        bracket: 4
+        name: レッドシュヴェルト
+        jockey: 吉村誠之助
+        ref: nk-2020103517
+        finish: 3
+        popularity: 14
+        time: "1:35.0"
+        timeDiff: 0.2
+        passing: "9-9"
+        last3f: 33.4
+        weight: 57
+        blinker: false
+        horseWeight: 478
+        horseWeightDiff: 0
+        odds: 72.8

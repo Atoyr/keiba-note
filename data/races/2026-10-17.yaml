@@ -116,6 +116,7 @@ races:
         passing: "4-3"
         last3f: 35.2
         weight: 58
+        blinker: false
         horseWeight: 492
         horseWeightDiff: 10
         odds: 5.9
@@ -156,6 +157,7 @@ races:
         passing: "9-10"
         last3f: 34.5
         weight: 57
+        blinker: false
         horseWeight: 466
         horseWeightDiff: -6
         odds: 19.7
@@ -176,6 +178,7 @@ races:
         passing: "11-10"
         last3f: 34
         weight: 57
+        blinker: false
         horseWeight: 516
         horseWeightDiff: -2
         odds: 11.6
@@ -216,6 +219,7 @@ races:
         passing: "9-8"
         last3f: 34.1
         weight: 57
+        blinker: false
         horseWeight: 494
         horseWeightDiff: -4
         odds: 3.6
@@ -295,6 +299,7 @@ races:
         passing: "3-3"
         last3f: 34.9
         weight: 55
+        blinker: false
         horseWeight: 486
         horseWeightDiff: 10
         odds: 8.4

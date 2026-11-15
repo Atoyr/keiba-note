@@ -892,6 +892,7 @@ races:
     weather: 曇
     fieldSize: 16
     winner: ロデオドライブ
+    runnerUp: カナルサンマルタン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -916,6 +917,7 @@ races:
         finish: 1
         popularity: 5
         time: "1:35.1"
+        timeDiff: -0.2
         passing: "2-3-2"
         last3f: 35.4
         weight: 56

@@ -246,6 +246,8 @@ races:
     direction: 左
     trackCondition: 稍重
     weather: 晴
+    fieldSize: 14
+    winner: ベガリス
     entries:
       - horseNumber: 2
         bracket: 2
@@ -255,6 +257,7 @@ races:
         finish: 4
         popularity: 1
         time: "1:22.3"
+        timeDiff: 0.2
         passing: "5-5"
         last3f: 35.4
         weight: 58

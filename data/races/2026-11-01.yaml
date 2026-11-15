@@ -355,3 +355,32 @@ races:
         horseWeight: 516
         horseWeightDiff: -4
         odds: 10.8
+  - course: 京都
+    raceNumber: 11
+    name: まほろばS
+    grade: L
+    surface: 芝
+    distance: 1600
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 13
+    winner: レザベーション
+    runnerUp: スマートワイス
+    entries:
+      - horseNumber: 7
+        bracket: 5
+        name: レザベーション
+        jockey: 田口貫太
+        ref: nk-2023103268
+        finish: 1
+        popularity: 1
+        time: "1:33.5"
+        timeDiff: -0.2
+        passing: "5-4"
+        last3f: 33.1
+        weight: 55
+        blinker: false
+        horseWeight: 468
+        horseWeightDiff: 0
+        odds: 3

@@ -275,9 +275,11 @@ races:
         popularity: 4
         time: "2:18.1"
         margin: "2.1/2"
+        timeDiff: 1.2
         passing: "12-12-7-5"
         last3f: 37.7
         weight: 58
+        blinker: false
         horseWeight: 504
         horseWeightDiff: 4
         odds: 10.8

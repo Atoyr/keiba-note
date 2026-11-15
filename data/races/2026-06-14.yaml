@@ -210,6 +210,7 @@ races:
         popularity: 15
         time: "2:13.7"
         margin: "クビ"
+        timeDiff: 1.6
         passing: "7-7-5-3"
         last3f: 36.7
         weight: 58
@@ -557,6 +558,21 @@ races:
         horseWeight: 474
         horseWeightDiff: 4
         odds: 2.7
+      - horseNumber: 12
+        bracket: 7
+        name: レッドシュヴェルト
+        jockey: 三浦皇成
+        ref: nk-2020103517
+        finish: 6
+        popularity: 8
+        time: "1:21.1"
+        timeDiff: 0.8
+        passing: "13-13"
+        last3f: 33.3
+        weight: 54
+        horseWeight: 474
+        horseWeightDiff: -2
+        odds: 22.5
   - course: 阪神
     raceNumber: 5
     name: 2歳新馬

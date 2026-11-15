@@ -13,6 +13,7 @@ races:
     weather: 曇
     fieldSize: 12
     winner: ジューンテイク
+    runnerUp: エリキング
     entries:
       - horseNumber: 1
         bracket: 1
@@ -237,6 +238,7 @@ races:
         finish: 1
         popularity: 6
         time: "2:12.7"
+        timeDiff: -0.1
         passing: "2-2-2-2"
         last3f: 33.9
         weight: 57
