@@ -525,7 +525,7 @@
 		{/if}
 
 		{#if data.timeline.length === 0}
-			<p class="mt-4 text-sm text-gray-500">まだメモも出走もありません。</p>
+			<p class="mt-4 text-sm text-gray-500">まだ近況メモも出走もありません。</p>
 		{:else}
 			<!-- 未来 → 過去。次走が先頭、古い走りほど下に沈む（mergeHorseTimeline）。 -->
 			<ol class="mt-4 space-y-5">
