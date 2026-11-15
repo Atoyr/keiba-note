@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
 import { COURSES } from './race';
-import {
-	HORSE_TRAIT_TAGS,
-	horseProfileSchema,
-	horseTraitSchema,
-	horseTraitTagsSchema
-} from './horse';
+import { HORSE_TRAIT_TAGS, horseProfileSchema, horseTraitTagsSchema } from './horse';
+import { horseTraitSchema } from './horse-trait';
 
 const input = {
 	nameKana: '',

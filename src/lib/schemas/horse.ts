@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import { bodySchema } from './note';
 
 /** 馬の性。画面の選択肢と DB の enum（`db/schema.ts`）の元。 */
 export const HORSE_SEXES = ['牡', '牝', 'セ'] as const;
@@ -124,9 +123,6 @@ export const horseTraitTagsSchema = v.pipe(
 	v.optional(v.array(v.string()), () => []),
 	v.transform((xs) => HORSE_TRAIT_TAGS.filter((t) => xs.includes(t)))
 );
-
-/** 馬の特徴メモ（画面の言葉は「メモ」。1人・1頭につき1本）。本文も札も空なら「消す」。馬は URL から取るので、ここでは運ばない。 */
-export const horseTraitSchema = v.object({ body: bodySchema, tags: horseTraitTagsSchema });
 
 /** 馬の特徴メモ。予想・ふりかえりの行と馬の画面が受け取る形。 */
 export type HorseTraitValue = { body: string; tags: HorseTraitTag[] };

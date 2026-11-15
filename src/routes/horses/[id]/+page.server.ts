@@ -1,7 +1,8 @@
 import { error, fail } from '@sveltejs/kit';
 import * as v from 'valibot';
 import { favoriteHorseSchema } from '#lib/schemas/favorite.ts';
-import { HORSE_TRAIT_TAGS, horseProfileSchema, horseTraitSchema } from '#lib/schemas/horse.ts';
+import { HORSE_TRAIT_TAGS, horseProfileSchema } from '#lib/schemas/horse.ts';
+import { horseTraitSchema } from '#lib/schemas/horse-trait.ts';
 import { deleteNoteSchema, horseNoteSchema, NOTE_TAGS } from '#lib/schemas/note.ts';
 import { isUniqueViolation } from '#lib/server/db/errors.ts';
 import { isFavoriteHorse, setFavoriteHorse } from '#lib/server/services/favorites.ts';
