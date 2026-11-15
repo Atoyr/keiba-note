@@ -342,7 +342,13 @@
 									await update({ reset: false });
 									if (result.type === 'success') {
 										traitValue = data.trait ?? '';
-										await traitKeeper?.clear(sent, late);
+										// 保存済みにするのは送った値ではなく、サーバーが保存した値（前後の空白を除いたもの）。
+										// 送った値のままだと、末尾の改行だけの違いで「未保存」が残り、離脱の確認と下書きが出る。
+										// 送信中に書き足した分（送った値と違うとき）だけを書き戻す。
+										const saved = { body: [traitValue] };
+										const typedDuringSave =
+											late && late.body?.[0] !== sent?.body?.[0] ? late : null;
+										await traitKeeper?.clear(saved, typedDuringSave);
 										// toggle イベントは後から来るので、traitEditing もここで揃える。
 										traitDetails!.open = false;
 										traitEditing = false;

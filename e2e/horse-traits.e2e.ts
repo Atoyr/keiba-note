@@ -37,8 +37,16 @@ test('馬の画面で特徴メモを書くと、再読み込みしても残り�
 	await expect(section(page).getByText('まだ')).toHaveCount(0);
 	await expect(field(page)).toBeHidden();
 
+	// 離れるときの確認（未保存が残っているときだけ出る）を数える。
+	let dialogs = 0;
+	page.on('dialog', (d) => {
+		dialogs++;
+		void d.accept();
+	});
+
 	await section(page).getByText('＋ 特徴メモを書く').click();
-	await field(page).fill('高速馬場向き。\n外を回すと伸びる。');
+	// 末尾の改行はサーバーが落として保存する。保存した値との違いで「未保存」が残らないこと。
+	await field(page).fill('高速馬場向き。\n外を回すと伸びる。\n');
 	await saveButton(page).click();
 
 	await expect(page.getByText('特徴メモを保存しました', { exact: true })).toBeVisible();
@@ -51,6 +59,8 @@ test('馬の画面で特徴メモを書くと、再読み込みしても残り�
 	await page.reload();
 	await expect(section(page)).toContainText('高速馬場向き。');
 	await expect(section(page).getByText('書き直す')).toBeVisible();
+	expect(dialogs).toBe(0);
+	await expect(page.getByRole('button', { name: '復元する' })).toHaveCount(0);
 
 	await section(page).getByText('書き直す').click();
 	await expect(field(page)).toHaveValue('高速馬場向き。\n外を回すと伸びる。');

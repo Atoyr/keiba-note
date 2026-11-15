@@ -71,7 +71,7 @@ describe('DraftKeeper.apply', () => {
 });
 
 describe('DraftKeeper.onrestore', () => {
-	it('「復元する」を押すと下書きを欄へ入れてから onrestore を呼ぶ。押すまでは呼ばず、破棄でも呼ばない', async () => {
+	it('「復元する」を押すと下書きを欄へ入れてから onrestore を呼ぶ。押すまでは呼ばない', async () => {
 		const key = 'uma-memo:test:restore';
 		localStorage.setItem(
 			key,
@@ -88,6 +88,23 @@ describe('DraftKeeper.onrestore', () => {
 		await screen.getByRole('button', { name: '復元する' }).click();
 		expect(field.value).toBe('書きかけ');
 		expect(onrestore).toHaveBeenCalledTimes(1);
+		localStorage.removeItem(key);
+	});
+
+	it('「破棄」を押しても onrestore は呼ばず、欄も変えない', async () => {
+		const key = 'uma-memo:test:discard';
+		localStorage.setItem(
+			key,
+			JSON.stringify({ savedAt: Date.now(), fields: { body: ['書きかけ'] } })
+		);
+		const onrestore = vi.fn();
+		const screen = render(RestoreHarness, { storageKey: key, onrestore });
+		const field = screen.container.querySelector<HTMLTextAreaElement>('[name="body"]')!;
+
+		await screen.getByRole('button', { name: '破棄' }).click();
+		await expect.element(screen.getByRole('button', { name: '復元する' })).not.toBeInTheDocument();
+		expect(field.value).toBe('');
+		expect(onrestore).not.toHaveBeenCalled();
 		localStorage.removeItem(key);
 	});
 });
