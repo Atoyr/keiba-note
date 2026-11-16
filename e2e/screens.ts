@@ -983,6 +983,24 @@ export const SCREENS: Screen[] = [
 		auth: true
 	},
 	{
+		// 過去の好走馬の、畳んだ観点（騎手・父・母父）と「1回だけ」を開いたところ。
+		name: 'graded-race-placers-open',
+		path: `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`,
+		auth: true,
+		prepare: async (page) => {
+			// hydration の前に開くと、開いた欄が閉じて写る。
+			await waitForHydration(page);
+			const section = page.getByRole('region', { name: /過去の好走馬/ });
+			for (const summary of await section.locator('details > summary').all()) {
+				const details = summary.locator('xpath=..');
+				if (!(await details.evaluate((el: HTMLDetailsElement) => el.open))) await summary.click();
+			}
+			await expect(section.locator('details[open]')).toHaveCount(
+				await section.locator('details').count()
+			);
+		}
+	},
+	{
 		// 傾向を書いているところ。
 		name: 'graded-race-trend-editing',
 		path: `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`,

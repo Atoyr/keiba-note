@@ -53,6 +53,30 @@ afterEach(() => state.sqlite.close());
 const trendOf = async (key: string, viewerId: string) =>
 	(await readGradedRaceSeries(state.db, key, viewerId)).trend;
 
+describe('readGradedRaceSeries の好走馬', () => {
+	it('頼まれたときだけ、同じ batch で窓の1〜3着を返す（頼まなければ空）', async () => {
+		const none = await readGradedRaceSeries(state.db, 'オールカマー', 'a');
+		expect(none.placerRows).toEqual([]);
+		const withPlacers = await readGradedRaceSeries(state.db, 'オールカマー', 'a', undefined, {
+			fromDate: '2025-01-01',
+			toDate: '2025-12-31'
+		});
+		expect(withPlacers.placerRows.map((r) => r.entryId)).toEqual(['e1']);
+		// 前哨戦の問い合わせと一緒でも、結果の添字がずれない。
+		const both = await readGradedRaceSeries(
+			state.db,
+			'オールカマー',
+			'a',
+			{ keys: ['オールカマー'], before: '2026-09-27' },
+			{ fromDate: '2025-01-01', toDate: '2025-12-31' }
+		);
+		expect(both.placerRows.map((r) => r.entryId)).toEqual(['e1']);
+		expect(both.stepRaces.map((r) => r.id)).toContain('r25');
+		expect(both.races.map((r) => r.id)).toContain('r26');
+		expect(both.notes.length).toBeGreaterThan(0);
+	});
+});
+
 describe('今年の重賞', () => {
 	it('今年の G1〜G3 だけが日付の昇順で並ぶ（OP・去年のレースは出ない）', async () => {
 		const races = await listGradedRacesOfYear(state.db, '2026');
@@ -193,6 +217,7 @@ describe('重賞1本ぶんの読み（1往復）', () => {
 			trend: null,
 			races: [],
 			stepRaces: [],
+			placerRows: [],
 			notes: [],
 			marks: [],
 			entryNoteCounts: {},

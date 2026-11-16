@@ -115,11 +115,13 @@ describe('GradedRacePlacers', () => {
 		await expect
 			.element(section)
 			.toHaveTextContent('結果がそろっている開催 1・一部だけ 1・レースが未登録 1年（2023年）');
-		await expect.element(section).toHaveTextContent('1開催は、場か距離が2025年と違います。');
+		await expect
+			.element(section)
+			.toHaveTextContent('1開催は、場・芝ダート・距離のどれかが2025年と違います。');
 		await expect
 			.element(section)
 			.toHaveTextContent(
-				'前走は、当時の直前の出走を確かめられるデータがまだ無いため、出していません。'
+				'前走は未整備です。当時の直前の出走を確かめられるデータがまだ無いため、出していません。'
 			);
 		await expect.element(screen.getByRole('heading', { name: '年ごとの1〜3着' })).toBeVisible();
 		await expect.element(section.getByText('2023年', { exact: true })).toBeVisible();

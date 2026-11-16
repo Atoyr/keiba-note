@@ -26,21 +26,16 @@ export type PlacerRow = {
 };
 
 /**
- * `names`（鍵と別名）のレースの、`fromDate`〜`toDate`（`YYYY-MM-DD`。両端を含む）の1〜3着。
- * 日付の降順 → 着順の昇順 → 馬番の昇順。`names` が空なら `[]`。格は問わない。
- * 索引は race_name。
+ * `names`（鍵と別名）のレースの、`fromDate`〜`toDate`（`YYYY-MM-DD`。両端を含む）の1〜3着を引く問い合わせ。
+ * 日付の降順 → 着順の昇順 → 馬番の昇順。`names` は空でない。格は問わない。索引は race_name。
+ * `readGradedRaceSeries` の batch（1往復）に足して使う。結果は `shapePlacerRows` で整える。
  */
-export async function listGradedRacePlacers(
-	db: Db,
-	names: string[],
-	fromDate: string,
-	toDate: string
-): Promise<PlacerRow[]> {
-	if (names.length === 0) return [];
-	// `race.id` と `race_entry.id` はどちらも "id"。別名を付けて、同名の列を2つ選ばない。
+export function placersQuery(db: Db, names: string[], fromDate: string, toDate: string) {
+	// `race.id` と `race_entry.id` はどちらも "id"。`db.batch()` の行は列名をキーにした object なので、
+	// 別名を付けて同名の列を2つ選ばない。
 	const raceIdColumn = sql<string>`${race.id}`.as('race_id');
 	const entryIdColumn = sql<string>`${raceEntry.id}`.as('entry_id');
-	const rows = await db
+	return db
 		.select({
 			raceId: raceIdColumn,
 			entryId: entryIdColumn,
@@ -64,6 +59,10 @@ export async function listGradedRacePlacers(
 			)
 		)
 		.orderBy(desc(race.date), asc(raceEntry.finishPosition), asc(raceEntry.horseNumber));
+}
+
+/** `placersQuery` の行。着順は WHERE で 1〜3 に絞っているので null ではない。 */
+export function shapePlacerRows(rows: Awaited<ReturnType<typeof placersQuery>>): PlacerRow[] {
 	return rows.map((r) => ({ ...r, finishPosition: r.finishPosition as number }));
 }
 
@@ -129,6 +128,18 @@ export type GradedRacePlacersView = {
 	aspects: Aspect[];
 };
 
+/**
+ * そろった開催: 1着がいて、1〜3着が3頭以上で、各行の着順が「自分より上の着順の行数 + 1」と一致する。
+ * 1・1・3 と 1・2・2 と 1・2・3・3 は通る（同着）。1・3・3（2着の行が無い）と 2・3・3 は通らない。
+ */
+function isComplete(placers: Placer[]): boolean {
+	if (placers.length < 3 || !placers.some((p) => p.finishPosition === 1)) return false;
+	return placers.every(
+		(p) =>
+			p.finishPosition === placers.filter((q) => q.finishPosition < p.finishPosition).length + 1
+	);
+}
+
 /** 人気の段。この順で、0件の段も出す。 */
 const POPULARITY_BUCKETS = [
 	'1番人気',
@@ -162,7 +173,11 @@ function textOrNull(value: string | null): string | null {
 export function buildGradedRacePlacers(
 	races: SeriesRace[],
 	rows: PlacerRow[],
-	opts: { fromYear: number; toYear: number; base: SeriesRace }
+	opts: {
+		fromYear: number;
+		toYear: number;
+		base: Pick<SeriesRace, 'date' | 'course' | 'surface' | 'distance'>;
+	}
 ): GradedRacePlacersView {
 	const { fromYear, toYear, base } = opts;
 	const rowsByRace = new Map<string, PlacerRow[]>();
@@ -211,7 +226,7 @@ export function buildGradedRacePlacers(
 					},
 					differs:
 						r.course !== base.course || r.surface !== base.surface || r.distance !== base.distance,
-					complete: placers.some((p) => p.finishPosition === 1) && placers.length >= 3,
+					complete: isComplete(placers),
 					placers
 				};
 			})
@@ -289,4 +304,41 @@ export function buildGradedRacePlacers(
 			aspectOf('damSire', (p) => p.damSire)
 		]
 	};
+}
+
+/** レース情報タブに出す、好走馬の要約。数だけで、率は持たない。 */
+export type GradedRacePlacersSummary = {
+	fromYear: number;
+	toYear: number;
+	/** 結果のある開催の数（そろった + 一部だけ）。 */
+	races: number;
+	/** レースか結果が無い年・開催の数（結果が未登録の開催 + レースが未登録の年）。 */
+	missing: number;
+	winners: number;
+	placers: number;
+	/** 人気の段（7段すべて）。 */
+	popularity: { value: string; wins: number; placed: number }[];
+};
+
+/** `buildGradedRacePlacers` の結果を、レース情報タブに渡す小さな形にする。 */
+export function summarizeGradedRacePlacers(view: GradedRacePlacersView): GradedRacePlacersSummary {
+	const c = view.counts;
+	const popularity = view.aspects.find((a) => a.key === 'popularity');
+	return {
+		fromYear: view.fromYear,
+		toYear: view.toYear,
+		races: c.complete + c.partial,
+		missing: c.noResult + c.missingYears.length,
+		winners: c.winners,
+		placers: c.placers,
+		popularity: (popularity?.rows ?? []).map(({ value, wins, placed }) => ({ value, wins, placed }))
+	};
+}
+
+/** 好走馬の窓。今日（`YYYY-MM-DD`）の年の前年から10暦年。重賞の画面とレース情報タブで同じにする。 */
+export function placersWindow(today: string) {
+	const thisYear = Number(today.slice(0, 4));
+	const fromYear = thisYear - 10;
+	const toYear = thisYear - 1;
+	return { fromYear, toYear, fromDate: `${fromYear}-01-01`, toDate: `${toYear}-12-31` };
 }

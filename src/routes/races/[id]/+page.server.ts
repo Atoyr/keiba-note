@@ -22,6 +22,11 @@ import { raceHorseTraitTags, sexAgeLabel } from '#lib/utils/horse.ts';
 import { raceJockeyTags } from '#lib/utils/jockey.ts';
 import { hasResolvedFlow, resolveFlow } from '#lib/utils/race-flow.ts';
 import { noteSaveError } from '#lib/utils/note.ts';
+import {
+	buildGradedRacePlacers,
+	placersWindow,
+	summarizeGradedRacePlacers
+} from '#lib/server/services/graded-race-placers.ts';
 import { ctx, raceFormData } from '#lib/server/util.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -67,7 +72,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 					db,
 					gradedKey,
 					user.id,
-					profile ? { keys: [...profile.steps], before: race.date } : undefined
+					profile ? { keys: [...profile.steps], before: race.date } : undefined,
+					// 過去の好走馬の要約。同じ batch に足す（往復は増えない）。窓は重賞の画面と同じ（今日基準）。
+					placersWindow(today)
 				)
 			: Promise.resolve(null),
 		listPastRuns(db, horseIds, race.date),
@@ -137,7 +144,13 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 							series.entryNoteCounts,
 							series.entryReviewCounts
 						),
-						profile: profile ? buildGradedProfileView(profile, series.stepRaces) : null
+						profile: profile ? buildGradedProfileView(profile, series.stepRaces) : null,
+						placers: summarizeGradedRacePlacers(
+							buildGradedRacePlacers(series.races, series.placerRows, {
+								...placersWindow(today),
+								base: race
+							})
+						)
 					}
 				: null,
 		today,

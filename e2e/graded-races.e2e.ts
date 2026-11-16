@@ -303,8 +303,10 @@ test('重賞の画面に、過去10年の1〜3着が年ごとに並び、足り�
 
 	// 充足: そろった開催 2（去年・3年前）、一部だけ 1（一昨年）、未登録の年 7。
 	await expect(section).toContainText('結果がそろっている開催 2・一部だけ 1・レースが未登録 7年');
-	await expect(section).toContainText('1開催は、場か距離が');
-	await expect(section).toContainText('前走は、当時の直前の出走を確かめられるデータがまだ無いため');
+	await expect(section).toContainText('1開催は、場・芝ダート・距離のどれかが');
+	await expect(section).toContainText(
+		'前走は未整備です。当時の直前の出走を確かめられるデータがまだ無いため'
+	);
 
 	const rows = section.locator('ol > li');
 	// 10年 = 去年・一昨年・3年前 + 未登録7年。
@@ -392,8 +394,15 @@ test('レース情報タブの導線から、重賞の画面の過去の好走�
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 
 	const entry = page.getByRole('region', { name: /過去の好走馬/ });
+	// 要約: 結果のある開催 3（去年・一昨年・3年前）、未登録の年 7。人気は数だけ（率は出さない）。
+	await expect(entry).toContainText('結果のある開催 3・未登録 7');
+	await expect(entry).toContainText('勝ち馬の人気 1番人気 1・4番人気 1・10番人気以下 1');
 	await expect(entry).toContainText(
-		'過去10年の1〜3着馬と、人気・騎手・血統ごとの数は、重賞の画面にあります。'
+		'3着以内の人気 1番人気 1・2番人気 1・3番人気 2・4番人気 1・6〜9番人気 1・10番人気以下 1'
+	);
+	await expect(entry).not.toContainText('%');
+	await expect(entry).toContainText(
+		'騎手・父・母父ごとの数と年ごとの一覧は、重賞の画面にあります。'
 	);
 	await expectLinkTo(
 		entry.getByRole('link', { name: '重賞の画面で見る' }),
@@ -402,4 +411,22 @@ test('レース情報タブの導線から、重賞の画面の過去の好走�
 	await entry.getByRole('link', { name: '重賞の画面で見る' }).click();
 	await expect(page).toHaveURL(`${gradedPath(GRADED_RACE.key)}#graded-placers`);
 	await expect(page.locator('#graded-placers')).toBeVisible();
+});
+
+test('ふりかえり画面のレース情報タブにも要約が出て、結果の無い重賞は未登録の文になる', async ({
+	page
+}) => {
+	await login(page);
+	await gotoHydrated(page, `/races/${GRADED_RACE.lastYearRaceId}`);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+	await expect(page.getByRole('region', { name: /過去の好走馬/ })).toContainText(
+		'結果のある開催 3・未登録 7'
+	);
+
+	// 今年のレースだけの重賞（天皇賞（秋））は、窓に結果が無い。
+	await gotoHydrated(page, `/races/${PROFILE_RACE.raceId}/preview`);
+	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
+	const entry = page.getByRole('region', { name: /過去の好走馬/ });
+	await expect(entry).toContainText('のこのレースの結果は、まだ登録されていません。');
+	await expect(entry.locator('dl')).toHaveCount(0);
 });

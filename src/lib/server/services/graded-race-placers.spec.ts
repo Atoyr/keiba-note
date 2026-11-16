@@ -3,12 +3,14 @@ import { createTestDb } from '#lib/server/db/test-d1.ts';
 import { gradedRaceNames } from '#lib/utils/graded-race.ts';
 import {
 	buildGradedRacePlacers,
-	listGradedRacePlacers,
+	placersQuery,
+	shapePlacerRows,
+	summarizeGradedRacePlacers,
 	type PlacerRow
 } from './graded-race-placers';
 import type { SeriesRace } from './graded-races';
 
-describe('listGradedRacePlacers', () => {
+describe('placersQuery', () => {
 	let state: ReturnType<typeof createTestDb>;
 	beforeEach(() => {
 		state = createTestDb();
@@ -39,7 +41,9 @@ describe('listGradedRacePlacers', () => {
 	afterEach(() => state.sqlite.close());
 
 	const list = (names: string[], from = '2016-01-01', to = '2025-12-31') =>
-		listGradedRacePlacers(state.db, names, from, to);
+		names.length === 0
+			? Promise.resolve([])
+			: placersQuery(state.db, names, from, to).then(shapePlacerRows);
 
 	it('別名のレースも拾い、日付の降順 → 着順 → 馬番で並ぶ', async () => {
 		const rows = await list(gradedRaceNames('オールカマー'));
@@ -76,10 +80,6 @@ describe('listGradedRacePlacers', () => {
 			damSire: '母父A'
 		});
 		expect(rows[1]).toMatchObject({ popularity: null, jockey: null, sire: null, damSire: null });
-	});
-
-	it('names が空なら []', async () => {
-		expect(await list([])).toEqual([]);
 	});
 });
 
@@ -172,6 +172,20 @@ describe('buildGradedRacePlacers', () => {
 		);
 		expect(view.years[0].races[0].complete).toBe(true);
 		expect(view.counts).toMatchObject({ complete: 1, partial: 0, placers: 4, winners: 2 });
+	});
+
+	it('着順の行が欠けた開催（1・3・3、2・3・3）は、そろった扱いにしない。1・2・2 と 1・2・3・3 はそろう', () => {
+		const completeOf = (positions: number[]) =>
+			buildGradedRacePlacers(
+				[base],
+				positions.map((n) => row('r25', n)),
+				opts
+			).years[0].races[0].complete;
+		expect(completeOf([1, 3, 3])).toBe(false);
+		expect(completeOf([2, 3, 3])).toBe(false);
+		expect(completeOf([1, 2, 2])).toBe(true);
+		expect(completeOf([1, 2, 3, 3])).toBe(true);
+		expect(completeOf([1, 1, 3])).toBe(true);
 	});
 
 	it('一部だけの開催と、結果なしの開催を数え分ける', () => {
@@ -330,5 +344,33 @@ describe('buildGradedRacePlacers', () => {
 			opts
 		);
 		expect(view.years[0].races[0].placers.map((p) => p.finishPosition)).toEqual([1, 1, 3]);
+	});
+});
+
+describe('summarizeGradedRacePlacers', () => {
+	it('結果のある開催・未登録の数と、人気の段を小さな形にする', () => {
+		const view = buildGradedRacePlacers(
+			[base, raceOf('r24', '2024-09-22'), raceOf('r23', '2023-09-24')],
+			[
+				row('r25', 1, { popularity: 1 }),
+				row('r25', 2, { popularity: 3 }),
+				row('r25', 3, { popularity: 3 }),
+				row('r24', 1, { popularity: 7 })
+			],
+			opts
+		);
+		const summary = summarizeGradedRacePlacers(view);
+		expect(summary).toMatchObject({
+			fromYear: 2016,
+			toYear: 2025,
+			races: 2,
+			// 結果が無い2023 + レースが無い7年。
+			missing: 8,
+			winners: 2,
+			placers: 4
+		});
+		expect(summary.popularity).toHaveLength(7);
+		expect(summary.popularity[2]).toEqual({ value: '3番人気', wins: 0, placed: 2 });
+		expect(summary.popularity[5]).toEqual({ value: '6〜9番人気', wins: 1, placed: 1 });
 	});
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import InfoTip from '#lib/components/InfoTip.svelte';
 	import JockeyLink from '#lib/components/JockeyLink.svelte';
 	import { Badge } from '#lib/components/ui/badge/index.ts';
@@ -133,12 +134,12 @@
 			<p>{fill}</p>
 			{#if counts.differs > 0}
 				<p class="mt-1">
-					{counts.differs}開催は、場か距離が{placers.baseYear}年と違います。
+					{counts.differs}開催は、場・芝ダート・距離のどれかが{placers.baseYear}年と違います。
 				</p>
 			{/if}
 		</div>
 		<p class="mt-1 text-xs text-muted-foreground">
-			前走は、当時の直前の出走を確かめられるデータがまだ無いため、出していません。
+			前走は未整備です。当時の直前の出走を確かめられるデータがまだ無いため、出していません。
 		</p>
 
 		<div class="mt-3 grid gap-2">
@@ -147,9 +148,13 @@
 				{@const once = onceRows(aspect)}
 				{#snippet aspectBody()}
 					<summary
-						class="inline-flex min-h-6 cursor-pointer items-center text-sm font-medium underline-offset-2 hover:underline"
+						class="flex min-h-6 cursor-pointer list-none items-center gap-1 text-sm font-medium [&::-webkit-details-marker]:hidden"
 					>
 						{summaryLabel(aspect)}
+						<ChevronDown
+							class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+							aria-hidden="true"
+						/>
 					</summary>
 					{#if aspect.known === 0}
 						<p class="mt-1 text-sm text-muted-foreground">分かっている出走がありません。</p>
@@ -187,11 +192,15 @@
 							</table>
 						{/if}
 						{#if once.length > 0}
-							<details class="mt-1">
+							<details class="group mt-1">
 								<summary
-									class="inline-flex min-h-6 cursor-pointer items-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+									class="flex min-h-6 cursor-pointer list-none items-center gap-1 text-xs text-muted-foreground [&::-webkit-details-marker]:hidden"
 								>
 									1回だけ（{once.length}）
+									<ChevronDown
+										class="size-4 shrink-0 transition-transform group-open:rotate-180"
+										aria-hidden="true"
+									/>
 								</summary>
 								<p class="mt-1 text-xs text-muted-foreground">
 									{once.map((r) => `${r.value}（${sourcesLabel(r.sources)}）`).join('・')}
@@ -203,9 +212,9 @@
 				<!-- 人気だけ開けておく。式の `open={…}` は書かない（hydration が要素に書き込み、JS が届く前に開いた欄が閉じる）。
 				     直に書いた属性は触られないので、属性の有無で2つに分ける。 -->
 				{#if aspect.key === 'popularity'}
-					<details open>{@render aspectBody()}</details>
+					<details class="group" open>{@render aspectBody()}</details>
 				{:else}
-					<details>{@render aspectBody()}</details>
+					<details class="group">{@render aspectBody()}</details>
 				{/if}
 			{/each}
 		</div>
@@ -224,7 +233,10 @@
 							<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
 								<span class="font-bold">{y.year}年</span>
 								<span class="font-mono text-muted-foreground">{r.race.date}</span>
-								<a href={resolve('/races/[id]', { id: r.race.id })} class="hover:underline">
+								<a
+									href={resolve('/races/[id]', { id: r.race.id })}
+									class="inline-flex min-h-6 items-center hover:underline"
+								>
 									{condition ?? r.race.course}{r.race.trackCondition && condition
 										? `・${r.race.trackCondition}`
 										: ''}
@@ -250,7 +262,7 @@
 												>
 												<a
 													href={resolve('/horses/[id]', { id: p.horseId })}
-													class="min-w-0 font-medium break-words hover:underline sm:w-36 sm:shrink-0"
+													class="inline-flex min-h-6 min-w-0 items-center font-medium break-words hover:underline sm:w-36 sm:shrink-0"
 												>
 													{p.horseName}
 												</a>
@@ -259,19 +271,19 @@
 															'人気'
 														)}{/if}
 												</span>
+											</div>
+											<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:pl-0">
 												<span class="min-w-0 break-all sm:w-28 sm:shrink-0">
 													{#if p.jockey}
 														<JockeyLink
 															name={p.jockey}
 															summary={null}
-															class="inline-flex max-w-full items-center hover:underline"
+															class="inline-flex min-h-6 max-w-full items-center hover:underline"
 														/>
 													{:else}
 														{@render unknown('騎手')}
 													{/if}
 												</span>
-											</div>
-											<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:pl-0">
 												<span class="min-w-0 break-words sm:w-28 sm:shrink-0">
 													{#if p.sire}父 {p.sire}{:else}{@render unknown('父')}{/if}
 												</span>

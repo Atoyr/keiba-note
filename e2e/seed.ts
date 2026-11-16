@@ -453,8 +453,8 @@ export const GRADED_PLACERS = {
 	lastYearRaceId: GRADED_RACE.lastYearRaceId,
 	prevYearRaceId: '01JE2ERACEGRADEDPREV000000',
 	threeYearsAgoRaceId: '01JE2ERACEGRADED3YAGO0000',
-	jockeyTwice: 'E2E重賞騎手アルファ',
-	jockeyOnce: 'E2E重賞騎手ガンマ',
+	jockeyTwice: 'E2E重賞A',
+	jockeyOnce: 'E2E重賞C',
 	sireThrice: 'E2E父アルファ',
 	horses: {
 		first: 'E2E重賞イチバン',
