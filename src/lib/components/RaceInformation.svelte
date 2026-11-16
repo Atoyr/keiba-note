@@ -27,11 +27,18 @@
 			placers: {
 				fromYear: number;
 				toYear: number;
-				races: number;
-				missing: number;
-				winners: number;
+				baseYear: string;
+				complete: number;
+				partial: number;
+				noResult: number;
+				missingYears: number;
+				differs: number;
 				placers: number;
-				popularity: { value: string; wins: number; placed: number }[];
+				popularity: {
+					known: number;
+					unknown: number;
+					rows: { value: string; wins: number; placed: number }[];
+				};
 			};
 			trend: string | null;
 			timeline: ComponentProps<typeof GradedRaceTimeline>['timeline'];
@@ -58,6 +65,18 @@
 
 	const id = $props.id();
 	const condition = $derived(conditionLabel(race));
+
+	/** 充足の行（重賞の画面と同じ語）。0 でない項目だけ「結果がそろっている開催」に続ける。 */
+	function fill(pl: { complete: number; partial: number; noResult: number; missingYears: number }) {
+		return [
+			`結果がそろっている開催 ${pl.complete}`,
+			pl.partial > 0 ? `一部だけ ${pl.partial}` : null,
+			pl.noResult > 0 ? `結果が未登録 ${pl.noResult}` : null,
+			pl.missingYears > 0 ? `レースが未登録 ${pl.missingYears}年` : null
+		]
+			.filter((x) => x !== null)
+			.join('・');
+	}
 
 	/** 「1番人気 3・4番人気 1」。数が0の段は出さず、全部0なら「不明」。 */
 	function popularityText(
@@ -97,19 +116,27 @@
 					{pl.fromYear}〜{pl.toYear}年のこのレースの結果は、まだ登録されていません。
 				</p>
 			{:else}
-				<p class="mt-2 text-sm">
-					結果のある開催 {pl.races}{#if pl.missing > 0}・未登録 {pl.missing}{/if}
-				</p>
+				<p class="mt-2 text-sm">{fill(pl)}</p>
+				{#if pl.differs > 0}
+					<p class="mt-1 text-sm">
+						{pl.differs}開催は、場・芝ダート・距離のどれかが{pl.baseYear}年と違います。
+					</p>
+				{/if}
 				<dl class="mt-1 grid gap-1 text-sm">
 					<div class="flex gap-3">
 						<dt class="w-28 shrink-0 text-muted-foreground">勝ち馬の人気</dt>
-						<dd class="min-w-0 break-words">{popularityText(pl.popularity, 'wins')}</dd>
+						<dd class="min-w-0 break-words">{popularityText(pl.popularity.rows, 'wins')}</dd>
 					</div>
 					<div class="flex gap-3">
 						<dt class="w-28 shrink-0 text-muted-foreground">3着以内の人気</dt>
-						<dd class="min-w-0 break-words">{popularityText(pl.popularity, 'placed')}</dd>
+						<dd class="min-w-0 break-words">{popularityText(pl.popularity.rows, 'placed')}</dd>
 					</div>
 				</dl>
+				{#if pl.popularity.unknown > 0}
+					<p class="mt-1 text-xs text-muted-foreground">
+						人気が分かる出走 {pl.popularity.known}・不明 {pl.popularity.unknown}
+					</p>
+				{/if}
 				<p class="mt-2 text-xs text-muted-foreground">
 					騎手・父・母父ごとの数と年ごとの一覧は、重賞の画面にあります。
 				</p>

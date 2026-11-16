@@ -310,14 +310,26 @@ export function buildGradedRacePlacers(
 export type GradedRacePlacersSummary = {
 	fromYear: number;
 	toYear: number;
-	/** 結果のある開催の数（そろった + 一部だけ）。 */
-	races: number;
-	/** レースか結果が無い年・開催の数（結果が未登録の開催 + レースが未登録の年）。 */
-	missing: number;
+	/** 見出しのレースの年。条件が違う開催の比べる先。 */
+	baseYear: string;
+	/** 結果がそろっている開催の数。 */
+	complete: number;
+	/** 1〜3着が一部だけの開催の数。 */
+	partial: number;
+	/** レースはあるが結果が未登録の開催の数。 */
+	noResult: number;
+	/** レースが未登録の年の数。 */
+	missingYears: number;
+	/** 結果のある開催のうち、場・芝ダート・距離のどれかが見出しのレースと違うものの数。 */
+	differs: number;
 	winners: number;
 	placers: number;
-	/** 人気の段（7段すべて）。 */
-	popularity: { value: string; wins: number; placed: number }[];
+	/** 人気の段（7段すべて）と、人気が分かる出走・不明の出走の数。 */
+	popularity: {
+		known: number;
+		unknown: number;
+		rows: { value: string; wins: number; placed: number }[];
+	};
 };
 
 /** `buildGradedRacePlacers` の結果を、レース情報タブに渡す小さな形にする。 */
@@ -327,11 +339,19 @@ export function summarizeGradedRacePlacers(view: GradedRacePlacersView): GradedR
 	return {
 		fromYear: view.fromYear,
 		toYear: view.toYear,
-		races: c.complete + c.partial,
-		missing: c.noResult + c.missingYears.length,
+		baseYear: view.baseYear,
+		complete: c.complete,
+		partial: c.partial,
+		noResult: c.noResult,
+		missingYears: c.missingYears.length,
+		differs: c.differs,
 		winners: c.winners,
 		placers: c.placers,
-		popularity: (popularity?.rows ?? []).map(({ value, wins, placed }) => ({ value, wins, placed }))
+		popularity: {
+			known: popularity?.known ?? 0,
+			unknown: popularity?.unknown ?? 0,
+			rows: (popularity?.rows ?? []).map(({ value, wins, placed }) => ({ value, wins, placed }))
+		}
 	};
 }
 

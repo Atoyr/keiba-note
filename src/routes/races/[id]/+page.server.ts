@@ -11,6 +11,7 @@ import {
 import {
 	buildGradedProfileView,
 	buildGradedRaceTimeline,
+	currentGrade,
 	readGradedRaceSeries
 } from '#lib/server/services/graded-races.ts';
 import { listRaceJockeySummaries } from '#lib/server/services/jockeys.ts';
@@ -148,7 +149,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 						placers: summarizeGradedRacePlacers(
 							buildGradedRacePlacers(series.races, series.placerRows, {
 								...placersWindow(today),
-								base: race
+								base: currentGrade(series.races, today.slice(0, 4))?.race ?? race
 							})
 						)
 					}

@@ -272,7 +272,9 @@
 														)}{/if}
 												</span>
 											</div>
-											<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:pl-0">
+											<div
+												class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:flex-1 sm:pl-0"
+											>
 												<span class="min-w-0 break-all sm:w-28 sm:shrink-0">
 													{#if p.jockey}
 														<JockeyLink
@@ -284,10 +286,10 @@
 														{@render unknown('騎手')}
 													{/if}
 												</span>
-												<span class="min-w-0 break-words sm:w-28 sm:shrink-0">
+												<span class="min-w-0 break-words sm:w-auto sm:flex-1">
 													{#if p.sire}父 {p.sire}{:else}{@render unknown('父')}{/if}
 												</span>
-												<span class="min-w-0 break-words sm:w-32">
+												<span class="min-w-0 break-words sm:w-auto sm:flex-1">
 													{#if p.damSire}母父 {p.damSire}{:else}{@render unknown('母父')}{/if}
 												</span>
 											</div>

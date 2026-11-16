@@ -8,6 +8,11 @@ import { expectLinkTo } from './link';
 const gradedPath = (name: string) => `/graded-races/${encodeURIComponent(name)}`;
 // 傾向の文。入力欄（閉じた details の中）にも同じ文があるので、先に出る読む形を見る。
 const trendRegion = (page: Page) => page.getByRole('region', { name: '傾向' });
+// seed を流した年（今年。JST）。見出しのレースの年。
+const jstYear = new Intl.DateTimeFormat('en-CA', {
+	timeZone: 'Asia/Tokyo',
+	year: 'numeric'
+}).format(new Date());
 const years = 'main section[aria-labelledby="graded-years"] ol > li';
 
 test('重賞の一覧に今年の重賞が出て、重賞の画面を開ける', async ({ page }) => {
@@ -394,8 +399,11 @@ test('レース情報タブの導線から、重賞の画面の過去の好走�
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 
 	const entry = page.getByRole('region', { name: /過去の好走馬/ });
-	// 要約: 結果のある開催 3（去年・一昨年・3年前）、未登録の年 7。人気は数だけ（率は出さない）。
-	await expect(entry).toContainText('結果のある開催 3・未登録 7');
+	// 要約: そろった開催 2（去年・3年前）、一部だけ 1（一昨年）、未登録の年 7、条件が違う開催 1（3年前）。人気は数だけ（率は出さない）。
+	await expect(entry).toContainText('結果がそろっている開催 2・一部だけ 1・レースが未登録 7年');
+	await expect(entry).toContainText(
+		`1開催は、場・芝ダート・距離のどれかが${jstYear}年と違います。`
+	);
 	await expect(entry).toContainText('勝ち馬の人気 1番人気 1・4番人気 1・10番人気以下 1');
 	await expect(entry).toContainText(
 		'3着以内の人気 1番人気 1・2番人気 1・3番人気 2・4番人気 1・6〜9番人気 1・10番人気以下 1'
@@ -420,7 +428,7 @@ test('ふりかえり画面のレース情報タブにも要約が出て、結�
 	await gotoHydrated(page, `/races/${GRADED_RACE.lastYearRaceId}`);
 	await page.getByRole('tab', { name: 'レース情報', exact: true }).click();
 	await expect(page.getByRole('region', { name: /過去の好走馬/ })).toContainText(
-		'結果のある開催 3・未登録 7'
+		'結果がそろっている開催 2・一部だけ 1・レースが未登録 7年'
 	);
 
 	// 今年のレースだけの重賞（天皇賞（秋））は、窓に結果が無い。

@@ -348,14 +348,22 @@ describe('buildGradedRacePlacers', () => {
 });
 
 describe('summarizeGradedRacePlacers', () => {
-	it('結果のある開催・未登録の数と、人気の段を小さな形にする', () => {
+	it('開催の内訳・条件違い・人気の段と分かる数を小さな形にする', () => {
 		const view = buildGradedRacePlacers(
-			[base, raceOf('r24', '2024-09-22'), raceOf('r23', '2023-09-24')],
+			[
+				base,
+				raceOf('r24', '2024-09-22'),
+				raceOf('r23', '2023-09-24'),
+				raceOf('r22', '2022-09-25', { course: '新潟' })
+			],
 			[
 				row('r25', 1, { popularity: 1 }),
 				row('r25', 2, { popularity: 3 }),
-				row('r25', 3, { popularity: 3 }),
-				row('r24', 1, { popularity: 7 })
+				row('r25', 3, { popularity: null }),
+				row('r24', 1, { popularity: 7 }),
+				row('r22', 1, { popularity: 3 }),
+				row('r22', 2, { popularity: 3 }),
+				row('r22', 3, { popularity: 3 })
 			],
 			opts
 		);
@@ -363,14 +371,22 @@ describe('summarizeGradedRacePlacers', () => {
 		expect(summary).toMatchObject({
 			fromYear: 2016,
 			toYear: 2025,
-			races: 2,
-			// 結果が無い2023 + レースが無い7年。
-			missing: 8,
-			winners: 2,
-			placers: 4
+			baseYear: '2025',
+			complete: 2,
+			// 2024 は1着だけ。
+			partial: 1,
+			// 結果が無い2023。
+			noResult: 1,
+			// レースが無い6年。
+			missingYears: 6,
+			// 結果のある開催のうち新潟の2022。
+			differs: 1,
+			winners: 3,
+			placers: 7
 		});
-		expect(summary.popularity).toHaveLength(7);
-		expect(summary.popularity[2]).toEqual({ value: '3番人気', wins: 0, placed: 2 });
-		expect(summary.popularity[5]).toEqual({ value: '6〜9番人気', wins: 1, placed: 1 });
+		expect(summary.popularity).toMatchObject({ known: 6, unknown: 1 });
+		expect(summary.popularity.rows).toHaveLength(7);
+		expect(summary.popularity.rows[2]).toEqual({ value: '3番人気', wins: 1, placed: 4 });
+		expect(summary.popularity.rows[5]).toEqual({ value: '6〜9番人気', wins: 1, placed: 1 });
 	});
 });
