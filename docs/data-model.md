@@ -29,6 +29,8 @@ erDiagram
     user ||--o{ favorite_horse : "推す"
     horse ||--o{ favorite_horse : "推される"
     user ||--o{ jockey_note : "騎手をまとめる"
+    user ||--o{ horse_trait : "馬の特徴を書く"
+    horse ||--o{ horse_trait : "特徴を書かれる"
     user ||--o{ graded_race_note : "重賞の傾向を書く"
     user ||--o{ insight_word : "気づきの言葉を登録する"
     user ||--o{ race_entry_insight : "以前の気づき（読むだけ）"
@@ -47,7 +49,7 @@ erDiagram
 | 区分 | 表 | 読み書き |
 | --- | --- | --- |
 | マスタ（全員共通） | `horse`・`race`・`race_entry`・`race_odds` | 読むのは誰でも。書くのは投入スクリプト（YAML の PR）と admin だけ（→ [product.md 第3章](./product.md)）。`race_odds` だけは GitHub Actions が書く |
-| 本人だけのもの | `note`・`favorite_horse`・`jockey_note`・`graded_race_note`・`insight_word`・`race_entry_insight`・`mcp_usage`・`oauth_grant` ほか OAuth の表 | 読む関数は `viewerId`（または `userId`）を必須で受け、WHERE に本人の条件を入れる（→ [architecture.md 第0章](./architecture.md)）。他人にも admin にも共有ページにも出さない |
+| 本人だけのもの | `note`・`favorite_horse`・`jockey_note`・`horse_trait`・`graded_race_note`・`insight_word`・`race_entry_insight`・`mcp_usage`・`oauth_grant` ほか OAuth の表 | 読む関数は `viewerId`（または `userId`）を必須で受け、WHERE に本人の条件を入れる（→ [architecture.md 第0章](./architecture.md)）。他人にも admin にも共有ページにも出さない |
 | 本人が公開したコピー | `race_share` | 本人が明示して作る。公開側は `note` を読まず、このコピーと公開名だけを読む |
 
 騎手と重賞は表を持たない（次の「2. 表」の `jockey_note`・`graded_race_note` を参照）。クイック入力の言葉も、本文に入れるのは文字列のコピー（以前の気づきも同じ。`insight_word` を参照）。
@@ -145,6 +147,16 @@ GitHub Actions が取得元から書く唯一の表で、メモからも馬柱�
   （本番の中心の表を組み直すのは割に合わない）
 - 札は固定の選択肢で、ユーザーは増やせない。正は `src/lib/schemas/jockey.ts` の `JOCKEY_TAG_GROUPS`（得意な場・得意な条件・乗り方・狙いどころの4系統）。
   自由に書けると「中山巧者」と「中山◎」のように同じ意味が別の札に割れ、札で絞っても拾いきれない
+
+### horse_trait
+
+馬の特徴メモ（画面の言葉は「メモ」）。`PRIMARY KEY (user_id, horse_id)` で、**1人・1頭につき1本**（本文 `body` と札 `tags`）。書き直すと上書きし、**本文も札も空で保存すると行ごと消す**（札だけでも残す。`jockey_note` と同じ）。
+
+- **`horse.profile_memo` とは別物。** あちらは全ユーザー共通のマスタで admin だけが書く。こちらは本人だけが読み書きする自分の見立てで、他人にも admin にも見せない
+- `note` に kind を足さず別の表にしたのは、`jockey_note` と同じ理由（`note_kind_shape` の CHECK を作り直すことになる）
+- `tags` は JSON の配列（`json_valid` の CHECK）。札は固定の選択肢で、ユーザーは増やせない。正は `src/lib/schemas/horse.ts` の `HORSE_TRAIT_TAG_GROUPS`（得意な場・回り・距離の3系統）。
+  予想・ふりかえりで、そのレースの場・回り・距離の区分に合う札を馬名の下に出すため、名前を揃えてある（距離の区分は pages.md 5-2）
+- 予想・ふりかえりの出走馬の馬名の下の行と馬の画面にだけ出す。予想まとめ・共有ページ・MCP・WebMCP には出さない。馬（`horse`）を消すと CASCADE で消える
 
 ### graded_race_note
 

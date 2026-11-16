@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import * as v from 'valibot';
-import { horseProfileSchema } from './horse';
+import { COURSES } from './race';
+import { HORSE_TRAIT_TAGS, horseProfileSchema, horseTraitTagsSchema } from './horse';
+import { horseTraitSchema } from './horse-trait';
 
 const input = {
 	nameKana: '',
@@ -83,6 +85,36 @@ describe('馬のプロフィール', () => {
 	it('母父は trim して、空なら null', () => {
 		expect(v.parse(horseProfileSchema, { ...input, damSire: ' ハハチチ ' }).damSire).toBe(
 			'ハハチチ'
+		);
+	});
+});
+
+describe('馬の札と特徴メモ', () => {
+	it('選択肢に無い札と重複を落とし、選択肢の順に揃える', () => {
+		const out = v.parse(horseTraitSchema, {
+			body: '',
+			tags: ['中距離巧者', '京都巧者', '勝手な札', '京都巧者', '右回り巧者']
+		});
+		expect(out.tags).toEqual(['京都巧者', '右回り巧者', '中距離巧者']);
+	});
+
+	it('札が無ければ空の配列', () => {
+		expect(v.parse(horseTraitSchema, { body: 'x' }).tags).toEqual([]);
+		expect(v.parse(horseTraitTagsSchema, undefined)).toEqual([]);
+	});
+
+	it('JRA の10場すべてに巧者の札があり、距離は4区分', () => {
+		for (const course of COURSES) expect(HORSE_TRAIT_TAGS).toContain(`${course}巧者`);
+		for (const t of ['短距離巧者', 'マイル巧者', '中距離巧者', '長距離巧者'])
+			expect(HORSE_TRAIT_TAGS).toContain(t);
+	});
+
+	it('本文は10,000文字まで', () => {
+		expect(v.safeParse(horseTraitSchema, { body: 'あ'.repeat(10000), tags: [] }).success).toBe(
+			true
+		);
+		expect(v.safeParse(horseTraitSchema, { body: 'あ'.repeat(10001), tags: [] }).success).toBe(
+			false
 		);
 	});
 });

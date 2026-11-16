@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import { emptyFlow } from '#lib/schemas/race-flow.ts';
 import Harness from './DraftKeeper.test.svelte';
+import RestoreHarness from './DraftKeeper.restore.test.svelte';
 
 vi.mock('$app/navigation', () => ({ beforeNavigate: vi.fn() }));
 const storageKey = 'uma-memo:test:webmcp';
@@ -66,5 +67,44 @@ describe('DraftKeeper.apply', () => {
 		).toBe(true);
 		expect(screen.container.querySelectorAll('[name="tags.e1"]:checked')).toHaveLength(0);
 		expect(screen.container.querySelector('summary')!.textContent).toContain('＋ 書く');
+	});
+});
+
+describe('DraftKeeper.onrestore', () => {
+	it('「復元する」を押すと下書きを欄へ入れてから onrestore を呼ぶ。押すまでは呼ばない', async () => {
+		const key = 'uma-memo:test:restore';
+		localStorage.setItem(
+			key,
+			JSON.stringify({ savedAt: Date.now(), fields: { body: ['書きかけ'] } })
+		);
+		const onrestore = vi.fn();
+		const screen = render(RestoreHarness, { storageKey: key, onrestore });
+		const field = screen.container.querySelector<HTMLTextAreaElement>('[name="body"]')!;
+
+		await expect.element(screen.getByRole('button', { name: '復元する' })).toBeVisible();
+		expect(onrestore).not.toHaveBeenCalled();
+		expect(field.value).toBe('');
+
+		await screen.getByRole('button', { name: '復元する' }).click();
+		expect(field.value).toBe('書きかけ');
+		expect(onrestore).toHaveBeenCalledTimes(1);
+		localStorage.removeItem(key);
+	});
+
+	it('「破棄」を押しても onrestore は呼ばず、欄も変えない', async () => {
+		const key = 'uma-memo:test:discard';
+		localStorage.setItem(
+			key,
+			JSON.stringify({ savedAt: Date.now(), fields: { body: ['書きかけ'] } })
+		);
+		const onrestore = vi.fn();
+		const screen = render(RestoreHarness, { storageKey: key, onrestore });
+		const field = screen.container.querySelector<HTMLTextAreaElement>('[name="body"]')!;
+
+		await screen.getByRole('button', { name: '破棄' }).click();
+		await expect.element(screen.getByRole('button', { name: '復元する' })).not.toBeInTheDocument();
+		expect(field.value).toBe('');
+		expect(onrestore).not.toHaveBeenCalled();
+		localStorage.removeItem(key);
 	});
 });

@@ -49,7 +49,7 @@
 ### 本人のデータ
 
 - **本人のデータを読む関数は `viewerId`（`userId`）を必須引数で受け取り、SQL の WHERE に入れる。**
-  対象は `note`・`race_share`（`author_id`）と、`favorite_horse`・`jockey_note`・`graded_race_note`・`insight_word`・`race_entry_insight`・`oauth_grant`・`mcp_usage`（`user_id`）。
+  対象は `note`・`race_share`（`author_id`）と、`favorite_horse`・`jockey_note`・`horse_trait`・`graded_race_note`・`insight_word`・`race_entry_insight`・`oauth_grant`・`mcp_usage`（`user_id`）。
   省略可能にした時点で、絞り忘れが「全ユーザーに見える」に直結する（→ 3-6）。
   表ごとの引数と WHERE は [api.md 第5章「誰のデータか」](./api.md)
 - **他人に見せるかの判定に `visibility` を使うのは `getSharedNote`（共有ページ `/notes/[id]`）だけ。**
@@ -361,14 +361,18 @@ sequenceDiagram
     and
         L->>S: listHorseInsights(db, horseId, user.id)
         S->>D: race_entry_insight JOIN race JOIN race_entry 【クエリ6】
+    and
+        L->>S: getHorseTrait(db, horseId, user.id)
+        S->>D: horse_trait WHERE user_id = viewer AND horse_id = ? 【クエリ7】
     end
     Note over L: mergeHorseTimeline で出走とメモと気づきを1本に並べる
     L-->>B: SSR した HTML
 ```
 
-**1ページ＝セッション検証1＋読み5（並行）。** メモのタイムラインが1クエリで済むのは、
+**1ページ＝セッション検証1＋読み6（並行）。** メモのタイムラインが1クエリで済むのは、
 `note` に `horse_id` を非正規化しているため（→ [data-model.md](./data-model.md)）。
 レース紐付きメモと近況メモをマージする処理が要らない。
+JS 無しの POST（`saveTrait`・`addNote`・`favorite`）は、セッション2＋`getHorse`1＋書き込み1＋load の読み6＝10往復で、1リクエスト10以内（7-1）の上限ちょうどなので、この画面に読みを足すときは既存の読みにまとめる。
 
 使うインデックスは `note_author_horse (author_id, horse_id, occurred_at)`。
 **先頭が `author_id`** なのは、読みが必ず viewer で絞られるため（→ 3-6）。

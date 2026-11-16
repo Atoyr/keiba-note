@@ -11,7 +11,7 @@ import {
 } from 'drizzle-orm/sqlite-core';
 // 印の選択肢（MARKS）と札の型。drizzle-kit が `#lib`（package.json の imports）を解けるかは確かめていないので、相対パスで読む。
 import { MARKS, type NoteTag } from '../../schemas/note';
-import { HORSE_SEXES, TRAINING_CENTERS } from '../../schemas/horse';
+import { HORSE_SEXES, TRAINING_CENTERS, type HorseTraitTag } from '../../schemas/horse';
 import type { JockeyTag } from '../../schemas/jockey';
 import type { RaceFlow } from '../../schemas/race-flow';
 import type { RaceSummary } from '../../utils/race-summary';
@@ -471,6 +471,42 @@ export const jockeyNote = sqliteTable(
 		// user_id が先頭なので、自分のまとめの一覧（札での絞り込み）にも別の索引は要らない。
 		primaryKey({ columns: [t.userId, t.jockey] }),
 		check('jockey_note_tags_json', sql`json_valid(tags)`)
+	]
+);
+
+/**
+ * 馬の特徴メモ（画面の言葉は「メモ」）。1人・1頭につき1本（本文と札）。**本人だけのもの**で、メモと同じく
+ * 読む関数は viewerId を必須で受け、`user_id = :viewer` で絞る。
+ *
+ * 本文も札も空なら行ごと消す（`jockey_note` と同じ。空の行は持たない）。
+ * **`horse.profile_memo` とは別物。** あちらは全ユーザー共通のマスタ（admin だけが書く）で、
+ * こちらは本人だけが読み書きする自分の見立て。予想・ふりかえりの馬名の下の行のメモのアイコン（押すと Popover）と馬の画面で出す。馬名の Popover は基本情報だけ。
+ *
+ * `note` に kind を足さずに別の表にしたのは `jockey_note` と同じ理由（`note_kind_shape` の CHECK を作り直すことになる）。
+ */
+export const horseTrait = sqliteTable(
+	'horse_trait',
+	{
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		horseId: text('horse_id')
+			.notNull()
+			.references(() => horse.id, { onDelete: 'cascade' }),
+		/** 空でもよい（札だけ付けておける）。本文も札も空なら行ごと消す。 */
+		body: text('body').notNull().default(''),
+		/** 付けた札。選択肢の正は `#lib/schemas/horse` の `HORSE_TRAIT_TAG_GROUPS`。 */
+		tags: text('tags', { mode: 'json' })
+			.$type<HorseTraitTag[]>()
+			.notNull()
+			.default(sql`'[]'`),
+		createdAt: createdAt(),
+		updatedAt: updatedAt()
+	},
+	// user_id が先頭なので、自分の分を引くのに別の索引は要らない。馬を消すとき（horse_id 側）は行が少ないので全走査でよい。
+	(t) => [
+		primaryKey({ columns: [t.userId, t.horseId] }),
+		check('horse_trait_tags_json', sql`json_valid(tags)`)
 	]
 );
 

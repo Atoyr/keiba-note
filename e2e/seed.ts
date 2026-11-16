@@ -500,3 +500,18 @@ export const NO_WORDS_SESSION_TOKEN = 'e2enowordssessiontoken000000000';
 
 /** 言葉の登録・削除を押して確かめる専用のユーザー（E2E 言葉登録ユーザー）のセッショントークン。seed.sql の id はこれの SHA-256。 */
 export const WORDS_EDIT_SESSION_TOKEN = 'e2ewordseditsessiontoken000000';
+
+/**
+ * 馬の特徴メモ（Issue #255）。自分だけのもので、seed.sql の `horse_trait` に置いてある。
+ * - 書いた状態: E2Eプレビューホース（`/horses/<id>`。予想画面では馬名の下の行のメモのアイコンから開く。馬名の Popover は基本情報だけ）
+ * - 基本情報の無い馬: 印見本のレースの⑤アナウマスペシャル（改行入りの18行のメモ。フォントによらず枠からあふれる。全角9文字の馬名にアイコンが付く）
+ * - 別のユーザーのメモ: 同じ2頭に置いてある。**どの画面にも出てはいけない。**
+ * 書く・消す・下書き・失敗のテストは、メモを置いていない馬を使う。
+ */
+export const TRAIT_HORSE_ID = '01JE2EHORSEB00000000000000';
+export const TRAIT_PREVIEW_BODY = ['東京の長い直線向き。', '右回りでは外に張るので割引。'] as const;
+export const TRAIT_ONLY_BODY_HEAD = '距離延長で変わるタイプ。';
+export const OTHER_USER_TRAIT_BODIES = [
+	'他人の特徴メモ。見えてはいけない。',
+	'他人のアナウマの特徴メモ。見えてはいけない。'
+] as const;
