@@ -33,6 +33,7 @@ races:
         time: "1:34.6"
         margin: "クビ"
         timeDiff: 0.3
+        passing: "13-10"
         last3f: 33.1
         weight: 56
         blinker: false
@@ -53,6 +54,7 @@ races:
         time: "1:34.7"
         margin: "アタマ"
         timeDiff: 0.4
+        passing: "7-6"
         last3f: 33.8
         weight: 55
         blinker: false
@@ -73,6 +75,7 @@ races:
         time: "1:34.9"
         margin: "ハナ"
         timeDiff: 0.6
+        passing: "10-10"
         last3f: 33.6
         weight: 56
         blinker: false
@@ -93,6 +96,7 @@ races:
         time: "1:34.9"
         margin: "1.1/4"
         timeDiff: 0.6
+        passing: "11-10"
         last3f: 33.6
         weight: 56
         blinker: false
@@ -112,6 +116,7 @@ races:
         popularity: 3
         time: "1:34.3"
         timeDiff: -0.1
+        passing: "1-1"
         last3f: 33.9
         weight: 56
         blinker: false
@@ -132,6 +137,7 @@ races:
         time: "1:34.7"
         margin: "1/2"
         timeDiff: 0.4
+        passing: "9-8"
         last3f: 33.7
         weight: 56
         blinker: false
@@ -152,6 +158,7 @@ races:
         time: "1:34.5"
         margin: "3/4"
         timeDiff: 0.2
+        passing: "2-3"
         last3f: 33.8
         weight: 56
         blinker: false
@@ -172,6 +179,7 @@ races:
         time: "1:34.5"
         margin: "ハナ"
         timeDiff: 0.2
+        passing: "2-2"
         last3f: 34
         weight: 55
         blinker: false
@@ -192,6 +200,7 @@ races:
         time: "1:34.9"
         margin: "アタマ"
         timeDiff: 0.6
+        passing: "12-13"
         last3f: 33.3
         weight: 56
         blinker: false
@@ -212,6 +221,7 @@ races:
         time: "1:34.7"
         margin: "アタマ"
         timeDiff: 0.4
+        passing: "5-5"
         last3f: 33.9
         weight: 56
         blinker: false
@@ -232,6 +242,7 @@ races:
         time: "1:34.4"
         margin: "3/4"
         timeDiff: 0.1
+        passing: "2-3"
         last3f: 33.8
         weight: 56
         blinker: false
@@ -252,6 +263,7 @@ races:
         time: "1:35.4"
         margin: "3"
         timeDiff: 1.1
+        passing: "5-6"
         last3f: 34.6
         weight: 56
         blinker: false
@@ -272,6 +284,7 @@ races:
         time: "1:34.9"
         margin: "ハナ"
         timeDiff: 0.6
+        passing: "7-8"
         last3f: 33.9
         weight: 56
         blinker: false
