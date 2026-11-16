@@ -976,6 +976,12 @@ export const SCREENS: Screen[] = [
 	{ name: 'graded-races', path: '/graded-races', auth: true },
 	// 重賞の画面。傾向のメモと、年ごとの予想・ふりかえり・印（今年は開催予定、去年は別名のレース名、一昨年はメモなし）。
 	{ name: 'graded-race', path: `/graded-races/${encodeURIComponent(GRADED_RACE.key)}`, auth: true },
+	// 重賞の画面の「過去の好走馬」の空の state。今年のレースだけで、前年から10年の窓に結果が無い。
+	{
+		name: 'graded-race-placers-empty',
+		path: `/graded-races/${encodeURIComponent(PROFILE_RACE.key)}`,
+		auth: true
+	},
 	{
 		// 傾向を書いているところ。
 		name: 'graded-race-trend-editing',
@@ -985,7 +991,7 @@ export const SCREENS: Screen[] = [
 			// jockey-summary-editing と同じく、hydration の前に開くと閉じて写る。
 			await waitForHydration(page);
 			await page.getByText('＋ 傾向を書く').click();
-			await expect(page.locator('main details')).toHaveJSProperty('open', true);
+			await expect(page.locator('main details').first()).toHaveJSProperty('open', true);
 		}
 	},
 	{

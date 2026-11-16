@@ -8,6 +8,10 @@ import {
 	readGradedRaceSeries,
 	saveGradedRaceTrend
 } from '#lib/server/services/graded-races.ts';
+import {
+	buildGradedRacePlacers,
+	listGradedRacePlacers
+} from '#lib/server/services/graded-race-placers.ts';
 import { ctx } from '#lib/server/util.ts';
 import { todayJst } from '#lib/utils/date.ts';
 import { gradedRaceKey, gradedRaceNames } from '#lib/utils/graded-race.ts';
@@ -17,7 +21,7 @@ import type { Actions, PageServerLoad } from './$types';
  * 重賞の画面＝傾向のメモ + 年ごとのメモ（予想とふりかえり）。
  *
  * 骨は同じ重賞のレース（レース名を別名の表で寄せた鍵で束ねる。誰が見ても同じ）で、そこに viewer 自身の
- * レース全体のメモと印を重ねる。1頭ごとのメモの本文は出さない。読みは1往復（傾向・レース・メモを1つの batch で）。
+ * レース全体のメモと印を重ねる。1頭ごとのメモの本文は出さない。読みは2往復（傾向・レース・メモを1つの batch と、過去10年の好走馬）。
  * 見出しの格は今年のレースの格（無ければいちばん新しい年の格）。G1〜G3 のレースが1つも無い名前は 404。
  */
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -25,7 +29,14 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	const key = gradedRaceKey(params.name);
 	const today = todayJst();
 
-	const series = await readGradedRaceSeries(db, key, user.id);
+	// 好走馬は窓（前年から10暦年）で絞る。レース情報タブと共用の readGradedRaceSeries には混ぜず、2往復にする。
+	const thisYear = Number(today.slice(0, 4));
+	const fromYear = thisYear - 10;
+	const toYear = thisYear - 1;
+	const [series, placerRows] = await Promise.all([
+		readGradedRaceSeries(db, key, user.id),
+		listGradedRacePlacers(db, gradedRaceNames(key), `${fromYear}-01-01`, `${toYear}-12-31`)
+	]);
 	const headline = currentGrade(series.races, today.slice(0, 4));
 	if (!headline) error(404, '重賞が見つかりません');
 
@@ -34,6 +45,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		name: headline.race.name ?? key,
 		headline,
 		trend: series.trend,
+		placers: buildGradedRacePlacers(series.races, placerRows, {
+			fromYear,
+			toYear,
+			base: headline.race
+		}),
 		timeline: buildGradedRaceTimeline(
 			series.races,
 			series.notes,

@@ -50,13 +50,32 @@
 	const condition = $derived(conditionLabel(race));
 </script>
 
-<!-- 重賞の傾向 → レースの条件と前哨戦 → 重賞のタイムライン → 同じ条件のレースメモ → コースの特徴 → コース図の順。
+<!-- 重賞の傾向 → レースの条件と前哨戦 → 過去の好走馬（導線だけ） → 重賞のタイムライン → 同じ条件のレースメモ → コースの特徴 → コース図の順。
      同じ条件のメモからは、重賞のタイムラインに出るレースを load が SQL で除いてある。
      重賞のタイムラインは重賞（G1〜G3 で名前あり）だけ。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
 	{#if graded}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
 	{#if graded?.profile}<RaceConditions profile={graded.profile} {today} />{/if}
 	{#if graded}
+		<section aria-labelledby="{id}-placers">
+			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
+				<h2 id="{id}-placers" class="text-sm font-semibold text-muted-foreground">
+					過去の好走馬
+					<span class="font-normal">{graded.key}</span>
+				</h2>
+				<a
+					href="{resolve('/graded-races/[name]', {
+						name: gradedRaceParam(graded.key)
+					})}#graded-placers"
+					class="inline-flex min-h-6 items-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+				>
+					重賞の画面で見る
+				</a>
+			</div>
+			<p class="mt-2 text-sm text-muted-foreground">
+				過去10年の1〜3着馬と、人気・騎手・血統ごとの数は、重賞の画面にあります。
+			</p>
+		</section>
 		<section aria-labelledby="{id}-timeline">
 			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
 				<h2 id="{id}-timeline" class="text-sm font-semibold text-muted-foreground">

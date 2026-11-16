@@ -908,15 +908,28 @@ VALUES
 	('01JE2ERACEGRADEDTHIS000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days'), '中山', 11, 'オールカマー', 'G2', '芝', 2200, NULL, NULL),
 	('01JE2ERACEGRADEDLAST000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), '中山', 11, '産経賞オールカマー', 'G3', '芝', 2200, '良', 'E2E重賞イチバン'),
 	('01JE2ERACEGRADEDPREV000000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-2 years'), '中山', 11, 'オールカマー', 'G3', '芝', 2200, '重', NULL),
+	-- 3年前は場が違う（新潟）。過去の好走馬で「条件が違う」が出る。その前の年（4年前〜10年前）は未登録のまま。
+	('01JE2ERACEGRADED3YAGO0000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-3 years'), '新潟', 11, '産経賞オールカマー', 'G3', '芝', 2200, '良', NULL),
 	-- 紹介の表に載っている重賞（今年の天皇賞（秋））。レース情報タブに条件・優先出走権・前哨戦・コースの特徴が出る。
 	-- 去年の産経賞オールカマー（上）が前哨戦の窓に入る。
 	('01JE2ERACEGRADEDPROFILE000', date('now', '+9 hours', 'start of year', '+11 months', '+30 days'), '東京', 11, '天皇賞（秋）', 'G1', '芝', 2000, NULL, NULL);
-INSERT INTO horse (id, name, birth_year) VALUES
-	('01JE2EHORSEGRADED10000000', 'E2E重賞イチバン', 2020),
-	('01JE2EHORSEGRADED20000000', 'E2E重賞ニバン', 2020);
-INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, finish_position) VALUES
-	('01JE2EENTRYGRADED10000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED10000000', 3, 5, 1),
-	('01JE2EENTRYGRADED20000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED20000000', 2, 3, 4);
+-- 過去の好走馬（graded-races.e2e.ts）の見本。父・母父は「ある」と「無い」を混ぜる。人気と騎手は実在しない名前にする。
+-- 去年（中山）: 1〜3着がそろう。一昨年（中山）: 1着だけ（一部だけ）。3年前（新潟）: 1〜3着がそろい、去年と同じ馬と同じ騎手が1つずつ入る。
+-- 4年前〜10年前は未登録。
+INSERT INTO horse (id, name, birth_year, sire, dam_sire) VALUES
+	('01JE2EHORSEGRADED10000000', 'E2E重賞イチバン', 2020, 'E2E父アルファ', 'E2E母父アルファ'),
+	('01JE2EHORSEGRADED20000000', 'E2E重賞ニバン', 2020, NULL, NULL),
+	('01JE2EHORSEGRADED30000000', 'E2E重賞フタバ', 2020, NULL, NULL),
+	('01JE2EHORSEGRADED40000000', 'E2E重賞ミツバ', 2020, 'E2E父ベータ', NULL);
+INSERT INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, popularity, finish_position) VALUES
+	('01JE2EENTRYGRADED10000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED10000000', 3, 5, 'E2E重賞騎手アルファ', 1, 1),
+	('01JE2EENTRYGRADED20000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED20000000', 2, 3, NULL, NULL, 4),
+	('01JE2EENTRYGRADED30000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED30000000', 4, 7, 'E2E重賞騎手ベータ', 3, 2),
+	('01JE2EENTRYGRADED40000000', '01JE2ERACEGRADEDLAST000000', '01JE2EHORSEGRADED40000000', 5, 9, 'E2E重賞騎手ガンマ', 2, 3),
+	('01JE2EENTRYGRADEDPREV1000', '01JE2ERACEGRADEDPREV000000', '01JE2EHORSEGRADED10000000', 1, 1, 'E2E重賞騎手デルタ', 4, 1),
+	('01JE2EENTRYGRADED3YAGO100', '01JE2ERACEGRADED3YAGO0000', '01JE2EHORSEGRADED40000000', 1, 2, 'E2E重賞騎手イプシロン', 10, 1),
+	('01JE2EENTRYGRADED3YAGO200', '01JE2ERACEGRADED3YAGO0000', '01JE2EHORSEGRADED30000000', 2, 4, 'E2E重賞騎手アルファ', 3, 2),
+	('01JE2EENTRYGRADED3YAGO300', '01JE2ERACEGRADED3YAGO0000', '01JE2EHORSEGRADED10000000', 3, 6, 'E2E重賞騎手ベータ', 6, 3);
 INSERT INTO note (id, author_id, kind, race_id, body, flow, occurred_at, created_at)
 VALUES ('01JE2EGRADEDOUTLOOK0000000', '01JE2EUSER0000000000000000', 'race_preview', '01JE2ERACEGRADEDLAST000000', 'E2E重賞の見立て。内枠の先行馬が残る。', '{"pace":"スロー","start":{"spots":[],"memo":""},"corner4":{"spots":[],"memo":""},"finish":{"spots":[],"memo":""}}', date('now', '+9 hours', 'start of year', '+11 months', '+30 days', '-1 year'), unixepoch('2026-06-07'));
 INSERT INTO note (id, author_id, kind, race_id, body, tags, occurred_at, created_at)

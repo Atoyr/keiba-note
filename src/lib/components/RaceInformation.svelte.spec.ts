@@ -190,3 +190,24 @@ it('紹介がある重賞は、条件と前哨戦を傾向の次に、コース�
 	const courseIndex = children.findIndex((el) => el.querySelector('[aria-label="コース"]'));
 	expect(courseIndex).toBe(indexOf('コースの特徴') + 1);
 });
+
+it('重賞のときだけ、過去の好走馬の導線を出す（重賞の画面の節へ。タイムラインの前）', async () => {
+	const plain = render(RaceInformation, props);
+	expect(plain.container.textContent).not.toContain('過去の好走馬');
+	plain.unmount();
+
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null }
+	});
+	const section = screen.getByRole('region', { name: /過去の好走馬/ });
+	await expect.element(section).toHaveTextContent('毎日王冠');
+	await expect.element(section).toHaveTextContent('過去10年の1〜3着馬と、人気・騎手・血統ごとの数');
+	await expect
+		.element(section.getByRole('link', { name: '重賞の画面で見る' }))
+		.toHaveAttribute('href', `/graded-races/${encodeURIComponent('毎日王冠')}#graded-placers`);
+	const children = [...screen.container.firstElementChild!.children];
+	const indexOf = (text: string) => children.findIndex((el) => el.textContent?.includes(text));
+	expect(indexOf('過去の好走馬')).toBeLessThan(indexOf('重賞のタイムライン'));
+});

@@ -3,7 +3,7 @@
 このアプリの「外から呼べる口」と「中で呼ぶ口」の一覧と約束。
 外の口は SvelteKit のルート（`load`・form actions・`+server.ts`）、中の口はサービス層の関数。
 
-- 作成日: 2026-09-23 / 最終更新日: 2026-11-12
+- 作成日: 2026-09-23 / 最終更新日: 2026-11-16
 - **読む場面:** ルート・action・`+server.ts` を足す・変えるとき。サービス層の関数を足す・変えるとき。
   ステータスコードやリダイレクト先に迷ったとき
 - **ここに無いもの:** ルートの書き方（ファイルの役割、Svelte 側）は [frontend.md](./frontend.md)、
@@ -104,7 +104,7 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/horses/[id]` | POST `?/addNote` | `body`・`tags`（複数）・`occurredAt` | 近況メモを足す | 検証 `fail(400)` / 404 |
 | `/horses/[id]` | POST `?/deleteNote` | `noteId` | 自分のメモを消す | 他人のメモ・無いメモは `fail(403)` |
 | `/graded-races` | GET | — | 今年の重賞（G1〜G3）の一覧。月ごとに、メモのある年の数と傾向の有無 | — |
-| `/graded-races/[name]` | GET | — | 自分の傾向のメモと、年ごとのタイムライン（予想の見立て・ペース・印、ふりかえり）。`name` は重賞の鍵（エンコードして渡す。別名でも開ける） | G1〜G3 のレースが無い名前は 404 |
+| `/graded-races/[name]` | GET | — | 自分の傾向のメモと、過去10年の好走馬（1〜3着の一覧と集計。マスタ）、年ごとのタイムライン（予想の見立て・ペース・印、ふりかえり）。`name` は重賞の鍵（エンコードして渡す。別名でも開ける） | G1〜G3 のレースが無い名前は 404 |
 | `/graded-races/[name]` | POST `?/saveTrend` | `body` | 自分の傾向のメモを上書き。空なら消す。`{ trend: 'saved' \| 'cleared' }` | 検証 `fail(400)` / G1〜G3 のレースが無い名前は 404 |
 | `/jockeys` | GET | `q`・`tag` | 騎手の一覧（騎乗の多い順）と、自分が使っている札 | 選択肢に無い `tag` は捨てる |
 | `/jockeys/[name]` | GET | `notes`（`1` でメモのある騎乗だけ） | 自分のまとめと、騎乗のタイムライン（騎乗ごとに自分の出走前・ふりかえりメモ）。`name` は騎手名（エンコードして渡す） | 騎乗の無い名前は 404 |
@@ -241,6 +241,7 @@ export async function listRaceNotes(db: Db, raceId: string, viewerId: string): P
 | `services/horse-traits.ts` | 馬の特徴メモ（本人だけ）の読み（1頭・出走馬まとめて）と保存。`viewerId` を必須で受ける |
 | `services/jockeys.ts` | 騎手の一覧・騎乗・まとめ、レースの出走馬の騎手のまとめ。まとめの保存 |
 | `services/graded-races.ts` | 重賞の一覧・年ごとのタイムライン、傾向のメモの読み書き（マスタの読みは `viewerId` を取らない） |
+| `services/graded-race-placers.ts` | 重賞の過去の好走馬（1〜3着の出走）の読みと、年ごとの一覧・観点ごとの集計の組み立て（マスタだけを読むので `viewerId` を取らない） |
 | `services/users.ts` | admin 画面が使うユーザーの一覧（`listUsersForAdmin`）と凍結（`freezeUser`。セッション・連携の削除と共有メモの private 化を1つの batch で）。権限は見ない（呼ぶルートが `ctxAdmin` と「自分自身は不可」を見る） |
 | `services/mcp-usage.ts` | MCP の週ごとの利用量の数え・上限・リセット |
 | `auth/session.ts` | セッションの発行・検証・破棄、ユーザーの作成と検索 |

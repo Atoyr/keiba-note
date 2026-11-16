@@ -446,6 +446,24 @@ export const GRADED_RACE = {
 } as const;
 
 /**
+ * 過去の好走馬の見本（オールカマー。seed.sql）。去年（中山）は1〜3着がそろい、一昨年（中山）は1着だけ、
+ * 3年前（新潟。「条件が違う」）は1〜3着がそろって、去年と同じ馬（イチバン）と同じ騎手（アルファ）が入る。4年前〜10年前は未登録。
+ */
+export const GRADED_PLACERS = {
+	lastYearRaceId: GRADED_RACE.lastYearRaceId,
+	prevYearRaceId: '01JE2ERACEGRADEDPREV000000',
+	threeYearsAgoRaceId: '01JE2ERACEGRADED3YAGO0000',
+	jockeyTwice: 'E2E重賞騎手アルファ',
+	jockeyOnce: 'E2E重賞騎手ガンマ',
+	sireThrice: 'E2E父アルファ',
+	horses: {
+		first: 'E2E重賞イチバン',
+		second: 'E2E重賞フタバ',
+		third: 'E2E重賞ミツバ'
+	}
+} as const;
+
+/**
  * 紹介の表（src/lib/utils/graded-race-profile.ts）に載っている重賞（今年の天皇賞（秋）。seed.sql）。
  * 前哨戦のオールカマーは GRADED_RACE の去年のレース（勝ち馬あり）が窓に入る。
  */

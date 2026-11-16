@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { toast } from 'svelte-sonner';
 	import GradeBadge from '#lib/components/GradeBadge.svelte';
+	import GradedRacePlacers from '#lib/components/GradedRacePlacers.svelte';
 	import GradedRaceTimeline from '#lib/components/GradedRaceTimeline.svelte';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Textarea } from '#lib/components/ui/textarea/index.ts';
@@ -153,6 +154,8 @@
 				</p></noscript
 			>{/if}
 	</section>
+
+	<GradedRacePlacers placers={data.placers} />
 
 	<section class="mt-8" aria-labelledby="graded-years">
 		<h2 id="graded-years" class="text-sm font-semibold text-muted-foreground">年ごとのメモ</h2>

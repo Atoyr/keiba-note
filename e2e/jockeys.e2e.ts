@@ -21,12 +21,18 @@ test('騎手の一覧は騎乗の多い順に並び、名前と自分が付け�
 	await page.goto('/jockeys');
 
 	const names = page.locator('main ul > li .font-medium');
-	// 騎乗の多い順（同数は名前順）。seed の「E2E条件賞」（今回の条件を見るレース）の騎手も並ぶ。
+	// 騎乗の多い順（同数は名前順）。seed の「E2E条件賞」（今回の条件を見るレース）の騎手と、
+	// オールカマーの過去の好走馬（seed の GRADED_PLACERS）の騎手も並ぶ。
 	await expect(names).toHaveText([
 		JOCKEYS.main,
+		'E2E重賞騎手アルファ',
+		'E2E重賞騎手ベータ',
 		'岩田望来',
 		'川田将雅',
 		JOCKEYS.rookie,
+		'E2E重賞騎手イプシロン',
+		'E2E重賞騎手ガンマ',
+		'E2E重賞騎手デルタ',
 		'ルメール',
 		'坂井瑠星',
 		'戸崎圭太',
