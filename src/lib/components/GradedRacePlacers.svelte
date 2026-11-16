@@ -250,7 +250,7 @@
 												>
 												<a
 													href={resolve('/horses/[id]', { id: p.horseId })}
-													class="min-w-0 font-medium break-words hover:underline sm:w-40"
+													class="min-w-0 font-medium break-words hover:underline sm:w-36 sm:shrink-0"
 												>
 													{p.horseName}
 												</a>
@@ -259,12 +259,12 @@
 															'人気'
 														)}{/if}
 												</span>
-												<span class="min-w-0 sm:w-24">
+												<span class="min-w-0 break-all sm:w-28 sm:shrink-0">
 													{#if p.jockey}
 														<JockeyLink
 															name={p.jockey}
 															summary={null}
-															class="inline-flex items-center hover:underline"
+															class="inline-flex max-w-full items-center hover:underline"
 														/>
 													{:else}
 														{@render unknown('騎手')}
@@ -272,7 +272,7 @@
 												</span>
 											</div>
 											<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:pl-0">
-												<span class="min-w-0 break-words sm:w-32">
+												<span class="min-w-0 break-words sm:w-28 sm:shrink-0">
 													{#if p.sire}父 {p.sire}{:else}{@render unknown('父')}{/if}
 												</span>
 												<span class="min-w-0 break-words sm:w-32">
