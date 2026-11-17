@@ -14,6 +14,14 @@ describe('gradedRaceKey', () => {
 		expect(gradedRaceKey('ローズS')).toBe('ローズステークス');
 	});
 
+	it('略し・正式名・改名前の名前も今年の鍵に寄せる', () => {
+		expect(gradedRaceKey('マイルCS')).toBe('マイルチャンピオンシップ');
+		expect(gradedRaceKey('ジャパンカップ')).toBe('ジャパンC');
+		expect(gradedRaceKey('日本ダービー')).toBe('東京優駿');
+		expect(gradedRaceKey('阪神JF')).toBe('阪神ジュベナイルF');
+		expect(gradedRaceKey('アーリントンカップ')).toBe('チャーチルダウンズC');
+	});
+
 	it('鍵はそのまま鍵', () => {
 		expect(gradedRaceKey('オールカマー')).toBe('オールカマー');
 	});
