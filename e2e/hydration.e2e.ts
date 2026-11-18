@@ -132,7 +132,8 @@ for (const [label, path] of [
 		await login(page);
 		const release = await openWithoutJs(page, path);
 
-		const details = page.locator('main details');
+		// 重賞の画面には、過去の好走馬の `<details>` もある。書く欄は先頭（傾向の節の中）。
+		const details = page.locator('main details').first();
 		// 読む形は、欄の前の兄弟要素。閉じている間は出ている。
 		const reading = details.locator('xpath=preceding-sibling::*');
 		await expect(reading).not.toHaveCount(0);

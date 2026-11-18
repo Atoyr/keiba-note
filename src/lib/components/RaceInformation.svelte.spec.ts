@@ -51,6 +51,23 @@ const lastYear = {
 	]
 };
 
+const popularity = (wins: number[], placed: number[]) =>
+	['1番人気', '2番人気', '3番人気', '4番人気', '5番人気', '6〜9番人気', '10番人気以下'].map(
+		(value, i) => ({ value, wins: wins[i] ?? 0, placed: placed[i] ?? 0 })
+	);
+const placers = {
+	fromYear: 2016,
+	toYear: 2025,
+	baseYear: '2025',
+	complete: 0,
+	partial: 0,
+	noResult: 0,
+	missingYears: 10,
+	differs: 0,
+	placers: 0,
+	popularity: { known: 0, unknown: 0, rows: popularity([], []) }
+};
+
 const props = { race, graded: null, today: '2026-10-14', sameCondition: [] };
 
 const sameNote = (id: string, raceId: string) => ({
@@ -78,7 +95,13 @@ it('重賞の傾向 → 重賞のタイムライン → 同じ条件のレース
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: '逃げ馬が残りやすい', timeline: [lastYear], profile: null },
+		graded: {
+			key: '毎日王冠',
+			placers,
+			trend: '逃げ馬が残りやすい',
+			timeline: [lastYear],
+			profile: null
+		},
 		sameCondition: [sameNote('n1', 'other')]
 	});
 	await expect.element(screen.getByText('逃げ馬が残りやすい')).toBeInTheDocument();
@@ -111,7 +134,7 @@ it('傾向が無くても重賞の傾向の枠とタイムラインが出る（�
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null }
+		graded: { key: '毎日王冠', placers, trend: null, timeline: [lastYear], profile: null }
 	});
 	await expect.element(screen.getByRole('region', { name: /重賞のタイムライン/ })).toBeVisible();
 	const trend = screen.getByRole('region', { name: /重賞の傾向/ });
@@ -124,7 +147,7 @@ it('ほかの年が無いときは、案内の文を出す', async () => {
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [], profile: null }
+		graded: { key: '毎日王冠', placers, trend: null, timeline: [], profile: null }
 	});
 	const timeline = screen.getByRole('region', { name: /重賞のタイムライン/ });
 	await expect
@@ -138,7 +161,7 @@ it('重賞の同じ条件の欄には、渡されたメモと条件が出る', a
 	const screen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null },
+		graded: { key: '毎日王冠', placers, trend: null, timeline: [lastYear], profile: null },
 		sameCondition: [sameNote('n2', 'other')]
 	});
 	const same = screen.getByRole('region', { name: /同じ条件で書いたレースのメモ/ });
@@ -150,7 +173,7 @@ it('メモが0件のとき、重賞は「ほかに〜」の文言、重賞でな
 	const gradedScreen = render(RaceInformation, {
 		...props,
 		race: gradedRace,
-		graded: { key: '毎日王冠', trend: null, timeline: [lastYear], profile: null },
+		graded: { key: '毎日王冠', placers, trend: null, timeline: [lastYear], profile: null },
 		sameCondition: []
 	});
 	await expect
@@ -169,6 +192,7 @@ it('紹介がある重賞は、条件と前哨戦を傾向の次に、コース�
 		race: gradedRace,
 		graded: {
 			key: '毎日王冠',
+			placers,
 			trend: '逃げ馬が残りやすい',
 			timeline: [lastYear],
 			profile: {
@@ -189,4 +213,132 @@ it('紹介がある重賞は、条件と前哨戦を傾向の次に、コース�
 	expect(indexOf('コースの特徴')).toBeGreaterThan(indexOf('同じ条件で書いたレースのメモ'));
 	const courseIndex = children.findIndex((el) => el.querySelector('[aria-label="コース"]'));
 	expect(courseIndex).toBe(indexOf('コースの特徴') + 1);
+});
+
+it('重賞のときだけ、過去の好走馬の節を出す（重賞の画面の節へのリンクつき。タイムラインの前）', async () => {
+	const plain = render(RaceInformation, props);
+	expect(plain.container.textContent).not.toContain('過去の好走馬');
+	plain.unmount();
+
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: { key: '毎日王冠', placers, trend: null, timeline: [lastYear], profile: null }
+	});
+	const section = screen.getByRole('region', { name: /過去の好走馬/ });
+	await expect.element(section).toHaveTextContent('2016〜2025年の1〜3着');
+	await expect
+		.element(section.getByRole('link', { name: '重賞の画面で見る' }))
+		.toHaveAttribute('href', `/graded-races/${encodeURIComponent('毎日王冠')}#graded-placers`);
+	const children = [...screen.container.firstElementChild!.children];
+	const indexOf = (text: string) => children.findIndex((el) => el.textContent?.includes(text));
+	expect(indexOf('過去の好走馬')).toBeLessThan(indexOf('重賞のタイムライン'));
+});
+
+it('好走馬が0件なら、結果が未登録の文だけを出す', async () => {
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: { key: '毎日王冠', placers, trend: null, timeline: [], profile: null }
+	});
+	const section = screen.getByRole('region', { name: /過去の好走馬/ });
+	await expect
+		.element(section)
+		.toHaveTextContent('2016〜2025年のこのレースの結果は、まだ登録されていません。');
+	expect(section.element().querySelector('dl')).toBeNull();
+	expect(section.element().textContent).not.toContain('結果のある開催');
+});
+
+it('好走馬があれば、開催の内訳と、勝ち馬・3着以内の人気を数だけで出す', async () => {
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: {
+			key: '毎日王冠',
+			placers: {
+				...placers,
+				complete: 2,
+				missingYears: 7,
+				placers: 8,
+				popularity: {
+					known: 8,
+					unknown: 0,
+					rows: popularity([3, 0, 0, 1], [3, 1, 2, 1, 0, 1])
+				}
+			},
+			trend: null,
+			timeline: [],
+			profile: null
+		}
+	});
+	const section = screen.getByRole('region', { name: /過去の好走馬/ });
+	await expect.element(section).toHaveTextContent('結果がそろっている開催 2・レースが未登録 7年');
+	await expect.element(section).toHaveTextContent('勝ち馬の人気 1番人気 3・4番人気 1');
+	await expect
+		.element(section)
+		.toHaveTextContent('3着以内の人気 1番人気 3・2番人気 1・3番人気 2・4番人気 1・6〜9番人気 1');
+	await expect
+		.element(section)
+		.toHaveTextContent('騎手・父・母父ごとの数と年ごとの一覧は、重賞の画面にあります。');
+	// 一部だけ・条件違い・人気の不明が無ければ、その行は出さない。
+	const text = section.element().textContent ?? '';
+	expect(text).not.toContain('一部だけ');
+	expect(text).not.toContain('と違います');
+	expect(text).not.toContain('人気が分かる出走');
+	expect(text).not.toContain('%');
+});
+
+it('一部だけ・結果が未登録の開催、条件が違う開催、人気が一部だけ不明なことを言う', async () => {
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: {
+			key: '毎日王冠',
+			placers: {
+				...placers,
+				complete: 2,
+				partial: 1,
+				noResult: 1,
+				missingYears: 6,
+				differs: 3,
+				placers: 8,
+				popularity: { known: 6, unknown: 2, rows: popularity([1], [1, 1]) }
+			},
+			trend: null,
+			timeline: [],
+			profile: null
+		}
+	});
+	const section = screen.getByRole('region', { name: /過去の好走馬/ });
+	await expect
+		.element(section)
+		.toHaveTextContent('結果がそろっている開催 2・一部だけ 1・結果が未登録 1・レースが未登録 6年');
+	await expect
+		.element(section)
+		.toHaveTextContent('3開催は、場・芝ダート・距離のどれかが2025年と違います。');
+	await expect.element(section).toHaveTextContent('人気が分かる出走 6・不明 2');
+});
+
+it('人気がすべて不明なら、人気の欄は「不明」', async () => {
+	const screen = render(RaceInformation, {
+		...props,
+		race: gradedRace,
+		graded: {
+			key: '毎日王冠',
+			placers: {
+				...placers,
+				complete: 1,
+				missingYears: 9,
+				placers: 3,
+				popularity: { known: 0, unknown: 3, rows: popularity([], []) }
+			},
+			trend: null,
+			timeline: [],
+			profile: null
+		}
+	});
+	const section = screen.getByRole('region', { name: /過去の好走馬/ });
+	await expect.element(section).toHaveTextContent('勝ち馬の人気 不明');
+	await expect.element(section).toHaveTextContent('3着以内の人気 不明');
+	await expect.element(section).toHaveTextContent('人気が分かる出走 0・不明 3');
 });

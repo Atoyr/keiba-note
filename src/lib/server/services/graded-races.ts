@@ -11,6 +11,7 @@ import {
 import type { Pace } from '#lib/schemas/race-flow.ts';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
 import type { GradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
+import { placersQuery, shapePlacerRows, type PlacerRow } from './graded-race-placers';
 import { raceResultCount } from './races';
 
 /**
@@ -374,7 +375,10 @@ export function pickStepRaces(keys: string[], rows: SeriesRace[]): (SeriesRace |
 
 /**
  * 重賞1本ぶんの読み（傾向・シリーズのレース・見立てとふりかえり・印・1頭ごとのメモの件数）。
- * 重賞の画面と、予想・ふりかえり画面のレース情報タブで使う。**5文（`steps` があれば6文）を1つの `db.batch()` で読む（1往復）。**
+ * 重賞の画面と、予想・ふりかえり画面のレース情報タブで使う。**5文を1つの `db.batch()` で読む（1往復）。**
+ * `steps` を頼むと前哨戦の1文、`placers` を頼むと好走馬の1文が、この順で後ろに足される（最大7文。頼まれていない文は投げない）。
+ * 結果は添字で取り出しており、型は外している（足した順で添字が決まる。組み合わせごとの結果は spec で守る）。
+ * `placerRows` は、`placers` の窓（`fromDate`〜`toDate`）の1〜3着（`PlacerRow`。日付の降順 → 着順 → 馬番）。頼まなければ `[]`。マスタだけで、viewer では絞らない。
  * 傾向は viewer が書いたもの（鍵の行を優先）、レースは名前（鍵と別名）に当たるもの（日付の降順）、
  * メモと印と件数は viewer が書いたものだけ。
  * メモと傾向は viewerId で絞る（architecture.md 第0章）。
@@ -386,35 +390,48 @@ export async function readGradedRaceSeries(
 	db: Db,
 	key: string,
 	viewerId: string,
-	steps?: { keys: string[]; before: string }
+	steps?: { keys: string[]; before: string },
+	placers?: { fromDate: string; toDate: string }
 ): Promise<
-	SeriesNotes & { trend: { body: string } | null; races: SeriesRace[]; stepRaces: SeriesRace[] }
+	SeriesNotes & {
+		trend: { body: string } | null;
+		races: SeriesRace[];
+		stepRaces: SeriesRace[];
+		placerRows: PlacerRow[];
+	}
 > {
 	const names = gradedRaceNames(key);
-	if (steps && steps.keys.length > 0) {
-		const [trendRows, races, noteRows, markRows, countRows, stepRaces] = await db.batch([
-			trendQuery(db, key, viewerId),
-			seriesRacesQuery(db, names),
-			...seriesNotesQueries(db, names, viewerId),
-			stepRacesQuery(db, steps.keys, steps.before)
-		]);
-		return {
-			trend: pickTrend(trendRows, key),
-			races,
-			stepRaces,
-			...shapeSeriesNotes(noteRows, markRows, countRows)
-		};
-	}
-	const [trendRows, races, noteRows, markRows, countRows] = await db.batch([
+	const [trendQ, racesQ, ...noteQs] = [
 		trendQuery(db, key, viewerId),
 		seriesRacesQuery(db, names),
 		...seriesNotesQueries(db, names, viewerId)
-	]);
+	] as const;
+	// 頼まれた問い合わせだけを同じ batch（1往復）に足す。足した順で、結果の添字が決まる。
+	const stepQ =
+		steps && steps.keys.length > 0 ? stepRacesQuery(db, steps.keys, steps.before) : null;
+	const placerQ = placers ? placersQuery(db, names, placers.fromDate, placers.toDate) : null;
+	const results = await db.batch([
+		trendQ,
+		racesQ,
+		...noteQs,
+		...(stepQ ? [stepQ] : []),
+		...(placerQ ? [placerQ] : [])
+	] as unknown as [typeof trendQ, ...(typeof racesQ | (typeof noteQs)[number])[]]);
+	const at = <T>(i: number) => results[i] as unknown as T;
+	const stepIndex = 5;
+	const placerIndex = stepQ ? 6 : 5;
 	return {
-		trend: pickTrend(trendRows, key),
-		races,
-		stepRaces: [],
-		...shapeSeriesNotes(noteRows, markRows, countRows)
+		trend: pickTrend(at<Awaited<typeof trendQ>>(0), key),
+		races: at<SeriesRace[]>(1),
+		stepRaces: stepQ ? at<SeriesRace[]>(stepIndex) : [],
+		placerRows: placerQ
+			? shapePlacerRows(at<Parameters<typeof shapePlacerRows>[0]>(placerIndex))
+			: [],
+		...shapeSeriesNotes(
+			at<SeriesNotesRows[0]>(2),
+			at<SeriesNotesRows[1]>(3),
+			at<SeriesNotesRows[2]>(4)
+		)
 	};
 }
 

@@ -23,6 +23,23 @@
 		/** G1〜G3 で名前のあるレースだけ。傾向が無ければ `trend` は null。`timeline` はこのレース自身の行を含まない。 */
 		graded: {
 			key: string;
+			/** 過去の好走馬の要約（重賞の画面と同じ窓）。数だけで、率は持たない。 */
+			placers: {
+				fromYear: number;
+				toYear: number;
+				baseYear: string;
+				complete: number;
+				partial: number;
+				noResult: number;
+				missingYears: number;
+				differs: number;
+				placers: number;
+				popularity: {
+					known: number;
+					unknown: number;
+					rows: { value: string; wins: number; placed: number }[];
+				};
+			};
 			trend: string | null;
 			timeline: ComponentProps<typeof GradedRaceTimeline>['timeline'];
 			/** 表に紹介がある重賞だけ。無ければ条件・コースの特徴の節は出さない。 */
@@ -48,15 +65,83 @@
 
 	const id = $props.id();
 	const condition = $derived(conditionLabel(race));
+
+	/** 充足の行（重賞の画面と同じ語）。0 でない項目だけ「結果がそろっている開催」に続ける。 */
+	function fill(pl: { complete: number; partial: number; noResult: number; missingYears: number }) {
+		return [
+			`結果がそろっている開催 ${pl.complete}`,
+			pl.partial > 0 ? `一部だけ ${pl.partial}` : null,
+			pl.noResult > 0 ? `結果が未登録 ${pl.noResult}` : null,
+			pl.missingYears > 0 ? `レースが未登録 ${pl.missingYears}年` : null
+		]
+			.filter((x) => x !== null)
+			.join('・');
+	}
+
+	/** 「1番人気 3・4番人気 1」。数が0の段は出さず、全部0なら「不明」。 */
+	function popularityText(
+		rows: { value: string; wins: number; placed: number }[],
+		key: 'wins' | 'placed'
+	): string {
+		const parts = rows.filter((r) => r[key] > 0).map((r) => `${r.value} ${r[key]}`);
+		return parts.length > 0 ? parts.join('・') : '不明';
+	}
 </script>
 
-<!-- 重賞の傾向 → レースの条件と前哨戦 → 重賞のタイムライン → 同じ条件のレースメモ → コースの特徴 → コース図の順。
+<!-- 重賞の傾向 → レースの条件と前哨戦 → 過去の好走馬（要約と導線） → 重賞のタイムライン → 同じ条件のレースメモ → コースの特徴 → コース図の順。
      同じ条件のメモからは、重賞のタイムラインに出るレースを load が SQL で除いてある。
      重賞のタイムラインは重賞（G1〜G3 で名前あり）だけ。基本情報（開催日・発走・条件・頭数）は見出しに載せている。 -->
 <div class="grid gap-6">
 	{#if graded}<GradedRaceTrend raceKey={graded.key} body={graded.trend} />{/if}
 	{#if graded?.profile}<RaceConditions profile={graded.profile} {today} />{/if}
 	{#if graded}
+		{@const pl = graded.placers}
+		<section aria-labelledby="{id}-placers">
+			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
+				<h2 id="{id}-placers" class="text-sm font-semibold text-muted-foreground">
+					過去の好走馬
+					<span class="font-normal">{pl.fromYear}〜{pl.toYear}年の1〜3着</span>
+				</h2>
+				<a
+					href="{resolve('/graded-races/[name]', {
+						name: gradedRaceParam(graded.key)
+					})}#graded-placers"
+					class="inline-flex min-h-6 items-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+				>
+					重賞の画面で見る
+				</a>
+			</div>
+			{#if pl.placers === 0}
+				<p class="mt-2 text-sm text-muted-foreground">
+					{pl.fromYear}〜{pl.toYear}年のこのレースの結果は、まだ登録されていません。
+				</p>
+			{:else}
+				<p class="mt-2 text-sm">{fill(pl)}</p>
+				{#if pl.differs > 0}
+					<p class="mt-1 text-sm">
+						{pl.differs}開催は、場・芝ダート・距離のどれかが{pl.baseYear}年と違います。
+					</p>
+				{/if}
+				<dl class="mt-1 grid gap-1 text-sm">
+					<div class="flex gap-3">
+						<dt class="w-28 shrink-0 text-muted-foreground">勝ち馬の人気</dt>
+						<dd class="min-w-0 break-words">{popularityText(pl.popularity.rows, 'wins')}</dd>
+					</div>
+					<div class="flex gap-3">
+						<dt class="w-28 shrink-0 text-muted-foreground">3着以内の人気</dt>
+						<dd class="min-w-0 break-words">{popularityText(pl.popularity.rows, 'placed')}</dd>
+					</div>
+				</dl>
+				{#if pl.popularity.unknown > 0}
+					<p class="mt-1 text-xs text-muted-foreground">
+						人気が分かる出走 {pl.popularity.known}・不明 {pl.popularity.unknown}
+					</p>
+				{/if}
+				<p class="mt-2 text-xs text-muted-foreground">
+					騎手・父・母父ごとの数と年ごとの一覧は、重賞の画面にあります。
+				</p>
+			{/if}
+		</section>
 		<section aria-labelledby="{id}-timeline">
 			<div class="flex flex-wrap items-baseline justify-between gap-x-3">
 				<h2 id="{id}-timeline" class="text-sm font-semibold text-muted-foreground">
