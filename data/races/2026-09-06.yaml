@@ -588,6 +588,22 @@ races:
     fieldSize: 14
     winner: コーチェラバレー
     entries:
+      - horseNumber: 4
+        bracket: 3
+        name: ヨヒーン
+        jockey: 鮫島克駿
+        ref: nk-2022105166
+        finish: 4
+        popularity: 7
+        time: "2:42.2"
+        timeDiff: 1.5
+        passing: "7-7-6-3"
+        last3f: 37.1
+        weight: 53
+        blinker: true
+        horseWeight: 464
+        horseWeightDiff: -2
+        odds: 12.3
       - horseNumber: 10
         bracket: 6
         name: マイネルカンパーナ

@@ -68,6 +68,7 @@ races:
     weather: 晴
     fieldSize: 14
     winner: カラマティアノス
+    runnerUp: アンゴラブラック
     entries:
       - horseNumber: 1
         bracket: 1
@@ -268,6 +269,7 @@ races:
         finish: 1
         popularity: 7
         time: "2:00.3"
+        timeDiff: 0
         passing: "4-4-3-2"
         last3f: 34.4
         weight: 55

@@ -381,6 +381,8 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 14
+    winner: ミナデオロ
     entries:
       - horseNumber: 8
         bracket: 5
@@ -404,6 +406,7 @@ races:
         finish: 5
         popularity: 11
         time: "1:32.6"
+        timeDiff: 0.4
         passing: "6-6"
         last3f: 33.7
         weight: 58

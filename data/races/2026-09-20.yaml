@@ -29,9 +29,11 @@ races:
         popularity: 6
         time: "2:16.9"
         margin: "ハナ"
+        timeDiff: 0
         passing: "6-6-7-5"
         last3f: 36.5
         weight: 57
+        blinker: false
         horseWeight: 472
         horseWeightDiff: -10
         odds: 12.1

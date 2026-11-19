@@ -74,6 +74,7 @@ races:
         passing: "9-9-10-9"
         last3f: 34.6
         weight: 55
+        blinker: false
         horseWeight: 470
         horseWeightDiff: 0
         odds: 23.1
