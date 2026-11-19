@@ -260,7 +260,7 @@ describe('GradedRacePlacers の年×着順の表', () => {
 		const { container } = render(GradedRacePlacers, { placers: normal });
 		const rows = yearsTable(container).querySelectorAll('tbody tr');
 		const link = rows[0].querySelector('th a')!;
-		expect(link.textContent).toBe('2025');
+		expect(link.textContent).toContain('2025');
 		expect(link.getAttribute('href')).toBe('/races/r25');
 		expect(rows[1].querySelector('th')!.textContent).toContain('条件が違う');
 		expect(rows[0].querySelector('th')!.textContent).not.toContain('条件が違う');
@@ -295,6 +295,34 @@ describe('GradedRacePlacers の年×着順の表', () => {
 		expect(cells[1].querySelector('.sr-only')!.textContent).toBe('不明');
 	});
 
+	it('同着で空いた列は「同着のため該当なし」、そろっていない開催は「不明」と読み上げる', () => {
+		const mk = (complete: boolean): Placers => ({
+			...normal,
+			years: [
+				{
+					year: '2025',
+					races: [
+						{
+							race: raceOf('r25', '2025-09-28'),
+							differs: false,
+							complete,
+							placers: [placer(1), placer(3, { entryId: 'e3a' }), placer(3, { entryId: 'e3b' })]
+						}
+					]
+				}
+			]
+		});
+		const a = render(GradedRacePlacers, { placers: mk(true) });
+		expect(a.container.querySelector('table[data-placers-table] td .sr-only')!.textContent).toBe(
+			'同着のため該当なし'
+		);
+		a.unmount();
+		const b = render(GradedRacePlacers, { placers: mk(false) });
+		const t = b.container.querySelector('table[data-placers-table]')!;
+		expect(t.querySelector('td .sr-only')!.textContent).toBe('不明');
+		expect(t.querySelector('tbody th')!.textContent).toContain('一部だけ');
+	});
+
 	it('6番人気以下の人気の行だけ太字で、人気が null なら「人気 不明」', () => {
 		const data: Placers = {
 			...normal,
@@ -319,10 +347,10 @@ describe('GradedRacePlacers の年×着順の表', () => {
 		const { container } = render(GradedRacePlacers, { placers: data });
 		const cells = [...yearsTable(container).querySelectorAll('tbody td')];
 		const pop = (i: number) => cells[i].querySelector('.text-xs')!;
-		expect(pop(0).classList.contains('font-bold')).toBe(false);
-		expect(pop(1).classList.contains('font-bold')).toBe(true);
+		expect(pop(0).hasAttribute('data-low-popularity')).toBe(false);
+		expect(pop(1).hasAttribute('data-low-popularity')).toBe(true);
 		expect(pop(2).textContent!.trim()).toBe('人気 不明');
-		expect(pop(2).classList.contains('font-bold')).toBe(false);
+		expect(pop(2).hasAttribute('data-low-popularity')).toBe(false);
 		expect(container.textContent).toContain('太字は6番人気以下');
 	});
 

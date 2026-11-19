@@ -7,7 +7,8 @@
 	import { conditionLabel } from '#lib/utils/note.ts';
 
 	/**
-	 * 重賞の過去の好走馬（重賞の画面の「傾向」の下の節）。窓の10年の1〜3着を、観点ごとの集計と年ごとの一覧で出す。
+	 * 重賞の過去の好走馬（重賞の画面の「傾向」の下の節）。窓の10年の1〜3着を、年×着順の表（6番人気以下の人気は太字）、
+	 * 観点ごとの集計（人気の「3着以内」には棒を添える）、畳んだ「年ごとの詳細（騎手・父・母父）」で出す。
 	 * 自分の傾向のメモとは別で、レースの結果から数えたもの。**率は出さない**（3着以内の馬だけを材料にした率は、
 	 * 全出走馬に対する率ではないため）。出すのは勝ち馬の数と3着以内の頭数だけ。
 	 * 前走はまだ出していない（当時の直前の出走を確かめられるデータが無い）ので、そのことを1行で言う。
@@ -151,7 +152,7 @@
 			<caption class="sr-only">年ごとの1〜3着の馬と人気</caption>
 			<thead>
 				<tr class="text-xs text-muted-foreground">
-					<th scope="col" class="w-14 py-1 pr-2 text-left font-normal">年</th>
+					<th scope="col" class="w-18 py-1 pr-2 text-left font-normal">年</th>
 					{#each [1, 2, 3] as n (n)}
 						<th scope="col" class="px-1 py-1 text-left font-normal">{n}着</th>
 					{/each}
@@ -171,12 +172,16 @@
 								<th scope="row" class="py-1.5 pr-2 text-left font-normal">
 									<a
 										href={resolve('/races/[id]', { id: r.race.id })}
-										class="inline-flex min-h-6 items-center font-bold hover:underline">{y.year}</a
+										class="inline-flex min-h-6 items-center font-bold hover:underline"
+										>{y.year}<span class="sr-only">年 {condition ?? r.race.course}</span></a
 									>
 									<div class="text-xs break-words text-muted-foreground">
 										{condition ?? r.race.course}
 									</div>
-									{#if r.differs}<div class="text-xs">条件が違う</div>{/if}
+									{#if r.differs}<div class="text-xs whitespace-nowrap">条件が違う</div>{/if}
+									{#if !r.complete && r.placers.length > 0}<div class="text-xs whitespace-nowrap">
+											一部だけ
+										</div>{/if}
 								</th>
 								{#if r.placers.length === 0}
 									<td colspan="3" class="px-1 py-1.5 text-muted-foreground">結果が未登録</td>
@@ -186,12 +191,15 @@
 										<td class="px-1 py-1.5">
 											{#if cell.length === 0}
 												<span class="text-muted-foreground" aria-hidden="true">—</span>
-												<span class="sr-only">不明</span>
+												<span class="sr-only">{r.complete ? '同着のため該当なし' : '不明'}</span>
 											{:else}
 												<div class="space-y-1.5">
 													{#each cell as p (p.entryId)}
 														<div>
 															<div
+																data-low-popularity={p.popularity !== null && p.popularity >= 6
+																	? ''
+																	: undefined}
 																class={[
 																	'text-xs tabular-nums',
 																	p.popularity !== null && p.popularity >= 6 && 'font-bold'

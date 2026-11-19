@@ -371,9 +371,12 @@ test('過去の好走馬の集計は、年ごとの一覧と照らせる', async
 	const section = placersRegion(page);
 
 	// 人気だけ開いている。3着以内は7頭（1番人気1・2番人気1・3番人気2・4番人気1・6〜9番人気1・10番人気以下1。ニバンは4着で入らない）。
-	const details = section.locator(':scope > div > details, :scope > details');
-	await expect(details.first()).toHaveJSProperty('open', true);
-	await expect(details.nth(1)).toHaveJSProperty('open', false);
+	const aspectDetails = (label: string) =>
+		section.locator('details').filter({
+			has: page.locator('summary', { hasText: new RegExp(`^\\s*${label}`) })
+		});
+	await expect(aspectDetails('人気')).toHaveJSProperty('open', true);
+	await expect(aspectDetails('騎手')).toHaveJSProperty('open', false);
 	const popularity = section.getByRole('table', { name: '人気ごとの勝ち馬と3着以内の数' });
 	await expect(popularity.locator('tbody tr')).toHaveCount(7);
 	await expect(popularity.locator('tbody tr').nth(0)).toContainText('1番人気');
