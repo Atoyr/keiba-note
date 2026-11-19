@@ -264,6 +264,12 @@ export type RaceEntryView = {
 	popularity: number | null;
 	/** 通過順（`5-5-4-2`）。ふりかえり画面が4コーナーの位置を出すのに使う。 */
 	passing: string | null;
+	/** 斤量。分からなければ null。 */
+	weightCarried: number | null;
+	/** 結果として入る確定の単勝オッズと馬体重（増減）。出走前は null。 */
+	odds: number | null;
+	horseWeight: number | null;
+	horseWeightDiff: number | null;
 	/**
 	 * 馬名を押して開く基本情報の材料（馬の画面の頭と同じ項目）。分からない項目は null。
 	 * 馬の列をそのまま持つ（JOIN 済みの horse から読むだけで、問い合わせは増えない）。
@@ -275,12 +281,8 @@ export type RaceEntryView = {
 	trainingCenter: TrainingCenter | null;
 };
 
-/** ふりかえりの出走馬。結果として入る確定の単勝と馬体重（増減）を足したもの。 */
-export type ReviewEntryView = RaceEntryView & {
-	odds: number | null;
-	horseWeight: number | null;
-	horseWeightDiff: number | null;
-};
+/** ふりかえりの出走馬。形は予想と同じ（確定の単勝・馬体重も `RaceEntryView` に入った）。並びだけが違う。 */
+export type ReviewEntryView = RaceEntryView;
 
 /** そのレースの出走馬。着順 → 馬番の順に並べる（ふりかえり用）。 */
 export async function listEntries(db: Db, raceId: string): Promise<ReviewEntryView[]> {
@@ -322,7 +324,8 @@ function reviewEntriesQuery(db: Db, raceId: string) {
 				// 確定の単勝・馬体重と増減。ふりかえりの行が、予想画面の行と同じ位置に出す。
 				odds: raceEntry.odds,
 				horseWeight: raceEntry.horseWeight,
-				horseWeightDiff: raceEntry.horseWeightDiff
+				horseWeightDiff: raceEntry.horseWeightDiff,
+				weightCarried: raceEntry.weightCarried
 			})
 			.from(raceEntry)
 			.innerJoin(horse, eq(raceEntry.horseId, horse.id))
@@ -508,6 +511,9 @@ function previewEntriesQuery(db: Db, raceId: string) {
 			// 出馬表の公開後に騎手が変わったときの、発表時の騎手。変わっていなければ NULL。
 			announcedJockey: raceEntry.announcedJockey,
 			weightCarried: raceEntry.weightCarried,
+			odds: raceEntry.odds,
+			horseWeight: raceEntry.horseWeight,
+			horseWeightDiff: raceEntry.horseWeightDiff,
 			// NULL = 不明（「着用なし」ではない）。
 			blinker: raceEntry.blinker,
 			finishPosition: raceEntry.finishPosition,

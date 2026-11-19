@@ -122,7 +122,7 @@ sequenceDiagram
 | tool | スコープ | 入力 | 返すもの |
 | --- | --- | --- | --- |
 | `search_races` | `races:read` | `q`・`year`・`limit`（1〜50） | レース（新しい順）。`notes:read` もあれば `myNoteCount`（自分のメモの件数） |
-| `get_race` | `races:read` | `raceId` | レースの条件・出走馬（馬番・騎手・着順）・オッズとその時点 |
+| `get_race` | `races:read` | `raceId` | レースの条件・出走馬・確定の結果・発売中のオッズとその時点。項目と使い分け（確定の `final*` と発売中の `odds`、頭数は `fieldSize`）は tool の description が正 |
 | `get_horse` | `races:read` | `horseId`・`limit`（1〜100） | 馬のプロフィール（性・生年・生年月日・調教師・父母・母父）と出走歴 |
 | `get_my_race_notes` | `notes:read` | `raceId` | そのレースの自分の見立て・ふりかえり・各馬のメモ・印・札・展開 |
 | `get_my_horse_notes` | `notes:read` | `horseId` | その馬の自分のメモ |
