@@ -164,11 +164,8 @@ races:
         bracket: 2
         name: フェスティバルヒル
         jockey: C.デムーロ
-        sex: 牝
         age: 2
         ref: nk-2023107265
-        trainer: 四位洋文
-        trainingCenter: 栗東
         finish: 1
         popularity: 1
         time: "1:20.9"
@@ -226,11 +223,8 @@ races:
         bracket: 5
         name: ブラックチャリス
         jockey: 浜中俊
-        sex: 牝
         age: 2
         ref: nk-2023107008
-        trainer: 武幸四郎
-        trainingCenter: 栗東
         finish: 4
         popularity: 2
         time: "1:21.0"
@@ -289,11 +283,8 @@ races:
         bracket: 6
         name: ショウナンカリス
         jockey: 池添謙一
-        sex: 牝
         age: 2
         ref: nk-2023105347
-        trainer: 加藤士津八
-        trainingCenter: 美浦
         finish: 2
         popularity: 10
         time: "1:20.9"
@@ -310,11 +301,8 @@ races:
         bracket: 7
         name: メイプルハッピー
         jockey: 亀田温心
-        sex: 牝
         age: 2
         ref: nk-2023106375
-        trainer: 北出成人
-        trainingCenter: 栗東
         finish: 7
         popularity: 6
         time: "1:21.5"
@@ -331,11 +319,8 @@ races:
         bracket: 7
         name: フルールジェンヌ
         jockey: 田口貫太
-        sex: 牝
         age: 2
         ref: nk-2023103247
-        trainer: 鈴木孝志
-        trainingCenter: 栗東
         finish: 10
         popularity: 8
         time: "1:21.7"
@@ -352,11 +337,8 @@ races:
         bracket: 8
         name: アンヘリータス
         jockey: 西村淳也
-        sex: 牝
         age: 2
         ref: nk-2023109164
-        trainer: 吉村圭司
-        trainingCenter: 栗東
         finish: 12
         popularity: 11
         time: "1:23.5"
@@ -373,11 +355,8 @@ races:
         bracket: 8
         name: シラヌイ
         jockey: 吉村誠之助
-        sex: 牝
         age: 2
         ref: nk-2023105668
-        trainer: 高橋亮
-        trainingCenter: 栗東
         finish: 11
         popularity: 9
         time: "1:22.3"

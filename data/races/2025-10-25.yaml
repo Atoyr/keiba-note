@@ -304,11 +304,8 @@ races:
         bracket: 1
         name: タイセイボーグ
         jockey: 佐々木大輔
-        sex: 牝
         age: 2
         ref: nk-2023106900
-        trainer: 松下武士
-        trainingCenter: 栗東
         finish: 3
         popularity: 3
         time: "1:34.2"
@@ -367,11 +364,8 @@ races:
         bracket: 4
         name: レディーゴール
         jockey: 菅原明良
-        sex: 牝
         age: 2
         ref: nk-2023100917
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 6
         popularity: 10
         time: "1:34.5"
@@ -408,11 +402,8 @@ races:
         bracket: 6
         name: ヒルデグリム
         jockey: 横山武史
-        sex: 牝
         age: 2
         ref: nk-2023106457
-        trainer: 小野次郎
-        trainingCenter: 美浦
         finish: 9
         popularity: 8
         time: "1:34.8"
@@ -429,11 +420,8 @@ races:
         bracket: 7
         name: マルガ
         jockey: 武豊
-        sex: 牝
         age: 2
         ref: nk-2023107191
-        trainer: 須貝尚介
-        trainingCenter: 栗東
         finish: 5
         popularity: 1
         time: "1:34.5"
@@ -450,11 +438,8 @@ races:
         bracket: 7
         name: ハッピーエンジェル
         jockey: 三浦皇成
-        sex: 牝
         age: 2
         ref: nk-2023100797
-        trainer: 武市康男
-        trainingCenter: 美浦
         finish: 4
         popularity: 4
         time: "1:34.3"
@@ -471,11 +456,8 @@ races:
         bracket: 8
         name: バースデイフライト
         jockey: 和田竜二
-        sex: 牝
         age: 2
         ref: nk-2023102906
-        trainer: 新谷功一
-        trainingCenter: 栗東
         finish: 8
         popularity: 6
         time: "1:34.7"
@@ -492,11 +474,8 @@ races:
         bracket: 8
         name: ミツカネベネラ
         jockey: 津村明秀
-        sex: 牝
         age: 2
         ref: nk-2023104523
-        trainer: 鈴木伸尋
-        trainingCenter: 美浦
         finish: 2
         popularity: 9
         time: "1:34.1"

@@ -182,11 +182,8 @@ races:
         bracket: 2
         name: フェーレンベルク
         jockey: 高田潤
-        sex: 牡
         age: 5
         ref: nk-2020103875
-        trainer: 千葉直人
-        trainingCenter: 美浦
         finish: 7
         popularity: 6
         time: "3:32.9"
@@ -262,11 +259,8 @@ races:
         bracket: 4
         name: ローディアマント
         jockey: 伴啓太
-        sex: セ
         age: 5
         ref: nk-2020101429
-        trainer: 尾関知人
-        trainingCenter: 美浦
         finish: 4
         popularity: 7
         time: "3:31.2"
@@ -322,11 +316,8 @@ races:
         bracket: 6
         name: サイード
         jockey: 小坂忠士
-        sex: セ
         age: 6
         ref: nk-2019103152
-        trainer: 角田晃一
-        trainingCenter: 栗東
         finish: 2
         popularity: 3
         time: "3:30.7"

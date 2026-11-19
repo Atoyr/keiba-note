@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: イングランドアイズ
         jockey: 松若風馬
-        sex: 牝
         age: 5
         ref: nk-2020110085
-        trainer: 安田翔伍
-        trainingCenter: 栗東
         finish: 1
         popularity: 9
         time: "1:59.9"
@@ -42,11 +39,8 @@ races:
         bracket: 1
         name: ショウナンアデイブ
         jockey: 岩田康誠
-        sex: 牡
         age: 6
         ref: nk-2019105239
-        trainer: 高野友和
-        trainingCenter: 栗東
         finish: 13
         popularity: 7
         time: "2:01.0"
@@ -63,11 +57,8 @@ races:
         bracket: 2
         name: カネフラ
         jockey: 永島まなみ
-        sex: 牡
         age: 5
         ref: nk-2020103082
-        trainer: 高橋康之
-        trainingCenter: 栗東
         finish: 14
         popularity: 13
         time: "2:01.2"
@@ -84,11 +75,8 @@ races:
         bracket: 2
         name: メリオーレム
         jockey: 川田将雅
-        sex: 牡
         age: 4
         ref: nk-2021104791
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 9
         popularity: 1
         time: "2:00.8"
@@ -105,11 +93,8 @@ races:
         bracket: 3
         name: マイネルメモリー
         jockey: 田口貫太
-        sex: 牡
         age: 5
         ref: nk-2020105750
-        trainer: 宮徹
-        trainingCenter: 栗東
         finish: 12
         popularity: 10
         time: "2:00.9"
@@ -126,11 +111,8 @@ races:
         bracket: 3
         name: シェイクユアハート
         jockey: 古川吉洋
-        sex: 牡
         age: 5
         ref: nk-2020103101
-        trainer: 宮徹
-        trainingCenter: 栗東
         finish: 2
         popularity: 3
         time: "2:00.2"
@@ -168,11 +150,8 @@ races:
         bracket: 4
         name: ラスカンブレス
         jockey: 荻野極
-        sex: 牡
         age: 4
         ref: nk-2021105391
-        trainer: 林徹
-        trainingCenter: 美浦
         finish: 4
         popularity: 6
         time: "2:00.3"
@@ -189,11 +168,8 @@ races:
         bracket: 5
         name: リカンカブール
         jockey: 団野大成
-        sex: セ
         age: 6
         ref: nk-2019103823
-        trainer: 田中克典
-        trainingCenter: 栗東
         finish: 11
         popularity: 12
         time: "2:00.9"
@@ -210,11 +186,8 @@ races:
         bracket: 5
         name: ナムラエイハブ
         jockey: 松山弘平
-        sex: 牡
         age: 4
         ref: nk-2021102895
-        trainer: 長谷川浩大
-        trainingCenter: 栗東
         finish: 8
         popularity: 8
         time: "2:00.7"
@@ -231,11 +204,8 @@ races:
         bracket: 6
         name: ダンディズム
         jockey: 高杉吏麒
-        sex: セ
         age: 9
         ref: nk-2016102175
-        trainer: 野中賢二
-        trainingCenter: 栗東
         finish: 7
         popularity: 15
         time: "2:00.7"
@@ -252,11 +222,8 @@ races:
         bracket: 6
         name: ハピ
         jockey: 坂井瑠星
-        sex: 牡
         age: 6
         ref: nk-2019100630
-        trainer: 大久保龍志
-        trainingCenter: 栗東
         finish: 6
         popularity: 4
         time: "2:00.5"
@@ -315,11 +282,8 @@ races:
         bracket: 8
         name: ニホンピロキーフ
         jockey: 幸英明
-        sex: 牡
         age: 5
         ref: nk-2020104564
-        trainer: 大橋勇樹
-        trainingCenter: 栗東
         finish: 10
         popularity: 11
         time: "2:00.8"
@@ -336,11 +300,8 @@ races:
         bracket: 8
         name: ディープモンスター
         jockey: 北村友一
-        sex: 牡
         age: 7
         ref: nk-2018104475
-        trainer: 池江泰寿
-        trainingCenter: 栗東
         finish: 3
         popularity: 2
         time: "2:00.3"
@@ -474,11 +435,8 @@ races:
         bracket: 4
         name: タガノアラリア
         jockey: 斎藤新
-        sex: 牡
         age: 2
         ref: nk-2023104313
-        trainer: 西園翔太
-        trainingCenter: 栗東
         finish: 4
         popularity: 3
         time: "1:09.1"
@@ -495,11 +453,8 @@ races:
         bracket: 5
         name: エイシンディード
         jockey: キング
-        sex: 牡
         age: 2
         ref: nk-2023105505
-        trainer: 大久保龍志
-        trainingCenter: 栗東
         finish: 1
         popularity: 9
         time: "1:08.4"
@@ -557,11 +512,8 @@ races:
         bracket: 6
         name: ブラックチャリス
         jockey: 浜中俊
-        sex: 牝
         age: 2
         ref: nk-2023107008
-        trainer: 武幸四郎
-        trainingCenter: 栗東
         finish: 2
         popularity: 1
         time: "1:08.7"

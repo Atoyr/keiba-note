@@ -43,11 +43,8 @@ races:
         bracket: 1
         name: ダブルハートボンド
         jockey: 坂井瑠星
-        sex: 牝
         age: 4
         ref: nk-2021105700
-        trainer: 大久保龍志
-        trainingCenter: 栗東
         finish: 1
         popularity: 3
         time: "1:50.2"
@@ -84,11 +81,8 @@ races:
         bracket: 2
         name: セラフィックコール
         jockey: 西村淳也
-        sex: 牡
         age: 5
         ref: nk-2020103400
-        trainer: 寺島良
-        trainingCenter: 栗東
         finish: 9
         popularity: 14
         time: "1:51.4"
@@ -105,11 +99,8 @@ races:
         bracket: 3
         name: ヘリオス
         jockey: 原優介
-        sex: セ
         age: 9
         ref: nk-2016102370
-        trainer: 千葉幸喜
-        trainingCenter: 地方
         finish: 14
         popularity: 16
         time: "1:52.7"
@@ -147,11 +138,8 @@ races:
         bracket: 4
         name: ラムジェット
         jockey: 三浦皇成
-        sex: 牡
         age: 4
         ref: nk-2021106640
-        trainer: 佐々木晶三
-        trainingCenter: 栗東
         finish: 3
         popularity: 7
         time: "1:50.6"
@@ -168,11 +156,8 @@ races:
         bracket: 4
         name: ウィルソンテソーロ
         jockey: 川田将雅
-        sex: 牡
         age: 6
         ref: nk-2019102383
-        trainer: 高木登
-        trainingCenter: 美浦
         finish: 2
         popularity: 2
         time: "1:50.2"
@@ -231,11 +216,8 @@ races:
         bracket: 6
         name: シックスペンス
         jockey: ルメール
-        sex: 牡
         age: 4
         ref: nk-2021105724
-        trainer: 国枝栄
-        trainingCenter: 美浦
         finish: 11
         popularity: 5
         time: "1:51.5"
@@ -252,11 +234,8 @@ races:
         bracket: 6
         name: ナルカミ
         jockey: 戸崎圭太
-        sex: 牡
         age: 3
         ref: nk-2022101638
-        trainer: 田中博康
-        trainingCenter: 美浦
         finish: 13
         popularity: 1
         time: "1:52.6"
@@ -273,11 +252,8 @@ races:
         bracket: 7
         name: サンライズジパング
         jockey: 池添謙一
-        sex: 牡
         age: 4
         ref: nk-2021104756
-        trainer: 前川恭子
-        trainingCenter: 栗東
         finish: 8
         popularity: 9
         time: "1:51.3"
@@ -294,11 +270,8 @@ races:
         bracket: 7
         name: ペプチドナイル
         jockey: 藤岡佑介
-        sex: 牡
         age: 7
         ref: nk-2018106084
-        trainer: 武英智
-        trainingCenter: 栗東
         finish: 12
         popularity: 12
         time: "1:52.3"
@@ -315,11 +288,8 @@ races:
         bracket: 8
         name: ペリエール
         jockey: 佐々木大輔
-        sex: 牡
         age: 5
         ref: nk-2020101874
-        trainer: 黒岩陽一
-        trainingCenter: 美浦
         finish: 10
         popularity: 15
         time: "1:51.4"
@@ -336,11 +306,8 @@ races:
         bracket: 8
         name: ルクソールカフェ
         jockey: ジェルー
-        sex: 牡
         age: 3
         ref: nk-2022110083
-        trainer: 堀宣行
-        trainingCenter: 美浦
         finish: 15
         popularity: 6
         time: "1:53.6"

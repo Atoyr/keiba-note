@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: マジックサンズ
         jockey: 武豊
-        sex: 牡
         age: 3
         ref: nk-2022104772
-        trainer: 須貝尚介
-        trainingCenter: 栗東
         finish: 10
         popularity: 2
         time: "1:32.9"
@@ -43,11 +40,8 @@ races:
         bracket: 2
         name: ウォーターリヒト
         jockey: 菅原明良
-        sex: 牡
         age: 4
         ref: nk-2021100953
-        trainer: 石橋守
-        trainingCenter: 栗東
         finish: 9
         popularity: 5
         time: "1:32.5"
@@ -85,11 +79,8 @@ races:
         bracket: 3
         name: ウンブライル
         jockey: ルメール
-        sex: 牝
         age: 5
         ref: nk-2020103674
-        trainer: 木村哲也
-        trainingCenter: 美浦
         finish: 5
         popularity: 8
         time: "1:32.1"
@@ -106,11 +97,8 @@ races:
         bracket: 4
         name: レイベリング
         jockey: 津村明秀
-        sex: 牡
         age: 5
         ref: nk-2020110155
-        trainer: 鹿戸雄一
-        trainingCenter: 美浦
         finish: 12
         popularity: 13
         time: "1:33.1"
@@ -127,11 +115,8 @@ races:
         bracket: 4
         name: ソウルラッシュ
         jockey: 団野大成
-        sex: 牡
         age: 7
         ref: nk-2018100382
-        trainer: 池江泰寿
-        trainingCenter: 栗東
         finish: 3
         popularity: 4
         time: "1:32.1"
@@ -169,11 +154,8 @@ races:
         bracket: 5
         name: ジュンブロッサム
         jockey: 石川裕紀人
-        sex: 牡
         age: 6
         ref: nk-2019105118
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 4
         popularity: 9
         time: "1:32.1"
@@ -190,11 +172,8 @@ races:
         bracket: 6
         name: キープカルム
         jockey: 坂井瑠星
-        sex: 牡
         age: 4
         ref: nk-2021105119
-        trainer: 中竹和也
-        trainingCenter: 栗東
         finish: 6
         popularity: 6
         time: "1:32.3"
@@ -232,11 +211,8 @@ races:
         bracket: 7
         name: ガイアフォース
         jockey: 横山武史
-        sex: 牡
         age: 6
         ref: nk-2019104476
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 1
         popularity: 3
         time: "1:31.7"
@@ -252,11 +228,8 @@ races:
         bracket: 7
         name: シャンパンカラー
         jockey: 戸崎圭太
-        sex: 牡
         age: 5
         ref: nk-2020103075
-        trainer: 田中剛
-        trainingCenter: 美浦
         finish: 8
         popularity: 7
         time: "1:32.5"
@@ -273,11 +246,8 @@ races:
         bracket: 8
         name: ファーヴェント
         jockey: 佐々木大輔
-        sex: 牡
         age: 4
         ref: nk-2021104893
-        trainer: 藤原英昭
-        trainingCenter: 栗東
         finish: 7
         popularity: 10
         time: "1:32.5"
@@ -294,11 +264,8 @@ races:
         bracket: 8
         name: ジャンタルマンタル
         jockey: 川田将雅
-        sex: 牡
         age: 4
         ref: nk-2021107171
-        trainer: 高野友和
-        trainingCenter: 栗東
         finish: 2
         popularity: 1
         time: "1:31.8"

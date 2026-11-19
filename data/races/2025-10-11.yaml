@@ -46,11 +46,8 @@ races:
         bracket: 1
         name: ガリレア
         jockey: 杉原誠人
-        sex: 牡
         age: 2
         ref: nk-2023100681
-        trainer: 清水英克
-        trainingCenter: 美浦
         finish: 2
         popularity: 7
         time: "1:34.1"
@@ -67,11 +64,8 @@ races:
         bracket: 2
         name: マーゴットブロー
         jockey: 荻野極
-        sex: 牡
         age: 2
         ref: nk-2023105356
-        trainer: 伊坂重信
-        trainingCenter: 美浦
         finish: 4
         popularity: 8
         time: "1:34.2"
@@ -88,11 +82,8 @@ races:
         bracket: 3
         name: アスクエジンバラ
         jockey: 岩田康誠
-        sex: 牡
         age: 2
         ref: nk-2023106400
-        trainer: 福永祐一
-        trainingCenter: 栗東
         finish: 7
         popularity: 4
         time: "1:34.6"
@@ -109,11 +100,8 @@ races:
         bracket: 4
         name: ユウファラオ
         jockey: 丸山元気
-        sex: 牡
         age: 2
         ref: nk-2023110065
-        trainer: 森秀行
-        trainingCenter: 栗東
         finish: 6
         popularity: 6
         time: "1:34.4"
@@ -130,11 +118,8 @@ races:
         bracket: 5
         name: ゾロアストロ
         jockey: ルメール
-        sex: 牡
         age: 2
         ref: nk-2023106850
-        trainer: 宮田敬介
-        trainingCenter: 美浦
         finish: 3
         popularity: 1
         time: "1:34.1"
@@ -151,11 +136,8 @@ races:
         bracket: 6
         name: エコロアルバ
         jockey: 坂井瑠星
-        sex: 牡
         age: 2
         ref: nk-2023103184
-        trainer: 田村康仁
-        trainingCenter: 美浦
         finish: 1
         popularity: 2
         time: "1:33.8"
@@ -192,11 +174,8 @@ races:
         bracket: 8
         name: チュウワカーネギー
         jockey: 北村友一
-        sex: 牡
         age: 2
         ref: nk-2023103895
-        trainer: 大久保龍志
-        trainingCenter: 栗東
         finish: 5
         popularity: 3
         time: "1:34.4"

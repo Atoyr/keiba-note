@@ -43,11 +43,8 @@ races:
         bracket: 1
         name: ルージュソリテール
         jockey: 北村友一
-        sex: 牝
         age: 3
         ref: nk-2022105157
-        trainer: 藤原英昭
-        trainingCenter: 栗東
         finish: 8
         popularity: 12
         time: "1:59.2"
@@ -64,11 +61,8 @@ races:
         bracket: 2
         name: ジョスラン
         jockey: 岩田望来
-        sex: 牝
         age: 3
         ref: nk-2022104767
-        trainer: 鹿戸雄一
-        trainingCenter: 美浦
         finish: 4
         popularity: 4
         time: "1:58.8"
@@ -85,11 +79,8 @@ races:
         bracket: 2
         name: レーゼドラマ
         jockey: 藤岡佑介
-        sex: 牝
         age: 3
         ref: nk-2022105346
-        trainer: 辻野泰之
-        trainingCenter: 栗東
         finish: 17
         popularity: 15
         time: "2:02.1"
@@ -106,11 +97,8 @@ races:
         bracket: 3
         name: ブラウンラチェット
         jockey: 池添謙一
-        sex: 牝
         age: 3
         ref: nk-2022104994
-        trainer: 手塚貴久
-        trainingCenter: 美浦
         finish: 18
         popularity: 13
         time: "2:07.0"
@@ -127,11 +115,8 @@ races:
         bracket: 3
         name: ケリフレッドアスク
         jockey: 西塚洸二
-        sex: 牝
         age: 3
         ref: nk-2022102296
-        trainer: 藤原英昭
-        trainingCenter: 栗東
         finish: 11
         popularity: 11
         time: "1:59.3"
@@ -148,11 +133,8 @@ races:
         bracket: 4
         name: クリノメイ
         jockey: 酒井学
-        sex: 牝
         age: 3
         ref: nk-2022101250
-        trainer: 須貝尚介
-        trainingCenter: 栗東
         finish: 7
         popularity: 17
         time: "1:59.0"
@@ -169,11 +151,8 @@ races:
         bracket: 4
         name: テレサ
         jockey: 松山弘平
-        sex: 牝
         age: 3
         ref: nk-2022104885
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 14
         popularity: 8
         time: "1:59.8"
@@ -190,11 +169,8 @@ races:
         bracket: 5
         name: マピュース
         jockey: 横山武史
-        sex: 牝
         age: 3
         ref: nk-2022105467
-        trainer: 和田勇介
-        trainingCenter: 美浦
         finish: 10
         popularity: 10
         time: "1:59.2"
@@ -211,11 +187,8 @@ races:
         bracket: 5
         name: エリカエクスプレス
         jockey: 武豊
-        sex: 牝
         age: 3
         ref: nk-2022103205
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 2
         popularity: 5
         time: "1:58.4"
@@ -232,11 +205,8 @@ races:
         bracket: 6
         name: エンブロイダリー
         jockey: ルメール
-        sex: 牝
         age: 3
         ref: nk-2022105185
-        trainer: 森一誠
-        trainingCenter: 美浦
         finish: 1
         popularity: 2
         time: "1:58.3"
@@ -252,11 +222,8 @@ races:
         bracket: 6
         name: ヴーレヴー
         jockey: 菱田裕二
-        sex: 牝
         age: 3
         ref: nk-2022104617
-        trainer: 武幸四郎
-        trainingCenter: 栗東
         finish: 12
         popularity: 16
         time: "1:59.4"
@@ -294,11 +261,8 @@ races:
         bracket: 7
         name: ビップデイジー
         jockey: 西村淳也
-        sex: 牝
         age: 3
         ref: nk-2022105192
-        trainer: 松下武士
-        trainingCenter: 栗東
         finish: 6
         popularity: 9
         time: "1:59.0"
@@ -315,11 +279,8 @@ races:
         bracket: 7
         name: インヴォーグ
         jockey: 団野大成
-        sex: 牝
         age: 3
         ref: nk-2022104145
-        trainer: 福永祐一
-        trainingCenter: 栗東
         finish: 9
         popularity: 14
         time: "1:59.2"
@@ -336,11 +297,8 @@ races:
         bracket: 8
         name: ランフォーヴァウ
         jockey: 小崎綾也
-        sex: 牝
         age: 3
         ref: nk-2022105291
-        trainer: 福永祐一
-        trainingCenter: 栗東
         finish: 13
         popularity: 18
         time: "1:59.6"
@@ -357,11 +315,8 @@ races:
         bracket: 8
         name: カムニャック
         jockey: 川田将雅
-        sex: 牝
         age: 3
         ref: nk-2022105402
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 16
         popularity: 1
         time: "2:00.2"
@@ -378,11 +333,8 @@ races:
         bracket: 8
         name: パラディレーヌ
         jockey: 丹内祐次
-        sex: 牝
         age: 3
         ref: nk-2022103546
-        trainer: 千田輝彦
-        trainingCenter: 栗東
         finish: 3
         popularity: 6
         time: "1:58.5"
@@ -880,11 +832,8 @@ races:
         bracket: 3
         name: マイネルメサイア
         jockey: 五十嵐雄祐
-        sex: 牡
         age: 6
         ref: nk-2019100788
-        trainer: 水野貴広
-        trainingCenter: 美浦
         finish: 7
         popularity: 6
         time: "3:29.9"
@@ -900,11 +849,8 @@ races:
         bracket: 4
         name: プラチナドリーム
         jockey: 石神深一
-        sex: 牡
         age: 6
         ref: nk-2019106330
-        trainer: 菊川正達
-        trainingCenter: 美浦
         finish: 5
         popularity: 4
         time: "3:28.4"
@@ -940,11 +886,8 @@ races:
         bracket: 6
         name: ジューンベロシティ
         jockey: 高田潤
-        sex: 牡
         age: 7
         ref: nk-2018103308
-        trainer: 武英智
-        trainingCenter: 栗東
         finish: 1
         popularity: 1
         time: "3:26.8"
@@ -959,11 +902,8 @@ races:
         bracket: 7
         name: エコロデュエル
         jockey: 草野太郎
-        sex: 牡
         age: 6
         ref: nk-2019101614
-        trainer: 岩戸孝樹
-        trainingCenter: 美浦
         finish: 2
         popularity: 2
         time: "3:26.8"

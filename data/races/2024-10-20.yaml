@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: ピースワンデュック
         jockey: 柴田善臣
-        sex: 牡
         age: 3
         ref: nk-2021101134
-        trainer: 大竹正博
-        trainingCenter: 美浦
         finish: 15
         popularity: 8
         time: "3:09.1"
@@ -64,11 +61,8 @@ races:
         bracket: 2
         name: アスクカムオンモア
         jockey: 北村友一
-        sex: 牡
         age: 3
         ref: nk-2021105236
-        trainer: 藤原英昭
-        trainingCenter: 栗東
         finish: 17
         popularity: 16
         time: "3:09.8"
@@ -85,11 +79,8 @@ races:
         bracket: 2
         name: ダノンデサイル
         jockey: 横山典弘
-        sex: 牡
         age: 3
         ref: nk-2021105143
-        trainer: 安田翔伍
-        trainingCenter: 栗東
         finish: 6
         popularity: 1
         time: "3:04.8"
@@ -106,11 +97,8 @@ races:
         bracket: 3
         name: ハヤテノフクノスケ
         jockey: 岩田望来
-        sex: 牡
         age: 3
         ref: nk-2021109070
-        trainer: 中村直也
-        trainingCenter: 栗東
         finish: 8
         popularity: 15
         time: "3:06.3"
@@ -127,11 +115,8 @@ races:
         bracket: 3
         name: ミスタージーティー
         jockey: 坂井瑠星
-        sex: 牡
         age: 3
         ref: nk-2021105856
-        trainer: 矢作芳人
-        trainingCenter: 栗東
         finish: 12
         popularity: 13
         time: "3:07.3"
@@ -148,11 +133,8 @@ races:
         bracket: 4
         name: ビザンチンドリーム
         jockey: シュタルケ
-        sex: 牡
         age: 3
         ref: nk-2021105587
-        trainer: 坂口智康
-        trainingCenter: 栗東
         finish: 5
         popularity: 9
         time: "3:04.6"
@@ -169,11 +151,8 @@ races:
         bracket: 4
         name: ウエストナウ
         jockey: 西村淳也
-        sex: 牡
         age: 3
         ref: nk-2021106645
-        trainer: 佐々木晶三
-        trainingCenter: 栗東
         finish: 11
         popularity: 11
         time: "3:07.2"
@@ -190,11 +169,8 @@ races:
         bracket: 5
         name: コスモキュランダ
         jockey: M.デムーロ
-        sex: 牡
         age: 3
         ref: nk-2021106787
-        trainer: 加藤士津八
-        trainingCenter: 美浦
         finish: 14
         popularity: 3
         time: "3:08.4"
@@ -211,11 +187,8 @@ races:
         bracket: 5
         name: メイショウタバル
         jockey: 浜中俊
-        sex: 牡
         age: 3
         ref: nk-2021103272
-        trainer: 石橋守
-        trainingCenter: 栗東
         finish: 16
         popularity: 5
         time: "3:09.3"
@@ -232,11 +205,8 @@ races:
         bracket: 6
         name: ショウナンラプンタ
         jockey: 鮫島克駿
-        sex: 牡
         age: 3
         ref: nk-2021105195
-        trainer: 高野友和
-        trainingCenter: 栗東
         finish: 4
         popularity: 7
         time: "3:04.5"
@@ -253,11 +223,8 @@ races:
         bracket: 6
         name: シュバルツクーゲル
         jockey: 松山弘平
-        sex: 牡
         age: 3
         ref: nk-2021104882
-        trainer: 鹿戸雄一
-        trainingCenter: 美浦
         finish: 7
         popularity: 14
         time: "3:06.0"
@@ -274,11 +241,8 @@ races:
         bracket: 7
         name: アーバンシック
         jockey: ルメール
-        sex: 牡
         age: 3
         ref: nk-2021105436
-        trainer: 武井亮
-        trainingCenter: 美浦
         finish: 1
         popularity: 2
         time: "3:04.1"
@@ -294,11 +258,8 @@ races:
         bracket: 7
         name: メリオーレム
         jockey: 藤岡佑介
-        sex: 牡
         age: 3
         ref: nk-2021104791
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 13
         popularity: 10
         time: "3:08.0"
@@ -315,11 +276,8 @@ races:
         bracket: 7
         name: エコロヴァルツ
         jockey: 岩田康誠
-        sex: 牡
         age: 3
         ref: nk-2021101436
-        trainer: 牧浦充徳
-        trainingCenter: 栗東
         finish: 9
         popularity: 12
         time: "3:06.3"
@@ -336,11 +294,8 @@ races:
         bracket: 8
         name: ヘデントール
         jockey: 戸崎圭太
-        sex: 牡
         age: 3
         ref: nk-2021105521
-        trainer: 木村哲也
-        trainingCenter: 美浦
         finish: 2
         popularity: 4
         time: "3:04.5"
@@ -357,11 +312,8 @@ races:
         bracket: 8
         name: アドマイヤテラ
         jockey: 武豊
-        sex: 牡
         age: 3
         ref: nk-2021105369
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 3
         popularity: 6
         time: "3:04.5"

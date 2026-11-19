@@ -92,11 +92,8 @@ races:
         bracket: 1
         name: メイショウアツイタ
         jockey: 難波剛健
-        sex: 牡
         age: 7
         ref: nk-2018105731
-        trainer: 高橋義忠
-        trainingCenter: 栗東
         finish: 6
         popularity: 7
         time: "4:35.9"
@@ -112,11 +109,8 @@ races:
         bracket: 2
         name: ジューンベロシティ
         jockey: 森一馬
-        sex: 牡
         age: 7
         ref: nk-2018103308
-        trainer: 武英智
-        trainingCenter: 栗東
         finish: 2
         popularity: 2
         time: "4:31.7"
@@ -132,11 +126,8 @@ races:
         bracket: 3
         name: ネビーイーム
         jockey: 小牧加矢太
-        sex: 牡
         age: 7
         ref: nk-2018103677
-        trainer: 佐々木晶三
-        trainingCenter: 栗東
         finish: 3
         popularity: 3
         time: "4:32.5"
@@ -152,11 +143,8 @@ races:
         bracket: 4
         name: マテンロウジョイ
         jockey: 西谷誠
-        sex: 牡
         age: 5
         ref: nk-2020106836
-        trainer: 四位洋文
-        trainingCenter: 栗東
         finish: 7
         popularity: 5
         time: "4:41.0"
@@ -191,11 +179,8 @@ races:
         bracket: 6
         name: エコロデュエル
         jockey: 草野太郎
-        sex: 牡
         age: 6
         ref: nk-2019101614
-        trainer: 岩戸孝樹
-        trainingCenter: 美浦
         finish: 4
         popularity: 1
         time: "4:32.6"
@@ -211,11 +196,8 @@ races:
         bracket: 7
         name: クラップサンダー
         jockey: 黒岩悠
-        sex: 牡
         age: 6
         ref: nk-2019103278
-        trainer: 牧田和弥
-        trainingCenter: 栗東
         finish: 5
         popularity: 8
         time: "4:35.8"

@@ -144,11 +144,8 @@ races:
         bracket: 1
         name: ポリトナリティー
         jockey: 上野翔
-        sex: 牝
         age: 4
         ref: nk-2021100016
-        trainer: 和田雄二
-        trainingCenter: 美浦
         finish: 9
         popularity: 9
         time: "3:39.1"
@@ -164,11 +161,8 @@ races:
         bracket: 2
         name: サンマルグレイト
         jockey: 大江原圭
-        sex: 牡
         age: 5
         ref: nk-2020101779
-        trainer: 佐藤吉勝
-        trainingCenter: 美浦
         finish: 8
         popularity: 8
         time: "3:35.4"
@@ -184,11 +178,8 @@ races:
         bracket: 3
         name: ジーククローネ
         jockey: 草野太郎
-        sex: セ
         age: 5
         ref: nk-2020103537
-        trainer: 宮田敬介
-        trainingCenter: 美浦
         finish: 5
         popularity: 5
         time: "3:31.7"
@@ -204,11 +195,8 @@ races:
         bracket: 4
         name: ナリノモンターニュ
         jockey: 五十嵐雄祐
-        sex: 牡
         age: 8
         ref: nk-2017104700
-        trainer: 上原博之
-        trainingCenter: 美浦
         finish: 3
         popularity: 4
         time: "3:31.6"
@@ -224,11 +212,8 @@ races:
         bracket: 5
         name: ジューンベロシティ
         jockey: 高田潤
-        sex: 牡
         age: 7
         ref: nk-2018103308
-        trainer: 武英智
-        trainingCenter: 栗東
         finish: 2
         popularity: 1
         time: "3:29.7"
@@ -244,11 +229,8 @@ races:
         bracket: 6
         name: ネビーイーム
         jockey: 小牧加矢太
-        sex: 牡
         age: 7
         ref: nk-2018103677
-        trainer: 佐々木晶三
-        trainingCenter: 栗東
         finish: 1
         popularity: 2
         time: "3:29.6"
@@ -263,11 +245,8 @@ races:
         bracket: 7
         name: テイエムマジック
         jockey: 難波剛健
-        sex: 牡
         age: 7
         ref: nk-2018103005
-        trainer: 鈴木孝志
-        trainingCenter: 栗東
         finish: 4
         popularity: 6
         time: "3:31.6"
@@ -283,11 +262,8 @@ races:
         bracket: 8
         name: トゥラッタッタ
         jockey: 石神深一
-        sex: 牡
         age: 4
         ref: nk-2021102973
-        trainer: 新開幸一
-        trainingCenter: 美浦
         finish: 7
         popularity: 7
         time: "3:35.1"
@@ -303,11 +279,8 @@ races:
         bracket: 8
         name: マテンロウジョイ
         jockey: 西谷誠
-        sex: 牡
         age: 5
         ref: nk-2020106836
-        trainer: 四位洋文
-        trainingCenter: 栗東
         finish: 6
         popularity: 3
         time: "3:34.3"

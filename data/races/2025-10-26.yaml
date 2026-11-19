@@ -198,11 +198,8 @@ races:
         bracket: 1
         name: コーチェラバレー
         jockey: 西村淳也
-        sex: 牡
         age: 3
         ref: nk-2022104733
-        trainer: 安田翔伍
-        trainingCenter: 栗東
         finish: 7
         popularity: 15
         time: "3:04.6"
@@ -219,11 +216,8 @@ races:
         bracket: 1
         name: アマキヒ
         jockey: 戸崎圭太
-        sex: 牡
         age: 3
         ref: nk-2022104615
-        trainer: 国枝栄
-        trainingCenter: 美浦
         finish: 11
         popularity: 12
         time: "3:05.4"
@@ -261,11 +255,8 @@ races:
         bracket: 2
         name: ヤマニンブークリエ
         jockey: 横山典弘
-        sex: 牡
         age: 3
         ref: nk-2022106611
-        trainer: 松永幹夫
-        trainingCenter: 栗東
         finish: 16
         popularity: 7
         time: "3:06.4"
@@ -282,11 +273,8 @@ races:
         bracket: 3
         name: ジョバンニ
         jockey: 松山弘平
-        sex: 牡
         age: 3
         ref: nk-2022103995
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 8
         popularity: 6
         time: "3:04.7"
@@ -303,11 +291,8 @@ races:
         bracket: 3
         name: ミラージュナイト
         jockey: 藤岡佑介
-        sex: 牡
         age: 3
         ref: nk-2022105109
-        trainer: 辻野泰之
-        trainingCenter: 栗東
         finish: 6
         popularity: 8
         time: "3:04.5"
@@ -324,11 +309,8 @@ races:
         bracket: 4
         name: ショウヘイ
         jockey: 岩田望来
-        sex: 牡
         age: 3
         ref: nk-2022104714
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 14
         popularity: 3
         time: "3:05.6"
@@ -386,11 +368,8 @@ races:
         bracket: 5
         name: ジーティーアダマン
         jockey: 北村友一
-        sex: 牡
         age: 3
         ref: nk-2022101193
-        trainer: 上村洋行
-        trainingCenter: 栗東
         finish: 18
         popularity: 14
         time: "3:10.8"
@@ -407,11 +386,8 @@ races:
         bracket: 6
         name: マイユニバース
         jockey: 武豊
-        sex: 牡
         age: 3
         ref: nk-2022104902
-        trainer: 武幸四郎
-        trainingCenter: 栗東
         finish: 13
         popularity: 4
         time: "3:05.5"
@@ -428,11 +404,8 @@ races:
         bracket: 6
         name: ゲルチュタール
         jockey: 坂井瑠星
-        sex: 牡
         age: 3
         ref: nk-2022104736
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 4
         popularity: 5
         time: "3:04.4"
@@ -470,11 +443,8 @@ races:
         bracket: 7
         name: エキサイトバイオ
         jockey: 荻野極
-        sex: 牡
         age: 3
         ref: nk-2022104614
-        trainer: 今野貞一
-        trainingCenter: 栗東
         finish: 3
         popularity: 13
         time: "3:04.4"
@@ -491,11 +461,8 @@ races:
         bracket: 7
         name: エリキング
         jockey: 川田将雅
-        sex: 牡
         age: 3
         ref: nk-2022105099
-        trainer: 中内田充正
-        trainingCenter: 栗東
         finish: 2
         popularity: 2
         time: "3:04.3"
@@ -554,11 +521,8 @@ races:
         bracket: 8
         name: レッドバンデ
         jockey: 佐々木大輔
-        sex: 牡
         age: 3
         ref: nk-2022105466
-        trainer: 大竹正博
-        trainingCenter: 美浦
         finish: 5
         popularity: 9
         time: "3:04.5"

@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: アルジーヌ
         jockey: 幸英明
-        sex: 牝
         age: 5
         ref: nk-2020100148
-        trainer: 中内田充正
-        trainingCenter: 栗東
         finish: 2
         popularity: 3
         time: "1:32.8"
@@ -43,11 +40,8 @@ races:
         bracket: 2
         name: ビヨンドザヴァレー
         jockey: 菱田裕二
-        sex: 牝
         age: 5
         ref: nk-2020103099
-        trainer: 橋口慎介
-        trainingCenter: 栗東
         finish: 4
         popularity: 6
         time: "1:33.0"
@@ -64,11 +58,8 @@ races:
         bracket: 3
         name: タガノエルピーダ
         jockey: 団野大成
-        sex: 牝
         age: 4
         ref: nk-2021106550
-        trainer: 斉藤崇史
-        trainingCenter: 栗東
         finish: 7
         popularity: 2
         time: "1:33.2"
@@ -85,11 +76,8 @@ races:
         bracket: 3
         name: ソーダズリング
         jockey: 坂井瑠星
-        sex: 牝
         age: 5
         ref: nk-2020102928
-        trainer: 新谷功一
-        trainingCenter: 栗東
         finish: 6
         popularity: 5
         time: "1:33.1"
@@ -106,11 +94,8 @@ races:
         bracket: 4
         name: ドゥアイズ
         jockey: 鮫島克駿
-        sex: 牝
         age: 5
         ref: nk-2020103732
-        trainer: 庄野靖志
-        trainingCenter: 栗東
         finish: 8
         popularity: 7
         time: "1:33.2"
@@ -127,11 +112,8 @@ races:
         bracket: 4
         name: ドナベティ
         jockey: 藤岡佑介
-        sex: 牝
         age: 4
         ref: nk-2021100210
-        trainer: 矢作芳人
-        trainingCenter: 栗東
         finish: 9
         popularity: 14
         time: "1:33.3"
@@ -169,11 +151,8 @@ races:
         bracket: 5
         name: キミノナハマリア
         jockey: M.デムーロ
-        sex: 牝
         age: 5
         ref: nk-2020102873
-        trainer: 千田輝彦
-        trainingCenter: 栗東
         finish: 11
         popularity: 12
         time: "1:33.4"
@@ -190,11 +169,8 @@ races:
         bracket: 6
         name: ラヴァンダ
         jockey: 岩田望来
-        sex: 牝
         age: 4
         ref: nk-2021107098
-        trainer: 中村直也
-        trainingCenter: 栗東
         finish: 3
         popularity: 8
         time: "1:32.8"
@@ -211,11 +187,8 @@ races:
         bracket: 6
         name: ボンドガール
         jockey: 武豊
-        sex: 牝
         age: 4
         ref: nk-2021107179
-        trainer: 手塚貴久
-        trainingCenter: 美浦
         finish: 5
         popularity: 1
         time: "1:33.0"
@@ -232,11 +205,8 @@ races:
         bracket: 7
         name: サフィラ
         jockey: 松山弘平
-        sex: 牝
         age: 4
         ref: nk-2021105541
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 1
         popularity: 9
         time: "1:32.8"
@@ -273,11 +243,8 @@ races:
         bracket: 8
         name: ウンブライル
         jockey: シュタルケ
-        sex: 牝
         age: 5
         ref: nk-2020103674
-        trainer: 木村哲也
-        trainingCenter: 美浦
         finish: 10
         popularity: 10
         time: "1:33.4"
@@ -331,11 +298,8 @@ races:
         bracket: 1
         name: チョングク
         jockey: 丸田恭介
-        sex: 牡
         age: 3
         ref: nk-2022104533
-        trainer: 南田美知雄
-        trainingCenter: 美浦
         finish: 11
         popularity: 13
         time: "1:33.7"
@@ -352,11 +316,8 @@ races:
         bracket: 2
         name: コートアリシアン
         jockey: 菅原明良
-        sex: 牝
         age: 3
         ref: nk-2022105326
-        trainer: 伊藤大士
-        trainingCenter: 美浦
         finish: 3
         popularity: 5
         time: "1:32.6"
@@ -373,11 +334,8 @@ races:
         bracket: 3
         name: ベイビーキッス
         jockey: 原優介
-        sex: 牝
         age: 3
         ref: nk-2022102514
-        trainer: 青木孝文
-        trainingCenter: 美浦
         finish: 14
         popularity: 10
         time: "1:34.3"
@@ -436,11 +394,8 @@ races:
         bracket: 4
         name: ルージュラナキラ
         jockey: 岩田康誠
-        sex: 牝
         age: 3
         ref: nk-2022102434
-        trainer: 加藤征弘
-        trainingCenter: 美浦
         finish: 7
         popularity: 4
         time: "1:33.1"
@@ -457,11 +412,8 @@ races:
         bracket: 5
         name: アドマイヤズーム
         jockey: 川田将雅
-        sex: 牡
         age: 3
         ref: nk-2022105396
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 2
         popularity: 1
         time: "1:32.4"
@@ -520,11 +472,8 @@ races:
         bracket: 6
         name: ムイ
         jockey: 今村聖奈
-        sex: 牝
         age: 3
         ref: nk-2022102408
-        trainer: 笹田和秀
-        trainingCenter: 栗東
         finish: 12
         popularity: 6
         time: "1:33.8"
@@ -541,11 +490,8 @@ races:
         bracket: 7
         name: アタラシイカドデニ
         jockey: 吉田豊
-        sex: 牡
         age: 3
         ref: nk-2022104097
-        trainer: 上原博之
-        trainingCenter: 美浦
         finish: 13
         popularity: 11
         time: "1:33.8"
@@ -583,11 +529,8 @@ races:
         bracket: 8
         name: イミグラントソング
         jockey: 石川裕紀人
-        sex: 牡
         age: 3
         ref: nk-2022104697
-        trainer: 辻哲英
-        trainingCenter: 美浦
         finish: 1
         popularity: 2
         time: "1:32.4"
@@ -603,11 +546,8 @@ races:
         bracket: 8
         name: ストレイトトーカー
         jockey: 大野拓弥
-        sex: 牡
         age: 3
         ref: nk-2022101669
-        trainer: 岩戸孝樹
-        trainingCenter: 美浦
         finish: 6
         popularity: 8
         time: "1:33.1"

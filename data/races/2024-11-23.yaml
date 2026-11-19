@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: テイクイットオール
         jockey: 三浦皇成
-        sex: 牡
         age: 2
         ref: nk-2022106647
-        trainer: 中竹和也
-        trainingCenter: 栗東
         finish: 6
         popularity: 7
         time: "2:01.5"
@@ -64,11 +61,8 @@ races:
         bracket: 3
         name: ウォータークラーク
         jockey: 武豊
-        sex: 牡
         age: 2
         ref: nk-2022103345
-        trainer: 石橋守
-        trainingCenter: 栗東
         finish: 4
         popularity: 5
         time: "2:01.4"
@@ -85,11 +79,8 @@ races:
         bracket: 4
         name: ジョバンニ
         jockey: 松山弘平
-        sex: 牡
         age: 2
         ref: nk-2022103995
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 2
         popularity: 3
         time: "2:01.1"
@@ -106,11 +97,8 @@ races:
         bracket: 5
         name: クラウディアイ
         jockey: 西村淳也
-        sex: 牡
         age: 2
         ref: nk-2022100099
-        trainer: 橋口慎介
-        trainingCenter: 栗東
         finish: 3
         popularity: 4
         time: "2:01.2"
@@ -127,11 +115,8 @@ races:
         bracket: 6
         name: ローレルオーブ
         jockey: 団野大成
-        sex: 牡
         age: 2
         ref: nk-2022106940
-        trainer: 杉山佳明
-        trainingCenter: 栗東
         finish: 8
         popularity: 8
         time: "2:01.9"
@@ -148,11 +133,8 @@ races:
         bracket: 7
         name: スリーキングス
         jockey: 岩田康誠
-        sex: 牡
         age: 2
         ref: nk-2022102217
-        trainer: 上村洋行
-        trainingCenter: 栗東
         finish: 5
         popularity: 6
         time: "2:01.4"
@@ -169,11 +151,8 @@ races:
         bracket: 8
         name: エリキング
         jockey: 川田将雅
-        sex: 牡
         age: 2
         ref: nk-2022105099
-        trainer: 中内田充正
-        trainingCenter: 栗東
         finish: 1
         popularity: 1
         time: "2:00.9"

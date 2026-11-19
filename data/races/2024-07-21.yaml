@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: テーオーシリウス
         jockey: 西塚洸二
-        sex: 牡
         age: 6
         ref: nk-2018106834
-        trainer: 奥村豊
-        trainingCenter: 栗東
         finish: 14
         popularity: 13
         time: "1:49.6"
@@ -43,11 +40,8 @@ races:
         bracket: 2
         name: アルナシーム
         jockey: 横山典弘
-        sex: 牡
         age: 5
         ref: nk-2019105252
-        trainer: 橋口慎介
-        trainingCenter: 栗東
         finish: 1
         popularity: 5
         time: "1:47.2"
@@ -63,11 +57,8 @@ races:
         bracket: 3
         name: セルバーグ
         jockey: 和田竜二
-        sex: 牡
         age: 5
         ref: nk-2019106670
-        trainer: 鈴木孝志
-        trainingCenter: 栗東
         finish: 12
         popularity: 7
         time: "1:49.3"
@@ -105,11 +96,8 @@ races:
         bracket: 4
         name: カテドラル
         jockey: 幸英明
-        sex: 牡
         age: 8
         ref: nk-2016104711
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 7
         popularity: 11
         time: "1:48.4"
@@ -126,11 +114,8 @@ races:
         bracket: 4
         name: エピファニー
         jockey: 杉原誠人
-        sex: 牡
         age: 5
         ref: nk-2019105532
-        trainer: 宮田敬介
-        trainingCenter: 美浦
         finish: 2
         popularity: 1
         time: "1:47.2"
@@ -147,11 +132,8 @@ races:
         bracket: 5
         name: エルトンバローズ
         jockey: 西村淳也
-        sex: 牡
         age: 4
         ref: nk-2020100680
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 3
         popularity: 2
         time: "1:47.3"
@@ -168,11 +150,8 @@ races:
         bracket: 5
         name: タガノパッション
         jockey: M.デムーロ
-        sex: 牝
         age: 6
         ref: nk-2018101943
-        trainer: 武幸四郎
-        trainingCenter: 栗東
         finish: 8
         popularity: 10
         time: "1:48.4"
@@ -252,11 +231,8 @@ races:
         bracket: 7
         name: セオ
         jockey: 岩田康誠
-        sex: 牡
         age: 4
         ref: nk-2020103102
-        trainer: 上村洋行
-        trainingCenter: 栗東
         finish: 13
         popularity: 4
         time: "1:49.4"
@@ -273,11 +249,8 @@ races:
         bracket: 8
         name: ニホンピロキーフ
         jockey: 田口貫太
-        sex: 牡
         age: 4
         ref: nk-2020104564
-        trainer: 大橋勇樹
-        trainingCenter: 栗東
         finish: 5
         popularity: 3
         time: "1:47.5"
@@ -294,11 +267,8 @@ races:
         bracket: 8
         name: ロングラン
         jockey: 松山弘平
-        sex: セ
         age: 6
         ref: nk-2018104708
-        trainer: 和田勇介
-        trainingCenter: 美浦
         finish: 4
         popularity: 6
         time: "1:47.4"

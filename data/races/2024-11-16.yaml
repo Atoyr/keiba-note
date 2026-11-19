@@ -102,11 +102,8 @@ races:
         bracket: 2
         name: ジーティーマン
         jockey: 西村淳也
-        sex: 牡
         age: 2
         ref: nk-2022104715
-        trainer: 小栗実
-        trainingCenter: 栗東
         finish: 6
         popularity: 6
         time: "1:47.7"
@@ -123,11 +120,8 @@ races:
         bracket: 3
         name: ファイアンクランツ
         jockey: 菅原明良
-        sex: 牡
         age: 2
         ref: nk-2022104720
-        trainer: 堀宣行
-        trainingCenter: 美浦
         finish: 4
         popularity: 4
         time: "1:47.2"
@@ -144,11 +138,8 @@ races:
         bracket: 4
         name: クロワデュノール
         jockey: 北村友一
-        sex: 牡
         age: 2
         ref: nk-2022105102
-        trainer: 斉藤崇史
-        trainingCenter: 栗東
         finish: 1
         popularity: 1
         time: "1:46.8"
@@ -164,11 +155,8 @@ races:
         bracket: 5
         name: デルアヴァー
         jockey: 三浦皇成
-        sex: 牡
         age: 2
         ref: nk-2022110054
-        trainer: 松永幹夫
-        trainingCenter: 栗東
         finish: 5
         popularity: 5
         time: "1:47.3"
@@ -185,11 +173,8 @@ races:
         bracket: 6
         name: プレシャスデイ
         jockey: 横山武史
-        sex: 牡
         age: 2
         ref: nk-2022104859
-        trainer: 伊坂重信
-        trainingCenter: 美浦
         finish: 7
         popularity: 7
         time: "1:47.7"
@@ -206,11 +191,8 @@ races:
         bracket: 7
         name: レッドキングリー
         jockey: ルメール
-        sex: 牡
         age: 2
         ref: nk-2022105991
-        trainer: 木村哲也
-        trainingCenter: 美浦
         finish: 3
         popularity: 2
         time: "1:47.1"
@@ -248,11 +230,8 @@ races:
         bracket: 8
         name: サトノシャイニング
         jockey: 松山弘平
-        sex: 牡
         age: 2
         ref: nk-2022101420
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 2
         popularity: 3
         time: "1:46.9"

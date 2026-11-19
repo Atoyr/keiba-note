@@ -277,11 +277,8 @@ races:
         bracket: 2
         name: カラペルソナ
         jockey: プーシャン
-        sex: 牝
         age: 2
         ref: nk-2023103371
-        trainer: 斉藤崇史
-        trainingCenter: 栗東
         finish: 5
         popularity: 4
         time: "2:00.9"
@@ -298,11 +295,8 @@ races:
         bracket: 3
         name: アスクエジンバラ
         jockey: 岩田康誠
-        sex: 牡
         age: 2
         ref: nk-2023106400
-        trainer: 福永祐一
-        trainingCenter: 栗東
         finish: 2
         popularity: 10
         time: "2:00.5"
@@ -319,11 +313,8 @@ races:
         bracket: 4
         name: メイショウソラリス
         jockey: 武豊
-        sex: 牡
         age: 2
         ref: nk-2023103986
-        trainer: 角田晃一
-        trainingCenter: 栗東
         finish: 11
         popularity: 7
         time: "2:02.7"
@@ -361,11 +352,8 @@ races:
         bracket: 6
         name: バルセシート
         jockey: C.デムーロ
-        sex: 牡
         age: 2
         ref: nk-2023107241
-        trainer: 松下武士
-        trainingCenter: 栗東
         finish: 7
         popularity: 1
         time: "2:01.2"
@@ -382,11 +370,8 @@ races:
         bracket: 6
         name: サトノアイボリー
         jockey: 団野大成
-        sex: 牡
         age: 2
         ref: nk-2023105380
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 9
         popularity: 6
         time: "2:01.5"
@@ -403,11 +388,8 @@ races:
         bracket: 7
         name: ジャスティンビスタ
         jockey: 北村友一
-        sex: 牡
         age: 2
         ref: nk-2023102807
-        trainer: 吉岡辰弥
-        trainingCenter: 栗東
         finish: 1
         popularity: 9
         time: "2:00.4"
@@ -444,11 +426,8 @@ races:
         bracket: 8
         name: ゴーイントゥスカイ
         jockey: 荻野極
-        sex: 牡
         age: 2
         ref: nk-2023105378
-        trainer: 上原佑紀
-        trainingCenter: 美浦
         finish: 3
         popularity: 3
         time: "2:00.6"
@@ -465,11 +444,8 @@ races:
         bracket: 8
         name: ウイナーズナイン
         jockey: 西村淳也
-        sex: 牡
         age: 2
         ref: nk-2023102820
-        trainer: 小栗実
-        trainingCenter: 栗東
         finish: 6
         popularity: 2
         time: "2:01.0"

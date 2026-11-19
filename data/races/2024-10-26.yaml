@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: ミストレス
         jockey: 坂井瑠星
-        sex: 牝
         age: 2
         ref: nk-2022103754
-        trainer: 矢作芳人
-        trainingCenter: 栗東
         finish: 2
         popularity: 7
         time: "1:34.0"
@@ -43,11 +40,8 @@ races:
         bracket: 2
         name: ブラウンラチェット
         jockey: ルメール
-        sex: 牝
         age: 2
         ref: nk-2022104994
-        trainer: 手塚貴久
-        trainingCenter: 美浦
         finish: 1
         popularity: 3
         time: "1:33.8"
@@ -63,11 +57,8 @@ races:
         bracket: 3
         name: マイエレメント
         jockey: 横山武史
-        sex: 牝
         age: 2
         ref: nk-2022101197
-        trainer: 福永祐一
-        trainingCenter: 栗東
         finish: 5
         popularity: 4
         time: "1:34.0"
@@ -126,11 +117,8 @@ races:
         bracket: 6
         name: マピュース
         jockey: 田辺裕信
-        sex: 牝
         age: 2
         ref: nk-2022105467
-        trainer: 和田勇介
-        trainingCenter: 美浦
         finish: 7
         popularity: 8
         time: "1:34.3"
@@ -168,11 +156,8 @@ races:
         bracket: 7
         name: ショウナンザナドゥ
         jockey: 池添謙一
-        sex: 牝
         age: 2
         ref: nk-2022105071
-        trainer: 松下武士
-        trainingCenter: 栗東
         finish: 3
         popularity: 2
         time: "1:34.0"
@@ -189,11 +174,8 @@ races:
         bracket: 7
         name: ザラタン
         jockey: 北村宏司
-        sex: 牝
         age: 2
         ref: nk-2022107342
-        trainer: 中竹和也
-        trainingCenter: 栗東
         finish: 10
         popularity: 11
         time: "1:34.7"
@@ -210,11 +192,8 @@ races:
         bracket: 8
         name: カムニャック
         jockey: 川田将雅
-        sex: 牝
         age: 2
         ref: nk-2022105402
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 6
         popularity: 1
         time: "1:34.0"
@@ -289,11 +268,8 @@ races:
         bracket: 1
         name: ジョウショーホープ
         jockey: 幸英明
-        sex: 牡
         age: 4
         ref: nk-2020104702
-        trainer: 新谷功一
-        trainingCenter: 栗東
         finish: 17
         popularity: 14
         time: "1:22.1"
@@ -331,11 +307,8 @@ races:
         bracket: 2
         name: クランフォード
         jockey: 西村淳也
-        sex: 牝
         age: 3
         ref: nk-2021100139
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 13
         popularity: 1
         time: "1:21.1"
@@ -352,11 +325,8 @@ races:
         bracket: 3
         name: トゥラヴェスーラ
         jockey: 藤岡佑介
-        sex: 牡
         age: 9
         ref: nk-2015104364
-        trainer: 高橋康之
-        trainingCenter: 栗東
         finish: 3
         popularity: 13
         time: "1:20.6"
@@ -373,11 +343,8 @@ races:
         bracket: 3
         name: オフトレイル
         jockey: 武豊
-        sex: 牡
         age: 3
         ref: nk-2021110031
-        trainer: 吉村圭司
-        trainingCenter: 栗東
         finish: 2
         popularity: 6
         time: "1:20.6"
@@ -415,11 +382,8 @@ races:
         bracket: 4
         name: スズハローム
         jockey: 鮫島克駿
-        sex: 牡
         age: 4
         ref: nk-2020105018
-        trainer: 牧田和弥
-        trainingCenter: 栗東
         finish: 15
         popularity: 2
         time: "1:21.4"
@@ -436,11 +400,8 @@ races:
         bracket: 5
         name: ウインカーネリアン
         jockey: 三浦皇成
-        sex: 牡
         age: 7
         ref: nk-2017101429
-        trainer: 鹿戸雄一
-        trainingCenter: 美浦
         finish: 6
         popularity: 4
         time: "1:20.8"
@@ -478,11 +439,8 @@ races:
         bracket: 6
         name: シングザットソング
         jockey: 斎藤新
-        sex: 牝
         age: 4
         ref: nk-2020102660
-        trainer: 高野友和
-        trainingCenter: 栗東
         finish: 5
         popularity: 9
         time: "1:20.8"
@@ -499,11 +457,8 @@ races:
         bracket: 6
         name: ダノンスコーピオン
         jockey: シュタルケ
-        sex: 牡
         age: 5
         ref: nk-2019103034
-        trainer: 福永祐一
-        trainingCenter: 栗東
         finish: 9
         popularity: 11
         time: "1:20.9"
@@ -520,11 +475,8 @@ races:
         bracket: 7
         name: ノーブルロジャー
         jockey: 田口貫太
-        sex: 牡
         age: 3
         ref: nk-2021110148
-        trainer: 吉岡辰弥
-        trainingCenter: 栗東
         finish: 4
         popularity: 7
         time: "1:20.8"
@@ -541,11 +493,8 @@ races:
         bracket: 7
         name: アグリ
         jockey: C.デムーロ
-        sex: 牡
         age: 5
         ref: nk-2019105126
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 10
         popularity: 3
         time: "1:21.0"
@@ -562,11 +511,8 @@ races:
         bracket: 8
         name: マテンロウオリオン
         jockey: 横山典弘
-        sex: 牡
         age: 5
         ref: nk-2019100965
-        trainer: 昆貢
-        trainingCenter: 栗東
         finish: 7
         popularity: 17
         time: "1:20.9"
@@ -583,11 +529,8 @@ races:
         bracket: 8
         name: セルバーグ
         jockey: 今村聖奈
-        sex: 牡
         age: 5
         ref: nk-2019106670
-        trainer: 鈴木孝志
-        trainingCenter: 栗東
         finish: 8
         popularity: 16
         time: "1:20.9"
@@ -604,11 +547,8 @@ races:
         bracket: 8
         name: ダノンマッキンリー
         jockey: 松山弘平
-        sex: 牡
         age: 3
         ref: nk-2021105774
-        trainer: 藤原英昭
-        trainingCenter: 栗東
         finish: 1
         popularity: 5
         time: "1:20.5"

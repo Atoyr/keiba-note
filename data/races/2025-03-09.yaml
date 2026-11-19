@@ -168,11 +168,8 @@ races:
         bracket: 1
         name: レディネス
         jockey: 横山典弘
-        sex: 牡
         age: 3
         ref: nk-2022104416
-        trainer: 昆貢
-        trainingCenter: 栗東
         finish: 8
         popularity: 6
         time: "2:02.3"
@@ -189,11 +186,8 @@ races:
         bracket: 2
         name: ナグルファル
         jockey: 川田将雅
-        sex: 牡
         age: 3
         ref: nk-2022105552
-        trainer: 杉山晴紀
-        trainingCenter: 栗東
         finish: 12
         popularity: 3
         time: "2:02.9"
@@ -210,11 +204,8 @@ races:
         bracket: 3
         name: ヴィンセンシオ
         jockey: ルメール
-        sex: 牡
         age: 3
         ref: nk-2022104832
-        trainer: 森一誠
-        trainingCenter: 美浦
         finish: 2
         popularity: 2
         time: "2:01.3"
@@ -273,11 +264,8 @@ races:
         bracket: 4
         name: ジュタ
         jockey: 丹内祐次
-        sex: 牡
         age: 3
         ref: nk-2022104813
-        trainer: 矢作芳人
-        trainingCenter: 栗東
         finish: 10
         popularity: 4
         time: "2:02.5"
@@ -294,11 +282,8 @@ races:
         bracket: 5
         name: アロヒアリイ
         jockey: 横山和生
-        sex: 牡
         age: 3
         ref: nk-2022104682
-        trainer: 田中博康
-        trainingCenter: 美浦
         finish: 3
         popularity: 5
         time: "2:01.4"
@@ -315,11 +300,8 @@ races:
         bracket: 5
         name: ファウストラーゼン
         jockey: 杉原誠人
-        sex: 牡
         age: 3
         ref: nk-2022104218
-        trainer: 西村真幸
-        trainingCenter: 栗東
         finish: 1
         popularity: 7
         time: "2:01.3"
@@ -335,11 +317,8 @@ races:
         bracket: 6
         name: アスクシュタイン
         jockey: 横山武史
-        sex: 牡
         age: 3
         ref: nk-2022100161
-        trainer: 藤原英昭
-        trainingCenter: 栗東
         finish: 6
         popularity: 8
         time: "2:01.7"
@@ -356,11 +335,8 @@ races:
         bracket: 6
         name: ロードガレリア
         jockey: 戸崎圭太
-        sex: 牡
         age: 3
         ref: nk-2022100619
-        trainer: 藤岡健一
-        trainingCenter: 栗東
         finish: 14
         popularity: 11
         time: "2:03.6"
@@ -377,11 +353,8 @@ races:
         bracket: 7
         name: ミュージアムマイル
         jockey: 幸英明
-        sex: 牡
         age: 3
         ref: nk-2022105081
-        trainer: 高柳大輔
-        trainingCenter: 栗東
         finish: 4
         popularity: 1
         time: "2:01.5"

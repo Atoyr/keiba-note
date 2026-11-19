@@ -22,11 +22,8 @@ races:
         bracket: 1
         name: ミッキーゴージャス
         jockey: M.デムーロ
-        sex: 牝
         age: 4
         ref: nk-2020103640
-        trainer: 安田翔伍
-        trainingCenter: 栗東
         finish: 14
         popularity: 10
         time: "1:59.5"
@@ -43,11 +40,8 @@ races:
         bracket: 1
         name: ローシャムパーク
         jockey: 戸崎圭太
-        sex: 牡
         age: 5
         ref: nk-2019105552
-        trainer: 田中博康
-        trainingCenter: 美浦
         finish: 2
         popularity: 3
         time: "1:58.2"
@@ -64,11 +58,8 @@ races:
         bracket: 2
         name: タスティエーラ
         jockey: 松山弘平
-        sex: 牡
         age: 4
         ref: nk-2020103532
-        trainer: 堀宣行
-        trainingCenter: 美浦
         finish: 11
         popularity: 1
         time: "1:58.9"
@@ -85,11 +76,8 @@ races:
         bracket: 2
         name: ハヤヤッコ
         jockey: 幸英明
-        sex: 牡
         age: 8
         ref: nk-2016104624
-        trainer: 国枝栄
-        trainingCenter: 美浦
         finish: 12
         popularity: 15
         time: "1:59.0"
@@ -106,11 +94,8 @@ races:
         bracket: 3
         name: スタニングローズ
         jockey: 西村淳也
-        sex: 牝
         age: 5
         ref: nk-2019105565
-        trainer: 高野友和
-        trainingCenter: 栗東
         finish: 8
         popularity: 6
         time: "1:58.7"
@@ -127,11 +112,8 @@ races:
         bracket: 3
         name: ジオグリフ
         jockey: 北村宏司
-        sex: 牡
         age: 5
         ref: nk-2019105056
-        trainer: 木村哲也
-        trainingCenter: 美浦
         finish: 5
         popularity: 8
         time: "1:58.5"
@@ -148,11 +130,8 @@ races:
         bracket: 4
         name: ハーパー
         jockey: 岩田望来
-        sex: 牝
         age: 4
         ref: nk-2020103458
-        trainer: 友道康夫
-        trainingCenter: 栗東
         finish: 13
         popularity: 9
         time: "1:59.5"
@@ -169,11 +148,8 @@ races:
         bracket: 4
         name: プラダリア
         jockey: 池添謙一
-        sex: 牡
         age: 5
         ref: nk-2019100109
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 6
         popularity: 4
         time: "1:58.6"
@@ -190,11 +166,8 @@ races:
         bracket: 5
         name: ステラヴェローチェ
         jockey: 酒井学
-        sex: 牡
         age: 6
         ref: nk-2018104980
-        trainer: 須貝尚介
-        trainingCenter: 栗東
         finish: 4
         popularity: 7
         time: "1:58.3"
@@ -211,11 +184,8 @@ races:
         bracket: 5
         name: ソールオリエンス
         jockey: 横山武史
-        sex: 牡
         age: 4
         ref: nk-2020102899
-        trainer: 手塚貴久
-        trainingCenter: 美浦
         finish: 7
         popularity: 5
         time: "1:58.7"
@@ -232,11 +202,8 @@ races:
         bracket: 6
         name: ベラジオオペラ
         jockey: 横山和生
-        sex: 牡
         age: 4
         ref: nk-2020102781
-        trainer: 上村洋行
-        trainingCenter: 栗東
         finish: 1
         popularity: 2
         time: "1:58.2"
@@ -252,11 +219,8 @@ races:
         bracket: 6
         name: キラーアビリティ
         jockey: 北村友一
-        sex: 牡
         age: 5
         ref: nk-2019105155
-        trainer: 斉藤崇史
-        trainingCenter: 栗東
         finish: 15
         popularity: 14
         time: "2:00.2"
@@ -272,11 +236,8 @@ races:
         bracket: 7
         name: ルージュエヴァイユ
         jockey: 菅原明良
-        sex: 牝
         age: 5
         ref: nk-2019104831
-        trainer: 黒岩陽一
-        trainingCenter: 美浦
         finish: 3
         popularity: 11
         time: "1:58.2"
@@ -293,11 +254,8 @@ races:
         bracket: 7
         name: エピファニー
         jockey: 杉原誠人
-        sex: 牡
         age: 5
         ref: nk-2019105532
-        trainer: 宮田敬介
-        trainingCenter: 美浦
         finish: 10
         popularity: 13
         time: "1:58.9"
@@ -314,11 +272,8 @@ races:
         bracket: 8
         name: リカンカブール
         jockey: 津村明秀
-        sex: 牡
         age: 5
         ref: nk-2019103823
-        trainer: 田中克典
-        trainingCenter: 栗東
         finish: 16
         popularity: 12
         time: "2:00.5"
@@ -335,11 +290,8 @@ races:
         bracket: 8
         name: カテドラル
         jockey: 藤岡康太
-        sex: 牡
         age: 8
         ref: nk-2016104711
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 9
         popularity: 16
         time: "1:58.9"
