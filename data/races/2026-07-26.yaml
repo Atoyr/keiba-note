@@ -128,6 +128,7 @@ races:
         popularity: 4
         time: "1:35.7"
         margin: "1.1/2"
+        timeDiff: 3.3
         passing: "3-3"
         last3f: 37.4
         weight: 58
@@ -707,6 +708,22 @@ races:
         horseWeight: 450
         horseWeightDiff: -8
         odds: 30.2
+      - horseNumber: 10
+        bracket: 7
+        name: バルナバ
+        jockey: 舟山瑠泉
+        ref: nk-2022106633
+        finish: 12
+        popularity: 11
+        time: "2:42.6"
+        timeDiff: 2.6
+        passing: "9-2-1-4"
+        last3f: 38.1
+        weight: 57
+        blinker: false
+        horseWeight: 502
+        horseWeightDiff: 0
+        odds: 68.2
       - horseNumber: 12
         bracket: 8
         name: ラスカンブレス

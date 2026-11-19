@@ -366,3 +366,31 @@ races:
         horseWeight: 428
         horseWeightDiff: 0
         odds: 3.7
+  - course: 函館
+    raceNumber: 10
+    name: 洞爺湖特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    fieldSize: 11
+    winner: ヨヒーン
+    runnerUp: ラブリーリディア
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ヨヒーン
+        jockey: 鮫島克駿
+        ref: nk-2022105166
+        finish: 1
+        popularity: 3
+        time: "2:00.1"
+        timeDiff: 0
+        passing: "5-5-5-5"
+        last3f: 35
+        weight: 56
+        horseWeight: 472
+        horseWeightDiff: 10
+        odds: 6

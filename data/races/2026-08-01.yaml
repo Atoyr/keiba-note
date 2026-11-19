@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 16
+    winner: ヨヒーン
+    runnerUp: アルマデオロ
     entries:
       - horseNumber: 8
         bracket: 4
@@ -20,12 +23,28 @@ races:
         finish: 9
         popularity: 4
         time: "2:00.9"
+        timeDiff: 0.7
         passing: "9-9-7-7"
         last3f: 36.2
         weight: 56
         horseWeight: 466
         horseWeightDiff: -12
         odds: 7.6
+      - horseNumber: 10
+        bracket: 5
+        name: ヨヒーン
+        jockey: 鮫島克駿
+        ref: nk-2022105166
+        finish: 1
+        popularity: 5
+        time: "2:00.2"
+        timeDiff: 0
+        passing: "11-11-10-7"
+        last3f: 35.3
+        weight: 53
+        horseWeight: 466
+        horseWeightDiff: -6
+        odds: 8.6
   - course: 新潟
     raceNumber: 2
     name: 2歳新馬

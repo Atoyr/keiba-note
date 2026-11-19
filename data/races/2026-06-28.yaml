@@ -374,6 +374,7 @@ races:
         popularity: 11
         time: "1:59.2"
         margin: "3/4"
+        timeDiff: 1.5
         passing: "15-14-13-14"
         last3f: 35.6
         weight: 55
@@ -602,6 +603,7 @@ races:
         popularity: 12
         time: "1:58.4"
         margin: "1/2"
+        timeDiff: 0.7
         passing: "14-14-15-14"
         last3f: 34.7
         weight: 58
@@ -620,6 +622,7 @@ races:
         popularity: 2
         time: "1:59.0"
         margin: "3"
+        timeDiff: 1.3
         passing: "6-7-6-8"
         last3f: 35.9
         weight: 56

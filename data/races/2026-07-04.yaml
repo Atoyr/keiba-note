@@ -115,6 +115,21 @@ races:
     winner: ネブラディスク
     runnerUp: サウンドムーブ
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ヴィスマール
+        jockey: 西村淳也
+        ref: nk-2021105459
+        finish: 12
+        popularity: 5
+        time: "1:48.1"
+        timeDiff: 1.5
+        passing: "14-14-14-12"
+        last3f: 35.8
+        weight: 58
+        horseWeight: 460
+        horseWeightDiff: -2
+        odds: 16.2
       - horseNumber: 3
         bracket: 3
         name: ネブラディスク

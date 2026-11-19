@@ -361,3 +361,30 @@ races:
         horseWeight: 408
         horseWeightDiff: 6
         odds: 5.8
+  - course: 京都
+    raceNumber: 8
+    name: 4歳以上2勝クラス
+    className: 2勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 8
+    winner: ヴァリディシームス
+    entries:
+      - horseNumber: 6
+        bracket: 6
+        name: ヴィスマール
+        jockey: 西村淳也
+        ref: nk-2021105459
+        finish: 2
+        popularity: 2
+        time: "2:01.2"
+        timeDiff: 0.4
+        passing: "2-2-2-2"
+        last3f: 35.4
+        weight: 58
+        horseWeight: 470
+        horseWeightDiff: 12
+        odds: 5.4
