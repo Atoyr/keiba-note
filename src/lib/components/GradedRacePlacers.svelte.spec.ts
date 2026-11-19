@@ -124,14 +124,13 @@ describe('GradedRacePlacers', () => {
 				'前走は未整備です。当時の直前の出走を確かめられるデータがまだ無いため、出していません。'
 			);
 		await expect.element(screen.getByRole('heading', { name: '年ごとの1〜3着' })).toBeVisible();
-		await expect.element(section.getByText('2023年', { exact: true })).toBeVisible();
-		await expect.element(section.getByText('このレースは未登録')).toBeVisible();
+		await expect.element(section.getByText('このレースは未登録').first()).toBeVisible();
 		await expect
 			.element(section.getByRole('link', { name: '馬1' }).first())
 			.toHaveAttribute('href', '/horses/h1');
-		await expect
-			.element(section.getByRole('link', { name: '騎手1' }).first())
-			.toHaveAttribute('href', `/jockeys/${encodeURIComponent('騎手1')}`);
+		// 騎手は閉じた「年ごとの詳細」の中。
+		const jockey = screen.container.querySelector('ol a[href^="/jockeys/"]')!;
+		expect(jockey.getAttribute('href')).toBe(`/jockeys/${encodeURIComponent('騎手1')}`);
 	});
 
 	it('値が null の人気・騎手・父は「不明」と文字で出す', async () => {
@@ -145,8 +144,10 @@ describe('GradedRacePlacers', () => {
 
 	it('条件が違う開催に札を出し、一部だけの開催にも出す', async () => {
 		const screen = render(GradedRacePlacers, { placers: normal });
-		await expect.element(screen.getByText('条件が違う')).toBeVisible();
-		await expect.element(screen.getByText('一部だけ', { exact: true })).toBeVisible();
+		const table = screen.container.querySelector('table[data-placers-table]')!;
+		expect(table.textContent).toContain('条件が違う');
+		// 一部だけの札は縦の一覧（閉じた details）の中にある。
+		expect(screen.container.querySelector('ol')!.textContent).toContain('一部だけ');
 	});
 
 	it('人気だけ開けてあり、不明があれば観点の見出しに件数が出る', async () => {
@@ -227,6 +228,137 @@ describe('GradedRacePlacers', () => {
 				]
 			}
 		});
-		await expect.element(screen.getByText('結果が未登録')).toBeVisible();
+		const cell = screen.container.querySelector('table[data-placers-table] td[colspan="3"]')!;
+		expect(cell.textContent).toBe('結果が未登録');
+	});
+});
+
+describe('GradedRacePlacers の年×着順の表', () => {
+	const yearsTable = (c: HTMLElement) =>
+		c.querySelector<HTMLTableElement>('table[data-placers-table]')!;
+
+	it('caption と見出しのセルを持ち、行は年の数だけある', () => {
+		const { container } = render(GradedRacePlacers, { placers: normal });
+		const t = yearsTable(container);
+		expect(t.querySelector('caption')!.textContent).toBe('年ごとの1〜3着の馬と人気');
+		expect(
+			[...t.querySelectorAll('thead th[scope="col"]')].map((x) => x.textContent!.trim())
+		).toEqual(['年', '1着', '2着', '3着']);
+		const rows = t.querySelectorAll('tbody tr');
+		expect(rows).toHaveLength(3);
+		for (const r of rows) expect(r.querySelector('th[scope="row"]')).not.toBeNull();
+	});
+
+	it('未登録の年は colspan のセルで「このレースは未登録」', () => {
+		const { container } = render(GradedRacePlacers, { placers: normal });
+		const cell = yearsTable(container).querySelectorAll('tbody tr')[2].querySelector('td')!;
+		expect(cell.getAttribute('colspan')).toBe('3');
+		expect(cell.textContent).toBe('このレースは未登録');
+	});
+
+	it('年の数字はレースへのリンクで、条件が違う開催に文字が出る', () => {
+		const { container } = render(GradedRacePlacers, { placers: normal });
+		const rows = yearsTable(container).querySelectorAll('tbody tr');
+		const link = rows[0].querySelector('th a')!;
+		expect(link.textContent).toBe('2025');
+		expect(link.getAttribute('href')).toBe('/races/r25');
+		expect(rows[1].querySelector('th')!.textContent).toContain('条件が違う');
+		expect(rows[0].querySelector('th')!.textContent).not.toContain('条件が違う');
+	});
+
+	it('同着は同じセルに2頭並び、一部だけの開催の欠けたセルは「—」と読み上げ用の文字', () => {
+		const tie: Placers = {
+			...normal,
+			years: [
+				{
+					year: '2025',
+					races: [
+						{
+							race: raceOf('r25', '2025-09-28'),
+							differs: false,
+							complete: false,
+							placers: [
+								placer(1),
+								placer(3, { entryId: 'e3a' }),
+								placer(3, { entryId: 'e3b', horseId: 'hx', horseName: '馬X' })
+							]
+						}
+					]
+				}
+			]
+		};
+		const { container } = render(GradedRacePlacers, { placers: tie });
+		const cells = yearsTable(container).querySelectorAll('tbody tr td');
+		expect(cells).toHaveLength(3);
+		expect(cells[2].querySelectorAll('a')).toHaveLength(2);
+		expect(cells[1].textContent).toContain('—');
+		expect(cells[1].querySelector('.sr-only')!.textContent).toBe('不明');
+	});
+
+	it('6番人気以下の人気の行だけ太字で、人気が null なら「人気 不明」', () => {
+		const data: Placers = {
+			...normal,
+			years: [
+				{
+					year: '2025',
+					races: [
+						{
+							race: raceOf('r25', '2025-09-28'),
+							differs: false,
+							complete: true,
+							placers: [
+								placer(1, { popularity: 5 }),
+								placer(2, { popularity: 6 }),
+								placer(3, { popularity: null })
+							]
+						}
+					]
+				}
+			]
+		};
+		const { container } = render(GradedRacePlacers, { placers: data });
+		const cells = [...yearsTable(container).querySelectorAll('tbody td')];
+		const pop = (i: number) => cells[i].querySelector('.text-xs')!;
+		expect(pop(0).classList.contains('font-bold')).toBe(false);
+		expect(pop(1).classList.contains('font-bold')).toBe(true);
+		expect(pop(2).textContent!.trim()).toBe('人気 不明');
+		expect(pop(2).classList.contains('font-bold')).toBe(false);
+		expect(container.textContent).toContain('太字は6番人気以下');
+	});
+
+	it('棒は人気の観点だけにあり、幅は3着以内 ÷ 分かる出走で、読み上げに出ない', () => {
+		const data: Placers = {
+			...normal,
+			aspects: [
+				{
+					key: 'popularity',
+					known: 4,
+					unknown: 0,
+					rows: [
+						{ value: '1番人気', wins: 1, placed: 1, sources: [] },
+						{ value: '2番人気', wins: 0, placed: 0, sources: [] }
+					]
+				},
+				aspects[1]
+			]
+		};
+		const { container } = render(GradedRacePlacers, { placers: data });
+		const bars = container.querySelectorAll<HTMLElement>('[data-placed-bar]');
+		expect(bars).toHaveLength(1);
+		expect(bars[0].style.width).toBe('25%');
+		expect(bars[0].closest('[aria-hidden="true"]')).not.toBeNull();
+		const jockey = [...container.querySelectorAll('table')].find((t) =>
+			t.querySelector('caption')?.textContent?.startsWith('騎手')
+		)!;
+		expect(jockey.querySelector('[data-placed-bar]')).toBeNull();
+	});
+
+	it('縦の一覧は閉じた details に畳んである', () => {
+		const { container } = render(GradedRacePlacers, { placers: normal });
+		const d = [...container.querySelectorAll('details')].find((x) =>
+			x.querySelector('summary')?.textContent?.includes('年ごとの詳細（騎手・父・母父）')
+		)!;
+		expect(d.open).toBe(false);
+		expect(d.querySelector('ol')).not.toBeNull();
 	});
 });

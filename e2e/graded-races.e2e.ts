@@ -313,39 +313,50 @@ test('重賞の画面に、過去10年の1〜3着が年ごとに並び、足り�
 		'前走は未整備です。当時の直前の出走を確かめられるデータがまだ無いため'
 	);
 
-	const rows = section.locator('ol > li');
-	// 10年 = 去年・一昨年・3年前 + 未登録7年。
-	await expect(rows).toHaveCount(10);
-	const last = rows.filter({
+	// 年×着順の表。10年 = 去年・一昨年・3年前 + 未登録7年。
+	const table = section.getByRole('table', { name: '年ごとの1〜3着の馬と人気' });
+	const tableRows = table.locator('tbody tr');
+	await expect(tableRows).toHaveCount(10);
+	const last = tableRows.filter({
 		has: page.locator(`a[href="/races/${GRADED_PLACERS.lastYearRaceId}"]`)
 	});
-	await expect(last.locator('ul > li')).toHaveCount(3);
-	await expect(last.locator('ul > li').nth(0)).toContainText(
-		new RegExp(`1着\\s*${GRADED_PLACERS.horses.first}\\s*1番人気\\s*${GRADED_PLACERS.jockeyTwice}`)
-	);
-	await expect(last.locator('ul > li').nth(1)).toContainText('2着');
-	await expect(last.locator('ul > li').nth(1)).toContainText(GRADED_PLACERS.horses.second);
-	await expect(last.locator('ul > li').nth(0)).toContainText(`父 ${GRADED_PLACERS.sireThrice}`);
-	// 値が無い項目は文字で出す。
-	await expect(last.locator('ul > li').nth(1)).toContainText('父 不明');
+	await expect(last.locator('td')).toHaveCount(3);
+	await expect(last.locator('td').nth(0)).toContainText(GRADED_PLACERS.horses.first);
+	await expect(last.locator('td').nth(0)).toContainText('1番人気');
+	await expect(last.locator('td').nth(1)).toContainText(GRADED_PLACERS.horses.second);
 	await expect(last).not.toContainText('条件が違う');
 	await expectLinkTo(
-		last.locator('ul > li').nth(0).getByRole('link', { name: GRADED_PLACERS.horses.first }),
+		last.locator('td').nth(0).getByRole('link', { name: GRADED_PLACERS.horses.first }),
 		`/horses/01JE2EHORSEGRADED10000000`
 	);
 
-	const prev = rows.filter({
+	const prev = tableRows.filter({
 		has: page.locator(`a[href="/races/${GRADED_PLACERS.prevYearRaceId}"]`)
 	});
-	await expect(prev).toContainText('一部だけ');
-	await expect(prev.locator('ul > li')).toHaveCount(1);
+	await expect(prev.locator('td').filter({ has: page.locator('a') })).toHaveCount(1);
+	await expect(prev.locator('td').filter({ hasText: '—' })).toHaveCount(2);
 
-	const ago = rows.filter({
+	const ago = tableRows.filter({
 		has: page.locator(`a[href="/races/${GRADED_PLACERS.threeYearsAgoRaceId}"]`)
 	});
 	await expect(ago).toContainText('条件が違う');
 	await expect(ago).toContainText('新潟');
 
+	await expect(tableRows.filter({ hasText: 'このレースは未登録' })).toHaveCount(7);
+
+	// 縦の一覧（騎手・父・母父）は閉じた details に畳んである。開くと今までの内容が出る。
+	const detail = section.locator('details', { hasText: '年ごとの詳細（騎手・父・母父）' }).last();
+	await expect(detail).toHaveJSProperty('open', false);
+	await detail.locator('summary').click();
+	const rows = detail.locator('ol > li');
+	await expect(rows).toHaveCount(10);
+	const lastRow = rows.filter({
+		has: page.locator(`a[href="/races/${GRADED_PLACERS.lastYearRaceId}"]`)
+	});
+	await expect(lastRow.locator('ul > li')).toHaveCount(3);
+	await expect(lastRow.locator('ul > li').nth(0)).toContainText(GRADED_PLACERS.jockeyTwice);
+	await expect(lastRow.locator('ul > li').nth(0)).toContainText(`父 ${GRADED_PLACERS.sireThrice}`);
+	await expect(lastRow.locator('ul > li').nth(1)).toContainText('父 不明');
 	await expect(rows.filter({ hasText: 'このレースは未登録' })).toHaveCount(7);
 	// 今年のレースは窓に入れない。
 	await expect(section.locator(`a[href="/races/${GRADED_RACE.thisYearRaceId}"]`)).toHaveCount(0);
@@ -360,7 +371,7 @@ test('過去の好走馬の集計は、年ごとの一覧と照らせる', async
 	const section = placersRegion(page);
 
 	// 人気だけ開いている。3着以内は7頭（1番人気1・2番人気1・3番人気2・4番人気1・6〜9番人気1・10番人気以下1。ニバンは4着で入らない）。
-	const details = section.locator('details');
+	const details = section.locator(':scope > div > details, :scope > details');
 	await expect(details.first()).toHaveJSProperty('open', true);
 	await expect(details.nth(1)).toHaveJSProperty('open', false);
 	const popularity = section.getByRole('table', { name: '人気ごとの勝ち馬と3着以内の数' });
@@ -390,6 +401,7 @@ test('今年のレースだけの重賞は、過去の好走馬が空の案内�
 	await expect(section).toContainText('のこのレースの結果は、まだ登録されていません。');
 	await expect(section.locator('details')).toHaveCount(0);
 	await expect(section.locator('ol')).toHaveCount(0);
+	await expect(section.locator('table')).toHaveCount(0);
 	await expect(section).not.toContainText('前走は');
 });
 

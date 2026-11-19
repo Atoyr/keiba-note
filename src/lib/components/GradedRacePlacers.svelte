@@ -142,6 +142,82 @@
 			前走は未整備です。当時の直前の出走を確かめられるデータがまだ無いため、出していません。
 		</p>
 
+		<h3 class="mt-4 text-sm font-semibold">年ごとの1〜3着</h3>
+		<table class="mt-1 w-full table-fixed text-sm" data-placers-table>
+			<caption class="sr-only">年ごとの1〜3着の馬と人気</caption>
+			<thead>
+				<tr class="text-xs text-muted-foreground">
+					<th scope="col" class="w-14 py-1 pr-2 text-left font-normal">年</th>
+					{#each [1, 2, 3] as n (n)}
+						<th scope="col" class="px-1 py-1 text-left font-normal">{n}着</th>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each placers.years as y (y.year)}
+					{#if y.races.length === 0}
+						<tr class="border-t align-top">
+							<th scope="row" class="py-1.5 pr-2 text-left font-bold">{y.year}</th>
+							<td colspan="3" class="px-1 py-1.5 text-muted-foreground">このレースは未登録</td>
+						</tr>
+					{:else}
+						{#each y.races as r (r.race.id)}
+							{@const condition = conditionLabel(r.race)}
+							<tr class="border-t align-top">
+								<th scope="row" class="py-1.5 pr-2 text-left font-normal">
+									<a
+										href={resolve('/races/[id]', { id: r.race.id })}
+										class="inline-flex min-h-6 items-center font-bold hover:underline">{y.year}</a
+									>
+									<div class="text-xs break-words text-muted-foreground">
+										{condition ?? r.race.course}
+									</div>
+									{#if r.differs}<div class="text-xs">条件が違う</div>{/if}
+								</th>
+								{#if r.placers.length === 0}
+									<td colspan="3" class="px-1 py-1.5 text-muted-foreground">結果が未登録</td>
+								{:else}
+									{#each [1, 2, 3] as n (n)}
+										{@const cell = r.placers.filter((p) => p.finishPosition === n)}
+										<td class="px-1 py-1.5">
+											{#if cell.length === 0}
+												<span class="text-muted-foreground" aria-hidden="true">—</span>
+												<span class="sr-only">不明</span>
+											{:else}
+												<div class="space-y-1.5">
+													{#each cell as p (p.entryId)}
+														<div>
+															<div
+																class={[
+																	'text-xs tabular-nums',
+																	p.popularity !== null && p.popularity >= 6 && 'font-bold'
+																]}
+															>
+																{#if p.popularity !== null}{p.popularity}番人気{:else}{@render unknown(
+																		'人気'
+																	)}{/if}
+															</div>
+															<a
+																href={resolve('/horses/[id]', { id: p.horseId })}
+																class="inline-flex min-h-6 items-center text-sm break-words hover:underline"
+															>
+																{p.horseName}
+															</a>
+														</div>
+													{/each}
+												</div>
+											{/if}
+										</td>
+									{/each}
+								{/if}
+							</tr>
+						{/each}
+					{/if}
+				{/each}
+			</tbody>
+		</table>
+		<p class="mt-1 text-xs text-muted-foreground">太字は6番人気以下</p>
+
 		<div class="mt-3 grid gap-2">
 			{#each placers.aspects as aspect (aspect.key)}
 				{@const table = tableRows(aspect)}
@@ -185,7 +261,24 @@
 												{/if}
 											</th>
 											<td class="px-2 py-1 text-right tabular-nums">{row.wins}</td>
-											<td class="py-1 pl-2 text-right tabular-nums">{row.placed}</td>
+											<td class="py-1 pl-2">
+												{#if aspect.key === 'popularity'}
+													<div class="flex items-center gap-2">
+														<div class="flex flex-1 items-center" aria-hidden="true">
+															{#if row.placed > 0}
+																<div
+																	data-placed-bar
+																	class="h-2 rounded-sm bg-muted-foreground/40"
+																	style:width="{(row.placed / aspect.known) * 100}%"
+																></div>
+															{/if}
+														</div>
+														<span class="tabular-nums">{row.placed}</span>
+													</div>
+												{:else}
+													<div class="text-right tabular-nums">{row.placed}</div>
+												{/if}
+											</td>
 										</tr>
 									{/each}
 								</tbody>
@@ -219,88 +312,99 @@
 			{/each}
 		</div>
 
-		<h3 class="mt-4 text-sm font-semibold">年ごとの1〜3着</h3>
-		<ol class="mt-2 space-y-4">
-			{#each placers.years as y (y.year)}
-				{#if y.races.length === 0}
-					<li class="border-l-2 border-dashed pl-4 text-sm text-muted-foreground">
-						<span class="font-bold">{y.year}年</span> このレースは未登録
-					</li>
-				{:else}
-					{#each y.races as r (r.race.id)}
-						{@const condition = conditionLabel(r.race)}
-						<li class="border-l-2 border-border pl-4">
-							<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
-								<span class="font-bold">{y.year}年</span>
-								<span class="font-mono text-muted-foreground">{r.race.date}</span>
-								<a
-									href={resolve('/races/[id]', { id: r.race.id })}
-									class="inline-flex min-h-6 items-center hover:underline"
-								>
-									{condition ?? r.race.course}{r.race.trackCondition && condition
-										? `・${r.race.trackCondition}`
-										: ''}
-								</a>
-								{#if r.differs}<Badge variant="outline">条件が違う</Badge>{/if}
-								{#if r.placers.length === 0}
-									<span class="text-muted-foreground">結果が未登録</span>
-								{:else if !r.complete}
-									<span class="text-muted-foreground">一部だけ</span>
-								{/if}
-							</div>
-							{#if r.placers.length > 0}
-								<ul class="mt-1 space-y-2">
-									{#each r.placers as p (p.entryId)}
-										<li
-											class="flex flex-col gap-y-0.5 text-sm sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3"
-										>
-											<div
-												class="flex min-w-0 flex-wrap items-baseline gap-x-2 sm:flex-nowrap sm:gap-x-3"
-											>
-												<span class="w-8 shrink-0 font-medium tabular-nums"
-													>{p.finishPosition}着</span
-												>
-												<a
-													href={resolve('/horses/[id]', { id: p.horseId })}
-													class="inline-flex min-h-6 min-w-0 items-center font-medium break-words hover:underline sm:w-36 sm:shrink-0"
-												>
-													{p.horseName}
-												</a>
-												<span class="shrink-0 sm:w-20">
-													{#if p.popularity !== null}{p.popularity}番人気{:else}{@render unknown(
-															'人気'
-														)}{/if}
-												</span>
-											</div>
-											<div
-												class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:flex-1 sm:pl-0"
-											>
-												<span class="min-w-0 break-all sm:w-28 sm:shrink-0">
-													{#if p.jockey}
-														<JockeyLink
-															name={p.jockey}
-															summary={null}
-															class="inline-flex min-h-6 max-w-full items-center hover:underline"
-														/>
-													{:else}
-														{@render unknown('騎手')}
-													{/if}
-												</span>
-												<span class="min-w-0 break-words sm:w-auto sm:flex-1">
-													{#if p.sire}父 {p.sire}{:else}{@render unknown('父')}{/if}
-												</span>
-												<span class="min-w-0 break-words sm:w-auto sm:flex-1">
-													{#if p.damSire}母父 {p.damSire}{:else}{@render unknown('母父')}{/if}
-												</span>
-											</div>
-										</li>
-									{/each}
-								</ul>
-							{/if}
+		<!-- 閉じたものは属性なしで書く（式の `open={…}` は hydration が要素に書き込む。上のコメント）。 -->
+		<details class="group mt-3">
+			<summary
+				class="flex min-h-6 cursor-pointer list-none items-center gap-1 text-sm font-medium [&::-webkit-details-marker]:hidden"
+			>
+				年ごとの詳細（騎手・父・母父）
+				<ChevronDown
+					class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
+					aria-hidden="true"
+				/>
+			</summary>
+			<ol class="mt-2 space-y-4">
+				{#each placers.years as y (y.year)}
+					{#if y.races.length === 0}
+						<li class="border-l-2 border-dashed pl-4 text-sm text-muted-foreground">
+							<span class="font-bold">{y.year}年</span> このレースは未登録
 						</li>
-					{/each}
-				{/if}
-			{/each}
-		</ol>
+					{:else}
+						{#each y.races as r (r.race.id)}
+							{@const condition = conditionLabel(r.race)}
+							<li class="border-l-2 border-border pl-4">
+								<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
+									<span class="font-bold">{y.year}年</span>
+									<span class="font-mono text-muted-foreground">{r.race.date}</span>
+									<a
+										href={resolve('/races/[id]', { id: r.race.id })}
+										class="inline-flex min-h-6 items-center hover:underline"
+									>
+										{condition ?? r.race.course}{r.race.trackCondition && condition
+											? `・${r.race.trackCondition}`
+											: ''}
+									</a>
+									{#if r.differs}<Badge variant="outline">条件が違う</Badge>{/if}
+									{#if r.placers.length === 0}
+										<span class="text-muted-foreground">結果が未登録</span>
+									{:else if !r.complete}
+										<span class="text-muted-foreground">一部だけ</span>
+									{/if}
+								</div>
+								{#if r.placers.length > 0}
+									<ul class="mt-1 space-y-2">
+										{#each r.placers as p (p.entryId)}
+											<li
+												class="flex flex-col gap-y-0.5 text-sm sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-x-3"
+											>
+												<div
+													class="flex min-w-0 flex-wrap items-baseline gap-x-2 sm:flex-nowrap sm:gap-x-3"
+												>
+													<span class="w-8 shrink-0 font-medium tabular-nums"
+														>{p.finishPosition}着</span
+													>
+													<a
+														href={resolve('/horses/[id]', { id: p.horseId })}
+														class="inline-flex min-h-6 min-w-0 items-center font-medium break-words hover:underline sm:w-36 sm:shrink-0"
+													>
+														{p.horseName}
+													</a>
+													<span class="shrink-0 sm:w-20">
+														{#if p.popularity !== null}{p.popularity}番人気{:else}{@render unknown(
+																'人気'
+															)}{/if}
+													</span>
+												</div>
+												<div
+													class="flex min-w-0 flex-wrap items-baseline gap-x-3 pl-10 sm:flex-1 sm:pl-0"
+												>
+													<span class="min-w-0 break-all sm:w-28 sm:shrink-0">
+														{#if p.jockey}
+															<JockeyLink
+																name={p.jockey}
+																summary={null}
+																class="inline-flex min-h-6 max-w-full items-center hover:underline"
+															/>
+														{:else}
+															{@render unknown('騎手')}
+														{/if}
+													</span>
+													<span class="min-w-0 break-words sm:w-auto sm:flex-1">
+														{#if p.sire}父 {p.sire}{:else}{@render unknown('父')}{/if}
+													</span>
+													<span class="min-w-0 break-words sm:w-auto sm:flex-1">
+														{#if p.damSire}母父 {p.damSire}{:else}{@render unknown('母父')}{/if}
+													</span>
+												</div>
+											</li>
+										{/each}
+									</ul>
+								{/if}
+							</li>
+						{/each}
+					{/if}
+				{/each}
+			</ol>
+		</details>
 	{/if}
 </section>
