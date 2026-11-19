@@ -347,3 +347,31 @@ races:
         horseWeight: 450
         horseWeightDiff: 6
         odds: 2
+  - course: 東京
+    raceNumber: 9
+    name: アイビーS
+    grade: L
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 12
+    winner: キャピタルストーン
+    entries:
+      - horseNumber: 12
+        bracket: 8
+        name: コラリオン
+        jockey: ルメール
+        ref: nk-2024106471
+        finish: 2
+        popularity: 1
+        time: "1:47.7"
+        timeDiff: 0
+        passing: "10-10-10"
+        last3f: 33
+        weight: 56
+        blinker: false
+        horseWeight: 500
+        horseWeightDiff: 4
+        odds: 1.9

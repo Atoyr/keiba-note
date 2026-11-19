@@ -98,6 +98,22 @@ races:
     fieldSize: 8
     winner: スタースポット
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ジョドレルバンク
+        jockey: 戸崎圭太
+        ref: nk-2024106161
+        finish: 3
+        popularity: 1
+        time: "2:05.5"
+        timeDiff: 0.3
+        passing: "3-3-2-2"
+        last3f: 37.5
+        weight: 55
+        blinker: false
+        horseWeight: 532
+        horseWeightDiff: 12
+        odds: 1.6
       - horseNumber: 6
         bracket: 6
         name: レオンティウス

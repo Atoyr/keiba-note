@@ -370,6 +370,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 5
+    winner: ショウナンガレオン
+    runnerUp: ダノンキューブ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -379,6 +382,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:47.6"
+        timeDiff: -0.4
         passing: "3-3-2-2"
         last3f: 34.5
         weight: 55

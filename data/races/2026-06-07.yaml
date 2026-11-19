@@ -588,7 +588,23 @@ races:
     weather: 小雨
     fieldSize: 10
     winner: ジョドレルバンク
+    runnerUp: レオンティウス
     entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ジョドレルバンク
+        jockey: レーン
+        ref: nk-2024106161
+        finish: 1
+        popularity: 1
+        time: "1:48.1"
+        timeDiff: -0.4
+        passing: "5-3-3"
+        last3f: 33.7
+        weight: 55
+        horseWeight: 520
+        horseWeightDiff: 0
+        odds: 1.3
       - horseNumber: 4
         bracket: 4
         name: レオンティウス

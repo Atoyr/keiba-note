@@ -670,6 +670,7 @@ races:
     weather: 曇
     fieldSize: 14
     winner: テンカタイヘイ
+    runnerUp: ランフォーザエイジ
     entries:
       - horseNumber: 4
         bracket: 3
@@ -679,6 +680,7 @@ races:
         finish: 1
         popularity: 8
         time: "1:51.1"
+        timeDiff: -0.2
         passing: "8-10-10-8"
         last3f: 36.6
         weight: 55
