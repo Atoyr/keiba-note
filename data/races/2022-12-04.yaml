@@ -11,21 +11,348 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ジュンライトボルト
+    runnerUp: クラウンプライド
+    laps: [12.7, 11.2, 13.1, 12.8, 12.6, 12.6, 12.7, 11.9, 12.3]
+    ref: nk-202207060211
+    startTime: "15:30"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: グロリアムンディ
+        jockey: ムーア
+        sex: 牡
+        age: 4
+        ref: nk-2018105251
+        trainer: 大久保龍志
+        trainingCenter: 栗東
+        finish: 12
+        popularity: 2
+        time: "1:53.0"
+        margin: "1/2"
+        timeDiff: 1.1
+        passing: "11-10-12-13"
+        last3f: 37.1
+        weight: 57
+        blinker: true
+        horseWeight: 504
+        horseWeightDiff: 8
+        odds: 7.7
+      - horseNumber: 2
+        bracket: 1
+        name: サンライズホープ
+        jockey: 幸英明
+        sex: 牡
+        age: 5
+        ref: nk-2017100988
+        trainer: 羽月友彦
+        trainingCenter: 栗東
+        finish: 6
+        popularity: 11
+        time: "1:52.6"
+        margin: "3/4"
+        timeDiff: 0.7
+        passing: "16-15-12-10"
+        last3f: 36.7
+        weight: 57
+        blinker: true
+        horseWeight: 540
+        horseWeightDiff: 2
+        odds: 51.9
+      - horseNumber: 3
+        bracket: 2
+        name: ハピ
+        jockey: 横山典弘
+        sex: 牡
+        age: 3
+        ref: nk-2019100630
+        trainer: 大久保龍志
+        trainingCenter: 栗東
+        finish: 3
+        popularity: 6
+        time: "1:52.1"
+        margin: "1.1/4"
+        timeDiff: 0.2
+        passing: "3-3-4-4"
+        last3f: 36.7
+        weight: 56
+        blinker: false
+        horseWeight: 466
+        horseWeightDiff: 0
+        odds: 15.9
+      - horseNumber: 4
+        bracket: 2
+        name: スマッシングハーツ
+        jockey: 鮫島克駿
+        sex: 牡
+        age: 6
+        ref: nk-2016100617
+        trainer: 新谷功一
+        trainingCenter: 栗東
+        finish: 7
+        popularity: 10
+        time: "1:52.6"
+        margin: "クビ"
+        timeDiff: 0.7
+        passing: "6-6-8-8"
+        last3f: 37
+        weight: 57
+        blinker: false
+        horseWeight: 522
+        horseWeightDiff: 12
+        odds: 41.4
+      - horseNumber: 5
+        bracket: 3
+        name: ジュンライトボルト
+        jockey: 石川裕紀人
+        sex: 牡
+        age: 5
+        ref: nk-2017105396
+        trainer: 友道康夫
+        trainingCenter: 栗東
+        finish: 1
+        popularity: 3
+        time: "1:51.9"
+        timeDiff: 0
+        passing: "9-9-8-10"
+        last3f: 36.2
+        weight: 57
+        blinker: false
+        horseWeight: 486
+        horseWeightDiff: 8
+        odds: 7.9
+      - horseNumber: 6
+        bracket: 3
+        name: レッドガラン
+        jockey: 斎藤新
+        sex: 牡
+        age: 7
+        ref: nk-2015104417
+        trainer: 安田隆行
+        trainingCenter: 栗東
+        finish: 11
+        popularity: 13
+        time: "1:52.9"
+        margin: "1.1/2"
+        timeDiff: 1
+        passing: "11-10-12-13"
+        last3f: 36.9
+        weight: 57
+        blinker: false
+        horseWeight: 520
+        horseWeightDiff: 0
+        odds: 189.2
+      - horseNumber: 7
+        bracket: 4
+        name: オーヴェルニュ
+        jockey: ルメール
+        sex: 牡
+        age: 6
+        ref: nk-2016101455
+        trainer: 西村真幸
+        trainingCenter: 栗東
+        finish: 9
+        popularity: 9
+        time: "1:52.6"
+        margin: "ハナ"
+        timeDiff: 0.7
+        passing: "5-5-4-4"
+        last3f: 37.2
+        weight: 57
+        blinker: false
+        horseWeight: 480
+        horseWeightDiff: 4
+        odds: 38.7
+      - horseNumber: 8
+        bracket: 4
+        name: サンライズノヴァ
+        jockey: 松若風馬
+        sex: 牡
+        age: 8
+        ref: nk-2014106474
+        trainer: 音無秀孝
+        trainingCenter: 栗東
+        finish: 15
+        popularity: 14
+        time: "1:53.4"
+        margin: "1/2"
+        timeDiff: 1.5
+        passing: "13-13-16-16"
+        last3f: 37.2
+        weight: 57
+        blinker: false
+        horseWeight: 532
+        horseWeightDiff: 0
+        odds: 239.6
+      - horseNumber: 9
+        bracket: 5
+        name: ノットゥルノ
+        jockey: 武豊
+        sex: 牡
+        age: 3
+        ref: nk-2019101623
+        trainer: 音無秀孝
+        trainingCenter: 栗東
+        finish: 8
+        popularity: 5
+        time: "1:52.6"
+        margin: "アタマ"
+        timeDiff: 0.7
+        passing: "6-6-7-7"
+        last3f: 37.1
+        weight: 56
+        blinker: false
+        horseWeight: 516
+        horseWeightDiff: -13
+        odds: 14.3
       - horseNumber: 10
         bracket: 5
         name: クラウンプライド
         jockey: 福永祐一
+        sex: 牡
+        age: 3
         ref: nk-2019104678
+        trainer: 新谷功一
+        trainingCenter: 栗東
         finish: 2
         popularity: 4
         time: "1:51.9"
+        margin: "クビ"
+        timeDiff: 0
         passing: "2-2-2-2"
         last3f: 36.7
         weight: 56
+        blinker: false
         horseWeight: 500
         horseWeightDiff: -1
         odds: 14.3
+      - horseNumber: 11
+        bracket: 6
+        name: バーデンヴァイラー
+        jockey: レーン
+        sex: 牡
+        age: 4
+        ref: nk-2018104951
+        trainer: 斉藤崇史
+        trainingCenter: 栗東
+        finish: 14
+        popularity: 8
+        time: "1:53.3"
+        margin: "1/2"
+        timeDiff: 1.4
+        passing: "10-10-8-10"
+        last3f: 37.7
+        weight: 57
+        blinker: true
+        horseWeight: 510
+        horseWeightDiff: 4
+        odds: 31.8
+      - horseNumber: 12
+        bracket: 6
+        name: テーオーケインズ
+        jockey: 松山弘平
+        sex: 牡
+        age: 5
+        ref: nk-2017101010
+        trainer: 高柳大輔
+        trainingCenter: 栗東
+        finish: 4
+        popularity: 1
+        time: "1:52.2"
+        margin: "クビ"
+        timeDiff: 0.3
+        passing: "6-6-4-4"
+        last3f: 36.8
+        weight: 57
+        blinker: false
+        horseWeight: 494
+        horseWeightDiff: -7
+        odds: 1.5
+      - horseNumber: 13
+        bracket: 7
+        name: シャマル
+        jockey: 川田将雅
+        sex: 牡
+        age: 4
+        ref: nk-2018103528
+        trainer: 松下武士
+        trainingCenter: 栗東
+        finish: 5
+        popularity: 7
+        time: "1:52.5"
+        margin: "1.1/2"
+        timeDiff: 0.6
+        passing: "3-3-3-2"
+        last3f: 37.2
+        weight: 57
+        blinker: true
+        horseWeight: 516
+        horseWeightDiff: -1
+        odds: 23.2
+      - horseNumber: 14
+        bracket: 7
+        name: タガノビューティー
+        jockey: 石橋脩
+        sex: 牡
+        age: 5
+        ref: nk-2017101719
+        trainer: 西園正都
+        trainingCenter: 栗東
+        finish: 10
+        popularity: 12
+        time: "1:52.7"
+        margin: "クビ"
+        timeDiff: 0.8
+        passing: "14-14-12-13"
+        last3f: 36.8
+        weight: 57
+        blinker: false
+        horseWeight: 520
+        horseWeightDiff: 0
+        odds: 130.2
+      - horseNumber: 15
+        bracket: 8
+        name: サクラアリュール
+        jockey: 酒井学
+        sex: 牡
+        age: 7
+        ref: nk-2015105868
+        trainer: 村山明
+        trainingCenter: 栗東
+        finish: 13
+        popularity: 16
+        time: "1:53.2"
+        margin: "1"
+        timeDiff: 1.3
+        passing: "14-15-8-8"
+        last3f: 37.5
+        weight: 57
+        blinker: true
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 355.6
+      - horseNumber: 16
+        bracket: 8
+        name: レッドソルダード
+        jockey: 丸山元気
+        sex: セ
+        age: 4
+        ref: nk-2018105365
+        trainer: 奥村豊
+        trainingCenter: 栗東
+        finish: 16
+        popularity: 15
+        time: "1:54.6"
+        margin: "7"
+        timeDiff: 2.7
+        passing: "1-1-1-1"
+        last3f: 39.6
+        weight: 57
+        blinker: false
+        horseWeight: 502
+        horseWeightDiff: 4
+        odds: 267.1
   - course: 阪神
     raceNumber: 11
     name: ギャラクシーS

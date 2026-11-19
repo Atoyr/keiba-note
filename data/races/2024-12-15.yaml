@@ -38,12 +38,40 @@ races:
     fieldSize: 16
     winner: アドマイヤズーム
     runnerUp: ミュージアムマイル
+    laps: [12.4, 10.8, 12.2, 12.6, 12.4, 11.8, 10.9, 11]
+    ref: nk-202408070611
+    startTime: "15:40"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ダイシンラー
+        jockey: 横山典弘
+        sex: 牡
+        age: 2
+        ref: nk-2022101562
+        trainer: 梅田智之
+        trainingCenter: 栗東
+        finish: 4
+        popularity: 12
+        time: "1:35.3"
+        margin: "2"
+        timeDiff: 1.2
+        passing: "1-1"
+        last3f: 34.9
+        weight: 56
+        blinker: false
+        horseWeight: 506
+        horseWeightDiff: 2
+        odds: 150.4
       - horseNumber: 2
         bracket: 1
         name: アドマイヤズーム
         jockey: 川田将雅
+        sex: 牡
+        age: 2
         ref: nk-2022105396
+        trainer: 友道康夫
+        trainingCenter: 栗東
         finish: 1
         popularity: 5
         time: "1:34.1"
@@ -51,37 +79,304 @@ races:
         passing: "2-2"
         last3f: 33.6
         weight: 56
+        blinker: false
         horseWeight: 468
         horseWeightDiff: 2
         odds: 9.1
+      - horseNumber: 3
+        bracket: 2
+        name: ランスオブカオス
+        jockey: 吉村誠之助
+        sex: 牡
+        age: 2
+        ref: nk-2022104401
+        trainer: 奥村豊
+        trainingCenter: 栗東
+        finish: 3
+        popularity: 9
+        time: "1:34.9"
+        margin: "2.1/2"
+        timeDiff: 0.8
+        passing: "9-10"
+        last3f: 34
+        weight: 56
+        blinker: false
+        horseWeight: 498
+        horseWeightDiff: -4
+        odds: 45.8
+      - horseNumber: 4
+        bracket: 2
+        name: ミュージアムマイル
+        jockey: C.デムーロ
+        sex: 牡
+        age: 2
+        ref: nk-2022105081
+        trainer: 高柳大輔
+        trainingCenter: 栗東
+        finish: 2
+        popularity: 2
+        time: "1:34.5"
+        margin: "2.1/2"
+        timeDiff: 0.4
+        passing: "3-4"
+        last3f: 33.8
+        weight: 56
+        blinker: false
+        horseWeight: 494
+        horseWeightDiff: -2
+        odds: 3.7
+      - horseNumber: 5
+        bracket: 3
+        name: コスモストーム
+        jockey: 秋山稔樹
+        sex: 牡
+        age: 2
+        ref: nk-2022104120
+        trainer: 北出成人
+        trainingCenter: 栗東
+        finish: 8
+        popularity: 15
+        time: "1:35.5"
+        margin: "1/2"
+        timeDiff: 1.4
+        passing: "5-7"
+        last3f: 34.8
+        weight: 56
+        blinker: false
+        horseWeight: 498
+        horseWeightDiff: -2
+        odds: 297.9
+      - horseNumber: 6
+        bracket: 3
+        name: アルレッキーノ
+        jockey: ルメール
+        sex: 牡
+        age: 2
+        ref: nk-2022104898
+        trainer: 国枝栄
+        trainingCenter: 美浦
+        finish: 10
+        popularity: 8
+        time: "1:35.8"
+        margin: "ハナ"
+        timeDiff: 1.7
+        passing: "12-10"
+        last3f: 34.8
+        weight: 56
+        blinker: false
+        horseWeight: 466
+        horseWeightDiff: 6
+        odds: 12.7
+      - horseNumber: 7
+        bracket: 4
+        name: クラスペディア
+        jockey: 小崎綾也
+        sex: 牡
+        age: 2
+        ref: nk-2022106394
+        trainer: 河嶋宏樹
+        trainingCenter: 栗東
+        finish: 6
+        popularity: 14
+        time: "1:35.4"
+        margin: "クビ"
+        timeDiff: 1.3
+        passing: "5-7"
+        last3f: 34.7
+        weight: 56
+        blinker: false
+        horseWeight: 496
+        horseWeightDiff: 4
+        odds: 210.3
+      - horseNumber: 8
+        bracket: 4
+        name: アルテヴェローチェ
+        jockey: 武豊
+        sex: 牡
+        age: 2
+        ref: nk-2022104751
+        trainer: 須貝尚介
+        trainingCenter: 栗東
+        finish: 5
+        popularity: 1
+        time: "1:35.4"
+        margin: "3/4"
+        timeDiff: 1.3
+        passing: "12-13"
+        last3f: 34.4
+        weight: 56
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: 14
+        odds: 3.3
+      - horseNumber: 9
+        bracket: 5
+        name: エルムラント
+        jockey: 藤岡佑介
+        sex: 牡
+        age: 2
+        ref: nk-2022104678
+        trainer: 鹿戸雄一
+        trainingCenter: 美浦
+        finish: 11
+        popularity: 16
+        time: "1:35.8"
+        margin: "アタマ"
+        timeDiff: 1.7
+        passing: "16-16"
+        last3f: 34.5
+        weight: 56
+        blinker: false
+        horseWeight: 474
+        horseWeightDiff: -2
+        odds: 299.5
       - horseNumber: 10
         bracket: 5
         name: トータルクラリティ
         jockey: 北村友一
+        sex: 牡
+        age: 2
         ref: nk-2022104971
+        trainer: 池添学
+        trainingCenter: 栗東
         finish: 13
         popularity: 3
         time: "1:36.1"
+        margin: "1.3/4"
+        timeDiff: 2
         passing: "3-3"
         last3f: 35.6
         weight: 56
+        blinker: false
         horseWeight: 474
         horseWeightDiff: 12
         odds: 6.6
+      - horseNumber: 11
+        bracket: 6
+        name: ニタモノドウシ
+        jockey: ムーア
+        sex: 牡
+        age: 2
+        ref: nk-2022103220
+        trainer: 高木登
+        trainingCenter: 美浦
+        finish: 9
+        popularity: 6
+        time: "1:35.8"
+        margin: "1.1/2"
+        timeDiff: 1.7
+        passing: "14-13"
+        last3f: 34.7
+        weight: 56
+        blinker: false
+        horseWeight: 464
+        horseWeightDiff: 4
+        odds: 10.9
       - horseNumber: 12
         bracket: 6
         name: パンジャタワー
         jockey: 松山弘平
+        sex: 牡
+        age: 2
         ref: nk-2022101732
+        trainer: 橋口慎介
+        trainingCenter: 栗東
         finish: 12
         popularity: 4
         time: "1:35.8"
+        margin: "クビ"
+        timeDiff: 1.7
         passing: "9-9"
         last3f: 35
         weight: 56
+        blinker: false
         horseWeight: 486
         horseWeightDiff: 6
         odds: 9
+      - horseNumber: 13
+        bracket: 7
+        name: エイシンワンド
+        jockey: 幸英明
+        sex: 牡
+        age: 2
+        ref: nk-2022102849
+        trainer: 大久保龍志
+        trainingCenter: 栗東
+        finish: 14
+        popularity: 11
+        time: "1:36.3"
+        margin: "1"
+        timeDiff: 2.2
+        passing: "14-13"
+        last3f: 35.3
+        weight: 56
+        blinker: false
+        horseWeight: 482
+        horseWeightDiff: -4
+        odds: 119.6
+      - horseNumber: 14
+        bracket: 7
+        name: テイクイットオール
+        jockey: 岩田望来
+        sex: 牡
+        age: 2
+        ref: nk-2022106647
+        trainer: 中竹和也
+        trainingCenter: 栗東
+        finish: 16
+        popularity: 13
+        time: "1:36.7"
+        margin: "2.1/2"
+        timeDiff: 2.6
+        passing: "5-4"
+        last3f: 36.2
+        weight: 56
+        blinker: false
+        horseWeight: 446
+        horseWeightDiff: 2
+        odds: 181
+      - horseNumber: 15
+        bracket: 8
+        name: ドラゴンブースト
+        jockey: 田口貫太
+        sex: 牡
+        age: 2
+        ref: nk-2022105891
+        trainer: 藤野健太
+        trainingCenter: 栗東
+        finish: 7
+        popularity: 10
+        time: "1:35.4"
+        margin: "クビ"
+        timeDiff: 1.3
+        passing: "5-4"
+        last3f: 34.9
+        weight: 56
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: 6
+        odds: 83.9
+      - horseNumber: 16
+        bracket: 8
+        name: タイセイカレント
+        jockey: 坂井瑠星
+        sex: 牡
+        age: 2
+        ref: nk-2022104588
+        trainer: 矢作芳人
+        trainingCenter: 栗東
+        finish: 15
+        popularity: 7
+        time: "1:36.3"
+        margin: "クビ"
+        timeDiff: 2.2
+        passing: "9-10"
+        last3f: 35.5
+        weight: 56
+        blinker: false
+        horseWeight: 486
+        horseWeightDiff: 0
+        odds: 12.7
   - course: 中京
     raceNumber: 11
     name: コールドムーンS

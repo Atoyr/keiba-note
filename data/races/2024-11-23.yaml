@@ -11,18 +11,177 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 8
+    winner: エリキング
+    runnerUp: ジョバンニ
+    laps: [13.2, 11.5, 12.1, 12.6, 12.5, 12.4, 12.1, 11.6, 11.5, 11.4]
+    ref: nk-202408060711
+    startTime: "15:40"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: テイクイットオール
+        jockey: 三浦皇成
+        sex: 牡
+        age: 2
+        ref: nk-2022106647
+        trainer: 中竹和也
+        trainingCenter: 栗東
+        finish: 6
+        popularity: 7
+        time: "2:01.5"
+        margin: "クビ"
+        timeDiff: 0.6
+        passing: "4-3-3-3"
+        last3f: 34.8
+        weight: 56
+        blinker: false
+        horseWeight: 444
+        horseWeightDiff: 6
+        odds: 47.5
+      - horseNumber: 2
+        bracket: 2
+        name: サラコスティ
+        jockey: C.デムーロ
+        sex: 牡
+        age: 2
+        ref: nk-2022104793
+        trainer: 池添学
+        trainingCenter: 栗東
+        finish: 7
+        popularity: 2
+        time: "2:01.6"
+        margin: "1"
+        timeDiff: 0.7
+        passing: "2-2-2-2"
+        last3f: 35.1
+        weight: 56
+        blinker: false
+        horseWeight: 470
+        horseWeightDiff: 8
+        odds: 2.9
+      - horseNumber: 3
+        bracket: 3
+        name: ウォータークラーク
+        jockey: 武豊
+        sex: 牡
+        age: 2
+        ref: nk-2022103345
+        trainer: 石橋守
+        trainingCenter: 栗東
+        finish: 4
+        popularity: 5
+        time: "2:01.4"
+        margin: "1.1/4"
+        timeDiff: 0.5
+        passing: "1-1-1-1"
+        last3f: 35
+        weight: 56
+        blinker: false
+        horseWeight: 482
+        horseWeightDiff: 2
+        odds: 16.9
+      - horseNumber: 4
+        bracket: 4
+        name: ジョバンニ
+        jockey: 松山弘平
+        sex: 牡
+        age: 2
+        ref: nk-2022103995
+        trainer: 杉山晴紀
+        trainingCenter: 栗東
+        finish: 2
+        popularity: 3
+        time: "2:01.1"
+        margin: "1.1/4"
+        timeDiff: 0.2
+        passing: "8-8-5-5"
+        last3f: 34.3
+        weight: 56
+        blinker: false
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 6.5
+      - horseNumber: 5
+        bracket: 5
+        name: クラウディアイ
+        jockey: 西村淳也
+        sex: 牡
+        age: 2
+        ref: nk-2022100099
+        trainer: 橋口慎介
+        trainingCenter: 栗東
+        finish: 3
+        popularity: 4
+        time: "2:01.2"
+        margin: "1"
+        timeDiff: 0.3
+        passing: "6-6-7-7"
+        last3f: 34.3
+        weight: 56
+        blinker: false
+        horseWeight: 430
+        horseWeightDiff: 14
+        odds: 8.7
+      - horseNumber: 6
+        bracket: 6
+        name: ローレルオーブ
+        jockey: 団野大成
+        sex: 牡
+        age: 2
+        ref: nk-2022106940
+        trainer: 杉山佳明
+        trainingCenter: 栗東
+        finish: 8
+        popularity: 8
+        time: "2:01.9"
+        margin: "1.1/2"
+        timeDiff: 1
+        passing: "7-7-7-7"
+        last3f: 35
+        weight: 56
+        blinker: false
+        horseWeight: 444
+        horseWeightDiff: -2
+        odds: 158.6
+      - horseNumber: 7
+        bracket: 7
+        name: スリーキングス
+        jockey: 岩田康誠
+        sex: 牡
+        age: 2
+        ref: nk-2022102217
+        trainer: 上村洋行
+        trainingCenter: 栗東
+        finish: 5
+        popularity: 6
+        time: "2:01.4"
+        margin: "アタマ"
+        timeDiff: 0.5
+        passing: "3-3-5-5"
+        last3f: 34.6
+        weight: 56
+        blinker: false
+        horseWeight: 498
+        horseWeightDiff: 4
+        odds: 19.9
       - horseNumber: 8
         bracket: 8
         name: エリキング
         jockey: 川田将雅
+        sex: 牡
+        age: 2
         ref: nk-2022105099
+        trainer: 中内田充正
+        trainingCenter: 栗東
         finish: 1
         popularity: 1
         time: "2:00.9"
+        timeDiff: -0.2
         passing: "4-5-3-3"
         last3f: 34.2
         weight: 56
+        blinker: false
         horseWeight: 498
         horseWeightDiff: 0
         odds: 1.9
