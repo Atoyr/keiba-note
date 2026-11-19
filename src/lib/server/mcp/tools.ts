@@ -264,7 +264,9 @@ export const TOOLS = [
 		title: 'レースと出走馬',
 		description:
 			'レースの条件（頭数 fieldSize・ラップ laps を含む）、出走馬（馬番・騎手・斤量・馬体重・着順・確定の人気 finalPopularity と単勝 finalWinOdds）、発売中の単勝・複勝オッズ odds とその時点を返します。' +
-			'過去の重賞でも気にしている馬しか entries に入っていない開催があるので、entries の数は頭数ではありません（頭数は fieldSize）。' +
+			'終わったレースの人気と単勝は finalPopularity・finalWinOdds で読みます（odds は発売中に取ったオッズで、過去のレースでは null のことが多い）。' +
+			'結果が入っていない項目は null です。' +
+			'気にしている馬しか entries に入っていないレースがあります（重賞も含む）。entries の数は頭数ではありません（頭数は fieldSize）。' +
 			UNTRUSTED,
 		scope: 'races:read',
 		readOnly: true,

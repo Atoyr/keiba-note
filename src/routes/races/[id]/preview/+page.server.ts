@@ -162,6 +162,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 				...e,
 				// 出走馬の行の性齢。馬齢はこのレースの日付で数える（出馬表と同じ）。
 				sexAge: sexAgeLabel(e.sex, e.birthYear, race.date),
+				// `...e` の確定の単勝・人気（結果の値）を、発売中のオッズとそこから出した人気で上書きする。
+				// 予想画面に出すのは発売中の値。`...e` より後ろに置くこと。
 				odds: e.horseNumber === null ? null : (oddsByNumber.get(e.horseNumber) ?? null),
 				popularity: e.horseNumber === null ? null : (popularity.get(e.horseNumber) ?? null),
 				// 騎手名を押したときに開く、自分のまとめ。無ければ null。

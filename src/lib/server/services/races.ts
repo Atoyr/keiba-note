@@ -281,7 +281,7 @@ export type RaceEntryView = {
 	trainingCenter: TrainingCenter | null;
 };
 
-/** ふりかえりの出走馬。結果として入る確定の単勝と馬体重（増減）を足したもの。 */
+/** ふりかえりの出走馬。形は予想と同じ（確定の単勝・馬体重も `RaceEntryView` に入った）。並びだけが違う。 */
 export type ReviewEntryView = RaceEntryView;
 
 /** そのレースの出走馬。着順 → 馬番の順に並べる（ふりかえり用）。 */
