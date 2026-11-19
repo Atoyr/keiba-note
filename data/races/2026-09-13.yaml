@@ -591,3 +591,32 @@ races:
         horseWeight: 498
         horseWeightDiff: 2
         odds: 9.2
+  - course: 中山
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 稍重
+    weather: 曇
+    fieldSize: 11
+    winner: スローブギ
+    runnerUp: タンタトリス
+    entries:
+      - horseNumber: 11
+        bracket: 8
+        name: スローブギ
+        jockey: ミシェル
+        ref: nk-2024105964
+        finish: 1
+        popularity: 1
+        time: "1:53.2"
+        timeDiff: -0.1
+        passing: "3-2-2-3"
+        last3f: 34.6
+        weight: 55
+        blinker: false
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 2.9

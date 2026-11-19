@@ -519,3 +519,31 @@ races:
         horseWeight: 436
         horseWeightDiff: 10
         odds: 1.5
+  - course: 新潟
+    raceNumber: 3
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 12
+    winner: コラリオン
+    runnerUp: コスモプルー
+    entries:
+      - horseNumber: 6
+        bracket: 5
+        name: コラリオン
+        jockey: 田辺裕信
+        ref: nk-2024106471
+        finish: 1
+        popularity: 3
+        time: "1:47.2"
+        timeDiff: -0.4
+        passing: "7-7"
+        last3f: 33.1
+        weight: 55
+        horseWeight: 496
+        horseWeightDiff: 0
+        odds: 4.3

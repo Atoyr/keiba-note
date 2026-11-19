@@ -458,3 +458,32 @@ races:
         horseWeight: 452
         horseWeightDiff: -12
         odds: 4.7
+  - course: 京都
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 5
+    winner: ビンドゥング
+    runnerUp: メールデトワール
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ビンドゥング
+        jockey: 戸崎圭太
+        ref: nk-2024107180
+        finish: 1
+        popularity: 1
+        time: "2:02.1"
+        timeDiff: 0
+        passing: "3-3-3-3"
+        last3f: 33.2
+        weight: 56
+        blinker: false
+        horseWeight: 466
+        horseWeightDiff: 0
+        odds: 1.8

@@ -803,3 +803,30 @@ races:
         horseWeight: 420
         horseWeightDiff: -2
         odds: 16.1
+  - course: 中京
+    raceNumber: 3
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1600
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 8
+    winner: ホウオウワールド
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: ティフォシ
+        jockey: M.デムーロ
+        ref: nk-2024103816
+        finish: 2
+        popularity: 7
+        time: "1:36.1"
+        timeDiff: 0
+        passing: "4-3-3"
+        last3f: 33.3
+        weight: 55
+        horseWeight: 472
+        horseWeightDiff: 0
+        odds: 35.2

@@ -590,7 +590,24 @@ races:
     direction: 左
     trackCondition: 良
     weather: 小雨
+    fieldSize: 9
+    winner: トウシンマジック
     entries:
+      - horseNumber: 3
+        bracket: 3
+        name: ダノンダックス
+        jockey: 戸崎圭太
+        ref: nk-2024106662
+        finish: 2
+        popularity: 1
+        time: "1:37.4"
+        timeDiff: 0
+        passing: "4-4"
+        last3f: 33
+        weight: 55
+        horseWeight: 464
+        horseWeightDiff: 0
+        odds: 1.2
       - horseNumber: 6
         bracket: 6
         name: トウシンマジック
