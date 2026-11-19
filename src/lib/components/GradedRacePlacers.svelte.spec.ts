@@ -326,7 +326,7 @@ describe('GradedRacePlacers の年×着順の表', () => {
 		expect(container.textContent).toContain('太字は6番人気以下');
 	});
 
-	it('棒は人気の観点だけにあり、幅は3着以内 ÷ 分かる出走で、読み上げに出ない', () => {
+	it('棒は人気の観点だけにあり、幅はいちばん多い段を 100% にして、読み上げに出ない', () => {
 		const data: Placers = {
 			...normal,
 			aspects: [
@@ -335,8 +335,9 @@ describe('GradedRacePlacers の年×着順の表', () => {
 					known: 4,
 					unknown: 0,
 					rows: [
-						{ value: '1番人気', wins: 1, placed: 1, sources: [] },
-						{ value: '2番人気', wins: 0, placed: 0, sources: [] }
+						{ value: '1番人気', wins: 1, placed: 2, sources: [] },
+						{ value: '2番人気', wins: 0, placed: 1, sources: [] },
+						{ value: '3番人気', wins: 0, placed: 0, sources: [] }
 					]
 				},
 				aspects[1]
@@ -344,8 +345,9 @@ describe('GradedRacePlacers の年×着順の表', () => {
 		};
 		const { container } = render(GradedRacePlacers, { placers: data });
 		const bars = container.querySelectorAll<HTMLElement>('[data-placed-bar]');
-		expect(bars).toHaveLength(1);
-		expect(bars[0].style.width).toBe('25%');
+		expect(bars).toHaveLength(2);
+		expect(bars[0].style.width).toBe('100%');
+		expect(bars[1].style.width).toBe('50%');
 		expect(bars[0].closest('[aria-hidden="true"]')).not.toBeNull();
 		const jockey = [...container.querySelectorAll('table')].find((t) =>
 			t.querySelector('caption')?.textContent?.startsWith('騎手')

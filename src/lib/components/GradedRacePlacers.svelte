@@ -103,6 +103,10 @@
 	function onceRows(aspect: Aspect) {
 		return aspect.key === 'popularity' ? [] : aspect.rows.filter((r) => r.placed === 1);
 	}
+	/** 人気の棒の長さの基準。いちばん多い段を列の幅いっぱいにする（数が小さく、全体で割ると棒が点になるため）。 */
+	function maxPlaced(aspect: Aspect): number {
+		return Math.max(1, ...aspect.rows.map((r) => r.placed));
+	}
 	function summaryLabel(aspect: Aspect): string {
 		const name = ASPECT_LABEL[aspect.key];
 		return aspect.unknown > 0 ? `${name}（分かる ${aspect.known}・不明 ${aspect.unknown}）` : name;
@@ -245,8 +249,18 @@
 										<th scope="col" class="py-1 pr-2 text-left font-normal">
 											{ASPECT_LABEL[aspect.key]}
 										</th>
-										<th scope="col" class="px-2 py-1 text-right font-normal">勝ち馬</th>
-										<th scope="col" class="py-1 pl-2 text-right font-normal">3着以内</th>
+										<th scope="col" class="px-2 py-1 text-right font-normal whitespace-nowrap"
+											>勝ち馬</th
+										>
+										<th
+											scope="col"
+											class={[
+												'py-1 pl-2 text-right font-normal',
+												aspect.key === 'popularity' && 'w-1/2'
+											]}
+										>
+											3着以内
+										</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -269,7 +283,7 @@
 																<div
 																	data-placed-bar
 																	class="h-2 rounded-sm bg-muted-foreground/40"
-																	style:width="{(row.placed / aspect.known) * 100}%"
+																	style:width="{(row.placed / maxPlaced(aspect)) * 100}%"
 																></div>
 															{/if}
 														</div>
