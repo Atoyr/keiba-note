@@ -13,6 +13,7 @@ races:
     weather: 晴
     fieldSize: 18
     winner: ゼンダンハヤブサ
+    runnerUp: ジョバンニ
     entries:
       - horseNumber: 1
         bracket: 1
@@ -25,6 +26,7 @@ races:
         finish: 1
         popularity: 10
         time: "1:58.0"
+        timeDiff: -0.1
         passing: "8-6-7-6"
         last3f: 34.7
         weight: 52

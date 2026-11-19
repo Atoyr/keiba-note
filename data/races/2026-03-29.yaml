@@ -1042,3 +1042,30 @@ races:
         horseWeight: 460
         horseWeightDiff: -2
         odds: 5.9
+  - course: 阪神
+    raceNumber: 8
+    name: 四国新聞杯
+    className: 2勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 7
+    winner: エコテーラー
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ヨヒーン
+        jockey: 吉村誠之助
+        ref: nk-2022105166
+        finish: 6
+        popularity: 5
+        time: "2:00.9"
+        timeDiff: 0.7
+        passing: "7-7-4-3"
+        last3f: 34.5
+        weight: 56
+        horseWeight: 462
+        horseWeightDiff: 0
+        odds: 12.2

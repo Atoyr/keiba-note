@@ -54,14 +54,15 @@ races:
         horseWeight: 508
         horseWeightDiff: -2
         odds: 20.2
-      - name: キャントウェイト
-        ref: nk-2021102800
+      - horseNumber: 3
         bracket: 3
-        horseNumber: 3
+        name: キャントウェイト
         jockey: 団野大成
+        ref: nk-2021102800
         finish: 5
         popularity: 4
         time: "1:59.2"
+        timeDiff: 0.5
         passing: "4-4-4-4"
         last3f: 34.2
         weight: 58

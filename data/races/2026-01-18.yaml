@@ -557,6 +557,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: フィーリウス
+    runnerUp: オストラヴァ
     entries:
       - horseNumber: 5
         bracket: 3
@@ -566,6 +567,7 @@ races:
         finish: 1
         popularity: 5
         time: "2:14.5"
+        timeDiff: -0.2
         passing: "3-3-3-4"
         last3f: 33.8
         weight: 57

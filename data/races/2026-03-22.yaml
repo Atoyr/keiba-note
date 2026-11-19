@@ -724,6 +724,7 @@ races:
     weather: 晴
     fieldSize: 9
     winner: フィーリウス
+    runnerUp: エラン
     entries:
       - horseNumber: 1
         bracket: 1
@@ -762,6 +763,7 @@ races:
         finish: 1
         popularity: 3
         time: "1:46.7"
+        timeDiff: -0.4
         passing: "4-5-2-2"
         last3f: 34.5
         weight: 58

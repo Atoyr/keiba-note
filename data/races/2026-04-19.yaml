@@ -117,6 +117,7 @@ races:
         popularity: 10
         time: "1:57.0"
         margin: "1.1/4"
+        timeDiff: 0.5
         passing: "17-16-15-13"
         last3f: 33.4
         weight: 57
@@ -890,3 +891,30 @@ races:
         horseWeight: 418
         horseWeightDiff: 0
         odds: 37.1
+  - course: 阪神
+    raceNumber: 9
+    name: 蓬莱峡特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 10
+    winner: ピンキープロミス
+    entries:
+      - horseNumber: 7
+        bracket: 7
+        name: ヴィスマール
+        jockey: 吉村誠之助
+        ref: nk-2021105459
+        finish: 5
+        popularity: 2
+        time: "2:00.0"
+        timeDiff: 0.4
+        passing: "5-5-5-4"
+        last3f: 35
+        weight: 58
+        horseWeight: 462
+        horseWeightDiff: -8
+        odds: 3.5

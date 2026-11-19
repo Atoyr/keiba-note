@@ -37,13 +37,6 @@ races:
         trainer: 石橋守
         trainingCenter: 栗東
         weight: 58
-      - name: エコロアルバ
-        sex: 牡
-        age: 3
-        ref: nk-2023103184
-        trainer: 手塚貴久
-        trainingCenter: 美浦
-        weight: 57
       - name: エコロブルーム
         jockey: 坂井瑠星
         sex: 牡
@@ -101,6 +94,7 @@ races:
         trainingCenter: 美浦
         weight: 58
       - name: ジューンテイク
+        jockey: 川田将雅
         sex: 牡
         age: 5
         ref: nk-2021100913
@@ -139,14 +133,6 @@ races:
         trainer: 伊藤大士
         trainingCenter: 美浦
         weight: 56
-      - name: マジックサンズ
-        jockey: 川田将雅
-        sex: 牡
-        age: 4
-        ref: nk-2022104772
-        trainer: 須貝尚介
-        trainingCenter: 栗東
-        weight: 58
       - name: レザベーション
         jockey: 田口貫太
         sex: 牡
@@ -155,13 +141,6 @@ races:
         trainer: 松下武士
         trainingCenter: 栗東
         weight: 57
-      - name: レッドシュヴェルト
-        sex: 牡
-        age: 6
-        ref: nk-2020103517
-        trainer: 尾関知人
-        trainingCenter: 美浦
-        weight: 58
       - name: ロデオドライブ
         jockey: モレイラ
         sex: 牡
@@ -178,3 +157,10 @@ races:
         trainer: 池添学
         trainingCenter: 栗東
         weight: 58
+    withdrawn:
+      - name: エコロアルバ
+        ref: nk-2023103184
+      - name: マジックサンズ
+        ref: nk-2022104772
+      - name: レッドシュヴェルト
+        ref: nk-2020103517

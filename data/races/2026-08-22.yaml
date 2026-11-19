@@ -11,6 +11,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 14
+    winner: キャントウェイト
+    runnerUp: スパークリシャール
     entries:
       - horseNumber: 7
         bracket: 5
@@ -20,6 +23,7 @@ races:
         finish: 1
         popularity: 4
         time: "1:59.9"
+        timeDiff: 0
         passing: "5-5-4-3"
         last3f: 36.1
         weight: 58
