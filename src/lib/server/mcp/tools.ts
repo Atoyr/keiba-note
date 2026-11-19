@@ -262,7 +262,10 @@ export const TOOLS = [
 	tool({
 		name: 'get_race',
 		title: 'レースと出走馬',
-		description: `レースの条件、出走馬（馬番・騎手・着順）、単勝・複勝オッズとその時点を返します。${UNTRUSTED}`,
+		description:
+			'レースの条件（頭数 fieldSize・ラップ laps を含む）、出走馬（馬番・騎手・斤量・馬体重・着順・確定の人気 finalPopularity と単勝 finalWinOdds）、発売中の単勝・複勝オッズ odds とその時点を返します。' +
+			'過去の重賞でも気にしている馬しか entries に入っていない開催があるので、entries の数は頭数ではありません（頭数は fieldSize）。' +
+			UNTRUSTED,
 		scope: 'races:read',
 		readOnly: true,
 		input: v.strictObject({ raceId: id }),
@@ -291,7 +294,9 @@ export const TOOLS = [
 						direction: race.direction,
 						trackCondition: race.trackCondition,
 						weather: race.weather,
-						startTime: race.startTime
+						startTime: race.startTime,
+						fieldSize: race.fieldSize,
+						laps: race.laps ?? null
 					},
 					oddsAsOf: odds?.asOf ?? null,
 					entries: entries.map((e) => {
@@ -303,11 +308,16 @@ export const TOOLS = [
 							bracket: e.bracket,
 							horseNumber: e.horseNumber,
 							jockey: e.jockey,
+							weightCarried: e.weightCarried,
+							horseWeight: e.horseWeight,
+							horseWeightDiff: e.horseWeightDiff,
 							finishPosition: e.finishPosition,
 							finishTime: e.finishTime,
 							margin: e.margin,
 							last3f: e.last3f,
 							passing: e.passing,
+							finalPopularity: e.popularity,
+							finalWinOdds: e.odds,
 							odds: o
 								? {
 										win: o.winOdds,

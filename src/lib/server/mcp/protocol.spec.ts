@@ -188,6 +188,33 @@ describe('tools', () => {
 		]);
 	});
 
+	it('get_race は確定の人気・単勝・斤量・馬体重・頭数・ラップを返し、無い値は null', async () => {
+		sqlite.exec(`
+			UPDATE race SET field_size = 16, laps = '[12.8,11.8,13.0]' WHERE id = 'P';
+			UPDATE race_entry SET odds = 3.4, popularity = 2, weight_carried = 57, horse_weight = 480,
+				horse_weight_diff = -4 WHERE id = 'PE';
+		`);
+		const past = data(await call('get_race', { raceId: 'P' }, RACES_ONLY));
+		expect(past.race).toMatchObject({ fieldSize: 16, laps: [12.8, 11.8, 13.0] });
+		expect(past.entries[0]).toMatchObject({
+			finalPopularity: 2,
+			finalWinOdds: 3.4,
+			weightCarried: 57,
+			horseWeight: 480,
+			horseWeightDiff: -4,
+			odds: null
+		});
+		const future = data(await call('get_race', { raceId: 'R' }, RACES_ONLY));
+		expect(future.race).toMatchObject({ fieldSize: null, laps: null });
+		expect(future.entries[0]).toMatchObject({
+			finalPopularity: null,
+			finalWinOdds: null,
+			weightCarried: null,
+			horseWeight: null,
+			horseWeightDiff: null
+		});
+	});
+
 	it('無いレースは tool の誤り（isError）', async () => {
 		const reply = body(await call('get_race', { raceId: 'nope' }));
 		expect(reply.result?.isError).toBe(true);
