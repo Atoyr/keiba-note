@@ -35,21 +35,327 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 17
+    winner: ジャスティンミラノ
+    runnerUp: コスモキュランダ
+    laps: [12.2, 10.5, 11.5, 11.7, 11.6, 11.8, 12, 12.1, 11.7, 12]
+    ref: nk-202406030811
+    startTime: "15:40"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: サンライズジパング
+        jockey: 菅原明良
+        age: 3
+        ref: nk-2021104756
+        finish: 9
+        popularity: 10
+        time: "1:58.0"
+        margin: "クビ"
+        timeDiff: 0.9
+        passing: "7-7-7-8"
+        last3f: 35.3
+        weight: 57
+        blinker: false
+        horseWeight: 510
+        horseWeightDiff: -6
+        odds: 27.5
+      - horseNumber: 2
+        bracket: 1
+        name: メイショウタバル
+        jockey: 浜中俊
+        age: 3
+        ref: nk-2021103272
+        finish: 17
+        popularity: 4
+        time: "1:59.3"
+        margin: "1"
+        timeDiff: 2.2
+        passing: "1-1-1-1"
+        last3f: 38
+        weight: 57
+        blinker: false
+        horseWeight: 500
+        horseWeightDiff: 0
+        odds: 7
+      - horseNumber: 3
+        bracket: 2
+        name: エコロヴァルツ
+        jockey: 武豊
+        age: 3
+        ref: nk-2021101436
+        finish: 7
+        popularity: 11
+        time: "1:57.8"
+        margin: "1.1/2"
+        timeDiff: 0.7
+        passing: "16-16-17-16"
+        last3f: 33.9
+        weight: 57
+        blinker: false
+        horseWeight: 486
+        horseWeightDiff: -10
+        odds: 40.5
+      - horseNumber: 4
+        bracket: 2
+        name: シリウスコルト
+        jockey: 三浦皇成
+        age: 3
+        ref: nk-2021104094
+        finish: 14
+        popularity: 13
+        time: "1:58.6"
+        margin: "1/2"
+        timeDiff: 1.5
+        passing: "2-2-2-2"
+        last3f: 36.6
+        weight: 57
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: -10
+        odds: 176.4
+      - horseNumber: 5
+        bracket: 3
+        name: ミスタージーティー
+        jockey: 藤岡佑介
+        age: 3
+        ref: nk-2021105856
+        finish: 10
+        popularity: 9
+        time: "1:58.1"
+        margin: "1/2"
+        timeDiff: 1
+        passing: "5-5-4-6"
+        last3f: 35.6
+        weight: 57
+        blinker: true
+        horseWeight: 468
+        horseWeightDiff: -4
+        odds: 17.4
+      - horseNumber: 6
+        bracket: 3
+        name: アレグロブリランテ
+        jockey: 横山和生
+        age: 3
+        ref: nk-2021105625
+        finish: 15
+        popularity: 15
+        time: "1:58.7"
+        margin: "1/2"
+        timeDiff: 1.6
+        passing: "3-3-4-4"
+        last3f: 36.3
+        weight: 57
+        blinker: false
+        horseWeight: 466
+        horseWeightDiff: -4
+        odds: 274
+      - horseNumber: 7
+        bracket: 4
+        name: ルカランフィースト
+        jockey: 松山弘平
+        age: 3
+        ref: nk-2021105040
+        finish: 8
+        popularity: 14
+        time: "1:57.9"
+        margin: "3/4"
+        timeDiff: 0.8
+        passing: "11-11-11-10"
+        last3f: 34.6
+        weight: 57
+        blinker: false
+        horseWeight: 468
+        horseWeightDiff: 6
+        odds: 272.7
+      - horseNumber: 8
+        bracket: 4
+        name: ジャンタルマンタル
+        jockey: 川田将雅
+        age: 3
+        ref: nk-2021107171
+        finish: 3
+        popularity: 3
+        time: "1:57.2"
+        margin: "1/2"
+        timeDiff: 0.1
+        passing: "3-3-3-2"
+        last3f: 34.9
+        weight: 57
+        blinker: false
+        horseWeight: 490
+        horseWeightDiff: -2
+        odds: 6.1
+      - horseNumber: 9
+        bracket: 5
+        name: アーバンシック
+        jockey: 横山武史
+        age: 3
+        ref: nk-2021105436
+        finish: 4
+        popularity: 6
+        time: "1:57.5"
+        margin: "1.1/2"
+        timeDiff: 0.4
+        passing: "13-13-13-10"
+        last3f: 34.1
+        weight: 57
+        blinker: false
+        horseWeight: 510
+        horseWeightDiff: -6
+        odds: 14.2
+      - horseNumber: 10
+        bracket: 5
+        name: レガレイラ
+        jockey: 北村宏司
+        age: 3
+        ref: nk-2021105898
+        finish: 6
+        popularity: 1
+        time: "1:57.6"
+        margin: "クビ"
+        timeDiff: 0.5
+        passing: "14-15-14-13"
+        last3f: 33.9
+        weight: 55
+        blinker: false
+        horseWeight: 456
+        horseWeightDiff: 2
+        odds: 3.7
+      - horseNumber: 11
+        bracket: 6
+        name: ホウオウプロサンゲ
+        jockey: 菱田裕二
+        age: 3
+        ref: nk-2021105623
+        finish: 11
+        popularity: 16
+        time: "1:58.2"
+        margin: "1"
+        timeDiff: 1.1
+        passing: "10-10-10-10"
+        last3f: 35.1
+        weight: 57
+        blinker: false
+        horseWeight: 482
+        horseWeightDiff: -2
+        odds: 274.9
+      - horseNumber: 12
+        bracket: 6
+        name: コスモキュランダ
+        jockey: モレイラ
+        age: 3
+        ref: nk-2021106787
+        finish: 2
+        popularity: 7
+        time: "1:57.1"
+        margin: "クビ"
+        timeDiff: 0
+        passing: "9-8-9-8"
+        last3f: 34.2
+        weight: 57
+        blinker: false
+        horseWeight: 500
+        horseWeightDiff: -4
+        odds: 15.8
+      - horseNumber: 13
+        bracket: 7
+        name: ジャスティンミラノ
+        jockey: 戸崎圭太
+        age: 3
+        ref: nk-2021105795
+        finish: 1
+        popularity: 2
+        time: "1:57.1"
+        timeDiff: 0
+        passing: "5-5-4-4"
+        last3f: 34.7
+        weight: 57
+        blinker: false
+        horseWeight: 512
+        horseWeightDiff: 10
+        odds: 4.8
       - horseNumber: 14
         bracket: 7
         name: シンエンペラー
         jockey: 坂井瑠星
+        age: 3
         ref: nk-2021110048
         finish: 5
         popularity: 5
         time: "1:57.5"
+        margin: "クビ"
+        timeDiff: 0.4
         passing: "8-8-7-6"
         last3f: 34.8
         weight: 57
+        blinker: false
         horseWeight: 482
         horseWeightDiff: 2
         odds: 8.4
+      - horseNumber: 15
+        bracket: 7
+        name: サンライズアース
+        jockey: M.デムーロ
+        age: 3
+        ref: nk-2021105560
+        finish: 12
+        popularity: 12
+        time: "1:58.5"
+        margin: "1.1/2"
+        timeDiff: 1.4
+        passing: "11-11-11-13"
+        last3f: 35.2
+        weight: 57
+        blinker: false
+        horseWeight: 532
+        horseWeightDiff: -10
+        odds: 54.2
+      - horseNumber: 16
+        bracket: 8
+        name: ダノンデサイル
+        jockey: 横山典弘
+        ref: nk-2021105143
+        weight: 57
+        blinker: false
+        horseWeight: 504
+        horseWeightDiff: -2
+      - horseNumber: 17
+        bracket: 8
+        name: ビザンチンドリーム
+        jockey: ムルザバエフ
+        age: 3
+        ref: nk-2021105587
+        finish: 13
+        popularity: 8
+        time: "1:58.5"
+        margin: "クビ"
+        timeDiff: 1.4
+        passing: "16-16-16-15"
+        last3f: 34.7
+        weight: 57
+        blinker: false
+        horseWeight: 456
+        horseWeightDiff: 6
+        odds: 16.4
+      - horseNumber: 18
+        bracket: 8
+        name: ウォーターリヒト
+        jockey: 幸英明
+        age: 3
+        ref: nk-2021100953
+        finish: 16
+        popularity: 17
+        time: "1:59.2"
+        margin: "2.1/2"
+        timeDiff: 2.1
+        passing: "14-13-14-16"
+        last3f: 35.6
+        weight: 57
+        blinker: false
+        horseWeight: 462
+        horseWeightDiff: 0
+        odds: 275.2
   - course: 阪神
     raceNumber: 11
     name: アンタレスS
@@ -69,11 +375,8 @@ races:
         bracket: 1
         name: ハギノアレグリアス
         jockey: 岩田望来
-        sex: 牡
         age: 7
         ref: nk-2017103290
-        trainer: 四位洋文
-        trainingCenter: 栗東
         finish: 3
         popularity: 1
         time: "1:51.5"
@@ -109,11 +412,8 @@ races:
         bracket: 2
         name: ヴィクティファルス
         jockey: 池添謙一
-        sex: セ
         age: 6
         ref: nk-2018104948
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 14
         popularity: 2
         time: "1:54.5"
@@ -149,11 +449,8 @@ races:
         bracket: 3
         name: ニューモニュメント
         jockey: 小崎綾也
-        sex: 牡
         age: 8
         ref: nk-2016105885
-        trainer: 小崎憲
-        trainingCenter: 栗東
         finish: 11
         popularity: 12
         time: "1:52.7"
@@ -169,11 +466,8 @@ races:
         bracket: 3
         name: ホウオウルーレット
         jockey: 北村友一
-        sex: 牡
         age: 5
         ref: nk-2019105746
-        trainer: 栗田徹
-        trainingCenter: 美浦
         finish: 9
         popularity: 6
         time: "1:52.6"
@@ -189,11 +483,8 @@ races:
         bracket: 4
         name: サヴァ
         jockey: 岩田康誠
-        sex: 牡
         age: 6
         ref: nk-2018103223
-        trainer: 上村洋行
-        trainingCenter: 栗東
         finish: 5
         popularity: 10
         time: "1:52.3"
@@ -209,11 +500,8 @@ races:
         bracket: 4
         name: テーオードレフォン
         jockey: 丸山元気
-        sex: 牡
         age: 5
         ref: nk-2019101324
-        trainer: 梅田智之
-        trainingCenter: 栗東
         finish: 12
         popularity: 4
         time: "1:52.8"
@@ -229,11 +517,8 @@ races:
         bracket: 5
         name: ラインオブソウル
         jockey: 松若風馬
-        sex: 牡
         age: 5
         ref: nk-2019105993
-        trainer: 音無秀孝
-        trainingCenter: 栗東
         finish: 13
         popularity: 8
         time: "1:52.9"
@@ -249,11 +534,8 @@ races:
         bracket: 5
         name: ミッキーヌチバナ
         jockey: 太宰啓介
-        sex: 牡
         age: 6
         ref: nk-2018105431
-        trainer: 高橋亮
-        trainingCenter: 栗東
         finish: 1
         popularity: 5
         time: "1:51.2"
@@ -268,11 +550,8 @@ races:
         bracket: 6
         name: クリノドラゴン
         jockey: 田口貫太
-        sex: 牡
         age: 6
         ref: nk-2018101012
-        trainer: 大橋勇樹
-        trainingCenter: 栗東
         finish: 10
         popularity: 13
         time: "1:52.7"
@@ -308,11 +587,8 @@ races:
         bracket: 7
         name: トウセツ
         jockey: 団野大成
-        sex: 牡
         age: 5
         ref: nk-2019104589
-        trainer: 杉山佳明
-        trainingCenter: 栗東
         finish: 4
         popularity: 11
         time: "1:52.3"
@@ -328,11 +604,8 @@ races:
         bracket: 7
         name: ゲンパチルシファー
         jockey: 酒井学
-        sex: 牡
         age: 8
         ref: nk-2016101745
-        trainer: 佐々木晶三
-        trainingCenter: 栗東
         finish: 8
         popularity: 15
         time: "1:52.6"
@@ -368,11 +641,8 @@ races:
         bracket: 8
         name: スレイマン
         jockey: 斎藤新
-        sex: 牡
         age: 6
         ref: nk-2018105164
-        trainer: 池添学
-        trainingCenter: 栗東
         finish: 2
         popularity: 3
         time: "1:51.2"

@@ -35,32 +35,300 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 15
+    winner: リラエンブレム
+    runnerUp: アルテヴェローチェ
+    laps: [12.6, 11.3, 11.2, 11.7, 12, 12.1, 11.9, 11.8]
+    ref: nk-202507010511
+    startTime: "15:30"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: マイネルチケット
+        jockey: 戸崎圭太
+        age: 3
+        ref: nk-2022106768
+        finish: 4
+        popularity: 2
+        time: "1:35.2"
+        margin: "ハナ"
+        timeDiff: 0.6
+        passing: "9-11-10"
+        last3f: 35.5
+        weight: 57
+        blinker: false
+        horseWeight: 468
+        horseWeightDiff: 12
+        odds: 4.5
+      - horseNumber: 2
+        bracket: 2
+        name: タイセイカレント
+        jockey: 武豊
+        age: 3
+        ref: nk-2022104588
+        finish: 5
+        popularity: 4
+        time: "1:35.4"
+        margin: "1.1/4"
+        timeDiff: 0.8
+        passing: "2-4-3"
+        last3f: 36.3
+        weight: 57
+        blinker: false
+        horseWeight: 480
+        horseWeightDiff: -6
+        odds: 8.1
+      - horseNumber: 3
+        bracket: 2
+        name: アクルクス
+        jockey: 幸英明
+        sex: 牡
+        age: 3
+        ref: nk-2022100335
+        trainer: 池添学
+        trainingCenter: 栗東
+        finish: 7
+        popularity: 15
+        time: "1:35.9"
+        margin: "1/2"
+        timeDiff: 1.3
+        passing: "7-8-6"
+        last3f: 36.6
+        weight: 57
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: 0
+        odds: 176.9
       - horseNumber: 4
         bracket: 3
         name: リラエンブレム
         jockey: 浜中俊
+        age: 3
         ref: nk-2022104922
         finish: 1
         popularity: 3
         time: "1:34.6"
+        timeDiff: -0.4
         passing: "4-8-9"
         last3f: 35.1
         weight: 57
+        blinker: false
         horseWeight: 476
         horseWeightDiff: 6
         odds: 4.7
+      - horseNumber: 5
+        bracket: 3
+        name: ジーティーマン
+        jockey: 藤岡佑介
+        age: 3
+        ref: nk-2022104715
+        finish: 6
+        popularity: 5
+        time: "1:35.8"
+        margin: "2.1/2"
+        timeDiff: 1.2
+        passing: "9-11-10"
+        last3f: 36.1
+        weight: 57
+        blinker: false
+        horseWeight: 488
+        horseWeightDiff: 2
+        odds: 8.8
+      - horseNumber: 6
+        bracket: 4
+        name: カラヴァジェスティ
+        jockey: 池添謙一
+        sex: 牡
+        age: 3
+        ref: nk-2022110006
+        trainer: 奥村武
+        trainingCenter: 美浦
+        finish: 13
+        popularity: 7
+        time: "1:36.8"
+        margin: "1.1/4"
+        timeDiff: 2.2
+        passing: "13-15-14"
+        last3f: 36.8
+        weight: 57
+        blinker: false
+        horseWeight: 464
+        horseWeightDiff: 12
+        odds: 23.2
+      - horseNumber: 7
+        bracket: 4
+        name: オンザムーブ
+        jockey: M.デムーロ
+        sex: 牡
+        age: 3
+        ref: nk-2022105971
+        trainer: 矢作芳人
+        trainingCenter: 栗東
+        finish: 9
+        popularity: 12
+        time: "1:36.1"
+        margin: "クビ"
+        timeDiff: 1.5
+        passing: "13-10-10"
+        last3f: 36.5
+        weight: 57
+        blinker: false
+        horseWeight: 502
+        horseWeightDiff: -2
+        odds: 68.3
       - horseNumber: 8
         bracket: 5
         name: アルテヴェローチェ
         jockey: 川田将雅
+        age: 3
         ref: nk-2022104751
         finish: 2
         popularity: 1
         time: "1:35.0"
+        margin: "2.1/2"
+        timeDiff: 0.4
         passing: "7-7-6"
         last3f: 35.7
         weight: 57
+        blinker: false
         horseWeight: 462
         horseWeightDiff: -10
         odds: 3
+      - horseNumber: 9
+        bracket: 5
+        name: リカントロポ
+        jockey: 菱田裕二
+        sex: 牡
+        age: 3
+        ref: nk-2022100080
+        trainer: 梅田智之
+        trainingCenter: 栗東
+        finish: 10
+        popularity: 11
+        time: "1:36.2"
+        margin: "1"
+        timeDiff: 1.6
+        passing: "9-13-14"
+        last3f: 36.1
+        weight: 57
+        blinker: false
+        horseWeight: 474
+        horseWeightDiff: 14
+        odds: 64.1
+      - horseNumber: 10
+        bracket: 6
+        name: ゴールデンカイト
+        jockey: A.ルメートル
+        sex: 牡
+        age: 3
+        ref: nk-2022110129
+        trainer: 中内田充正
+        trainingCenter: 栗東
+        finish: 11
+        popularity: 9
+        time: "1:36.3"
+        margin: "1/2"
+        timeDiff: 1.7
+        passing: "2-4-6"
+        last3f: 37
+        weight: 57
+        blinker: false
+        horseWeight: 476
+        horseWeightDiff: 4
+        odds: 46.2
+      - horseNumber: 11
+        bracket: 6
+        name: メイショウツヨキ
+        jockey: 北村友一
+        sex: 牡
+        age: 3
+        ref: nk-2022103262
+        trainer: 飯田祐史
+        trainingCenter: 栗東
+        finish: 14
+        popularity: 13
+        time: "1:38.1"
+        margin: "8"
+        timeDiff: 3.5
+        passing: "4-4-5"
+        last3f: 38.9
+        weight: 57
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: 14
+        odds: 73.1
+      - horseNumber: 12
+        bracket: 7
+        name: ラージギャラリー
+        jockey: 坂井瑠星
+        sex: 牝
+        age: 3
+        ref: nk-2022110066
+        trainer: 高橋亮
+        trainingCenter: 栗東
+        finish: 8
+        popularity: 10
+        time: "1:36.1"
+        margin: "1"
+        timeDiff: 1.5
+        passing: "4-2-2"
+        last3f: 37.3
+        weight: 55
+        blinker: false
+        horseWeight: 470
+        horseWeightDiff: 0
+        odds: 51.4
+      - horseNumber: 13
+        bracket: 7
+        name: レーヴブリリアント
+        jockey: 松山弘平
+        age: 3
+        ref: nk-2022105141
+        finish: 12
+        popularity: 6
+        time: "1:36.6"
+        margin: "1.3/4"
+        timeDiff: 2
+        passing: "13-1-1"
+        last3f: 37.8
+        weight: 57
+        blinker: false
+        horseWeight: 448
+        horseWeightDiff: 2
+        odds: 14.9
+      - horseNumber: 14
+        bracket: 8
+        name: アーリントンロウ
+        jockey: 西村淳也
+        age: 3
+        ref: nk-2022105921
+        finish: 15
+        popularity: 8
+        time: "1:38.2"
+        margin: "3/4"
+        timeDiff: 3.6
+        passing: "1-3-3"
+        last3f: 39.1
+        weight: 57
+        blinker: false
+        horseWeight: 510
+        horseWeightDiff: 10
+        odds: 24.2
+      - horseNumber: 15
+        bracket: 8
+        name: ウォーターガーベラ
+        jockey: 団野大成
+        age: 3
+        ref: nk-2022100403
+        finish: 3
+        popularity: 14
+        time: "1:35.2"
+        margin: "1.1/2"
+        timeDiff: 0.6
+        passing: "12-13-13"
+        last3f: 35.3
+        weight: 55
+        blinker: false
+        horseWeight: 446
+        horseWeightDiff: 0
+        odds: 75.5

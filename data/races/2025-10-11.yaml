@@ -38,18 +38,25 @@ races:
     fieldSize: 8
     winner: エコロアルバ
     runnerUp: ガリレア
+    laps: [12.4, 11.6, 11.7, 11.9, 12.2, 11.5, 11.3, 11.2]
+    ref: nk-202505040311
+    startTime: "15:45"
     entries:
       - horseNumber: 1
         bracket: 1
         name: ガリレア
         jockey: 杉原誠人
+        age: 2
         ref: nk-2023100681
         finish: 2
         popularity: 7
         time: "1:34.1"
+        margin: "1.1/2"
+        timeDiff: 0.3
         passing: "3-3"
         last3f: 34
         weight: 56
+        blinker: false
         horseWeight: 442
         horseWeightDiff: 2
         odds: 53.4
@@ -57,13 +64,17 @@ races:
         bracket: 2
         name: マーゴットブロー
         jockey: 荻野極
+        age: 2
         ref: nk-2023105356
         finish: 4
         popularity: 8
         time: "1:34.2"
+        margin: "クビ"
+        timeDiff: 0.4
         passing: "1-1"
         last3f: 34.4
         weight: 56
+        blinker: false
         horseWeight: 494
         horseWeightDiff: -2
         odds: 60.1
@@ -71,13 +82,17 @@ races:
         bracket: 3
         name: アスクエジンバラ
         jockey: 岩田康誠
+        age: 2
         ref: nk-2023106400
         finish: 7
         popularity: 4
         time: "1:34.6"
+        margin: "1.1/2"
+        timeDiff: 0.8
         passing: "5-6"
         last3f: 34.3
         weight: 56
+        blinker: false
         horseWeight: 458
         horseWeightDiff: 0
         odds: 9.1
@@ -85,13 +100,17 @@ races:
         bracket: 4
         name: ユウファラオ
         jockey: 丸山元気
+        age: 2
         ref: nk-2023110065
         finish: 6
         popularity: 6
         time: "1:34.4"
+        margin: "ハナ"
+        timeDiff: 0.6
         passing: "2-2"
         last3f: 34.5
         weight: 56
+        blinker: false
         horseWeight: 482
         horseWeightDiff: 0
         odds: 42.5
@@ -99,13 +118,17 @@ races:
         bracket: 5
         name: ゾロアストロ
         jockey: ルメール
+        age: 2
         ref: nk-2023106850
         finish: 3
         popularity: 1
         time: "1:34.1"
+        margin: "クビ"
+        timeDiff: 0.3
         passing: "5-6"
         last3f: 33.8
         weight: 56
+        blinker: false
         horseWeight: 470
         horseWeightDiff: 4
         odds: 1.9
@@ -113,6 +136,7 @@ races:
         bracket: 6
         name: エコロアルバ
         jockey: 坂井瑠星
+        age: 2
         ref: nk-2023103184
         finish: 1
         popularity: 2
@@ -121,9 +145,49 @@ races:
         passing: "8-8"
         last3f: 33.2
         weight: 56
+        blinker: false
         horseWeight: 472
         horseWeightDiff: 8
         odds: 3.6
+      - horseNumber: 7
+        bracket: 7
+        name: ニシノエースサマ
+        jockey: 三浦皇成
+        sex: 牡
+        age: 2
+        ref: nk-2023106277
+        trainer: 鹿戸雄一
+        trainingCenter: 美浦
+        finish: 8
+        popularity: 5
+        time: "1:34.9"
+        margin: "2"
+        timeDiff: 1.1
+        passing: "3-3"
+        last3f: 34.9
+        weight: 56
+        blinker: false
+        horseWeight: 486
+        horseWeightDiff: 6
+        odds: 15.1
+      - horseNumber: 8
+        bracket: 8
+        name: チュウワカーネギー
+        jockey: 北村友一
+        age: 2
+        ref: nk-2023103895
+        finish: 5
+        popularity: 3
+        time: "1:34.4"
+        margin: "1.1/2"
+        timeDiff: 0.6
+        passing: "5-5"
+        last3f: 34.2
+        weight: 56
+        blinker: false
+        horseWeight: 534
+        horseWeightDiff: 18
+        odds: 4.4
   - course: 京都
     raceNumber: 8
     name: 紫菊賞

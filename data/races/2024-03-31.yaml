@@ -11,32 +11,296 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: ベラジオオペラ
+    runnerUp: ローシャムパーク
+    laps: [12.4, 10.9, 12.5, 12.6, 11.8, 11.5, 11.5, 11.4, 11.4, 12.2]
+    ref: nk-202409020411
+    startTime: "15:40"
     entries:
       - horseNumber: 1
         bracket: 1
         name: ミッキーゴージャス
         jockey: M.デムーロ
+        age: 4
         ref: nk-2020103640
         finish: 14
         popularity: 10
         time: "1:59.5"
+        margin: "アタマ"
+        timeDiff: 1.3
         passing: "9-10-14-15"
         last3f: 34.9
         weight: 56
+        blinker: false
         horseWeight: 444
         horseWeightDiff: -6
         odds: 21.2
+      - horseNumber: 2
+        bracket: 1
+        name: ローシャムパーク
+        jockey: 戸崎圭太
+        age: 5
+        ref: nk-2019105552
+        finish: 2
+        popularity: 3
+        time: "1:58.2"
+        margin: "クビ"
+        timeDiff: 0
+        passing: "13-12-2-2"
+        last3f: 34.9
+        weight: 58
+        blinker: false
+        horseWeight: 504
+        horseWeightDiff: 2
+        odds: 6
+      - horseNumber: 3
+        bracket: 2
+        name: タスティエーラ
+        jockey: 松山弘平
+        age: 4
+        ref: nk-2020103532
+        finish: 11
+        popularity: 1
+        time: "1:58.9"
+        margin: "ハナ"
+        timeDiff: 0.7
+        passing: "4-3-4-4"
+        last3f: 35.4
+        weight: 58
+        blinker: false
+        horseWeight: 494
+        horseWeightDiff: -4
+        odds: 4.4
+      - horseNumber: 4
+        bracket: 2
+        name: ハヤヤッコ
+        jockey: 幸英明
+        age: 8
+        ref: nk-2016104624
+        finish: 12
+        popularity: 15
+        time: "1:59.0"
+        margin: "クビ"
+        timeDiff: 0.8
+        passing: "16-16-14-14"
+        last3f: 34.6
+        weight: 58
+        blinker: true
+        horseWeight: 482
+        horseWeightDiff: -8
+        odds: 139.5
+      - horseNumber: 5
+        bracket: 3
+        name: スタニングローズ
+        jockey: 西村淳也
+        age: 5
+        ref: nk-2019105565
+        finish: 8
+        popularity: 6
+        time: "1:58.7"
+        margin: "アタマ"
+        timeDiff: 0.5
+        passing: "1-1-1-1"
+        last3f: 35.5
+        weight: 56
+        blinker: false
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 12.5
+      - horseNumber: 6
+        bracket: 3
+        name: ジオグリフ
+        jockey: 北村宏司
+        age: 5
+        ref: nk-2019105056
+        finish: 5
+        popularity: 8
+        time: "1:58.5"
+        margin: "1"
+        timeDiff: 0.3
+        passing: "4-5-4-4"
+        last3f: 34.9
+        weight: 58
+        blinker: false
+        horseWeight: 506
+        horseWeightDiff: -10
+        odds: 15.4
+      - horseNumber: 7
+        bracket: 4
+        name: ハーパー
+        jockey: 岩田望来
+        age: 4
+        ref: nk-2020103458
+        finish: 13
+        popularity: 9
+        time: "1:59.5"
+        margin: "3"
+        timeDiff: 1.3
+        passing: "6-6-9-9"
+        last3f: 35.5
+        weight: 56
+        blinker: false
+        horseWeight: 470
+        horseWeightDiff: -4
+        odds: 17.1
+      - horseNumber: 8
+        bracket: 4
+        name: プラダリア
+        jockey: 池添謙一
+        age: 5
+        ref: nk-2019100109
+        finish: 6
+        popularity: 4
+        time: "1:58.6"
+        margin: "1"
+        timeDiff: 0.4
+        passing: "6-6-7-7"
+        last3f: 34.8
+        weight: 58
+        blinker: false
+        horseWeight: 470
+        horseWeightDiff: 0
+        odds: 6.5
+      - horseNumber: 9
+        bracket: 5
+        name: ステラヴェローチェ
+        jockey: 酒井学
+        age: 6
+        ref: nk-2018104980
+        finish: 4
+        popularity: 7
+        time: "1:58.3"
+        margin: "1/2"
+        timeDiff: 0.1
+        passing: "9-8-9-10"
+        last3f: 34.2
+        weight: 58
+        blinker: false
+        horseWeight: 504
+        horseWeightDiff: -6
+        odds: 15
+      - horseNumber: 10
+        bracket: 5
+        name: ソールオリエンス
+        jockey: 横山武史
+        age: 4
+        ref: nk-2020102899
+        finish: 7
+        popularity: 5
+        time: "1:58.7"
+        margin: "クビ"
+        timeDiff: 0.5
+        passing: "9-10-4-4"
+        last3f: 35.1
+        weight: 58
+        blinker: true
+        horseWeight: 456
+        horseWeightDiff: -10
+        odds: 8.2
+      - horseNumber: 11
+        bracket: 6
+        name: ベラジオオペラ
+        jockey: 横山和生
+        age: 4
+        ref: nk-2020102781
+        finish: 1
+        popularity: 2
+        time: "1:58.2"
+        timeDiff: 0
+        passing: "2-2-2-2"
+        last3f: 34.9
+        weight: 58
+        blinker: false
+        horseWeight: 506
+        horseWeightDiff: 0
+        odds: 5.5
+      - horseNumber: 12
+        bracket: 6
+        name: キラーアビリティ
+        jockey: 北村友一
+        age: 5
+        ref: nk-2019105155
+        finish: 15
+        popularity: 14
+        time: "2:00.2"
+        margin: "4"
+        timeDiff: 2
+        passing: "8-8-11-12"
+        last3f: 36
+        weight: 58
+        blinker: false
+        horseWeight: 478
+        odds: 82.4
+      - horseNumber: 13
+        bracket: 7
+        name: ルージュエヴァイユ
+        jockey: 菅原明良
+        age: 5
+        ref: nk-2019104831
+        finish: 3
+        popularity: 11
+        time: "1:58.2"
+        margin: "ハナ"
+        timeDiff: 0
+        passing: "12-12-11-10"
+        last3f: 34
+        weight: 56
+        blinker: false
+        horseWeight: 464
+        horseWeightDiff: -14
+        odds: 40
       - horseNumber: 14
         bracket: 7
         name: エピファニー
         jockey: 杉原誠人
+        age: 5
         ref: nk-2019105532
         finish: 10
         popularity: 13
         time: "1:58.9"
+        margin: "クビ"
+        timeDiff: 0.7
         passing: "14-15-11-12"
         last3f: 34.6
         weight: 58
+        blinker: false
         horseWeight: 498
         horseWeightDiff: -6
         odds: 57
+      - horseNumber: 15
+        bracket: 8
+        name: リカンカブール
+        jockey: 津村明秀
+        age: 5
+        ref: nk-2019103823
+        finish: 16
+        popularity: 12
+        time: "2:00.5"
+        margin: "2"
+        timeDiff: 2.3
+        passing: "3-3-7-8"
+        last3f: 36.7
+        weight: 58
+        blinker: false
+        horseWeight: 498
+        horseWeightDiff: 4
+        odds: 48.7
+      - horseNumber: 16
+        bracket: 8
+        name: カテドラル
+        jockey: 藤岡康太
+        age: 8
+        ref: nk-2016104711
+        finish: 9
+        popularity: 16
+        time: "1:58.9"
+        margin: "1.1/4"
+        timeDiff: 0.7
+        passing: "14-14-16-15"
+        last3f: 34.2
+        weight: 58
+        blinker: false
+        horseWeight: 492
+        horseWeightDiff: 2
+        odds: 355.5

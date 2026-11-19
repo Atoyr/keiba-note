@@ -135,11 +135,36 @@ races:
     fieldSize: 12
     winner: フェスティバルヒル
     runnerUp: ショウナンカリス
+    laps: [12.5, 11.3, 11.5, 11.6, 11.5, 11.1, 11.4]
+    ref: nk-202508031011
+    startTime: "15:45"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ポペット
+        jockey: 横山典弘
+        sex: 牝
+        age: 2
+        ref: nk-2023103980
+        trainer: 高橋康之
+        trainingCenter: 栗東
+        finish: 6
+        popularity: 5
+        time: "1:21.1"
+        margin: "アタマ"
+        timeDiff: 0.2
+        passing: "11-11"
+        last3f: 32.8
+        weight: 55
+        blinker: false
+        horseWeight: 418
+        horseWeightDiff: 6
+        odds: 7.8
       - horseNumber: 2
         bracket: 2
         name: フェスティバルヒル
         jockey: C.デムーロ
+        age: 2
         ref: nk-2023107265
         finish: 1
         popularity: 1
@@ -148,63 +173,199 @@ races:
         passing: "9-9"
         last3f: 33.1
         weight: 55
+        blinker: false
         horseWeight: 448
         horseWeightDiff: -2
         odds: 2.8
+      - horseNumber: 3
+        bracket: 3
+        name: ナオミライトニング
+        jockey: 北村友一
+        sex: 牝
+        age: 2
+        ref: nk-2023101847
+        trainer: 矢作芳人
+        trainingCenter: 栗東
+        finish: 8
+        popularity: 12
+        time: "1:21.5"
+        margin: "ハナ"
+        timeDiff: 0.6
+        passing: "8-6"
+        last3f: 33.9
+        weight: 55
+        blinker: false
+        horseWeight: 460
+        horseWeightDiff: 0
+        odds: 107.5
+      - horseNumber: 4
+        bracket: 4
+        name: マーブルパレス
+        jockey: 酒井学
+        sex: 牝
+        age: 2
+        ref: nk-2023105203
+        trainer: 西園正都
+        trainingCenter: 栗東
+        finish: 9
+        popularity: 7
+        time: "1:21.7"
+        margin: "1.1/4"
+        timeDiff: 0.8
+        passing: "1-1"
+        last3f: 34.8
+        weight: 55
+        blinker: false
+        horseWeight: 418
+        horseWeightDiff: 0
+        odds: 24.8
       - horseNumber: 5
         bracket: 5
         name: ブラックチャリス
         jockey: 浜中俊
+        age: 2
         ref: nk-2023107008
         finish: 4
         popularity: 2
         time: "1:21.0"
+        margin: "クビ"
         timeDiff: 0.1
         passing: "5-4"
         last3f: 33.8
         weight: 55
+        blinker: false
         horseWeight: 452
         horseWeightDiff: 16
         odds: 4.3
+      - horseNumber: 6
+        bracket: 5
+        name: ベレーバスク
+        jockey: 丹内祐次
+        sex: 牝
+        age: 2
+        ref: nk-2023106477
+        trainer: 清水英克
+        trainingCenter: 美浦
+        finish: 5
+        popularity: 4
+        time: "1:21.1"
+        margin: "3/4"
+        timeDiff: 0.2
+        passing: "6-6"
+        last3f: 33.6
+        weight: 55
+        blinker: false
+        horseWeight: 458
+        horseWeightDiff: 8
+        odds: 7.3
+      - horseNumber: 7
+        bracket: 6
+        name: メイショウハッケイ
+        jockey: 武豊
+        sex: 牝
+        age: 2
+        ref: nk-2023105035
+        trainer: 本田優
+        trainingCenter: 栗東
+        finish: 3
+        popularity: 3
+        time: "1:20.9"
+        margin: "ハナ"
+        timeDiff: 0
+        passing: "9-9"
+        last3f: 33.2
+        weight: 55
+        blinker: false
+        horseWeight: 458
+        horseWeightDiff: 0
+        odds: 5.8
       - horseNumber: 8
         bracket: 6
         name: ショウナンカリス
         jockey: 池添謙一
+        age: 2
         ref: nk-2023105347
         finish: 2
         popularity: 10
         time: "1:20.9"
+        margin: "クビ"
+        timeDiff: 0
         passing: "6-6"
         last3f: 33.5
         weight: 55
+        blinker: false
         horseWeight: 418
         horseWeightDiff: 10
         odds: 48
+      - horseNumber: 9
+        bracket: 7
+        name: メイプルハッピー
+        jockey: 亀田温心
+        age: 2
+        ref: nk-2023106375
+        finish: 7
+        popularity: 6
+        time: "1:21.5"
+        margin: "2.1/2"
+        timeDiff: 0.6
+        passing: "3-4"
+        last3f: 34.4
+        weight: 55
+        blinker: false
+        horseWeight: 488
+        horseWeightDiff: -10
+        odds: 12
       - horseNumber: 10
         bracket: 7
         name: フルールジェンヌ
         jockey: 田口貫太
+        age: 2
         ref: nk-2023103247
         finish: 10
         popularity: 8
         time: "1:21.7"
+        margin: "クビ"
+        timeDiff: 0.8
         passing: "2-2"
         last3f: 34.8
         weight: 55
+        blinker: false
         horseWeight: 460
         horseWeightDiff: 0
         odds: 24.9
+      - horseNumber: 11
+        bracket: 8
+        name: アンヘリータス
+        jockey: 西村淳也
+        age: 2
+        ref: nk-2023109164
+        finish: 12
+        popularity: 11
+        time: "1:23.5"
+        margin: "7"
+        timeDiff: 2.6
+        passing: "11-12"
+        last3f: 34.7
+        weight: 55
+        blinker: false
+        horseWeight: 428
+        horseWeightDiff: 10
+        odds: 56.6
       - horseNumber: 12
         bracket: 8
         name: シラヌイ
         jockey: 吉村誠之助
+        age: 2
         ref: nk-2023105668
         finish: 11
         popularity: 9
         time: "1:22.3"
+        margin: "3.1/2"
+        timeDiff: 1.4
         passing: "3-3"
         last3f: 35.3
         weight: 55
+        blinker: false
         horseWeight: 450
         horseWeightDiff: -2
         odds: 46.6

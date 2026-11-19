@@ -11,60 +11,270 @@ races:
     direction: 右
     trackCondition: 良
     weather: 曇
+    fieldSize: 18
+    winner: アルナシーム
+    runnerUp: マイネルモーント
+    laps: [12.3, 10.8, 11.8, 11.9, 11.9, 11.9, 11.8, 11.9, 11.8, 12]
+    ref: nk-202506010111
+    startTime: "15:45"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ラーグルフ
+        jockey: 菅原明良
+        age: 6
+        ref: nk-2019101782
+        finish: 10
+        popularity: 12
+        time: "1:58.9"
+        margin: "1/2"
+        timeDiff: 0.8
+        passing: "15-14-15-11"
+        last3f: 35.1
+        weight: 57.5
+        blinker: false
+        horseWeight: 496
+        horseWeightDiff: -4
+        odds: 42.5
+      - horseNumber: 2
+        bracket: 1
+        name: アルナシーム
+        jockey: 藤岡佑介
+        age: 6
+        ref: nk-2019105252
+        finish: 1
+        popularity: 4
+        time: "1:58.1"
+        timeDiff: -0.2
+        passing: "11-10-9-6"
+        last3f: 34.6
+        weight: 58
+        blinker: false
+        horseWeight: 452
+        horseWeightDiff: 2
+        odds: 8.4
+      - horseNumber: 3
+        bracket: 2
+        name: パラレルヴィジョン
+        jockey: マーカンド
+        age: 6
+        ref: nk-2019105065
+        finish: 6
+        popularity: 7
+        time: "1:58.5"
+        margin: "クビ"
+        timeDiff: 0.4
+        passing: "9-8-9-9"
+        last3f: 35
+        weight: 58
+        blinker: false
+        horseWeight: 492
+        horseWeightDiff: 4
+        odds: 11.3
       - horseNumber: 4
         bracket: 2
         name: ジェイパームス
         jockey: 佐々木大輔
+        age: 5
         ref: nk-2020103331
         finish: 14
         popularity: 11
         time: "1:59.1"
+        margin: "クビ"
+        timeDiff: 1
         passing: "7-6-6-6"
         last3f: 35.9
         weight: 56
+        blinker: false
         horseWeight: 510
         horseWeightDiff: 8
         odds: 29.8
+      - horseNumber: 5
+        bracket: 3
+        name: ショウナンアデイブ
+        jockey: 池添謙一
+        age: 6
+        ref: nk-2019105239
+        finish: 7
+        popularity: 9
+        time: "1:58.6"
+        margin: "アタマ"
+        timeDiff: 0.5
+        passing: "6-6-6-6"
+        last3f: 35.4
+        weight: 55
+        blinker: false
+        horseWeight: 510
+        horseWeightDiff: -6
+        odds: 19.6
+      - horseNumber: 6
+        bracket: 3
+        name: カラテ
+        jockey: 杉原誠人
+        age: 9
+        ref: nk-2016106606
+        finish: 13
+        popularity: 13
+        time: "1:59.1"
+        margin: "3/4"
+        timeDiff: 1
+        passing: "9-10-11-14"
+        last3f: 35.4
+        weight: 59
+        blinker: false
+        horseWeight: 546
+        horseWeightDiff: 16
+        odds: 64.8
+      - horseNumber: 7
+        bracket: 4
+        name: マイネルモーント
+        jockey: 丹内祐次
+        age: 5
+        ref: nk-2020105749
+        finish: 2
+        popularity: 6
+        time: "1:58.3"
+        margin: "1.1/4"
+        timeDiff: 0.2
+        passing: "13-12-11-9"
+        last3f: 34.6
+        weight: 55
+        blinker: false
+        horseWeight: 466
+        horseWeightDiff: 8
+        odds: 10.2
       - horseNumber: 8
         bracket: 4
         name: エアファンディタ
         jockey: 戸崎圭太
+        age: 8
         ref: nk-2017110138
         finish: 8
         popularity: 10
         time: "1:58.7"
+        margin: "1"
+        timeDiff: 0.6
         passing: "18-18-18-18"
         last3f: 34.4
         weight: 57.5
+        blinker: true
         horseWeight: 470
         horseWeightDiff: 4
         odds: 26
-      - name: セイウンプラチナ
-        ref: nk-2019102628
+      - horseNumber: 9
         bracket: 5
-        horseNumber: 10
+        name: ギャラクシーナイト
+        jockey: 菊沢一樹
+        age: 6
+        ref: nk-2019103586
+        finish: 5
+        popularity: 15
+        time: "1:58.5"
+        margin: "ハナ"
+        timeDiff: 0.4
+        passing: "16-16-16-14"
+        last3f: 34.5
+        weight: 56
+        blinker: false
+        horseWeight: 512
+        horseWeightDiff: 8
+        odds: 88.4
+      - horseNumber: 10
+        bracket: 5
+        name: セイウンプラチナ
         jockey: 内田博幸
+        age: 6
+        ref: nk-2019102628
         finish: 11
         popularity: 16
         time: "1:58.9"
+        margin: "クビ"
+        timeDiff: 0.8
         passing: "4-5-5-4"
         last3f: 36
         weight: 54
+        blinker: false
         horseWeight: 512
         horseWeightDiff: 24
         odds: 120.5
+      - horseNumber: 11
+        bracket: 6
+        name: カレンシュトラウス
+        jockey: 荻野極
+        sex: 牡
+        age: 8
+        ref: nk-2017102897
+        trainer: 平田修
+        trainingCenter: 栗東
+        finish: 18
+        popularity: 18
+        time: "2:01.0"
+        margin: "1/2"
+        timeDiff: 2.9
+        passing: "13-14-11-11"
+        last3f: 37.3
+        weight: 54
+        blinker: true
+        horseWeight: 528
+        horseWeightDiff: 4
+        odds: 258.7
+      - horseNumber: 12
+        bracket: 6
+        name: ディオスバリエンテ
+        jockey: 大野拓弥
+        sex: セ
+        age: 7
+        ref: nk-2018105147
+        trainer: 堀宣行
+        trainingCenter: 美浦
+        finish: 17
+        popularity: 14
+        time: "2:00.9"
+        margin: "3.1/2"
+        timeDiff: 2.8
+        passing: "4-3-3-4"
+        last3f: 38.2
+        weight: 55
+        blinker: true
+        horseWeight: 482
+        horseWeightDiff: 4
+        odds: 73.5
+      - horseNumber: 13
+        bracket: 7
+        name: アドマイヤビルゴ
+        jockey: 北村宏司
+        sex: 牡
+        age: 8
+        ref: nk-2017105214
+        trainer: 友道康夫
+        trainingCenter: 栗東
+        finish: 16
+        popularity: 17
+        time: "2:00.3"
+        margin: "5"
+        timeDiff: 2.2
+        passing: "11-12-11-16"
+        last3f: 36.6
+        weight: 57
+        blinker: false
+        horseWeight: 444
+        horseWeightDiff: 0
+        odds: 244.5
       - horseNumber: 14
         bracket: 7
         name: リカンカブール
         jockey: 津村明秀
+        age: 6
         ref: nk-2019103823
         finish: 15
         popularity: 5
         time: "1:59.5"
+        margin: "2.1/2"
+        timeDiff: 1.4
         passing: "16-16-16-16"
         last3f: 35.5
         weight: 58
+        blinker: false
         horseWeight: 496
         horseWeightDiff: 6
         odds: 8.5
@@ -72,16 +282,74 @@ races:
         bracket: 7
         name: クリスマスパレード
         jockey: 石川裕紀人
+        age: 4
         ref: nk-2021105799
         finish: 4
         popularity: 1
         time: "1:58.5"
+        margin: "1/2"
+        timeDiff: 0.4
         passing: "1-1-1-1"
         last3f: 36.1
         weight: 55
+        blinker: false
         horseWeight: 460
         horseWeightDiff: -4
         odds: 4.4
+      - horseNumber: 16
+        bracket: 8
+        name: ボーンディスウェイ
+        jockey: 木幡巧也
+        age: 6
+        ref: nk-2019104658
+        finish: 3
+        popularity: 8
+        time: "1:58.4"
+        margin: "1"
+        timeDiff: 0.3
+        passing: "3-3-3-3"
+        last3f: 35.7
+        weight: 57
+        blinker: true
+        horseWeight: 498
+        horseWeightDiff: 6
+        odds: 16.5
+      - horseNumber: 17
+        bracket: 8
+        name: シンリョクカ
+        jockey: 木幡初也
+        age: 5
+        ref: nk-2020101608
+        finish: 12
+        popularity: 3
+        time: "1:58.9"
+        margin: "ハナ"
+        timeDiff: 0.8
+        passing: "7-8-8-11"
+        last3f: 35.5
+        weight: 56
+        blinker: false
+        horseWeight: 466
+        horseWeightDiff: 4
+        odds: 7.8
+      - horseNumber: 18
+        bracket: 8
+        name: ホウオウビスケッツ
+        jockey: H.ドイル
+        age: 5
+        ref: nk-2020103941
+        finish: 9
+        popularity: 2
+        time: "1:58.8"
+        margin: "クビ"
+        timeDiff: 0.7
+        passing: "2-2-2-2"
+        last3f: 36.4
+        weight: 59.5
+        blinker: false
+        horseWeight: 506
+        horseWeightDiff: 4
+        odds: 4.6
   - course: 中山
     raceNumber: 10
     name: ジュニアC
@@ -153,18 +421,303 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: サクラトゥジュール
+    runnerUp: ウォーターリヒト
+    laps: [12.7, 11, 11, 11.5, 11.9, 11.9, 11.6, 11.9]
+    ref: nk-202507010111
+    startTime: "15:30"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: ロジリオン
+        jockey: 三浦皇成
+        age: 4
+        ref: nk-2021102424
+        finish: 3
+        popularity: 2
+        time: "1:33.6"
+        margin: "クビ"
+        timeDiff: 0.1
+        passing: "3-3-3"
+        last3f: 35.1
+        weight: 57
+        blinker: false
+        horseWeight: 502
+        horseWeightDiff: 8
+        odds: 5.2
+      - horseNumber: 2
+        bracket: 1
+        name: セオ
+        jockey: 団野大成
+        age: 5
+        ref: nk-2020103102
+        finish: 4
+        popularity: 8
+        time: "1:33.8"
+        margin: "1"
+        timeDiff: 0.3
+        passing: "1-2-2"
+        last3f: 35.5
+        weight: 57
+        blinker: false
+        horseWeight: 494
+        horseWeightDiff: 14
+        odds: 15.6
+      - horseNumber: 3
+        bracket: 2
+        name: シュバルツカイザー
+        jockey: 岩田望来
+        age: 7
+        ref: nk-2018110035
+        finish: 7
+        popularity: 11
+        time: "1:33.9"
+        margin: "アタマ"
+        timeDiff: 0.4
+        passing: "8-7-7"
+        last3f: 35.2
+        weight: 57
+        blinker: false
+        horseWeight: 504
+        horseWeightDiff: 0
+        odds: 50
+      - horseNumber: 4
+        bracket: 2
+        name: ゴールデンシロップ
+        jockey: 原優介
+        age: 7
+        ref: nk-2018110043
+        finish: 15
+        popularity: 12
+        time: "1:35.7"
+        margin: "ハナ"
+        timeDiff: 2.2
+        passing: "15-15-15"
+        last3f: 35.9
+        weight: 55
+        blinker: false
+        horseWeight: 544
+        horseWeightDiff: 4
+        odds: 63.3
+      - horseNumber: 5
+        bracket: 3
+        name: アスクコンナモンダ
+        jockey: A.ルメートル
+        sex: 牡
+        age: 6
+        ref: nk-2019104642
+        trainer: 中内田充正
+        trainingCenter: 栗東
+        finish: 4
+        popularity: 5
+        time: "1:33.8"
+        margin: "1"
+        timeDiff: 0.3
+        passing: "11-8-8"
+        last3f: 35
+        weight: 57.5
+        blinker: false
+        horseWeight: 458
+        horseWeightDiff: -2
+        odds: 7.3
+      - horseNumber: 6
+        bracket: 3
+        name: マテンロウオリオン
+        jockey: 古川吉洋
+        age: 6
+        ref: nk-2019100965
+        finish: 8
+        popularity: 10
+        time: "1:34.2"
+        margin: "1.1/2"
+        timeDiff: 0.7
+        passing: "8-8-8"
+        last3f: 35.4
+        weight: 56
+        blinker: false
+        horseWeight: 488
+        horseWeightDiff: 0
+        odds: 44.5
       - horseNumber: 7
         bracket: 4
         name: サクラトゥジュール
         jockey: キング
+        age: 8
         ref: nk-2017103751
         finish: 1
         popularity: 6
         time: "1:33.5"
+        timeDiff: -0.1
         passing: "13-10-10"
         last3f: 34.6
         weight: 58
+        blinker: false
         horseWeight: 512
         horseWeightDiff: 0
         odds: 12
+      - horseNumber: 8
+        bracket: 4
+        name: オーキッドロマンス
+        jockey: 丸田恭介
+        age: 4
+        ref: nk-2021103323
+        finish: 12
+        popularity: 13
+        time: "1:35.1"
+        margin: "1.1/4"
+        timeDiff: 1.6
+        passing: "3-3-4"
+        last3f: 36.5
+        weight: 57
+        blinker: false
+        horseWeight: 490
+        horseWeightDiff: 0
+        odds: 79.4
+      - horseNumber: 9
+        bracket: 5
+        name: シャドウフューリー
+        jockey: 川田将雅
+        age: 5
+        ref: nk-2020102853
+        finish: 6
+        popularity: 1
+        time: "1:33.9"
+        margin: "1"
+        timeDiff: 0.4
+        passing: "6-6-4"
+        last3f: 35.3
+        weight: 57
+        blinker: false
+        horseWeight: 490
+        horseWeightDiff: 6
+        odds: 3.9
+      - horseNumber: 10
+        bracket: 5
+        name: セルバーグ
+        jockey: 田口貫太
+        age: 6
+        ref: nk-2019106670
+        finish: 13
+        popularity: 9
+        time: "1:35.3"
+        margin: "1.1/2"
+        timeDiff: 1.8
+        passing: "2-1-1"
+        last3f: 37.2
+        weight: 57
+        blinker: false
+        horseWeight: 444
+        horseWeightDiff: 12
+        odds: 18.6
+      - horseNumber: 11
+        bracket: 6
+        name: コレペティトール
+        jockey: 柴田裕一郎
+        age: 5
+        ref: nk-2020103043
+        finish: 9
+        popularity: 16
+        time: "1:34.6"
+        margin: "2.1/2"
+        timeDiff: 1.1
+        passing: "15-15-14"
+        last3f: 35
+        weight: 57
+        blinker: false
+        horseWeight: 488
+        horseWeightDiff: 4
+        odds: 161.8
+      - horseNumber: 12
+        bracket: 6
+        name: フィールシンパシー
+        jockey: 坂井瑠星
+        age: 6
+        ref: nk-2019105768
+        finish: 14
+        popularity: 7
+        time: "1:35.7"
+        margin: "2.1/2"
+        timeDiff: 2.2
+        passing: "3-3-4"
+        last3f: 37.1
+        weight: 54
+        blinker: false
+        horseWeight: 456
+        horseWeightDiff: -2
+        odds: 12.8
+      - horseNumber: 13
+        bracket: 7
+        name: コナコースト
+        jockey: 北村友一
+        sex: 牝
+        age: 5
+        ref: nk-2020103368
+        trainer: 清水久詞
+        trainingCenter: 栗東
+        finish: 16
+        popularity: 14
+        time: "1:37.8"
+        margin: "大"
+        timeDiff: 4.3
+        passing: "6-14-16"
+        last3f: 37.9
+        weight: 54
+        blinker: false
+        horseWeight: 480
+        horseWeightDiff: 8
+        odds: 97.4
+      - horseNumber: 14
+        bracket: 7
+        name: メイショウチタン
+        jockey: 横山典弘
+        age: 8
+        ref: nk-2017104172
+        finish: 10
+        popularity: 15
+        time: "1:34.8"
+        margin: "1.1/2"
+        timeDiff: 1.3
+        passing: "8-12-12"
+        last3f: 35.5
+        weight: 57
+        blinker: false
+        horseWeight: 488
+        horseWeightDiff: 18
+        odds: 120.6
+      - horseNumber: 15
+        bracket: 8
+        name: ドゥアイズ
+        jockey: 武豊
+        age: 5
+        ref: nk-2020103732
+        finish: 11
+        popularity: 3
+        time: "1:34.9"
+        margin: "クビ"
+        timeDiff: 1.4
+        passing: "12-10-11"
+        last3f: 35.8
+        weight: 55.5
+        blinker: false
+        horseWeight: 484
+        horseWeightDiff: 4
+        odds: 6.4
+      - horseNumber: 16
+        bracket: 8
+        name: ウォーターリヒト
+        jockey: 田辺裕信
+        age: 4
+        ref: nk-2021100953
+        finish: 2
+        popularity: 4
+        time: "1:33.6"
+        margin: "クビ"
+        timeDiff: 0.1
+        passing: "13-12-12"
+        last3f: 34.3
+        weight: 57
+        blinker: false
+        horseWeight: 470
+        horseWeightDiff: 4
+        odds: 6.9

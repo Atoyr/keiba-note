@@ -13,33 +13,101 @@ races:
     weather: 曇
     fieldSize: 15
     winner: オールナット
+    runnerUp: グランヴィノス
+    laps: [12.6, 11.5, 11.9, 11.3, 11.1, 11.8, 12.1, 12.1, 11.7, 11.9]
+    ref: nk-202509040311
+    startTime: "15:45"
     entries:
+      - horseNumber: 1
+        bracket: 1
+        name: アスクカムオンモア
+        jockey: 西村淳也
+        sex: 牡
+        age: 4
+        ref: nk-2021105236
+        trainer: 藤原英昭
+        trainingCenter: 栗東
+        finish: 7
+        popularity: 8
+        time: "1:58.3"
+        margin: "クビ"
+        timeDiff: 0.3
+        passing: "3-3-3-3"
+        last3f: 35.2
+        weight: 56
+        blinker: false
+        horseWeight: 494
+        horseWeightDiff: -2
+        odds: 16.9
       - horseNumber: 2
         bracket: 2
         name: マイネルクリソーラ
         jockey: ルメール
+        age: 6
         ref: nk-2019100792
         finish: 3
         popularity: 4
         time: "1:58.2"
+        margin: "クビ"
+        timeDiff: 0.2
         passing: "4-3-4-4"
         last3f: 35
         weight: 57
+        blinker: false
         horseWeight: 470
         horseWeightDiff: 2
         odds: 12.1
+      - horseNumber: 3
+        bracket: 2
+        name: イングランドアイズ
+        jockey: 松若風馬
+        age: 5
+        ref: nk-2020110085
+        finish: 5
+        popularity: 5
+        time: "1:58.3"
+        margin: "クビ"
+        timeDiff: 0.3
+        passing: "7-6-7-7"
+        last3f: 34.9
+        weight: 54
+        blinker: true
+        horseWeight: 450
+        horseWeightDiff: 0
+        odds: 12.9
+      - horseNumber: 4
+        bracket: 3
+        name: ホウオウプロサンゲ
+        jockey: 菱田裕二
+        age: 4
+        ref: nk-2021105623
+        finish: 14
+        popularity: 7
+        time: "2:00.2"
+        margin: "6"
+        timeDiff: 2.2
+        passing: "2-1-1-1"
+        last3f: 37.9
+        weight: 55
+        blinker: false
+        horseWeight: 496
+        horseWeightDiff: -4
+        odds: 16.1
       - horseNumber: 5
         bracket: 3
         name: ヴェルテンベルク
         jockey: 吉村誠之助
+        age: 5
         ref: nk-2020103060
         finish: 9
         popularity: 10
         time: "1:58.6"
+        margin: "クビ"
         timeDiff: 0.6
         passing: "7-8-7-7"
         last3f: 35.2
         weight: 55
+        blinker: false
         horseWeight: 482
         horseWeightDiff: 4
         odds: 22.6
@@ -47,13 +115,17 @@ races:
         bracket: 4
         name: エアファンディタ
         jockey: 亀田温心
+        age: 8
         ref: nk-2017110138
         finish: 11
         popularity: 14
         time: "1:58.8"
+        margin: "クビ"
+        timeDiff: 0.8
         passing: "13-13-15-15"
         last3f: 34.5
         weight: 57
+        blinker: true
         horseWeight: 446
         horseWeightDiff: -24
         odds: 116.8
@@ -61,13 +133,17 @@ races:
         bracket: 4
         name: ショウナンマグマ
         jockey: 池添謙一
+        age: 6
         ref: nk-2019104998
         finish: 15
         popularity: 15
         time: "2:00.7"
+        margin: "3.1/2"
+        timeDiff: 2.7
         passing: "1-2-2-2"
         last3f: 38.3
         weight: 55
+        blinker: false
         horseWeight: 500
         horseWeightDiff: -10
         odds: 202.3
@@ -75,13 +151,17 @@ races:
         bracket: 5
         name: ドクタードリトル
         jockey: 松山弘平
+        age: 5
         ref: nk-2020103025
         finish: 13
         popularity: 11
         time: "1:59.2"
+        margin: "1"
+        timeDiff: 1.2
         passing: "10-11-11-11"
         last3f: 35.5
         weight: 56
+        blinker: false
         horseWeight: 474
         horseWeightDiff: 12
         odds: 32.1
@@ -89,13 +169,17 @@ races:
         bracket: 5
         name: ジューンテイク
         jockey: 藤岡佑介
+        age: 4
         ref: nk-2021100913
         finish: 10
         popularity: 6
         time: "1:58.7"
+        margin: "3/4"
+        timeDiff: 0.7
         passing: "13-14-14-13"
         last3f: 34.5
         weight: 57.5
+        blinker: false
         horseWeight: 504
         horseWeightDiff: 12
         odds: 14.5
@@ -103,13 +187,17 @@ races:
         bracket: 6
         name: カネフラ
         jockey: 小沢大仁
+        age: 5
         ref: nk-2020103082
         finish: 12
         popularity: 13
         time: "1:59.0"
+        margin: "1.1/4"
+        timeDiff: 1
         passing: "15-15-13-13"
         last3f: 35.1
         weight: 54
+        blinker: false
         horseWeight: 448
         horseWeightDiff: -4
         odds: 49.6
@@ -117,13 +205,16 @@ races:
         bracket: 6
         name: オールナット
         jockey: モレイラ
+        age: 4
         ref: nk-2021104846
         finish: 1
         popularity: 2
         time: "1:58.0"
+        timeDiff: -0.1
         passing: "11-9-10-9"
         last3f: 34.5
         weight: 56
+        blinker: false
         horseWeight: 524
         horseWeightDiff: 0
         odds: 4.7
@@ -131,13 +222,17 @@ races:
         bracket: 7
         name: グランヴィノス
         jockey: 川田将雅
+        age: 5
         ref: nk-2020103522
         finish: 2
         popularity: 1
         time: "1:58.1"
+        margin: "1"
+        timeDiff: 0.1
         passing: "4-5-4-4"
         last3f: 34.9
         weight: 56
+        blinker: false
         horseWeight: 524
         horseWeightDiff: 4
         odds: 3.1
@@ -145,13 +240,17 @@ races:
         bracket: 7
         name: サブマリーナ
         jockey: 武豊
+        age: 4
         ref: nk-2021106449
         finish: 4
         popularity: 3
         time: "1:58.2"
+        margin: "クビ"
+        timeDiff: 0.2
         passing: "9-9-9-9"
         last3f: 34.8
         weight: 57
+        blinker: false
         horseWeight: 480
         horseWeightDiff: 0
         odds: 5.4
@@ -159,13 +258,17 @@ races:
         bracket: 8
         name: タガノデュード
         jockey: 古川吉洋
+        age: 4
         ref: nk-2021106548
         finish: 8
         popularity: 9
         time: "1:58.5"
+        margin: "1.1/4"
+        timeDiff: 0.5
         passing: "6-6-6-4"
         last3f: 35.3
         weight: 54
+        blinker: false
         horseWeight: 492
         horseWeightDiff: -8
         odds: 17.3
@@ -173,13 +276,17 @@ races:
         bracket: 8
         name: オニャンコポン
         jockey: 菅原明良
+        age: 6
         ref: nk-2019104756
         finish: 6
         popularity: 12
         time: "1:58.3"
+        margin: "クビ"
+        timeDiff: 0.3
         passing: "11-12-11-11"
         last3f: 34.6
         weight: 55
+        blinker: false
         horseWeight: 466
         horseWeightDiff: 0
         odds: 41.1

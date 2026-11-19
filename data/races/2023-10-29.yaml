@@ -11,21 +11,216 @@ races:
     direction: 左
     trackCondition: 良
     weather: 晴
+    fieldSize: 11
+    winner: イクイノックス
+    runnerUp: ジャスティンパレス
+    laps: [12.4, 11, 11.5, 11.4, 11.4, 11.4, 11.4, 11.6, 11.4, 11.7]
+    ref: nk-202305040911
+    startTime: "15:40"
     entries:
       - horseNumber: 1
         bracket: 1
         name: ノースブリッジ
         jockey: 岩田康誠
+        age: 5
         ref: nk-2018102348
         finish: 10
         popularity: 10
         time: "1:58.0"
+        margin: "2.1/2"
+        timeDiff: 2.8
         passing: "4-4-4"
         last3f: 36.7
         weight: 58
+        blinker: false
         horseWeight: 492
         horseWeightDiff: -8
         odds: 167.9
+      - horseNumber: 2
+        bracket: 2
+        name: エヒト
+        jockey: 横山和生
+        age: 6
+        ref: nk-2017100464
+        finish: 8
+        popularity: 11
+        time: "1:57.4"
+        margin: "5"
+        timeDiff: 2.2
+        passing: "8-7-9"
+        last3f: 35.7
+        weight: 58
+        blinker: false
+        horseWeight: 462
+        horseWeightDiff: -4
+        odds: 281.7
+      - horseNumber: 3
+        bracket: 3
+        name: ドウデュース
+        jockey: 戸崎圭太
+        age: 4
+        ref: nk-2019105283
+        finish: 7
+        popularity: 2
+        time: "1:56.6"
+        margin: "1/2"
+        timeDiff: 1.4
+        passing: "4-4-4"
+        last3f: 35.3
+        weight: 58
+        blinker: false
+        horseWeight: 512
+        horseWeightDiff: 4
+        odds: 4.3
+      - horseNumber: 4
+        bracket: 4
+        name: ダノンベルーガ
+        jockey: モレイラ
+        age: 4
+        ref: nk-2019105195
+        finish: 4
+        popularity: 4
+        time: "1:55.8"
+        margin: "アタマ"
+        timeDiff: 0.6
+        passing: "8-7-7"
+        last3f: 34.3
+        weight: 58
+        blinker: false
+        horseWeight: 500
+        horseWeightDiff: -8
+        odds: 14
+      - horseNumber: 5
+        bracket: 5
+        name: ガイアフォース
+        jockey: 西村淳也
+        age: 4
+        ref: nk-2019104476
+        finish: 5
+        popularity: 7
+        time: "1:56.2"
+        margin: "2.1/2"
+        timeDiff: 1
+        passing: "2-2-2"
+        last3f: 35.5
+        weight: 58
+        blinker: false
+        horseWeight: 496
+        horseWeightDiff: 6
+        odds: 45.4
+      - horseNumber: 6
+        bracket: 6
+        name: ジャスティンパレス
+        jockey: 横山武史
+        age: 4
+        ref: nk-2019105346
+        finish: 2
+        popularity: 6
+        time: "1:55.6"
+        margin: "2.1/2"
+        timeDiff: 0.4
+        passing: "10-10-10"
+        last3f: 33.7
+        weight: 58
+        blinker: false
+        horseWeight: 468
+        horseWeightDiff: -2
+        odds: 35.1
+      - horseNumber: 7
+        bracket: 6
+        name: イクイノックス
+        jockey: ルメール
+        age: 4
+        ref: nk-2019105219
+        finish: 1
+        popularity: 1
+        time: "1:55.2"
+        timeDiff: -0.4
+        passing: "3-3-3"
+        last3f: 34.2
+        weight: 58
+        blinker: false
+        horseWeight: 494
+        horseWeightDiff: 2
+        odds: 1.3
+      - horseNumber: 8
+        bracket: 7
+        name: ヒシイグアス
+        jockey: 松山弘平
+        age: 7
+        ref: nk-2016104877
+        finish: 9
+        popularity: 8
+        time: "1:57.6"
+        margin: "1.1/2"
+        timeDiff: 2.4
+        passing: "4-4-4"
+        last3f: 36.3
+        weight: 58
+        blinker: false
+        horseWeight: 490
+        horseWeightDiff: -12
+        odds: 141.9
+      - horseNumber: 9
+        bracket: 7
+        name: プログノーシス
+        jockey: 川田将雅
+        age: 5
+        ref: nk-2018104541
+        finish: 3
+        popularity: 3
+        time: "1:55.8"
+        margin: "1.1/4"
+        timeDiff: 0.6
+        passing: "11-11-10"
+        last3f: 33.9
+        weight: 58
+        blinker: false
+        horseWeight: 474
+        horseWeightDiff: -2
+        odds: 11.4
+      - horseNumber: 10
+        bracket: 8
+        name: ジャックドール
+        jockey: 藤岡佑介
+        sex: 牡
+        age: 5
+        ref: nk-2018100274
+        trainer: 藤岡健一
+        trainingCenter: 栗東
+        finish: 11
+        popularity: 5
+        time: "1:58.4"
+        margin: "2.1/2"
+        timeDiff: 3.2
+        passing: "1-1-1"
+        last3f: 37.9
+        weight: 58
+        blinker: false
+        horseWeight: 506
+        horseWeightDiff: -10
+        odds: 15.2
+      - horseNumber: 11
+        bracket: 8
+        name: アドマイヤハダル
+        jockey: 菅原明良
+        sex: 牡
+        age: 5
+        ref: nk-2018105092
+        trainer: 大久保龍志
+        trainingCenter: 栗東
+        finish: 6
+        popularity: 9
+        time: "1:56.5"
+        margin: "1.1/2"
+        timeDiff: 1.3
+        passing: "7-7-7"
+        last3f: 35
+        weight: 58
+        blinker: false
+        horseWeight: 484
+        horseWeightDiff: -4
+        odds: 160
   - course: 東京
     raceNumber: 10
     name: ペルセウスS
