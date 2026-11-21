@@ -341,7 +341,7 @@ export type ShutubaRow = {
 	trainer?: Person;
 	/** 調教師のセルの頭のラベル（美浦・栗東・地方・海外）。 */
 	trainingCenter?: TrainingCenter;
-	/** 取消・除外の行（`HorseList Cancel`）の `Cancel_Txt`。netkeiba は競走除外も「取消」と出す。 */
+	/** 取消・除外の行（`HorseList Cancel`）の `Cancel_Txt`。出走取消は `取消`、競走除外は `除外`。 */
 	finishStatus?: FinishStatus;
 };
 

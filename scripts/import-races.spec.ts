@@ -569,6 +569,11 @@ describe('出走馬の着順が無い理由（finishStatus）', () => {
 		expect(sql(candidates)).not.toMatch(/finish_status/);
 	});
 
+	it('finish を書いて finishStatus を書かない行は、SQL が finish_status に触れない', () => {
+		const out = sql(withStatus('finish: 3'));
+		expect(out).not.toMatch(/finish_status/);
+	});
+
 	it('finish と両方書いたら落とす。知らない値も落とす', () => {
 		expect(errors(withStatus('finish: 3, finishStatus: 中止'))).toEqual([
 			expect.stringContaining('ホースA は着順と 中止 を両方書いています')

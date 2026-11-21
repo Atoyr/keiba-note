@@ -2,6 +2,7 @@
 
 import { FLOW_PHASES, FLOW_PHASE_LABEL } from '#lib/schemas/race-flow.ts';
 import type { NoteTag } from '#lib/schemas/note.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 
 /**
  * 札の系統。色分けの根拠をここ1か所に置く。
@@ -60,6 +61,8 @@ export type RaceLabelSource = {
 export type NoteHeadingSource = RaceLabelSource & {
 	kind: 'race' | 'horse' | 'entry' | 'preview' | 'race_preview';
 	finishPosition?: number | null;
+	/** 着順が無い理由。着順が無いふりかえりのメモに、着順の位置へ語で出す。 */
+	finishStatus?: FinishStatus | null;
 	horseName?: string | null;
 };
 
@@ -112,7 +115,7 @@ export type NoteHeadingParts = {
 	raceName: string | null;
 	/** 格が無いレースのクラス（`1勝クラス`）。格があれば null（札と重ねて出さない）。 */
 	className: string | null;
-	/** 「1着」。出すのはふりかえりのメモだけ（開催前のメモに出さない理由は `noteHeading`）。 */
+	/** 「1着」（着順が無ければ取消などの語）。出すのはふりかえりのメモだけ（開催前のメモに出さない理由は `noteHeading`）。 */
 	result: string | null;
 };
 
@@ -128,7 +131,11 @@ export function noteHeadingParts(n: NoteHeadingSource): NoteHeadingParts {
 		grade: n.grade ?? null,
 		raceName: n.raceName ?? null,
 		className: n.grade ? null : (n.className ?? null),
-		result: isReviewNote(n.kind) && n.finishPosition ? `${n.finishPosition}着` : null
+		result: !isReviewNote(n.kind)
+			? null
+			: n.finishPosition
+				? `${n.finishPosition}着`
+				: (n.finishStatus ?? null)
 	};
 }
 
@@ -159,7 +166,7 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 export type RunHeadingSource = RaceLabelSource & {
 	finishPosition?: number | null;
 	/** 着順が無い理由（取消など）。着順が無いときに着順の位置へ語で出す。 */
-	finishStatus?: string | null;
+	finishStatus?: FinishStatus | null;
 };
 
 /**

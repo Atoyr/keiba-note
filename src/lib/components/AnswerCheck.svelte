@@ -23,7 +23,9 @@
 	const LABEL: Record<Placing, string> = {
 		in: '馬券内',
 		out: '着外',
-		pending: '未確定'
+		pending: '未確定',
+		// 取消・除外は走っていないので、判定の欄は空（着順の欄に語が出る）
+		void: ''
 	};
 
 	/**

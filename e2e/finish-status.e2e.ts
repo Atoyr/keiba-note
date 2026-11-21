@@ -30,7 +30,8 @@ test('出走馬の編集で状態を選んで保存すると、ふりかえり�
 	await login(page, 'admin');
 	await gotoHydrated(page, `/races/${STATUS_EDIT_RACE_ID}/entries`);
 
-	await page.locator('select[name="finishStatus.0"]').selectOption('取消');
+	await page.getByRole('button', { name: '1行目の状態' }).click();
+	await page.getByRole('option', { name: '取消' }).click();
 	await page.getByRole('button', { name: '保存してふりかえりへ' }).click();
 
 	await expect(page).toHaveURL(`/races/${STATUS_EDIT_RACE_ID}`);
@@ -38,7 +39,7 @@ test('出走馬の編集で状態を選んで保存すると、ふりかえり�
 
 	// 着順も入れて保存すると、一緒には入れられない誤りになる。
 	await gotoHydrated(page, `/races/${STATUS_EDIT_RACE_ID}/entries`);
-	await expect(page.locator('select[name="finishStatus.0"]')).toHaveValue('取消');
+	await expect(page.getByRole('button', { name: '1行目の状態' })).toHaveText('取消');
 	await page.locator('input[name="finishPosition.0"]').fill('2');
 	await page.getByRole('button', { name: '保存してふりかえりへ' }).click();
 	await expect(page.getByRole('alert')).toContainText('一緒に入れられません');

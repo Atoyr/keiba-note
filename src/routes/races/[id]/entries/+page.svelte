@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { FINISH_STATUSES } from '#lib/schemas/race.ts';
+	import * as Select from '#lib/components/ui/select/index.ts';
+	import { FINISH_STATUSES, MAX_ENTRIES } from '#lib/schemas/race.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -13,6 +14,11 @@
 	// メモごと削除されてしまう（saveEntries）。
 	const maxRows = $derived(Math.max(18, data.entries.length));
 	const rowCount = $derived(Math.min(maxRows, data.minRows + extraRows));
+
+	// 状態の選択（shadcn の Select。name の隠し入力が POST で送られる）。行ごとの値を持つ。
+	let statuses = $state<string[]>(
+		Array.from({ length: MAX_ENTRIES }, (_, i) => data.entries[i]?.finishStatus ?? '')
+	);
 
 	const cell = 'w-full rounded border border-gray-300 px-2 py-1.5 text-sm';
 </script>
@@ -103,12 +109,17 @@
 								/></td
 							>
 							<td
-								><select name="finishStatus.{i}" class={cell}>
-									<option value="" selected={!e?.finishStatus}></option>
-									{#each FINISH_STATUSES as s (s)}
-										<option value={s} selected={e?.finishStatus === s}>{s}</option>
-									{/each}
-								</select></td
+								><Select.Root type="single" name="finishStatus.{i}" bind:value={statuses[i]}>
+									<Select.Trigger class="w-full" aria-label="{i + 1}行目の状態"
+										>{statuses[i] || '—'}</Select.Trigger
+									>
+									<Select.Content>
+										<Select.Item value="" label="—">—</Select.Item>
+										{#each FINISH_STATUSES as s (s)}
+											<Select.Item value={s} label={s}>{s}</Select.Item>
+										{/each}
+									</Select.Content>
+								</Select.Root></td
 							>
 							<td
 								><input

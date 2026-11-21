@@ -237,7 +237,8 @@ export async function applyPastRuns(
 						: run.jockey,
 				finish: run.finish,
 				// 取消・除外の走は上で除いてある。中止・失格は走ったので、着順が無い理由として持つ。
-				finishStatus: toFinishStatus(run.status),
+				// 既存の行に着順があれば埋めない（fill で着順と状態が並ぶと data:check が落ちる）。
+				finishStatus: knownEntry?.has('finish') ? undefined : toFinishStatus(run.status),
 				popularity: run.popularity,
 				time: run.time,
 				timeDiff: run.timeDiff,
@@ -385,6 +386,8 @@ export async function applyResult(
 		// 着順が付けば状態は外す。着順が無く状態が読めれば書く（読めない表記は何もしない）。
 		const finishStatus = row.finish === undefined ? toFinishStatus(row.status) : undefined;
 		if (row.finish !== undefined) file.deleteEntryField(entry, 'finishStatus');
+		// 着順と状態は一緒に書けない。状態を書くときは、前に入っていた着順を外す。
+		else if (finishStatus) file.deleteEntryField(entry, 'finish');
 		const jockey = row.jockey ? await resolve('jockey', row.jockey) : undefined;
 		file.upsertEntry(
 			race,

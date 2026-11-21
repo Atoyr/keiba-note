@@ -76,6 +76,11 @@ describe('placing', () => {
 	// 着順が入っていない馬を着外と出すと、結果の投入待ちなのに負けたように読める。
 	it('着順が無ければ未確定', () => {
 		expect(placing(null)).toBe('pending');
+		// 取消・除外は判定なし、中止・失格は着外
+		expect(placing(null, '取消')).toBe('void');
+		expect(placing(null, '除外')).toBe('void');
+		expect(placing(null, '中止')).toBe('out');
+		expect(placing(null, '失格')).toBe('out');
 	});
 });
 

@@ -764,6 +764,48 @@ describe('着順が無い理由（finishStatus）', () => {
 		expect(file.toString()).toContain('        finish: 3\n');
 	});
 
+	it('結果で状態を書くときは、既存の finish を消す', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', withEntry('        finish: 5\n'));
+		const race = file.findRace('中山', 11)!;
+		await applyResult(file, race, { meta, rows: [result({ status: '中' })] }, identity);
+		expect(file.toString()).toContain('        finishStatus: 中止\n');
+		expect(file.toString()).not.toContain('finish:');
+	});
+
+	it('過去走は、既存の行に finish があれば finishStatus を埋めない', async () => {
+		const file = RaceFile.parse(
+			'2026-08-09.yaml',
+			`date: 2026-08-09
+
+races:
+  - course: 中京
+    raceNumber: 7
+    name: CBC賞
+    entries:
+      - name: ホースA
+        ref: nk-1
+        finish: 9
+`
+		);
+		await applyPastRuns(
+			async () => file,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[
+				{
+					date: '2026-08-09',
+					course: '中京',
+					raceNumber: 7,
+					raceId: 'x',
+					race: { name: 'CBC賞' },
+					status: '中'
+				}
+			],
+			{ before: '2026-09-27', count: 5 }
+		);
+		expect(file.toString()).not.toContain('finishStatus');
+		expect(file.toString()).toContain('        finish: 9\n');
+	});
+
 	it('過去走は中止・失格を空いていれば埋める。取消・除外の走は飛ばす', async () => {
 		const files = new Map<string, RaceFile>();
 		const open = async (date: string) => {
