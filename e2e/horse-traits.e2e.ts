@@ -377,8 +377,9 @@ test.describe('JavaScriptなしのメモ', () => {
 		await field(page).fill('JSなしで書いたメモ');
 		await saveButton(page).click();
 		// 知らせの文は `<noscript>` の中（表示の有無は端末しだい）なので、HTML に入っていることを確かめる。
-		expect(await page.content()).toContain('メモを保存しました。');
+		// 送信後の画面に替わるのを待ってから読む（待たずに読むと送信前の HTML を見る）。
 		await expect(section(page)).toContainText('JSなしで書いたメモ');
+		expect(await page.content()).toContain('メモを保存しました。');
 		await expect(badge(page, '中山巧者')).toBeVisible();
 
 		await section(page).getByText('書き直す').click();
@@ -386,7 +387,7 @@ test.describe('JavaScriptなしのメモ', () => {
 		// JS が無いと読む形が出たままなので、同じ名前の札が2つある。選択の欄は後ろ。
 		await section(page).getByText('中山巧者', { exact: true }).last().click();
 		await saveButton(page).click();
-		await expect(page.getByText('メモを消しました。')).toBeVisible();
 		await expect(section(page).getByText('＋ メモを書く')).toBeVisible();
+		expect(await page.content()).toContain('メモを消しました。');
 	});
 });
