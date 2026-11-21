@@ -33,6 +33,7 @@ import * as v from 'valibot';
 import {
 	COURSES,
 	DIRECTIONS,
+	FINISH_STATUSES,
 	GRADES,
 	MAX_ENTRIES,
 	SURFACES,
@@ -100,6 +101,11 @@ const entrySchema = v.object({
 	// 書けば上書きする。降着・失格の訂正が YAML から効くようにするため。
 	/** 着順。除外・中止なら書かない。 */
 	finish: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
+	/**
+	 * 着順が無い理由（取消・除外・中止・失格）。`finish` とは一緒に書けない。
+	 * `data:fetch entries`（出馬表の取消・除外）・`result`・`past` が書く。
+	 */
+	finishStatus: v.optional(v.picklist(FINISH_STATUSES)),
 	popularity: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(18))),
 	/** `2:11.4` のような文字列のまま持つ。秒に直すのは読む側の仕事。 */
 	time: v.optional(v.string()),
@@ -347,6 +353,8 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 				['blinker', e.blinker],
 				['announced_jockey', e.announcedJockey]
 			]);
+			// 着順が無い理由（マイグレーション 0027）も同じ。書いた行のときだけ列に触る。
+			const statusCol = writtenCols([['finish_status', e.finishStatus]]);
 
 			const rename = e.ref
 				? `
@@ -384,18 +392,24 @@ WHERE id = ${ref};`,
 				`INSERT INTO race_entry (
   id, race_id, horse_id, bracket, horse_number, jockey,
   finish_position, popularity, finish_time, margin, passing, last_3f,
-  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}${conditionCol.names}
+  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}${conditionCol.names}${statusCol.names}
 )
 SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)},
   ${lit(e.finish)}, ${lit(e.popularity)}, ${lit(e.time)}, ${lit(e.margin)}, ${lit(e.passing)}, ${lit(e.last3f)},
-  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}${conditionCol.values}
+  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}${conditionCol.values}${statusCol.values}
 FROM race r
 WHERE ${raceKey('r.')} AND ${ref} IS NOT NULL
-ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}${conditionCol.set}
+ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}${conditionCol.set}${statusCol.set}
   bracket = excluded.bracket,
   horse_number = excluded.horse_number,
   jockey = excluded.jockey,
-  finish_position = COALESCE(excluded.finish_position, race_entry.finish_position),
+  finish_position = ${
+		// 状態（取消・除外・中止・失格）を書いた行は着順を消す（結果の取り直しで失格になった馬に、前の着順を残さない）。
+		// 着順と状態は data:check が同時に書かせないので、ここで消すのは古い着順だけ。列は 0027 より前からある。
+		e.finishStatus === undefined
+			? 'COALESCE(excluded.finish_position, race_entry.finish_position)'
+			: 'NULL'
+	},
   popularity = COALESCE(excluded.popularity, race_entry.popularity),
   finish_time = COALESCE(excluded.finish_time, race_entry.finish_time),
   margin = COALESCE(excluded.margin, race_entry.margin),
@@ -516,6 +530,9 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 	for (const e of race.entries) {
 		if (e.announcedJockey !== undefined && !e.jockey) {
 			errors.push(`${label}: ${e.name} は announcedJockey があるのに jockey がありません`);
+		}
+		if (e.finish !== undefined && e.finishStatus !== undefined) {
+			errors.push(`${label}: ${e.name} は着順と ${e.finishStatus} を両方書いています`);
 		}
 	}
 

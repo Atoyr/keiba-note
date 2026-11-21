@@ -47,6 +47,12 @@ export const SURFACES = ['芝', 'ダート', '障害'] as const;
 export const DIRECTIONS = ['右', '左', '直線'] as const;
 export const TRACK_CONDITIONS = ['良', '稍重', '重', '不良'] as const;
 /**
+ * 着順が無い理由。取消・除外は走らなかった馬、中止・失格は走ったが着順が付かなかった馬。
+ * 値は画面の語と同じ日本語で持つ（`horse.sex`・`race.course` と同じ流儀）。
+ */
+export const FINISH_STATUSES = ['取消', '除外', '中止', '失格'] as const;
+export type FinishStatus = (typeof FINISH_STATUSES)[number];
+/**
  * JRA の10場。**この10場だけを扱う**（地方・海外は対象外）。
  *
  * 自由入力にすると表記ゆれ1つで「今週の重賞」から落ちるため、選択式に縛る。
@@ -102,6 +108,7 @@ export const entrySchema = v.object({
 	horseNumber: optionalInt(1, 18),
 	jockey: optionalText,
 	finishPosition: optionalInt(1, 18),
+	finishStatus: optionalPick(FINISH_STATUSES),
 	finishTime: optionalText,
 	margin: optionalText,
 	last3f: optionalNumber(20, 60),
@@ -109,7 +116,15 @@ export const entrySchema = v.object({
 });
 
 export const entriesSchema = v.pipe(
-	v.array(entrySchema),
+	v.array(
+		v.pipe(
+			entrySchema,
+			v.check(
+				(e) => e.finishPosition === null || e.finishStatus === null,
+				'着順と取消・除外・中止・失格は一緒に入れられません'
+			)
+		)
+	),
 	v.maxLength(MAX_ENTRIES, `出走馬は${MAX_ENTRIES}頭までです`)
 );
 

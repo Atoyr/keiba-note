@@ -9,6 +9,7 @@ import {
 	type PredictionMark
 } from '#lib/schemas/note.ts';
 import type { Pace } from '#lib/schemas/race-flow.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 import { gradedRaceKey, gradedRaceNames, isGraded } from '#lib/utils/graded-race.ts';
 import type { GradedRaceProfile } from '#lib/utils/graded-race-profile.ts';
 import { placersQuery, shapePlacerRows, type PlacerRow } from './graded-race-placers';
@@ -159,6 +160,7 @@ export type SeriesMark = {
 	bracket: number | null;
 	horseNumber: number | null;
 	finishPosition: number | null;
+	finishStatus: FinishStatus | null;
 };
 
 /**
@@ -218,7 +220,8 @@ function seriesNotesQueries(db: Db, names: string[], viewerId: string) {
 				horseName: horse.name,
 				bracket: raceEntry.bracket,
 				horseNumber: raceEntry.horseNumber,
-				finishPosition: raceEntry.finishPosition
+				finishPosition: raceEntry.finishPosition,
+				finishStatus: raceEntry.finishStatus
 			})
 			.from(note)
 			.innerJoin(race, eq(note.raceId, race.id))

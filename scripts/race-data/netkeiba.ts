@@ -11,7 +11,7 @@
  */
 
 import { TRAINING_CENTERS, type TrainingCenter } from '../../src/lib/schemas/horse.ts';
-import type { COURSES } from '../../src/lib/schemas/race.ts';
+import { FINISH_STATUSES, type COURSES, type FinishStatus } from '../../src/lib/schemas/race.ts';
 
 export type Course = (typeof COURSES)[number];
 export type Grade = 'G1' | 'G2' | 'G3' | 'L' | 'OP';
@@ -318,6 +318,15 @@ export type RaceMeta = {
 
 export type Person = { id: string; short: string };
 
+/**
+ * 着順欄・取消の欄の表記を状態にそろえる。`取` → `取消` のような略記も受ける。知らない表記は undefined（書かない）。
+ */
+export function toFinishStatus(text: string | undefined): FinishStatus | undefined {
+	const t = (text ?? '').replace(/\s/g, '');
+	if (!t) return undefined;
+	return FINISH_STATUSES.find((s) => s === t || (t.length === 1 && s.startsWith(t)));
+}
+
 export type ShutubaRow = {
 	bracket?: number;
 	horseNumber?: number;
@@ -332,6 +341,8 @@ export type ShutubaRow = {
 	trainer?: Person;
 	/** 調教師のセルの頭のラベル（美浦・栗東・地方・海外）。 */
 	trainingCenter?: TrainingCenter;
+	/** 取消・除外の行（`HorseList Cancel`）の `Cancel_Txt`。出走取消は `取消`、競走除外は `除外`。 */
+	finishStatus?: FinishStatus;
 };
 
 /** ページの title と RaceData01/02 からレースの属性を読む。出馬表と結果で共通。 */
@@ -407,7 +418,7 @@ export function parseShutuba(html: string): { meta: RaceMeta; rows: ShutubaRow[]
 	const seen = new Set<string>();
 
 	for (const m of table.matchAll(/<tr\s+class="HorseList[^"]*"[\s\S]*?<\/tr>/g)) {
-		const tr = m[0].replace(/<select[\s\S]*?<\/select>/g, '');
+		const tr = m[0].replace(/<select[\s\S]*?<\/select>/g, '').replace(/<!--[\s\S]*?-->/g, '');
 		const link = /db\.netkeiba\.com\/horse\/(\d+)"[^>]*title="([^"]*)"/.exec(tr);
 		if (!link || seen.has(link[1])) continue;
 		seen.add(link[1]);
@@ -430,7 +441,9 @@ export function parseShutuba(html: string): { meta: RaceMeta; rows: ShutubaRow[]
 				tds.find((td) => /class="Trainer/.test(td)),
 				'trainer'
 			),
-			trainingCenter: trainingCenterOf(tds.find((td) => /class="Trainer/.test(td)))
+			trainingCenter: trainingCenterOf(tds.find((td) => /class="Trainer/.test(td))),
+			// 取消・除外の行は `Cancel_Txt` に表記が入る（斤量・騎手のセルは `Cancel_NoData` で、読めない）。
+			finishStatus: toFinishStatus(text(tds.find((td) => /class="Cancel_Txt/.test(td)) ?? ''))
 		});
 	}
 	return { meta: parseRaceMeta(html), rows };

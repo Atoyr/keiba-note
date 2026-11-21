@@ -712,3 +712,127 @@ races:
 		expect(file.toString()).toContain('blinker: false');
 	});
 });
+
+describe('着順が無い理由（finishStatus）', () => {
+	const identity: ResolvePerson = async (_kind, p) => p.short;
+	const withEntry = (extra = '') =>
+		placeholder.replace(
+			'    entries: []',
+			`    entries:\n      - name: ホースA\n${extra}        ref: nk-1`
+		);
+	const shutuba = (file: RaceFile, extra: Partial<ShutubaRow> = {}) =>
+		applyShutuba(file, '中山', 11, { meta, rows: [row('1', 'ホースA', extra)] }, identity);
+	const result = (extra: Partial<ResultRow> = {}): ResultRow => ({
+		name: 'ホースA',
+		horseId: '1',
+		...extra
+	});
+
+	it('出馬表の取消・除外の行は finishStatus を書き、出馬表から消えたら外す', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', placeholder);
+		await shutuba(file, { finishStatus: '取消' });
+		expect(file.toString()).toContain('        finishStatus: 取消\n');
+
+		const log = await shutuba(file, { finishStatus: '除外' });
+		expect(file.toString()).toContain('        finishStatus: 除外\n');
+		expect(file.toString()).not.toContain('取消');
+		expect(log).toContain('※ ホースA: 除外（出馬表の表記）');
+
+		const back = await shutuba(file);
+		expect(file.toString()).not.toContain('finishStatus');
+		expect(back).toContain(
+			'↺ ホースA: 除外 を外しました（D1 に入っていれば残る。出走馬の編集画面で外す）'
+		);
+	});
+
+	it('出馬表は結果が入れた中止・失格を消さない', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', withEntry('        finishStatus: 中止\n'));
+		await shutuba(file);
+		expect(file.toString()).toContain('        finishStatus: 中止\n');
+	});
+
+	it('結果は着順が無く状態が読めれば書き、略記は正規化する。着順が付けば外す', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', withEntry());
+		const race = file.findRace('中山', 11)!;
+		await applyResult(file, race, { meta, rows: [result({ status: '取' })] }, identity);
+		expect(file.toString()).toContain('        finishStatus: 取消\n');
+
+		// 読めない表記は何もしない
+		await applyResult(file, race, { meta, rows: [result({ status: '？' })] }, identity);
+		expect(file.toString()).toContain('        finishStatus: 取消\n');
+
+		await applyResult(file, race, { meta, rows: [result({ finish: 3 })] }, identity);
+		expect(file.toString()).not.toContain('finishStatus');
+		expect(file.toString()).toContain('        finish: 3\n');
+	});
+
+	it('結果で状態を書くときは、既存の finish を消す', async () => {
+		const file = RaceFile.parse('2026-09-27.yaml', withEntry('        finish: 5\n'));
+		const race = file.findRace('中山', 11)!;
+		await applyResult(file, race, { meta, rows: [result({ status: '中' })] }, identity);
+		expect(file.toString()).toContain('        finishStatus: 中止\n');
+		expect(file.toString()).not.toContain('finish:');
+	});
+
+	it('過去走は、既存の行に finish があれば finishStatus を埋めない', async () => {
+		const file = RaceFile.parse(
+			'2026-08-09.yaml',
+			`date: 2026-08-09
+
+races:
+  - course: 中京
+    raceNumber: 7
+    name: CBC賞
+    entries:
+      - name: ホースA
+        ref: nk-1
+        finish: 9
+`
+		);
+		await applyPastRuns(
+			async () => file,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[
+				{
+					date: '2026-08-09',
+					course: '中京',
+					raceNumber: 7,
+					raceId: 'x',
+					race: { name: 'CBC賞' },
+					status: '中'
+				}
+			],
+			{ before: '2026-09-27', count: 5 }
+		);
+		expect(file.toString()).not.toContain('finishStatus');
+		expect(file.toString()).toContain('        finish: 9\n');
+	});
+
+	it('過去走は中止・失格を空いていれば埋める。取消・除外の走は飛ばす', async () => {
+		const files = new Map<string, RaceFile>();
+		const open = async (date: string) => {
+			if (!files.has(date))
+				files.set(date, RaceFile.parse(`${date}.yaml`, `date: ${date}\n\nraces: []\n`));
+			return files.get(date)!;
+		};
+		const base: Omit<PastRun, 'date'> = {
+			course: '中京',
+			raceNumber: 7,
+			raceId: '202607040707',
+			race: { name: 'CBC賞' }
+		};
+		await applyPastRuns(
+			open,
+			{ name: 'ホースA', ref: 'nk-1' },
+			[
+				{ ...base, date: '2026-09-01', status: '除' },
+				{ ...base, date: '2026-08-09', status: '中' },
+				{ ...base, date: '2026-07-05', status: '失' }
+			],
+			{ before: '2026-09-27', count: 5 }
+		);
+		expect([...files.keys()]).toEqual(['2026-08-09', '2026-07-05']);
+		expect(files.get('2026-08-09')!.toString()).toContain('        finishStatus: 中止\n');
+		expect(files.get('2026-07-05')!.toString()).toContain('        finishStatus: 失格\n');
+	});
+});

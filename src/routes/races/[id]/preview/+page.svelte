@@ -7,6 +7,7 @@
 	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
 	import RaceHeading from '#lib/components/RaceHeading.svelte';
 	import BlinkerBadge from '#lib/components/BlinkerBadge.svelte';
+	import { Badge } from '#lib/components/ui/badge/index.ts';
 	import EntryConditions from '#lib/components/EntryConditions.svelte';
 	import DraftKeeper from '#lib/components/DraftKeeper.svelte';
 	import SaveBar from '#lib/components/SaveBar.svelte';
@@ -512,6 +513,12 @@
 															class="flex max-w-full min-w-0 leading-6 font-medium hover:underline"
 														/>
 														<BlinkerBadge blinker={r.blinker} />
+														<!-- 取消・除外。走らない馬だと予想の最中に分かるよう、ブリンカーの札と同じ並びに語で出す（行は薄くしない）。 -->
+														{#if r.finishStatus}
+															<Badge variant="outline" class="shrink-0 px-1.5"
+																>{r.finishStatus}</Badge
+															>
+														{/if}
 													</div>
 													<!-- 馬名の下の1行。自分のメモのアイコン・このレースに合う札・前回の札（以前は名前の列の最後の段）。
 								     どれも無い馬は行ごと出さない。 -->

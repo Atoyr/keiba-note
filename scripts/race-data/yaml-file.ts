@@ -27,6 +27,7 @@ export const ENTRY_KEYS = [
 	'dam',
 	'damSire',
 	'finish',
+	'finishStatus',
 	'popularity',
 	'time',
 	'margin',
@@ -188,6 +189,13 @@ export class RaceFile {
 		if (setFields(entry, f, added ? 'overwrite' : mode) || added) this.dirty = true;
 		sortKeys(entry, ENTRY_KEYS);
 		return { entry, added };
+	}
+
+	/** 行から項目を消す。無ければ何もしない。消したかどうかを返す。 */
+	deleteEntryField(entry: YAMLMap, key: (typeof ENTRY_KEYS)[number]): boolean {
+		if (!entry.delete(key)) return false;
+		this.dirty = true;
+		return true;
 	}
 
 	/** 馬番順（馬番が無い行は元の並びのまま後ろ）に並べ替える。 */

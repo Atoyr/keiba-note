@@ -219,6 +219,18 @@ export const THIS_WEEK_RACES = {
 /** 予想画面を開くレース。出走1頭に、出走前メモが1件だけ付いている。 */
 export const PREVIEW_RACE_ID = '01JE2ERACEPREVIEW000000000';
 
+/**
+ * 着順が無い理由（seed.sql）。予想画面のレースの馬（E2Eプレビューホース）は除外、
+ * ふりかえり画面のレース（REVIEW_RACE_ID）には取消の馬がもう1頭いる。
+ */
+export const CANCELED_HORSE_NAME = 'E2E取消ホース';
+
+/** 出走馬の編集で「状態」を選んで保存するレース。出走1頭（E2E状態編集ホース）。保存で中身が変わるので他のテストと共有しない。 */
+export const STATUS_EDIT_RACE_ID = '01JE2ERACESTATUSEDIT000000';
+
+/** JS 無しで出走馬の編集を保存する。出走1頭（E2E状態無JSホース）は除外。保存で中身が変わるので他のテストと共有しない。 */
+export const STATUS_NOJS_RACE_ID = '01JE2ERACESTATUSNOJS000000';
+
 /** 行展開・非表示の一括保存を検証する独立したレース（他の保存テストと共有しない）。 */
 export const ROW_RACE = {
 	id: '01JE2ERACEROW0000000000000',

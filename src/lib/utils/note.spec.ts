@@ -113,6 +113,21 @@ describe('runHeading', () => {
 		});
 	});
 
+	it('着順が無く取消・除外などの状態があれば、着順の位置に語を出す（出走予定の行にも）', () => {
+		const base = { ...race, finishPosition: null, finishStatus: '取消' as const };
+		expect(runHeading(base, false).label).toBe('中山11R オールカマー (G2) 取消');
+		expect(runHeading(base, true)).toEqual({
+			label: '中山11R オールカマー (G2) 取消',
+			kindLabel: '出走予定'
+		});
+	});
+
+	it('ふりかえりのメモの見出しにも、着順が無ければ状態の語を出す。出走前のメモには出さない', () => {
+		const n = { ...race, finishPosition: null, finishStatus: '除外' as const };
+		expect(noteHeading({ ...n, kind: 'entry' }).label).toBe('中山11R オールカマー (G2) 除外');
+		expect(noteHeading({ ...n, kind: 'preview' }).label).toBe('中山11R オールカマー (G2)');
+	});
+
 	it('レース名も格も無ければ「レース」とだけ出す', () => {
 		expect(runHeading({ course: null, raceNumber: null }, false).label).toBe('レース');
 	});
