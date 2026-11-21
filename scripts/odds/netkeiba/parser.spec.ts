@@ -10,6 +10,8 @@ import middle from './fixtures/middle.json';
 import middleScratched from './fixtures/middle-scratched.json';
 // 発売中なのに全頭の欄が値なしの応答（作ったもの）。形が変わった疑いとして保存しない。
 import middleBlank from './fixtures/middle-blank.json';
+// 2026-11-21 福島記念（確定後）の実際の応答。競走除外の5番が単勝・複勝とも `-3.0`、人気 `9999` で来る。
+import resultScratched from './fixtures/result-scratched.json';
 
 const fetchedAt = new Date('2026-09-27T05:31:00Z');
 
@@ -95,6 +97,26 @@ describe('parseNetkeibaOdds', () => {
 		expect(() => validateRaceOdds(odds)).not.toThrow();
 	});
 
+	it('取消・除外の馬の負のオッズは null にし、ほかの馬は読む', () => {
+		const odds = parseNetkeibaOdds(resultScratched, 'r1', fetchedAt);
+		const byNumber = new Map(odds.horses.map((h) => [h.horseNumber, h]));
+
+		expect(odds.horses).toHaveLength(16);
+		expect(byNumber.get(5)).toEqual({
+			horseNumber: 5,
+			winOdds: null,
+			placeOddsMin: null,
+			placeOddsMax: null
+		});
+		expect(byNumber.get(13)).toEqual({
+			horseNumber: 13,
+			winOdds: 3.3,
+			placeOddsMin: 1.4,
+			placeOddsMax: 1.6
+		});
+		expect(() => validateRaceOdds(odds)).not.toThrow();
+	});
+
 	it('複勝が片側だけの馬は、複勝を両方 null にして単勝は残す', () => {
 		const source = {
 			status: 'middle',
@@ -172,7 +194,10 @@ describe('parseNetkeibaOdds', () => {
 			'数字を含むが数でない',
 			{ status: 'middle', data: { odds: { '1': { '01': ['3.4.1', ''] } } } }
 		],
-		['負の数', { status: 'middle', data: { odds: { '1': { '01': ['-3.4', ''] } } } }],
+		[
+			'負の数の形が崩れている',
+			{ status: 'middle', data: { odds: { '1': { '01': ['-3.0-', ''] } } } }
+		],
 		['オッズが数値型', { status: 'middle', data: { odds: { '1': { '01': [3.4, ''] } } } }]
 	])('想定外の形は parse で投げる: %s', (_, source) => {
 		expect(kindOf(() => parseNetkeibaOdds(source, 'r1', fetchedAt))).toBe('parse');
