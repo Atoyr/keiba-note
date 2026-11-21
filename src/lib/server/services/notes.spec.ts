@@ -329,6 +329,7 @@ describe('mergeHorseTimeline', () => {
 		grade: 'G2',
 		className: null,
 		finishPosition: 1,
+		finishStatus: null,
 		resultCount: 16,
 		...over
 	});
