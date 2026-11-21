@@ -564,6 +564,15 @@ describe('出走馬の着順が無い理由（finishStatus）', () => {
 		expect(rowOf(db)).toEqual({ finish_position: null, finish_status: '取消' });
 	});
 
+	it('状態を書いた行は、既に入っていた着順を消す（結果の取り直しで失格になった馬）', () => {
+		const db = freshDb();
+		load(db, withStatus('finish: 3'));
+		expect(rowOf(db)).toEqual({ finish_position: 3, finish_status: null });
+
+		load(db, withStatus('finishStatus: 失格'));
+		expect(rowOf(db)).toEqual({ finish_position: null, finish_status: '失格' });
+	});
+
 	it('書いた YAML の SQL だけ finish_status を名指しする（マイグレーション 0027 の列）', () => {
 		expect(sql(withStatus('finishStatus: 取消'))).toMatch(/finish_status/);
 		expect(sql(candidates)).not.toMatch(/finish_status/);

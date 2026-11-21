@@ -386,7 +386,7 @@ test.describe('JavaScriptなしのメモ', () => {
 		// JS が無いと読む形が出たままなので、同じ名前の札が2つある。選択の欄は後ろ。
 		await section(page).getByText('中山巧者', { exact: true }).last().click();
 		await saveButton(page).click();
-		expect(await page.content()).toContain('メモを消しました。');
+		await expect(page.getByText('メモを消しました。')).toBeVisible();
 		await expect(section(page).getByText('＋ メモを書く')).toBeVisible();
 	});
 });

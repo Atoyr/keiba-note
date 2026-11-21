@@ -403,7 +403,13 @@ ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}${conditionCol.set}${
   bracket = excluded.bracket,
   horse_number = excluded.horse_number,
   jockey = excluded.jockey,
-  finish_position = COALESCE(excluded.finish_position, race_entry.finish_position),
+  finish_position = ${
+		// 状態（取消・除外・中止・失格）を書いた行は着順を消す（結果の取り直しで失格になった馬に、前の着順を残さない）。
+		// 着順と状態は data:check が同時に書かせないので、ここで消すのは古い着順だけ。列は 0027 より前からある。
+		e.finishStatus === undefined
+			? 'COALESCE(excluded.finish_position, race_entry.finish_position)'
+			: 'NULL'
+	},
   popularity = COALESCE(excluded.popularity, race_entry.popularity),
   finish_time = COALESCE(excluded.finish_time, race_entry.finish_time),
   margin = COALESCE(excluded.margin, race_entry.margin),

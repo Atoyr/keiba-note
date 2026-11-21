@@ -65,6 +65,9 @@ export function applyRaceRef(
 	];
 }
 
+/** YAML から状態を外しても、D1 の `finish_status` は戻らない（投入は書いた行だけ列に触る）。 */
+const REMOVED_NOTE = '（D1 に入っていれば残る。出走馬の編集画面で外す）';
+
 /** YAML の行の馬名と netkeiba の馬名が違うときの警告。 */
 function nameWarning(entry: YAMLMap, name: string): string[] {
 	const current = entry.get('name');
@@ -154,9 +157,9 @@ export async function applyShutuba(
 		// `中止`・`失格` は結果が入れたもので、出馬表は持たないので触らない。
 		if (!row.finishStatus && (held === '取消' || held === '除外')) {
 			file.deleteEntryField(entry, 'finishStatus');
-			log.push(`↺ ${row.name}: ${held} を外しました`);
+			log.push(`↺ ${row.name}: ${held} を外しました${REMOVED_NOTE}`);
 		} else if (row.finishStatus && held !== row.finishStatus) {
-			log.push(`! ${row.name}: ${row.finishStatus}（出馬表の表記）`);
+			log.push(`※ ${row.name}: ${row.finishStatus}（出馬表の表記）`);
 		}
 		kept.add(entry);
 		order.set(entry, i);
@@ -385,7 +388,12 @@ export async function applyResult(
 		used.add(row);
 		// 着順が付けば状態は外す。着順が無く状態が読めれば書く（読めない表記は何もしない）。
 		const finishStatus = row.finish === undefined ? toFinishStatus(row.status) : undefined;
-		if (row.finish !== undefined) file.deleteEntryField(entry, 'finishStatus');
+		if (row.finish !== undefined) {
+			const held = entry.get('finishStatus');
+			if (file.deleteEntryField(entry, 'finishStatus')) {
+				log.push(`↺ ${row.name}: ${held} を外しました${REMOVED_NOTE}`);
+			}
+		}
 		// 着順と状態は一緒に書けない。状態を書くときは、前に入っていた着順を外す。
 		else if (finishStatus) file.deleteEntryField(entry, 'finish');
 		const jockey = row.jockey ? await resolve('jockey', row.jockey) : undefined;

@@ -98,6 +98,13 @@ describe('asMarked', () => {
 		expect(asMarked('×', 'in')).toBe(false);
 	});
 
+	it('未確定と、走っていない（取消・除外）は判定しない', () => {
+		for (const mark of ['◎', '×'] as PredictionMark[]) {
+			expect(asMarked(mark, 'pending')).toBeNull();
+			expect(asMarked(mark, 'void')).toBeNull();
+		}
+	});
+
 	it('未確定なら読みどおりとも読み違いとも言わない', () => {
 		expect(asMarked('◎', 'pending')).toBeNull();
 		expect(asMarked('×', 'pending')).toBeNull();

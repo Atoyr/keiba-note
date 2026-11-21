@@ -42,11 +42,11 @@ export function placing(
  * 印のとおりに走ったか。色の強弱にだけ使う。
  *
  * ◎○▲△☆ は「馬券に絡む」と読んだ印なので馬券内なら読みどおり、
- * × は「来ない」と読んだ印なので着外なら読みどおり。未確定なら null。
+ * × は「来ない」と読んだ印なので着外なら読みどおり。未確定と、走っていない（取消・除外）なら null。
  * 言葉は馬券内／着外のままで、× が馬券内に来たとき（消した馬に来られた）だけ目立たせる。
  */
 export function asMarked(mark: PredictionMark, p: Placing): boolean | null {
-	if (p === 'pending') return null;
+	if (p === 'pending' || p === 'void') return null;
 	return mark === '×' ? p === 'out' : p === 'in';
 }
 

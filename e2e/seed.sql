@@ -1144,3 +1144,18 @@ VALUES (
 	'01JE2EHORSESTATUSEDIT0000',
 	1, 1, 'E2E騎手'
 );
+
+-- JS 無しで出走馬の編集を保存しても状態が消えないことを見るレース（状態の入った出走が1頭。保存で中身が変わるので共有しない）。
+INSERT OR REPLACE INTO horse (id, name)
+VALUES ('01JE2EHORSESTATUSNOJS0000', 'E2E状態無JSホース');
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, surface, distance)
+VALUES ('01JE2ERACESTATUSNOJS000000', '2026-06-20', '東京', 4, 'E2E状態無JS特別', '芝', 1600);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_status)
+VALUES (
+	'01JE2EENTRYSTATUSNOJS00000',
+	'01JE2ERACESTATUSNOJS000000',
+	'01JE2EHORSESTATUSNOJS0000',
+	1, 1, 'E2E騎手', '除外'
+);

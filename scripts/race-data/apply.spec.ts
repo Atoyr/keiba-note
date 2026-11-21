@@ -736,11 +736,13 @@ describe('着順が無い理由（finishStatus）', () => {
 		const log = await shutuba(file, { finishStatus: '除外' });
 		expect(file.toString()).toContain('        finishStatus: 除外\n');
 		expect(file.toString()).not.toContain('取消');
-		expect(log).toContain('! ホースA: 除外（出馬表の表記）');
+		expect(log).toContain('※ ホースA: 除外（出馬表の表記）');
 
 		const back = await shutuba(file);
 		expect(file.toString()).not.toContain('finishStatus');
-		expect(back).toContain('↺ ホースA: 除外 を外しました');
+		expect(back).toContain(
+			'↺ ホースA: 除外 を外しました（D1 に入っていれば残る。出走馬の編集画面で外す）'
+		);
 	});
 
 	it('出馬表は結果が入れた中止・失格を消さない', async () => {

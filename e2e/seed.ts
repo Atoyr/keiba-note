@@ -228,6 +228,9 @@ export const CANCELED_HORSE_NAME = 'E2E取消ホース';
 /** 出走馬の編集で「状態」を選んで保存するレース。出走1頭（E2E状態編集ホース）。保存で中身が変わるので他のテストと共有しない。 */
 export const STATUS_EDIT_RACE_ID = '01JE2ERACESTATUSEDIT000000';
 
+/** JS 無しで出走馬の編集を保存する。出走1頭（E2E状態無JSホース）は除外。保存で中身が変わるので他のテストと共有しない。 */
+export const STATUS_NOJS_RACE_ID = '01JE2ERACESTATUSNOJS000000';
+
 /** 行展開・非表示の一括保存を検証する独立したレース（他の保存テストと共有しない）。 */
 export const ROW_RACE = {
 	id: '01JE2ERACEROW0000000000000',
