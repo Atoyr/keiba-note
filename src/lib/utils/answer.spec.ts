@@ -76,6 +76,11 @@ describe('placing', () => {
 	// 着順が入っていない馬を着外と出すと、結果の投入待ちなのに負けたように読める。
 	it('着順が無ければ未確定', () => {
 		expect(placing(null)).toBe('pending');
+		// 取消・除外は判定なし、中止・失格は着外
+		expect(placing(null, '取消')).toBe('void');
+		expect(placing(null, '除外')).toBe('void');
+		expect(placing(null, '中止')).toBe('out');
+		expect(placing(null, '失格')).toBe('out');
 	});
 });
 
@@ -91,6 +96,13 @@ describe('asMarked', () => {
 	it('× は着外なら読みどおり、馬券内なら読み違い', () => {
 		expect(asMarked('×', 'out')).toBe(true);
 		expect(asMarked('×', 'in')).toBe(false);
+	});
+
+	it('未確定と、走っていない（取消・除外）は判定しない', () => {
+		for (const mark of ['◎', '×'] as PredictionMark[]) {
+			expect(asMarked(mark, 'pending')).toBeNull();
+			expect(asMarked(mark, 'void')).toBeNull();
+		}
 	});
 
 	it('未確定なら読みどおりとも読み違いとも言わない', () => {

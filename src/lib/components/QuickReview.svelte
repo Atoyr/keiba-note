@@ -7,6 +7,7 @@
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { DEFAULT_INSIGHT_WORDS } from '#lib/utils/insight-words.ts';
 	import type { Mark } from '#lib/schemas/note.ts';
+	import type { FinishStatus } from '#lib/schemas/race.ts';
 	import { cn } from '#lib/utils.ts';
 
 	/** 選んだ並び順を残す localStorage のキー。'number' のときだけ '1' を書く。 */
@@ -49,6 +50,8 @@
 			bracket: number | null;
 			horseNumber: number | null;
 			finishPosition: number | null;
+			/** 着順が無い理由（取消・除外など）。 */
+			finishStatus?: FinishStatus | null;
 			/** 予想で付けた印。 */
 			mark?: Mark | null;
 		}[];
@@ -94,7 +97,7 @@
 	}
 
 	/** 着順の列を出すかは一覧全体で1つに決める。 */
-	const rankColumn = $derived(rows.some((r) => r.finishPosition !== null));
+	const rankColumn = $derived(rows.some((r) => r.finishPosition !== null || !!r.finishStatus));
 	/** 札（枠・馬番）の列も一覧全体で1つに決める。 */
 	const badgeColumn = $derived(rows.some((r) => r.bracket || r.horseNumber));
 
@@ -261,6 +264,7 @@
 						bracket={r.bracket}
 						horseNumber={r.horseNumber}
 						finishPosition={r.finishPosition}
+						finishStatus={r.finishStatus ?? null}
 						{rankColumn}
 						{badgeColumn}
 						mark={r.mark ?? null}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FinishStatusLabel from '#lib/components/FinishStatusLabel.svelte';
 	import GradeBadge from '#lib/components/GradeBadge.svelte';
 	import MarkBadge from '#lib/components/MarkBadge.svelte';
 	import TagBadges from '#lib/components/TagBadges.svelte';
@@ -39,6 +40,8 @@
 				<span class="text-lg font-bold tracking-tight">{n.horseName}</span>
 				{#if n.finishPosition}
 					<span class="text-sm text-gray-600">{n.finishPosition}着</span>
+				{:else if n.finishStatus}
+					<FinishStatusLabel status={n.finishStatus} class="text-sm" />
 				{/if}
 				<MarkBadge mark={n.mark} />
 			</p>

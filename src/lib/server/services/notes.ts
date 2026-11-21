@@ -18,6 +18,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '#lib/server/db/index.ts';
 import { horse, note, race, raceEntry, user, type Note, type Race } from '#lib/server/db/schema.ts';
 import type { HorseTraitValue } from '#lib/schemas/horse.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 import type { NoteTag } from '#lib/schemas/note.ts';
 import type { RaceFlow } from '#lib/schemas/race-flow.ts';
 import type { WatchSourceRow } from '#lib/utils/dashboard.ts';
@@ -326,6 +327,7 @@ export type TimelineItem = {
 	raceNumber: number | null;
 	grade: string | null;
 	finishPosition: number | null;
+	finishStatus: FinishStatus | null;
 };
 
 /** リンク先を決める材料。レースの着順の入った出走の数で、レースに紐づかないメモは 0（→ `isSettled`）。 */
@@ -367,6 +369,7 @@ export async function getHorseTimeline(
 			raceNumber: race.raceNumber,
 			grade: race.grade,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			resultCount: raceResultCount(),
 			raceEntryId: note.raceEntryId
 		})
@@ -501,6 +504,7 @@ export async function listRecentNotes(db: Db, viewerId: string, limit = 20): Pro
 			raceNumber: race.raceNumber,
 			grade: race.grade,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			resultCount: raceResultCount(),
 			horseName: horse.name
 		})
@@ -672,7 +676,8 @@ function horseHistoryQuery(db: Db, horseIds: string[], excludeRaceId: string, vi
 			course: race.course,
 			raceNumber: race.raceNumber,
 			grade: race.grade,
-			finishPosition: raceEntry.finishPosition
+			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus
 		})
 		.from(note)
 		.innerJoin(user, eq(note.authorId, user.id))
@@ -927,6 +932,7 @@ export type SharedNote = {
 	raceNumber: number | null;
 	grade: string | null;
 	finishPosition: number | null;
+	finishStatus: FinishStatus | null;
 };
 
 /**
@@ -955,7 +961,8 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
 			course: race.course,
 			raceNumber: race.raceNumber,
 			grade: race.grade,
-			finishPosition: raceEntry.finishPosition
+			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus
 		})
 		.from(note)
 		.innerJoin(user, eq(note.authorId, user.id))
@@ -1010,6 +1017,7 @@ export async function listSharedNotes(db: Db, viewerId: string): Promise<RecentN
 			raceNumber: race.raceNumber,
 			grade: race.grade,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			resultCount: raceResultCount(),
 			horseName: horse.name
 		})

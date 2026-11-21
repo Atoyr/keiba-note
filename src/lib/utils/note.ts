@@ -2,6 +2,7 @@
 
 import { FLOW_PHASES, FLOW_PHASE_LABEL } from '#lib/schemas/race-flow.ts';
 import type { NoteTag } from '#lib/schemas/note.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 
 /**
  * 札の系統。色分けの根拠をここ1か所に置く。
@@ -60,6 +61,8 @@ export type RaceLabelSource = {
 export type NoteHeadingSource = RaceLabelSource & {
 	kind: 'race' | 'horse' | 'entry' | 'preview' | 'race_preview';
 	finishPosition?: number | null;
+	/** 着順が無い理由。着順が無いふりかえりのメモに、着順の位置へ語で出す。 */
+	finishStatus?: FinishStatus | null;
 	horseName?: string | null;
 };
 
@@ -112,7 +115,7 @@ export type NoteHeadingParts = {
 	raceName: string | null;
 	/** 格が無いレースのクラス（`1勝クラス`）。格があれば null（札と重ねて出さない）。 */
 	className: string | null;
-	/** 「1着」。出すのはふりかえりのメモだけ（開催前のメモに出さない理由は `noteHeading`）。 */
+	/** 「1着」（着順が無ければ取消などの語）。出すのはふりかえりのメモだけ（開催前のメモに出さない理由は `noteHeading`）。 */
 	result: string | null;
 };
 
@@ -128,7 +131,11 @@ export function noteHeadingParts(n: NoteHeadingSource): NoteHeadingParts {
 		grade: n.grade ?? null,
 		raceName: n.raceName ?? null,
 		className: n.grade ? null : (n.className ?? null),
-		result: isReviewNote(n.kind) && n.finishPosition ? `${n.finishPosition}着` : null
+		result: !isReviewNote(n.kind)
+			? null
+			: n.finishPosition
+				? `${n.finishPosition}着`
+				: (n.finishStatus ?? null)
 	};
 }
 
@@ -156,7 +163,11 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 	return { label: label || 'レース', kindLabel };
 }
 
-export type RunHeadingSource = RaceLabelSource & { finishPosition?: number | null };
+export type RunHeadingSource = RaceLabelSource & {
+	finishPosition?: number | null;
+	/** 着順が無い理由（取消など）。着順が無いときに着順の位置へ語で出す。 */
+	finishStatus?: FinishStatus | null;
+};
 
 /**
  * **メモの無い出走**の見出し。タイムラインの骨になる行。
@@ -168,9 +179,15 @@ export type RunHeadingSource = RaceLabelSource & { finishPosition?: number | nul
 export function runHeading(n: RunHeadingSource, upcoming: boolean): NoteHeading {
 	const race = raceLabel(n);
 
-	if (upcoming) return { label: race || 'レース', kindLabel: '出走予定' };
+	// 取消・除外は開催前から分かる。着順と違い、出走予定の行にも語を出す。
+	if (upcoming) {
+		return {
+			label: [race, n.finishStatus ?? null].filter(Boolean).join(' ') || 'レース',
+			kindLabel: '出走予定'
+		};
+	}
 
-	const withResult = [race, n.finishPosition ? `${n.finishPosition}着` : null]
+	const withResult = [race, n.finishPosition ? `${n.finishPosition}着` : (n.finishStatus ?? null)]
 		.filter(Boolean)
 		.join(' ');
 

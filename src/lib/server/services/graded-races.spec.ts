@@ -322,7 +322,8 @@ describe('重賞のタイムライン', () => {
 		horseName: `馬${horseNumber}`,
 		bracket: null,
 		horseNumber,
-		finishPosition: null
+		finishPosition: null,
+		finishStatus: null
 	});
 
 	it('年の降順で、印は印の順・同じ印は馬番の昇順（馬番なしは後ろ）', () => {

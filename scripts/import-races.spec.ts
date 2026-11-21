@@ -532,3 +532,61 @@ describe('出走馬のブリンカー（blinker）と発表時の騎手（announ
 		expect(r.ok).toBe(false);
 	});
 });
+
+describe('出走馬の着順が無い理由（finishStatus）', () => {
+	const withStatus = (extra: string) =>
+		candidates.replace('{ name: ホースA, ref: t-a }', `{ name: ホースA, ref: t-a, ${extra} }`);
+	const rowOf = (db: DatabaseSync) =>
+		db
+			.prepare(
+				`SELECT re.finish_position, re.finish_status FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-a'`
+			)
+			.get();
+	const sql = (yaml: string) => {
+		const parsed = readRaceFile(yaml, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		return statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n');
+	};
+	const errors = (yaml: string) => {
+		const r = readRaceFile(yaml, '2099-01-04.yaml');
+		return r.ok ? [] : r.errors;
+	};
+
+	it('race_entry の列に入り、書かなければ既存の値を残す。書けば上書きする', () => {
+		const db = freshDb();
+		load(db, withStatus('finishStatus: 除外'));
+		expect(rowOf(db)).toEqual({ finish_position: null, finish_status: '除外' });
+
+		load(db, candidates);
+		expect(rowOf(db)).toEqual({ finish_position: null, finish_status: '除外' });
+
+		load(db, withStatus('finishStatus: 取消'));
+		expect(rowOf(db)).toEqual({ finish_position: null, finish_status: '取消' });
+	});
+
+	it('状態を書いた行は、既に入っていた着順を消す（結果の取り直しで失格になった馬）', () => {
+		const db = freshDb();
+		load(db, withStatus('finish: 3'));
+		expect(rowOf(db)).toEqual({ finish_position: 3, finish_status: null });
+
+		load(db, withStatus('finishStatus: 失格'));
+		expect(rowOf(db)).toEqual({ finish_position: null, finish_status: '失格' });
+	});
+
+	it('書いた YAML の SQL だけ finish_status を名指しする（マイグレーション 0027 の列）', () => {
+		expect(sql(withStatus('finishStatus: 取消'))).toMatch(/finish_status/);
+		expect(sql(candidates)).not.toMatch(/finish_status/);
+	});
+
+	it('finish を書いて finishStatus を書かない行は、SQL が finish_status に触れない', () => {
+		const out = sql(withStatus('finish: 3'));
+		expect(out).not.toMatch(/finish_status/);
+	});
+
+	it('finish と両方書いたら落とす。知らない値も落とす', () => {
+		expect(errors(withStatus('finish: 3, finishStatus: 中止'))).toEqual([
+			expect.stringContaining('ホースA は着順と 中止 を両方書いています')
+		]);
+		expect(errors(withStatus('finishStatus: 競走除外')).length).toBe(1);
+	});
+});

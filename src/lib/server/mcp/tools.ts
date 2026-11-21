@@ -265,7 +265,7 @@ export const TOOLS = [
 		description:
 			'レースの条件（頭数 fieldSize・ラップ laps を含む）、出走馬（馬番・騎手・斤量・馬体重・着順・確定の人気 finalPopularity と単勝 finalWinOdds）、発売中の単勝・複勝オッズ odds とその時点を返します。' +
 			'終わったレースの人気と単勝は finalPopularity・finalWinOdds で読みます（odds は発売中に取ったオッズで、過去のレースでは null のことが多い）。' +
-			'結果が入っていない項目は null です。' +
+			'結果が入っていない項目は null です。着順が無い馬は finishStatus（取消・除外・中止・失格）がその理由で、無ければ null です。' +
 			'気にしている馬しか entries に入っていないレースがあります（重賞も含む）。entries の数は頭数ではありません（頭数は fieldSize）。' +
 			UNTRUSTED,
 		scope: 'races:read',
@@ -314,6 +314,7 @@ export const TOOLS = [
 							horseWeight: e.horseWeight,
 							horseWeightDiff: e.horseWeightDiff,
 							finishPosition: e.finishPosition,
+							finishStatus: e.finishStatus,
 							finishTime: e.finishTime,
 							margin: e.margin,
 							last3f: e.last3f,
@@ -367,7 +368,8 @@ export const TOOLS = [
 						raceName: r.raceName,
 						grade: r.grade,
 						className: r.className,
-						finishPosition: r.finishPosition
+						finishPosition: r.finishPosition,
+						finishStatus: r.finishStatus
 					}))
 				}
 			};

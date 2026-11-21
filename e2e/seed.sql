@@ -101,6 +101,18 @@ VALUES (
 	'2026-06-14'
 );
 
+-- 取消になった馬。ふりかえり画面の着順の位置に「取消」が出る（着順は無いまま）。
+INSERT OR REPLACE INTO horse (id, name)
+VALUES ('01JE2EHORSECANCELED000000', 'E2E取消ホース');
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, horse_number, jockey, finish_status)
+VALUES (
+	'01JE2EENTRYCANCELED0000000',
+	'01JE2ERACEPAST0000000000000',
+	'01JE2EHORSECANCELED000000',
+	6, 'E2E騎手', '取消'
+);
+
 -- ログイン済みで開く画面を本番ビルドのまま確かめるためのセッション。
 -- id は Cookie に入るトークンの SHA-256（`hashSessionToken`）。生トークンは DB に無い。
 -- 期限は 2100-01-01（unixepoch 4102444800）。
@@ -143,13 +155,13 @@ VALUES ('01JE2EHORSEB00000000000000', 'E2Eプレビューホース', 'E2Eプレ�
 INSERT OR REPLACE INTO race (id, date, course, race_number, name, grade, surface, distance, direction, field_size, start_time)
 VALUES ('01JE2ERACEPREVIEW000000000', '2099-05-05', '京都', 11, 'E2E予想賞', 'G2', '芝', 2200, '右', 18, '15:45');
 
--- 着順は未入力（まだ走っていない）。
-INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
+-- 着順は未入力（まだ走っていない）。発走前に除外が出ていて、馬名の右に「除外」の札が出る。
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_status)
 VALUES (
 	'01JE2EENTRYPREVIEW00000000',
 	'01JE2ERACEPREVIEW000000000',
 	'01JE2EHORSEB00000000000000',
-	2, 3, 'E2E騎手'
+	2, 3, 'E2E騎手', '除外'
 );
 
 -- その出走に書いた出走前メモ。予想画面が**畳まずに本文と付けた札を出す**ことを
@@ -1117,3 +1129,33 @@ INSERT INTO horse_trait (user_id, horse_id, body, tags) VALUES
 	('01JE2EUSER0000000000000000', '01JE2EFLOW18H0000000000012', '雨が降ると走る。', '[]'),
 	('01JE2EOTHERUSER00000000000', '01JE2EHORSEB00000000000000', '他人の特徴メモ。見えてはいけない。', '["東京巧者"]'),
 	('01JE2EOTHERUSER00000000000', '01JE2EMARKHORSE50000000000', '他人のアナウマの特徴メモ。見えてはいけない。', '[]');
+
+-- 出走馬の編集で「状態」を選んで保存するテスト専用のレース（他のテストと共有しない。保存すると中身が変わる）。
+INSERT OR REPLACE INTO horse (id, name)
+VALUES ('01JE2EHORSESTATUSEDIT0000', 'E2E状態編集ホース');
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, surface, distance)
+VALUES ('01JE2ERACESTATUSEDIT000000', '2026-06-20', '東京', 3, 'E2E状態編集特別', '芝', 1600);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey)
+VALUES (
+	'01JE2EENTRYSTATUSEDIT00000',
+	'01JE2ERACESTATUSEDIT000000',
+	'01JE2EHORSESTATUSEDIT0000',
+	1, 1, 'E2E騎手'
+);
+
+-- JS 無しで出走馬の編集を保存しても状態が消えないことを見るレース（状態の入った出走が1頭。保存で中身が変わるので共有しない）。
+INSERT OR REPLACE INTO horse (id, name)
+VALUES ('01JE2EHORSESTATUSNOJS0000', 'E2E状態無JSホース');
+
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, surface, distance)
+VALUES ('01JE2ERACESTATUSNOJS000000', '2026-06-20', '東京', 4, 'E2E状態無JS特別', '芝', 1600);
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_status)
+VALUES (
+	'01JE2EENTRYSTATUSNOJS00000',
+	'01JE2ERACESTATUSNOJS000000',
+	'01JE2EHORSESTATUSNOJS0000',
+	1, 1, 'E2E騎手', '除外'
+);

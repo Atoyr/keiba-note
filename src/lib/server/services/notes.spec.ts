@@ -329,6 +329,7 @@ describe('mergeHorseTimeline', () => {
 		grade: 'G2',
 		className: null,
 		finishPosition: 1,
+		finishStatus: null,
 		resultCount: 16,
 		...over
 	});
@@ -349,6 +350,7 @@ describe('mergeHorseTimeline', () => {
 		raceNumber: 11,
 		grade: 'G2',
 		finishPosition: 1,
+		finishStatus: null,
 		resultCount: 16,
 		raceEntryId: 'e1',
 		...over

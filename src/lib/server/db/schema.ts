@@ -10,6 +10,7 @@ import {
 	uniqueIndex
 } from 'drizzle-orm/sqlite-core';
 // 印の選択肢（MARKS）と札の型。drizzle-kit が `#lib`（package.json の imports）を解けるかは確かめていないので、相対パスで読む。
+import { FINISH_STATUSES } from '../../schemas/race';
 import { MARKS, type NoteTag } from '../../schemas/note';
 import { HORSE_SEXES, TRAINING_CENTERS, type HorseTraitTag } from '../../schemas/horse';
 import type { JockeyTag } from '../../schemas/jockey';
@@ -199,8 +200,10 @@ export const raceEntry = sqliteTable(
 		horseWeightDiff: integer('horse_weight_diff'),
 		odds: real('odds'),
 		popularity: integer('popularity'),
-		/** NULL = 未確定／除外。 */
+		/** NULL = 未確定／取消・除外など（理由は finish_status）。 */
 		finishPosition: integer('finish_position'),
+		/** 着順が無い理由。NULL = 未確定か、理由が分からない。着順と同時には持たない。 */
+		finishStatus: text('finish_status', { enum: FINISH_STATUSES }),
 		finishTime: text('finish_time'),
 		margin: text('margin'),
 		/** 通過順（`3-3-2-2`）。 */

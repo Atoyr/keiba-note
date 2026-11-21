@@ -17,6 +17,7 @@ import {
 	raceIdFromRef,
 	setRequestInterval,
 	splitRaceName,
+	toFinishStatus,
 	toHalfWidth
 } from './netkeiba.ts';
 
@@ -277,6 +278,40 @@ ${raceData('15:40発走 / 芝1200m (右 外 C)', '4回 中山 9日目 サラ系�
 		);
 		expect(rows).toHaveLength(1);
 		expect(rows[0]).toMatchObject({ bracket: 1, horseNumber: 1, name: 'キャントウェイト' });
+	});
+
+	it('取消・除外の行（HorseList Cancel）は Cancel_Txt を finishStatus として読む。コメントの中の空欄は拾わない', () => {
+		const cancelRow = `<tr class="HorseList Cancel" id="tr_">
+<td class="Waku3 Txt_C"><span>3</span></td>
+<td class="Umaban3 Txt_C">5</td>
+<td class="Cancel_Txt">取消</td>
+<td class="HorseInfo"><span class="HorseName"><a href="https://db.netkeiba.com/horse/2022105175"  target="_blank" title="フィーリウス">フィーリウス</a></span></td>
+<td>
+<span class="Age">牡4</span>
+</td>
+<!-- <td class="Cancel_Txt"></td> -->
+<td class="Cancel_NoData Txt_C">56.0</td>
+<td class="Cancel_NoData Jockey"><a href="https://db.netkeiba.com/jockey/result/recent/01134/" title="嶋田">嶋田</a></td>
+<td class="Trainer Cancel_NoData"><span class="Label1">美浦</span><a href="https://db.netkeiba.com/trainer/result/recent/01038/" title="手塚久">手塚久</a></td>
+</tr>`;
+		const { rows } = parseShutuba(
+			page(
+				cancelRow +
+					shutubaRow({
+						waku: 1,
+						umaban: 1,
+						id: '2021102800',
+						name: 'キャントウェイト',
+						barei: '牡5',
+						kinryo: '57.0',
+						trainer: ['01024', '萱野']
+					})
+			)
+		);
+		expect(rows).toHaveLength(2);
+		expect(rows[0]).toMatchObject({ name: 'フィーリウス', bracket: 3, horseNumber: 5 });
+		expect(rows[0].finishStatus).toBe('取消');
+		expect(rows[1].finishStatus).toBeUndefined();
 	});
 });
 
@@ -744,5 +779,24 @@ describe('parseShutubaPast', () => {
 
 	it('凡例が無ければ null（B が無いことを着用なしと読まない）', () => {
 		expect(parseShutubaPast(pastRow({ umaban: 1, id: '2019104658', blinker: true }))).toBeNull();
+	});
+});
+
+describe('toFinishStatus', () => {
+	it('略記を状態にそろえる。知らない表記・空は undefined', () => {
+		expect(['取', '除', '中', '失'].map(toFinishStatus)).toEqual(['取消', '除外', '中止', '失格']);
+		expect(['取消', '除外', '中止', '失格'].map(toFinishStatus)).toEqual([
+			'取消',
+			'除外',
+			'中止',
+			'失格'
+		]);
+		expect([' 取 ', '降', '', undefined, '1'].map(toFinishStatus)).toEqual([
+			'取消',
+			undefined,
+			undefined,
+			undefined,
+			undefined
+		]);
 	});
 });

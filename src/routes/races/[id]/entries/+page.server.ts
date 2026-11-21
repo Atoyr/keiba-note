@@ -35,6 +35,7 @@ export const actions: Actions = {
 			horseNumber: form.get(`horseNumber.${i}`)?.toString() ?? '',
 			jockey: form.get(`jockey.${i}`)?.toString() ?? '',
 			finishPosition: form.get(`finishPosition.${i}`)?.toString() ?? '',
+			finishStatus: form.get(`finishStatus.${i}`)?.toString() ?? '',
 			finishTime: form.get(`finishTime.${i}`)?.toString() ?? '',
 			margin: form.get(`margin.${i}`)?.toString() ?? '',
 			last3f: form.get(`last3f.${i}`)?.toString() ?? '',

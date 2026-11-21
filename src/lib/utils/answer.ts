@@ -6,6 +6,7 @@
  * 両方を持っているのはふりかえり画面だけ。ここで並べないと、どこでも並ばない。
  */
 
+import type { FinishStatus } from '#lib/schemas/race.ts';
 import { isPredictionMark, MARKS, type Mark, type PredictionMark } from '#lib/schemas/note.ts';
 
 /**
@@ -13,19 +14,27 @@ import { isPredictionMark, MARKS, type Mark, type PredictionMark } from '#lib/sc
  *
  * - `in` — **馬券内**（3着以内）
  * - `out` — **着外**（4着以下）
- * - `pending` — **未確定**。着順が入っていない（結果の投入待ち・取消）
+ * - `pending` — **未確定**。着順が入っていない（結果の投入待ち）
+ * - `void` — **判定なし**。取消・除外（走っていないので、馬券内とも着外とも言わない）。
+ *   中止・失格は走ったので `out`（着外）に数える
  *
  * 「当たり／外れ」とは言わない。競馬で「的中」は買った馬券に使う言葉で、
  * このアプリは馬券を記録していない。印に的中と付けると馬券が当たったように読める。
  * 出すのは事実（馬券内か着外か）だけにして、印と並べて読ませる。
  */
-export type Placing = 'in' | 'out' | 'pending';
+export type Placing = 'in' | 'out' | 'pending' | 'void';
 
 /** 3着以内を馬券内とみなす（複勝圏）。 */
 const IN_THE_MONEY = 3;
 
-export function placing(finishPosition: number | null): Placing {
-	if (finishPosition === null) return 'pending';
+export function placing(
+	finishPosition: number | null,
+	finishStatus: FinishStatus | null = null
+): Placing {
+	if (finishPosition === null) {
+		if (finishStatus === '取消' || finishStatus === '除外') return 'void';
+		return finishStatus ? 'out' : 'pending';
+	}
 	return finishPosition <= IN_THE_MONEY ? 'in' : 'out';
 }
 
@@ -33,17 +42,19 @@ export function placing(finishPosition: number | null): Placing {
  * 印のとおりに走ったか。色の強弱にだけ使う。
  *
  * ◎○▲△☆ は「馬券に絡む」と読んだ印なので馬券内なら読みどおり、
- * × は「来ない」と読んだ印なので着外なら読みどおり。未確定なら null。
+ * × は「来ない」と読んだ印なので着外なら読みどおり。未確定と、走っていない（取消・除外）なら null。
  * 言葉は馬券内／着外のままで、× が馬券内に来たとき（消した馬に来られた）だけ目立たせる。
  */
 export function asMarked(mark: PredictionMark, p: Placing): boolean | null {
-	if (p === 'pending') return null;
+	if (p === 'pending' || p === 'void') return null;
 	return mark === '×' ? p === 'out' : p === 'in';
 }
 
 export type AnswerSource = {
 	mark: Mark | null;
 	finishPosition: number | null;
+	/** 着順が無い理由。答え合わせの着順の欄に、語で出すのに使う。 */
+	finishStatus?: FinishStatus | null;
 	horseNumber: number | null;
 };
 
@@ -62,7 +73,7 @@ export type Answer<T extends AnswerSource> = T & {
  */
 export function answerCheck<T extends AnswerSource>(rows: T[]): Answer<T>[] {
 	return byMark(rows).map((r) => {
-		const p = placing(r.finishPosition);
+		const p = placing(r.finishPosition, r.finishStatus ?? null);
 		return { ...r, placing: p, asMarked: asMarked(r.mark, p) };
 	});
 }
@@ -101,13 +112,15 @@ export function byMark<T extends { mark: Mark | null; horseNumber: number | null
  * 見出しの集計。「◎○▲△☆ 3頭中 2頭 馬券内」。
  *
  * 数えるのは**着順が決まった、× 以外の印**だけ。× は「来ない」と読んだ印なので
- * 馬券内の数に混ぜると意味が逆になる。未確定の馬は分母に入れない。
+ * 馬券内の数に混ぜると意味が逆になる。未確定の馬と、取消・除外の馬（判定なし）は分母に入れない。中止・失格は着外として分母に入れる。
  * 数える馬がいなければ null（見出しに何も添えない）。
  */
 export function inTheMoneyCount(
 	answers: Answer<AnswerSource>[]
 ): { in: number; of: number } | null {
-	const decided = answers.filter((a) => a.mark !== '×' && a.placing !== 'pending');
+	const decided = answers.filter(
+		(a) => a.mark !== '×' && a.placing !== 'pending' && a.placing !== 'void'
+	);
 	if (decided.length === 0) return null;
 	return { in: decided.filter((a) => a.placing === 'in').length, of: decided.length };
 }

@@ -15,7 +15,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '#lib/server/db/index.ts';
 import { horse, note, race, raceEntry, type Race } from '#lib/server/db/schema.ts';
 import { CANDIDATE_MARK } from '#lib/schemas/note.ts';
-import { GRADED } from '#lib/schemas/race.ts';
+import { GRADED, type FinishStatus } from '#lib/schemas/race.ts';
 import type { HorseSex, TrainingCenter } from '#lib/schemas/horse.ts';
 import { currentWeek, shiftWeek, weekLookupRange, type Week } from '#lib/utils/date.ts';
 import { PAGE_SIZE, toPage, type Page } from '#lib/utils/paging.ts';
@@ -241,6 +241,8 @@ export type EntryRow = {
 	horseNumber: number | null;
 	jockey: string | null;
 	finishPosition: number | null;
+	/** 着順が無い理由（取消・除外・中止・失格）。無ければ null。 */
+	finishStatus: FinishStatus | null;
 	finishTime: string | null;
 	margin: string | null;
 	last3f: number | null;
@@ -258,6 +260,8 @@ export type RaceEntryView = {
 	horseNumber: number | null;
 	jockey: string | null;
 	finishPosition: number | null;
+	/** 着順が無い理由（取消・除外・中止・失格）。無ければ null。 */
+	finishStatus: FinishStatus | null;
 	finishTime: string | null;
 	margin: string | null;
 	last3f: number | null;
@@ -316,6 +320,7 @@ function reviewEntriesQuery(db: Db, raceId: string) {
 				horseNumber: raceEntry.horseNumber,
 				jockey: raceEntry.jockey,
 				finishPosition: raceEntry.finishPosition,
+				finishStatus: raceEntry.finishStatus,
 				finishTime: raceEntry.finishTime,
 				margin: raceEntry.margin,
 				last3f: raceEntry.last3f,
@@ -375,6 +380,7 @@ export async function saveEntries(
 			horseNumber: row.horseNumber,
 			jockey: row.jockey,
 			finishPosition: row.finishPosition,
+			finishStatus: row.finishStatus,
 			finishTime: row.finishTime,
 			margin: row.margin,
 			last3f: row.last3f,
@@ -517,6 +523,7 @@ function previewEntriesQuery(db: Db, raceId: string) {
 			// NULL = 不明（「着用なし」ではない）。
 			blinker: raceEntry.blinker,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			finishTime: raceEntry.finishTime,
 			margin: raceEntry.margin,
 			last3f: raceEntry.last3f,
@@ -558,6 +565,8 @@ export type PastRun = {
 	bracket: number | null;
 	horseNumber: number | null;
 	finishPosition: number | null;
+	/** 着順が無い理由（取消・除外・中止・失格）。無ければ null。 */
+	finishStatus: FinishStatus | null;
 	popularity: number | null;
 	last3f: number | null;
 	/** 走破タイム。`1:58.4` のような文字列のまま（取得元の表記）。 */
@@ -615,6 +624,7 @@ export async function listPastRuns(
 			bracket: raceEntry.bracket,
 			horseNumber: raceEntry.horseNumber,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			popularity: raceEntry.popularity,
 			last3f: raceEntry.last3f,
 			finishTime: raceEntry.finishTime,
@@ -657,6 +667,8 @@ export type HorseRun = {
 	grade: string | null;
 	className: string | null;
 	finishPosition: number | null;
+	/** 着順が無い理由（取消・除外・中止・失格）。無ければ null。 */
+	finishStatus: FinishStatus | null;
 	/** そのレースで着順の入った出走の数（この馬が取消でも、レースの結果が出ていれば 1 以上）。 */
 	resultCount: number;
 };
@@ -687,6 +699,7 @@ export async function listRunsForHorse(db: Db, horseId: string, limit = 200): Pr
 			grade: race.grade,
 			className: race.className,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			resultCount: raceResultCount()
 		})
 		.from(raceEntry)

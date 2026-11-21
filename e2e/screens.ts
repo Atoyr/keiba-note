@@ -271,6 +271,8 @@ export const SCREENS: Screen[] = [
 	// 100件を超えるので、下端に「続きを読み込む」が出る。
 	{ name: 'races-all', path: '/races?year=', auth: true, stayAtTop: true },
 	{ name: 'race-review', path: `/races/${REVIEW_RACE_ID}`, auth: true },
+	// 出走馬の編集（管理者）。取消の行があり、着順の右に「状態」の選択が出る。
+	{ name: 'race-entries-edit', path: `/races/${REVIEW_RACE_ID}/entries`, auth: true, as: 'admin' },
 	// 馬場・天候・頭数が入っているレース。見出しは条件（2行目）の下に「馬場：稍重 / 天候：曇」の3行目が出る。
 	{ name: 'race-review-going', path: `/races/${PAST_RUN_RACE_ID}`, auth: true },
 	{

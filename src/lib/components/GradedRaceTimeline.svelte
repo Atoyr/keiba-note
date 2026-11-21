@@ -4,7 +4,9 @@
 	import KindBadge from '#lib/components/KindBadge.svelte';
 	import MarkBadge from '#lib/components/MarkBadge.svelte';
 	import TagBadges from '#lib/components/TagBadges.svelte';
+	import FinishStatusLabel from '#lib/components/FinishStatusLabel.svelte';
 	import type { NoteTag, PredictionMark } from '#lib/schemas/note.ts';
+	import type { FinishStatus } from '#lib/schemas/race.ts';
 	import { opensReview } from '#lib/utils/date.ts';
 
 	/**
@@ -48,6 +50,7 @@
 					bracket: number | null;
 					horseNumber: number | null;
 					finishPosition: number | null;
+					finishStatus?: FinishStatus | null;
 				}[];
 			}[];
 		}[];
@@ -114,6 +117,8 @@
 											<span class="font-medium">{m.horseName}</span>
 											{#if !row.upcoming && m.finishPosition}
 												<span class="text-muted-foreground">{m.finishPosition}着</span>
+											{:else if m.finishStatus}
+												<FinishStatusLabel status={m.finishStatus} />
 											{/if}
 										</li>
 									{/each}

@@ -1,4 +1,5 @@
 import type { Mark, NoteTag } from '#lib/schemas/note.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 
 /**
  * 馬柱（`PastRuns` の縦の表と `PastRunsStrip` の横の帯）が共有する、1走ぶんの型と書式。
@@ -30,6 +31,8 @@ export type PastRun = {
 	bracket: number | null;
 	horseNumber: number | null;
 	finishPosition: number | null;
+	/** 着順が無い理由（取消・除外・中止・失格）。着順の位置に語で出す。 */
+	finishStatus?: FinishStatus | null;
 	popularity: number | null;
 	last3f: number | null;
 	finishTime: string | null;
@@ -55,12 +58,17 @@ export const post = (r: PastRun) =>
 				? `${r.horseNumber}番`
 				: '—';
 
-/** `3/16`（着順/頭数）。頭数が無ければ `3着`。着順が無くても頭数があれば `—/16`、どちらも無ければ `—`。頭数は取得元の値。 */
+/**
+ * `3/16`（着順/頭数）。頭数が無ければ `3着`。着順が無くても頭数があれば `—/16`、どちらも無ければ `—`。頭数は取得元の値。
+ * 着順が無く理由（取消・除外・中止・失格）があれば、その語だけ。
+ */
 export const finish = (r: PastRun) =>
 	r.finishPosition === null
-		? r.fieldSize
-			? `—/${r.fieldSize}`
-			: '—'
+		? r.finishStatus
+			? r.finishStatus
+			: r.fieldSize
+				? `—/${r.fieldSize}`
+				: '—'
 		: r.fieldSize
 			? `${r.finishPosition}/${r.fieldSize}`
 			: `${r.finishPosition}着`;
