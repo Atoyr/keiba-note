@@ -113,7 +113,9 @@ function cells(value: unknown, key: string): [unknown, unknown] {
 /**
  * オッズの1欄。
  *
- * - 数字でない欄（`---.-`・`取消`・空）は値なし。取消・除外の馬はこの形で来る
+ * - 数字でない欄（`---.-`・`取消`・空）は値なし
+ * - 負の数（`-3.0` など）も値なし。netkeiba は取消・除外の馬をこの形で返し、人気を `9999` にする
+ *   （2026-11-21 福島記念の競走除外の馬で確かめた。オッズのページはその馬を「取消」と出す）
  * - `0.0` も値なし。netkeiba は使わない欄を `0.0` で埋める（単勝の2番目がそう）
  * - 数字を含むのに数として読めない欄は、形が変わった疑いなので投げる
  */
@@ -122,6 +124,7 @@ function oddsValue(cell: unknown, key: string): number | null {
 		throw new OddsError('parse', `${key}番のオッズが文字列ではありません`);
 	const s = cell.trim();
 	if (!/\d/.test(s)) return null;
+	if (/^-\d+(\.\d+)?$/.test(s)) return null;
 	if (!/^\d+(\.\d+)?$/.test(s)) throw new OddsError('parse', `${key}番のオッズが読めません: ${s}`);
 	const n = Number(s);
 	return n > 0 ? n : null;
