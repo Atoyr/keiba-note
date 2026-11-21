@@ -3,9 +3,11 @@
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 	import CheckIcon from '@lucide/svelte/icons/check';
+	import FinishStatusLabel from '#lib/components/FinishStatusLabel.svelte';
 	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
 	import MarkBadge from '#lib/components/MarkBadge.svelte';
 	import type { Mark } from '#lib/schemas/note.ts';
+	import type { FinishStatus } from '#lib/schemas/race.ts';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { hasQuickWord, toggleQuickWord } from '#lib/utils/quick-words.ts';
 	import { cn } from '#lib/utils.ts';
@@ -33,6 +35,7 @@
 		bracket = null,
 		horseNumber = null,
 		finishPosition = null,
+		finishStatus = null,
 		rankColumn = false,
 		badgeColumn = true,
 		mark = null,
@@ -55,6 +58,8 @@
 		horseNumber?: number | null;
 		/** 着順。結果がまだ無ければ null（着順は出さない）。 */
 		finishPosition?: number | null;
+		/** 着順が無い理由（取消・除外など）。着順が無いときに着順の位置へ語で出す。 */
+		finishStatus?: FinishStatus | null;
 		/** 着順の列を取るか。一覧のだれかに着順があれば全行が取る。 */
 		rankColumn?: boolean;
 		/** 札（枠・馬番）の列を取るか。一覧のだれかに札があれば全行が取る。 */
@@ -106,9 +111,12 @@
 </script>
 
 {#snippet content()}
-	{#if rankColumn || finishPosition}
+	{#if rankColumn || finishPosition || finishStatus}
 		<span class="w-8 shrink-0 text-sm leading-6 font-bold whitespace-nowrap"
-			>{#if finishPosition}{finishPosition}着{/if}</span
+			>{#if finishPosition}{finishPosition}着{:else}<FinishStatusLabel
+					status={finishStatus}
+					class="font-normal"
+				/>{/if}</span
 		>
 	{/if}
 	{#if badgeColumn}

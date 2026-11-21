@@ -156,7 +156,11 @@ export function noteHeading(n: NoteHeadingSource): NoteHeading {
 	return { label: label || 'レース', kindLabel };
 }
 
-export type RunHeadingSource = RaceLabelSource & { finishPosition?: number | null };
+export type RunHeadingSource = RaceLabelSource & {
+	finishPosition?: number | null;
+	/** 着順が無い理由（取消など）。着順が無いときに着順の位置へ語で出す。 */
+	finishStatus?: string | null;
+};
 
 /**
  * **メモの無い出走**の見出し。タイムラインの骨になる行。
@@ -168,9 +172,15 @@ export type RunHeadingSource = RaceLabelSource & { finishPosition?: number | nul
 export function runHeading(n: RunHeadingSource, upcoming: boolean): NoteHeading {
 	const race = raceLabel(n);
 
-	if (upcoming) return { label: race || 'レース', kindLabel: '出走予定' };
+	// 取消・除外は開催前から分かる。着順と違い、出走予定の行にも語を出す。
+	if (upcoming) {
+		return {
+			label: [race, n.finishStatus ?? null].filter(Boolean).join(' ') || 'レース',
+			kindLabel: '出走予定'
+		};
+	}
 
-	const withResult = [race, n.finishPosition ? `${n.finishPosition}着` : null]
+	const withResult = [race, n.finishPosition ? `${n.finishPosition}着` : (n.finishStatus ?? null)]
 		.filter(Boolean)
 		.join(' ');
 

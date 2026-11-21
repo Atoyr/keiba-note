@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FinishStatusLabel from '#lib/components/FinishStatusLabel.svelte';
 	import MarkBadge from '#lib/components/MarkBadge.svelte';
 	import {
 		inTheMoneyCount,
@@ -62,7 +63,9 @@
 					<span class="min-w-0 truncate">{a.horseName}</span>
 					<span class="ms-auto flex shrink-0 items-baseline gap-2">
 						<span class="font-mono {a.finishPosition === 1 ? 'font-bold text-red-700' : ''}">
-							{a.finishPosition ? `${a.finishPosition}着` : '—'}
+							{#if a.finishPosition}{a.finishPosition}着{:else if a.finishStatus}<FinishStatusLabel
+									status={a.finishStatus}
+								/>{:else}—{/if}
 						</span>
 						<span
 							class="w-12 text-right text-xs {tone(a)}"

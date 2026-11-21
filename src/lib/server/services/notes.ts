@@ -18,6 +18,7 @@ import { ulid } from 'ulidx';
 import type { Db } from '#lib/server/db/index.ts';
 import { horse, note, race, raceEntry, user, type Note, type Race } from '#lib/server/db/schema.ts';
 import type { HorseTraitValue } from '#lib/schemas/horse.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 import type { NoteTag } from '#lib/schemas/note.ts';
 import type { RaceFlow } from '#lib/schemas/race-flow.ts';
 import type { WatchSourceRow } from '#lib/utils/dashboard.ts';
@@ -927,6 +928,7 @@ export type SharedNote = {
 	raceNumber: number | null;
 	grade: string | null;
 	finishPosition: number | null;
+	finishStatus: FinishStatus | null;
 };
 
 /**
@@ -955,7 +957,8 @@ export async function getSharedNote(db: Db, noteId: string): Promise<SharedNote 
 			course: race.course,
 			raceNumber: race.raceNumber,
 			grade: race.grade,
-			finishPosition: raceEntry.finishPosition
+			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus
 		})
 		.from(note)
 		.innerJoin(user, eq(note.authorId, user.id))

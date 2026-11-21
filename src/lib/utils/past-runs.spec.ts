@@ -44,6 +44,8 @@ describe('past-runs の書式', () => {
 		expect(finish(run({ fieldSize: null }))).toBe('3着');
 		expect(finish(run({ finishPosition: null }))).toBe('—/16');
 		expect(finish(run({ finishPosition: null, fieldSize: null }))).toBe('—');
+		// 着順が無い理由があれば、その語だけ（頭数は添えない）
+		expect(finish(run({ finishPosition: null, finishStatus: '取消' }))).toBe('取消');
 	});
 
 	it('レース名が無ければ 開催場+番号R', () => {

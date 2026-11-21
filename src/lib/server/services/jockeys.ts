@@ -15,6 +15,7 @@ import type { Db } from '#lib/server/db/index.ts';
 import { horse, jockeyNote, note, race, raceEntry, type Note } from '#lib/server/db/schema.ts';
 import { JOCKEY_TAGS, type JockeyTag } from '#lib/schemas/jockey.ts';
 import type { NoteTag } from '#lib/schemas/note.ts';
+import type { FinishStatus } from '#lib/schemas/race.ts';
 import { raceResultCount } from './races';
 
 /**
@@ -121,6 +122,7 @@ export type JockeyRide = {
 	bracket: number | null;
 	horseNumber: number | null;
 	finishPosition: number | null;
+	finishStatus: FinishStatus | null;
 	popularity: number | null;
 	/** そのレースで着順の入った出走の数（→ `isSettled`）。 */
 	resultCount: number;
@@ -154,6 +156,7 @@ export async function listJockeyRides(
 			bracket: raceEntry.bracket,
 			horseNumber: raceEntry.horseNumber,
 			finishPosition: raceEntry.finishPosition,
+			finishStatus: raceEntry.finishStatus,
 			popularity: raceEntry.popularity,
 			resultCount: raceResultCount()
 		})

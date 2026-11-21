@@ -6,6 +6,7 @@
  * 両方を持っているのはふりかえり画面だけ。ここで並べないと、どこでも並ばない。
  */
 
+import type { FinishStatus } from '#lib/schemas/race.ts';
 import { isPredictionMark, MARKS, type Mark, type PredictionMark } from '#lib/schemas/note.ts';
 
 /**
@@ -44,6 +45,8 @@ export function asMarked(mark: PredictionMark, p: Placing): boolean | null {
 export type AnswerSource = {
 	mark: Mark | null;
 	finishPosition: number | null;
+	/** 着順が無い理由。答え合わせの着順の欄に、語で出すのに使う。 */
+	finishStatus?: FinishStatus | null;
 	horseNumber: number | null;
 };
 

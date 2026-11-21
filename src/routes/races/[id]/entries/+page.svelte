@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { FINISH_STATUSES } from '#lib/schemas/race.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -58,6 +59,7 @@
 						<th class="min-w-48 font-medium">馬名 *</th>
 						<th class="w-28 font-medium">騎手</th>
 						<th class="w-14 font-medium">着順</th>
+						<th class="w-20 font-medium">状態</th>
 						<th class="w-20 font-medium">タイム</th>
 						<th class="w-20 font-medium">着差</th>
 						<th class="w-16 font-medium">上り3F</th>
@@ -99,6 +101,14 @@
 									value={e?.finishPosition ?? ''}
 									class={cell}
 								/></td
+							>
+							<td
+								><select name="finishStatus.{i}" class={cell}>
+									<option value="" selected={!e?.finishStatus}></option>
+									{#each FINISH_STATUSES as s (s)}
+										<option value={s} selected={e?.finishStatus === s}>{s}</option>
+									{/each}
+								</select></td
 							>
 							<td
 								><input

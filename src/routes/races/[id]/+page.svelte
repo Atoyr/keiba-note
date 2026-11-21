@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths';
 	import ActualFlow from '#lib/components/ActualFlow.svelte';
 	import AnswerCheck from '#lib/components/AnswerCheck.svelte';
+	import FinishStatusLabel from '#lib/components/FinishStatusLabel.svelte';
 	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
 	import DraftKeeper from '#lib/components/DraftKeeper.svelte';
 	import InfoTip from '#lib/components/InfoTip.svelte';
@@ -107,6 +108,7 @@
 				horseName: r.horseName,
 				horseNumber: r.horseNumber,
 				finishPosition: r.finishPosition,
+				finishStatus: r.finishStatus,
 				mark: r.myPreview?.mark ?? null
 			}))
 		)
@@ -127,7 +129,9 @@
 	// 行の見出しの列（着順・札・オッズ）を出すかは、一覧全体で1つに決める（予想画面の badgeColumn と同じ）。
 	// 行ごとに決めると、馬名の位置が行ごとにずれる。出すなら全行が同じ幅で取り、その行に値が無くても幅だけ取る。
 	// 値が一覧の誰にも無いレースだけ、空の列で馬名を右へ押し出さないよう幅を取らない。
-	const rankColumn = $derived(data.rows.some((r) => r.finishPosition !== null));
+	const rankColumn = $derived(
+		data.rows.some((r) => r.finishPosition !== null || r.finishStatus !== null)
+	);
 	const badgeColumn = $derived(data.rows.some((r) => r.bracket || r.horseNumber || r.sexAge));
 	const oddsColumn = $derived(data.rows.some((r) => r.popularity !== null || r.odds !== null));
 
@@ -629,7 +633,10 @@
 														<span
 															class="w-8 shrink-0 text-sm leading-6 font-bold whitespace-nowrap"
 														>
-															{#if r.finishPosition}{r.finishPosition}着{/if}
+															{#if r.finishPosition}{r.finishPosition}着{:else}<FinishStatusLabel
+																	status={r.finishStatus}
+																	class="font-normal"
+																/>{/if}
 														</span>
 													{/if}
 

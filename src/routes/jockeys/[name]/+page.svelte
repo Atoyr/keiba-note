@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
+	import FinishStatusLabel from '#lib/components/FinishStatusLabel.svelte';
 	import HorseNumberBadge from '#lib/components/HorseNumberBadge.svelte';
 	import InfoTip from '#lib/components/InfoTip.svelte';
 	import JockeyTagBadges from '#lib/components/JockeyTagBadges.svelte';
@@ -220,6 +221,8 @@
 							</span>
 							{#if !row.upcoming && r.finishPosition}
 								<span class="font-medium">{r.finishPosition}着</span>
+							{:else if r.finishStatus}
+								<FinishStatusLabel status={r.finishStatus} />
 							{/if}
 							{#if r.popularity}
 								<span class="text-muted-foreground">{r.popularity}人気</span>
