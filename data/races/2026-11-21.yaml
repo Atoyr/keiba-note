@@ -108,6 +108,7 @@ races:
         ref: nk-2022105175
         trainer: 手塚貴久
         trainingCenter: 美浦
+        finishStatus: 取消
         weight: 56
         blinker: false
       - horseNumber: 6
