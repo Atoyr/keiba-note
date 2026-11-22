@@ -84,6 +84,7 @@ races:
         popularity: 7
         time: "1:59.1"
         margin: "アタマ"
+        timeDiff: 1
         passing: "9-10-8-8"
         last3f: 34.7
         weight: 58
