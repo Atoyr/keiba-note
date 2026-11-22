@@ -13,63 +13,9 @@ races:
     ref: nk-202605050611
     startTime: "15:30"
     entries:
-      - name: オンユアマークス
-        jockey: 武豊
-        sex: 牡
-        age: 2
-        ref: nk-2024104698
-        trainer: 松永幹夫
-        trainingCenter: 栗東
-        weight: 56
-      - name: キングリア
-        jockey: 川田将雅
-        sex: 牡
-        age: 2
-        ref: nk-2024106684
-        trainer: 中内田充正
-        trainingCenter: 栗東
-        weight: 56
-      - name: コラリオン
-        jockey: 坂井瑠星
-        sex: 牡
-        age: 2
-        ref: nk-2024106471
-        trainer: 伊坂重信
-        trainingCenter: 美浦
-        weight: 56
-      - name: ショウナンガレオン
-        jockey: 鮫島克駿
-        sex: 牡
-        age: 2
-        ref: nk-2024106438
-        trainer: 加藤士津八
-        trainingCenter: 美浦
-        weight: 56
-      - name: ジョドレルバンク
-        jockey: モレイラ
-        sex: 牡
-        age: 2
-        ref: nk-2024106161
-        trainer: 武井亮
-        trainingCenter: 美浦
-        weight: 56
-      - name: シルヴァノーブル
-        jockey: 横山典弘
-        sex: 牡
-        age: 2
-        ref: nk-2024101851
-        trainer: 昆貢
-        trainingCenter: 栗東
-        weight: 56
-      - name: スローブギ
-        jockey: 松山弘平
-        sex: 牡
-        age: 2
-        ref: nk-2024105964
-        trainer: 和田勇介
-        trainingCenter: 美浦
-        weight: 56
-      - name: ダノンダックス
+      - horseNumber: 1
+        bracket: 1
+        name: ダノンダックス
         jockey: ルメール
         sex: 牡
         age: 2
@@ -77,15 +23,21 @@ races:
         trainer: 田中博康
         trainingCenter: 美浦
         weight: 56
-      - name: ティフォシ
-        jockey: M.デムーロ
+        blinker: false
+      - horseNumber: 2
+        bracket: 2
+        name: シルヴァノーブル
+        jockey: 横山典弘
         sex: 牡
         age: 2
-        ref: nk-2024103816
-        trainer: 宮地貴稔
+        ref: nk-2024101851
+        trainer: 昆貢
         trainingCenter: 栗東
         weight: 56
-      - name: テンカタイヘイ
+        blinker: false
+      - horseNumber: 3
+        bracket: 3
+        name: テンカタイヘイ
         jockey: 横山和生
         sex: 牡
         age: 2
@@ -93,7 +45,65 @@ races:
         trainer: 小野次郎
         trainingCenter: 美浦
         weight: 56
-      - name: ニースケンス
+        blinker: false
+      - horseNumber: 4
+        bracket: 4
+        name: キングリア
+        jockey: 川田将雅
+        sex: 牡
+        age: 2
+        ref: nk-2024106684
+        trainer: 中内田充正
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 5
+        bracket: 5
+        name: ジョドレルバンク
+        jockey: モレイラ
+        sex: 牡
+        age: 2
+        ref: nk-2024106161
+        trainer: 武井亮
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 6
+        bracket: 5
+        name: ティフォシ
+        jockey: M.デムーロ
+        sex: 牡
+        age: 2
+        ref: nk-2024103816
+        trainer: 宮地貴稔
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
+      - horseNumber: 7
+        bracket: 6
+        name: スローブギ
+        jockey: 松山弘平
+        sex: 牡
+        age: 2
+        ref: nk-2024105964
+        trainer: 和田勇介
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 8
+        bracket: 6
+        name: コラリオン
+        jockey: 坂井瑠星
+        sex: 牡
+        age: 2
+        ref: nk-2024106471
+        trainer: 伊坂重信
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 9
+        bracket: 7
+        name: ニースケンス
         jockey: 原優介
         sex: 牡
         age: 2
@@ -101,7 +111,21 @@ races:
         trainer: 小島茂之
         trainingCenter: 美浦
         weight: 56
-      - name: ビンドゥング
+        blinker: false
+      - horseNumber: 10
+        bracket: 7
+        name: ショウナンガレオン
+        jockey: 鮫島克駿
+        sex: 牡
+        age: 2
+        ref: nk-2024106438
+        trainer: 加藤士津八
+        trainingCenter: 美浦
+        weight: 56
+        blinker: false
+      - horseNumber: 11
+        bracket: 8
+        name: ビンドゥング
         jockey: 戸崎圭太
         sex: 牡
         age: 2
@@ -109,3 +133,15 @@ races:
         trainer: 上村洋行
         trainingCenter: 栗東
         weight: 56
+        blinker: false
+      - horseNumber: 12
+        bracket: 8
+        name: オンユアマークス
+        jockey: 武豊
+        sex: 牡
+        age: 2
+        ref: nk-2024104698
+        trainer: 松永幹夫
+        trainingCenter: 栗東
+        weight: 56
+        blinker: false
