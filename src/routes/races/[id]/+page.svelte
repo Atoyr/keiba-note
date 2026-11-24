@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FinishTime from '#lib/components/FinishTime.svelte';
 	import { gradedRaceKey, gradedRaceParam, isGraded } from '#lib/utils/graded-race.ts';
 	import { deserialize, enhance } from '$app/forms';
 	import { afterNavigate, pushState, refreshAll, replaceState } from '$app/navigation';
@@ -741,7 +742,14 @@
 																{#if r.passing}<span class="font-mono whitespace-nowrap"
 																		><span class="sr-only">通過順</span>{r.passing}</span
 																	>{/if}
-																{#if r.finishTime}<span class="font-mono">{r.finishTime}</span>{/if}
+																{#if r.finishTime}<FinishTime
+																		time={r.finishTime}
+																		date={data.race.date}
+																		course={data.race.course}
+																		surface={data.race.surface}
+																		distance={data.race.distance}
+																	/>
+																{/if}
 															</p>
 														{/if}
 													</div>

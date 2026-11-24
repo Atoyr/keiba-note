@@ -529,6 +529,20 @@ VALUES (
 	2, 'E2E騎手', 1, 1, 33.8, -0.2
 );
 
+-- 同じ馬の、レコードタイムの走。JRA のレコードタイム表（2025-11-30 東京 芝2400 2:20.3）と日付・場・馬場・距離・タイムが同じで、
+-- 馬柱の3段目とふりかえりの走りの数字のタイムが黒地に白文字になる（画面カタログの race-review-record）。2着で、勝ち馬（E2Eレコード勝ち馬）と同タイム。勝ち馬の名前は、直近5走の3段目に `（0.0）` だけが出ないように入れてある。
+-- レコード表は本物のデータなので、日付・場・馬場・距離・タイムを変えない。条件戦にして、レース一覧の既定には出さない。
+INSERT OR REPLACE INTO race (id, date, course, race_number, name, class_name, surface, distance, track_condition, winner_name)
+VALUES ('01JE2ERACERECORD0000000000', '2025-11-30', '東京', 11, 'E2Eレコード特別', '3勝クラス', '芝', 2400, '良', 'E2Eレコード勝ち馬');
+
+INSERT OR REPLACE INTO race_entry (id, race_id, horse_id, bracket, horse_number, jockey, finish_position, popularity, last_3f, finish_time, time_diff)
+VALUES (
+	'01JE2EENTRYRECORD000000000',
+	'01JE2ERACERECORD0000000000',
+	'01JE2EHORSEB00000000000000',
+	4, 6, 'E2E騎手', 2, 2, 33.5, '2:20.3', 0.0
+);
+
 INSERT OR REPLACE INTO note (id, author_id, kind, race_id, horse_id, race_entry_id, body, tags, occurred_at)
 VALUES (
 	'01JE2ESAMECONDENTRY000000',

@@ -723,7 +723,7 @@ test('ふりかえり画面でも、馬柱の帯をトグルで出せる', async
 	await page.getByRole('button', { name: '馬柱を表示' }).click();
 	const strip = page.getByRole('list', { name: /の馬柱（直近5走）/ }).first();
 	await expect(strip).toBeVisible();
-	await expect(strip.getByRole('listitem').first()).toContainText('25/11/09');
+	await expect(strip.getByRole('listitem').first()).toContainText('25/11/30');
 });
 
 /**

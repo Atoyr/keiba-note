@@ -410,4 +410,40 @@ describe('PastRuns のレース名', () => {
 			true
 		]);
 	});
+
+	it('レコードの走りだけタイムを黒地に白文字にし、「レコード」を読み上げに出す', () => {
+		const { container } = render(PastRuns, {
+			runs: [
+				run({
+					raceId: 'rec',
+					date: '2025-11-30',
+					course: '東京',
+					surface: '芝',
+					distance: 2400,
+					finishTime: '2:20.3'
+				}),
+				run({
+					raceId: 'norec',
+					date: '2025-11-30',
+					course: '東京',
+					surface: '芝',
+					distance: 2400,
+					finishTime: '2:20.4'
+				})
+			]
+		});
+		const bodies = [...container.querySelectorAll('tbody')];
+		const timeSpan = (b: Element) =>
+			[...b.querySelectorAll('span.font-mono')].find((e) =>
+				/^\d:\d\d\.\d$/.test(e.textContent ?? '')
+			);
+		const rec = timeSpan(bodies[0]);
+		expect(rec?.className).toContain('bg-black');
+		expect(rec?.className).toContain('text-white');
+		expect(rec?.getAttribute('title')).toBe('レコード');
+		expect(bodies[0].textContent).toContain('（レコード）');
+		const no = timeSpan(bodies[1]);
+		expect(no?.className).not.toContain('bg-black');
+		expect(bodies[1].textContent).not.toContain('レコード');
+	});
 });

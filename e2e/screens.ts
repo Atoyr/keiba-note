@@ -327,6 +327,8 @@ export const SCREENS: Screen[] = [
 		auth: true,
 		prepare: pressPastRunsToggle
 	},
+	// 走破タイムがレコード（JRA のレコードタイム表と一致）の馬。出走馬の行の走りの数字のタイムが黒地に白文字で出る。
+	{ name: 'race-review-record', path: '/races/01JE2ERACERECORD0000000000', auth: true },
 	{ name: 'race-review-bracket', path: `/races/${BRACKET_RACE_ID}`, auth: true },
 	// 6つの印を全部並べたところ。印の色を変えたら、ここで背景から浮くか・互いに見分けられるかを見る。
 	{ name: 'race-review-marks', path: `/races/${MARKS_RACE_ID}`, auth: true },
