@@ -13,6 +13,7 @@ races:
     weather: 雨
     fieldSize: 18
     winner: メイショウタバル
+    runnerUp: クロワデュノール
     entries:
       - horseNumber: 1
         bracket: 1
@@ -326,9 +327,11 @@ races:
         finish: 1
         popularity: 2
         time: "2:12.1"
+        timeDiff: -0.1
         passing: "2-2-2-2"
         last3f: 35.3
         weight: 58
+        blinker: false
         horseWeight: 502
         horseWeightDiff: 2
         odds: 3.9

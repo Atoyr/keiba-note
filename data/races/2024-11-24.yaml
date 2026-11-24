@@ -412,6 +412,7 @@ races:
         weight: 58
         blinker: false
         horseWeight: 496
+        horseWeightDiff: 0
         odds: 15.8
       - horseNumber: 2
         bracket: 2

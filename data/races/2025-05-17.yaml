@@ -589,3 +589,30 @@ races:
         horseWeight: 508
         horseWeightDiff: 0
         odds: 2.7
+  - course: 京都
+    raceNumber: 9
+    name: あずさ賞
+    className: 1勝クラス
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 不良
+    weather: 曇
+    fieldSize: 10
+    winner: マイユニバース
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: エキサイトバイオ
+        jockey: 松山弘平
+        ref: nk-2022104614
+        finish: 2
+        popularity: 6
+        time: "2:00.9"
+        timeDiff: 0.1
+        passing: "2-3-4-2"
+        last3f: 35.5
+        weight: 57
+        horseWeight: 478
+        horseWeightDiff: 4
+        odds: 9.1

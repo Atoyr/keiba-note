@@ -219,9 +219,11 @@ races:
         popularity: 7
         time: "1:59.9"
         margin: "クビ"
+        timeDiff: 0.3
         passing: "8-6"
         last3f: 34
         weight: 59
+        blinker: false
         horseWeight: 522
         horseWeightDiff: 0
         odds: 18.4
