@@ -95,7 +95,7 @@ describe('listHorses', () => {
 	});
 
 	it('ページをつなぐと、同名馬も含めて1頭ずつ名前順に並ぶ', async () => {
-		const pages = await readAll((offset) => listHorses(state.db, 'a', '', offset));
+		const pages = await readAll((offset) => listHorses(state.db, 'a', {}, offset));
 
 		expect(pages.map((p) => p.length)).toEqual([100, 1]);
 		const rows = pages.flat();
@@ -104,10 +104,58 @@ describe('listHorses', () => {
 	});
 
 	it('2ページ目でもメモの件数は自分の分だけを数える', async () => {
-		const second = await listHorses(state.db, 'a', '', 100);
+		const second = await listHorses(state.db, 'a', {}, 100);
 		expect(second.items[0]).toMatchObject({ id: 'twin-2', entryCount: 0, noteCount: 0 });
-		const first = await listHorses(state.db, 'a', 'ウマ999');
+		const first = await listHorses(state.db, 'a', { q: 'ウマ999' });
 		expect(first).toMatchObject({ next: null });
 		expect(first.items[0]).toMatchObject({ id: 'twin-1', entryCount: 1, noteCount: 1 });
+	});
+});
+
+describe('listHorses の favoriteOnly', () => {
+	beforeEach(() => {
+		// a の推しは 101 頭（同名馬を切れ目にまたがらせる）。b の推しと、誰の推しでもない馬も置く。
+		state.sqlite.exec(`
+			${series(99)}
+			INSERT INTO horse (id, name) SELECT printf('h%03d', i), printf('ウマ%03d', i) FROM s;
+			INSERT INTO horse (id, name, birth_year) VALUES
+				('twin-2', 'ウマ999', 2022),
+				('twin-1', 'ウマ999', 2021),
+				('b-only', 'ビーノウマ', 2020),
+				('nobody', 'ダレモノウマ', 2020);
+			INSERT INTO favorite_horse (user_id, horse_id) SELECT 'a', id FROM horse WHERE id NOT IN ('b-only', 'nobody');
+			INSERT INTO favorite_horse (user_id, horse_id) VALUES ('b', 'b-only'), ('b', 'h001');
+		`);
+	});
+
+	it('本人の推しだけが出る。他人の推しと推しでない馬は出ない', async () => {
+		const a = await readAll((offset) => listHorses(state.db, 'a', { favoriteOnly: true }, offset));
+		const ids = a.flat().map((h) => h.id);
+		expect(ids).toHaveLength(101);
+		expect(ids).not.toContain('b-only');
+		expect(ids).not.toContain('nobody');
+
+		const b = await listHorses(state.db, 'b', { favoriteOnly: true });
+		expect(b.items.map((h) => h.id).sort()).toEqual(['b-only', 'h001']);
+		// 他人も推している馬が、2人分で重複して出ることもない。
+		const c = await listHorses(state.db, 'x', { favoriteOnly: true });
+		expect(c.items).toEqual([]);
+	});
+
+	it('ページの切れ目で重なりも抜けも無い（同名馬が切れ目にまたがる）', async () => {
+		const pages = await readAll((offset) =>
+			listHorses(state.db, 'a', { favoriteOnly: true }, offset)
+		);
+		expect(pages.map((p) => p.length)).toEqual([100, 1]);
+		const rows = pages.flat();
+		expect(rows.slice(-2).map((h) => h.id)).toEqual(['twin-1', 'twin-2']);
+		expect(new Set(rows.map((h) => h.id)).size).toBe(101);
+	});
+
+	it('q と併用できる', async () => {
+		const r = await listHorses(state.db, 'a', { q: 'ウマ999', favoriteOnly: true });
+		expect(r.items.map((h) => h.id)).toEqual(['twin-1', 'twin-2']);
+		const none = await listHorses(state.db, 'b', { q: 'ウマ999', favoriteOnly: true });
+		expect(none.items).toEqual([]);
 	});
 });

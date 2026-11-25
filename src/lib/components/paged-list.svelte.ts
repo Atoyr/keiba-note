@@ -96,6 +96,22 @@ export class PagedList<T extends { id: string }> {
 	}
 
 	/**
+	 * 表示中の行を1つ除く（推しの解除など、一覧から消えた行）。足した分（extra）から除き、`next` を1つ減らす。
+	 * 後ろの行が1つ前に詰まるので、1ページ目の行を除いたときも、減らさないと続きの先頭を1頭読み飛ばす。
+	 * 1ページ目の行そのものは `load` の読み直しで消える（呼ぶ側が `update()` する）。足した分が無ければ何もしない
+	 * （続きの位置は読み直した1ページ目が持つ）。
+	 */
+	remove(id: string): void {
+		const extra = this.#current;
+		if (!extra) return;
+		this.#extra = {
+			...extra,
+			items: extra.items.filter((i) => i.id !== id),
+			next: extra.next === null ? null : extra.next - 1
+		};
+	}
+
+	/**
 	 * ページの `export const snapshot` にそのまま渡す。
 	 *
 	 * **スクロール位置も自分で戻す。** SvelteKit は戻るときにスクロールを戻してから snapshot を

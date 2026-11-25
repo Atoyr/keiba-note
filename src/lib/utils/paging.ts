@@ -47,11 +47,24 @@ export type PageUrl = {
  * `url` は今開いている画面の URL（パスは base 込みで解決済み）。
  */
 export function pageHref(url: PageUrl, offset: number): string {
-	const params = new URLSearchParams([...url.searchParams]);
+	// `/` で始まるキーは action 名（`?/unfavorite`）。JS 無しで action を送った後の画面から、
+	// 続きのリンクへ持ち越さない。
+	const params = new URLSearchParams([...url.searchParams].filter(([k]) => !k.startsWith('/')));
 	if (offset > 0) params.set('offset', String(offset));
 	else params.delete('offset');
 	const query = params.toString();
 	return query ? `${url.pathname}?${query}` : url.pathname;
+}
+
+/**
+ * action（`?/name`）へ送るフォームの `action`。今の URL のクエリ（絞り込みと `offset`）を残して
+ * `/name` を足す。`?/name` だけにすると、JS が無いときの送信後の画面が絞り込み無しに戻る。
+ * 既にある action 名のキーは外してから足す（`?favorite=1&q=x&/unfavorite` の形）。
+ */
+export function actionHref(url: PageUrl, name: string): string {
+	const params = new URLSearchParams([...url.searchParams].filter(([k]) => !k.startsWith('/')));
+	const query = params.toString();
+	return `${url.pathname}?${query ? `${query}&` : ''}/${name}`;
 }
 
 /**

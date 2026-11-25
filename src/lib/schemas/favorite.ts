@@ -10,3 +10,8 @@ export const favoriteHorseSchema = v.object({
 		v.transform((s) => s === '1')
 	)
 });
+
+/** 一覧の星から外す。外すだけ（推しにするのは馬の画面）。 */
+export const unfavoriteHorseSchema = v.object({
+	horseId: v.pipe(v.string(), v.minLength(1))
+});

@@ -348,14 +348,20 @@ export const OTHER_USER_SAME_CONDITION_BODY = '他人のレースメモ。見え
  * 推しの馬（→ seed.sql の favorite_horse）。
  * - `running` / `idle` — 自分の推し。出走予定がある馬と、無い馬
  * - `others` — 別のユーザーの推し。**出てはいけない**
+ * - `miss1` / `miss2` — 自分の推し。出走が無く、馬一覧の「推し馬のみ」から外す専用（名前順で `running` の後ろ）
  * - `toggle` — 誰の推しでもない、今週出走する馬（E2E今週賞）。E2E が推しにして外す
  */
 export const FAVORITE_HORSES = {
 	running: 'E2Eテストホース',
 	idle: 'E2Eソトワク',
 	others: 'E2Eタニンノウマ',
+	miss1: 'E2Eハズシイチ',
+	miss2: 'E2Eハズシニ',
 	toggle: 'E2Eミカギリ'
 } as const;
+
+/** `FAVORITE_HORSES.others`（別のユーザーの推し）の馬の id。 */
+export const OTHERS_FAVORITE_HORSE_ID = '01JE2EHORSEOTHERS000000000';
 
 /** `FAVORITE_HORSES.toggle` の馬。 */
 export const TOGGLE_FAVORITE_HORSE_ID = '01JE2EHORSEDROP00000000000';

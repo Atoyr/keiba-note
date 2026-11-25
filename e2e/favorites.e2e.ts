@@ -24,13 +24,30 @@ test('ダッシュボードに自分の推しの出走予定だけが出る', as
 		`/races/${TIMELINE_RUN_RACES.future}/preview`
 	);
 
-	// 走り終えたレースしか無い推しは、名前だけ出る。
+	// 出走予定の無い推しは名前を並べず、推し馬のみの一覧へのリンクだけを出す。
 	await expect(section.locator('li', { hasText: FAVORITE_HORSES.idle })).toHaveCount(0);
-	await expect(section.getByText('出走予定の無い推し:')).toBeVisible();
-	await expect(section.getByRole('link', { name: FAVORITE_HORSES.idle })).toBeVisible();
+	await expect(section.getByText('出走予定の無い推し:')).toHaveCount(0);
+	await expect(section.getByRole('link', { name: FAVORITE_HORSES.idle })).toHaveCount(0);
+	await expectLinkTo(
+		section.getByRole('link', { name: '推しの馬をすべて見る' }),
+		'/horses?favorite=1'
+	);
 
 	// 別のユーザーの推しは、今週出走していても出ない。
 	await expect(section.getByText(FAVORITE_HORSES.others)).toHaveCount(0);
+});
+
+test('推しはいるが出走予定が0件なら、その旨と推し馬の一覧へのリンクを出す', async ({ page }) => {
+	// seed の no-words ユーザーは、走り終えたレースだけの E2Eソトワク を推している。
+	await login(page, 'no-words');
+	await page.goto('/');
+
+	await expect(favorites(page)).toContainText('推しの馬の出走予定はまだありません。');
+	await expect(favorites(page).locator('li')).toHaveCount(0);
+	await expectLinkTo(
+		favorites(page).getByRole('link', { name: '推しの馬をすべて見る' }),
+		'/horses?favorite=1'
+	);
 });
 
 test('推しがいなければ、どこで推しにするかを案内する', async ({ page }) => {
@@ -40,6 +57,7 @@ test('推しがいなければ、どこで推しにするかを案内する', as
 
 	await expect(favorites(page)).toContainText('の画面で星のボタンを押すと');
 	await expectLinkTo(favorites(page).getByRole('link', { name: '馬' }), '/horses');
+	await expect(favorites(page).getByRole('link', { name: '推しの馬をすべて見る' })).toHaveCount(0);
 });
 
 test('馬の画面で推しにすると出走予定に並び、外すと消える', async ({ page }) => {
