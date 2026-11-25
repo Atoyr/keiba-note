@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
 	applyPastRuns,
+	applyRecordMarks,
+	applyRecords,
 	applyProfile,
 	applyResult,
 	applyRaceRef,
@@ -10,6 +12,7 @@ import {
 	isShutubaConfirmed,
 	type ResolvePerson
 } from './apply.ts';
+import type { JraRecordMark } from './jra.ts';
 import type { PastRun, Person, ResultRow, ShutubaRow } from './netkeiba.ts';
 import { RaceFile } from './yaml-file.ts';
 
@@ -834,5 +837,220 @@ races:
 		expect([...files.keys()]).toEqual(['2026-08-09', '2026-07-05']);
 		expect(files.get('2026-08-09')!.toString()).toContain('        finishStatus: 中止\n');
 		expect(files.get('2026-07-05')!.toString()).toContain('        finishStatus: 失格\n');
+	});
+});
+
+describe('レコード（record）', () => {
+	const mark = (extra: Partial<JraRecordMark> = {}): JraRecordMark => ({
+		raceNumber: 11,
+		horseNumber: 3,
+		name: 'ホースA',
+		time: '2:20.3',
+		...extra
+	});
+	const yaml = (entries: string) => `date: 2026-09-27
+
+races:
+  - course: 中山
+    raceNumber: 11
+    name: レースX
+    entries:
+${entries}
+  - course: 中山
+    raceNumber: 12
+    name: レースY
+    entries:
+      - { name: ホースC, finish: 1, horseNumber: 3 }
+`;
+	const winner = `      - { name: ホースA, ref: nk-1, finish: 1, horseNumber: 3 }
+      - { name: ホースB, finish: 2, horseNumber: 5 }`;
+	const load = (entries = winner) => RaceFile.parse('2026-09-27.yaml', yaml(entries));
+
+	it('1着の行に record: true を書く（馬番で引き当てる。2着には書かない）', () => {
+		const file = load();
+		const log = applyRecordMarks(file, file.findRace('中山', 11)!, [mark()]);
+		expect(log).toEqual(['レコード 2:20.3 ホースA']);
+		const text = file.toString();
+		expect(text).toContain('name: ホースA, ref: nk-1, finish: 1, record: true');
+		expect(text.match(/record/g)).toHaveLength(1);
+	});
+
+	it('馬番が合わなければ馬名で引き当てる', () => {
+		const file = load();
+		applyRecordMarks(file, file.findRace('中山', 11)!, [mark({ horseNumber: undefined })]);
+		expect(file.toString()).toContain('record: true');
+	});
+
+	it('印の行が YAML にいなければ何もしない', () => {
+		const file = load();
+		const before = file.toString();
+		expect(
+			applyRecordMarks(file, file.findRace('中山', 11)!, [
+				mark({ horseNumber: 9, name: '知らない馬' })
+			])
+		).toEqual([]);
+		expect(file.toString()).toBe(before);
+		expect(file.changed).toBe(false);
+	});
+
+	it('1着でない行には書かない（同じ馬番でも）', () => {
+		const file = load(`      - { name: ホースA, finish: 2, horseNumber: 3 }`);
+		applyRecordMarks(file, file.findRace('中山', 11)!, [mark()]);
+		expect(file.toString()).not.toContain('record');
+	});
+
+	it('既に書いてあれば何もしない', () => {
+		const file = load(`      - { name: ホースA, finish: 1, horseNumber: 3, record: true }`);
+		expect(applyRecordMarks(file, file.findRace('中山', 11)!, [mark()])).toEqual([]);
+		expect(file.changed).toBe(false);
+	});
+
+	it('result: 1着でなくなった行（降着）から record を外す。1着のままなら残す', async () => {
+		const file = RaceFile.parse(
+			'2026-09-27.yaml',
+			placeholder.replace(
+				'    entries: []',
+				'    entries:\n      - { name: ホースA, ref: nk-1, finish: 1, record: true }\n      - { name: ホースB, ref: nk-2, finish: 2, record: true }'
+			)
+		);
+		const result = (id: string, name: string, finish: number): ResultRow => ({
+			name,
+			horseId: id,
+			bracket: 1,
+			horseNumber: finish,
+			finish,
+			jockey: { id: 'j', short: '騎' },
+			time: '1:07.0',
+			popularity: 1,
+			odds: 2.5,
+			last3f: 33.5,
+			passing: '2-2',
+			weight: 58,
+			horseWeight: 500,
+			horseWeightDiff: 0
+		});
+		const log = await applyResult(
+			file,
+			file.findRace('中山', 11)!,
+			{ meta, rows: [result('1', 'ホースA', 2), result('2', 'ホースB', 1)] },
+			resolve
+		);
+		const text = file.toString();
+		expect(log.some((l) => l.includes('ホースA') && l.includes('record を外しました'))).toBe(true);
+		expect(text.match(/record/g)).toHaveLength(1);
+		const lineOf = (name: string) =>
+			text.split('\n').find((l) => l.includes(`name: ${name}`)) ?? '';
+		expect(lineOf('ホースA')).not.toContain('record');
+		expect(lineOf('ホースB')).toContain('record: true');
+	});
+
+	it('records: 1着のある開催だけ JRA を引き、レースごとに埋める（他のレースのレコードは混ざらない）', async () => {
+		const file = load();
+		const asked: string[] = [];
+		const log = await applyRecords(file, '2026-09-27', async (date, course) => {
+			asked.push(`${date} ${course}`);
+			return [mark(), mark({ raceNumber: 12, horseNumber: 3, name: 'ホースC', time: '1:50.0' })];
+		});
+		expect(asked).toEqual(['2026-09-27 中山']);
+		expect(log).toEqual([
+			'2026-09-27 中山: レコード 2 件 / 11R レコード 2:20.3 ホースA / 12R レコード 1:50.0 ホースC'
+		]);
+		expect(file.toString().match(/record: true/g)).toHaveLength(2);
+	});
+
+	it('records: 1着の行が無い日は JRA を引かない。取れない開催は書かない', async () => {
+		const none = RaceFile.parse(
+			'2026-09-27.yaml',
+			'date: 2026-09-27\n\nraces:\n  - course: 中山\n    raceNumber: 11\n    entries:\n      - { name: ホースA }\n'
+		);
+		let called = 0;
+		expect(
+			await applyRecords(none, '2026-09-27', async () => {
+				called++;
+				return [];
+			})
+		).toEqual([]);
+		expect(called).toBe(0);
+
+		const file = load();
+		expect(await applyRecords(file, '2026-09-27', async () => null)).toEqual([
+			'2026-09-27 中山: 取れませんでした'
+		]);
+		expect(file.toString()).not.toContain('record');
+	});
+
+	describe('過去走（applyPastRuns）', () => {
+		const run = (extra: Partial<PastRun> = {}): PastRun => ({
+			date: '2026-08-09',
+			course: '中京',
+			raceNumber: 7,
+			race: { name: 'CBC賞', surface: '芝', distance: 1200 },
+			horseNumber: 2,
+			finish: 1,
+			time: '1:06.5',
+			...extra
+		});
+		const open = () => {
+			const files = new Map<string, RaceFile>();
+			return {
+				files,
+				open: async (date: string) => {
+					if (!files.has(date))
+						files.set(date, RaceFile.parse(`${date}.yaml`, `date: ${date}\n\nraces: []\n`));
+					return files.get(date)!;
+				}
+			};
+		};
+
+		it('1着の走りだけ JRA を引き、印があれば record: true を埋める', async () => {
+			const { files, open: o } = open();
+			const asked: string[] = [];
+			await applyPastRuns(
+				o,
+				{ name: 'ホースA', ref: 'nk-1' },
+				[run(), run({ date: '2026-07-05', finish: 3 })],
+				{
+					before: '2026-09-27',
+					count: 5,
+					recordsOf: async (date, course) => {
+						asked.push(`${date} ${course}`);
+						return [{ raceNumber: 7, horseNumber: 2, name: 'ホースA', time: '1:06.5' }];
+					}
+				}
+			);
+			expect(asked).toEqual(['2026-08-09 中京']);
+			expect(files.get('2026-08-09')!.toString()).toContain('record: true');
+			expect(files.get('2026-07-05')!.toString()).not.toContain('record');
+		});
+
+		it('行に record が既にあれば、取りに行かない', async () => {
+			const { files, open: o } = open();
+			const first = { before: '2026-09-27', count: 5 };
+			await applyPastRuns(o, { name: 'ホースA', ref: 'nk-1' }, [run()], {
+				...first,
+				recordsOf: async () => [{ raceNumber: 7, horseNumber: 2, name: 'ホースA', time: '1:06.5' }]
+			});
+			let called = 0;
+			await applyPastRuns(o, { name: 'ホースA', ref: 'nk-1' }, [run()], {
+				...first,
+				recordsOf: async () => {
+					called++;
+					return null;
+				}
+			});
+			expect(called).toBe(0);
+			expect(files.get('2026-08-09')!.toString()).toContain('record: true');
+		});
+
+		it('JRA が取れなければ、record は書かず過去走だけ書く', async () => {
+			const { files, open: o } = open();
+			await applyPastRuns(o, { name: 'ホースA', ref: 'nk-1' }, [run()], {
+				before: '2026-09-27',
+				count: 5,
+				recordsOf: async () => null
+			});
+			expect(files.get('2026-08-09')!.toString()).toContain('finish: 1');
+			expect(files.get('2026-08-09')!.toString()).not.toContain('record');
+		});
 	});
 });

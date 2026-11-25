@@ -11,6 +11,9 @@
  * | 基本情報 | 性・馬齢・生年月日・調教師・所属・父・母・母父・ref  | 馬名・レースの値         |
  * | 結果     | 着順から馬体重まで・騎手・枠・馬番・馬場・天候・頭数・勝ち馬・2着馬。騎手が変わっていれば発表時の騎手（無ければ） | 馬名・基本情報 |
  *
+ * `record`（JRA の結果でレコードと書かれた1着の走り）は、結果・過去走・`records` が `true` だけを書く（`applyRecordMarks`）。
+ * 書いていない行は「レコードでない・確かめていない」で、消すことも `false` を書くこともしない。
+ *
  * **馬名は書き換えない。** ref が付いた馬の名前を変えると、ほかの開催日のファイルと
  * 食い違って `data:check` が落ちる（data/README.md「馬名を直す」）。食い違いは警告だけ出す。
  */
@@ -28,7 +31,11 @@ import {
 	toFinishStatus
 } from './netkeiba.ts';
 import { sameJockey } from '../../src/lib/utils/entry-conditions.ts';
+import type { JraRecordMark } from './jra.ts';
 import type { Fields, RaceFields, RaceFile } from './yaml-file.ts';
+
+/** 開催（日付×場）の JRA のレコードの行。取れないときは null（何も書かない）。 */
+export type RecordsOf = (date: string, course: string) => Promise<JraRecordMark[] | null>;
 
 /** 騎手・調教師の略称を、略さない名前に引き直す。 */
 export type ResolvePerson = (kind: 'jockey' | 'trainer', person: Person) => Promise<string>;
@@ -198,6 +205,8 @@ export async function applyPastRuns(
 		count: number;
 		/** 前走（取消・除外を除いた最新）のブリンカー。取れない・不明なら undefined。前走の1走だけに使う */
 		blinkerOf?: (run: PastRun) => Promise<boolean | undefined>;
+		/** JRA のレコード。**1着の走りだけ**引く（印は1着にしか付かない）。行に `record` があれば引かない */
+		recordsOf?: RecordsOf;
 	},
 	resolve?: ResolvePerson
 ): Promise<string[]> {
@@ -255,6 +264,18 @@ export async function applyPastRuns(
 			},
 			'fill'
 		);
+		if (run.finish === 1 && opts.recordsOf && knownEntry?.get('record') === undefined) {
+			const marks = await opts.recordsOf(run.date, run.course);
+			if (marks) {
+				log.push(
+					...applyRecordMarks(
+						file,
+						race,
+						marks.filter((m) => m.raceNumber === run.raceNumber)
+					)
+				);
+			}
+		}
 		file.sortEntries(race);
 		log.push(
 			`${added ? '+' : '='} ${run.date} ${run.course}${run.raceNumber}R ${race.get('name')}` +
@@ -265,6 +286,79 @@ export async function applyPastRuns(
 		log.push(`（JRA の過去走は ${picked.length} 走ぶんしかありません）`);
 	}
 	return log;
+}
+
+/**
+ * JRA の印（1レースぶん）を、YAML の**1着の行**に `record: true` で書く。行の引き当ては馬番、無ければ馬名。
+ * 印の行が YAML にいなければ何もしない（気にしている馬だけの条件戦）。既に書いてあれば何もしない。
+ */
+export function applyRecordMarks(
+	file: RaceFile,
+	race: YAMLMap,
+	marks: readonly JraRecordMark[]
+): string[] {
+	const log: string[] = [];
+	for (const mark of marks) {
+		const winners = file.entries(race).items.filter((e) => e.get('finish') === 1);
+		const entry =
+			(mark.horseNumber === undefined
+				? undefined
+				: winners.find((e) => e.get('horseNumber') === mark.horseNumber)) ??
+			winners.find((e) => e.get('name') === mark.name);
+		if (!entry || entry.get('record') === true) continue;
+		file.upsertEntry(
+			race,
+			{
+				name: entry.get('name') as string,
+				ref: entry.get('ref') as string | undefined,
+				record: true
+			},
+			'overwrite'
+		);
+		log.push(`レコード ${mark.time} ${entry.get('name')}`);
+	}
+	return log;
+}
+
+/**
+ * 1日のファイルの、`finish: 1` の行がある開催（場）だけ JRA を引いて、レコードの1着に `record: true` を埋める
+ * （埋め戻し用の `records` 手順）。場ごとに1行の経過を返す。取れない開催は書かずに、その旨の行を返す。
+ */
+export async function applyRecords(
+	file: RaceFile,
+	date: string,
+	recordsOf: RecordsOf
+): Promise<string[]> {
+	const courses = new Set<string>();
+	for (const race of file.races.items) {
+		if (file.entries(race).items.some((e) => e.get('finish') === 1)) {
+			courses.add(race.get('course') as string);
+		}
+	}
+	const out: string[] = [];
+	for (const course of courses) {
+		const marks = await recordsOf(date, course);
+		if (!marks) {
+			out.push(`${date} ${course}: 取れませんでした`);
+			continue;
+		}
+		const log: string[] = [];
+		for (const race of file.races.items) {
+			if (race.get('course') !== course) continue;
+			const raceNumber = race.get('raceNumber');
+			log.push(
+				...applyRecordMarks(
+					file,
+					race,
+					marks.filter((m) => m.raceNumber === raceNumber)
+				).map((l) => `${raceNumber}R ${l}`)
+			);
+		}
+		out.push(
+			`${date} ${course}: レコード ${marks.length} 件${log.length > 0 ? ` / ${log.join(' / ')}` : ''}`
+		);
+	}
+	return out;
 }
 
 /** 馬の基本情報（性・馬齢・生年月日・調教師・血統）を出走馬行に入れる。馬齢はそのレースの年で数える。 */
@@ -396,6 +490,10 @@ export async function applyResult(
 		}
 		// 着順と状態は一緒に書けない。状態を書くときは、前に入っていた着順を外す。
 		else if (finishStatus) file.deleteEntryField(entry, 'finish');
+		// 1着でなくなった行（降着・失格・取消）に、前のレコードを残さない
+		if (row.finish !== 1 && file.deleteEntryField(entry, 'record')) {
+			log.push(`↺ ${row.name}: 1着でなくなったので record を外しました`);
+		}
 		const jockey = row.jockey ? await resolve('jockey', row.jockey) : undefined;
 		file.upsertEntry(
 			race,

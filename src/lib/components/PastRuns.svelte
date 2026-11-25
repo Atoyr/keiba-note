@@ -1,5 +1,6 @@
 <script lang="ts">
 	import BlinkerBadge from './BlinkerBadge.svelte';
+	import FinishTime from '#lib/components/FinishTime.svelte';
 	import GradeBadge from '#lib/components/GradeBadge.svelte';
 	import { resolve } from '$app/paths';
 	import JockeyLink from '#lib/components/JockeyLink.svelte';
@@ -160,8 +161,11 @@
 										<span><span class="sr-only">{vs.label}</span>{vs.text}</span>
 									{/if}
 									{#if r.finishTime}
-										<span class="ms-auto font-mono"
-											><span class="sr-only">タイム</span>{r.finishTime}</span
+										<span class="ms-auto"
+											><span class="sr-only">タイム</span><FinishTime
+												time={r.finishTime}
+												record={r.record}
+											/></span
 										>
 									{/if}
 								</div>

@@ -30,6 +30,7 @@ export const ENTRY_KEYS = [
 	'finishStatus',
 	'popularity',
 	'time',
+	'record',
 	'margin',
 	'timeDiff',
 	'passing',
