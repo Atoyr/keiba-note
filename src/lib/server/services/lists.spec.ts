@@ -158,4 +158,16 @@ describe('listHorses の favoriteOnly', () => {
 		const none = await listHorses(state.db, 'b', { q: 'ウマ999', favoriteOnly: true });
 		expect(none.items).toEqual([]);
 	});
+
+	it('推し馬のみでも、メモの件数は自分の分だけを数える', async () => {
+		state.sqlite.exec(`
+			INSERT INTO note (id, author_id, kind, horse_id, body, occurred_at) VALUES
+				('n-fav-a', 'a', 'horse', 'h001', '自分のメモ', '2026-09-27'),
+				('n-fav-b', 'b', 'horse', 'h001', '他人のメモ', '2026-09-27'),
+				('n-fav-b2', 'b', 'horse', 'h002', '他人のメモ', '2026-09-27');
+		`);
+		const a = await listHorses(state.db, 'a', { q: 'ウマ00', favoriteOnly: true });
+		expect(a.items.find((h) => h.id === 'h001')).toMatchObject({ noteCount: 1 });
+		expect(a.items.find((h) => h.id === 'h002')).toMatchObject({ noteCount: 0 });
+	});
 });

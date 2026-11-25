@@ -106,5 +106,7 @@ test.describe('JS 無し', () => {
 		await expect(page.getByLabel('推し馬のみ')).toBeChecked();
 		await expect(rows(page).filter({ hasText: FAVORITE_HORSES.running })).toHaveCount(1);
 		await expect(rows(page).filter({ hasText: FAVORITE_HORSES.miss2 })).toHaveCount(0);
+		// トーストの代わりの知らせは `<noscript>` の中（表示の有無は端末しだい）なので、HTML に入っていることを確かめる。
+		expect(await page.content()).toContain('推しから外しました。');
 	});
 });

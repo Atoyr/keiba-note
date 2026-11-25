@@ -83,16 +83,25 @@
 		</button>
 	</form>
 
+	<!-- JS が無いとトーストは出ないので、外せたことを画面にも出す（frontend.md 第3章）。 -->
+	{#if form && 'unfavorited' in form}<noscript
+			><p class="mt-4 text-sm">推しから外しました。</p></noscript
+		>{/if}
+	<!-- どの行の失敗か分からない失敗（horseId が空など）は、一覧の上に出す。 -->
+	{#if form && 'message' in form && !form.horseId}
+		<p class="mt-4 text-sm text-destructive" role="alert">{form.message}</p>
+	{/if}
+
 	{#if data.horses.items.length === 0 && data.offset === 0}
 		{#if data.favoriteOnly && !data.q}
-			<p class="mt-8 text-sm text-gray-500">
+			<p class="mt-8 text-sm text-muted-foreground">
 				推しの馬はまだいません。馬の画面で星のボタンを押すと、ここに並びます。
 			</p>
 			<p class="mt-2 text-sm">
 				<a href={resolve('/horses')} class="underline">すべての馬を見る</a>
 			</p>
 		{:else if data.favoriteOnly}
-			<p class="mt-8 text-sm text-gray-500">見つかりませんでした。</p>
+			<p class="mt-8 text-sm text-muted-foreground">見つかりませんでした。</p>
 			<p class="mt-2 text-sm">
 				<a href="{resolve('/horses')}?favorite=1" class="underline">検索条件を外す</a>
 			</p>
