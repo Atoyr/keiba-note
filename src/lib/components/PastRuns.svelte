@@ -164,10 +164,7 @@
 										<span class="ms-auto"
 											><span class="sr-only">タイム</span><FinishTime
 												time={r.finishTime}
-												date={r.date}
-												course={r.course}
-												surface={r.surface}
-												distance={r.distance}
+												record={r.record}
 											/></span
 										>
 									{/if}

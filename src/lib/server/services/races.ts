@@ -263,6 +263,8 @@ export type RaceEntryView = {
 	/** 着順が無い理由（取消・除外・中止・失格）。無ければ null。 */
 	finishStatus: FinishStatus | null;
 	finishTime: string | null;
+	/** JRA の結果で「レコード」と書かれた1着の走り。NULL（まだ取っていない）は false。 */
+	record: boolean;
 	margin: string | null;
 	last3f: number | null;
 	popularity: number | null;
@@ -322,6 +324,10 @@ function reviewEntriesQuery(db: Db, raceId: string) {
 				finishPosition: raceEntry.finishPosition,
 				finishStatus: raceEntry.finishStatus,
 				finishTime: raceEntry.finishTime,
+				record:
+					sql<boolean>`coalesce(${raceEntry.record} = 1 AND ${raceEntry.finishPosition} = 1, 0)`.mapWith(
+						Boolean
+					),
 				margin: raceEntry.margin,
 				last3f: raceEntry.last3f,
 				popularity: raceEntry.popularity,
@@ -525,6 +531,10 @@ function previewEntriesQuery(db: Db, raceId: string) {
 			finishPosition: raceEntry.finishPosition,
 			finishStatus: raceEntry.finishStatus,
 			finishTime: raceEntry.finishTime,
+			record:
+				sql<boolean>`coalesce(${raceEntry.record} = 1 AND ${raceEntry.finishPosition} = 1, 0)`.mapWith(
+					Boolean
+				),
 			margin: raceEntry.margin,
 			last3f: raceEntry.last3f,
 			popularity: raceEntry.popularity,
@@ -571,6 +581,8 @@ export type PastRun = {
 	last3f: number | null;
 	/** 走破タイム。`1:58.4` のような文字列のまま（取得元の表記）。 */
 	finishTime: string | null;
+	/** JRA の結果で「レコード」と書かれた1着の走り。NULL（まだ取っていない）は false。 */
+	record: boolean;
 	/** 通過順。`5-5-4-2` のような文字列のまま。コーナーの数だけ並ぶ。 */
 	passing: string | null;
 	margin: string | null;
@@ -628,6 +640,7 @@ export async function listPastRuns(
 			popularity: raceEntry.popularity,
 			last3f: raceEntry.last3f,
 			finishTime: raceEntry.finishTime,
+			record: raceEntry.record,
 			passing: raceEntry.passing,
 			margin: raceEntry.margin,
 			jockey: raceEntry.jockey,
@@ -646,10 +659,11 @@ export async function listPastRuns(
 
 	const byHorse = new Map<string, PastRun[]>();
 	// runOrder は絞り込みと並べ替えのための列。画面のデータには入れない。
-	for (const { runOrder, ...r } of rows) {
+	for (const { runOrder, record, ...r } of rows) {
 		if (runOrder > perHorse) continue;
 		const list = byHorse.get(r.horseId) ?? [];
-		list.push(r);
+		// レコードは1着の行だけ（着順を1着から変えた行には出さない）
+		list.push({ ...r, record: (record ?? false) && r.finishPosition === 1 });
 		byHorse.set(r.horseId, list);
 	}
 	return byHorse;

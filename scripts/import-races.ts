@@ -122,6 +122,11 @@ const entrySchema = v.object({
 	 * `data:fetch entries`（枠順確定後）と `past`（前走ぶん）が書く。
 	 */
 	blinker: v.optional(v.boolean()),
+	/**
+	 * JRA の結果で「レコード」と書かれた走り。`true` だけを書く（書かなければ「レコードでない・確かめていない」）。
+	 * 1着の行だけに付く。`data:fetch result` / `past` / `records` が書く。
+	 */
+	record: v.optional(v.literal(true)),
 	/** 馬体重。 */
 	horseWeight: v.optional(v.pipe(v.number(), v.integer(), v.minValue(300), v.maxValue(700))),
 	/** 前走からの増減。`-4` のように負もある。 */
@@ -355,6 +360,13 @@ WHERE race_id = (SELECT id FROM race WHERE ${raceKey()});`
 			]);
 			// 着順が無い理由（マイグレーション 0027）も同じ。書いた行のときだけ列に触る。
 			const statusCol = writtenCols([['finish_status', e.finishStatus]]);
+			// レコード（マイグレーション 0028）も同じ。書いた行のときだけ列に触る。
+			const recordCol = writtenCols([['record', e.record]]);
+
+			// 厩舎・所属は転厩で変わる。古い日付のファイルを流し直して（`records --all` など）新しい値を戻さないよう、
+			// この馬にこのファイルの開催日より新しい出走が D1 にあるときは上書きしない（空いていれば埋める）。
+			const latestOnly = (value: string | undefined, col: string) =>
+				`CASE WHEN NOT EXISTS (SELECT 1 FROM race_entry re JOIN race r ON r.id = re.race_id WHERE re.horse_id = horse.id AND r.date > ${lit(date)}) THEN COALESCE(${lit(value)}, ${col}) ELSE COALESCE(${col}, ${lit(value)}) END`;
 
 			const rename = e.ref
 				? `
@@ -371,13 +383,13 @@ WHERE ${ref} IS NULL;`,
 				`UPDATE horse SET${rename}
   sex = COALESCE(${lit(e.sex)}, sex),
   birth_year = COALESCE(${lit(e.birthYear)}, birth_year),
-  trainer = COALESCE(${lit(e.trainer)}, trainer),
+  trainer = ${latestOnly(e.trainer, 'trainer')},
   sire = COALESCE(${lit(e.sire)}, sire),
   dam = COALESCE(${lit(e.dam)}, dam),
   external_ref = COALESCE(${lit(e.ref)}, external_ref),${
 		e.trainingCenter === undefined
 			? ''
-			: `\n  training_center = COALESCE(${lit(e.trainingCenter)}, training_center),`
+			: `\n  training_center = ${latestOnly(e.trainingCenter, 'training_center')},`
 	}${
 		e.birthDate === undefined ? '' : `\n  birth_date = COALESCE(${lit(e.birthDate)}, birth_date),`
 	}${e.damSire === undefined ? '' : `\n  dam_sire = COALESCE(${lit(e.damSire)}, dam_sire),`}
@@ -392,14 +404,14 @@ WHERE id = ${ref};`,
 				`INSERT INTO race_entry (
   id, race_id, horse_id, bracket, horse_number, jockey,
   finish_position, popularity, finish_time, margin, passing, last_3f,
-  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}${conditionCol.names}${statusCol.names}
+  weight_carried, horse_weight, horse_weight_diff, odds${diffCol.names}${conditionCol.names}${statusCol.names}${recordCol.names}
 )
 SELECT ${lit(newId())}, r.id, ${ref}, ${lit(e.bracket)}, ${lit(e.horseNumber)}, ${lit(e.jockey)},
   ${lit(e.finish)}, ${lit(e.popularity)}, ${lit(e.time)}, ${lit(e.margin)}, ${lit(e.passing)}, ${lit(e.last3f)},
-  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}${conditionCol.values}${statusCol.values}
+  ${lit(e.weight)}, ${lit(e.horseWeight)}, ${lit(e.horseWeightDiff)}, ${lit(e.odds)}${diffCol.values}${conditionCol.values}${statusCol.values}${recordCol.values}
 FROM race r
 WHERE ${raceKey('r.')} AND ${ref} IS NOT NULL
-ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}${conditionCol.set}${statusCol.set}
+ON CONFLICT (race_id, horse_id) DO UPDATE SET${diffCol.set}${conditionCol.set}${statusCol.set}${recordCol.set}
   bracket = excluded.bracket,
   horse_number = excluded.horse_number,
   jockey = excluded.jockey,
@@ -533,6 +545,11 @@ function raceConflicts(race: RaceFile['races'][number], date: string): string[] 
 		}
 		if (e.finish !== undefined && e.finishStatus !== undefined) {
 			errors.push(`${label}: ${e.name} は着順と ${e.finishStatus} を両方書いています`);
+		}
+		if (e.record !== undefined && e.finish !== 1) {
+			errors.push(
+				`${label}: ${e.name} は record を書いていますが、1着ではありません（レコードは1着の行だけ）`
+			);
 		}
 	}
 

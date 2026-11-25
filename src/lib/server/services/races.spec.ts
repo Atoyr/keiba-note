@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Db } from '#lib/server/db/index.ts';
 import { createTestDb } from '#lib/server/db/test-d1.ts';
-import { getRaceForPreview, getRaceForReview, listRacesBetween, resolveWeek } from './races';
+import {
+	getRaceForPreview,
+	getRaceForReview,
+	listPastRuns,
+	listRacesBetween,
+	resolveWeek
+} from './races';
 
 /** JST は UTC+9。UTC の 15:00 が JST の翌日 0:00。 */
 const utc = (iso: string) => new Date(iso);
@@ -90,5 +96,44 @@ describe('出走馬の基本情報（馬名を押して開く枠の材料）', (
 	it('ふりかえりの出走馬にも入る', async () => {
 		const { entries } = await getRaceForReview(state.db, 'r');
 		expect(entries).toMatchObject([profile, none]);
+	});
+});
+
+describe('レコード（race_entry.record）', () => {
+	let state: ReturnType<typeof createTestDb>;
+	beforeEach(() => {
+		state = createTestDb();
+		state.sqlite.exec(`
+			INSERT INTO race (id,date,course,name) VALUES ('r0','2098-01-01','東京','前のレース'), ('r','2099-01-01','東京','テスト賞');
+			INSERT INTO horse (id,name) VALUES ('h1','ホース1'), ('h2','ホース2');
+			INSERT INTO race_entry (id,race_id,horse_id,horse_number,finish_position,record) VALUES
+				('p1','r0','h1',1,1,1), ('p2','r0','h2',2,2,NULL),
+				('e1','r','h1',1,1,1), ('e2','r','h2',2,2,NULL);
+		`);
+	});
+	afterEach(() => state.sqlite.close());
+
+	it('ふりかえりの出走馬に boolean で入り、NULL は false', async () => {
+		const { entries } = await getRaceForReview(state.db, 'r');
+		expect(entries.map((e) => e.record)).toEqual([true, false]);
+	});
+
+	it('予想の出走馬にも boolean で入り、NULL は false', async () => {
+		const { entries } = await getRaceForPreview(state.db, 'r');
+		expect(entries.map((e) => e.record)).toEqual([true, false]);
+	});
+
+	it('1着でない行は、record が立っていても false（着順を変えた行には出さない）', async () => {
+		state.sqlite.exec(`UPDATE race_entry SET finish_position = 3 WHERE id IN ('e1', 'p1')`);
+		const { entries } = await getRaceForReview(state.db, 'r');
+		expect(entries.map((e) => e.record)).toEqual([false, false]);
+		const runs = await listPastRuns(state.db, ['h1'], '2099-01-01');
+		expect(runs.get('h1')?.[0].record).toBe(false);
+	});
+
+	it('馬柱の過去走にも入る', async () => {
+		const runs = await listPastRuns(state.db, ['h1', 'h2'], '2099-01-01');
+		expect(runs.get('h1')?.[0].record).toBe(true);
+		expect(runs.get('h2')?.[0].record).toBe(false);
 	});
 });

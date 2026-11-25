@@ -196,6 +196,11 @@ export const raceEntry = sqliteTable(
 		weightCarried: real('weight_carried'),
 		/** ブリンカーの着用。NULL = 不明（「着用なし」ではない）。 */
 		blinker: integer('blinker', { mode: 'boolean' }),
+		/**
+		 * JRA の結果で「レコード」と書かれた走り（1着の行だけ）。true = レコード。NULL = レコードでない・確かめていない
+		 * （false は書かない）。YAML の `record: true` で入る。
+		 */
+		record: integer('record', { mode: 'boolean' }),
 		horseWeight: integer('horse_weight'),
 		horseWeightDiff: integer('horse_weight_diff'),
 		odds: real('odds'),

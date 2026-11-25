@@ -533,6 +533,83 @@ describe('出走馬のブリンカー（blinker）と発表時の騎手（announ
 	});
 });
 
+describe('厩舎・所属は、新しい出走がある馬では古いファイルで戻らない', () => {
+	const at = (date: string, extra: string) =>
+		candidates
+			.replace('date: 2099-01-04', `date: ${date}`)
+			.replace('{ name: ホースA, ref: t-a }', `{ name: ホースA, ref: t-a, ${extra} }`);
+	const loadAt = (db: DatabaseSync, date: string, extra: string) => {
+		const parsed = readRaceFile(at(date, extra), `${date}.yaml`);
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		db.exec(statementsFor(parsed.output, `${date}.yaml`, 'hash').join('\n'));
+	};
+	const rowOf = (db: DatabaseSync) =>
+		db.prepare(`SELECT trainer, training_center FROM horse WHERE external_ref = 't-a'`).get();
+
+	it('新しい開催の出走が D1 にある馬は、古いファイルを流し直しても戻らない', () => {
+		const db = freshDb();
+		loadAt(db, '2099-01-04', 'trainer: 新厩舎, trainingCenter: 美浦');
+		loadAt(db, '2098-01-04', 'trainer: 旧厩舎, trainingCenter: 栗東');
+		expect(rowOf(db)).toEqual({ trainer: '新厩舎', training_center: '美浦' });
+	});
+
+	it('新しい出走がある馬でも、空いていれば古いファイルの値で埋める', () => {
+		const db = freshDb();
+		loadAt(db, '2099-01-04', '');
+		loadAt(db, '2098-01-04', 'trainer: 旧厩舎, trainingCenter: 栗東');
+		expect(rowOf(db)).toEqual({ trainer: '旧厩舎', training_center: '栗東' });
+	});
+
+	it('新しい出走が無ければ、今までどおり上書きする', () => {
+		const db = freshDb();
+		loadAt(db, '2098-01-04', 'trainer: 旧厩舎, trainingCenter: 栗東');
+		loadAt(db, '2099-01-04', 'trainer: 新厩舎, trainingCenter: 美浦');
+		expect(rowOf(db)).toEqual({ trainer: '新厩舎', training_center: '美浦' });
+		loadAt(db, '2099-01-04', 'trainer: 再投入');
+		expect(rowOf(db)).toEqual({ trainer: '再投入', training_center: '美浦' });
+	});
+});
+
+describe('出走馬のレコード（record）', () => {
+	const withRecord = (extra: string) =>
+		candidates.replace('{ name: ホースA, ref: t-a }', `{ name: ホースA, ref: t-a, ${extra} }`);
+	const rowOf = (db: DatabaseSync) =>
+		db
+			.prepare(
+				`SELECT re.record FROM race_entry re JOIN horse h ON h.id = re.horse_id WHERE h.external_ref = 't-a'`
+			)
+			.get();
+	const sql = (yaml: string) => {
+		const parsed = readRaceFile(yaml, '2099-01-04.yaml');
+		if (!parsed.ok) throw new Error(parsed.errors.join('\n'));
+		return statementsFor(parsed.output, '2099-01-04.yaml', 'hash').join('\n');
+	};
+
+	it('race_entry.record に入り、書かなければ既存の値を残す', () => {
+		const db = freshDb();
+		load(db, candidates);
+		expect(rowOf(db)).toEqual({ record: null });
+
+		load(db, withRecord('finish: 1, record: true'));
+		expect(rowOf(db)).toEqual({ record: 1 });
+
+		load(db, withRecord('finish: 1'));
+		expect(rowOf(db)).toEqual({ record: 1 });
+	});
+
+	it('書いた YAML の SQL だけ record を名指しする（マイグレーション 0028 の列）', () => {
+		expect(sql(withRecord('finish: 1, record: true'))).toMatch(/record/);
+		expect(sql(withRecord('finish: 1'))).not.toMatch(/\brecord\b/);
+	});
+
+	it('1着でない行の record は落とす', () => {
+		const r = readRaceFile(withRecord('finish: 2, record: true'), '2099-01-04.yaml');
+		expect(r.ok).toBe(false);
+		const none = readRaceFile(withRecord('record: true'), '2099-01-04.yaml');
+		expect(none.ok).toBe(false);
+	});
+});
+
 describe('出走馬の着順が無い理由（finishStatus）', () => {
 	const withStatus = (extra: string) =>
 		candidates.replace('{ name: ホースA, ref: t-a }', `{ name: ホースA, ref: t-a, ${extra} }`);

@@ -8,7 +8,9 @@
  *   pnpm run data:fetch entries 2026-09-27 中山 11      候補（枠順前）/ 枠順（確定後。ブリンカーと騎手変更も）
  *   pnpm run data:fetch past    2026-09-27 中山 11      出走馬の過去5走（前走のブリンカーも）
  *   pnpm run data:fetch horses  2026-09-27 中山 11      馬の基本情報（性齢・調教師・血統）
- *   pnpm run data:fetch result  2026-09-27 中山 11      結果
+ *   pnpm run data:fetch result  2026-09-27 中山 11      結果（JRA の結果でレコードの1着に record: true も）
+ *   pnpm run data:fetch records 2026-09-27              その日のファイルのレコード（JRA の結果から埋め戻す）
+ *   pnpm run data:fetch records --all                   data/races/*.yaml すべて（途中で止めても、取った開催は覚えている）
  *
  * オプション:
  *   --dir <dir>        書き込み先（既定 data/races）。試すときは作業用のディレクトリを渡す
@@ -17,14 +19,18 @@
  *   --count <n>        past: 何走さかのぼるか（既定 5）
  *   --horse <名前|ref> past / horses: 対象の馬を絞る（複数回書ける）
  *   --interval <ms>    取得の間隔（既定 1000。500 まで縮められる）
+ *   --records          result / past: JRA の結果からレコード（record: true）も書く（0028 が本番に出るまで既定は書かない）
+ *   --all              records: 全ファイルを対象にする
  *   --require-confirmed entries: 枠順が確定していなければ何も書かずに終える（定期取得用）
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import {
 	applyPastRuns,
 	applyProfile,
+	applyRecordMarks,
+	applyRecords,
 	applyResult,
 	applyRaceRef,
 	applyShutuba,
@@ -50,6 +56,7 @@ import {
 	urls,
 	type Course
 } from './race-data/netkeiba.ts';
+import { jraRecords, setJraRequestInterval } from './race-data/jra.ts';
 import { resultNotSettled } from './race-data/result-ready.ts';
 import { RaceFile } from './race-data/yaml-file.ts';
 
@@ -66,6 +73,8 @@ type Args = {
 	horses: string[];
 	interval?: number;
 	requireConfirmed: boolean;
+	all: boolean;
+	records: boolean;
 };
 
 function parseArgs(argv: string[]): Args {
@@ -76,6 +85,8 @@ function parseArgs(argv: string[]): Args {
 	let count = 5;
 	let interval: number | undefined;
 	let requireConfirmed = false;
+	let all = false;
+	let records = false;
 	for (let i = 0; i < argv.length; i++) {
 		const a = argv[i];
 		if (a === '--') continue;
@@ -85,10 +96,23 @@ function parseArgs(argv: string[]): Args {
 		else if (a === '--horse') horses.push(argv[++i]);
 		else if (a === '--interval') interval = Number(argv[++i]);
 		else if (a === '--require-confirmed') requireConfirmed = true;
+		else if (a === '--all') all = true;
+		else if (a === '--records') records = true;
 		else positional.push(a);
 	}
 	const [command = '', ...rest] = positional;
-	return { command, positional: rest, dir, raceId, count, horses, interval, requireConfirmed };
+	return {
+		command,
+		positional: rest,
+		dir,
+		raceId,
+		count,
+		horses,
+		interval,
+		requireConfirmed,
+		all,
+		records
+	};
 }
 
 /** 利用者に見せて止めるエラー。スタックは出さない。 */
@@ -243,10 +267,29 @@ function print(title: string, lines: string[]) {
 	for (const l of lines) console.log(`  ${l}`);
 }
 
-async function saveAll(files: Iterable<RaceFile>) {
+/** records の日付の引数。 */
+function recordsDate(args: Args): string {
+	const date = args.positional[0];
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? ''))
+		fail('日付は YYYY-MM-DD で指定してください（全部なら --all）');
+	return date;
+}
+
+/** `--all`: データのディレクトリの YAML の開催日（古い順）。 */
+async function allDates(dir: string): Promise<string[]> {
+	return (await readdir(dir))
+		.flatMap((f) => /^(\d{4}-\d{2}-\d{2})\.yaml$/.exec(f)?.[1] ?? [])
+		.sort();
+}
+
+async function saveAll(files: Iterable<RaceFile>, hint = true) {
 	const saved: string[] = [];
 	for (const f of files) {
 		if (await f.save()) saved.push(`${f.created ? '新規' : '更新'} ${f.path}`);
+	}
+	if (!hint) {
+		for (const l of saved) console.log(`  ${l}`);
+		return;
 	}
 	console.log(saved.length > 0 ? `\n${saved.join('\n')}` : '\n変更はありません。');
 	if (saved.length > 0) console.log('\n次: pnpm run data:check');
@@ -259,6 +302,7 @@ async function main() {
 			fail(`--interval は ${MIN_REQUEST_INTERVAL_MS} 以上のミリ秒で指定してください`);
 		}
 		setRequestInterval(args.interval);
+		setJraRequestInterval(args.interval);
 	}
 
 	switch (args.command) {
@@ -341,6 +385,7 @@ async function main() {
 					{
 						before: t.date,
 						count: args.count,
+						recordsOf: args.records ? jraRecords : undefined,
 						blinkerOf: async (run) => {
 							if (!run.raceId) return undefined;
 							if (!pastBlinkers.has(run.raceId)) {
@@ -417,12 +462,36 @@ async function main() {
 			if (notSettled) fail(`${notSettled}（race_id ${raceId}）。`);
 			const people = await peopleResolver();
 			const log = await applyResult(file, race, parsed, people.resolve);
+			// レコードの印は JRA の結果にしか無い。取れなくても netkeiba の結果は書く（警告だけ）
+			// 0028 が本番に出るまでは、`--records` を付けたときだけ書く（既定は JRA も引かない）
+			const marks = args.records ? await jraRecords(t.date, t.course) : null;
+			if (marks) {
+				log.push(
+					...applyRecordMarks(
+						file,
+						race,
+						marks.filter((m) => m.raceNumber === t.raceNumber)
+					)
+				);
+			}
 			await people.flush();
 			print(
 				`${t.date} ${t.course}${t.raceNumber}R ${race.get('name')}（${parsed.meta.trackCondition ?? '?'} / ${parsed.meta.weather ?? '?'}）`,
 				log
 			);
 			await saveAll([file]);
+			return;
+		}
+
+		case 'records': {
+			const dates = args.all ? await allDates(args.dir) : [recordsDate(args)];
+			for (const date of dates) {
+				const file = await RaceFile.load(args.dir, date);
+				if (file.created) fail(`${file.path} がありません`);
+				for (const l of await applyRecords(file, date, jraRecords)) console.log(l);
+				await saveAll([file], false);
+			}
+			console.log('\n次: pnpm run data:check');
 			return;
 		}
 
@@ -435,6 +504,7 @@ async function main() {
 					'  pnpm run data:fetch past    <日付> <場> <R> [--count 5] [--horse 馬名]',
 					'  pnpm run data:fetch horses  <日付> <場> <R> [--horse 馬名]',
 					'  pnpm run data:fetch result  <日付> <場> <R>',
+					'  pnpm run data:fetch records <日付> | --all',
 					'共通: --dir <書き込み先>  --race-id <netkeiba の race_id>  --interval <ms>'
 				].join('\n')
 			);

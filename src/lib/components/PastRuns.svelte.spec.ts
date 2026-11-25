@@ -416,18 +416,11 @@ describe('PastRuns のレース名', () => {
 			runs: [
 				run({
 					raceId: 'rec',
-					date: '2025-11-30',
-					course: '東京',
-					surface: '芝',
-					distance: 2400,
-					finishTime: '2:20.3'
+					finishTime: '2:20.3',
+					record: true
 				}),
 				run({
 					raceId: 'norec',
-					date: '2025-11-30',
-					course: '東京',
-					surface: '芝',
-					distance: 2400,
 					finishTime: '2:20.4'
 				})
 			]

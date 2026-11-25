@@ -40,6 +40,8 @@ export type PastRun = {
 	jockey: string | null;
 	/** ブリンカーの着用。true のときだけ B の札を出す（false・不明は何も出さない）。 */
 	blinker?: boolean | null;
+	/** JRA の結果で「レコード」と書かれた走り。true のときだけ走破タイムを黒地に白文字にする。 */
+	record?: boolean;
 };
 
 /**

@@ -1,0 +1,1 @@
+ALTER TABLE `race_entry` ADD `record` integer;

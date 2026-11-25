@@ -744,10 +744,7 @@
 																	>{/if}
 																{#if r.finishTime}<FinishTime
 																		time={r.finishTime}
-																		date={data.race.date}
-																		course={data.race.course}
-																		surface={data.race.surface}
-																		distance={data.race.distance}
+																		record={r.record}
 																	/>
 																{/if}
 															</p>
