@@ -353,9 +353,11 @@ races:
         popularity: 9
         time: "1:06.9"
         margin: "ハナ"
+        timeDiff: 0.4
         passing: "3-3"
         last3f: 33.9
         weight: 52
+        blinker: false
         horseWeight: 472
         horseWeightDiff: 6
         odds: 21.4
@@ -431,6 +433,7 @@ races:
         popularity: 10
         time: "1:07.2"
         margin: "クビ"
+        timeDiff: 0.7
         passing: "2-2"
         last3f: 34.5
         weight: 57.5
@@ -489,9 +492,11 @@ races:
         popularity: 5
         time: "1:07.6"
         margin: "ハナ"
+        timeDiff: 1.1
         passing: "1-1"
         last3f: 35.2
         weight: 58
+        blinker: false
         horseWeight: 516
         horseWeightDiff: -10
         odds: 8.4
@@ -648,6 +653,7 @@ races:
     weather: 晴
     fieldSize: 16
     winner: ナムラクララ
+    runnerUp: ルシード
     entries:
       - horseNumber: 3
         bracket: 2
@@ -692,6 +698,21 @@ races:
         horseWeight: 522
         horseWeightDiff: 0
         odds: 28.5
+      - horseNumber: 8
+        bracket: 4
+        name: モズナナスター
+        jockey: 古川奈穂
+        ref: nk-2022100490
+        finish: 11
+        popularity: 9
+        time: "1:09.1"
+        timeDiff: 0.7
+        passing: "13-13"
+        last3f: 34.5
+        weight: 55
+        horseWeight: 458
+        horseWeightDiff: 10
+        odds: 27.9
       - horseNumber: 10
         bracket: 5
         name: ナムラクララ
@@ -700,6 +721,7 @@ races:
         finish: 1
         popularity: 1
         time: "1:08.4"
+        timeDiff: -0.1
         passing: "11-10"
         last3f: 34.1
         weight: 55
@@ -714,6 +736,7 @@ races:
         finish: 2
         popularity: 3
         time: "1:08.5"
+        timeDiff: 0.1
         passing: "11-10"
         last3f: 34.2
         weight: 57

@@ -56,3 +56,109 @@ races:
         horseWeight: 436
         horseWeightDiff: -4
         odds: 10
+  - course: 京都
+    raceNumber: 11
+    name: オパールS
+    grade: L
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 18
+    winner: リリージョワ
+    runnerUp: ディアナザール
+    entries:
+      - horseNumber: 6
+        bracket: 3
+        name: リリージョワ
+        jockey: 浜中俊
+        ref: nk-2023105312
+        finish: 1
+        popularity: 2
+        time: "1:06.7"
+        timeDiff: 0
+        passing: "10-10"
+        last3f: 32.8
+        weight: 54
+        blinker: false
+        horseWeight: 448
+        horseWeightDiff: 6
+        odds: 6.5
+      - horseNumber: 11
+        bracket: 6
+        name: オタルエバー
+        jockey: 角田大和
+        ref: nk-2019105658
+        finish: 8
+        popularity: 17
+        time: "1:07.2"
+        timeDiff: 0.5
+        passing: "13-13"
+        last3f: 33.1
+        weight: 56
+        blinker: false
+        horseWeight: 504
+        horseWeightDiff: 4
+        odds: 160.4
+      - horseNumber: 13
+        bracket: 7
+        name: クラスペディア
+        jockey: 小崎綾也
+        ref: nk-2022106394
+        finish: 6
+        popularity: 10
+        time: "1:07.0"
+        timeDiff: 0.3
+        passing: "5-5"
+        last3f: 33.6
+        weight: 57.5
+        blinker: false
+        horseWeight: 518
+        horseWeightDiff: 4
+        odds: 18.1
+      - horseNumber: 17
+        bracket: 8
+        name: ヨシノイースター
+        jockey: 坂井瑠星
+        ref: nk-2018106055
+        finish: 7
+        popularity: 11
+        time: "1:07.1"
+        timeDiff: 0.4
+        passing: "7-7"
+        last3f: 33.4
+        weight: 58
+        blinker: false
+        horseWeight: 492
+        horseWeightDiff: -2
+        odds: 24.9
+  - course: 東京
+    raceNumber: 10
+    name: 白秋S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1400
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 18
+    winner: フォーゲル
+    runnerUp: ホウオウシェリー
+    entries:
+      - horseNumber: 12
+        bracket: 6
+        name: フォーゲル
+        jockey: 池添謙一
+        ref: nk-2023105273
+        finish: 1
+        popularity: 8
+        time: "1:20.4"
+        timeDiff: -0.1
+        passing: "3-3"
+        last3f: 33.2
+        weight: 54
+        blinker: false
+        horseWeight: 532
+        horseWeightDiff: 10
+        odds: 18.2

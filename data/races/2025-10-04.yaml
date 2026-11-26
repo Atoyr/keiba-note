@@ -63,6 +63,9 @@ races:
     direction: 右
     trackCondition: 重
     weather: 曇
+    fieldSize: 18
+    winner: メイショウソラフネ
+    runnerUp: ナムラクララ
     entries:
       - horseNumber: 3
         bracket: 2
@@ -72,6 +75,7 @@ races:
         finish: 1
         popularity: 2
         time: "1:07.7"
+        timeDiff: 0
         passing: "4-4"
         last3f: 33.7
         weight: 57

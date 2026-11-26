@@ -575,6 +575,7 @@ races:
         popularity: 17
         time: "1:08.7"
         margin: "ハナ"
+        timeDiff: 0.7
         passing: "7-8"
         last3f: 33.7
         weight: 57
@@ -650,6 +651,7 @@ races:
         popularity: 3
         time: "1:08.1"
         margin: "クビ"
+        timeDiff: 0.1
         passing: "12-11"
         last3f: 32.8
         weight: 57

@@ -341,3 +341,31 @@ races:
         horseWeight: 416
         horseWeightDiff: -4
         odds: 2.4
+  - course: 阪神
+    raceNumber: 11
+    name: 道頓堀S
+    className: 3勝クラス
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 16
+    winner: インブロリオ
+    runnerUp: マリノトニトゥルス
+    entries:
+      - horseNumber: 4
+        bracket: 2
+        name: インブロリオ
+        jockey: 川田将雅
+        ref: nk-2022101686
+        finish: 1
+        popularity: 1
+        time: "1:07.9"
+        timeDiff: -0.1
+        passing: "3-3"
+        last3f: 34
+        weight: 56
+        horseWeight: 490
+        horseWeightDiff: 6
+        odds: 6.4

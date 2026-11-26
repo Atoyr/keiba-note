@@ -307,9 +307,11 @@ races:
         popularity: 8
         time: "1:08.9"
         margin: "3/4"
+        timeDiff: 1.2
         passing: "8-8"
         last3f: 34.4
         weight: 55
+        blinker: false
         horseWeight: 476
         horseWeightDiff: -2
         odds: 22
@@ -327,6 +329,7 @@ races:
         popularity: 7
         time: "1:08.7"
         margin: "ハナ"
+        timeDiff: 1
         passing: "4-3"
         last3f: 34.4
         weight: 57
@@ -389,9 +392,11 @@ races:
         popularity: 11
         time: "1:08.7"
         margin: "クビ"
+        timeDiff: 1
         passing: "11-8"
         last3f: 34.1
         weight: 57
+        blinker: false
         horseWeight: 478
         horseWeightDiff: 4
         odds: 44.9

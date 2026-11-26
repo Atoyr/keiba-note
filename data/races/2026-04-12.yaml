@@ -413,6 +413,7 @@ races:
         popularity: 3
         time: "1:32.6"
         margin: "クビ"
+        timeDiff: 1.1
         passing: "16-16"
         last3f: 34.4
         weight: 55
@@ -687,6 +688,9 @@ races:
     direction: 右
     trackCondition: 良
     weather: 晴
+    fieldSize: 16
+    winner: クラスペディア
+    runnerUp: モズナナスター
     entries:
       - horseNumber: 3
         bracket: 2
@@ -752,6 +756,7 @@ races:
         finish: 1
         popularity: 5
         time: "1:07.6"
+        timeDiff: 0
         passing: "2-1"
         last3f: 33.9
         weight: 57

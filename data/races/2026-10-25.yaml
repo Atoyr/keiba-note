@@ -414,3 +414,32 @@ races:
         horseWeight: 436
         horseWeightDiff: 0
         odds: 12.7
+  - course: 新潟
+    raceNumber: 11
+    name: ルミエールオータムD
+    grade: L
+    surface: 芝
+    distance: 1000
+    direction: 直線
+    trackCondition: 不良
+    weather: 雨
+    fieldSize: 17
+    winner: モズナナスター
+    runnerUp: エコロレジーナ
+    entries:
+      - horseNumber: 9
+        bracket: 5
+        name: モズナナスター
+        jockey: 富田暁
+        ref: nk-2022100490
+        finish: 1
+        popularity: 8
+        time: "0:56.7"
+        timeDiff: -0.1
+        passing: "6"
+        last3f: 33.7
+        weight: 54
+        blinker: false
+        horseWeight: 458
+        horseWeightDiff: 0
+        odds: 21.2
