@@ -351,3 +351,31 @@ races:
         horseWeight: 470
         horseWeightDiff: 0
         odds: 2.7
+  - course: 中京
+    raceNumber: 6
+    name: 知多特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1200
+    direction: 左
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 11
+    winner: フォーゲル
+    runnerUp: トップアタック
+    entries:
+      - horseNumber: 10
+        bracket: 8
+        name: フォーゲル
+        jockey: コレット
+        ref: nk-2023105273
+        finish: 1
+        popularity: 2
+        time: "1:07.3"
+        timeDiff: -0.1
+        passing: "5-5"
+        last3f: 33
+        weight: 56
+        horseWeight: 522
+        horseWeightDiff: -6
+        odds: 3.4

@@ -358,6 +358,7 @@ races:
         popularity: 4
         time: "1:19.6"
         margin: "クビ"
+        timeDiff: 0.7
         passing: "17-15"
         last3f: 32.4
         weight: 57

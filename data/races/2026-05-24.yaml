@@ -376,6 +376,8 @@ races:
     direction: 直線
     trackCondition: 稍重
     weather: 曇
+    fieldSize: 16
+    winner: エコロレジーナ
     entries:
       - horseNumber: 5
         bracket: 3
@@ -399,6 +401,7 @@ races:
         finish: 3
         popularity: 8
         time: "0:55.4"
+        timeDiff: 0.3
         passing: "4"
         last3f: 32.7
         weight: 54

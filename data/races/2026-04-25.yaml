@@ -544,3 +544,30 @@ races:
         horseWeight: 422
         horseWeightDiff: 6
         odds: 2
+  - course: 福島
+    raceNumber: 10
+    name: 医王寺特別
+    className: 2勝クラス
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 16
+    winner: ウィンストン
+    entries:
+      - horseNumber: 3
+        bracket: 2
+        name: インブロリオ
+        jockey: 丹内祐次
+        ref: nk-2022101686
+        finish: 8
+        popularity: 4
+        time: "1:08.0"
+        timeDiff: 0.3
+        passing: "6-5"
+        last3f: 34
+        weight: 56
+        horseWeight: 480
+        horseWeightDiff: 4
+        odds: 9.4

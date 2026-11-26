@@ -716,3 +716,31 @@ races:
         horseWeight: 508
         horseWeightDiff: 8
         odds: 71.2
+  - course: 福島
+    raceNumber: 11
+    name: みちのくS
+    grade: OP
+    surface: 芝
+    distance: 1200
+    direction: 右
+    trackCondition: 稍重
+    weather: 晴
+    fieldSize: 16
+    winner: ギリーズボール
+    entries:
+      - horseNumber: 2
+        bracket: 1
+        name: インブロリオ
+        jockey: 吉田隼人
+        ref: nk-2022101686
+        finish: 7
+        popularity: 1
+        time: "1:10.8"
+        timeDiff: 0.5
+        passing: "4-3"
+        last3f: 36.4
+        weight: 55
+        blinker: false
+        horseWeight: 482
+        horseWeightDiff: -8
+        odds: 4.9

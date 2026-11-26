@@ -671,6 +671,7 @@ races:
         finish: 5
         popularity: 11
         time: "1:32.2"
+        timeDiff: 0.2
         passing: "8-7-8"
         last3f: 33.7
         weight: 59
@@ -962,6 +963,22 @@ races:
         horseWeight: 530
         horseWeightDiff: 10
         odds: 10
+      - horseNumber: 11
+        bracket: 6
+        name: メイショウソラフネ
+        jockey: 高杉吏麒
+        ref: nk-2019103714
+        finish: 7
+        popularity: 7
+        time: "1:08.1"
+        timeDiff: 0.4
+        passing: "8-8"
+        last3f: 33.6
+        weight: 58
+        blinker: false
+        horseWeight: 452
+        horseWeightDiff: -6
+        odds: 12.2
       - horseNumber: 12
         bracket: 6
         name: タマモブラックタイ
