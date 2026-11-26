@@ -744,3 +744,32 @@ races:
         horseWeight: 482
         horseWeightDiff: -8
         odds: 4.9
+  - course: 京都
+    raceNumber: 3
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 6
+    winner: ゴールデンプロミス
+    runnerUp: トップオブドリーム
+    entries:
+      - horseNumber: 6
+        bracket: 6
+        name: ゴールデンプロミス
+        jockey: 坂井瑠星
+        ref: nk-2024107196
+        finish: 1
+        popularity: 3
+        time: "2:00.7"
+        timeDiff: -0.7
+        passing: "2-2-2-2"
+        last3f: 33.9
+        weight: 56
+        blinker: false
+        horseWeight: 472
+        horseWeightDiff: -6
+        odds: 3.9

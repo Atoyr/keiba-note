@@ -838,3 +838,32 @@ races:
         horseWeight: 422
         horseWeightDiff: 2
         odds: 10.9
+  - course: 札幌
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 良
+    weather: 晴
+    fieldSize: 10
+    winner: ノヴァヴェローチェ
+    runnerUp: サトノフルーク
+    entries:
+      - horseNumber: 9
+        bracket: 8
+        name: ノヴァヴェローチェ
+        jockey: 北村友一
+        ref: nk-2024106455
+        finish: 1
+        popularity: 3
+        time: "1:48.2"
+        timeDiff: -0.6
+        passing: "2-2-2-1"
+        last3f: 34.4
+        weight: 55
+        blinker: false
+        horseWeight: 510
+        horseWeightDiff: 0
+        odds: 7.4

@@ -10,4 +10,94 @@ races:
     surface: 芝
     distance: 2000
     direction: 右
-    entries: []
+    ref: nk-202608050711
+    startTime: "15:40"
+    entries:
+      - name: アーケントレイル
+        jockey: 岩田望来
+        sex: 牡
+        age: 2
+        ref: nk-2024106928
+        trainer: 矢作芳人
+        trainingCenter: 栗東
+        weight: 56
+      - name: エトワールハマー
+        jockey: 武豊
+        sex: 牡
+        age: 2
+        ref: nk-2024100737
+        trainer: 武幸四郎
+        trainingCenter: 栗東
+        weight: 56
+      - name: ゴールデンプロミス
+        jockey: 坂井瑠星
+        sex: 牡
+        age: 2
+        ref: nk-2024107196
+        trainer: 矢作芳人
+        trainingCenter: 栗東
+        weight: 56
+      - name: サノノキセキ
+        jockey: 小林美駒
+        sex: 牡
+        age: 2
+        ref: nk-2024100178
+        trainer: 尾形和幸
+        trainingCenter: 美浦
+        weight: 56
+      - name: シャローチャンプ
+        jockey: C.デムーロ
+        sex: 牡
+        age: 2
+        ref: nk-2024106271
+        trainer: 安田翔伍
+        trainingCenter: 栗東
+        weight: 56
+      - name: ショウナンバトレニ
+        jockey: 松山弘平
+        sex: 牡
+        age: 2
+        ref: nk-2024107009
+        trainer: 高野友和
+        trainingCenter: 栗東
+        weight: 56
+      - name: ドラゴンバルド
+        jockey: モレイラ
+        sex: 牡
+        age: 2
+        ref: nk-2024106649
+        trainer: 福永祐一
+        trainingCenter: 栗東
+        weight: 56
+      - name: ネーロノワール
+        jockey: 川田将雅
+        sex: 牝
+        age: 2
+        ref: nk-2024100638
+        trainer: 斉藤崇史
+        trainingCenter: 栗東
+        weight: 55
+      - name: ノヴァヴェローチェ
+        jockey: 北村友一
+        sex: 牡
+        age: 2
+        ref: nk-2024106455
+        trainer: 上村洋行
+        trainingCenter: 栗東
+        weight: 56
+      - name: フェイマスジャズ
+        jockey: 杉原誠人
+        sex: 牝
+        age: 2
+        ref: nk-2024102965
+        trainer: 大和田成
+        trainingCenter: 美浦
+        weight: 55
+      - name: ポルトブルー
+        jockey: 西村淳也
+        sex: 牡
+        age: 2
+        ref: nk-2024103455
+        trainer: 浜田多実雄
+        trainingCenter: 栗東
+        weight: 56

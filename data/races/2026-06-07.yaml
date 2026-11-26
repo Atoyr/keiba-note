@@ -606,6 +606,21 @@ races:
         horseWeight: 520
         horseWeightDiff: 0
         odds: 1.3
+      - horseNumber: 3
+        bracket: 3
+        name: サノノキセキ
+        jockey: 丹内祐次
+        ref: nk-2024100178
+        finish: 3
+        popularity: 7
+        time: "1:48.8"
+        timeDiff: 0.7
+        passing: "6-6-5"
+        last3f: 34.1
+        weight: 55
+        horseWeight: 462
+        horseWeightDiff: 0
+        odds: 35.1
       - horseNumber: 4
         bracket: 4
         name: レオンティウス
