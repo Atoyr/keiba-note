@@ -767,13 +767,21 @@ VALUES ('01JE2ECOUNTPREVIEW0000000','01JE2EUSER0000000000000000','preview','01JE
 
 -- 推しの馬（favorite_horse）。ダッシュボードの「推しの出走予定」と、馬の画面の「推しにする／推しから外す」を見る。
 -- - E2Eテストホース — 出走予定（2099-04-04 E2E未来賞）がある推し
--- - E2Eソトワク — 走り終えたレースしか無い推し（「出走予定の無い推し」に名前だけ出る）
+-- - E2Eソトワク — 走り終えたレースしか無い推し（ダッシュボードの予定には出ず、馬一覧の「推し馬のみ」に出る）
 -- - E2Eタニンノウマ — **別のユーザー**の推し。今週出走するが、自分のダッシュボードには出てはいけない
 -- E2Eミカギリ（今週出走）は誰の推しでもない。E2E が推しにして、外して確かめる。
+-- - E2Eハズシイチ・E2Eハズシニ — 出走の無い、一般ユーザーの推し。馬一覧の「推し馬のみ」から外す専用（名前順で E2Eテストホースの後ろ）
+-- - no-words のユーザーは E2Eソトワクだけを推している（推しはいるが出走予定が0件のダッシュボード）
+INSERT OR REPLACE INTO horse (id, name, birth_year) VALUES
+	('01JE2EHORSEHAZUSHI1000000', 'E2Eハズシイチ', 2021),
+	('01JE2EHORSEHAZUSHI2000000', 'E2Eハズシニ', 2021);
+
 INSERT OR REPLACE INTO favorite_horse (user_id, horse_id)
 VALUES
 	('01JE2EUSER0000000000000000', '01JE2EHORSE000000000000000'),
 	('01JE2EUSER0000000000000000', '01JE2EHORSED00000000000000'),
+	('01JE2EUSER0000000000000000', '01JE2EHORSEHAZUSHI1000000'),
+	('01JE2EUSER0000000000000000', '01JE2EHORSEHAZUSHI2000000'),
 	('01JE2EOTHERUSER00000000000', '01JE2EHORSEOTHERS000000000');
 
 -- 騎手（/jockeys）。騎手はマスタを持たず、出走馬の騎手名で束ねる。
@@ -1028,6 +1036,9 @@ VALUES ('01JE2EUSERNOWORDS000000000', 'e2e-nowords-google-sub', 'nowords@example
 -- トークンは e2e/seed.ts の NO_WORDS_SESSION_TOKEN の SHA-256。
 INSERT INTO session (id, user_id, expires_at)
 VALUES ('5cc232e4bec7202aa98f698795df3b0dc22e5e9d41197c4822d4a1514f585b59', '01JE2EUSERNOWORDS000000000', 4102444800);
+-- 推しは E2Eソトワク（走り終えたレースだけ）の1頭。推しはいるが出走予定が0件のダッシュボードを見る。
+INSERT INTO favorite_horse (user_id, horse_id)
+VALUES ('01JE2EUSERNOWORDS000000000', '01JE2EHORSED00000000000000');
 
 -- 言葉の登録・削除を押して確かめる専用のユーザー（画面カタログが読む二人と取り合わない）。
 INSERT INTO user (id, google_sub, email, display_name, role)

@@ -26,6 +26,8 @@ export class PagedList<T extends { id: string }> {
 	#source: () => { url: PageUrl; page: Page<T> };
 	#pick: (data: Record<string, unknown>) => Page<T>;
 	#extra = $state<PagedExtra<T> | null>(null);
+	/** `remove` した回数。読んでいる間に行を除いたかを `loadNext` が見分ける（描画には使わないので `$state` にしない）。 */
+	#removed = 0;
 
 	#key = $derived.by(() => this.#source().url.search);
 
@@ -67,31 +69,55 @@ export class PagedList<T extends { id: string }> {
 	 * 次のページを読んで足す。読めなければ投げる（`LoadMore` が「もう一度」を出す）。
 	 *
 	 * 読んでいる間に絞り込みを変えて開き直していたら、読んだ分は捨てる（別の一覧の続きなので）。
+	 * 読んでいる間に行を除いていたら（`remove`）、読んだ分は捨てて、除いたあとの位置から読み直す。
+	 * 除く前の位置で数えたページなので、そのまま足すと `next` が1つ先へずれて1行読み飛ばす。
 	 * ログインが切れていたら、`load` が返すリダイレクト（ログイン画面）へそのまま進む。
 	 */
 	async loadNext(): Promise<void> {
-		const href = this.href;
-		const offset = this.next;
-		if (href === null || offset === null) return;
-		const key = this.#key;
+		for (;;) {
+			const href = this.href;
+			const offset = this.next;
+			if (href === null || offset === null) return;
+			const key = this.#key;
+			const removed = this.#removed;
 
-		const result = await preloadData(href);
-		if (result.type === 'redirect') {
-			// eslint-disable-next-line svelte/no-navigation-without-resolve -- 行き先は load が返したリダイレクト（ログイン画面）
-			await goto(result.location);
+			const result = await preloadData(href);
+			if (result.type === 'redirect') {
+				// eslint-disable-next-line svelte/no-navigation-without-resolve -- 行き先は load が返したリダイレクト（ログイン画面）
+				await goto(result.location);
+				return;
+			}
+			// load が落ちたときや通信が切れたときは、SvelteKit 3 が `type: 'error'` で返す。
+			if (result.type === 'error') {
+				throw new Error(`続きを読めなかった（${href}）`);
+			}
+			if (key !== this.#key) return;
+			if (removed !== this.#removed) continue;
+
+			const page = this.#pick(result.data);
+			this.#extra = {
+				key,
+				items: [...(this.#current?.items ?? []), ...page.items],
+				next: page.next
+			};
 			return;
 		}
-		// load が落ちたときや通信が切れたときは、SvelteKit 3 が `type: 'error'` で返す。
-		if (result.type === 'error') {
-			throw new Error(`続きを読めなかった（${href}）`);
-		}
-		if (key !== this.#key) return;
+	}
 
-		const page = this.#pick(result.data);
+	/**
+	 * 表示中の行を1つ除く（推しの解除など、一覧から消えた行）。足した分（extra）から除き、`next` を1つ減らす。
+	 * 後ろの行が1つ前に詰まるので、1ページ目の行を除いたときも、減らさないと続きの先頭を1頭読み飛ばす。
+	 * 1ページ目の行そのものは `load` の読み直しで消える（呼ぶ側が `update()` する）。足した分が無ければ何もしない
+	 * （続きの位置は読み直した1ページ目が持つ）。読んでいる途中の続きは、どちらの場合も読み直させる（`loadNext`）。
+	 */
+	remove(id: string): void {
+		this.#removed++;
+		const extra = this.#current;
+		if (!extra) return;
 		this.#extra = {
-			key,
-			items: [...(this.#current?.items ?? []), ...page.items],
-			next: page.next
+			...extra,
+			items: extra.items.filter((i) => i.id !== id),
+			next: extra.next === null ? null : extra.next - 1
 		};
 	}
 

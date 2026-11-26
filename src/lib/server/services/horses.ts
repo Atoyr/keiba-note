@@ -1,7 +1,7 @@
 import { and, asc, countDistinct, eq, like, or } from 'drizzle-orm';
 import { ulid } from 'ulidx';
 import type { Db } from '#lib/server/db/index.ts';
-import { horse, note, raceEntry, type Horse } from '#lib/server/db/schema.ts';
+import { favoriteHorse, horse, note, raceEntry, type Horse } from '#lib/server/db/schema.ts';
 import { PAGE_SIZE, toPage, type Page } from '#lib/utils/paging.ts';
 
 /**
@@ -17,7 +17,8 @@ export type HorseListItem = Pick<Horse, 'id' | 'name' | 'sex' | 'birthYear' | 't
 };
 
 /**
- * 馬の一覧。`q` があれば名前の部分一致で絞る。
+ * 馬の一覧。`q` があれば名前の部分一致で絞る。`favoriteOnly` なら **viewer 本人の**推しだけ
+ * （`favorite_horse` を `user_id = :viewer` で結ぶ。他人の推しは出ない）。
  *
  * 件数は相関サブクエリではなく LEFT JOIN + GROUP BY で出す。
  * Drizzle は raw な `sql` テンプレート内の列をテーブル修飾なしで展開するため、
@@ -34,14 +35,14 @@ export type HorseListItem = Pick<Horse, 'id' | 'name' | 'sex' | 'birthYear' | 't
 export async function listHorses(
 	db: Db,
 	viewerId: string,
-	q?: string,
+	{ q, favoriteOnly }: { q?: string; favoriteOnly?: boolean } = {},
 	offset = 0
 ): Promise<Page<HorseListItem>> {
 	const filter = q?.trim()
 		? or(like(horse.name, `%${q.trim()}%`), like(horse.nameKana, `%${q.trim()}%`))
 		: undefined;
 
-	const rows = await db
+	const base = db
 		.select({
 			id: horse.id,
 			name: horse.name,
@@ -51,7 +52,15 @@ export async function listHorses(
 			entryCount: countDistinct(raceEntry.id),
 			noteCount: countDistinct(note.id)
 		})
-		.from(horse)
+		.from(horse);
+	// favoriteOnly は本人（viewerId）の推しだけに絞る。他人の推しは JOIN の条件で外れる。
+	const source = favoriteOnly
+		? base.innerJoin(
+				favoriteHorse,
+				and(eq(favoriteHorse.horseId, horse.id), eq(favoriteHorse.userId, viewerId))
+			)
+		: base;
+	const rows = await source
 		.leftJoin(raceEntry, eq(raceEntry.horseId, horse.id))
 		.leftJoin(note, and(eq(note.horseId, horse.id), eq(note.authorId, viewerId)))
 		.where(filter)

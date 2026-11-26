@@ -107,7 +107,7 @@ export type FavoriteRun = FavoriteHorse & {
 
 export type FavoriteSchedule = {
 	runs: FavoriteRun[];
-	/** 出走予定が1つも無い推し。ここに名前が無いと、推しにした馬が画面から消えて見える。 */
+	/** 出走予定が1つも無い推し。名前は並べず、推しがいるか（ダッシュボードの「推しの馬をすべて見る」を出すか）の判定に使う。 */
 	idle: FavoriteHorse[];
 };
 

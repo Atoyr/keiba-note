@@ -97,7 +97,8 @@ form action と同じサービス関数（`savePreviewNotes`・`saveRaceReview`�
 | `/races/[id]` | POST `?/quick` | `entryId`・`body` | クイック入力の自動保存。1頭の本文だけを保存し、札は残す（`saveEntryReviewBody`）。`{ quickSaved }` | 開催前 400 / 出走馬でない・検証 `fail(400)` / 404 |
 | `/races/[id]/preview` | GET | — | 出馬表（行に自分の特徴メモ `horseTrait: { body, tags } | null` と、そのレースに合う札 `horseTraitMatches`）・馬柱・過去のメモ・オッズ（D1 にある最新の値と時点）。重賞なら過去の好走馬の要約（`graded.placers`）と、自分の重賞の傾向と重賞のタイムライン（`graded`。形は `/races/[id]` と同じ）。出走馬の行に自分の騎手のまとめ（`jockeySummary`。形は `/races/[id]` と同じ） | 404 |
 | `/races/[id]/preview` | POST `default` | `raceNoteBody`・`racePace`・`flowSpots.<局面>`（JSON）・`flowMemo.<局面>`・`body.<entryId>`・`tags.<entryId>`・`mark.<entryId>`（局面は `start`・`corner4`・`finish`） | 見立て（展開の予想を含む）と予想印を一括保存。盤面の馬はこのレースの出走馬に絞る | 検証 `fail(400)` / 404 |
-| `/horses` | GET | `q`・`offset` | 馬一覧を `offset` 件目から100頭（続きの読み方は `/races` と同じ） | `offset` が数字でなければ 0 |
+| `/horses` | GET | `q`・`favorite`（`1` で自分の推しだけ。それ以外の値は絞らない）・`offset` | 馬一覧を `offset` 件目から100頭（続きの読み方は `/races` と同じ） | `offset` が数字でなければ 0 |
+| `/horses` | POST `?/unfavorite` | `horseId` | 自分の推しから外す（外すだけ。`{ unfavorited }` を返す）。本人の行しか消さないので、他人の推し・無い馬の id でも何も起きず成功 | 検証 `fail(400, { horseId, message })` |
 | `/horses/[id]` | GET | — | プロフィールとタイムライン・自分の推しか・自分の特徴メモ（`trait: { body, tags } | null`） | 404 |
 | `/horses/[id]` | POST `?/favorite` | `favorite`（`1` で推しにする・`0` で外す） | 自分の推しを切り替え、`{ favorite }` を返す。何度送っても同じ状態になる | 検証 `fail(400)` / 無い馬 404 |
 | `/horses/[id]` | POST `?/saveTrait` | `body`（特徴メモの本文。10,000字まで）・`tags`（複数。札の選択肢は `HORSE_TRAIT_TAGS`） | 自分の特徴メモを書く・書き直す・消す（1人・1頭に1本。本文も札も空で保存すると消える）。`{ trait: 'saved' \| 'cleared' }` を返す。マスタ（`horse.profileMemo`）には何も書かないので admin でなくても書ける | 検証 `fail(400, { traitBody, traitTags, traitMessage })`（`body`・`message` のキーは近況メモ・上部の失敗の帯と混ざるので使わない）/ 無い馬 404 |

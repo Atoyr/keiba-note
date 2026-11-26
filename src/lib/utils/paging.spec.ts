@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appendPage, pageHref, parseOffset, toPage } from './paging';
+import { actionHref, appendPage, pageHref, parseOffset, toPage } from './paging';
 
 describe('parseOffset', () => {
 	it('数字だけを受け、それ以外は先頭に倒す', () => {
@@ -43,6 +43,29 @@ describe('pageHref', () => {
 
 	it('先頭のページは offset を外す', () => {
 		expect(pageHref(new URL('http://x/horses?offset=200'), 0)).toBe('/horses');
+	});
+});
+
+describe('pageHref と action 名', () => {
+	it('`/` で始まるキー（action 名）は持ち越さず、favorite は残す', () => {
+		const url = new URL('http://x/horses?favorite=1&q=a&/unfavorite');
+		expect(pageHref(url, 100)).toBe('/horses?favorite=1&q=a&offset=100');
+		expect(pageHref(url, 0)).toBe('/horses?favorite=1&q=a');
+	});
+});
+
+describe('actionHref', () => {
+	it('今のクエリを残して action 名を足す', () => {
+		expect(actionHref(new URL('http://x/horses?favorite=1&q=a&offset=100'), 'unfavorite')).toBe(
+			'/horses?favorite=1&q=a&offset=100&/unfavorite'
+		);
+	});
+
+	it('クエリが無ければ ? の直後に付け、既にある action 名は外す', () => {
+		expect(actionHref(new URL('http://x/horses'), 'unfavorite')).toBe('/horses?/unfavorite');
+		expect(actionHref(new URL('http://x/horses?favorite=1&/unfavorite'), 'unfavorite')).toBe(
+			'/horses?favorite=1&/unfavorite'
+		);
 	});
 });
 

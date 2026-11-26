@@ -193,16 +193,13 @@
 						{/each}
 					</ul>
 				{/if}
-				<!-- 出走予定の無い推しも名前だけ出す。出さないと、推しにした馬がどこにも見えなくなる。 -->
-				{#if data.favorites.idle.length > 0}
-					<p class="mt-2 text-xs text-muted-foreground">
-						出走予定の無い推し:
-						{#each data.favorites.idle as h, i (h.horseId)}{#if i > 0}・{/if}<a
-								href={resolve('/horses/[id]', { id: h.horseId })}
-								class="underline">{h.horseName}</a
-							>{/each}
-					</p>
-				{/if}
+				<!-- 出走予定の無い推しの名前は並べない。推しの一覧（馬一覧の「推し馬のみ」）で探せる。 -->
+				<p class="mt-2">
+					<a
+						href="{resolve('/horses')}?favorite=1"
+						class="text-sm text-muted-foreground hover:underline">推しの馬をすべて見る →</a
+					>
+				</p>
 			{/if}
 		</section>
 

@@ -2,12 +2,12 @@
 	import { onMount, tick, untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import Star from '@lucide/svelte/icons/star';
 	import { toast } from 'svelte-sonner';
 	import { Button } from '#lib/components/ui/button/index.ts';
 	import { Textarea } from '#lib/components/ui/textarea/index.ts';
 	import { Label } from '#lib/components/ui/label/index.ts';
 	import * as Select from '#lib/components/ui/select/index.ts';
+	import FavoriteStar from '#lib/components/FavoriteStar.svelte';
 	import NoteMenu from '#lib/components/NoteMenu.svelte';
 	import ShareControl from '#lib/components/ShareControl.svelte';
 	import SharedBadge from '#lib/components/SharedBadge.svelte';
@@ -119,9 +119,7 @@
 {#snippet actions()}
 	<!-- 推しは本人だけのもの（誰が何を推しているかは他人に見えない）。押したボタンが次の状態を送るので、
 	     二重に押しても行き来しない。
-	     **星だけのボタンにしている**（文字を添えない。色も色名を直に書く。design-system.md 第7章）。
-	     今の状態は星の塗り（推しなら★、そうでなければ☆）で、押すと何が起きるかは読み上げと hover の名前
-	     （aria-label / title）で出す。輪郭は白い地に 3:1（WCAG 1.4.11）に届く amber-600、塗りは yellow-400。 -->
+	     星だけのボタンは `FavoriteStar`（文字を添えない。色は `--favorite` のトークン。design-system.md 第7章）。 -->
 	<form
 		method="POST"
 		action="?/favorite"
@@ -148,20 +146,7 @@
 		}}
 	>
 		<input type="hidden" name="favorite" value={data.favorite ? '0' : '1'} />
-		<Button
-			type="submit"
-			variant="ghost"
-			size="icon-lg"
-			aria-label={data.favorite ? '推しから外す' : '推しにする'}
-			title={data.favorite ? '推しから外す' : '推しにする'}
-			aria-disabled={favoritePending}
-			class="aria-disabled:opacity-50"
-		>
-			<Star
-				class="size-7 text-amber-600 {data.favorite ? 'fill-yellow-400' : ''}"
-				aria-hidden="true"
-			/>
-		</Button>
+		<FavoriteStar favorite={data.favorite} pending={favoritePending} size="lg" />
 	</form>
 {/snippet}
 

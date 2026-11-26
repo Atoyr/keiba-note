@@ -78,7 +78,9 @@ SvelteKit 3 / Svelte 5（runes）で画面とルートを書くときの約束�
 - 長い一覧は100件ずつ読む。サービス層は `offset` を受けて `Page<T>`（`items` と `next`）を返し、
   画面は `PagedList`（`components/paged-list.svelte.ts`）で1ページ目に続きを足して、下端に `LoadMore` を置く。
   続きは `?offset=` を付けた同じ URL の `load` を `preloadData` で読む（専用の API は作らない）。
-  戻ったときに読んだ分を残すため、`export const snapshot = list.snapshot` を置く
+  戻ったときに読んだ分を残すため、`export const snapshot = list.snapshot` を置く。
+  行を一覧から消す操作（推しの解除など）は、成功のあと `list.remove(id)` で足した分と続きの位置を揃えてから `update()` で1ページ目を読み直す。
+  そのとき読んでいる途中の続きは、除く前の位置で数えたものなので、`PagedList` が捨てて除いたあとの位置から読み直す
 - 「保存しました」のような一時的な知らせはトースト（`svelte-sonner` の `toast`）で出す。
   `use:enhance` の結果が `success` のときに呼ぶ。JS が無いとトーストは出ないので、同じ文を
   `<noscript>` で画面にも置く。**失敗（`form.message`）はトーストにしない。** 直すまで消えては困るので、

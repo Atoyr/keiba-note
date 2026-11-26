@@ -891,6 +891,8 @@ export const SCREENS: Screen[] = [
 			await page.getByRole('group', { name: 'メモの札' }).getByText('次走消し').click();
 		}
 	},
+	// 推しはいるが出走予定が0件のダッシュボード。「出走予定はまだありません」と「推しの馬をすべて見る」。
+	{ name: 'dashboard-idle-favorites', path: '/', auth: true, as: 'no-words' },
 	{ name: 'horses', path: '/horses', auth: true, stayAtTop: true },
 	// 続きを読み込んだあと。2ページ目の馬が足され、下端のボタンは消える。
 	{
@@ -901,6 +903,40 @@ export const SCREENS: Screen[] = [
 			await waitForHydration(page);
 			await loadMore(page).click();
 			await expect(loadMore(page)).toHaveCount(0);
+		}
+	},
+	// 推し馬のみ。各行の右に塗った星（押すと推しから外す）。馬名の検索と併用できる。
+	{ name: 'horses-favorites', path: '/horses?favorite=1', auth: true, stayAtTop: true },
+	// 推しが0頭（admin）。案内と「すべての馬を見る」。
+	{
+		name: 'horses-favorites-empty',
+		path: '/horses?favorite=1',
+		auth: true,
+		as: 'admin',
+		stayAtTop: true
+	},
+	// 推し馬のみ + 当たらない検索語。「検索条件を外す」。
+	{
+		name: 'horses-favorites-no-match',
+		path: `/horses?favorite=1&q=${encodeURIComponent('E2E存在しない馬')}`,
+		auth: true,
+		stayAtTop: true
+	},
+	{
+		// 星を押したが外せなかったところ。行は残り、行の下に失敗の文が出る。
+		name: 'horse-favorite-error',
+		path: '/horses?favorite=1',
+		auth: true,
+		stayAtTop: true,
+		prepare: async (page) => {
+			await waitForHydration(page);
+			await failNextAction(page, '/horses', {
+				horseId: HORSE_ID,
+				message: '推しから外せませんでした。'
+			});
+			// 外す専用の馬（E2Eハズシ）は E2E が実際に外すので、押すのは外されない馬にする。
+			await page.getByRole('button', { name: 'E2Eテストホースを推しから外す' }).click();
+			await page.getByRole('alert').waitFor();
 		}
 	},
 	// 推しの馬。名前の右に黄色く塗った★（押すと推しから外す）。
