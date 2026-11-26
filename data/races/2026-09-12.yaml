@@ -454,3 +454,32 @@ races:
         horseWeight: 460
         horseWeightDiff: 0
         odds: 5.2
+  - course: 阪神
+    raceNumber: 2
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 7
+    winner: ショウナンバトレニ
+    runnerUp: メイショウジェード
+    entries:
+      - horseNumber: 5
+        bracket: 5
+        name: ショウナンバトレニ
+        jockey: 松山弘平
+        ref: nk-2024107009
+        finish: 1
+        popularity: 1
+        time: "2:01.5"
+        timeDiff: 0
+        passing: "2-2-3-2"
+        last3f: 34.2
+        weight: 55
+        blinker: false
+        horseWeight: 500
+        horseWeightDiff: 0
+        odds: 1.3

@@ -660,6 +660,8 @@ races:
     direction: 左
     trackCondition: 良
     weather: 曇
+    fieldSize: 12
+    winner: ノドゥス
     entries:
       - horseNumber: 2
         bracket: 2
@@ -675,6 +677,21 @@ races:
         horseWeight: 440
         horseWeightDiff: 10
         odds: 410.4
+      - horseNumber: 4
+        bracket: 4
+        name: サノノキセキ
+        jockey: 戸崎圭太
+        ref: nk-2024100178
+        finish: 3
+        popularity: 1
+        time: "1:34.5"
+        timeDiff: 0.2
+        passing: "2-2"
+        last3f: 33.9
+        weight: 55
+        horseWeight: 460
+        horseWeightDiff: 2
+        odds: 3
       - horseNumber: 9
         bracket: 7
         name: デザートスピリット

@@ -840,3 +840,46 @@ races:
         horseWeight: 492
         horseWeightDiff: 0
         odds: 5.5
+  - course: 中京
+    raceNumber: 3
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 2000
+    direction: 左
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 8
+    winner: ドラゴンバルド
+    runnerUp: ショウナンバトレニ
+    entries:
+      - horseNumber: 2
+        bracket: 2
+        name: ショウナンバトレニ
+        jockey: 松山弘平
+        ref: nk-2024107009
+        finish: 2
+        popularity: 2
+        time: "2:03.8"
+        timeDiff: 0.2
+        passing: "3-3-3-4"
+        last3f: 33.6
+        weight: 55
+        horseWeight: 500
+        horseWeightDiff: 0
+        odds: 2.7
+      - horseNumber: 6
+        bracket: 6
+        name: ドラゴンバルド
+        jockey: 川田将雅
+        ref: nk-2024106649
+        finish: 1
+        popularity: 1
+        time: "2:03.6"
+        timeDiff: -0.2
+        passing: "3-3-3-3"
+        last3f: 33.6
+        weight: 55
+        horseWeight: 484
+        horseWeightDiff: 0
+        odds: 1.5

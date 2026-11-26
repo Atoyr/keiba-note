@@ -423,3 +423,30 @@ races:
         horseWeight: 478
         horseWeightDiff: 0
         odds: 72.8
+  - course: 阪神
+    raceNumber: 4
+    name: 2歳未勝利
+    className: 未勝利
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 曇
+    fieldSize: 7
+    winner: ガリアルダ
+    entries:
+      - horseNumber: 3
+        bracket: 3
+        name: エトワールハマー
+        jockey: M.デムーロ
+        ref: nk-2024100737
+        finish: 2
+        popularity: 3
+        time: "2:01.2"
+        timeDiff: 0.4
+        passing: "7-7-2-2"
+        last3f: 36.8
+        weight: 55
+        horseWeight: 510
+        horseWeightDiff: 2
+        odds: 3.5

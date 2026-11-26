@@ -480,3 +480,61 @@ races:
         horseWeight: 466
         horseWeightDiff: 4
         odds: 31.8
+  - course: 阪神
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 2000
+    direction: 右
+    trackCondition: 良
+    weather: 雨
+    fieldSize: 14
+    winner: ネーロノワール
+    runnerUp: トップオブドリーム
+    entries:
+      - horseNumber: 10
+        bracket: 6
+        name: ネーロノワール
+        jockey: 川田将雅
+        ref: nk-2024100638
+        finish: 1
+        popularity: 1
+        time: "2:03.3"
+        timeDiff: -0.4
+        passing: "14-13-6-4"
+        last3f: 34.9
+        weight: 55
+        blinker: false
+        horseWeight: 504
+        horseWeightDiff: 0
+        odds: 1.7
+  - course: 中山
+    raceNumber: 5
+    name: 2歳新馬
+    className: 新馬
+    surface: 芝
+    distance: 1800
+    direction: 右
+    trackCondition: 重
+    weather: 曇
+    fieldSize: 14
+    winner: フェイマスジャズ
+    runnerUp: ジャロロッソ
+    entries:
+      - horseNumber: 4
+        bracket: 3
+        name: フェイマスジャズ
+        jockey: 杉原誠人
+        ref: nk-2024102965
+        finish: 1
+        popularity: 4
+        time: "1:53.8"
+        timeDiff: -0.2
+        passing: "2-2-2-2"
+        last3f: 36
+        weight: 55
+        blinker: false
+        horseWeight: 462
+        horseWeightDiff: 0
+        odds: 11.9
