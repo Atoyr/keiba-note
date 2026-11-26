@@ -25,5 +25,7 @@ export default defineConfig({
 	reporter: 'dot',
 	// CI のランナーは 4 vCPU で、既定（コア数の半分）だと 2 になる。4 に増やして使い切る。
 	// サーバー（wrangler dev）は1つなので、増やしすぎるとテストよりそちらが詰まる。手元は既定のまま。
-	workers: process.env.CI ? 4 : undefined
+	workers: process.env.CI ? 4 : undefined,
+	// CI だけ、落ちたテストを1回やり直す。理由と、やり直しても落ちたときの扱いは testing.md 第3章。
+	retries: process.env.CI ? 1 : 0
 });
