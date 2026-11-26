@@ -69,6 +69,8 @@ test('馬の画面でメモを書くと、再読み込みしても残り、札�
 	// 本文も札も空にして保存すると消える。
 	await section(page).getByText('書き直す').click();
 	await expect(field(page)).toHaveValue('高速馬場向き。\n外を回すと伸びる。');
+	// 読む形の札は toggle イベントのあとに消える。消える前に押すと、読む形の札と選ぶ札の2つに当たる。
+	await expect(badge(page, '京都巧者')).toHaveCount(0);
 	await field(page).fill('');
 	await section(page).getByText('京都巧者', { exact: true }).click();
 	await section(page).getByText('右回り巧者', { exact: true }).click();
